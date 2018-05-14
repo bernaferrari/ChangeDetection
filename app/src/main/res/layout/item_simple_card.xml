@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp"
+    android:background="@color/CARD">
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:foreground="?android:attr/selectableItemBackground">
+
+        <!--android:background="@color/CONTRAST_CARD_HOUR"-->
+        <!--android:textColor="@color/CARD_HOUR_MAIN_TITLE"-->
+
+        <!--<TextView-->
+        <!--android:id="@+id/subtitle"-->
+        <!--android:layout_width="0dp"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginBottom="8dp"-->
+        <!--android:ellipsize="end"-->
+        <!--android:fontFamily="@font/ibm_medium"-->
+        <!--android:maxLines="1"-->
+        <!--android:text="aaaaa"-->
+        <!--android:textColor="@color/FontLessStrong"-->
+        <!--android:textSize="16sp"-->
+        <!--app:layout_constraintBottom_toBottomOf="parent"-->
+        <!--app:layout_constraintEnd_toEndOf="@+id/title"-->
+        <!--app:layout_constraintStart_toStartOf="@+id/title"-->
+        <!--app:layout_constraintTop_toBottomOf="@+id/title" />-->
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="8dp"
+            android:text="aaaaa"
+            android:textColor="@color/FontStrong"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </android.support.constraint.ConstraintLayout>
+</FrameLayout>

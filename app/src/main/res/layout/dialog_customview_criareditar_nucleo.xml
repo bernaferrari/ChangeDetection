@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:text="Nome do núcleo:"
+        android:textColor="@color/FontWeak"
+        android:textSize="16dp" />
+
+    <EditText
+        android:id="@+id/nome"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Digite o nome"
+        android:singleLine="true"
+        android:textColor="@color/FontStrong"
+        android:textSize="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:text="Dia da semana:"
+        android:textColor="@color/FontWeak"
+        android:textSize="16dp" />
+
+    <Spinner
+        android:id="@+id/dia"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/FontStrong"
+        android:textSize="16dp" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:text="Hora:"
+        android:textColor="@color/FontWeak"
+        android:textSize="16dp" />
+
+    <EditText
+        android:id="@+id/hora"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="false"
+        android:hint="Selecione a hora"
+
+        android:imeOptions="actionNext"
+        android:nextFocusDown="@id/phone"
+        android:singleLine="true"
+
+        android:textColor="@color/FontStrong"
+        android:textSize="16dp" />
+
+    <!--<TextView-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_marginTop="18dp"-->
+    <!--android:text="Contato"-->
+    <!--android:textColor="@color/FontWeak"-->
+    <!--android:textSize="16dp" />-->
+
+    <!--<EditText-->
+    <!--android:id="@+id/phone"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:hint="Digite o telefone"-->
+    <!--android:singleLine="true"-->
+    <!--android:textColor="@color/FontStrong"-->
+    <!--android:textSize="16dp" />-->
+
+    <!--<TextView-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_marginTop="18dp"-->
+    <!--android:text="Coordenador"-->
+    <!--android:textColor="@color/FontWeak"-->
+    <!--android:textSize="16dp" />-->
+
+    <!--<EditText-->
+    <!--android:id="@+id/coordenador"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:hint="Digite o coordenador"-->
+    <!--android:singleLine="true"-->
+    <!--android:textColor="@color/FontStrong"-->
+    <!--android:textSize="16dp" />-->
+
+</LinearLayout>

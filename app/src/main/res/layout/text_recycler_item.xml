@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground"
+    app:cardBackgroundColor="@color/CARD">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+
+        android:ellipsize="end"
+        android:fontFamily="@font/work_regular"
+        android:includeFontPadding="false"
+        android:text="Núcleos"
+        android:textColor="@color/FontLessStrong"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/subtitle"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/subtitle"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+
+        android:background="@color/md_grey_200"
+        android:ellipsize="end"
+        android:fontFamily="@font/ibm_mono_medium"
+        android:gravity="center|right"
+
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
+
+        android:includeFontPadding="false"
+
+        android:text="Núcleos"
+        android:textColor="@color/FontStrong"
+        android:textSize="16sp"
+
+        app:layout_constraintBottom_toBottomOf="@+id/invisiblesubtitle"
+        app:layout_constraintEnd_toEndOf="@+id/invisiblesubtitle"
+        app:layout_constraintStart_toStartOf="@+id/invisiblesubtitle"
+        app:layout_constraintTop_toTopOf="@+id/invisiblesubtitle"
+        tools:text="25" />
+
+    <TextView
+        android:id="@+id/invisiblesubtitle"
+        android:visibility="invisible"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+
+        android:paddingLeft="12dp"
+        android:ellipsize="end"
+        android:fontFamily="@font/ibm_mono_medium"
+        android:gravity="center"
+        android:includeFontPadding="false"
+
+        android:text="9999"
+        android:textColor="@color/FontStrong"
+        android:textSize="16sp"
+
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="9999" />
+
+</android.support.constraint.ConstraintLayout>

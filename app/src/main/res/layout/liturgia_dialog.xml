@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="Ex. João 3:16"
+        android:text="Título:"
+        android:textColor="@color/FontWeak"
+        android:textSize="16dp" />
+
+    <EditText
+        android:id="@+id/preencher1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:hint="Ex: João 3:16"
+        android:inputType="textCapSentences"
+        android:singleLine="true"
+        android:textColor="@color/FontStrong"
+        android:textSize="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Categoria:"
+        android:textColor="@color/FontWeak"
+        android:textSize="16dp" />
+
+    <Spinner
+        android:id="@+id/spinner"
+        style="@style/underlinedspinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/FontStrong" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:text="Detalhes:"
+        android:textColor="@color/FontWeak"
+        android:textSize="16dp" />
+
+    <EditText
+        android:id="@+id/preencher2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:hint="Ex: Davi Guedes"
+        android:inputType="textMultiLine"
+        android:textColor="@color/FontStrong"
+        android:textSize="16dp" />
+</LinearLayout>

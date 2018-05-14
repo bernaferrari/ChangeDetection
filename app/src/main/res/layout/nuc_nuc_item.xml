@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:background="@color/CARD"
+        android:foreground="?android:attr/selectableItemBackground">
+
+        <!--android:background="@color/CONTRAST_CARD_HOUR"-->
+
+        <TextView
+            android:id="@+id/subtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/ibm_medium"
+            android:text="13:30"
+            android:textAlignment="textEnd"
+            android:textColor="@color/FontStrong"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="@+id/subtitle2"
+            app:layout_constraintEnd_toEndOf="@+id/subtitle2"
+            app:layout_constraintStart_toStartOf="@+id/subtitle2"
+            app:layout_constraintTop_toTopOf="@+id/subtitle2" />
+
+        <TextView
+            android:id="@+id/subtitle2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:paddingLeft="24dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
+            android:text="00:00"
+            android:textAlignment="textEnd"
+            android:textSize="18sp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!--android:textColor="@color/CARD_HOUR_MAIN_TITLE"-->
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/FontStrong"
+            android:textSize="18sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/imageView"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toEndOf="@+id/subtitle2"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </android.support.constraint.ConstraintLayout>
+</FrameLayout>

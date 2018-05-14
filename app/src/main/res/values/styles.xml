@@ -1,0 +1,260 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/md_grey_500</item>
+        <item name="colorAccent">@color/atlasianblue</item>
+
+        <!--<item name="actionMenuTextColor">@color/md_white_1000</item>-->
+        <item name="android:textColorPrimary">@color/md_white_1000</item>
+        <!--<item name="android:textColor">@color/md_white_1000</item>-->
+
+        <!--<item name="android:textColorPrimary">@color/md_white_1000</item>-->
+        <item name="android:windowBackground">@color/windowBackground</item>
+
+        <item name="md_background_color">@color/CARD</item>
+        <item name="md_title_color">@color/FontStrong</item>
+        <item name="md_content_color">@color/FontWeak</item>
+
+        <item name="drawerArrowStyle">@style/MaterialDrawer.DrawerArrowStyle</item>
+    </style>
+
+    <style name="SearchViewStyle" parent="Theme.AppCompat.DayNight">
+        <item name="android:editTextColor">@color/FontStrong</item>
+    </style>
+
+
+    <style name="TextAppearance.DialogTitle" parent="@style/TextAppearance.AppCompat.Title">
+        <item name="android:textColor">@color/FontStrong</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.01</item>
+        <!--<item name="lineHeightHint">28sp</item>-->
+    </style>
+
+    <style name="simpleTextForm">
+        <item name="android:imeOptions">actionNext</item>
+        <item name="android:inputType">text</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@color/FontStrong</item>
+    </style>
+
+    <style name="emailForm" parent="simpleTextForm">
+        <item name="android:inputType">textEmailAddress</item>
+    </style>
+
+    <style name="phoneForm" parent="simpleTextForm">
+        <item name="android:inputType">phone</item>
+    </style>
+
+    <style name="birthdayForm" parent="simpleTextForm">
+        <item name="android:focusable">false</item>
+    </style>
+
+    <style name="noToolbar" parent="Theme.AppCompat.DayNight">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+
+        <!--<item name="actionMenuTextColor">@color/md_white_1000</item>-->
+        <item name="android:textColorPrimary">@color/md_white_1000</item>
+        <item name="android:textColor">@color/FontLessStrong</item>
+
+        <!--<item name="android:textColorPrimary">@color/md_white_1000</item>-->
+        <item name="colorAccent">@color/md_white_1000</item>
+        <item name="android:windowBackground">@color/windowBackground</item>
+
+        <item name="md_background_color">@color/CARD</item>
+        <item name="md_title_color">@color/FontStrong</item>
+        <item name="md_content_color">@color/FontWeak</item>
+
+        <item name="drawerArrowStyle">@style/MaterialDrawer.DrawerArrowStyle</item>
+    </style>
+
+    <style name="Schedule.TimeSeparator" parent="">
+        <item name="android:textAppearance">?android:textAppearanceMedium</item>
+        <!-- <item name="android:fontFeatureSettings">smcp</item> -->
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/FontStrong</item>
+    </style>
+
+    <!-- Dark Buttons -->
+    <style name="GreenButton" parent="ThemeOverlay.AppCompat.Dark">
+        <item name="colorButtonNormal">@color/md_green_A200</item>
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+    <style name="pessoascadastradas" parent="FBUI">
+        <item name="android:textColorHint">@color/md_white_1000</item>
+        <item name="colorAccent">@color/md_orange_500</item>
+    </style>
+
+    <style name="FBUI" parent="todosencontros">
+        <item name="colorAccent">#dd2c00</item>
+        <item name="drawerArrowStyle">@style/MaterialDrawer.DrawerArrowStyle</item>
+
+        <item name="md_background_color">@color/CARD</item>
+        <item name="md_title_color">@color/FontStrong</item>
+        <item name="md_content_color">@color/FontWeak</item>
+    </style>
+
+    <style name="todosencontros" parent="Theme.AppCompat.DayNight">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="android:actionModeBackground">@color/highlight_actionbar</item>
+        <item name="android:windowBackground">@color/windowBackground</item>
+
+        <item name="android:textColorPrimary">@color/md_white_1000</item>
+        <item name="android:textColor">@color/FontLessStrong</item>
+        <item name="android:textColorHint">@color/FontWeak</item>
+
+        <item name="actionMenuTextColor">@color/md_white_1000</item>
+    </style>
+
+    <style name="UmEncontro" parent="Theme.AppCompat.DayNight">
+        <item name="colorPrimary">@color/md_white_1000</item>
+
+        <item name="actionMenuTextColor">@color/colorPrimary</item>
+        <item name="android:textColorPrimary">@color/md_grey_800</item>
+        <item name="colorControlNormal">@color/md_grey_800</item>
+
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/redaccent2</item>
+    </style>
+
+    <style name="ProgressColor">
+        <item name="colorAccent">@color/colorPrimary</item> <!-- Whatever color you want-->
+    </style>
+
+    <style name="newww" parent="Theme.AppCompat.DayNight">
+        <item name="colorPrimary">@color/md_white_1000</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="android:windowBackground">@color/windowBackground</item>
+
+        <item name="actionMenuTextColor">@color/colorPrimary</item>
+        <item name="android:textColorPrimary">@color/FontStrong</item>
+        <item name="colorControlNormal">@color/md_grey_800</item>
+
+        <item name="colorAccent">@color/secondaryColor</item>
+    </style>
+
+    <style name="About" parent="Theme.Mal.Light">
+        <item name="colorPrimary">@color/md_white_1000</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+
+        <item name="mal_card_background">@color/CARD</item>
+        <item name="android:windowBackground">@color/windowBackground</item>
+
+        <item name="mal_color_primary">@color/FontStrong</item>
+        <item name="mal_color_secondary">@color/FontWeak</item>
+    </style>
+
+
+    <style name="AboutDark" parent="Theme.Mal.Dark">
+        <item name="colorPrimary">#243447</item>
+        <item name="colorPrimaryDark">#161F2B</item>
+
+        <item name="mal_card_background">@color/windowBackgroundNucleosTop</item>
+        <item name="android:windowBackground">@color/windowBackground</item>
+
+        <item name="mal_color_primary">@color/FontStrong</item>
+        <item name="mal_color_secondary">@color/FontWeak</item>
+
+    </style>
+
+    <style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/splashtest</item>
+    </style>
+
+
+    <style name="Welcome" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+
+        <item name="actionMenuTextColor">@color/md_white_1000</item>
+        <item name="android:textColorPrimary">@color/md_white_1000</item>
+        <item name="android:textColorSecondary">@color/md_white_1000</item>
+
+        <item name="colorAccent">@color/md_white_1000</item>
+
+        <item name="drawerArrowStyle">@style/MaterialDrawer.DrawerArrowStyle</item>
+    </style>
+
+    <style name="MaterialDrawer.DrawerArrowStyle" parent="Widget.AppCompat.DrawerArrowToggle">
+        <item name="spinBars">false</item>
+        <item name="color">@color/FontStrong</item>
+    </style>
+
+
+    <style name="greensanduiche" parent="Widget.AppCompat.ActionBar">
+        <item name="colorControlNormal">@color/colorPrimary</item>
+    </style>
+
+
+    <style name="PagerTabStripText" parent="TextAppearance.Design.Tab">
+        <item name="textAllCaps">false</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="ToolBarStyle" parent="Theme.AppCompat">
+        <item name="android:textColorPrimary">@android:color/black</item>
+        <item name="android:textColorSecondary">@android:color/black</item>
+        <item name="actionMenuTextColor">@android:color/black</item>
+    </style>
+
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <!-- Activity with no Title -->
+    <style name="ThemeOverlay.MyNoTitleActivity" parent="AppTheme">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <!-- Dark Buttons -->
+    <style name="ThemeOverlay.MyDarkButton" parent="ThemeOverlay.AppCompat.Dark">
+        <item name="colorButtonNormal">@color/colorAccent</item>
+        <item name="android:layout_marginRight">4dp</item>
+        <item name="android:layout_marginLeft">4dp</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <!-- Light EditTexts -->
+    <style name="ThemeOverlay.MyLightEditText" parent="ThemeOverlay.AppCompat.Dark" />
+
+    <style name="ThemeOverlay.MyTextDetail" parent="AppTheme">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fadeScrollbars">true</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">5</item>
+        <item name="android:padding">4dp</item>
+        <item name="android:scrollbars">vertical</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="ThemeOverlay.FirebaseIcon" parent="AppTheme">
+        <item name="android:layout_marginTop">@dimen/icon_top_margin</item>
+        <item name="android:layout_marginBottom">@dimen/icon_bottom_margin</item>
+    </style>
+
+    <style name="ThemeOverlay.MyTitleText" parent="AppTheme">
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">36sp</item>
+    </style>
+
+    <style name="underlinedspinner" parent="@style/Base.Widget.AppCompat.Spinner.Underlined">
+        <item name="colorPrimary">@color/FontStrong</item>
+        <item name="actionMenuTextColor">@color/colorPrimary</item>
+        <item name="android:textColorPrimary">@color/FontStrong</item>
+        <item name="android:textColorSecondary">@color/FontStrong</item>
+        <item name="colorControlNormal">@color/FontStrong</item>
+        <item name="android:textColor">@color/FontStrong</item>
+    </style>
+</resources>

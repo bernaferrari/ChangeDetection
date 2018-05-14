@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<android.support.v7.widget.AppCompatButton xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/menubutton"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    android:background="@drawable/btn1"
+    android:elevation="0dp"
+    android:fontFamily="@font/ibm_medium"
+    android:gravity="center"
+    android:padding="8dp"
+    android:text="Sair"
+    android:textAllCaps="false"
+    android:textColor="@color/md_red_500"
+    android:textSize="16dp" />

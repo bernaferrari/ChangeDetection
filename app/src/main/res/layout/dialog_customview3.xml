@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:text="Email:"
+        android:textColor="@color/FontWeak"
+        android:textSize="16dp" />
+
+    <EditText
+        android:id="@+id/preencher2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Digite o email"
+        android:inputType="textEmailAddress"
+        android:singleLine="true"
+        android:textColor="@color/FontStrong"
+        android:textSize="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:text="Tipo:"
+        android:textColor="@color/FontWeak"
+        android:textSize="16dp" />
+
+    <Spinner
+        android:id="@+id/preencher1"
+        style="@style/underlinedspinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp" />
+
+</LinearLayout>

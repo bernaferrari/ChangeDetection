@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/title"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_centerVertical="true"
+    android:layout_marginTop="16dp"
+    android:background="@color/CARD"
+    android:fontFamily="sans-serif"
+    android:gravity="start"
+    android:padding="16dp"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp"
+    android:textColor="@color/FontStrongest"
+    android:textSize="20sp"
+    android:textStyle="bold" />

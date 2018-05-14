@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<com.example.changedetection.ElasticDragDismissFrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/elastic"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_light"
+    android:elevation="@dimen/z_fab"
+    app:dragDismissDistance="@dimen/drag_dismiss_distance">
+
+    <android.support.constraint.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/title_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?android:actionBarSize"
+        android:background="@color/background_light"
+        android:baselineAligned="false"
+        android:orientation="horizontal"
+        android:paddingTop="@dimen/spacing_micro"
+        android:paddingBottom="@dimen/spacing_micro"
+        android:elevation="1dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/closecontent"
+            android:layout_width="@dimen/avatar_bounds"
+            android:layout_height="@dimen/avatar_bounds"
+            android:layout_gravity="center"
+            android:layout_marginStart="@dimen/avatar_margin"
+            android:layout_marginEnd="@dimen/avatar_margin"
+            android:background="?android:selectableItemBackgroundBorderless"
+            android:padding="@dimen/avatar_margin"
+            app:srcCompat="@drawable/ic_close_down" />
+
+        <TextView
+            android:id="@+id/titlecontent"
+            style="@style/TextAppearance.AppCompat.Title"
+            tools:text="Devocionais"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|center_vertical"
+            android:gravity="center_vertical|start"
+            android:layout_weight="1"
+            android:paddingRight="@dimen/padding_normal"
+            android:textColor="@color/FontStrong" />
+
+        <ImageView
+            android:id="@+id/settings"
+            android:layout_width="@dimen/avatar_bounds"
+            android:layout_height="@dimen/avatar_bounds"
+            android:layout_gravity="center"
+            android:layout_marginStart="@dimen/avatar_margin"
+            android:layout_marginEnd="@dimen/avatar_margin"
+            android:background="?android:selectableItemBackgroundBorderless"
+            android:padding="@dimen/avatar_margin"
+            android:scaleType="center" />
+    </LinearLayout>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/topRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="4dp"
+        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toTopOf="@+id/bottomRecycler"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title_bar" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/bottomRecycler"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</android.support.constraint.ConstraintLayout>
+</com.example.changedetection.ElasticDragDismissFrameLayout>

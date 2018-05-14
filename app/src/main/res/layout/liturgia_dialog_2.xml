@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Selecione a data:"
+        android:textColor="@color/FontWeak"
+        android:textSize="16dp" />
+
+    <EditText
+        android:id="@+id/preencher1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:focusable="false"
+        android:hint="Data: "
+        android:imeOptions="actionNext"
+        android:nextFocusDown="@id/preencher2"
+        android:singleLine="true"
+        android:textColor="@color/FontStrong"
+        android:textSize="16dp" />
+</LinearLayout>
