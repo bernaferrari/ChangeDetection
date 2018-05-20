@@ -1,4 +1,6 @@
-package com.example.changedetection/*
+package com.example.changedetection
+
+/*
  * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,8 +17,6 @@ package com.example.changedetection/*
  */
 
 import android.content.Context
-
-import com.example.changedetection.FakeTasksRemoteDataSource
 import com.example.changedetection.data.source.DiffsRepository
 import com.example.changedetection.data.source.TasksRepository
 import com.example.changedetection.data.source.local.DiffsLocalDataSource

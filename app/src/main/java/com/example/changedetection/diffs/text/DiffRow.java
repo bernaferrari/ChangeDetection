@@ -28,18 +28,14 @@ import java.io.Serializable;
  */
 public final class DiffRow implements Serializable {
 
-    private Tag tag;
     private final String oldLine;
     private final String newLine;
+    private Tag tag;
 
     public DiffRow(Tag tag, String oldLine, String newLine) {
         this.tag = tag;
         this.oldLine = oldLine;
         this.newLine = newLine;
-    }
-
-    public enum Tag {
-        INSERT, DELETE, CHANGE, EQUAL
     }
 
     /**
@@ -72,7 +68,7 @@ public final class DiffRow implements Serializable {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -87,7 +83,7 @@ public final class DiffRow implements Serializable {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
@@ -129,5 +125,9 @@ public final class DiffRow implements Serializable {
     @Override
     public String toString() {
         return "[" + this.tag + "," + this.oldLine + "," + this.newLine + "]";
+    }
+
+    public enum Tag {
+        INSERT, DELETE, CHANGE, EQUAL
     }
 }

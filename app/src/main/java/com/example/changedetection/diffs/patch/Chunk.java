@@ -31,8 +31,8 @@ import java.util.List;
  * {@link java.lang.Object#equals equals()} correctly can be subject to differencing using this library.
  * </p>
  *
- * @author <a href="dm.naumenko@gmail.com>Dmitry Naumenko</a>
  * @param T The type of the compared elements in the 'lines'.
+ * @author <a href="dm.naumenko@gmail.com>Dmitry Naumenko</a>
  */
 public final class Chunk<T> {
 
@@ -43,7 +43,7 @@ public final class Chunk<T> {
      * Creates a chunk and saves a copy of affected lines
      *
      * @param position the start position
-     * @param lines the affected lines
+     * @param lines    the affected lines
      */
     public Chunk(int position, List<T> lines) {
         this.position = position;
@@ -54,7 +54,7 @@ public final class Chunk<T> {
      * Creates a chunk and saves a copy of affected lines
      *
      * @param position the start position
-     * @param lines the affected lines
+     * @param lines    the affected lines
      */
     public Chunk(int position, T[] lines) {
         this.position = position;
@@ -85,15 +85,15 @@ public final class Chunk<T> {
         return position;
     }
 
-    public void setLines(List<T> lines) {
-        this.lines = lines;
-    }
-
     /**
      * @return the affected lines
      */
     public List<T> getLines() {
         return lines;
+    }
+
+    public void setLines(List<T> lines) {
+        this.lines = lines;
     }
 
     public int size() {
@@ -109,7 +109,7 @@ public final class Chunk<T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -124,7 +124,7 @@ public final class Chunk<T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override

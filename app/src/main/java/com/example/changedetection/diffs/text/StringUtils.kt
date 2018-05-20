@@ -19,8 +19,6 @@ limitations under the License.
  */
 package com.example.changedetection.diffs.text
 
-import java.util.stream.Collectors.toList
-
 internal object StringUtils {
 
     /**

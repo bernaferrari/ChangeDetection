@@ -21,17 +21,9 @@ package com.example.changedetection.diffs.text
 
 import com.example.changedetection.diffs.DiffUtils
 import com.example.changedetection.diffs.algorithm.DiffException
-import com.example.changedetection.diffs.patch.ChangeDelta
-import com.example.changedetection.diffs.patch.Chunk
-import com.example.changedetection.diffs.patch.DeleteDelta
-import com.example.changedetection.diffs.patch.Delta
-import com.example.changedetection.diffs.patch.InsertDelta
-import com.example.changedetection.diffs.patch.Patch
+import com.example.changedetection.diffs.patch.*
 import com.example.changedetection.diffs.text.DiffRow.Tag
 import java.util.*
-import java.util.function.BiPredicate
-import java.util.function.Function
-import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 /**
@@ -422,7 +414,8 @@ class DiffRowGenerator private constructor(builder: Builder) {
         /**
          * Splitting lines by word to achieve word by word diff checking.
          */
-        val SPLITTER_BY_WORD = { line: String -> splitStringPreserveDelimiter(line, SPLIT_BY_WORD_PATTERN) }
+        val SPLITTER_BY_WORD =
+            { line: String -> splitStringPreserveDelimiter(line, SPLIT_BY_WORD_PATTERN) }
 
         /**
          * Splitting lines by character to achieve char by char diff checking.

@@ -85,8 +85,44 @@
     <color name="FontStrongest">@color/md_black_1000</color>
     <color name="FontStrong">@color/md_grey_900</color>
 
-    <color name="FontStrongTransparent">#70000000</color>
+    <!--<color name="FontStrongTransparent">#70000000</color>-->
     <color name="FontStrongTransparent2">#A0000000</color>
+
+
+
+    <color name="FontStrongestTransparent">@color/md_black_1000</color>
+    <color name="FontStrongTransparent">@color/md_grey_900</color>
+    <color name="FontLessStrongTransparent">@color/md_grey_700</color>
+    <color name="FontWeakTransparent">@color/md_grey_600</color>
+    <color name="FontWeakerTransparent">@color/md_grey_500</color>
+
+    <!-- logic
+    md900 -> rgb(33,33,33) => 87% black
+    md800 -> rgb(66,66,66) => 74% black
+    md700 -> rgb(97,97,97) => 62% black
+    md600 -> 54% black
+    md500 -> 38% black
+    md400 -> 27% black
+    md300 -> 14% black
+    md200 -> 7% black
+    md100 -> 4% black
+    md50 -> 2% black
+    -->
+
+    <!--transparent grey-->
+    <color name="md_grey_transparent_50">#05FAFAFA</color>
+    <color name="md_grey_transparent_100">#0AF5F5F5</color>
+    <color name="md_grey_transparent_200">#12EEEEEE</color>
+    <color name="md_grey_transparent_300">#23E0E0E0</color>
+    <color name="md_grey_transparent_400">#45BDBDBD</color>
+    <color name="md_grey_transparent_500">#619E9E9E</color>
+    <color name="md_grey_transparent_600">#89757575</color>
+    <color name="md_grey_transparent_700">#9E616161</color>
+    <color name="md_grey_transparent_800">#BC424242</color>
+    <color name="md_grey_transparent_900">#DD212121</color>
+    <!--<color name="md_black_1000">#000000</color>-->
+    <!--<color name="md_white_1000">#ffffff</color>-->
+
 
     <!-- COLORS FROM GITHUB -->
     <color name="num_deletion">#ffeef0</color>

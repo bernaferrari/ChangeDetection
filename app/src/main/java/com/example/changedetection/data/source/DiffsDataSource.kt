@@ -17,10 +17,9 @@
 package com.example.changedetection.data.source
 
 import com.example.changedetection.data.Diff
-import com.example.changedetection.data.Task
 
 /**
- * Main entry point for accessing tasks data.
+ * Main entry point for accessing sites data.
  */
 interface DiffsDataSource {
 
@@ -46,7 +45,9 @@ interface DiffsDataSource {
 
     fun refreshDiffs()
 
-    fun deleteAllDiffs()
+    fun deleteAllDiffsForSite()
+
+    fun deleteAllDiffsForSite(siteId: String)
 
     fun deleteDiff(diffId: String)
 }

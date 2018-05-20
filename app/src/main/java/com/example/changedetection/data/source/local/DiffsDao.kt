@@ -19,35 +19,40 @@ package com.example.changedetection.data.source.local
 import android.arch.persistence.room.*
 import com.example.changedetection.data.Diff
 
-import com.example.changedetection.data.Task
-
 /**
- * Data Access Object for the tasks table.
+ * Data Access Object for the sites table.
  */
 @Dao
 interface DiffsDao {
 
-
-
     @Transaction
-    @Query("SELECT * FROM Tasks WHERE entryid = :id LIMIT 1")
+    @Query("SELECT * FROM sites WHERE siteId = :id LIMIT 1")
     fun getDiffsForUser(id: String): UserAndAllPets?
 
+    @Query("SELECT count(1) FROM diffs WHERE siteId = :id")
+    fun getDiffsCountForUser(id: String): Int
+
     /**
-     * Select a task by id.
+     * Select a site by id.
      *
-     * @param taskId the task id.
-     * @return the task with taskId.
+     * @param taskId the site id.
+     * @return the site with taskId.
      */
-    @Query("SELECT * FROM diffs WHERE owner = :diffId ORDER BY timestamp DESC LIMIT 1")
-    fun getDiffById(diffId: String): Diff?
+    @Query("SELECT * FROM diffs WHERE siteId = :id ORDER BY timestamp DESC LIMIT 1")
+    fun getDiffBySiteId(id: String): Diff?
+
+    @Query("SELECT * FROM diffs")
+    fun getAllDiffs(): List<Diff>
+
+    @Query("DELETE FROM diffs WHERE siteId = :id")
+    fun deleteAllDiffsForSite(id: String)
 
     /**
      * Insert a diff in the database. If the diff already exists, replace it.
      *
-     * @param task the task to be inserted.
+     * @param site the site to be inserted.
      */
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.FAIL)
     fun insertDiff(diff: Diff)
 
     /**
@@ -56,65 +61,62 @@ interface DiffsDao {
     @Query("DELETE FROM diffs")
     fun deleteTasks()
 
-    @Query("SELECT * FROM diffs WHERE owner = :owner ORDER BY timestamp DESC LIMIT 1")
-    fun getLastDiff(owner: String): List<Diff>?
-
 //    /**
-//     * Select all tasks from the tasks table.
+//     * Select all sites from the sites table.
 //     *
-//     * @return all tasks.
+//     * @return all sites.
 //     */
 //    @get:Query("SELECT * FROM Tasks")
-//    val tasks: List<Task>
+//    val sites: List<Site>
 //
 //    /**
-//     * Select a task by id.
+//     * Select a site by id.
 //     *
-//     * @param taskId the task id.
-//     * @return the task with taskId.
+//     * @param taskId the site id.
+//     * @return the site with taskId.
 //     */
 //    @Query("SELECT * FROM Tasks WHERE entryid = :taskId")
-//    fun getTaskById(taskId: String): Task?
+//    fun getTaskById(taskId: String): Site?
 //
 //    /**
-//     * Insert a task in the database. If the task already exists, replace it.
+//     * Insert a site in the database. If the site already exists, replace it.
 //     *
-//     * @param task the task to be inserted.
+//     * @param site the site to be inserted.
 //     */
 //    @Insert(onConflict = OnConflictStrategy.REPLACE)
-//    fun insertTask(task: Task)
+//    fun insertTask(site: Site)
 //
 //    /**
-//     * Update a task.
+//     * Update a site.
 //     *
-//     * @param task task to be updated
-//     * @return the number of tasks updated. This should always be 1.
+//     * @param site site to be updated
+//     * @return the number of sites updated. This should always be 1.
 //     */
 //    @Update
-//    fun updateTask(task: Task): Int
+//    fun updateTask(site: Site): Int
 //
 //    /**
-//     * Update the complete status of a task
+//     * Update the complete status of a site
 //     *
-//     * @param taskId    id of the task
+//     * @param taskId    id of the site
 //     * @param completed status to be updated
 //     */
-//    @Query("UPDATE tasks SET completed = :completed WHERE entryid = :taskId")
+//    @Query("UPDATE sites SET completed = :completed WHERE entryid = :taskId")
 //    fun updateCompleted(taskId: String, completed: Boolean)
 //
 //    /**
-//     * Delete a task by id.
+//     * Delete a site by id.
 //     *
-//     * @return the number of tasks deleted. This should always be 1.
+//     * @return the number of sites deleted. This should always be 1.
 //     */
 //    @Query("DELETE FROM Tasks WHERE entryid = :taskId")
 //    fun deleteTaskById(taskId: String): Int
 //
 //
 //    /**
-//     * Delete all completed tasks from the table.
+//     * Delete all completed sites from the table.
 //     *
-//     * @return the number of tasks deleted.
+//     * @return the number of sites deleted.
 //     */
 //    @Query("DELETE FROM Tasks WHERE completed = 1")
 //    fun deleteCompletedTasks(): Int

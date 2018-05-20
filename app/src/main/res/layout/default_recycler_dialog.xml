@@ -65,6 +65,29 @@
             android:scaleType="center" />
     </LinearLayout>
 
+        <android.support.v7.widget.CardView
+            android:id="@+id/isempty"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_margin="32dp"
+            app:cardCornerRadius="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/topRecycler"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/topRecycler">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="16dp"
+                android:text="Select two snapshots below \n to compare the differences"
+                android:fontFamily="@font/work_regular"
+                android:textSize="16sp" />
+
+        </android.support.v7.widget.CardView>
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/topRecycler"
         android:layout_width="match_parent"
@@ -80,7 +103,6 @@
         android:id="@+id/bottomRecycler"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

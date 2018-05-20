@@ -23,10 +23,8 @@ package com.example.changedetection.diffs.algorithm.myers;
  * A node in a diffpath.
  *
  * @author <a href="mailto:juanco@suigeneris.org">Juanco Anez</a>
- *
  * @see DiffNode
  * @see Snake
- *
  */
 public final class PathNode {
 
@@ -50,8 +48,8 @@ public final class PathNode {
     /**
      * Concatenates a new path node with an existing diffpath.
      *
-     * @param i The position in the original sequence for the new node.
-     * @param j The position in the revised sequence for the new node.
+     * @param i    The position in the original sequence for the new node.
+     * @param j    The position in the revised sequence for the new node.
      * @param prev The previous node in the path.
      */
     public PathNode(int i, int j, boolean snake, boolean bootstrap, PathNode prev) {

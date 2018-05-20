@@ -2,7 +2,7 @@ package com.example.changedetection.ui;
 
 /**
  * Created by bernardoferrari on 09/11/17.
-* Inspired on FastHub implementation.
+ * Inspired on FastHub implementation.
  */
 
 import android.content.Context;

@@ -18,20 +18,12 @@ package com.example.changedetection
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
-import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
-import android.arch.lifecycle.Transformations
 import android.content.Context
-import android.databinding.BaseObservable
-import android.databinding.Bindable
-import android.databinding.ObservableArrayList
-import android.databinding.ObservableBoolean
-import android.databinding.ObservableField
-import android.databinding.ObservableList
+import android.databinding.*
 import android.graphics.drawable.Drawable
 import com.example.changedetection.data.Diff
-
-import com.example.changedetection.data.Task
+import com.example.changedetection.data.Site
 import com.example.changedetection.data.source.DiffsDataSource
 import com.example.changedetection.data.source.DiffsRepository
 import com.example.changedetection.data.source.TasksDataSource
@@ -43,12 +35,12 @@ import com.example.changedetection.groupie.TextRecycler
 import com.example.changedetection.util.SingleLiveEvent
 import com.orhanobut.logger.Logger
 import com.xwray.groupie.Section
-
-import java.util.ArrayList
-
+import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.launch
 
 /**
- * Exposes the data to be used in the task list screen.
+ * Exposes the data to be used in the site list screen.
  *
  *
  * [BaseObservable] implements a listener registration mechanism which is notified when a
@@ -68,13 +60,12 @@ class TasksViewModel
 ) : AndroidViewModel(context) {
 
     // These observable fields will update Views automatically
-    val items: ObservableList<Task> = ObservableArrayList()
 
     val items2 = MutableLiveData<MutableList<SiteAndLastDiff>>()
 
     val dataLoading = ObservableBoolean(false)
 
-    val currentFilteringLabel = ObservableField<String>()
+    val canShowDiff = MutableLiveData<Boolean>()
 
     val noTasksLabel = ObservableField<String>()
 
@@ -108,7 +99,7 @@ class TasksViewModel
     }
 
     //    /**
-    //     * Sets the current task filtering type.
+    //     * Sets the current site filtering type.
     //     *
     //     * @param requestType Can be {@link TasksFilterType#ALL_TASKS},
     //     *                    {@link TasksFilterType#COMPLETED_TASKS}, or
@@ -143,35 +134,33 @@ class TasksViewModel
     //        }
     //    }
 
-    fun clearCompletedTasks() {
-        mTasksRepository.clearCompletedTasks()
-        //        mSnackbarText.setValue(R.string.completed_tasks_cleared);
-//        loadTasks(false, false)
+    fun removeTask(site: Site) {
+        mDiffsRepository.deleteAllDiffsForSite(site.id)
+        mTasksRepository.deleteSite(site.id)
     }
 
-    fun completeTask(task: Task, completed: Boolean) {
+    fun completeTask(site: Site, completed: Boolean) {
         // Notify repository
         if (completed) {
-            mTasksRepository.completeTask(task)
             //            showSnackbarMessage(R.string.task_marked_complete);
         } else {
-            mTasksRepository.activateTask(task)
+            mTasksRepository.activateTask(site)
             //            showSnackbarMessage(R.string.task_marked_active);
         }
     }
 
     // Called when clicking on fab.
-    internal fun saveTask(title: String, url: String, timestamp: Long): Task {
-        var task = Task(title, url, timestamp)
-//        if (task.isEmpty()) {
+    internal fun saveTask(title: String, url: String, timestamp: Long): Site {
+        val task = Site(title, url, timestamp)
+//        if (site.isEmpty()) {
 //            mSnackbarText.setValue(R.string.empty_task_message)
 //            return
 //        }
 //        if (isNewTask() || mTaskId == null) {
-//            createTask(task)
+//            createTask(site)
 //        } else {
-//            task = Task(title.get(), url.get(), mTaskId, mTaskCompleted)
-//            updateTask(task)
+//            site = Site(title.get(), url.get(), mTaskId, mTaskCompleted)
+//            updateTask(site)
 //        }
 
         mTasksRepository.saveTask(task)
@@ -182,8 +171,9 @@ class TasksViewModel
 
     // Called when clicking on fab.
     internal fun saveWebsite(diff: Diff): MutableLiveData<Boolean> {
-        val didItWork = MutableLiveData<Boolean>()
+//        mTasksRepository.saveTask(site)
 
+        val didItWork = MutableLiveData<Boolean>()
         mDiffsRepository.saveDiff(diff, object : DiffsDataSource.GetDiffCallback {
             override fun onDiffLoaded(diff: Diff) {
                 didItWork.value = true
@@ -197,8 +187,8 @@ class TasksViewModel
         return didItWork
     }
 
-    internal fun updateTask(task: Task) {
-        mTasksRepository.saveTask(task)
+    internal fun updateTask(site: Site) {
+        mTasksRepository.saveTask(site)
         mTaskUpdated.call()
     }
 
@@ -207,7 +197,7 @@ class TasksViewModel
 
         mDiffsRepository.getDiffs(id, object : DiffsDataSource.LoadDiffsCallback {
             override fun onDiffsLoaded(diffs: List<Diff>) {
-                diffItems.value = diffs.toMutableList().sortedByDescending { it.timestamp }
+                diffItems.value = diffs.sortedByDescending { it.timestamp }
             }
 
             override fun onDataNotAvailable() {
@@ -217,45 +207,6 @@ class TasksViewModel
 
         return diffItems
     }
-
-    //    SnackbarMessage getSnackbarMessage() {
-    //        return mSnackbarText;
-    //    }
-    //
-    //    SingleLiveEvent<String> getOpenTaskEvent() {
-    //        return mOpenTaskEvent;
-    //    }
-    //
-    //    SingleLiveEvent<Void> getNewTaskEvent() {
-    //        return mNewTaskEvent;
-    //    }
-
-    //    private void showSnackbarMessage(Integer message) {
-    //        mSnackbarText.setValue(message);
-    //    }
-
-    //    /**
-    //     * Called by the Data Binding library and the FAB's click listener.
-    //     */
-    //    public void addNewTask() {
-    //        mNewTaskEvent.call();
-    //    }
-    //
-    //    void handleActivityResult(int requestCode, int resultCode) {
-    //        if (AddEditTaskActivity.REQUEST_CODE == requestCode) {
-    //            switch (resultCode) {
-    //                case TaskDetailActivity.EDIT_RESULT_OK:
-    //                    mSnackbarText.setValue(R.string.successfully_saved_task_message);
-    //                    break;
-    //                case AddEditTaskActivity.ADD_EDIT_RESULT_OK:
-    //                    mSnackbarText.setValue(R.string.successfully_added_task_message);
-    //                    break;
-    //                case TaskDetailActivity.DELETE_RESULT_OK:
-    //                    mSnackbarText.setValue(R.string.successfully_deleted_task_message);
-    //                    break;
-    //            }
-    //        }
-    //    }
 
     /**
      * @param forceUpdate   Pass in true to refresh the data in the [TasksDataSource]
@@ -270,69 +221,113 @@ class TasksViewModel
         }
 
         mTasksRepository.getTaskAndDiffs {
-            // We filter the tasks based on the requestType
+            // We filter the sites based on the requestType
             if (showLoadingUI) {
                 dataLoading.set(false)
             }
             mIsDataLoadingError.set(false)
 
             items2.value = it
-            empty.set(items.isEmpty())
+//            empty.set(items.isEmpty())
         }
     }
 
+    var currentJob: Job? = null
+    var withAllDiff: Boolean = false
 
+    val selectedList: MutableList<Diff> = mutableListOf()
+    var wasInitialized = false
 
-    private fun diffagain(section: Section, original: Diff?, new: Diff?) {
-        val (onlyDiff, nonDiff) = generateDiffRows(original, new)
+    fun fromLiveData(updatinghor: MutableList<DiffItem>, sectionTop: Section) {
+        if (!wasInitialized){
+            val firstIndex = 0
+            val secondIndex = 1
 
-        updatingOnlyDiff.clear()
-        updatingOnlyDiff.addAll(onlyDiff)
+            val firstDiff = updatinghor.getOrNull(firstIndex)?.diff?.also {
+                selectedList.add(it)
+            }
+            val secondDiff = updatinghor.getOrNull(secondIndex)?.diff?.also {
+                selectedList.add(it)
+            }
 
-        updatingNonDiff.clear()
-        updatingNonDiff.addAll(nonDiff)
+            diffagain(sectionTop, firstDiff, secondDiff)
+            updatinghor.run {
+                this.map { it.colorSelected = 0 }
+                getOrNull(firstIndex)?.colorSelected = 1
+                getOrNull(secondIndex)?.colorSelected = 2
+            }
 
-        updateSection(section)
+            wasInitialized = true
+        } else {
+            val firstDiff = selectedList.getOrNull(0)
+            val secondDiff = selectedList.getOrNull(1)
+
+            val firstIndex = updatinghor.indexOfFirst { it.diff.fileId == firstDiff?.fileId }
+            val secondIndex = updatinghor.indexOfFirst { it.diff.fileId == secondDiff?.fileId }
+
+            diffagain(sectionTop, firstDiff, secondDiff)
+            updatinghor.run {
+                this.map { it.colorSelected = 0 }
+                getOrNull(firstIndex)?.colorSelected = 1
+                getOrNull(secondIndex)?.colorSelected = 2
+            }
+        }
     }
 
-    fun onClick(item: DiffItem?, updatinghor: MutableList<DiffItem>, section: Section){
+    fun diffagain(section: Section, original: Diff?, new: Diff?) {
+        currentJob?.cancel()
+        currentJob = launch {
+
+            val (onlyDiff, nonDiff) = generateDiffRows(original, new)
+
+            mutableListOf<TextRecycler>().also { mutableList ->
+                if (withAllDiff) {
+                    mutableList.addAll(nonDiff)
+                }
+                mutableList.addAll(onlyDiff)
+                mutableList.sortBy { it.index }
+
+                launch(UI) {
+                    section.update(mutableList)
+                }
+            }
+        }
+    }
+
+    fun onClick(item: DiffItem, listOfItems: MutableList<DiffItem>, section: Section) {
         // This is a simple Finite State Machine
-        if (item !is DiffItem) {
-            return
-        }
-
         when (item.colorSelected) {
             2 -> {
                 // ORANGE -> GREY
-                item.notifyChanged(0)
+                item.setColor(0)
             }
             1 -> {
                 // AMBER -> GREY
-                item.notifyChanged(0)
+                item.setColor(0)
             }
             else -> {
-                when (updatinghor.count { it.colorSelected > 0 }) {
+                when (listOfItems.count { it.colorSelected > 0 }) {
                     0 -> {
                         // NOTHING IS SELECTED -> AMBER
-                        item.notifyChanged(1)
+                        item.setColor(1)
                     }
                     1 -> {
                         // ONE THING IS SELECTED AND IT IS AMBER -> ORANGE
                         // ONE THING IS SELECTED AND IT IS ORANGE -> AMBER
-                        when (updatinghor.firstOrNull { it.colorSelected > 0 }?.colorSelected) {
+                        when (listOfItems.firstOrNull { it.colorSelected > 0 }?.colorSelected) {
                             2 -> {
-                                item.notifyChanged(1)
+                                item.setColor(1)
                                 diffagain(
                                     section,
                                     item.diff,
-                                    updatinghor.first { it.colorSelected == 2 }.diff
+                                    listOfItems.first { it.colorSelected == 2 }.diff
                                 )
                             }
                             else -> {
-                                item.notifyChanged(2)
+                                item.setColor(2)
                                 diffagain(
                                     section,
-                                    updatinghor.first { it.colorSelected == 1 }.diff,
+                                    listOfItems.firstOrNull { it.colorSelected == 1 }?.diff,
                                     item.diff
                                 )
                             }
@@ -340,20 +335,39 @@ class TasksViewModel
                     }
                     else -> {
                         // TWO ARE SELECTED. UNSELECT THE ORANGE, SELECT ANOTHER THING.
-                        updatinghor.first { it.colorSelected >= 2 }.notifyChanged(0)
+                        listOfItems.filter { it.colorSelected >= 2 }.forEach {
+                            it.setColor(0)
+                        }
                         diffagain(
                             section,
-                            updatinghor.first { it.colorSelected == 1 }.diff,
+                            listOfItems.firstOrNull { it.colorSelected == 1 }?.diff,
                             item.diff
                         )
-                        item.notifyChanged(2)
+                        item.colorSelected = 2
+                        item.setColor(2)
                     }
                 }
             }
         }
+
+        listOfItems
+            .also { selectedList.clear() }
+            .filter { it.colorSelected > 0 }
+            .also { if (it.count() < 2) {
+                diffagain(
+                    section,
+                    null,
+                    null
+                )
+            }
+            }
+            .forEach { selectedList.add(it.diff) }
+
+        Logger.d("will addOnPropertyChanged " + listOfItems.count { it.colorSelected > 0 })
+        canShowDiff.value = listOfItems.count { it.colorSelected > 0 } == 2
     }
 
-    fun generateDiffRows(
+    private fun generateDiffRows(
         original: Diff?,
         it: Diff?
     ): Pair<MutableList<TextRecycler>, MutableList<TextRecycler>> {
@@ -371,8 +385,8 @@ class TasksViewModel
 
         //compute the differences for two test texts.
         val rows = generator.generateDiffRows(
-            it.value.split("\n"),
-            original.value.split("\n")
+            it.value.cleanUpHtml().split("\n"),
+            original.value.cleanUpHtml().split("\n")
         )
 
         val updatingNonDiff = mutableListOf<TextRecycler>()

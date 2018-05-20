@@ -16,25 +16,24 @@
 
 package com.example.changedetection.data.source
 
-import com.example.changedetection.data.Diff
-import com.example.changedetection.data.Task
+import com.example.changedetection.data.Site
 import com.example.changedetection.data.source.local.SiteAndLastDiff
 
 /**
- * Main entry point for accessing tasks data.
+ * Main entry point for accessing sites data.
  */
 interface TasksDataSource {
 
     interface LoadTasksCallback {
 
-        fun onTasksLoaded(tasks: List<Task>)
+        fun onTasksLoaded(sites: List<Site>)
 
         fun onDataNotAvailable()
     }
 
     interface GetTaskCallback {
 
-        fun onTaskLoaded(task: Task)
+        fun onTaskLoaded(site: Site)
 
         fun onDataNotAvailable()
     }
@@ -45,13 +44,13 @@ interface TasksDataSource {
 
     fun getTask(taskId: String, callback: GetTaskCallback)
 
-    fun saveTask(task: Task)
+    fun saveTask(site: Site)
 
-    fun completeTask(task: Task)
+    fun completeTask(site: Site)
 
     fun completeTask(taskId: String)
 
-    fun activateTask(task: Task)
+    fun activateTask(site: Site)
 
     fun activateTask(taskId: String)
 
@@ -61,5 +60,5 @@ interface TasksDataSource {
 
     fun deleteAllTasks()
 
-    fun deleteTask(taskId: String)
+    fun deleteSite(taskId: String)
 }

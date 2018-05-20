@@ -5,8 +5,6 @@
     android:layout_height="wrap_content"
     android:clickable="true"
     android:focusable="true"
-    android:paddingBottom="16dp"
-    android:paddingTop="16dp"
     android:foreground="?android:attr/selectableItemBackground"
     app:cardBackgroundColor="@color/CARD">
 
@@ -16,7 +14,6 @@
         android:layout_height="24dp"
 
         android:layout_marginLeft="24dp"
-        android:scaleType="center"
 
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -30,7 +27,10 @@
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
 
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
         android:ellipsize="end"
+
         android:fontFamily="@font/work_medium"
         android:includeFontPadding="false"
         android:maxLines="1"
@@ -38,8 +38,22 @@
         android:textColor="@color/FontStrong"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/item_switch"
         app:layout_constraintStart_toEndOf="@+id/image"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/item_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="16dp"
+        android:clickable="false"
+
+        android:focusable="false"
+        android:visibility="gone"
+
+        app:layout_constraintBottom_toBottomOf="@+id/title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/title" />
 
 </android.support.constraint.ConstraintLayout>

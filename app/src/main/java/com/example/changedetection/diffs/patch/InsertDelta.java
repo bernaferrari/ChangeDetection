@@ -24,8 +24,8 @@ import java.util.List;
 /**
  * Describes the add-delta between original and revised texts.
  *
- * @author <a href="dm.naumenko@gmail.com">Dmitry Naumenko</a>
  * @param T The type of the compared elements in the 'lines'.
+ * @author <a href="dm.naumenko@gmail.com">Dmitry Naumenko</a>
  */
 public final class InsertDelta<T> extends Delta<T> {
 
@@ -33,7 +33,7 @@ public final class InsertDelta<T> extends Delta<T> {
      * Creates an insert delta with the two given chunks.
      *
      * @param original The original chunk. Must not be {@code null}.
-     * @param revised The original chunk. Must not be {@code null}.
+     * @param revised  The original chunk. Must not be {@code null}.
      */
     public InsertDelta(Chunk<T> original, Chunk<T> revised) {
         super(DeltaType.INSERT, original, revised);

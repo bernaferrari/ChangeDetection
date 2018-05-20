@@ -24,9 +24,7 @@ import com.example.changedetection.diffs.algorithm.DiffException
 import com.example.changedetection.diffs.algorithm.myers.MyersDiff
 import com.example.changedetection.diffs.patch.Patch
 import com.example.changedetection.diffs.patch.PatchFailedException
-import java.util.ArrayList
-import java.util.Arrays
-import java.util.Objects
+import java.util.*
 
 /**
  * Implements the difference and patching engine

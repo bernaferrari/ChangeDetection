@@ -1,18 +1,18 @@
 package com.example.changedetection.groupie
 
 
-import android.graphics.*
+import android.graphics.Color
 import android.support.v4.content.ContextCompat
+import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
+import android.text.style.BackgroundColorSpan
+import android.view.Gravity
+import android.widget.TextView
 import com.example.changedetection.R
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.text_recycler_item.*
-import android.text.Spannable
-import android.text.style.BackgroundColorSpan
-import android.view.Gravity
-import android.widget.TextView
 
 class TextRecycler(
     val title: String,
@@ -28,7 +28,7 @@ class TextRecycler(
         token: List<String>,
         color: Int,
         textView: TextView
-    ){
+    ) {
         val spannableDiff2 = SpannableString(token.joinToString(""))
 
         var previousIndex = 0
@@ -37,7 +37,7 @@ class TextRecycler(
         token.forEachIndexed { index, s ->
             currentIndex += s.count()
 //            println("token $token -- current $s" )
-            if (previousIndex != currentIndex && index % 2 != 0){
+            if (previousIndex != currentIndex && index % 2 != 0) {
 //                println("span: $previousIndex -- $currentIndex")
                 spannableDiff2.setSpan(
                     BackgroundColorSpan(color),
@@ -70,7 +70,7 @@ class TextRecycler(
             else -> Color.TRANSPARENT
         }
 
-        if (codeColorHighlight != Color.TRANSPARENT){
+        if (codeColorHighlight != Color.TRANSPARENT) {
             setSpannable(
                 token,
                 codeColorHighlight,
@@ -87,7 +87,7 @@ class TextRecycler(
         viewHolder.title.setBackgroundColor(codeColor)
 
         viewHolder.subtitle.run {
-            when (firstChar){
+            when (firstChar) {
                 '+' -> {
                     gravity = Gravity.CENTER or Gravity.RIGHT
                     setBackgroundColor(ContextCompat.getColor(context, R.color.num_addition))

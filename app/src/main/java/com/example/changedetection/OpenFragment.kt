@@ -2,208 +2,236 @@ package com.example.changedetection
 
 import android.annotation.TargetApi
 import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.databinding.Observable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.support.customtabs.CustomTabsIntent
+import android.support.design.widget.BottomSheetDialog
 import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-import com.example.changedetection.data.Diff
+import android.webkit.WebView
+import androidx.core.net.toUri
+import androidx.navigation.Navigation
+import com.afollestad.materialdialogs.MaterialDialog
+import com.example.changedetection.groupie.DialogItem
 import com.example.changedetection.groupie.DialogItemSwitch
 import com.example.changedetection.groupie.DiffItem
-import com.example.changedetection.groupie.LoadingPlaidItem
 import com.example.changedetection.groupie.TextRecycler
-import com.example.changedetection.ui.StateLayout
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
 import com.orhanobut.logger.Logger
 import com.xwray.groupie.GroupAdapter
-import com.xwray.groupie.OnItemClickListener
+import com.xwray.groupie.Item
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
-import kotlinx.android.synthetic.main.default_recycler_dialog.view.*
+import es.dmoral.toasty.Toasty
+import io.reactivex.disposables.Disposables
+import kotlinx.android.synthetic.main.default_recycler_dialog.*
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.experimental.launch
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 class OpenFragment : Fragment() {
-    lateinit var draggableFrame: ElasticDragDismissFrameLayout
-    lateinit var close: ImageView
-    lateinit var titleBar: TextView
-    lateinit var recycler: RecyclerView
-    lateinit var state: StateLayout
     lateinit var model: TasksViewModel
+    val color: Int by lazy { ContextCompat.getColor(requireContext(), R.color.FontStrong) }
 
-    val color: Int by lazy {
-        ContextCompat.getColor(
-            this@OpenFragment.context!!,
-            R.color.FontStrong
-        )
-    }
-    val section = Section()
-
-    val updatinghor = mutableListOf<DiffItem>()
-
-//    private val onItemClickListener = OnItemClickListener { item, view ->
-//        // This is a simple Finite State Machine
-//        if (item !is DiffItem) {
-//            return@OnItemClickListener
-//        }
-//
-//        when (item.colorSelected) {
-//            2 -> {
-//                // ORANGE -> GREY
-//                item.notifyChanged(0)
-//            }
-//            1 -> {
-//                // AMBER -> GREY
-//                item.notifyChanged(0)
-//            }
-//            else -> {
-//                when (updatinghor.count { it.colorSelected > 0 }) {
-//                    0 -> {
-//                        // NOTHING IS SELECTED -> AMBER
-//                        item.notifyChanged(1)
-//                    }
-//                    1 -> {
-//                        // ONE THING IS SELECTED AND IT IS AMBER -> ORANGE
-//                        // ONE THING IS SELECTED AND IT IS ORANGE -> AMBER
-//                        when (updatinghor.firstOrNull { it.colorSelected > 0 }?.colorSelected) {
-//                            2 -> {
-//                                item.notifyChanged(1)
-//                                diffagain(
-//                                    section,
-//                                    item.diff,
-//                                    updatinghor.first { it.colorSelected == 2 }.diff
-//                                )
-//                            }
-//                            else -> {
-//                                item.notifyChanged(2)
-//                                diffagain(
-//                                    section,
-//                                    updatinghor.first { it.colorSelected == 1 }.diff,
-//                                    item.diff
-//                                )
-//                            }
-//                        }
-//                    }
-//                    else -> {
-//                        // TWO ARE SELECTED. UNSELECT THE ORANGE, SELECT ANOTHER THING.
-//                        updatinghor.first { it.colorSelected >= 2 }.notifyChanged(0)
-//                        diffagain(
-//                            section,
-//                            updatinghor.first { it.colorSelected == 1 }.diff,
-//                            item.diff
-//                        )
-//                        item.notifyChanged(2)
-//                    }
-//                }
-//            }
-//        }
-//    }
+    private inline fun <T: Observable> T.addOnPropertyChanged(crossinline callback: (T) -> Unit) =
+        object : Observable.OnPropertyChangedCallback() {
+            override fun onPropertyChanged(observable: Observable?, i: Int) = callback(observable as T)
+        }
+            .also { addOnPropertyChangedCallback(it) }
+            .let { Disposables.fromAction { removeOnPropertyChangedCallback(it) } }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        close.setOnClickListener { dismiss() }
-        model = obtainViewModel(requireActivity())
+        model = MainActivity.obtainViewModel(requireActivity())
 
-        titleBar.text = arguments?.getString(TITLE) ?: ""
+        closecontent.setOnClickListener { dismiss() }
+        titlecontent.text = arguments?.getString(TITLE) ?: ""
 
-        val chromeFader =
-            ElasticDragDismissFrameLayout.SystemChromeFader(activity as AppCompatActivity)
-        draggableFrame.addListener(chromeFader)
+        this.elastic.addListener(object : ElasticDragDismissFrameLayout.ElasticDragDismissCallback() {
+            override fun onDragDismissed() {
+                view?.let { Navigation.findNavController(it).navigateUp() }
+            }
+        })
 
+        val sectionTop = Section()
+        val sectionBottom = Section()
+        val updatinghor = mutableListOf<DiffItem>()
 
-        val updating = mutableListOf<DialogItemSwitch>()
-        val context = this@OpenFragment.context
-
-        val historySection = Section().apply {
-            setHeader(LoadingPlaidItem())
-        }
-
-        val groupAdapter = GroupAdapter<ViewHolder>().apply {
-            add(historySection)
-            add(Section(updating))
-        }
-
-        Logger.d("taskId: " + arguments?.getString(TASKID))
+        model.canShowDiff.observe(this, Observer {
+            isempty.visibility = if (it == false) View.VISIBLE else View.GONE
+        })
 
         model.getWebHistoryForId(arguments?.getString(TASKID) ?: "")
             .observe(this, Observer { diffList ->
                 Logger.d("DiffList: $diffList")
-
                 if (diffList != null) {
+                    updatinghor.clear()
                     diffList.mapTo(updatinghor) { DiffItem(it) }
-
-                    view?.findViewById<RecyclerView>(R.id.bottomRecycler)?.apply {
-                        layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-                        adapter = GroupAdapter<com.xwray.groupie.ViewHolder>().apply {
-                            updatinghor.apply {
-                                get(0).colorSelected = 1
-                                get(1).colorSelected = 2
-                            }
-                            add(Section(updatinghor))
-                            setOnItemClickListener { item, view ->
-
-                            }
-                        }
-                    }
-
-                    diffagain(section, diffList.getOrNull(0)!!, diffList.getOrNull(1))
-                    val groupAdapter2 = GroupAdapter<ViewHolder>().apply {
-                        add(section)
-                    }
-
-                    view?.findViewById<RecyclerView>(R.id.topRecycler)?.adapter = groupAdapter2
+                    model.fromLiveData(updatinghor, sectionTop)
+                    sectionBottom.update(updatinghor)
                 }
             })
 
-
-        view?.run {
-            findViewById<RecyclerView>(R.id.bottomRecycler)?.adapter = groupAdapter
-
-            findViewById<ImageView>(R.id.closecontent).setOnClickListener {
-                dismiss()
-            }
-
-            findViewById<ImageView>(R.id.settings).run {
-                setImageDrawable(
-                    IconicsDrawable(context, CommunityMaterial.Icon.cmd_dots_vertical)
-                        .color(ContextCompat.getColor(requireContext(), R.color.dark_icon))
-                        .sizeDp(18)
-                )
-
-                setOnClickListener {
-                    //                        section.update(updatingOnlyDiff)
+        topRecycler.run {
+            layoutManager = LinearLayoutManager(context)
+            adapter = GroupAdapter<ViewHolder>().apply {
+                add(sectionTop)
+                setOnItemClickListener { item, view ->
+                    if (item !is TextRecycler) return@setOnItemClickListener
+                    copyToClipboard(context, item.title)
                 }
             }
         }
-    }
 
-    val updatingOnlyDiff = mutableListOf<TextRecycler>()
-    val updatingNonDiff = mutableListOf<TextRecycler>()
-
-
-
-    private fun updateSection(section: Section, withAllDiff: Boolean = false) {
-        mutableListOf<TextRecycler>().run {
-            if (withAllDiff) {
-                addAll(updatingNonDiff)
+        bottomRecycler.run {
+            itemAnimator = null
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            adapter = GroupAdapter<ViewHolder>().apply {
+                add(sectionBottom)
+                setOnItemClickListener { item, view ->
+                    if (item !is DiffItem) return@setOnItemClickListener
+                    model.onClick(item, updatinghor, sectionTop)
+                }
             }
-            addAll(updatingOnlyDiff)
-            sortBy { it.index }
-            section.update(this)
+        }
+
+        closecontent.setOnClickListener {
+            dismiss()
+        }
+
+        settings.run {
+            setImageDrawable(
+                IconicsDrawable(context, CommunityMaterial.Icon.cmd_dots_vertical)
+                    .color(ContextCompat.getColor(requireContext(), R.color.dark_icon))
+                    .sizeDp(18)
+            )
+
+            setOnLongClickListener {
+                startActivity(Intent(
+                    Intent.ACTION_VIEW,
+                    (arguments?.getString(URL) ?: "http://").toUri()
+                ))
+                true
+            }
+
+            setOnClickListener {
+                val materialdialog = MaterialDialog.Builder(this.context)
+                    .customView(R.layout.default_recycler_grey_200, false)
+                    .build()
+
+                val updating = mutableListOf<Item<out ViewHolder>>()
+
+                updating += DialogItemSwitch(
+                    "Original + Diffs",
+                    IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference).color(
+                        ContextCompat.getColor(context, R.color.md_indigo_500)
+                    ),
+                    "switch",
+                    true,
+                    model.withAllDiff
+                ) {
+                    model.withAllDiff = !model.withAllDiff
+                    model.diffagain(
+                        section = sectionTop,
+                        original = updatinghor.firstOrNull { it.colorSelected == 1 }?.diff,
+                        new = updatinghor.firstOrNull { it.colorSelected == 2 }?.diff
+                    )
+
+                    // Dismiss after the user taps on the switch, but not before he sees the animation
+                    launch {
+                        delay(250) // non-blocking delay for 250 ms
+                        launch(UI) {
+                            materialdialog.dismiss()
+                        }
+                    }
+                }
+
+                updating += DialogItem(
+                    "Open #1 in Browser",
+                    IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference_ba).color(
+                        ContextCompat.getColor(context, R.color.md_amber_500)
+                    ),
+                    "first"
+                )
+
+                updating += DialogItem(
+                    "Open #2 in Browser",
+                    IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference_ab).color(
+                        ContextCompat.getColor(context, R.color.md_orange_500)
+                    ),
+                    "second"
+                )
+
+                val groupAdapter = GroupAdapter<ViewHolder>().apply {
+                    add(Section(updating))
+                }
+
+                materialdialog.customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.run {
+                    adapter = groupAdapter
+                    layoutManager = LinearLayoutManager(requireContext())
+                }
+
+                groupAdapter.setOnItemClickListener { itemDialog, view ->
+                    if (itemDialog is DialogItem) {
+                        when (itemDialog.kind) {
+                            "first" -> {
+                                MaterialDialog.Builder(context)
+                                    .customView(R.layout.content_web, false)
+                                    .build()
+                                    .also {
+                                        putDataOnWebView(
+                                            it.customView?.findViewById<PrettifyWebView>(R.id.webview),
+                                            updatinghor.firstOrNull { it.colorSelected == 1 }?.diff?.value ?: ""
+                                        )
+                                    }.show()
+                            }
+                            "second" -> {
+                                MaterialDialog.Builder(context)
+                                    .customView(R.layout.content_web, false)
+                                    .build()
+                                    .also {
+                                        putDataOnWebView(
+                                            it.customView?.findViewById<PrettifyWebView>(R.id.webview),
+                                            updatinghor.firstOrNull { it.colorSelected == 2 }?.diff?.value ?: ""
+                                        )
+                                    }.show()
+                            }
+                        }
+                    }
+                }
+
+                materialdialog.show()
+            }
         }
     }
 
+    private fun copyToClipboard(context: Context, uri: String) {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText(context.getString(R.string.app_name), uri)
 
+        clipboard.primaryClip = clip
+        Toasty.success(context, context.getString(R.string.success_copied)).show()
+    }
+
+    private fun putDataOnWebView(webView: WebView?, data: String){
+        webView?.loadDataWithBaseURL("", data, "text/html", "UTF-8", "");
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -211,36 +239,25 @@ class OpenFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         super.onCreateView(inflater, container, savedInstanceState)
-        val view = inflater.inflate(R.layout.default_recycler_dialog, container, false)
-        view.run {
-            draggableFrame = this.elastic
-            close = this.closecontent
-            titleBar = this.titlecontent
-            recycler = this.topRecycler
-        }
-
-        return view
+        return inflater.inflate(R.layout.default_recycler_dialog, container, false)
     }
 
-    fun obtainViewModel(activity: FragmentActivity): TasksViewModel {
-        // Use a Factory to inject dependencies into the ViewModel
-        val factory = ViewModelFactory.getInstance(activity.application)
-        return ViewModelProviders.of(activity, factory).get(TasksViewModel::class.java)
-    }
-
-    fun dismiss() {
-        activity?.supportFragmentManager?.popBackStack()
+    private fun dismiss() {
+        view?.let { Navigation.findNavController(it).navigateUp() }
+//        activity?.supportFragmentManager?.popBackStack()
     }
 
     companion object {
         private val TASKID = "TASKID"
         private val TITLE = "TITLE"
+        private val URL = "URL"
 
-        fun newInstance(id: String, title: String): OpenFragment {
+        fun newInstance(id: String, title: String, url: String): OpenFragment {
             return OpenFragment().apply {
-                arguments = Bundle(1).apply {
+                arguments = Bundle(3).apply {
                     putString(TASKID, id)
                     putString(TITLE, title)
+                    putString(URL, url)
                 }
             }
         }

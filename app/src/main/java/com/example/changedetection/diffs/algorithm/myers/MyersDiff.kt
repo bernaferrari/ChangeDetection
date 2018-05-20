@@ -19,15 +19,13 @@ limitations under the License.
  */
 package com.example.changedetection.diffs.algorithm.myers
 
-import com.example.changedetection.diffs.algorithm.DiffAlgorithm
 import com.example.changedetection.diffs.algorithm.Change
+import com.example.changedetection.diffs.algorithm.DiffAlgorithm
 import com.example.changedetection.diffs.algorithm.DiffException
 import com.example.changedetection.diffs.algorithm.DifferentiationFailedException
 import com.example.changedetection.diffs.patch.DeltaType
 import com.example.changedetection.diffs.patch.Patch
-import java.util.ArrayList
-import java.util.Objects
-import java.util.function.BiPredicate
+import java.util.*
 
 /**
  * A clean-room implementation of Eugene Myers greedy differencing algorithm.

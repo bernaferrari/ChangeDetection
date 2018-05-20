@@ -3,13 +3,9 @@ package com.example.changedetection.forms
 import android.app.FragmentManager
 import android.support.v7.widget.AppCompatEditText
 import android.support.v7.widget.RecyclerView
-import android.text.InputType
 import android.view.View
 import android.widget.ImageView
-import android.widget.TextView
 import com.example.changedetection.R
-import com.wdullaer.materialdatetimepicker.date.DatePickerDialog
-import org.threeten.bp.LocalDate
 import java.util.*
 
 internal class FormDecSingleText(

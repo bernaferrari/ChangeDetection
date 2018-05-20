@@ -30,7 +30,8 @@ public class ViewModelHolder<VM> extends Fragment {
 
     private VM mViewModel;
 
-    public ViewModelHolder() { }
+    public ViewModelHolder() {
+    }
 
     public static <M> ViewModelHolder createContainer(@NonNull M viewModel) {
         ViewModelHolder<M> viewModelContainer = new ViewModelHolder<>();

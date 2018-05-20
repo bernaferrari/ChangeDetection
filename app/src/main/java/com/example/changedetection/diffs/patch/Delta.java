@@ -19,13 +19,14 @@ limitations under the License.
  */
 package com.example.changedetection.diffs.patch;
 
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Describes the delta between original and revised texts.
  *
- * @author <a href="dm.naumenko@gmail.com">Dmitry Naumenko</a>
  * @param T The type of the compared elements in the 'lines'.
+ * @author <a href="dm.naumenko@gmail.com">Dmitry Naumenko</a>
  */
 public abstract class Delta<T> {
 
@@ -37,7 +38,7 @@ public abstract class Delta<T> {
      * Construct the delta for original and revised chunks
      *
      * @param original Chunk describing the original text. Must not be {@code null}.
-     * @param revised Chunk describing the revised text. Must not be {@code null}.
+     * @param revised  Chunk describing the revised text. Must not be {@code null}.
      */
     public Delta(DeltaType deltaType, Chunk<T> original, Chunk<T> revised) {
         Objects.requireNonNull(deltaType, "deltaType must not be null");

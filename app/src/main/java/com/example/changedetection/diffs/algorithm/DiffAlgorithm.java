@@ -20,13 +20,15 @@ limitations under the License.
 package com.example.changedetection.diffs.algorithm;
 
 import com.example.changedetection.diffs.patch.Patch;
-import java.util.*;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * The general interface for computing diffs between two lists of elements of type T.
  *
- * @author <a href="dm.naumenko@gmail.com">Dmitry Naumenko</a>
  * @param T The type of the compared elements in the 'lines'.
+ * @author <a href="dm.naumenko@gmail.com">Dmitry Naumenko</a>
  */
 public interface DiffAlgorithm<T> {
 
@@ -35,7 +37,7 @@ public interface DiffAlgorithm<T> {
      * object.
      *
      * @param original The original sequence. Must not be {@code null}.
-     * @param revised The revised sequence. Must not be {@code null}.
+     * @param revised  The revised sequence. Must not be {@code null}.
      * @return The patch representing the diff of the given sequences. Never {@code null}.
      */
     public default List<Change> diff(T[] original, T[] revised) throws DiffException {
@@ -47,7 +49,7 @@ public interface DiffAlgorithm<T> {
      * object.
      *
      * @param original The original sequence. Must not be {@code null}.
-     * @param revised The revised sequence. Must not be {@code null}.
+     * @param revised  The revised sequence. Must not be {@code null}.
      * @return The patch representing the diff of the given sequences. Never {@code null}.
      */
     public List<Change> diff(List<T> original, List<T> revised) throws DiffException;

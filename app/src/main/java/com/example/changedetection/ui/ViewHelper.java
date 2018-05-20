@@ -26,9 +26,9 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.util.Arrays;
-
 import com.example.changedetection.R;
+
+import java.util.Arrays;
 
 
 /**

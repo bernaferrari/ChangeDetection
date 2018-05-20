@@ -17,7 +17,6 @@ package com.example.changedetection.diffs.patch;
 
 /**
  * Specifies the type of the delta.
- *
  */
 public enum DeltaType {
     /**

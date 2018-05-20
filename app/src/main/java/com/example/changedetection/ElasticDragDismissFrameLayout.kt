@@ -300,7 +300,7 @@ class ElasticDragDismissFrameLayout @JvmOverloads constructor(
         //        }
 
         public override fun onDragDismissed() {
-            activity.supportFragmentManager.popBackStack()
+//            activity.supportFragmentManager.popBackStack()
             //            activity.finishAfterTransition();
         }
     }

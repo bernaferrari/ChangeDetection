@@ -17,9 +17,7 @@
 package com.example.changedetection.data.source.local
 
 import android.support.annotation.VisibleForTesting
-import com.example.changedetection.data.Diff
-
-import com.example.changedetection.data.Task
+import com.example.changedetection.data.Site
 import com.example.changedetection.data.source.TasksDataSource
 import com.example.changedetection.util.AppExecutors
 import com.orhanobut.logger.Logger
@@ -36,18 +34,17 @@ private constructor(
 
     override fun getTaskAndDiffs(callback: (MutableList<SiteAndLastDiff>) -> Unit) {
         val runnable = Runnable {
-            val tasks = mTasksDao.tasks
-
+            val tasks = mTasksDao.sites
             val list = mutableListOf<SiteAndLastDiff>()
-
-            tasks.forEach { task ->
-                mTasksDao.getDiffById(task.id)?.let { diff ->
-                    list += SiteAndLastDiff(task, diff)
-                }
+            tasks.mapTo(list) { task ->
+//                if (mTasksDao.getDiffsCountForUser(task.id) > 1) {
+                    SiteAndLastDiff(task, mTasksDao.getDiffById(task.id))
+//                } else {
+//                    SiteAndLastDiff(task, null)
+//                }
             }
 
             mAppExecutors.mainThread().execute {
-                Logger.d(list)
                 callback.invoke(list)
             }
         }
@@ -61,7 +58,7 @@ private constructor(
      */
     override fun getTasks(callback: TasksDataSource.LoadTasksCallback) {
         val runnable = Runnable {
-            val tasks = mTasksDao.tasks
+            val tasks = mTasksDao.sites
             mAppExecutors.mainThread().execute {
                 if (tasks.isEmpty()) {
                     // This will be called if the table is new or just empty.
@@ -76,7 +73,7 @@ private constructor(
     }
 
     /**
-     * Note: [GetTaskCallback.onDataNotAvailable] is fired if the [Task] isn't
+     * Note: [GetTaskCallback.onDataNotAvailable] is fired if the [Site] isn't
      * found.
      */
     override fun getTask(taskId: String, callback: TasksDataSource.GetTaskCallback) {
@@ -95,31 +92,31 @@ private constructor(
         mAppExecutors.diskIO().execute(runnable)
     }
 
-    override fun saveTask(task: Task) {
-        checkNotNull(task)
-        val saveRunnable = Runnable { mTasksDao.insertTask(task) }
+    override fun saveTask(site: Site) {
+        checkNotNull(site)
+        val saveRunnable = Runnable { mTasksDao.insertTask(site) }
         mAppExecutors.diskIO().execute(saveRunnable)
     }
 
-    override fun completeTask(task: Task) {
-        val completeRunnable = Runnable { mTasksDao.updateCompleted(task.id, true) }
+    override fun completeTask(site: Site) {
+        val completeRunnable = Runnable { mTasksDao.updateCompleted(site.id, true) }
 
         mAppExecutors.diskIO().execute(completeRunnable)
     }
 
     override fun completeTask(taskId: String) {
         // Not required for the local data source because the {@link TasksRepository} handles
-        // converting from a {@code taskId} to a {@link task} using its cached data.
+        // converting from a {@code taskId} to a {@link site} using its cached data.
     }
 
-    override fun activateTask(task: Task) {
-        val activateRunnable = Runnable { mTasksDao.updateCompleted(task.id, false) }
+    override fun activateTask(site: Site) {
+        val activateRunnable = Runnable { mTasksDao.updateCompleted(site.id, false) }
         mAppExecutors.diskIO().execute(activateRunnable)
     }
 
     override fun activateTask(taskId: String) {
         // Not required for the local data source because the {@link TasksRepository} handles
-        // converting from a {@code taskId} to a {@link task} using its cached data.
+        // converting from a {@code taskId} to a {@link site} using its cached data.
     }
 
     override fun clearCompletedTasks() {
@@ -130,7 +127,7 @@ private constructor(
 
     override fun refreshTasks() {
         // Not required because the {@link TasksRepository} handles the logic of refreshing the
-        // tasks from all the available data sources.
+        // sites from all the available data sources.
     }
 
     override fun deleteAllTasks() {
@@ -139,7 +136,7 @@ private constructor(
         mAppExecutors.diskIO().execute(deleteRunnable)
     }
 
-    override fun deleteTask(taskId: String) {
+    override fun deleteSite(taskId: String) {
         val deleteRunnable = Runnable { mTasksDao.deleteTaskById(taskId) }
 
         mAppExecutors.diskIO().execute(deleteRunnable)

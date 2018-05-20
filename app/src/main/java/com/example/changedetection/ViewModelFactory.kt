@@ -28,7 +28,7 @@ import com.example.changedetection.data.source.TasksRepository
 //import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository;
 //import com.example.android.architecture.blueprints.todoapp.statistics.StatisticsViewModel;
 //import com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailViewModel;
-//import com.example.android.architecture.blueprints.todoapp.tasks.TasksViewModel;
+//import com.example.android.architecture.blueprints.todoapp.sites.TasksViewModel;
 
 /**
  * A creator is used to inject the product ID into the ViewModel

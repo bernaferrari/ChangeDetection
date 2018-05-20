@@ -3,9 +3,7 @@ package com.example.changedetection.groupie
 //import com.biblialibras.android.main.SelectCoordenadoresFrag
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.view.View
-import com.example.changedetection.BottomSheetDialogExpanded
 import com.example.changedetection.R
 import com.example.changedetection.data.Diff
 import com.mikepenz.google_material_typeface_library.GoogleMaterial
@@ -16,10 +14,6 @@ import com.xwray.groupie.Section
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.bible_recycler_item.*
-import kotlinx.android.synthetic.main.todos_encontros_activity.*
-import com.example.changedetection.diffs.text.DiffRow
-import com.example.changedetection.diffs.text.DiffRowGenerator
-import java.util.*
 
 /**
  * A horizontally scrolling RecyclerView, for use in a vertically scrolling RecyclerView.
@@ -76,7 +70,7 @@ class BibleCarouselRecyclerItem(
         carouselAdapter.add(Section(updating))
 
         carouselAdapter.setOnItemClickListener { item, view ->
-            if (item is DiffItem){
+            if (item is DiffItem) {
                 callback(item.diff)
             }
         }

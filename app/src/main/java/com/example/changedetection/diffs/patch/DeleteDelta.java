@@ -24,8 +24,8 @@ import java.util.List;
 /**
  * Describes the delete-delta between original and revised texts.
  *
- * @author <a href="dm.naumenko@gmail.com">Dmitry Naumenko</a>
  * @param T The type of the compared elements in the 'lines'.
+ * @author <a href="dm.naumenko@gmail.com">Dmitry Naumenko</a>
  */
 public final class DeleteDelta<T> extends Delta<T> {
 
@@ -33,7 +33,7 @@ public final class DeleteDelta<T> extends Delta<T> {
      * Creates a change delta with the two given chunks.
      *
      * @param original The original chunk. Must not be {@code null}.
-     * @param revised The original chunk. Must not be {@code null}.
+     * @param revised  The original chunk. Must not be {@code null}.
      */
     public DeleteDelta(Chunk<T> original, Chunk<T> revised) {
         super(DeltaType.DELETE, original, revised);

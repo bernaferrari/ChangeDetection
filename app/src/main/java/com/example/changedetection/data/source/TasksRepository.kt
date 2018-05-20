@@ -16,15 +16,12 @@
 
 package com.example.changedetection.data.source
 
-import com.example.changedetection.data.Diff
-import com.example.changedetection.data.Task
+import com.example.changedetection.data.Site
 import com.example.changedetection.data.source.local.SiteAndLastDiff
-
-import java.util.ArrayList
-import java.util.LinkedHashMap
+import java.util.*
 
 /**
- * Concrete implementation to load tasks from the data sources into a cache.
+ * Concrete implementation to load sites from the data sources into a cache.
  *
  *
  * For simplicity, this implements a dumb synchronisation between locally persisted data and data
@@ -45,7 +42,7 @@ private constructor(
     /**
      * This variable has package local visibility so it can be accessed from tests.
      */
-    internal var mCachedTasks: MutableMap<String, Task>? = null
+    internal var mCachedTasks: MutableMap<String, Site>? = null
 
     /**
      * Marks the cache as invalid, to force an update the next time data is requested. This variable
@@ -60,7 +57,7 @@ private constructor(
     }
 
     /**
-     * Gets tasks from cache, local data source (SQLite) or remote data source, whichever is
+     * Gets sites from cache, local data source (SQLite) or remote data source, whichever is
      * available first.
      *
      *
@@ -84,8 +81,8 @@ private constructor(
         } else {
             // Query the local storage if available. If not, query the network.
             mTasksLocalDataSource.getTasks(object : TasksDataSource.LoadTasksCallback {
-                override fun onTasksLoaded(tasks: List<Task>) {
-                    refreshCache(tasks)
+                override fun onTasksLoaded(sites: List<Site>) {
+                    refreshCache(sites)
 
 //                    EspressoIdlingResource.decrement() // Set app as idle.
                     callback.onTasksLoaded(ArrayList(mCachedTasks!!.values))
@@ -98,30 +95,30 @@ private constructor(
         }
     }
 
-    override fun saveTask(task: Task) {
-        checkNotNull(task)
-        mTasksRemoteDataSource.saveTask(task)
-        mTasksLocalDataSource.saveTask(task)
+    override fun saveTask(site: Site) {
+        checkNotNull(site)
+        mTasksRemoteDataSource.saveTask(site)
+        mTasksLocalDataSource.saveTask(site)
 
         // Do in memory cache update to keep the app UI up to date
         if (mCachedTasks == null) {
             mCachedTasks = LinkedHashMap()
         }
-        mCachedTasks!![task.id] = task
+        mCachedTasks!![site.id] = site
     }
 
-    override fun completeTask(task: Task) {
-        checkNotNull(task)
-        mTasksRemoteDataSource.completeTask(task)
-        mTasksLocalDataSource.completeTask(task)
+    override fun completeTask(site: Site) {
+        checkNotNull(site)
+        mTasksRemoteDataSource.completeTask(site)
+        mTasksLocalDataSource.completeTask(site)
 
-        val completedTask = Task(task.title, task.url, task.timestamp, task.id, true)
+        val completedTask = Site(site.title, site.url, site.timestamp, site.id, true, true)
 
         // Do in memory cache update to keep the app UI up to date
         if (mCachedTasks == null) {
             mCachedTasks = LinkedHashMap()
         }
-        mCachedTasks!![task.id] = completedTask
+        mCachedTasks!![site.id] = completedTask
     }
 
     override fun completeTask(taskId: String) {
@@ -129,18 +126,18 @@ private constructor(
         completeTask(getTaskWithId(taskId)!!)
     }
 
-    override fun activateTask(task: Task) {
-        checkNotNull(task)
-        mTasksRemoteDataSource.activateTask(task)
-        mTasksLocalDataSource.activateTask(task)
+    override fun activateTask(site: Site) {
+        checkNotNull(site)
+        mTasksRemoteDataSource.activateTask(site)
+        mTasksLocalDataSource.activateTask(site)
 
-        val activeTask = Task(task.title, task.url, task.timestamp, task.id)
+        val activeTask = Site(site.title, site.url, site.timestamp, site.id)
 
         // Do in memory cache update to keep the app UI up to date
         if (mCachedTasks == null) {
             mCachedTasks = LinkedHashMap()
         }
-        mCachedTasks!![task.id] = activeTask
+        mCachedTasks!![site.id] = activeTask
     }
 
     override fun activateTask(taskId: String) {
@@ -159,14 +156,14 @@ private constructor(
         val it = mCachedTasks!!.entries.iterator()
         while (it.hasNext()) {
             val entry = it.next()
-            if (entry.value.isCompleted) {
+            if (entry.value.successful) {
                 it.remove()
             }
         }
     }
 
     /**
-     * Gets tasks from local data source (sqlite) unless the table is new or empty. In that case it
+     * Gets sites from local data source (sqlite) unless the table is new or empty. In that case it
      * uses the network data source. This is done to simplify the sample.
      *
      *
@@ -189,24 +186,24 @@ private constructor(
 
         // Load from server/persisted if needed.
 
-        // Is the task in the local data source? If not, query the network.
+        // Is the site in the local data source? If not, query the network.
         mTasksLocalDataSource.getTask(taskId, object : TasksDataSource.GetTaskCallback {
-            override fun onTaskLoaded(task: Task) {
+            override fun onTaskLoaded(site: Site) {
                 // Do in memory cache update to keep the app UI up to date
                 if (mCachedTasks == null) {
                     mCachedTasks = LinkedHashMap()
                 }
-                mCachedTasks!![task.id] = task
+                mCachedTasks!![site.id] = site
 
 //                EspressoIdlingResource.decrement() // Set app as idle.
 
-                callback.onTaskLoaded(task)
+                callback.onTaskLoaded(site)
             }
 
             override fun onDataNotAvailable() {
                 mTasksRemoteDataSource.getTask(taskId, object : TasksDataSource.GetTaskCallback {
-                    override fun onTaskLoaded(task: Task) {
-                        if (task == null) {
+                    override fun onTaskLoaded(site: Site) {
+                        if (site == null) {
                             onDataNotAvailable()
                             return
                         }
@@ -214,10 +211,10 @@ private constructor(
                         if (mCachedTasks == null) {
                             mCachedTasks = LinkedHashMap()
                         }
-                        mCachedTasks!![task.id] = task
+                        mCachedTasks!![site.id] = site
 //                        EspressoIdlingResource.decrement() // Set app as idle.
 
-                        callback.onTaskLoaded(task)
+                        callback.onTaskLoaded(site)
                     }
 
                     override fun onDataNotAvailable() {
@@ -244,18 +241,18 @@ private constructor(
         mCachedTasks!!.clear()
     }
 
-    override fun deleteTask(taskId: String) {
-        mTasksRemoteDataSource.deleteTask(checkNotNull(taskId))
-        mTasksLocalDataSource.deleteTask(checkNotNull(taskId))
+    override fun deleteSite(taskId: String) {
+        mTasksRemoteDataSource.deleteSite(checkNotNull(taskId))
+        mTasksLocalDataSource.deleteSite(checkNotNull(taskId))
 
         mCachedTasks!!.remove(taskId)
     }
 
     private fun getTasksFromRemoteDataSource(callback: TasksDataSource.LoadTasksCallback) {
         mTasksRemoteDataSource.getTasks(object : TasksDataSource.LoadTasksCallback {
-            override fun onTasksLoaded(tasks: List<Task>) {
-                refreshCache(tasks)
-                refreshLocalDataSource(tasks)
+            override fun onTasksLoaded(sites: List<Site>) {
+                refreshCache(sites)
+                refreshLocalDataSource(sites)
 
 //                EspressoIdlingResource.decrement() // Set app as idle.
                 callback.onTasksLoaded(ArrayList(mCachedTasks!!.values))
@@ -269,25 +266,25 @@ private constructor(
         })
     }
 
-    private fun refreshCache(tasks: List<Task>) {
+    private fun refreshCache(sites: List<Site>) {
         if (mCachedTasks == null) {
             mCachedTasks = LinkedHashMap()
         }
         mCachedTasks!!.clear()
-        for (task in tasks) {
+        for (task in sites) {
             mCachedTasks!![task.id] = task
         }
         mCacheIsDirty = false
     }
 
-    private fun refreshLocalDataSource(tasks: List<Task>) {
+    private fun refreshLocalDataSource(sites: List<Site>) {
         mTasksLocalDataSource.deleteAllTasks()
-        for (task in tasks) {
+        for (task in sites) {
             mTasksLocalDataSource.saveTask(task)
         }
     }
 
-    private fun getTaskWithId(id: String): Task? {
+    private fun getTaskWithId(id: String): Site? {
         checkNotNull(id)
         return if (mCachedTasks == null || mCachedTasks!!.isEmpty()) {
             null

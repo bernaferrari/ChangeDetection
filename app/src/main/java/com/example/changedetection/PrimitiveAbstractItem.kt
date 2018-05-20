@@ -8,7 +8,6 @@ import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import com.example.changedetection.R
 import com.example.changedetection.util.FAUIUtils
 import com.example.changedetection.util.TextDrawable
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
@@ -328,25 +327,25 @@ open class PrimitiveAbstractItem(val stru: primitiveClassType) :
                     holder.nome.text = stru.name
                 }
                 is AllMeetingsItemNotBeingUsed -> {
-                holder.nome.text = stru.name
+                    holder.nome.text = stru.name
                 }
                 is AcessoItem -> {
-                holder.nome.text = stru.name
-                if (stru.name.isEmpty()) {
-                    holder.nome.visibility = View.GONE
-                }
-                Logger.d("Nome: " + stru.name + " --- id: " + stru.id)
-                holder.subtitle?.text = stru.id
+                    holder.nome.text = stru.name
+                    if (stru.name.isEmpty()) {
+                        holder.nome.visibility = View.GONE
+                    }
+                    Logger.d("Nome: " + stru.name + " --- id: " + stru.id)
+                    holder.subtitle?.text = stru.id
 
                 }
                 is AcessoHeader -> {
-                holder.nome.text = stru.name
+                    holder.nome.text = stru.name
                 }
                 is ChamadaHeader -> {
-                holder.nome.text = stru.name
+                    holder.nome.text = stru.name
                 }
                 is miniSeparator -> {
-                holder.nome.text = stru.name
+                    holder.nome.text = stru.name
                 }
                 is EbdItem -> {
                     holder.nome.text = stru.name
@@ -361,23 +360,26 @@ open class PrimitiveAbstractItem(val stru: primitiveClassType) :
                     )
                 }
                 is NucleosHeader -> {
-                holder.nome.text = stru.name
+                    holder.nome.text = stru.name
                 }
                 is NucleosMore -> {
-                holder.nome.text = stru.name
-                holder.imgpos?.setImageDrawable(
-                    IconicsDrawable(holder.imgpos.context, GoogleMaterial.Icon.gmd_arrow_forward)
-                        .color(ContextCompat.getColor(holder.imgpos.context, R.color.FontWeak))
-                )
+                    holder.nome.text = stru.name
+                    holder.imgpos?.setImageDrawable(
+                        IconicsDrawable(
+                            holder.imgpos.context,
+                            GoogleMaterial.Icon.gmd_arrow_forward
+                        )
+                            .color(ContextCompat.getColor(holder.imgpos.context, R.color.FontWeak))
+                    )
                 }
                 is FastDescription -> {
-                holder.nome.text = stru.name
+                    holder.nome.text = stru.name
                 }
                 is ButtonBiblaLibras -> {
-                holder.nome.text = stru.name
+                    holder.nome.text = stru.name
 
-                holder.imgpos?.setImageDrawable(getDrawableee(stru.id, holder.imgpos.context))
-            }
+                    holder.imgpos?.setImageDrawable(getDrawableee(stru.id, holder.imgpos.context))
+                }
             }
         } else if (holder is ButtonHolder && stru is FlatButton) {
             holder.btn?.text = stru.name
@@ -495,8 +497,8 @@ open class PrimitiveAbstractItem(val stru: primitiveClassType) :
                     )
                 }
                 is moreBasicItem2 -> {
-                isAdmin = stru.isAdmin
-                holder.nome.text = stru.name
+                    isAdmin = stru.isAdmin
+                    holder.nome.text = stru.name
 //                holder.subtitle.text = holder.subtitle.resources?.getString(
 //                    R.string.day_and_hour_formatted,
 //                    ActivityNucleos.dayoftheweek(stru.timestamp.toInt()),

@@ -18,7 +18,6 @@ package com.example.changedetection.diffs.algorithm;
 import com.example.changedetection.diffs.patch.DeltaType;
 
 /**
- *
  * @author toben
  */
 public class Change {

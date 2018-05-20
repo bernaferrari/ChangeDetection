@@ -32,6 +32,10 @@
 
     <dimen name="fab_spacing">86dp</dimen> <!-- keyline + fab margin -->
 
+
+    <dimen name="mark_margin">16dp</dimen> <!-- keyline + fab margin -->
+
+
     <dimen name="spacing_xs_large">16dp</dimen>
 
     <dimen name="keyline_2">76dp</dimen>

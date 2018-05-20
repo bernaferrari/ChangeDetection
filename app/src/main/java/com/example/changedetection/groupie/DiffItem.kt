@@ -1,6 +1,10 @@
 package com.example.changedetection.groupie
 
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.TransitionDrawable
 import android.support.v4.content.ContextCompat
+import android.support.v7.widget.CardView
+import androidx.core.graphics.drawable.toDrawable
 import com.example.changedetection.R
 import com.example.changedetection.data.Diff
 import com.github.marlonlom.utilities.timeago.TimeAgo
@@ -11,10 +15,16 @@ import kotlinx.android.synthetic.main.diff_item.*
 import java.text.DecimalFormat
 import java.util.*
 
+
 class DiffItem(
     val diff: Diff
 ) : Item() {
     var colorSelected = 0
+
+    fun setColor(color: Int){
+        colorSelected = color
+        notifyChanged()
+    }
 
     override fun getLayout() = R.layout.diff_item
 
@@ -34,10 +44,25 @@ class DiffItem(
     private fun bindColors(holder: ViewHolder) {
         val context = holder.containerView.context
 
-        when (colorSelected){
-            1 -> holder.container.setCardBackgroundColor(ContextCompat.getColor(context, R.color.md_amber_200))
-            2 -> holder.container.setCardBackgroundColor(ContextCompat.getColor(context, R.color.md_orange_200))
-            else -> holder.container.setCardBackgroundColor(ContextCompat.getColor(context, R.color.grey_100))
+        when (colorSelected) {
+            1 -> setCardBackgroundAnimated(
+                holder.container,
+                ContextCompat.getColor(context, R.color.md_amber_200).toDrawable()
+            )
+            2 -> setCardBackgroundAnimated(
+                holder.container,
+                ContextCompat.getColor(context, R.color.md_orange_200).toDrawable()
+            )
+            else -> setCardBackgroundAnimated(
+                holder.container,
+                ContextCompat.getColor(context, R.color.grey_100).toDrawable()
+            )
+        }
+    }
+
+    private fun setCardBackgroundAnimated(cardView: CardView, color: Drawable) {
+        cardView.background = TransitionDrawable(arrayOf(cardView.background, color)).apply {
+            startTransition(100)
         }
     }
 

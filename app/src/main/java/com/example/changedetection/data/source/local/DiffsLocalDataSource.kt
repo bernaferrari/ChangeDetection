@@ -17,6 +17,7 @@
 package com.example.changedetection.data.source.local
 
 import android.support.annotation.VisibleForTesting
+import com.example.changedetection.cleanUpHtml
 import com.example.changedetection.data.Diff
 
 import com.example.changedetection.data.source.DiffsDataSource
@@ -33,6 +34,14 @@ private constructor(
     private val mDiffsDao: DiffsDao
 ) : DiffsDataSource {
 
+    override fun deleteAllDiffsForSite(siteId: String) {
+        val runnable = Runnable {
+            mDiffsDao.deleteAllDiffsForSite(siteId)
+        }
+
+        mAppExecutors.diskIO().execute(runnable)
+    }
+
     /**
      * Note: [LoadTasksCallback.onDataNotAvailable] is fired if the database doesn't exist
      * or the table is empty.
@@ -45,14 +54,15 @@ private constructor(
                     // This will be called if the table is new or just empty.
                     callback.onDataNotAvailable()
                 } else {
-                    Logger.d("Returning $diffs - ${diffs.task}")
+                    Logger.d("ReturningTask ${diffs.site}")
+                    Logger.d("ReturningCount $diffs - ${diffs.diffs.size}")
                     callback.onDiffsLoaded(diffs.diffs.sortedByDescending { it.timestamp })
                 }
             }
         }
 
         mAppExecutors.diskIO().execute(runnable)
-        }
+    }
 
     override fun getDiff(diffId: String, callback: DiffsDataSource.GetDiffCallback) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -62,7 +72,7 @@ private constructor(
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun deleteAllDiffs() {
+    override fun deleteAllDiffsForSite() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -70,23 +80,31 @@ private constructor(
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-
     override fun saveDiff(diff: Diff, callback: DiffsDataSource.GetDiffCallback) {
         val saveRunnable = Runnable {
-            val wasSuccessful = //try {
-                if (mDiffsDao.getLastDiff(diff.owner)?.firstOrNull()?.value != diff.value) {
-                    mDiffsDao.insertDiff(diff)
+            val getDiffByid = mDiffsDao.getDiffBySiteId(diff.siteId)
+
+            val wasSuccessful =
+                if (getDiffByid?.value?.cleanUpHtml() != diff.value.cleanUpHtml()) {
+                    Logger.d("Difference detected! Id went from ${getDiffByid?.fileId} to ${diff.fileId}")
+                    Logger.d("Difference detected! Size went from ${getDiffByid?.value?.count()} to ${diff.value.count()}")
+                    mDiffsDao.insertDiff(diff.copy())
+
+                    Logger.d("getAllDiffs: ${mDiffsDao.getAllDiffs().count()}")
+
+                    mDiffsDao.getAllDiffs().forEach {
+                        Logger.d("fileId: ${it.fileId} - siteId: ${it.siteId}")
+                    }
                     true
+                    // We don't want to show a change when there is only one diff. It won't be a change when user just puts the website.
+//                    getDiffByid != null
                 } else {
                     Logger.d("Beep beep! No difference detected!")
                     false
                 }
-//            } catch (e: Exception){
-//                false
-//            }
 
             mAppExecutors.mainThread().execute {
-                if (wasSuccessful){
+                if (wasSuccessful) {
                     callback.onDiffLoaded(diff)
                 } else {
                     callback.onDataNotAvailable()
@@ -99,16 +117,16 @@ private constructor(
 
 //
 //    /**
-//     * Note: [GetTaskCallback.onDataNotAvailable] is fired if the [Task] isn't
+//     * Note: [GetTaskCallback.onDataNotAvailable] is fired if the [Site] isn't
 //     * found.
 //     */
-//    override fun getTask(taskId: String, callback: TasksDataSource.GetTaskCallback) {
+//    override fun getSite(taskId: String, callback: TasksDataSource.GetTaskCallback) {
 //        val runnable = Runnable {
-//            val task = mDiffsDao.getTaskById(taskId)
+//            val site = mDiffsDao.getTaskById(taskId)
 //
 //            mAppExecutors.mainThread().execute {
-//                if (task != null) {
-//                    callback.onTaskLoaded(task)
+//                if (site != null) {
+//                    callback.onTaskLoaded(site)
 //                } else {
 //                    callback.onDataNotAvailable()
 //                }
@@ -118,31 +136,31 @@ private constructor(
 //        mAppExecutors.diskIO().execute(runnable)
 //    }
 //
-//    override fun saveTask(task: Task) {
-//        checkNotNull(task)
-//        val saveRunnable = Runnable { mDiffsDao.insertTask(task) }
+//    override fun saveTask(site: Site) {
+//        checkNotNull(site)
+//        val saveRunnable = Runnable { mDiffsDao.insertTask(site) }
 //        mAppExecutors.diskIO().execute(saveRunnable)
 //    }
 //
-//    override fun completeTask(task: Task) {
-//        val completeRunnable = Runnable { mDiffsDao.updateCompleted(task.id, true) }
+//    override fun completeTask(site: Site) {
+//        val completeRunnable = Runnable { mDiffsDao.updateCompleted(site.id, true) }
 //
 //        mAppExecutors.diskIO().execute(completeRunnable)
 //    }
 //
 //    override fun completeTask(taskId: String) {
 //        // Not required for the local data source because the {@link TasksRepository} handles
-//        // converting from a {@code taskId} to a {@link task} using its cached data.
+//        // converting from a {@code taskId} to a {@link site} using its cached data.
 //    }
 //
-//    override fun activateTask(task: Task) {
-//        val activateRunnable = Runnable { mDiffsDao.updateCompleted(task.id, false) }
+//    override fun activateTask(site: Site) {
+//        val activateRunnable = Runnable { mDiffsDao.updateCompleted(site.id, false) }
 //        mAppExecutors.diskIO().execute(activateRunnable)
 //    }
 //
 //    override fun activateTask(taskId: String) {
 //        // Not required for the local data source because the {@link TasksRepository} handles
-//        // converting from a {@code taskId} to a {@link task} using its cached data.
+//        // converting from a {@code taskId} to a {@link site} using its cached data.
 //    }
 //
 //    override fun clearCompletedTasks() {
@@ -153,7 +171,7 @@ private constructor(
 //
 //    override fun refreshTasks() {
 //        // Not required because the {@link TasksRepository} handles the logic of refreshing the
-//        // tasks from all the available data sources.
+//        // sites from all the available data sources.
 //    }
 //
 //    override fun deleteAllTasks() {
@@ -162,7 +180,7 @@ private constructor(
 //        mAppExecutors.diskIO().execute(deleteRunnable)
 //    }
 //
-//    override fun deleteTask(taskId: String) {
+//    override fun deleteSite(taskId: String) {
 //        val deleteRunnable = Runnable { mDiffsDao.deleteTaskById(taskId) }
 //
 //        mAppExecutors.diskIO().execute(deleteRunnable)

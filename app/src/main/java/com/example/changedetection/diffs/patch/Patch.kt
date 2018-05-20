@@ -22,7 +22,7 @@ package com.example.changedetection.diffs.patch
 import com.example.changedetection.diffs.algorithm.Change
 import com.example.changedetection.diffs.patch.DeltaType.DELETE
 import com.example.changedetection.diffs.patch.DeltaType.INSERT
-import java.util.ArrayList
+import java.util.*
 
 /**
  * Describes the patch holding all deltas between the original and revised texts.

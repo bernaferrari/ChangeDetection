@@ -17,11 +17,10 @@
 package com.example.changedetection;
 
 import android.support.annotation.VisibleForTesting
-import com.example.changedetection.data.Diff
-import com.example.changedetection.data.Task
+import com.example.changedetection.data.Site
 import com.example.changedetection.data.source.TasksDataSource
 import com.example.changedetection.data.source.local.SiteAndLastDiff
-import java.util.LinkedHashMap
+import java.util.*
 
 /**
  * Implementation of a remote data source with static access to the data for easy testing.
@@ -41,22 +40,22 @@ private constructor() : TasksDataSource {
         callback.onTaskLoaded(task)
     }
 
-    override fun saveTask(task: Task) {
-        TASKS_SERVICE_DATA[task.id] = task
+    override fun saveTask(site: Site) {
+        TASKS_SERVICE_DATA[site.id] = site
     }
 
-    override fun completeTask(task: Task) {
-        val completedTask = Task(task.title, task.url, task.timestamp, task.id, true)
-        TASKS_SERVICE_DATA[task.id] = completedTask
+    override fun completeTask(site: Site) {
+        val completedTask = Site(site.title, site.url, site.timestamp, site.id, true, false)
+        TASKS_SERVICE_DATA[site.id] = completedTask
     }
 
     override fun completeTask(taskId: String) {
         // Not required for the remote data source.
     }
 
-    override fun activateTask(task: Task) {
-        val activeTask = Task(task.title, task.url, task.timestamp, task.id)
-        TASKS_SERVICE_DATA[task.id] = activeTask
+    override fun activateTask(site: Site) {
+        val activeTask = Site(site.title, site.url, site.timestamp, site.id)
+        TASKS_SERVICE_DATA[site.id] = activeTask
     }
 
     override fun activateTask(taskId: String) {
@@ -67,7 +66,7 @@ private constructor() : TasksDataSource {
         val it = TASKS_SERVICE_DATA.entries.iterator()
         while (it.hasNext()) {
             val entry = it.next()
-            if (entry.value.isCompleted) {
+            if (entry.value.successful) {
                 it.remove()
             }
         }
@@ -75,10 +74,10 @@ private constructor() : TasksDataSource {
 
     override fun refreshTasks() {
         // Not required because the {@link TasksRepository} handles the logic of refreshing the
-        // tasks from all the available data sources.
+        // sites from all the available data sources.
     }
 
-    override fun deleteTask(taskId: String) {
+    override fun deleteSite(taskId: String) {
         TASKS_SERVICE_DATA.remove(taskId)
     }
 
@@ -87,9 +86,9 @@ private constructor() : TasksDataSource {
     }
 
     @VisibleForTesting
-    fun addTasks(vararg tasks: Task) {
-        if (tasks != null) {
-            for (task in tasks) {
+    fun addTasks(vararg sites: Site) {
+        if (sites != null) {
+            for (task in sites) {
                 TASKS_SERVICE_DATA[task.id] = task
             }
         }
@@ -99,7 +98,7 @@ private constructor() : TasksDataSource {
 
         private var INSTANCE: FakeTasksRemoteDataSource? = null
 
-        private val TASKS_SERVICE_DATA = LinkedHashMap<String, Task>()
+        private val TASKS_SERVICE_DATA = LinkedHashMap<String, Site>()
 
         val instance: FakeTasksRemoteDataSource
             get() {

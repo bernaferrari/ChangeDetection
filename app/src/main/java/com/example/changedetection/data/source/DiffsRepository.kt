@@ -17,13 +17,10 @@
 package com.example.changedetection.data.source
 
 import com.example.changedetection.data.Diff
-import com.example.changedetection.data.Task
-
-import java.util.ArrayList
-import java.util.LinkedHashMap
+import java.util.*
 
 /**
- * Concrete implementation to load tasks from the data sources into a cache.
+ * Concrete implementation to load sites from the data sources into a cache.
  *
  *
  * For simplicity, this implements a dumb synchronisation between locally persisted data and data
@@ -37,20 +34,24 @@ private constructor(
     tasksLocalDataSource: DiffsDataSource
 ) : DiffsDataSource {
 
+    override fun deleteAllDiffsForSite(siteId: String) {
+        mTasksLocalDataSource.deleteAllDiffsForSite(siteId)
+    }
+
     override fun getDiffs(taskId: String, callback: DiffsDataSource.LoadDiffsCallback) {
         checkNotNull(callback)
 
-        // Respond immediately with cache if available and not dirty
-        if (mCachedTasks != null && !mCacheIsDirty) {
-            callback.onDiffsLoaded(ArrayList(mCachedTasks!!.values))
-            return
-        }
+//        // Respond immediately with cache if available and not dirty
+//        if (mCachedTasks != null && !mCacheIsDirty) {
+//            callback.onDiffsLoaded(ArrayList(mCachedTasks!!.values))
+//            return
+//        }
 
         // Query the local storage if available. If not, query the network.
         mTasksLocalDataSource.getDiffs(taskId, object : DiffsDataSource.LoadDiffsCallback {
             override fun onDiffsLoaded(diffs: List<Diff>) {
-                refreshCache(diffs)
-                callback.onDiffsLoaded(ArrayList(mCachedTasks!!.values))
+//                refreshCache(diffs)
+                callback.onDiffsLoaded(diffs)
             }
 
             override fun onDataNotAvailable() {
@@ -64,14 +65,14 @@ private constructor(
         checkNotNull(callback)
 
         val cachedTask = getDiffWithId(diffId)
+//
+//        // Respond immediately with cache if available
+//        if (cachedTask != null) {
+//            callback.onDiffLoaded(cachedTask)
+//            return
+//        }
 
-        // Respond immediately with cache if available
-        if (cachedTask != null) {
-            callback.onDiffLoaded(cachedTask)
-            return
-        }
-
-        // Is the task in the local data source? If not, query the network.
+        // Is the site in the local data source? If not, query the network.
         mTasksLocalDataSource.getDiff(diffId, object : DiffsDataSource.GetDiffCallback {
 
             override fun onDiffLoaded(diff: Diff) {
@@ -79,7 +80,7 @@ private constructor(
                 if (mCachedTasks == null) {
                     mCachedTasks = LinkedHashMap()
                 }
-                mCachedTasks!![diff.valueId] = diff
+                mCachedTasks!![diff.fileId] = diff
 
                 callback.onDiffLoaded(diff)
             }
@@ -94,8 +95,8 @@ private constructor(
         mCacheIsDirty = true
     }
 
-    override fun deleteAllDiffs() {
-        mTasksLocalDataSource.deleteAllDiffs()
+    override fun deleteAllDiffsForSite() {
+        mTasksLocalDataSource.deleteAllDiffsForSite()
 
         if (mCachedTasks == null) {
             mCachedTasks = LinkedHashMap()
@@ -137,7 +138,7 @@ private constructor(
         if (mCachedTasks == null) {
             mCachedTasks = LinkedHashMap()
         }
-        mCachedTasks!![diff.valueId] = diff
+        mCachedTasks!![diff.fileId] = diff
     }
 
     private fun refreshCache(diffs: List<Diff>) {
@@ -146,13 +147,13 @@ private constructor(
         }
         mCachedTasks!!.clear()
         for (diff in diffs) {
-            mCachedTasks!![diff.valueId] = diff
+            mCachedTasks!![diff.fileId] = diff
         }
         mCacheIsDirty = false
     }
 
 //    private fun refreshLocalDataSource(diffs: List<Diff>) {
-//        mTasksLocalDataSource.deleteAllDiffs()
+//        mTasksLocalDataSource.deleteAllDiffsForSite()
 //        for (diff in diffs) {
 //            mTasksLocalDataSource.saveDiff(diff)
 //        }

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:startDestination="@id/mainFragment">
+
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.example.changedetection.MainFragment"
+        android:label="MainFragment"
+        tools:layout="@layout/todos_encontros_activity">
+        <action
+            android:id="@+id/action_mainFragment_to_openFragment"
+            app:destination="@id/openFragment"
+            app:enterAnim="@anim/slide_up2"
+            app:popEnterAnim="@anim/slide_up2"
+            app:exitAnim="@anim/design_bottom_sheet_slide_out"
+            app:popExitAnim="@anim/design_bottom_sheet_slide_out"
+            />
+        <action
+            android:id="@+id/action_mainFragment_to_fragSettings"
+            app:destination="@id/fragSettings" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/openFragment"
+        android:name="com.example.changedetection.OpenFragment"
+        android:label="OpenFragment" ></fragment>
+
+    <fragment
+        android:id="@+id/fragSettings"
+        android:name="com.example.changedetection.FragSettings"
+        android:label="FragSettings" />
+
+</navigation>

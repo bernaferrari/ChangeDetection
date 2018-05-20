@@ -61,8 +61,8 @@ object FormConstants {
         this[FormConstants.url] = "type the address"
     }
 
-    fun inputType (kind: Int): Int{
-        return when (kind){
+    fun inputType(kind: Int): Int {
+        return when (kind) {
             url -> InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS
             else -> InputType.TYPE_CLASS_TEXT
         }
