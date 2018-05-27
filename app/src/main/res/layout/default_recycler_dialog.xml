@@ -74,9 +74,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/title_bar"
-            tools:layout="@layout/recycler_view_item"
-            tools:itemCount="15"
-            tools:listitem="@layout/recycler_view_item" />
+            tools:itemCount="15" />
 
         <include
             layout="@layout/state_layout"
@@ -94,8 +92,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            tools:itemCount="2"
-            tools:listitem="@layout/diff_item" />
+            tools:itemCount="2" />
 
     </android.support.constraint.ConstraintLayout>
 </com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout>

@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="save">Salvar</string>
     <string name="cancel">Cancelar</string>
 
+    <string name="inputName">Digite o título</string>
+    <string name="inputUrl">Dígite a url</string>
+    <string name="syncing">Sincronizando…</string>
+    <string name="success_copied">Copiado</string>
+    <string name="nothing_yet">nada ainda</string>
 </resources>

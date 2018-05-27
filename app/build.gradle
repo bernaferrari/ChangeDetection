@@ -94,7 +94,11 @@ dependencies {
     implementation 'agency.tango.android:material-intro-screen:0.0.5'
 
 
-    // Notification
+    // Notification<style name="AppTheme.MaterialAboutActivity.Fragment" parent="Theme.Mal.Light">
+    //    <item name="colorPrimary">@color/colorPrimary</item>
+    //    <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+    //    <item name="colorAccent">@color/colorAccent</item>
+    //</style>
     implementation "io.karn:notify:1.0.0"
 
 

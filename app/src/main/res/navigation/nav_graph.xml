@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/mainFragment"
-        android:name="com.bernaferrari.changedetection.MainScreenFragment"
+        android:name="com.bernaferrari.changedetection.MainFragment"
         android:label="MainFragment"
         tools:layout="@layout/todos_encontros_activity">
         <action

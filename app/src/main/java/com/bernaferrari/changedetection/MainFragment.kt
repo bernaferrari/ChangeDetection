@@ -1,0 +1,356 @@
+package com.bernaferrari.changedetection
+
+import android.app.Activity
+import android.arch.lifecycle.Observer
+import android.os.Bundle
+import android.support.design.widget.Snackbar
+import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.core.os.bundleOf
+import androidx.navigation.Navigation
+import androidx.work.State
+import androidx.work.WorkStatus
+import com.afollestad.materialdialogs.MaterialDialog
+import com.bernaferrari.changedetection.data.Diff
+import com.bernaferrari.changedetection.data.source.local.SiteAndLastDiff
+import com.bernaferrari.changedetection.forms.FormSection
+import com.bernaferrari.changedetection.forms.FormSingleEditText
+import com.bernaferrari.changedetection.forms.Forms
+import com.bernaferrari.changedetection.groupie.DialogItem
+import com.bernaferrari.changedetection.groupie.MainScreenCardItem
+import com.bernaferrari.changedetection.ui.ListPaddingDecoration
+import com.mikepenz.community_material_typeface_library.CommunityMaterial
+import com.mikepenz.iconics.IconicsDrawable
+import com.orhanobut.logger.Logger
+import com.xwray.groupie.GroupAdapter
+import com.xwray.groupie.Section
+import com.xwray.groupie.ViewHolder
+import com.xwray.groupie.kotlinandroidextensions.Item
+import es.dmoral.toasty.Toasty
+import kotlinx.android.synthetic.main.state_layout.view.*
+import kotlinx.android.synthetic.main.todos_encontros_activity.view.*
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.launch
+
+class MainFragment : Fragment() {
+    private lateinit var mViewModel: FragmentsViewModel
+    private var sitesList = mutableListOf<MainScreenCardItem>()
+    private var sitesSection = Section(sitesList)
+
+    val color: Int by lazy { ContextCompat.getColor(requireActivity(), R.color.FontStrong) }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        WorkerHelper.updateWorkerWithConstraints(Application.instance!!.sharedPrefs("workerPreferences"))
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        val view = inflater.inflate(R.layout.todos_encontros_activity, container, false)
+        mViewModel = MainActivity.obtainViewModel(requireActivity())
+        val groupAdapter = GroupAdapter<ViewHolder>()
+
+        // Clear it up, just in case of rotation.
+        sitesSection.update(sitesList.apply { clear() })
+
+        view.run {
+            stateLayout.showLoading()
+
+            settings.setOnClickListener {
+                requireActivity().supportFragmentManager.beginTransaction().add(SettingsFragment(), "settings").commit()
+            }
+
+            info.setOnClickListener {
+
+            }
+
+            fab.run {
+                background = IconicsDrawable(requireActivity(), CommunityMaterial.Icon.cmd_plus)
+                setOnClickListener { showCreateEditDialog(false, requireActivity()) }
+            }
+
+            pullToRefresh.let { mSwipeRefreshLayout ->
+                mSwipeRefreshLayout.setOnRefreshListener {
+                    sitesList.forEach(this@MainFragment::reload)
+                    mSwipeRefreshLayout.isRefreshing = false
+                }
+            }
+
+            defaultRecycler.run {
+                addItemDecoration(ListPaddingDecoration(this.context))
+                itemAnimator = null
+                layoutManager = LinearLayoutManager(context)
+                adapter = groupAdapter.apply {
+                    // to be used when AndroidX becomes a reality and our top bar is replaced with a bottom bar.
+                    // this.add(MarqueeItem("Change Detection"))
+                    this.add(sitesSection)
+                }
+
+                setEmptyView(view.stateLayout.apply {
+                    setEmptyText("No websites are being monitored")
+                }, this)
+            }
+        }
+
+        groupAdapter.setOnItemLongClickListener { item, _ ->
+            return@setOnItemLongClickListener if (item is MainScreenCardItem) {
+                showDialogWithOptions(item)
+                true
+            } else {
+                false
+            }
+        }
+
+        groupAdapter.setOnItemClickListener { item, _ ->
+            if (item is MainScreenCardItem){
+                val bundle = bundleOf(
+                    "SITEID" to item.site.id,
+                    "TITLE" to item.site.title,
+                    "URL" to item.site.url
+                )
+                Navigation.findNavController(view).navigate(R.id.action_mainFragment_to_openFragment, bundle)
+            }
+        }
+
+        mViewModel.loadSites().observe(this, Observer (::updateList))
+        mViewModel.getOutputStatus().observe(this, Observer(::workOutput))
+        mViewModel.showEmptyOnMain.observe(this, Observer {
+            view.stateLayout.showEmptyState()
+        })
+
+        return view
+    }
+
+    private fun showDialogWithOptions(item: MainScreenCardItem) {
+        val context = requireActivity()
+
+        val materialdialog = MaterialDialog.Builder(context)
+            .customView(R.layout.default_recycler_grey_200, false)
+            .show()
+
+        val updating = mutableListOf<DialogItem>()
+
+        updating += DialogItem(
+            "Reload",
+            IconicsDrawable(context, CommunityMaterial.Icon.cmd_reload).color(
+                ContextCompat.getColor(context, R.color.md_green_500)
+            ),
+            "fetchFromServer"
+        )
+
+        updating += DialogItem(
+            "Edit",
+            IconicsDrawable(context, CommunityMaterial.Icon.cmd_pencil).color(
+                ContextCompat.getColor(context, R.color.md_blue_500)
+            ),
+            "edit"
+        )
+
+        updating += DialogItem(
+            "Remove",
+            IconicsDrawable(context, CommunityMaterial.Icon.cmd_close).color(
+                ContextCompat.getColor(context, R.color.md_red_500)
+            ),
+            "remove"
+        )
+
+        materialdialog.customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.run {
+            adapter = GroupAdapter<ViewHolder>().apply {
+                add(Section(updating))
+
+                setOnItemClickListener { dialogitem, _ ->
+                    if (dialogitem !is DialogItem) return@setOnItemClickListener
+
+                    when (dialogitem.kind) {
+                        "edit" -> showCreateEditDialog(
+                            true,
+                            context,
+                            item as? MainScreenCardItem
+                        )
+                        "fetchFromServer" -> reload(item)
+                        "remove" -> removeMy(item)
+                    }
+                    materialdialog.dismiss()
+                }
+            }
+        }
+    }
+
+    private fun workOutput(it: List<WorkStatus>?){
+        val result = it ?: return
+        val sb = StringBuilder()
+        result.forEach { sb.append("${it.id}: ${it.state.name}\n") }
+        sb.setLength(sb.length - 1) // Remove the last \n from the string
+        Toasty.info(requireContext(), sb).show()
+
+        if (result.firstOrNull()?.state == State.SUCCEEDED){
+            Toasty.success(requireContext(), "Result has succeded").show()
+        }
+    }
+
+    private val reloadCallback = { item: MainScreenCardItem -> reload(item) }
+
+    private fun updateList(mutable: MutableList<SiteAndLastDiff>?){
+        if (mutable == null){
+            return
+        }
+
+        if (sitesList.isNotEmpty()){
+            //Verifies if list is not empty and add values that are not there. Basically, makes a diff.
+            mutable.forEach { siteAndLastDiff ->
+                // if item from new list is curerently on the list, update it. Else, add.
+                sitesList.find { carditem -> carditem.site.id == siteAndLastDiff.site.id }.also {
+                    if (it == null){
+                        sitesList.add(MainScreenCardItem(siteAndLastDiff.site, siteAndLastDiff.diff, reloadCallback))
+                    } else {
+                        it.updateSiteDiff(siteAndLastDiff.site, siteAndLastDiff.diff)
+                    }
+                }
+            }
+        } else {
+            mutable.mapTo(sitesList) { MainScreenCardItem(it.site, it.diff, reloadCallback) }
+        }
+
+        sitesList.sortByDescending { it.lastDiff?.timestamp }
+        sitesSection.update(sitesList)
+    }
+
+    private fun reload(item: MainScreenCardItem?) {
+        if (item !is MainScreenCardItem) {
+            return
+        }
+
+        item.startSyncing()
+        launch {
+            val strFetched = WorkerHelper.fetchFromServer(item.site)
+            if (strFetched != null){
+                launch (UI) { subscribe(strFetched, item) }
+            } else {
+                // This will happen when internet connection is missing
+                launch (UI) {
+                    Toasty.error(requireContext(), "Error! Missing internet connection")
+                    item.updateSite(item.site)
+                    sitesSection.update(sitesList)
+                }
+            }
+        }
+    }
+
+    private fun subscribe(str: String, item: MainScreenCardItem){
+        Logger.d("count size -> ${str.count()}")
+
+        val newSite = item.site.copy(timestamp = System.currentTimeMillis(), successful = !(str.count() == 0 || str.isBlank()))
+        mViewModel.updateSite(newSite)
+
+        val diff = Diff(mViewModel.currentTime(), str.count(), item.site.id, str)
+        mViewModel.saveWebsite(diff).observe(this, Observer {
+            item.updateSite(newSite)
+
+            if (it == true) {
+                Logger.d("Diff: " + diff.diffId)
+                item.updateDiff(diff)
+                Toasty.success(requireContext(), "${newSite.title} was updated!", Snackbar.LENGTH_SHORT).show()
+                sitesList.sortByDescending { it.lastDiff?.timestamp }
+                sitesSection.update(sitesList)
+            }
+        })
+    }
+
+    private fun removeMy(item: MainScreenCardItem?) {
+        if (item != null) {
+            sitesList.remove(item)
+            sitesSection.update(sitesList)
+            mViewModel.removeSite(item.site)
+        }
+    }
+
+    private fun showCreateEditDialog(
+        isInEditingMode: Boolean,
+        activity: Activity,
+        item: MainScreenCardItem? = null
+    ) {
+
+        val listOfItems = mutableListOf<Item>().apply {
+            add(FormSection("Url", true))
+            add(FormSingleEditText(item?.site?.url ?: "", Forms.URL))
+
+            add(FormSection("Title", true))
+            add(FormSingleEditText(item?.site?.title ?: "", Forms.NAME))
+        }
+
+        val materialdialogpiece = MaterialDialog.Builder(activity)
+            .customView(R.layout.default_recycler_grey_200, false)
+            .negativeText(R.string.cancel)
+            .onPositive { _, _ ->
+                val fromForm = Forms.saveData(listOfItems)
+                Logger.d(fromForm)
+
+                val newTitle = fromForm[Forms.NAME] as? String ?: ""
+                val newUrl = fromForm[Forms.URL] as? String ?: ""
+
+                if (isInEditingMode && item != null) {
+                    val updatedSite = item.site.copy(
+                        title = newTitle,
+                        url = newUrl
+                    )
+                    val previousUrl = item.site.url
+                    // Update internally
+                    mViewModel.updateSite(updatedSite)
+                    item.updateSite(updatedSite)
+                    // Only fetchFromServer if the url has changed.
+                    if (newUrl != previousUrl){
+                        reload(item)
+                    }
+                } else {
+                    val url = when {
+                        !newUrl.startsWith("http://") && !newUrl.startsWith("https://") -> "http://$newUrl"
+                        else -> newUrl
+                    }
+
+                    if (url.isBlank()){
+                        return@onPositive
+                    }
+
+                    val site = mViewModel.saveSite(newTitle, url, mViewModel.currentTime())
+                    // add and sort the card
+                    val newItem = MainScreenCardItem(site, null, reloadCallback)
+                    sitesList.add(newItem)
+                    sitesSection.update(sitesList)
+                    reload(newItem)
+                    // It is putting the new item on the last position before refreshing.
+                    // This is not good UX since user won't know it is there,
+                    // specially when the url results in error.
+                }
+            }
+
+        when (isInEditingMode) {
+            true ->
+                materialdialogpiece
+                    .title("Edit")
+                    .positiveText("Save")
+            false ->
+                materialdialogpiece
+                    .title("Add")
+                    .positiveText("Save")
+        }
+
+        val materialdialog = materialdialogpiece.build()
+
+        materialdialog.customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.run {
+            layoutManager = LinearLayoutManager(this.context)
+            adapter = GroupAdapter<ViewHolder>().apply {
+                add(Section(listOfItems))
+            }
+        }
+
+        materialdialog.show()
+    }
+}
+
