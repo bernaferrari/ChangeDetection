@@ -1,6 +1,5 @@
 package com.bernaferrari.changedetection
 
-import android.content.res.Resources
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
@@ -24,21 +23,14 @@ import com.xwray.groupie.kotlinandroidextensions.Item
 import kotlinx.android.synthetic.main.settings.view.*
 
 class SettingsFragment : RoundedBottomSheetDialogFragment() {
-    private lateinit var mViewModel: FragmentsViewModel
-    private val groupAdapter = GroupAdapter<ViewHolder>()
-
     val color: Int by lazy { ContextCompat.getColor(requireActivity(), R.color.FontStrong) }
-
-    fun dp(value: Int, resources: Resources): Int {
-        return (resources.displayMetrics.density * value).toInt()
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.settings, container, false)
-        mViewModel = MainActivity.obtainViewModel(requireActivity())
+        val groupAdapter = GroupAdapter<ViewHolder>()
 
         val updating = mutableListOf<Item>()
         val syncSettings = mutableListOf<Item>()

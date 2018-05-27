@@ -2,9 +2,11 @@ package com.bernaferrari.changedetection
 
 import android.app.Activity
 import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
+import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -38,7 +40,7 @@ import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 
 class MainFragment : Fragment() {
-    private lateinit var mViewModel: FragmentsViewModel
+    private lateinit var mViewModel: MainViewModel
     private var sitesList = mutableListOf<MainScreenCardItem>()
     private var sitesSection = Section(sitesList)
 
@@ -54,7 +56,7 @@ class MainFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.todos_encontros_activity, container, false)
-        mViewModel = MainActivity.obtainViewModel(requireActivity())
+        mViewModel = obtainViewModel(requireActivity())
         val groupAdapter = GroupAdapter<ViewHolder>()
 
         // Clear it up, just in case of rotation.
@@ -366,6 +368,12 @@ class MainFragment : Fragment() {
         }
 
         materialdialog.show()
+    }
+
+    fun obtainViewModel(activity: FragmentActivity): MainViewModel {
+        // Use a Factory to inject dependencies into the ViewModel
+        val factory = ViewModelFactory.getInstance(activity.application)
+        return ViewModelProviders.of(activity, factory).get(MainViewModel::class.java)
     }
 }
 

@@ -2,6 +2,7 @@ package com.bernaferrari.changedetection
 
 import android.annotation.TargetApi
 import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -9,6 +10,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -41,7 +43,7 @@ import kotlinx.coroutines.experimental.launch
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 class DiffFragment : Fragment() {
-    lateinit var model: FragmentsViewModel
+    lateinit var model: DiffDetailsViewModel
     val color: Int by lazy { ContextCompat.getColor(requireContext(), R.color.FontStrong) }
 
     interface RecyclerViewItemListener {
@@ -52,7 +54,7 @@ class DiffFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        model = MainActivity.obtainViewModel(requireActivity())
+        model = obtainViewModel(requireActivity())
 
         closecontent.setOnClickListener { dismiss() }
         titlecontent.text = arguments?.getString(TITLE) ?: ""
@@ -151,7 +153,7 @@ class DiffFragment : Fragment() {
                         adapter.getItemFromAdapter(1)!!.diffId,
                         adapter.getItemFromAdapter(0)!!.diffId
                     )
-                } catch (e: IllegalArgumentException) {
+                } catch (e: Exception) {
                     Toasty.error(
                         requireContext(),
                         getString(R.string.less_than_two),
@@ -307,6 +309,12 @@ class DiffFragment : Fragment() {
     private fun dismiss() {
         view?.let { Navigation.findNavController(it).navigateUp() }
 //        activity?.supportFragmentManager?.popBackStack()
+    }
+
+    private fun obtainViewModel(activity: FragmentActivity): DiffDetailsViewModel {
+        // Use a Factory to inject dependencies into the ViewModel
+        val factory = ViewModelFactory.getInstance(activity.application)
+        return ViewModelProviders.of(activity, factory).get(DiffDetailsViewModel::class.java)
     }
 
     companion object {

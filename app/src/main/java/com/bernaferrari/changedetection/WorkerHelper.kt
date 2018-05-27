@@ -42,14 +42,18 @@ object WorkerHelper {
             response1.body()?.string() ?: ""
         } catch (e: UnknownHostException) {
             // When internet connection is not available
+            Logger.e("UnknownHostException for ${item.url}")
             null
         } catch (e: IllegalArgumentException) {
             // When input is "http://"
+            Logger.e("IllegalArgumentException for ${item.url}")
             null
         } catch (e: SocketTimeoutException) {
             // When site is not available
+            Logger.e("SocketTimeoutException for ${item.url}")
             ""
         } catch (e: Exception) {
+            Logger.e("New Exception for ${item.url}")
             ""
         }
     }

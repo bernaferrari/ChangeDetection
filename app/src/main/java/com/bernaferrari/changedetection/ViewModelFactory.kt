@@ -38,19 +38,11 @@ class ViewModelFactory private constructor(
 ) : ViewModelProvider.NewInstanceFactory() {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(FragmentsViewModel::class.java)) {
-            return FragmentsViewModel(mApplication, mDiffsRepository, mSitesRepository) as T
+        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
+            return MainViewModel(mApplication, mDiffsRepository, mSitesRepository) as T
+        } else if (modelClass.isAssignableFrom(DiffDetailsViewModel::class.java)) {
+            return DiffDetailsViewModel(mApplication, mDiffsRepository, mSitesRepository) as T
         }
-        //        } else if (modelClass.isAssignableFrom(TaskDetailViewModel.class)) {
-        //            //noinspection unchecked
-        //            return (T) new TaskDetailViewModel(mApplication, mSitesRepository);
-        //        } else if (modelClass.isAssignableFrom(AddEditTaskViewModel.class)) {
-        //            //noinspection unchecked
-        //            return (T) new AddEditTaskViewModel(mApplication, mSitesRepository);
-        //        } else if (modelClass.isAssignableFrom(FragmentsViewModel.class)) {
-        //            //noinspection unchecked
-        //            return (T) new FragmentsViewModel(mApplication, mSitesRepository);
-        //        }
         throw IllegalArgumentException("Unknown ViewModel class: " + modelClass.name)
     }
 

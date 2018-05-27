@@ -19,18 +19,14 @@ package com.bernaferrari.changedetection
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
 import android.arch.paging.LivePagedListBuilder
 import android.arch.paging.PagedList
-import androidx.work.WorkManager
-import androidx.work.WorkStatus
 import com.bernaferrari.changedetection.data.Diff
 import com.bernaferrari.changedetection.data.DiffWithoutValue
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.source.DiffsDataSource
 import com.bernaferrari.changedetection.data.source.DiffsRepository
 import com.bernaferrari.changedetection.data.source.SitesRepository
-import com.bernaferrari.changedetection.data.source.local.SiteAndLastDiff
 import com.bernaferrari.changedetection.diffs.text.DiffRowGenerator
 import com.bernaferrari.changedetection.extensions.cleanUpHtml
 import com.bernaferrari.changedetection.groupie.TextRecycler
@@ -43,14 +39,9 @@ import kotlinx.coroutines.experimental.launch
 import kotlin.coroutines.experimental.suspendCoroutine
 
 /**
- * Exposes the data to be used in the site list screen.
- *
- *
- * [BaseObservable] implements a listener registration mechanism which is notified when a
- * property changes. This is done by assigning a [Bindable] annotation to the property's
- * getter method.
+ * Exposes the data to be used in the site diff screen.
  */
-class FragmentsViewModel(
+class DiffDetailsViewModel(
     context: Application,
     private val mDiffsRepository: DiffsRepository,
     private val mSitesRepository: SitesRepository
@@ -61,17 +52,6 @@ class FragmentsViewModel(
     val showProgress = SingleLiveEvent<Void>()
 
     private val mSiteUpdated = SingleLiveEvent<Void>()
-
-    fun getOutputStatus(): LiveData<List<WorkStatus>> {
-        return WorkManager.getInstance().getStatusesForUniqueWork(WorkerHelper.UNIQUEWORK)
-    }
-
-    fun currentTime(): Long = System.currentTimeMillis()
-
-    fun removeSite(site: Site) {
-        mDiffsRepository.deleteAllDiffsForSite(site.id)
-        mSitesRepository.deleteSite(site.id)
-    }
 
     fun removeDiff(id: String) {
         mDiffsRepository.deleteDiff(id)
@@ -96,44 +76,6 @@ class FragmentsViewModel(
         mSitesRepository.saveSite(site)
         mSiteUpdated.call()
         return site
-    }
-
-    // Called when clicking on fab.
-    internal fun saveWebsite(
-        diff: Diff
-    ): MutableLiveData<Boolean> {
-
-        val didItWork = MutableLiveData<Boolean>()
-        mDiffsRepository.saveDiff(diff, object : DiffsDataSource.GetDiffCallback {
-            override fun onDiffLoaded(diff: Diff) {
-                didItWork.value = true
-            }
-
-            override fun onDataNotAvailable() {
-                didItWork.value = false
-            }
-        })
-        mSiteUpdated.call()
-        return didItWork
-    }
-
-    internal fun updateSite(site: Site) {
-        mSitesRepository.saveSite(site)
-        mSiteUpdated.call()
-    }
-
-    val items = MutableLiveData<MutableList<SiteAndLastDiff>>()
-
-    fun loadSites(): MutableLiveData<MutableList<SiteAndLastDiff>> {
-        items.value = null
-        updateItems()
-        return items
-    }
-
-    fun updateItems() {
-        mSitesRepository.getSiteAndLastDiff {
-            items.value = it
-        }
     }
 
     var currentJob: Job? = null
