@@ -16,6 +16,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
+import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
@@ -43,7 +44,7 @@ class DiffFragment : Fragment() {
     lateinit var model: FragmentsViewModel
     val color: Int by lazy { ContextCompat.getColor(requireContext(), R.color.FontStrong) }
 
-    interface RecyclerViewItemListener{
+    interface RecyclerViewItemListener {
         fun onClickListener(item: RecyclerView.ViewHolder)
         fun onLongClickListener(item: RecyclerView.ViewHolder)
     }
@@ -56,7 +57,8 @@ class DiffFragment : Fragment() {
         closecontent.setOnClickListener { dismiss() }
         titlecontent.text = arguments?.getString(TITLE) ?: ""
 
-        this.elastic.addListener(object : ElasticDragDismissFrameLayout.ElasticDragDismissCallback() {
+        this.elastic.addListener(object :
+            ElasticDragDismissFrameLayout.ElasticDragDismissCallback() {
             override fun onDragDismissed() {
                 view?.let { Navigation.findNavController(it).navigateUp() }
             }
@@ -71,7 +73,7 @@ class DiffFragment : Fragment() {
         val topSection = Section()
 
         model.showDiffError.observe(this, Observer {
-            if (it == true){
+            if (it == true) {
                 state.setEmptyText("Select two snapshots below \n to compare the differences")
                 state.showEmptyState()
             }
@@ -104,25 +106,25 @@ class DiffFragment : Fragment() {
 
         val recyclerListener = object : RecyclerViewItemListener {
             override fun onClickListener(item: RecyclerView.ViewHolder) {
-                    if (item !is DiffViewHolder) return
-                    state.showLoading()
-                    model.fsmSelectWithCorrectColor(item, topSection)
+                if (item !is DiffViewHolder) return
+                state.showLoading()
+                model.fsmSelectWithCorrectColor(item, topSection)
             }
 
-             override fun onLongClickListener(item: RecyclerView.ViewHolder) {
-                 if (item !is DiffViewHolder) return
+            override fun onLongClickListener(item: RecyclerView.ViewHolder) {
+                if (item !is DiffViewHolder) return
 
-                 MaterialDialog.Builder(requireActivity())
-                     .title("Remove ${item.readableFileSize}")
-                     .content("Are you sure you want to remove ${item.readableFileSize} from ${item.stringFromTimeAgo}?")
-                     .negativeText(R.string.cancel)
-                     .positiveText("Yes")
-                     .onPositive { _, _ ->
-                         model.removeDiff(item.diff!!.diffId)
+                MaterialDialog.Builder(requireActivity())
+                    .title("Remove ${item.readableFileSize}")
+                    .content("Are you sure you want to remove ${item.readableFileSize} from ${item.stringFromTimeAgo}?")
+                    .negativeText(R.string.cancel)
+                    .positiveText("Yes")
+                    .onPositive { _, _ ->
+                        model.removeDiff(item.diff!!.diffId)
 //                         model.updateCanShowDiff(bottomList, topSection)
-                     }
-                     .show()
-             }
+                    }
+                    .show()
+            }
         }
 
         // Create adapter for the RecyclerView
@@ -136,17 +138,27 @@ class DiffFragment : Fragment() {
         // Subscribe the adapter to the ViewModel, so the items in the adapter are refreshed
         // when the list changes
         var hasSetInitialColor = false
-        model.getWebHistoryForId(siteId).observe(this, Observer{
+        model.getWebHistoryForId(siteId).observe(this, Observer {
             adapter.submitList(it)
-            if (!hasSetInitialColor){
-                adapter.setColor(2,0)
-                adapter.setColor(1,1)
+            if (!hasSetInitialColor) {
+                adapter.setColor(2, 0)
+                adapter.setColor(1, 1)
 
-                model.generateDiff(
-                    topSection,
-                    adapter.getItemFromAdapter(1)!!.diffId,
-                    adapter.getItemFromAdapter(0)!!.diffId
-                )
+                try {
+//                    (adapter.getItemFromAdapter(0) != null || adapter.getItemFromAdapter(1) != null)
+                    model.generateDiff(
+                        topSection,
+                        adapter.getItemFromAdapter(1)!!.diffId,
+                        adapter.getItemFromAdapter(0)!!.diffId
+                    )
+                } catch (e: IllegalArgumentException) {
+                    Toasty.error(
+                        requireContext(),
+                        getString(R.string.less_than_two),
+                        Toast.LENGTH_LONG
+                    ).show()
+                    view?.let { Navigation.findNavController(it).navigateUp() }
+                }
 
                 hasSetInitialColor = true
             }
@@ -165,10 +177,12 @@ class DiffFragment : Fragment() {
             )
 
             setOnLongClickListener {
-                startActivity(Intent(
-                    Intent.ACTION_VIEW,
-                    (arguments?.getString(URL) ?: "http://").toUri()
-                ))
+                startActivity(
+                    Intent(
+                        Intent.ACTION_VIEW,
+                        (arguments?.getString(URL) ?: "http://").toUri()
+                    )
+                )
                 true
             }
 
@@ -239,10 +253,12 @@ class DiffFragment : Fragment() {
                                     .customView(R.layout.content_web, false)
                                     .build()
                                     .also {
-                                        val position = adapter.colorSelected.filter { it.value == 1 }.firstKey()!!
+                                        val position =
+                                            adapter.colorSelected.filter { it.value == 1 }.firstKey()!!
                                         putDataOnWebView(
                                             it.customView?.findViewById<PrettifyWebView>(R.id.webview),
-                                            adapter.getItemFromAdapter(position)!!.diffId)
+                                            adapter.getItemFromAdapter(position)!!.diffId
+                                        )
                                     }.show()
                             }
                             "second" -> {
@@ -250,10 +266,12 @@ class DiffFragment : Fragment() {
                                     .customView(R.layout.content_web, false)
                                     .build()
                                     .also {
-                                        val position = adapter.colorSelected.filter { it.value == 2 }.firstKey()!!
+                                        val position =
+                                            adapter.colorSelected.filter { it.value == 2 }.firstKey()!!
                                         putDataOnWebView(
                                             it.customView?.findViewById<PrettifyWebView>(R.id.webview),
-                                            adapter.getItemFromAdapter(position)!!.diffId)
+                                            adapter.getItemFromAdapter(position)!!.diffId
+                                        )
                                     }.show()
                             }
                         }
@@ -273,7 +291,7 @@ class DiffFragment : Fragment() {
         Toasty.success(context, context.getString(R.string.success_copied)).show()
     }
 
-    private fun putDataOnWebView(webView: WebView?, data: String){
+    private fun putDataOnWebView(webView: WebView?, data: String) {
         webView?.loadDataWithBaseURL("", data, "text/html", "UTF-8", "")
     }
 

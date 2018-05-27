@@ -90,7 +90,8 @@ class PrettifyWebView : NestedWebView {
         Toasty.success(
             Application.instance!!.applicationContext, context.getString(
                 R.string.success_copied
-            )).show()
+            )
+        ).show()
     }
 
     override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<navigation xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     app:startDestination="@id/mainFragment">
 
@@ -13,17 +13,39 @@
             android:id="@+id/action_mainFragment_to_openFragment"
             app:destination="@id/openFragment"
             app:enterAnim="@anim/slide_up2"
-            app:popEnterAnim="@anim/slide_up2"
             app:exitAnim="@anim/design_bottom_sheet_slide_out"
-            app:popExitAnim="@anim/design_bottom_sheet_slide_out"
-            />
+            app:popEnterAnim="@anim/slide_up2"
+            app:popExitAnim="@anim/design_bottom_sheet_slide_out" />
+        <action
+            android:id="@+id/action_mainFragment_to_aboutFragment"
+            app:destination="@id/aboutFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_left" />
     </fragment>
 
     <fragment
         android:id="@+id/openFragment"
         android:name="com.bernaferrari.changedetection.DiffFragment"
         android:label="OpenFragment"
-        tools:layout="@layout/default_recycler_dialog"
-        ></fragment>
+        tools:layout="@layout/default_recycler_dialog"></fragment>
+
+    <fragment
+        android:id="@+id/aboutFragment"
+        android:name="com.bernaferrari.changedetection.AboutFragment"
+        android:label="AboutFragment">
+        <action
+            android:id="@+id/action_aboutFragment_to_aboutLicenseFragment"
+            app:destination="@id/aboutLicenseFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_right"
+            app:popExitAnim="@anim/slide_out_left" />
+    </fragment>
+    <fragment
+        android:id="@+id/aboutLicenseFragment"
+        android:name="com.bernaferrari.changedetection.AboutLicenseFragment"
+        android:label="AboutLicenseFragment" />
 
 </navigation>

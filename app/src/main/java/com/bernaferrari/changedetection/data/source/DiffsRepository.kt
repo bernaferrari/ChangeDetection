@@ -53,7 +53,7 @@ private constructor(
         )
     }
 
-    override fun getCheese(id: String): DataSource.Factory<Int, DiffWithoutValue>{
+    override fun getCheese(id: String): DataSource.Factory<Int, DiffWithoutValue> {
         return mDiffsLocalDataSource.getCheese(id)
     }
 

@@ -64,11 +64,13 @@ class MainFragment : Fragment() {
             stateLayout.showLoading()
 
             settings.setOnClickListener {
-                requireActivity().supportFragmentManager.beginTransaction().add(SettingsFragment(), "settings").commit()
+                requireActivity().supportFragmentManager.beginTransaction()
+                    .add(SettingsFragment(), "settings").commit()
             }
 
             info.setOnClickListener {
-
+                Navigation.findNavController(view)
+                    .navigate(R.id.action_mainFragment_to_aboutFragment)
             }
 
             fab.run {
@@ -109,21 +111,19 @@ class MainFragment : Fragment() {
         }
 
         groupAdapter.setOnItemClickListener { item, _ ->
-            if (item is MainScreenCardItem){
+            if (item is MainScreenCardItem) {
                 val bundle = bundleOf(
                     "SITEID" to item.site.id,
                     "TITLE" to item.site.title,
                     "URL" to item.site.url
                 )
-                Navigation.findNavController(view).navigate(R.id.action_mainFragment_to_openFragment, bundle)
+                Navigation.findNavController(view)
+                    .navigate(R.id.action_mainFragment_to_openFragment, bundle)
             }
         }
 
-        mViewModel.loadSites().observe(this, Observer (::updateList))
+        mViewModel.loadSites().observe(this, Observer(::updateList))
         mViewModel.getOutputStatus().observe(this, Observer(::workOutput))
-        mViewModel.showEmptyOnMain.observe(this, Observer {
-            view.stateLayout.showEmptyState()
-        })
 
         return view
     }
@@ -138,7 +138,7 @@ class MainFragment : Fragment() {
         val updating = mutableListOf<DialogItem>()
 
         updating += DialogItem(
-            "Reload",
+            getString(R.string.reload),
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_reload).color(
                 ContextCompat.getColor(context, R.color.md_green_500)
             ),
@@ -146,7 +146,7 @@ class MainFragment : Fragment() {
         )
 
         updating += DialogItem(
-            "Edit",
+            getString(R.string.edit),
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_pencil).color(
                 ContextCompat.getColor(context, R.color.md_blue_500)
             ),
@@ -154,7 +154,7 @@ class MainFragment : Fragment() {
         )
 
         updating += DialogItem(
-            "Remove",
+            getString(R.string.remove),
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_close).color(
                 ContextCompat.getColor(context, R.color.md_red_500)
             ),
@@ -183,32 +183,40 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun workOutput(it: List<WorkStatus>?){
+    private fun workOutput(it: List<WorkStatus>?) {
         val result = it ?: return
         val sb = StringBuilder()
         result.forEach { sb.append("${it.id}: ${it.state.name}\n") }
         sb.setLength(sb.length - 1) // Remove the last \n from the string
-        Toasty.info(requireContext(), sb).show()
 
-        if (result.firstOrNull()?.state == State.SUCCEEDED){
+        if (result.firstOrNull()?.state == State.SUCCEEDED) {
+            mViewModel.updateItems()
             Toasty.success(requireContext(), "Result has succeded").show()
         }
     }
 
     private val reloadCallback = { item: MainScreenCardItem -> reload(item) }
 
-    private fun updateList(mutable: MutableList<SiteAndLastDiff>?){
-        if (mutable == null){
+    private fun updateList(mutable: MutableList<SiteAndLastDiff>?) {
+        view?.stateLayout?.showEmptyState()
+
+        if (mutable == null) {
             return
         }
 
-        if (sitesList.isNotEmpty()){
+        if (sitesList.isNotEmpty()) {
             //Verifies if list is not empty and add values that are not there. Basically, makes a diff.
             mutable.forEach { siteAndLastDiff ->
                 // if item from new list is curerently on the list, update it. Else, add.
                 sitesList.find { carditem -> carditem.site.id == siteAndLastDiff.site.id }.also {
-                    if (it == null){
-                        sitesList.add(MainScreenCardItem(siteAndLastDiff.site, siteAndLastDiff.diff, reloadCallback))
+                    if (it == null) {
+                        sitesList.add(
+                            MainScreenCardItem(
+                                siteAndLastDiff.site,
+                                siteAndLastDiff.diff,
+                                reloadCallback
+                            )
+                        )
                     } else {
                         it.updateSiteDiff(siteAndLastDiff.site, siteAndLastDiff.diff)
                     }
@@ -230,11 +238,11 @@ class MainFragment : Fragment() {
         item.startSyncing()
         launch {
             val strFetched = WorkerHelper.fetchFromServer(item.site)
-            if (strFetched != null){
-                launch (UI) { subscribe(strFetched, item) }
+            if (strFetched != null) {
+                launch(UI) { subscribe(strFetched, item) }
             } else {
                 // This will happen when internet connection is missing
-                launch (UI) {
+                launch(UI) {
                     Toasty.error(requireContext(), "Error! Missing internet connection")
                     item.updateSite(item.site)
                     sitesSection.update(sitesList)
@@ -243,10 +251,13 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun subscribe(str: String, item: MainScreenCardItem){
+    private fun subscribe(str: String, item: MainScreenCardItem) {
         Logger.d("count size -> ${str.count()}")
 
-        val newSite = item.site.copy(timestamp = System.currentTimeMillis(), successful = !(str.count() == 0 || str.isBlank()))
+        val newSite = item.site.copy(
+            timestamp = System.currentTimeMillis(),
+            successful = !(str.count() == 0 || str.isBlank())
+        )
         mViewModel.updateSite(newSite)
 
         val diff = Diff(mViewModel.currentTime(), str.count(), item.site.id, str)
@@ -256,7 +267,11 @@ class MainFragment : Fragment() {
             if (it == true) {
                 Logger.d("Diff: " + diff.diffId)
                 item.updateDiff(diff)
-                Toasty.success(requireContext(), "${newSite.title} was updated!", Snackbar.LENGTH_SHORT).show()
+                Toasty.success(
+                    requireContext(),
+                    "${newSite.title} was updated!",
+                    Snackbar.LENGTH_SHORT
+                ).show()
                 sitesList.sortByDescending { it.lastDiff?.timestamp }
                 sitesSection.update(sitesList)
             }
@@ -305,7 +320,7 @@ class MainFragment : Fragment() {
                     mViewModel.updateSite(updatedSite)
                     item.updateSite(updatedSite)
                     // Only fetchFromServer if the url has changed.
-                    if (newUrl != previousUrl){
+                    if (newUrl != previousUrl) {
                         reload(item)
                     }
                 } else {
@@ -314,7 +329,7 @@ class MainFragment : Fragment() {
                         else -> newUrl
                     }
 
-                    if (url.isBlank()){
+                    if (url.isBlank()) {
                         return@onPositive
                     }
 

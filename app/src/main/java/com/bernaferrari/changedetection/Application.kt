@@ -14,7 +14,9 @@ class Application : MultiDexApplication() {
         instance = this
 
         AndroidThreeTen.init(this)
-        Stetho.initializeWithDefaults(this)
+        if (BuildConfig.DEBUG) {
+            Stetho.initializeWithDefaults(this)
+        }
 
         Logger.addLogAdapter(object : AndroidLogAdapter() {
             override fun isLoggable(priority: Int, tag: String?): Boolean {
@@ -31,5 +33,4 @@ class Application : MultiDexApplication() {
     fun sharedPrefs(name: String): SharedPreferences {
         return this.getSharedPreferences(name, Context.MODE_PRIVATE)
     }
-
 }

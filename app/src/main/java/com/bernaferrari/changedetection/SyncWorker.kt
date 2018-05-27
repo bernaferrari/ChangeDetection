@@ -19,8 +19,8 @@ class SyncWorker : Worker() {
 
     override fun doWork(): Worker.WorkerResult {
 
-        if (inputData.getBoolean(WorkerHelper.WIFI, false)){
-            if (isWifiConnected()){
+        if (inputData.getBoolean(WorkerHelper.WIFI, false)) {
+            if (isWifiConnected()) {
                 heavyWork()
             } else {
                 Logger.d("SyncWorker: wifi is not connected. Try again next time..")
@@ -33,31 +33,32 @@ class SyncWorker : Worker() {
         return WorkerResult.SUCCESS
     }
 
-    private fun heavyWork(){
+    private fun heavyWork() {
         val now = LocalTime.now()
         Logger.d("Doing background work! " + now.hour + ":" + now.minute)
-        Injection.provideSitesRepository(this@SyncWorker.applicationContext).getSites(object : SitesDataSource.LoadSitesCallback {
-            override fun onSitesLoaded(sites: List<Site>) {
-                sites.forEach(::reload)
-                WorkerHelper.updateWorkerWithConstraints(Application.instance!!.sharedPrefs("workerPreferences"))
-            }
+        Injection.provideSitesRepository(this@SyncWorker.applicationContext)
+            .getSites(object : SitesDataSource.LoadSitesCallback {
+                override fun onSitesLoaded(sites: List<Site>) {
+                    sites.forEach(::reload)
+                    WorkerHelper.updateWorkerWithConstraints(Application.instance!!.sharedPrefs("workerPreferences"))
+                }
 
-            override fun onDataNotAvailable() {
+                override fun onDataNotAvailable() {
 
-            }
-        })
+                }
+            })
     }
 
     private fun reload(item: Site) {
         launch {
             val serverResult = WorkerHelper.fetchFromServer(item)
-            if (serverResult != null){
+            if (serverResult != null) {
                 processServerResult(serverResult, item)
             }
         }
     }
 
-    private fun processServerResult(str: String, item: Site){
+    private fun processServerResult(str: String, item: Site) {
         Logger.d("count size -> ${str.count()}")
 
         val newSite = item.copy(
@@ -69,42 +70,46 @@ class SyncWorker : Worker() {
 
         val diff = Diff(currentTime(), str.count(), item.id, str)
 
-        Injection.provideDiffsRepository(this@SyncWorker.applicationContext).saveDiff(diff, callback = object : DiffsDataSource.GetDiffCallback {
-            override fun onDiffLoaded(diff: Diff) {
+        Injection.provideDiffsRepository(this@SyncWorker.applicationContext)
+            .saveDiff(diff, callback = object : DiffsDataSource.GetDiffCallback {
+                override fun onDiffLoaded(diff: Diff) {
 
-                Notify
-                    .with(applicationContext)
-                    .header { this.icon =  R.drawable.vector_sync}
-                    .meta {
-                        this.clickIntent = PendingIntent.getActivity(applicationContext, 0,
-                            Intent(applicationContext, MainActivity::class.java), 0)
-                    }
-                    .content {
-                        title = if (newSite.title.isNullOrBlank()) {
-                            "Change detected!"
-                        } else {
-                            "Change detected on ${newSite.title}"
+                    Notify
+                        .with(applicationContext)
+                        .header { this.icon = R.drawable.vector_sync }
+                        .meta {
+                            this.clickIntent = PendingIntent.getActivity(
+                                applicationContext, 0,
+                                Intent(applicationContext, MainActivity::class.java), 0
+                            )
                         }
-                        text = newSite.url
-                    }
-                    .show()
-            }
+                        .content {
+                            title = if (newSite.title.isNullOrBlank()) {
+                                "Change detected!"
+                            } else {
+                                "Change detected on ${newSite.title}"
+                            }
+                            text = newSite.url
+                        }
+                        .show()
+                }
 
-            override fun onDataNotAvailable() {
+                override fun onDataNotAvailable() {
 
-            }
-        })
+                }
+            })
     }
 
     private fun currentTime(): Long = System.currentTimeMillis()
 
     private fun isWifiConnected(): Boolean {
         // From https://stackoverflow.com/a/34576776/4418073
-        val connectivityManager = applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager =
+            applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetworks = connectivityManager.allNetworks
-        for (network in activeNetworks){
-            if(connectivityManager.getNetworkInfo(network).isConnected){
-                val networkCapabilities= connectivityManager.getNetworkCapabilities(network)
+        for (network in activeNetworks) {
+            if (connectivityManager.getNetworkInfo(network).isConnected) {
+                val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
                 if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
                     return true
                 }

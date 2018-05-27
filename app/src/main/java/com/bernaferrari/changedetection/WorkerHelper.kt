@@ -13,13 +13,19 @@ import java.util.concurrent.TimeUnit
 
 object WorkerHelper {
 
+    const val UNIQUEWORK = "work"
     const val WIFI = "wifi"
     const val CHARGING = "charging"
     const val BATTERYNOTLOW = "batteryNotLow"
     const val IDLE = "idle"
     const val DELAY = "delay"
 
-    class ConstraintsRequired(val wifi: Boolean, val charging: Boolean, val batteryNotLow: Boolean, val deviceIdle: Boolean)
+    class ConstraintsRequired(
+        val wifi: Boolean,
+        val charging: Boolean,
+        val batteryNotLow: Boolean,
+        val deviceIdle: Boolean
+    )
 
     fun fetchFromServer(item: Site): String? {
         val client = OkHttpClient()
@@ -40,7 +46,7 @@ object WorkerHelper {
         } catch (e: IllegalArgumentException) {
             // When input is "http://"
             null
-        } catch (e: SocketTimeoutException){
+        } catch (e: SocketTimeoutException) {
             // When site is not available
             ""
         } catch (e: Exception) {
@@ -48,7 +54,7 @@ object WorkerHelper {
         }
     }
 
-    fun updateWorkerWithConstraints(sharedPrefs: SharedPreferences){
+    fun updateWorkerWithConstraints(sharedPrefs: SharedPreferences) {
         val constraints = ConstraintsRequired(
             sharedPrefs.getBoolean(WorkerHelper.WIFI, false),
             sharedPrefs.getBoolean(WorkerHelper.CHARGING, false),
@@ -56,14 +62,13 @@ object WorkerHelper {
             sharedPrefs.getBoolean(WorkerHelper.IDLE, false)
         )
 
-        if (sharedPrefs.getBoolean("backgroundSync", true)) {
+        cancelWork()
+        if (sharedPrefs.getBoolean("backgroundSync", false)) {
             reloadWorkManager(sharedPrefs.getLong(WorkerHelper.DELAY, 30), constraints)
-        } else {
-            cancelWork()
         }
     }
 
-    private fun reloadWorkManager(delay: Long = 15, constraints: ConstraintsRequired){
+    private fun reloadWorkManager(delay: Long = 15, constraints: ConstraintsRequired) {
         cancelWork()
 
         val workerConstraints = Constraints.Builder()
@@ -75,19 +80,24 @@ object WorkerHelper {
 
         if (constraints.batteryNotLow) workerConstraints.setRequiresBatteryNotLow(true)
         if (constraints.charging) workerConstraints.setRequiresCharging(true)
-        if (Build.VERSION.SDK_INT >= 23 && constraints.deviceIdle) workerConstraints.setRequiresDeviceIdle(true)
+        if (Build.VERSION.SDK_INT >= 23 && constraints.deviceIdle) workerConstraints.setRequiresDeviceIdle(
+            true
+        )
 
         val photoWork = OneTimeWorkRequest.Builder(
-            SyncWorker::class.java)
+            SyncWorker::class.java
+        )
             .setInitialDelay(delay, TimeUnit.MINUTES)
             .setConstraints(workerConstraints.build())
             .setInputData(inputData)
             .build()
 
-        WorkManager.getInstance().beginUniqueWork("work", ExistingWorkPolicy.REPLACE, photoWork).enqueue()
+        WorkManager.getInstance()
+            .beginUniqueWork(WorkerHelper.UNIQUEWORK, ExistingWorkPolicy.REPLACE, photoWork)
+            .enqueue()
     }
 
-    fun cancelWork(){
-        WorkManager.getInstance().cancelUniqueWork("work")
+    fun cancelWork() {
+        WorkManager.getInstance().cancelUniqueWork(WorkerHelper.UNIQUEWORK)
     }
 }

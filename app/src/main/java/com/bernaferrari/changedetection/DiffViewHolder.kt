@@ -19,8 +19,13 @@ import java.util.*
  * A simple ViewHolder that can bind a Cheese item. It also accepts null items since the data may
  * not have been fetched before it is bound.
  */
-class DiffViewHolder(parent: ViewGroup, val adapter: DiffAdapter, val callback: DiffFragment.RecyclerViewItemListener) : RecyclerView.ViewHolder(
-        LayoutInflater.from(parent.context).inflate(R.layout.diff_item, parent, false)) {
+class DiffViewHolder(
+    parent: ViewGroup,
+    val adapter: DiffAdapter,
+    val callback: DiffFragment.RecyclerViewItemListener
+) : RecyclerView.ViewHolder(
+    LayoutInflater.from(parent.context).inflate(R.layout.diff_item, parent, false)
+) {
 
     init {
         itemView.setOnClickListener {
@@ -33,9 +38,9 @@ class DiffViewHolder(parent: ViewGroup, val adapter: DiffAdapter, val callback: 
         }
     }
 
-    var diff : DiffWithoutValue? = null
+    var diff: DiffWithoutValue? = null
 
-    fun setColor(color: Int){
+    fun setColor(color: Int) {
         colorSelected = color
         adapter.setColor(color, adapterPosition)
     }
@@ -44,11 +49,11 @@ class DiffViewHolder(parent: ViewGroup, val adapter: DiffAdapter, val callback: 
      * Items might be null if they are not paged in yet. PagedListAdapter will re-bind the
      * ViewHolder when Item is loaded.
      */
-    fun bindTo(diff : DiffWithoutValue?, colorSelected: Int) {
+    fun bindTo(diff: DiffWithoutValue?, colorSelected: Int) {
         this.diff = diff
         this.colorSelected = colorSelected
 
-        if (this.diff == null){
+        if (this.diff == null) {
             return
         }
 
@@ -63,7 +68,7 @@ class DiffViewHolder(parent: ViewGroup, val adapter: DiffAdapter, val callback: 
     }
 
     var colorSelected = 0
-    private set
+        private set
 
     var readableFileSize = ""
     var stringFromTimeAgo = ""
@@ -104,9 +109,6 @@ class DiffViewHolder(parent: ViewGroup, val adapter: DiffAdapter, val callback: 
             )
         ) + " " + units[digitGroups]
     }
-
-
-
 
 
 }

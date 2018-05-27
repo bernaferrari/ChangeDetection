@@ -30,35 +30,21 @@ import com.bernaferrari.changedetection.data.DiffWithoutValue
 @Dao
 interface DiffsDao {
 
-    @Query("SELECT * FROM diffs WHERE siteId = :id ORDER BY timestamp DESC")
-    fun allCheesesByName(id: String): DataSource.Factory<Int, DiffWithoutValue>
+    @Query("SELECT diffId, siteId, timestamp, size FROM diffs WHERE siteId = :id ORDER BY timestamp DESC")
+    fun allDiffsBySiteId(id: String): DataSource.Factory<Int, DiffWithoutValue>
 
-    // Arbitrary limit. If each page is 500kb, 25*500kb = 12.5mb. More than that might cause OutOfMemoryError.
-    // If you need more, this might be a great use for Paging library. Issues and PRs are welcome.
     @Query("SELECT * FROM diffs WHERE siteId = :id ORDER BY timestamp DESC LIMIT 25")
     fun getDiffsForSiteWithLimit(id: String): List<Diff>?
 
     @Query("SELECT count(1) FROM diffs WHERE siteId = :id")
     fun getDiffsCountForUser(id: String): Int
 
-    /**
-     * Select a site by id.
-     *
-     * @param taskId the site id.
-     * @return the site with taskId.
-     */
     @Query("SELECT * FROM diffs WHERE diffId = :id")
     fun getDiffById(id: String): Diff?
 
-    @Query("SELECT * FROM diffs WHERE siteId = :diffId ORDER BY timestamp DESC LIMIT 1")
+    @Query("SELECT diffId, siteId, timestamp, size FROM diffs WHERE siteId = :diffId ORDER BY timestamp DESC LIMIT 1")
     fun getLastDiffWithoutValueBySiteId(diffId: String): DiffWithoutValue?
 
-    /**
-     * Select a site by id.
-     *
-     * @param taskId the site id.
-     * @return the site with taskId.
-     */
     @Query("SELECT * FROM diffs WHERE siteId = :id ORDER BY timestamp DESC LIMIT 1")
     fun getDiffBySiteId(id: String): Diff?
 
@@ -74,17 +60,9 @@ interface DiffsDao {
     @Query("DELETE FROM diffs WHERE diffId = :id")
     fun deleteDiffById(id: String): Int
 
-    /**
-     * Insert a diff in the database. If the diff already exists, replace it.
-     *
-     * @param site the site to be inserted.
-     */
     @Insert(onConflict = OnConflictStrategy.FAIL)
     fun insertDiff(diff: Diff)
 
-    /**
-     * Delete all diffs.
-     */
     @Query("DELETE FROM diffs")
     fun deleteTasks()
 }

@@ -30,42 +30,51 @@ enum class SYNC {
     LOADING, OK, ERROR
 }
 
-class MainScreenCardItem(var site: Site, var lastDiff: DiffWithoutValue?, private val reloadCallback: ((MainScreenCardItem) -> Unit)) : Item() {
+class MainScreenCardItem(
+    var site: Site,
+    var lastDiff: DiffWithoutValue?,
+    private val reloadCallback: ((MainScreenCardItem) -> Unit)
+) : Item() {
     var status: SYNC = SYNC.OK
     private var isReloading = false
-    private var siteDisposable: Disposable ? = null
-    private var diffDisposable: Disposable ? = null
+    private var siteDisposable: Disposable? = null
+    private var diffDisposable: Disposable? = null
 
-    fun updateSite(tas: Site){
+    fun updateSite(tas: Site) {
         this.site = tas
         changeStatus()
         notifyChanged()
     }
 
-    fun updateSiteDiff(tas: Site, lastDiff: DiffWithoutValue?){
+    fun updateSiteDiff(tas: Site, lastDiff: DiffWithoutValue?) {
         this.site = tas
         this.lastDiff = lastDiff
         changeStatus()
         notifyChanged()
     }
 
-    fun updateDiff(lastDiff: DiffWithoutValue?){
+    fun updateDiff(lastDiff: DiffWithoutValue?) {
         this.lastDiff = lastDiff
         notifyChanged()
     }
 
-    fun updateDiff(lastDiff: Diff){
-        this.lastDiff = DiffWithoutValue(lastDiff.diffId, lastDiff.siteId, lastDiff.timestamp, lastDiff.size)
+    fun updateDiff(lastDiff: Diff) {
+        this.lastDiff = DiffWithoutValue(
+            lastDiff.diffId,
+            lastDiff.siteId,
+            lastDiff.timestamp,
+            lastDiff.size
+        )
         notifyChanged()
     }
 
-    fun startSyncing(){
+    fun startSyncing() {
         status = SYNC.LOADING
         notifyChanged()
     }
 
-    private fun changeStatus(){
-        status = when (site.successful){
+    private fun changeStatus() {
+        status = when (site.successful) {
             true -> SYNC.OK
             false -> SYNC.ERROR
         }
@@ -76,14 +85,24 @@ class MainScreenCardItem(var site: Site, var lastDiff: DiffWithoutValue?, privat
     override fun getLayout() = R.layout.bottomsheet_item_card_list
 
     override fun bind(holder: ViewHolder, position: Int, payloads: List<Any>) {
-        if (status != SYNC.LOADING){
+        if (status != SYNC.LOADING) {
             changeStatus()
         }
 
         val context = holder.containerView.context
         // imageview:src on xml sometimes doesn't cast as AnimatedVectorDrawableCompat, so this is necessary.
-        holder.syncimage.takeIf { it.drawable == null }?.setImageDrawable(AnimatedVectorDrawableCompat.create(context, R.drawable.vector_anim_sync))
-        holder.reload.takeIf { it.drawable == null }?.setImageDrawable(AnimatedVectorDrawableCompat.create(context, R.drawable.vector_anim_reload))
+        holder.syncimage.takeIf { it.drawable == null }?.setImageDrawable(
+            AnimatedVectorDrawableCompat.create(
+                context,
+                R.drawable.vector_anim_sync
+            )
+        )
+        holder.reload.takeIf { it.drawable == null }?.setImageDrawable(
+            AnimatedVectorDrawableCompat.create(
+                context,
+                R.drawable.vector_anim_reload
+            )
+        )
 
         bind(holder, position)
         bindMutable(holder)
@@ -105,7 +124,12 @@ class MainScreenCardItem(var site: Site, var lastDiff: DiffWithoutValue?, privat
 
         setLastDiff(holder)
 
-        (holder.reload.background as GradientDrawable).setColor(ContextCompat.getColor(context, R.color.white))
+        (holder.reload.background as GradientDrawable).setColor(
+            ContextCompat.getColor(
+                context,
+                R.color.white
+            )
+        )
 
         holder.reload.setOnClickListener {
             reloadCallback.invoke(this)
@@ -123,7 +147,12 @@ class MainScreenCardItem(var site: Site, var lastDiff: DiffWithoutValue?, privat
                 setColor(holder, context)
             }
             SYNC.ERROR -> {
-                holder.cardView.setCardBackgroundColor(ContextCompat.getColor(context, R.color.md_red_A700))
+                holder.cardView.setCardBackgroundColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.md_red_A700
+                    )
+                )
                 stopProgress(holder)
                 setLastSync(holder)
                 setRedColor(holder, context)
@@ -138,11 +167,11 @@ class MainScreenCardItem(var site: Site, var lastDiff: DiffWithoutValue?, privat
         super.unbind(holder)
     }
 
-    private fun setLastSync(holder: ViewHolder){
-        holder.lastsync.text = if (status == SYNC.ERROR){
-            getTimeAgo(site.timestamp) + " – ERROR"
+    private fun setLastSync(holder: ViewHolder) {
+        holder.lastsync.text = if (status == SYNC.ERROR) {
+            getTimeAgo(site.timestamp) + " – " + holder.lastsync.context.getString(R.string.error)
         } else {
-            getTimeAgo(site.timestamp) + " – ${readableFileSize(lastDiff?.size  ?: 0)}"
+            getTimeAgo(site.timestamp) + " – ${readableFileSize(lastDiff?.size ?: 0)}"
         }
 
         siteDisposable?.dispose()
@@ -151,7 +180,7 @@ class MainScreenCardItem(var site: Site, var lastDiff: DiffWithoutValue?, privat
         }
     }
 
-    private fun setLastDiff(holder: ViewHolder){
+    private fun setLastDiff(holder: ViewHolder) {
         if (lastDiff == null) {
             holder.lastradar.text = holder.lastradar.context.getString(R.string.nothing_yet)
         } else {
@@ -164,25 +193,45 @@ class MainScreenCardItem(var site: Site, var lastDiff: DiffWithoutValue?, privat
         }
     }
 
-    private fun setRedColor(holder: ViewHolder, context: Context){
-        (holder.syncimage.background as GradientDrawable).setColor(ContextCompat.getColor(context, R.color.md_red_400))
-        (holder.radarimage.background as GradientDrawable).setColor(ContextCompat.getColor(context, R.color.md_red_400))
+    private fun setRedColor(holder: ViewHolder, context: Context) {
+        (holder.syncimage.background as GradientDrawable).setColor(
+            ContextCompat.getColor(
+                context,
+                R.color.md_red_400
+            )
+        )
+        (holder.radarimage.background as GradientDrawable).setColor(
+            ContextCompat.getColor(
+                context,
+                R.color.md_red_400
+            )
+        )
     }
 
-    private fun setColor(holder: ViewHolder, context: Context){
-        (holder.syncimage.background as GradientDrawable).setColor(ContextCompat.getColor(context, R.color.md_blue_400))
-        (holder.radarimage.background as GradientDrawable).setColor(ContextCompat.getColor(context, R.color.md_blue_400))
+    private fun setColor(holder: ViewHolder, context: Context) {
+        (holder.syncimage.background as GradientDrawable).setColor(
+            ContextCompat.getColor(
+                context,
+                R.color.md_blue_400
+            )
+        )
+        (holder.radarimage.background as GradientDrawable).setColor(
+            ContextCompat.getColor(
+                context,
+                R.color.md_blue_400
+            )
+        )
     }
 
     private fun getTimeAgo(timestamp: Long?): String {
-        if (timestamp == null){
+        if (timestamp == null) {
             return ""
         }
         val messages = TimeAgoMessages.Builder().withLocale(Locale.getDefault()).build()
         return TimeAgo.using(timestamp, messages)
     }
 
-    private fun startProgress(holder: ViewHolder){
+    private fun startProgress(holder: ViewHolder) {
         isReloading = true
 
         holder.reload.apply {
@@ -193,14 +242,14 @@ class MainScreenCardItem(var site: Site, var lastDiff: DiffWithoutValue?, privat
         startAndReloadAnim(holder.syncimage)
     }
 
-    private fun startAndReloadAnim(imageView: ImageView){
+    private fun startAndReloadAnim(imageView: ImageView) {
         (imageView.drawable as Animatable).start()
         (imageView.drawable as Animatable2Compat).onAnimationEnd {
             if (isReloading) (imageView.drawable as Animatable).start()
         }
     }
 
-    private fun stopProgress(holder: ViewHolder){
+    private fun stopProgress(holder: ViewHolder) {
         isReloading = false
 
         holder.reload
@@ -252,24 +301,28 @@ class MainScreenCardItem(var site: Site, var lastDiff: DiffWithoutValue?, privat
         // Get the abs value just in case our user is the terminator.
         val delay = Math.abs(System.currentTimeMillis() - timestamp)
 
-        val seconds = delay/1000
-        val min = seconds/60
-        val hours = min/60
+        val seconds = delay / 1000
+        val min = seconds / 60
+        val hours = min / 60
 
         val timeToWait = when {
-            hours/24 > 0 -> 3600*24
+            hours / 24 > 0 -> 3600 * 24
             hours > 0 -> 3600
             min > 0 -> 60
             else -> 30
         }
 
         val ttl = (timeToWait * 1000).toFloat() // in Milli
-        val finalTimeToWait = ((1 - ((delay/ttl) % 1))*ttl).toLong()
+        val finalTimeToWait = ((1 - ((delay / ttl) % 1)) * ttl).toLong()
 
         // If timeAgo is 3.9 days ago, we want to refresh when it is 4 days ago, so we wait 0.1 day.
         // If timeAgo is 7 years ago, we want to refresh when it is 8 years ago, so we wait 1 year.
         // If timeAgo is 1 min ago, we want to refresh when it is 2 min ago.
 
-        return Completable.timer(finalTimeToWait, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
+        return Completable.timer(
+            finalTimeToWait,
+            TimeUnit.MILLISECONDS,
+            AndroidSchedulers.mainThread()
+        )
     }
 }

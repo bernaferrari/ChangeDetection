@@ -12,7 +12,7 @@ class DialogItemInterval(
     val listener: (Long) -> (Unit)
 ) : Item() {
     val minutes = arrayOf(15, 30, 45, 60, 120, 240, 360, 720, 1440, 2880)
-    var progress: Int = minutes.indexOfFirst{ it == initialDelay }
+    var progress: Int = minutes.indexOfFirst { it == initialDelay }
 
     override fun getLayout(): Int {
         return R.layout.dialog_item_interval
@@ -36,7 +36,7 @@ class DialogItemInterval(
             when {
                 it < 60 -> return@let "$it min"
                 it == 60 -> return@let "1 hour"
-                else -> return@let "${it/60} hours"
+                else -> return@let "${it / 60} hours"
             }
         }
     }

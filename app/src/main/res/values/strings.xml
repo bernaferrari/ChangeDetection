@@ -1,14 +1,34 @@
 <resources>
     <string name="app_name">Change Detection</string>
 
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+
     <string name="inputName">Type the title</string>
     <string name="inputUrl">Type the url</string>
     <string name="syncing">Syncing…</string>
     <string name="success_copied">Copied</string>
-
-    <string name="save">Salvar</string>
-    <string name="cancel">Cancelar</string>
-
     <string name="nothing_yet">nothing yet</string>
+
+    <string name="version">Version</string>
+    <string name="licenses">Licenses</string>
+    <string name="rate">Rate the app</string>
+
+    <string name="email">Send an email</string>
+    <string name="help">Help</string>
+    <string name="email_subject">Change Detection feedback</string>
+    <string name="github">Fork on GitHub</string>
+    <string name="bugs">Bugs? Questions? Feedback?</string>
+
+    <string name="remove">Remove</string>
+    <string name="add">Add</string>
+    <string name="edit">Edit</string>
+    <string name="reload">Reload</string>
+
+    <string name="error">ERROR</string>
+    <string name="author">Author</string>
+    <string name="icon_designer">Author</string>
+
+    <string name="less_than_two">Error! Can\'t show the difference with less than two items.</string>
 
 </resources>

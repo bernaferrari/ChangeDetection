@@ -1,11 +1,11 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
-android:shape="oval">
+    android:shape="oval">
 
-<!-- #E0E0E0 -->
+    <!-- #E0E0E0 -->
 
-<!--<solid android:color="@color/bolinhaNomeCurto" />-->
+    <!--<solid android:color="@color/bolinhaNomeCurto" />-->
 
-<!--<size-->
+    <!--<size-->
     <!--android:width="50dp"-->
     <!--android:height="50dp" />-->
 </shape>

@@ -2,10 +2,8 @@
 <resources>
 
 
-
     <color name="text_color">#7e7e7e</color>
     <color name="text_color_dark">#484848</color>
-
 
 
     <color name="colorPrimary">@color/md_indigo_500</color>
@@ -89,7 +87,6 @@
     <color name="FontStrongTransparent2">#A0000000</color>
 
 
-
     <color name="FontStrongestTransparent">@color/md_black_1000</color>
     <color name="FontStrongTransparent">@color/md_grey_900</color>
     <color name="FontLessStrongTransparent">@color/md_grey_700</color>
@@ -135,9 +132,6 @@
 
     <!-- COLORS FROM PLAID -->
     <color name="background_light">@color/CARD</color> <!-- grey 50 -->
-
-
-
 
 
     <color name="FontLessStrong">@color/md_grey_700</color>

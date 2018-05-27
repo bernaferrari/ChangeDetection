@@ -21,9 +21,9 @@ import android.support.annotation.VisibleForTesting
 import com.bernaferrari.changedetection.data.Diff
 import com.bernaferrari.changedetection.data.DiffWithoutValue
 import com.bernaferrari.changedetection.data.source.DiffsDataSource
+import com.bernaferrari.changedetection.extensions.cleanUpHtml
 import com.bernaferrari.changedetection.util.AppExecutors
 import com.orhanobut.logger.Logger
-import java.util.*
 
 /**
  * Concrete implementation of a data source as a db.
@@ -34,11 +34,15 @@ private constructor(
     private val mDiffsDao: DiffsDao
 ) : DiffsDataSource {
 
-    override fun getCheese(id: String): DataSource.Factory<Int, DiffWithoutValue>{
-        return mDiffsDao.allCheesesByName(id)
+    override fun getCheese(id: String): DataSource.Factory<Int, DiffWithoutValue> {
+        return mDiffsDao.allDiffsBySiteId(id)
     }
 
-    override fun getDiffStorage(originalId: String, newId: String, callback: DiffsDataSource.GetPairCallback) {
+    override fun getDiffStorage(
+        originalId: String,
+        newId: String,
+        callback: DiffsDataSource.GetPairCallback
+    ) {
         val runnable = Runnable {
             val original = mDiffsDao.getDiffById(originalId)
             val new = mDiffsDao.getDiffById(newId)
@@ -75,7 +79,7 @@ private constructor(
      * Note: [LoadTasksCallback.onDataNotAvailable] is fired if the database doesn't exist
      * or the table is empty.
      */
-     fun getDiffs(siteId: String, callback: DiffsDataSource.LoadDiffsCallback) {
+    fun getDiffs(siteId: String, callback: DiffsDataSource.LoadDiffsCallback) {
         val runnable = Runnable {
             val diffs = mDiffsDao.getDiffsForSiteWithLimit(siteId)
             mAppExecutors.mainThread().execute {
@@ -95,17 +99,19 @@ private constructor(
     override fun saveDiff(diff: Diff, callback: DiffsDataSource.GetDiffCallback) {
         val saveRunnable = Runnable {
             val getDiffByid = mDiffsDao.getDiffBySiteId(diff.siteId)
-            mDiffsDao.insertDiff(diff.copy(value = diff.value.plus(UUID.randomUUID().toString())))
-            val wasSuccessful = true
-//            val wasSuccessful =
-//                if (diff.value.isNotBlank() && getDiffByid?.value?.cleanUpHtml() != diff.value.cleanUpHtml()) {
-////                    Logger.d("Difference detected! Size went from ${getDiffByid?.value?.count()} to ${diff.value.count()}")
-//                    mDiffsDao.insertDiff(diff)
-//                    true
-//                } else {
-//                    Logger.d("Beep beep! No difference detected!")
-//                    false
-//                }
+
+// Uncomment for testing.
+// mDiffsDao.insertDiff(diff.copy(value = diff.value.plus(UUID.randomUUID().toString())))
+//            val wasSuccessful = true
+            val wasSuccessful =
+                if (diff.value.isNotBlank() && getDiffByid?.value?.cleanUpHtml() != diff.value.cleanUpHtml()) {
+                    Logger.d("Difference detected! Size went from ${getDiffByid?.value?.count()} to ${diff.value.count()}")
+                    mDiffsDao.insertDiff(diff)
+                    true
+                } else {
+                    Logger.d("Beep beep! No difference detected!")
+                    false
+                }
 
             mAppExecutors.mainThread().execute {
                 if (wasSuccessful) {

@@ -19,9 +19,10 @@ import com.bernaferrari.changedetection.data.DiffWithoutValue
  * @see android.arch.paging.PagedListAdapter
  * @see android.arch.paging.AsyncPagedListDiffer
  */
-class DiffAdapter(val callback: DiffFragment.RecyclerViewItemListener) : PagedListAdapter<DiffWithoutValue, DiffViewHolder>(
-    diffCallback
-) {
+class DiffAdapter(val callback: DiffFragment.RecyclerViewItemListener) :
+    PagedListAdapter<DiffWithoutValue, DiffViewHolder>(
+        diffCallback
+    ) {
     val colorSelected = mutableMapOf<Int, Int>()
 
     fun setColor(color: Int, position: Int) {
@@ -38,15 +39,21 @@ class DiffAdapter(val callback: DiffFragment.RecyclerViewItemListener) : PagedLi
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DiffViewHolder =
-            DiffViewHolder(parent, this, callback)
+        DiffViewHolder(parent, this, callback)
 
     companion object {
         private val diffCallback = object : DiffUtil.ItemCallback<DiffWithoutValue>() {
-            override fun areItemsTheSame(oldItem: DiffWithoutValue, newItem: DiffWithoutValue): Boolean =
-                    oldItem.diffId == newItem.diffId
+            override fun areItemsTheSame(
+                oldItem: DiffWithoutValue,
+                newItem: DiffWithoutValue
+            ): Boolean =
+                oldItem.diffId == newItem.diffId
 
-            override fun areContentsTheSame(oldItem: DiffWithoutValue, newItem: DiffWithoutValue): Boolean =
-                    oldItem == newItem
+            override fun areContentsTheSame(
+                oldItem: DiffWithoutValue,
+                newItem: DiffWithoutValue
+            ): Boolean =
+                oldItem == newItem
         }
     }
 }

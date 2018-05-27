@@ -13,8 +13,8 @@ object Forms {
     const val NAME = "name"
     const val URL = "url"
 
-    internal fun getHint(context: Context, input: String): String{
-        return when (input){
+    internal fun getHint(context: Context, input: String): String {
+        return when (input) {
             Forms.NAME -> context.getString(R.string.inputName)
             Forms.URL -> context.getString(R.string.inputUrl)
             else -> ""
@@ -41,7 +41,7 @@ object Forms {
     ): MutableMap<String, Any?> {
         val map = mutableMapOf<String, Any?>()
         listOfItems.forEach { item ->
-            when (item){
+            when (item) {
                 is FormSingleEditText -> {
                     map[item.kind] = item.retrieveText()
                 }

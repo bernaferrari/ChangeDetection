@@ -6,14 +6,14 @@
     android:layout_width="112dp"
     android:layout_height="wrap_content"
 
-    android:layout_marginBottom="4dp"
     android:layout_marginLeft="2dp"
     android:layout_marginRight="2dp"
-
-    app:cardBackgroundColor="@color/grey_100"
+    android:layout_marginBottom="4dp"
 
     android:clickable="true"
+
     android:focusable="true"
+    app:cardBackgroundColor="@color/grey_100"
     app:cardCornerRadius="8dp"
     app:cardElevation="0dp">
 

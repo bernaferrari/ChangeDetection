@@ -8,4 +8,25 @@
     <string name="syncing">Sincronizando…</string>
     <string name="success_copied">Copiado</string>
     <string name="nothing_yet">nada ainda</string>
+
+    <string name="version">Versão</string>
+    <string name="licenses">Licenças</string>
+    <string name="rate">Avalie o app</string>
+
+    <string name="email">Envie um email</string>
+    <string name="help">Ajuda</string>
+    <string name="email_subject">Change Detection feedback</string>
+    <string name="github">Ver projeto no GitHub</string>
+    <string name="bugs">Problemas? Dúvidas? Sugestões?</string>
+
+    <string name="remove">Remover</string>
+    <string name="add">Adicionar</string>
+    <string name="edit">Editar</string>
+    <string name="reload">Recarregar</string>
+
+    <string name="error">ERRO</string>
+    <string name="author">Autor</string>
+
+    <string name="less_than_two">Erro! Não dá para calcular a diferença com menos de dois items.</string>
+
 </resources>

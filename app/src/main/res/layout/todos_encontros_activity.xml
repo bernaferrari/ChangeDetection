@@ -8,14 +8,14 @@
     <!--Inspired from Plaid-->
     <LinearLayout
         android:id="@+id/title_bar"
-        android:elevation="1dp"
-        android:layout_gravity="top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingLeft="16dp"
-        android:minHeight="?android:actionBarSize"
+        android:layout_gravity="top"
         android:baselineAligned="false"
+        android:elevation="1dp"
+        android:minHeight="?android:actionBarSize"
         android:orientation="horizontal"
+        android:paddingLeft="16dp"
         android:paddingTop="@dimen/spacing_micro"
         android:paddingBottom="@dimen/spacing_micro"
         app:layout_constraintEnd_toEndOf="parent"
@@ -25,27 +25,26 @@
         <TextView
             android:id="@+id/titlecontent"
             style="@style/TextAppearance.AppCompat.Title"
-            android:text="Change Detection"
-            tools:text="Change Detection"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="start|center_vertical"
-            android:gravity="center_vertical|start"
             android:layout_weight="1"
+            android:gravity="center_vertical|start"
             android:paddingRight="@dimen/padding_normal"
-            android:textColor="@color/text_color_dark" />
+            android:text="Change Detection"
+            android:textColor="@color/text_color_dark"
+            tools:text="Change Detection" />
 
         <ImageView
             android:id="@+id/info"
             android:layout_width="@dimen/avatar_bounds"
             android:layout_height="@dimen/avatar_bounds"
             android:layout_gravity="center"
-            android:layout_marginRight="@dimen/avatar_margin"
             android:layout_marginLeft="@dimen/avatar_margin"
             android:background="?android:selectableItemBackgroundBorderless"
             android:padding="@dimen/avatar_margin"
-            android:src="@drawable/vector_info"
-            android:scaleType="center" />
+            android:scaleType="center"
+            android:src="@drawable/vector_info" />
 
         <ImageView
             android:id="@+id/settings"
@@ -53,11 +52,10 @@
             android:layout_height="@dimen/avatar_bounds"
             android:layout_gravity="center"
             android:layout_marginRight="@dimen/avatar_margin"
-            android:layout_marginLeft="@dimen/avatar_margin"
             android:background="?android:selectableItemBackgroundBorderless"
             android:padding="@dimen/avatar_margin"
-            android:src="@drawable/vector_settings"
-            android:scaleType="center" />
+            android:scaleType="center"
+            android:src="@drawable/vector_settings" />
     </LinearLayout>
 
     <android.support.v4.widget.SwipeRefreshLayout

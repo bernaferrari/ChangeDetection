@@ -3,13 +3,14 @@
     <!--<solid android:color="#CCCCCC"/>-->
 
     <!--<stroke android:width="2dp"-->
-        <!--android:color="#999999"/>-->
+    <!--android:color="#999999"/>-->
 
     <!--<padding android:left="2dp"-->
-        <!--android:top="2dp"-->
-        <!--android:right="2dp"-->
-        <!--android:Listeners="2dp"/>-->
+    <!--android:top="2dp"-->
+    <!--android:right="2dp"-->
+    <!--android:Listeners="2dp"/>-->
 
-    <corners android:bottomRightRadius="8dp"
-        android:bottomLeftRadius="8dp" />
+    <corners
+        android:bottomLeftRadius="8dp"
+        android:bottomRightRadius="8dp" />
 </shape>

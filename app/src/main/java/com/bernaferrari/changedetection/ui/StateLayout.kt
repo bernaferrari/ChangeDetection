@@ -40,6 +40,10 @@ class StateLayout : FrameLayout {
     }
 
     fun showEmptyState() {
+        if (loading_indicator.visibility != View.VISIBLE) {
+            return
+        }
+
         visibility = View.VISIBLE
         cardView.visibility = View.VISIBLE
         textWhenEmpty.visibility = View.VISIBLE

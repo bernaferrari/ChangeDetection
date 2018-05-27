@@ -25,8 +25,8 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
-import com.bernaferrari.changedetection.util.AnimUtils
 import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.util.AnimUtils
 import java.util.*
 
 /**

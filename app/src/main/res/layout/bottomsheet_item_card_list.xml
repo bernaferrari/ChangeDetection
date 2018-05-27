@@ -8,9 +8,9 @@
     android:layout_marginLeft="8dp"
     android:layout_marginRight="8dp"
     android:layout_marginBottom="24dp"
-    android:elevation="1dp"
     android:background="@drawable/full_round_corner"
     android:clickable="true"
+    android:elevation="1dp"
     android:focusable="true"
     android:foreground="@drawable/photos_press"
     android:orientation="vertical">
@@ -37,38 +37,38 @@
                 android:elevation="4dp"
                 android:padding="8dp"
                 android:scaleType="fitXY"
-                tools:src="@drawable/vector_anim_reload"
-
                 app:layout_constraintBottom_toBottomOf="@+id/subtitleTextView"
+
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/titleTextView" />
+                app:layout_constraintTop_toTopOf="@+id/titleTextView"
+                tools:src="@drawable/vector_anim_reload" />
 
             <!--<ImageView-->
-                <!--android:id="@+id/info"-->
-                <!--android:layout_width="32dp"-->
-                <!--android:layout_height="32dp"-->
-                <!--android:scaleType="center"-->
-                <!--android:visibility="gone"-->
-                <!--app:layout_constraintEnd_toEndOf="parent"-->
-                <!--app:layout_constraintTop_toTopOf="parent" />-->
+            <!--android:id="@+id/info"-->
+            <!--android:layout_width="32dp"-->
+            <!--android:layout_height="32dp"-->
+            <!--android:scaleType="center"-->
+            <!--android:visibility="gone"-->
+            <!--app:layout_constraintEnd_toEndOf="parent"-->
+            <!--app:layout_constraintTop_toTopOf="parent" />-->
 
             <!--<TextView-->
-                <!--android:id="@+id/textInsideCircle"-->
-                <!--android:layout_width="48dp"-->
-                <!--android:layout_height="48dp"-->
-                <!--android:layout_marginLeft="@dimen/mark_margin"-->
-                <!--android:layout_marginTop="@dimen/mark_margin"-->
-                <!--android:background="@drawable/circle_shape"-->
-                <!--android:fontFamily="@font/work_semibold"-->
-                <!--android:gravity="center"-->
-                <!--android:textColor="@color/white"-->
+            <!--android:id="@+id/textInsideCircle"-->
+            <!--android:layout_width="48dp"-->
+            <!--android:layout_height="48dp"-->
+            <!--android:layout_marginLeft="@dimen/mark_margin"-->
+            <!--android:layout_marginTop="@dimen/mark_margin"-->
+            <!--android:background="@drawable/circle_shape"-->
+            <!--android:fontFamily="@font/work_semibold"-->
+            <!--android:gravity="center"-->
+            <!--android:textColor="@color/white"-->
 
-                <!--android:textSize="26dp"-->
-                <!--android:visibility="gone"-->
-                <!--app:layout_constraintStart_toStartOf="parent"-->
+            <!--android:textSize="26dp"-->
+            <!--android:visibility="gone"-->
+            <!--app:layout_constraintStart_toStartOf="parent"-->
 
-                <!--app:layout_constraintTop_toTopOf="parent"-->
-                <!--tools:text="M" />-->
+            <!--app:layout_constraintTop_toTopOf="parent"-->
+            <!--tools:text="M" />-->
 
 
             <TextView
@@ -142,11 +142,11 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
-            android:includeFontPadding="false"
-            android:textSize="16sp"
             android:fontFamily="@font/work_medium"
+            android:includeFontPadding="false"
             android:text="Last Change"
             android:textColor="#67687c"
+            android:textSize="16sp"
             app:layout_constraintBottom_toTopOf="@+id/lastradar"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
@@ -194,8 +194,8 @@
             android:fontFamily="@font/work_medium"
             android:includeFontPadding="false"
             android:text="Last Sync"
-            android:textSize="16sp"
             android:textColor="#67687c"
+            android:textSize="16sp"
             app:layout_constraintBottom_toTopOf="@+id/lastsync"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/syncimage"
@@ -211,9 +211,9 @@
             android:background="@drawable/circle_shape"
             android:padding="8dp"
             android:scaleType="fitXY"
-            tools:src="@drawable/vector_anim_sync"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:src="@drawable/vector_anim_sync" />
 
         <ImageView
             android:id="@+id/radarimage"

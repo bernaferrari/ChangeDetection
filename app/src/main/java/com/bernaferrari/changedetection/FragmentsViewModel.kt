@@ -60,12 +60,10 @@ class FragmentsViewModel(
     val showNoChangesDetectedError = SingleLiveEvent<Void>()
     val showProgress = SingleLiveEvent<Void>()
 
-    val showEmptyOnMain = SingleLiveEvent<Void>()
-
     private val mSiteUpdated = SingleLiveEvent<Void>()
 
-    internal fun getOutputStatus(): LiveData<List<WorkStatus>> {
-        return WorkManager.getInstance().getStatusesForUniqueWork("work")
+    fun getOutputStatus(): LiveData<List<WorkStatus>> {
+        return WorkManager.getInstance().getStatusesForUniqueWork(WorkerHelper.UNIQUEWORK)
     }
 
     fun currentTime(): Long = System.currentTimeMillis()
@@ -82,7 +80,8 @@ class FragmentsViewModel(
     private fun updateCanShowDiff(adapter: DiffAdapter, section: Section) {
 
         if (adapter.colorSelected
-            .count { it.value > 0 } < 2){
+                .count { it.value > 0 } < 2
+        ) {
             // Empty when there is not enough selection
             section.update(mutableListOf())
         }
@@ -123,15 +122,18 @@ class FragmentsViewModel(
         mSiteUpdated.call()
     }
 
-    fun loadSites(): MutableLiveData<MutableList<SiteAndLastDiff>> {
-        val items = MutableLiveData<MutableList<SiteAndLastDiff>>()
+    val items = MutableLiveData<MutableList<SiteAndLastDiff>>()
 
+    fun loadSites(): MutableLiveData<MutableList<SiteAndLastDiff>> {
+        items.value = null
+        updateItems()
+        return items
+    }
+
+    fun updateItems() {
         mSitesRepository.getSiteAndLastDiff {
-            showEmptyOnMain.call()
             items.value = it
         }
-
-        return items
     }
 
     var currentJob: Job? = null
@@ -139,7 +141,7 @@ class FragmentsViewModel(
 
     fun generateDiff(section: Section, originalId: String, newId: String) {
         currentJob?.cancel()
-        if (originalId.isBlank() || newId.isBlank()){
+        if (originalId.isBlank() || newId.isBlank()) {
             return
         }
 
@@ -171,13 +173,17 @@ class FragmentsViewModel(
 
     private suspend fun getFromDb(originalId: String, newId: String): Pair<Diff, Diff> =
         suspendCoroutine { cont ->
-            mDiffsRepository.getDiffStorage(originalId, newId, object : DiffsDataSource.GetPairCallback {
-                override fun onDiffLoaded(pair: Pair<Diff, Diff>) {
-                    cont.resume(pair)
-                }
+            mDiffsRepository.getDiffStorage(
+                originalId,
+                newId,
+                object : DiffsDataSource.GetPairCallback {
+                    override fun onDiffLoaded(pair: Pair<Diff, Diff>) {
+                        cont.resume(pair)
+                    }
 
-                override fun onDataNotAvailable() = cont.resumeWithException(NullPointerException())
-            })
+                    override fun onDataNotAvailable() =
+                        cont.resumeWithException(NullPointerException())
+                })
         }
 
     fun fsmSelectWithCorrectColor(item: DiffViewHolder, section: Section) {
@@ -200,12 +206,12 @@ class FragmentsViewModel(
                     1 -> {
                         // ONE THING IS SELECTED AND IT IS AMBER -> ORANGE
                         // ONE THING IS SELECTED AND IT IS ORANGE -> AMBER
-                        for ((_, value) in item.adapter.colorSelected){
-                            if (value > 0){
+                        for ((_, value) in item.adapter.colorSelected) {
+                            if (value > 0) {
                                 if (value == 2) {
                                     item.setColor(1)
 
-                                    for ((position, _) in item.adapter.colorSelected.filter { it.value == 2 }){
+                                    for ((position, _) in item.adapter.colorSelected.filter { it.value == 2 }) {
                                         generateDiff(
                                             section,
                                             item.diff?.diffId!!,
@@ -213,11 +219,10 @@ class FragmentsViewModel(
                                         )
                                         break
                                     }
-                                }
-                                else {
+                                } else {
                                     item.setColor(2)
 
-                                    for ((position, _) in item.adapter.colorSelected.filter { it.value == 1 }){
+                                    for ((position, _) in item.adapter.colorSelected.filter { it.value == 1 }) {
                                         generateDiff(
                                             section,
                                             item.diff?.diffId!!,
@@ -232,11 +237,11 @@ class FragmentsViewModel(
                     }
                     else -> {
                         // TWO ARE SELECTED. UNSELECT THE ORANGE, SELECT ANOTHER THING.
-                        for ((position, _) in item.adapter.colorSelected.filter { it.value >= 2 }){
+                        for ((position, _) in item.adapter.colorSelected.filter { it.value >= 2 }) {
                             item.adapter.setColor(0, position)
                         }
 
-                        for ((position, _) in item.adapter.colorSelected.filter { it.value == 1 }){
+                        for ((position, _) in item.adapter.colorSelected.filter { it.value == 1 }) {
                             generateDiff(
                                 section,
                                 item.adapter.getItemFromAdapter(position)?.diffId!!,
@@ -308,10 +313,12 @@ class FragmentsViewModel(
     }
 
     fun getWebHistoryForId(id: String): LiveData<PagedList<DiffWithoutValue>> {
-        return LivePagedListBuilder(mDiffsRepository.getCheese(id), PagedList.Config.Builder()
-            .setPageSize(PAGE_SIZE)
-            .setEnablePlaceholders(ENABLE_PLACEHOLDERS)
-            .build()).build()
+        return LivePagedListBuilder(
+            mDiffsRepository.getCheese(id), PagedList.Config.Builder()
+                .setPageSize(PAGE_SIZE)
+                .setEnablePlaceholders(ENABLE_PLACEHOLDERS)
+                .build()
+        ).build()
     }
 
     companion object {
