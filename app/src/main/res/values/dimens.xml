@@ -47,10 +47,13 @@
     <dimen name="escalapercentsmall">0</dimen>
 
     <dimen name="spacing_micro">4dp</dimen>
+    <dimen name="bottom_sheet_corner_radius">16dp</dimen>
+    <dimen name="bottom_sheet_top_padding">8dp</dimen>
 
-
-    <dimen name="avatar_margin">8dp</dimen> <!-- padding_normal - avatar_padding -->
-    <dimen name="avatar_bounds">40dp</dimen>
+    <dimen name="avatar_size">40dp</dimen>
+    <dimen name="avatar_bounds">48dp</dimen>
+    <dimen name="avatar_padding">4dp</dimen> <!-- (avatar_bounds - avatar_size) / 2 -->
+    <dimen name="avatar_margin">12dp</dimen> <!-- padding_normal - avatar_padding -->
 
     <dimen name="drag_dismiss_distance">104dp</dimen> <!-- 5 * ?android:actionBarSize -->
 
@@ -59,7 +62,7 @@
     <dimen name="z_card">2dp</dimen>
     <dimen name="z_fab">6dp</dimen>
 
-    <!-- bottom sheet -->
+    <!-- Listeners sheet -->
     <dimen name="bottom_sheet_width">@dimen/match_parent</dimen>
 
     <!-- per https://developer.android.com/reference/android/view/ViewGroup.LayoutParams.html#MATCH_PARENT -->
@@ -70,8 +73,6 @@
     <!-- dribbble shot -->
     <dimen name="shot_collapsed_app_bar_height">168dp</dimen> <!-- 3 * ?android:actionBarSize -->
     <!-- avatar should be a 40dp asset in a 48dp touch target & optically aligned with standard padding -->
-    <dimen name="avatar_size">40dp</dimen>
-    <dimen name="avatar_padding">4dp</dimen> <!-- (avatar_bounds - avatar_size) / 2 -->
     <dimen name="avatar_ripple_radius">20dp</dimen> <!-- avatar_size / 2 -->
     <dimen name="comment_actions_height">40dp</dimen>
     <dimen name="comment_like_margin_adjustment">-8dp</dimen>

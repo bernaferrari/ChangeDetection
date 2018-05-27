@@ -25,6 +25,12 @@ allprojects {
     }
 }
 
+configurations.all {
+    resolutionStrategy {
+        force 'android.arch.lifecycle:livedata:1.1.1'
+    }
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

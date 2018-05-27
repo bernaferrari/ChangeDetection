@@ -1,34 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/framelayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center">
+    android:layout_height="match_parent">
 
-    <FrameLayout
+    <!--Inspired from Plaid-->
+    <LinearLayout
+        android:id="@+id/title_bar"
+        android:elevation="1dp"
+        android:layout_gravity="top"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:paddingLeft="16dp"
+        android:minHeight="?android:actionBarSize"
+        android:baselineAligned="false"
+        android:orientation="horizontal"
+        android:paddingTop="@dimen/spacing_micro"
+        android:paddingBottom="@dimen/spacing_micro"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <com.example.changedetection.ui.DynamicRecyclerView
+        <TextView
+            android:id="@+id/titlecontent"
+            style="@style/TextAppearance.AppCompat.Title"
+            android:text="Change Detection"
+            tools:text="Change Detection"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|center_vertical"
+            android:gravity="center_vertical|start"
+            android:layout_weight="1"
+            android:paddingRight="@dimen/padding_normal"
+            android:textColor="@color/text_color_dark" />
+
+        <ImageView
+            android:id="@+id/settings"
+            android:layout_width="@dimen/avatar_bounds"
+            android:layout_height="@dimen/avatar_bounds"
+            android:layout_gravity="center"
+            android:layout_marginRight="@dimen/avatar_margin"
+            android:layout_marginLeft="@dimen/avatar_margin"
+            android:background="?android:selectableItemBackgroundBorderless"
+            android:padding="@dimen/avatar_margin"
+            android:src="@drawable/twotone_settings"
+            android:scaleType="center" />
+    </LinearLayout>
+
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/pullToRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/title_bar">
+
+        <com.bernaferrari.changedetection.ui.DynamicRecyclerView
             android:id="@+id/defaultRecycler"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:listitem="@layout/bottomsheet_item_card_list"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"/>
+            tools:listitem="@layout/bottomsheet_item_card_list" />
 
-        <include layout="@layout/state_layout" />
+    </android.support.v4.widget.SwipeRefreshLayout>
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="@dimen/fab_margin"
-            android:src="@drawable/ic_add_black_24dp" />
+    <include
+        layout="@layout/state_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true" />
 
-    </FrameLayout>
-</FrameLayout>
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/fab_margin"
+        android:src="@drawable/ic_add_black_24dp" />
+
+</RelativeLayout>
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.example.changedetection.ui.StateLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.bernaferrari.changedetection.ui.StateLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/stateLayout"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"

@@ -12,7 +12,7 @@ androidExtensions {
 android {
     compileSdkVersion 27
     defaultConfig {
-        applicationId "com.example.changedetection"
+        applicationId "com.bernaferrari.changedetection"
         minSdkVersion 21
         targetSdkVersion 27
         versionCode 1
@@ -24,10 +24,6 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-    }
-
-    dataBinding {
-        enabled = true
     }
 
     kotlin {
@@ -43,137 +39,94 @@ android {
 }
 
 dependencies {
-    implementation 'com.android.support:support-v4:27.1.1'
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    //  implementation fileTree(include: ['.jar', '.so'], dir: 'libs')
-    //  implementation project(path: ':bypass')
-    ext {
-        supportLibrary = '27.1.1'
-        firebase_core = '15.0.2'
-        firebase_database = '15.0.1'
-        firebase_firestore = '16.0.0'
-        firebase_auth = '15.1.0'
-        fastadapter = '3.2.5'
-    }
 
-    implementation 'com.willowtreeapps.spruce:spruce-android:1.0.1'
-    implementation 'com.jakewharton.threetenabp:threetenabp:1.1.0'
-    implementation 'com.github.marlonlom:timeago:3.0.2'
-    implementation 'com.facebook.stetho:stetho:1.5.0'
+    // RX
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.12'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
 
+    // Coroutines
     def coroutines_version = "0.22.5"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
 
-    // RX
-    implementation 'com.github.frangsierra:rx2firebase:1.4.1'
-    implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
-    implementation 'io.reactivex.rxjava2:rxjava:2.1.12'
 
-    // RecyclerView
-    implementation "com.mikepenz:fastadapter:${fastadapter}@aar"
-    implementation "com.mikepenz:fastadapter-extensions:${fastadapter}@aar"
-    implementation "com.mikepenz:fastadapter-commons:${fastadapter}@aar"
-    implementation 'com.github.MFlisar:DragSelectRecyclerView:0.3'
-    implementation 'com.timehop.stickyheadersrecyclerview:library:0.4.3@aar'
+    // Android Architecture Components
+    def navigation_version = "1.0.0-alpha01"
+    implementation "android.arch.navigation:navigation-ui:$navigation_version"
+    implementation "android.arch.navigation:navigation-fragment:$navigation_version"
 
-    implementation 'android.arch.navigation:navigation-fragment:1.0.0-alpha01'
-    implementation 'android.arch.navigation:navigation-ui:1.0.0-alpha01'
-
-    // Arch
-    implementation 'android.arch.lifecycle:extensions:1.1.1'
+    def lifecycle_version = "1.1.0"
+    implementation "android.arch.lifecycle:extensions:$lifecycle_version"
 
     def room_version = "1.1.0"
-
-    implementation "android.arch.persistence.room:runtime:$room_version"
     kapt "android.arch.persistence.room:compiler:$room_version"
+    implementation "android.arch.persistence.room:runtime:$room_version"
 
-    // KTX
-    implementation 'androidx.core:core-ktx:0.3'
-
-
-    def work_version = "1.0.0-alpha01"
-
+    def work_version = "1.0.0-alpha02"
     implementation "android.arch.work:work-runtime:$work_version" // use -ktx for Kotlin
 
-    // optional - Firebase JobDispatcher support
-    implementation "android.arch.work:work-firebase:$work_version"
+    def paging_version = "1.0.0"
+    implementation "android.arch.paging:runtime:$paging_version"
 
-    // optional - Test helpers
-    androidTestImplementation "android.arch.work:work-testing:$work_version"
 
-    // Support
-    implementation "com.android.support:support-annotations:${supportLibrary}"
-    implementation "com.android.support:support-core-ui:${supportLibrary}"
-    implementation "com.android.support:recyclerview-v7:${supportLibrary}"
-    implementation "com.android.support:support-compat:${supportLibrary}"
-    implementation "com.android.support:appcompat-v7:${supportLibrary}"
-    implementation "com.android.support:cardview-v7:${supportLibrary}"
-    // needs v13 to avoid wdullaer:materialdatetimepicker conflict
-    implementation "com.android.support:support-v13:${supportLibrary}"
-    implementation "com.android.support:support-v4:${supportLibrary}"
-    implementation "com.android.support:percent:${supportLibrary}"
+    // Support Library (RIP)
+    def supportLibrary = '27.1.1'
     implementation "com.android.support:design:${supportLibrary}"
-    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
-    implementation "com.github.bumptech.glide:okhttp3-integration:4.7.1"
+    implementation "com.android.support:support-v4:${supportLibrary}"
+    implementation "com.android.support:cardview-v7:${supportLibrary}"
+    implementation "com.android.support:appcompat-v7:${supportLibrary}"
+    implementation "com.android.support:support-compat:${supportLibrary}"
+    implementation "com.android.support:recyclerview-v7:${supportLibrary}"
+    implementation "com.android.support:support-core-ui:${supportLibrary}"
+    implementation "com.android.support:support-annotations:${supportLibrary}"
+
+
+    // Logging
+    implementation 'com.orhanobut:logger:2.2.0'
+
+
+    // UI
+    implementation 'com.github.GrenderG:Toasty:1.3.0'
+    implementation 'com.afollestad.material-dialogs:commons:0.9.6.0'
+    implementation 'agency.tango.android:material-intro-screen:0.0.5'
+
+
+    // Notification
+    implementation "io.karn:notify:1.0.0"
+
 
     // Iconics
     implementation 'com.mikepenz:iconics-core:3.0.3@aar'
     implementation 'com.mikepenz:community-material-typeface:2.0.46.1@aar'
     implementation 'com.mikepenz:google-material-typeface:3.0.1.2.original@aar'
-    implementation 'com.github.bumptech.glide:glide:4.7.1'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.7.1'
 
-    // Firebase
-//    implementation "com.google.firebase:firebase-crash:${firebase}"
-    implementation "com.google.firebase:firebase-core:${firebase_core}"
-    implementation "com.google.firebase:firebase-auth:${firebase_auth}"
-    implementation "com.google.firebase:firebase-database:${firebase_database}"
-    implementation "com.google.firebase:firebase-firestore:${firebase_firestore}"
-    implementation 'com.firebaseui:firebase-ui-auth:3.3.1'
-
-    // Logging
-    implementation 'com.orhanobut:logger:2.2.0'
-    implementation('com.crashlytics.sdk.android:crashlytics:2.9.1@aar') {
-        transitive = true
-    }
-
-    // Dialogs
-    implementation 'com.afollestad.material-dialogs:commons:0.9.6.0'
-    implementation 'com.github.GrenderG:Toasty:1.3.0'
-    implementation 'com.wdullaer:materialdatetimepicker:3.6.0'
-
-    // ImageViewer
-    implementation 'com.facebook.fresco:fresco:1.9.0'
-    implementation 'com.github.stfalcon:frescoimageviewer:0.5.0'
-    implementation 'com.yarolegovich:discrete-scrollview:1.4.7'
-    implementation 'com.romandanylyk:pageindicatorview:1.0.1'
-
-    // Intro
-    implementation 'agency.tango.android:material-intro-screen:0.0.5'
-
-    // CircleImage
-    implementation 'de.hdodenhof:circleimageview:2.2.0'
 
     // About
     implementation 'com.github.daniel-stoneuk:material-about-library:2.3.0'
 
-    implementation 'com.xwray:groupie:2.0.3'
-    implementation 'com.xwray:groupie-kotlin-android-extensions:2.0.3'
-    implementation 'com.airbnb.android:paris:1.0.0'
+
+    // RecyclerView
+    def groupie = "2.1.0"
+    implementation "com.xwray:groupie:$groupie"
+    implementation "com.xwray:groupie-kotlin-android-extensions:$groupie"
+
+
+    // AndroidX, eventually..
+    implementation 'androidx.core:core-ktx:0.3'
+    implementation 'com.android.support:multidex:1.0.3'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
+
 
     // Internal
-    implementation 'com.android.support:multidex:1.0.3'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    testImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.4'
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.4'
-    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.4'
-    implementation "com.google.android.gms:play-services-auth:15.0.1"
-    implementation 'com.facebook.android:facebook-android-sdk:4.33.0'
-    testImplementation 'junit:junit:4.12'
-
+    implementation 'com.facebook.stetho:stetho:1.5.0'
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
-//    implementation 'androidx.constraintlayout:constraintlayout:1.1.0'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+    // Others
+    implementation 'com.jakewharton.threetenabp:threetenabp:1.1.0'
+    implementation 'com.github.marlonlom:timeago:3.0.2'
+    testImplementation 'junit:junit:4.12'
 }

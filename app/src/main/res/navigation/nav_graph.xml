@@ -6,7 +6,7 @@
 
     <fragment
         android:id="@+id/mainFragment"
-        android:name="com.example.changedetection.MainFragment"
+        android:name="com.bernaferrari.changedetection.MainScreenFragment"
         android:label="MainFragment"
         tools:layout="@layout/todos_encontros_activity">
         <action
@@ -17,19 +17,13 @@
             app:exitAnim="@anim/design_bottom_sheet_slide_out"
             app:popExitAnim="@anim/design_bottom_sheet_slide_out"
             />
-        <action
-            android:id="@+id/action_mainFragment_to_fragSettings"
-            app:destination="@id/fragSettings" />
     </fragment>
 
     <fragment
         android:id="@+id/openFragment"
-        android:name="com.example.changedetection.OpenFragment"
-        android:label="OpenFragment" ></fragment>
-
-    <fragment
-        android:id="@+id/fragSettings"
-        android:name="com.example.changedetection.FragSettings"
-        android:label="FragSettings" />
+        android:name="com.bernaferrari.changedetection.DiffFragment"
+        android:label="OpenFragment"
+        tools:layout="@layout/default_recycler_dialog"
+        ></fragment>
 
 </navigation>

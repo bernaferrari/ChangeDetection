@@ -10,6 +10,9 @@
     android:layout_marginBottom="24dp"
     android:elevation="1dp"
     android:background="@drawable/full_round_corner"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="@drawable/photos_press"
     android:orientation="vertical">
 
     <android.support.v7.widget.CardView
@@ -17,9 +20,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
 
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="@drawable/photos_press"
         app:cardBackgroundColor="#356bf8"
         app:cardCornerRadius="8dp"
         app:cardElevation="0dp">
