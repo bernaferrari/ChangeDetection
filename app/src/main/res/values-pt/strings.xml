@@ -3,6 +3,9 @@
     <string name="save">Salvar</string>
     <string name="cancel">Cancelar</string>
 
+    <string name="yes">Sim</string>
+    <string name="no">Não</string>
+
     <string name="inputName">Digite o título</string>
     <string name="inputUrl">Dígite a url</string>
     <string name="syncing">Sincronizando…</string>
@@ -28,5 +31,14 @@
     <string name="author">Autor</string>
 
     <string name="less_than_two">Erro! Não dá para calcular a diferença com menos de dois items.</string>
+    <string name="empty_please_select_two">Selecione dois items abaixo\n para comparar as diferenças</string>
+    <string name="empty_no_change_detected">Nenhuma mudança detectada entre esses dois items</string>
+
+    <string name="remove_this">Remover %1s</string>
+    <string name="missing_internet">Erro! Sem conexão com a internet</string>
+    <string name="was_updated">%1s foi atualizado!</string>
+
+    <string name="url">Link do Site</string>
+    <string name="title">Título</string>
 
 </resources>

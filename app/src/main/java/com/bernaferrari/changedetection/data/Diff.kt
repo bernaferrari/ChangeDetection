@@ -5,7 +5,7 @@ import java.util.*
 
 @Entity(
     tableName = "diffs",
-    indices = [(Index(value = ["diffId"], unique = true))],
+    indices = [(Index(value = ["siteId", "diffId"], unique = true))],
     foreignKeys = [(
             ForeignKey(
                 entity = Site::class,
@@ -37,10 +37,21 @@ data class Diff(
         size,
         value
     )
+
+    // DiffWithoutValue was a temporary solution.
+    // Migrating it to this constructor might be a better idea.
+    @Ignore
+    constructor(timestamp: Long, size: Int, siteId: String) : this(
+        UUID.randomUUID().toString(),
+        siteId,
+        timestamp,
+        size,
+        ""
+    )
 }
 
 // Same as Diff, but without Value.
-// Value is HEAVY, so cursor adapter sometimes gets OOM error.
+// Temporary solution.
 data class DiffWithoutValue(
     val diffId: String,
     val siteId: String,

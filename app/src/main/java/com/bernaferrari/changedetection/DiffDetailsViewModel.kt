@@ -1,19 +1,3 @@
-/*
- * Copyright 2016, The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.bernaferrari.changedetection
 
 import android.app.Application
@@ -23,12 +7,12 @@ import android.arch.paging.LivePagedListBuilder
 import android.arch.paging.PagedList
 import com.bernaferrari.changedetection.data.Diff
 import com.bernaferrari.changedetection.data.DiffWithoutValue
-import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.source.DiffsDataSource
 import com.bernaferrari.changedetection.data.source.DiffsRepository
 import com.bernaferrari.changedetection.data.source.SitesRepository
 import com.bernaferrari.changedetection.diffs.text.DiffRowGenerator
 import com.bernaferrari.changedetection.extensions.cleanUpHtml
+import com.bernaferrari.changedetection.extensions.getPositionForAdapter
 import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.util.SingleLiveEvent
 import com.orhanobut.logger.Logger
@@ -51,37 +35,25 @@ class DiffDetailsViewModel(
     val showNoChangesDetectedError = SingleLiveEvent<Void>()
     val showProgress = SingleLiveEvent<Void>()
 
-    private val mSiteUpdated = SingleLiveEvent<Void>()
-
     fun removeDiff(id: String) {
         mDiffsRepository.deleteDiff(id)
-    }
-
-    private fun updateCanShowDiff(adapter: DiffAdapter, section: Section) {
-
-        if (adapter.colorSelected
-                .count { it.value > 0 } < 2
-        ) {
-            // Empty when there is not enough selection
-            section.update(mutableListOf())
-        }
-
-        showDiffError.value = adapter.colorSelected.count { it.value > 0 } != 2
-    }
-
-    // Called when clicking on fab.
-    internal fun saveSite(title: String, url: String, timestamp: Long): Site {
-        val site = Site(title, url, timestamp)
-
-        mSitesRepository.saveSite(site)
-        mSiteUpdated.call()
-        return site
     }
 
     var currentJob: Job? = null
     var withAllDiff: Boolean = false
 
-    fun generateDiff(section: Section, originalId: String, newId: String) {
+
+    /**
+     * Called when we want to generate a diff between two items. Takes as input two ids and the top
+     * section and outputs the result to this top section.
+     *
+     * @param topSection    The section corresponding to the top recyclerview, which will
+     * be updated with the result from the diff.
+     * @param originalId    The diffId from the original item (which will be in red)
+     * @param newId         The diffId from the new item (which will be in green)
+     * which will be updated by [generateDiff] with corresponding diff
+     */
+    fun generateDiff(topSection: Section, originalId: String, newId: String) {
         currentJob?.cancel()
         if (originalId.isBlank() || newId.isBlank()) {
             return
@@ -106,8 +78,8 @@ class DiffDetailsViewModel(
 
                     // There is a bug on Groupie 2.1.0 which is rendering the diff operation on UI thread.
                     // remove + insert is cheaper than checking if there was a change on thousands of lines.
-                    section.update(mutableListOf())
-                    section.update(mutableList)
+                    topSection.update(mutableListOf())
+                    topSection.update(mutableList)
                 }
             }
         }
@@ -115,7 +87,7 @@ class DiffDetailsViewModel(
 
     private suspend fun getFromDb(originalId: String, newId: String): Pair<Diff, Diff> =
         suspendCoroutine { cont ->
-            mDiffsRepository.getDiffStorage(
+            mDiffsRepository.getDiffPair(
                 originalId,
                 newId,
                 object : DiffsDataSource.GetPairCallback {
@@ -128,8 +100,15 @@ class DiffDetailsViewModel(
                 })
         }
 
-    fun fsmSelectWithCorrectColor(item: DiffViewHolder, section: Section) {
-        // This is a simple Finite State Machine
+    /**
+     * Called when there is a selection. This is a simple Finite State Machine, where
+     * it decides the color to select based on previous selection.
+     *
+     * @param item    Pass the item to be selected
+     * @param topSection Pass the top part of the screen,
+     * which will be updated by [generateDiff] with corresponding diff
+     */
+    fun fsmSelectWithCorrectColor(item: DiffViewHolder, topSection: Section) {
         when (item.colorSelected) {
             2 -> {
                 // ORANGE -> GREY
@@ -153,25 +132,27 @@ class DiffDetailsViewModel(
                                 if (value == 2) {
                                     item.setColor(1)
 
-                                    for ((position, _) in item.adapter.colorSelected.filter { it.value == 2 }) {
-                                        generateDiff(
-                                            section,
-                                            item.diff?.diffId!!,
-                                            item.adapter.getItemFromAdapter(position)?.diffId!!
-                                        )
-                                        break
-                                    }
+                                    generateDiff(
+                                        topSection,
+                                        item.diff?.diffId!!,
+                                        item.adapter.getItemFromAdapter(
+                                            item.adapter.colorSelected.getPositionForAdapter(
+                                                2
+                                            )
+                                        )?.diffId!!
+                                    )
                                 } else {
                                     item.setColor(2)
 
-                                    for ((position, _) in item.adapter.colorSelected.filter { it.value == 1 }) {
-                                        generateDiff(
-                                            section,
-                                            item.diff?.diffId!!,
-                                            item.adapter.getItemFromAdapter(position)?.diffId!!
-                                        )
-                                        break
-                                    }
+                                    generateDiff(
+                                        topSection,
+                                        item.diff?.diffId!!,
+                                        item.adapter.getItemFromAdapter(
+                                            item.adapter.colorSelected.getPositionForAdapter(
+                                                1
+                                            )
+                                        )?.diffId!!
+                                    )
                                 }
                                 break
                             }
@@ -183,14 +164,15 @@ class DiffDetailsViewModel(
                             item.adapter.setColor(0, position)
                         }
 
-                        for ((position, _) in item.adapter.colorSelected.filter { it.value == 1 }) {
-                            generateDiff(
-                                section,
-                                item.adapter.getItemFromAdapter(position)?.diffId!!,
-                                item.diff?.diffId!!
-                            )
-                            break
-                        }
+                        generateDiff(
+                            topSection,
+                            item.adapter.getItemFromAdapter(
+                                item.adapter.colorSelected.getPositionForAdapter(
+                                    1
+                                )
+                            )?.diffId!!,
+                            item.diff?.diffId!!
+                        )
 
                         item.setColor(2)
                     }
@@ -198,7 +180,25 @@ class DiffDetailsViewModel(
             }
         }
 
-        updateCanShowDiff(item.adapter, section)
+        updateCanShowDiff(item.adapter, topSection)
+    }
+
+    /**
+     * When there is only one item selected, we want to show an error message
+     * and clear the RecyclerView
+     *
+     * @param adapter    The adapter with a map of selected colors
+     * @param topSection The top section, which will be cleared if there are
+     * not enought colors selected
+     */
+    private fun updateCanShowDiff(adapter: DiffAdapter, topSection: Section) {
+
+        if (adapter.colorSelected.count { it.value > 0 } < 2) {
+            // Empty when there is not enough selection
+            topSection.update(mutableListOf())
+        }
+
+        showDiffError.value = adapter.colorSelected.count { it.value > 0 } != 2
     }
 
     private fun generateDiffRows(
@@ -213,8 +213,8 @@ class DiffDetailsViewModel(
         val generator = DiffRowGenerator.create()
             .showInlineDiffs(true)
             .inlineDiffByWord(true)
-            .oldTag { f -> "TEXTREMOVED" }
-            .newTag { f -> "TEXTADDED" }
+            .oldTag { _ -> "TEXTREMOVED" }
+            .newTag { _ -> "TEXTADDED" }
             .build()
 
         //compute the differences for two test texts.
@@ -229,23 +229,17 @@ class DiffDetailsViewModel(
         rows.forEachIndexed { index, row ->
             if (row.oldLine == row.newLine) {
                 updatingNonDiff.add(TextRecycler(row.oldLine, index))
-                println("$index none: " + row.oldLine)
             } else {
                 when {
                     row.newLine.isBlank() -> {
                         updatingOnlyDiff.add(TextRecycler("-" + row.oldLine, index))
-                        println("$index old: " + row.oldLine)
                     }
                     row.oldLine.isBlank() -> {
                         updatingOnlyDiff.add(TextRecycler("+" + row.newLine, index))
-                        println("$index new: " + row.newLine)
                     }
                     else -> {
                         updatingOnlyDiff.add(TextRecycler("-" + row.oldLine, index))
                         updatingOnlyDiff.add(TextRecycler("+" + row.newLine, index))
-
-                        println("$index old: " + row.oldLine)
-                        println("$index new: " + row.newLine)
                     }
                 }
             }
@@ -256,7 +250,7 @@ class DiffDetailsViewModel(
 
     fun getWebHistoryForId(id: String): LiveData<PagedList<DiffWithoutValue>> {
         return LivePagedListBuilder(
-            mDiffsRepository.getCheese(id), PagedList.Config.Builder()
+            mDiffsRepository.getDiffForPaging(id), PagedList.Config.Builder()
                 .setPageSize(PAGE_SIZE)
                 .setEnablePlaceholders(ENABLE_PLACEHOLDERS)
                 .build()

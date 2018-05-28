@@ -19,6 +19,8 @@ limitations under the License.
  */
 package com.bernaferrari.changedetection.diffs.text
 
+// Changes:
+// [May 2018] Converted to Kotlin
 internal object StringUtils {
 
     /**

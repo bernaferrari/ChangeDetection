@@ -31,6 +31,9 @@ import java.util.*
  *
  * @author [Dmitry Naumenko](dm.naumenko@gmail.com)
  * @version 0.4.1
+ *
+ * Changes:
+ * [May 2018] Converted to Kotlin
  */
 object DiffUtils {
 

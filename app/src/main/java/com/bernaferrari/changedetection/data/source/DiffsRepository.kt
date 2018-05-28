@@ -1,19 +1,3 @@
-/*
- * Copyright 2016, The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.bernaferrari.changedetection.data.source
 
 import android.arch.paging.DataSource
@@ -22,23 +6,23 @@ import com.bernaferrari.changedetection.data.DiffWithoutValue
 
 /**
  *
- *
  * For simplicity, this implements a dumb synchronisation between locally persisted data and data
  * obtained from the server, by using the remote data source only if the local database doesn't
  * exist or is empty.
  *
+ * Inspired from Architecture Components MVVM sample app
  */
 class DiffsRepository // Prevent direct instantiation.
 private constructor(
     diffsLocalDataSource: DiffsDataSource
 ) : DiffsDataSource {
 
-    override fun getDiffStorage(
+    override fun getDiffPair(
         originalId: String,
         newId: String,
         callback: DiffsDataSource.GetPairCallback
     ) {
-        mDiffsLocalDataSource.getDiffStorage(
+        mDiffsLocalDataSource.getDiffPair(
             originalId,
             newId,
             callback = object : DiffsDataSource.GetPairCallback {
@@ -53,8 +37,8 @@ private constructor(
         )
     }
 
-    override fun getCheese(id: String): DataSource.Factory<Int, DiffWithoutValue> {
-        return mDiffsLocalDataSource.getCheese(id)
+    override fun getDiffForPaging(id: String): DataSource.Factory<Int, DiffWithoutValue> {
+        return mDiffsLocalDataSource.getDiffForPaging(id)
     }
 
     override fun deleteAllDiffsForSite(siteId: String) {

@@ -29,6 +29,9 @@ import java.util.*
 
 /**
  * A clean-room implementation of Eugene Myers greedy differencing algorithm.
+ *
+ * Changes:
+ * [May 2018] Converted to Kotlin
  */
 class MyersDiff<T> : DiffAlgorithm<T> {
 

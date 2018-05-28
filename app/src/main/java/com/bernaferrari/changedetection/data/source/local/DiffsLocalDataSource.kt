@@ -1,19 +1,3 @@
-/*
- * Copyright 2016, The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.bernaferrari.changedetection.data.source.local
 
 import android.arch.paging.DataSource
@@ -27,6 +11,7 @@ import com.orhanobut.logger.Logger
 
 /**
  * Concrete implementation of a data source as a db.
+ * Inspired from Architecture Components MVVM sample app
  */
 class DiffsLocalDataSource// Prevent direct instantiation.
 private constructor(
@@ -34,11 +19,11 @@ private constructor(
     private val mDiffsDao: DiffsDao
 ) : DiffsDataSource {
 
-    override fun getCheese(id: String): DataSource.Factory<Int, DiffWithoutValue> {
+    override fun getDiffForPaging(id: String): DataSource.Factory<Int, DiffWithoutValue> {
         return mDiffsDao.allDiffsBySiteId(id)
     }
 
-    override fun getDiffStorage(
+    override fun getDiffPair(
         originalId: String,
         newId: String,
         callback: DiffsDataSource.GetPairCallback
@@ -68,27 +53,6 @@ private constructor(
                     callback.onDiffLoaded(diff)
                 } else {
                     callback.onDataNotAvailable()
-                }
-            }
-        }
-
-        mAppExecutors.diskIO().execute(runnable)
-    }
-
-    /**
-     * Note: [LoadTasksCallback.onDataNotAvailable] is fired if the database doesn't exist
-     * or the table is empty.
-     */
-    fun getDiffs(siteId: String, callback: DiffsDataSource.LoadDiffsCallback) {
-        val runnable = Runnable {
-            val diffs = mDiffsDao.getDiffsForSiteWithLimit(siteId)
-            mAppExecutors.mainThread().execute {
-                if (diffs == null) {
-                    // This will be called if the table is new or just empty.
-                    callback.onDataNotAvailable()
-                } else {
-                    Logger.d("ReturningCount $diffs - ${diffs.size}")
-                    callback.onDiffsLoaded(diffs)
                 }
             }
         }

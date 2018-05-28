@@ -14,6 +14,7 @@ import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.SimpleItemAnimator
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -22,7 +23,7 @@ import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
-import com.bernaferrari.changedetection.extensions.firstKey
+import com.bernaferrari.changedetection.extensions.getPositionForAdapter
 import com.bernaferrari.changedetection.groupie.DialogItem
 import com.bernaferrari.changedetection.groupie.DialogItemSwitch
 import com.bernaferrari.changedetection.groupie.TextRecycler
@@ -68,7 +69,6 @@ class DiffFragment : Fragment() {
 
         val state = stateLayout
         state.apply {
-            setEmptyText("No websites are being monitored")
             showLoading()
         }
 
@@ -76,13 +76,13 @@ class DiffFragment : Fragment() {
 
         model.showDiffError.observe(this, Observer {
             if (it == true) {
-                state.setEmptyText("Select two snapshots below \n to compare the differences")
+                state.setEmptyText(R.string.empty_please_select_two)
                 state.showEmptyState()
             }
         })
 
         model.showNoChangesDetectedError.observe(this, Observer {
-            state.setEmptyText("No change detected between these two snapshots")
+            state.setEmptyText(R.string.empty_no_change_detected)
             state.showEmptyState()
         })
 
@@ -99,7 +99,7 @@ class DiffFragment : Fragment() {
 
             adapter = GroupAdapter<ViewHolder>().apply {
                 add(topSection)
-                setOnItemClickListener { item, view ->
+                setOnItemClickListener { item, _ ->
                     if (item !is TextRecycler) return@setOnItemClickListener
                     copyToClipboard(context, item.title)
                 }
@@ -117,13 +117,23 @@ class DiffFragment : Fragment() {
                 if (item !is DiffViewHolder) return
 
                 MaterialDialog.Builder(requireActivity())
-                    .title("Remove ${item.readableFileSize}")
-                    .content("Are you sure you want to remove ${item.readableFileSize} from ${item.stringFromTimeAgo}?")
+                    .title(getString(R.string.remove_this, item.readableFileSize))
+                    .content(
+                        getString(
+                            R.string.are_you_sure,
+                            item.readableFileSize,
+                            item.stringFromTimeAgo
+                        )
+                    )
                     .negativeText(R.string.cancel)
-                    .positiveText("Yes")
+                    .positiveText(R.string.yes)
                     .onPositive { _, _ ->
+                        if (item.colorSelected != 0) {
+                            // If the item is selected, first deselect, then remove it.
+                            model.fsmSelectWithCorrectColor(item, topSection)
+                        }
                         model.removeDiff(item.diff!!.diffId)
-//                         model.updateCanShowDiff(bottomList, topSection)
+
                     }
                     .show()
             }
@@ -135,6 +145,12 @@ class DiffFragment : Fragment() {
         bottomRecycler.run {
             this.adapter = adapter
             this.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            itemAnimator = this.itemAnimator.apply {
+                // From https://stackoverflow.com/a/33302517/4418073
+                if (this is SimpleItemAnimator) {
+                    this.supportsChangeAnimations = false
+                }
+            }
         }
 
         // Subscribe the adapter to the ViewModel, so the items in the adapter are refreshed
@@ -204,14 +220,19 @@ class DiffFragment : Fragment() {
                 ) {
                     model.withAllDiff = !model.withAllDiff
 
-                    val pos1 = adapter.colorSelected.filter { it.value == 1 }.firstKey()!!
-                    val pos2 = adapter.colorSelected.filter { it.value == 2 }.firstKey()!!
+                    try {
+                        val pos1 = adapter.colorSelected.getPositionForAdapter(1)
+                        val pos2 = adapter.colorSelected.getPositionForAdapter(2)
 
-                    model.generateDiff(
-                        topSection,
-                        adapter.getItemFromAdapter(pos1)!!.diffId,
-                        adapter.getItemFromAdapter(pos2)!!.diffId
-                    )
+                        model.generateDiff(
+                            topSection,
+                            adapter.getItemFromAdapter(pos1)!!.diffId,
+                            adapter.getItemFromAdapter(pos2)!!.diffId
+                        )
+                    } catch (e: Exception) {
+                        // Don't do anything. If this exception happened, is because there are not
+                        // two items selected. So it won't change anything.
+                    }
 
                     // Dismiss after the user taps on the switch, but not before he sees the animation
                     launch {
@@ -247,7 +268,7 @@ class DiffFragment : Fragment() {
                     this.layoutManager = LinearLayoutManager(requireContext())
                 }
 
-                groupAdapter.setOnItemClickListener { itemDialog, view ->
+                groupAdapter.setOnItemClickListener { itemDialog, _ ->
                     if (itemDialog is DialogItem) {
                         when (itemDialog.kind) {
                             "first" -> {
@@ -256,7 +277,7 @@ class DiffFragment : Fragment() {
                                     .build()
                                     .also {
                                         val position =
-                                            adapter.colorSelected.filter { it.value == 1 }.firstKey()!!
+                                            adapter.colorSelected.getPositionForAdapter(1)
                                         putDataOnWebView(
                                             it.customView?.findViewById<PrettifyWebView>(R.id.webview),
                                             adapter.getItemFromAdapter(position)!!.diffId
@@ -269,7 +290,7 @@ class DiffFragment : Fragment() {
                                     .build()
                                     .also {
                                         val position =
-                                            adapter.colorSelected.filter { it.value == 2 }.firstKey()!!
+                                            adapter.colorSelected.getPositionForAdapter(2)
                                         putDataOnWebView(
                                             it.customView?.findViewById<PrettifyWebView>(R.id.webview),
                                             adapter.getItemFromAdapter(position)!!.diffId

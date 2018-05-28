@@ -37,6 +37,8 @@ import java.util.regex.Pattern
  * DiffRowGenerator generator = new DiffRowGenerator.Builder().showInlineDiffs(true).
  * ignoreWhiteSpaces(true).columnWidth(100).build();
 ` *
+ * Changes:
+ * [May 2018] Converted to Kotlin
  */
 class DiffRowGenerator private constructor(builder: Builder) {
 

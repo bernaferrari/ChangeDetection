@@ -112,7 +112,7 @@ class AboutFragment : MaterialAboutFragment() {
                 .setOnClickAction(
                     ConvenienceBuilder.createWebsiteOnClickAction(
                         c,
-                        "https://github.com/bernaferrari".toUri()
+                        "https://github.com/bernaferrari/ChangeDetection".toUri()
                     )
                 )
                 .build()

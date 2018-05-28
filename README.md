@@ -23,10 +23,10 @@ Introduction
 ### Features
 
 This app contains four screens: 
-* a list of websites that are currently being tracked.
-* a detail view, that allows the user to compare the current website version with previous versions.
-* a settings view, that allows user to toggle auto-sync on/off and configure what is required for a sync to occur.
-* an about screen, with contact information.
+* A list of websites that are currently being tracked.
+* A detail view, that allows the user to compare the current website version with previous versions.
+* A settings view, that allows user to toggle auto-sync on/off and configure what is required for a sync to occur.
+* An about screen, with contact information.
 
 For clarity, unless otherwise noted, I'll ignore the *settings* and *about* on most of this README; I will pretend the app has two views, the main list and the details view.
 
@@ -43,13 +43,14 @@ The View and ViewModel communicate using LiveData and general good principles.
 #### Data layer
 
 The database is created using Room and it has two entities: a `Site` and a `Diff` that generate corresponding SQLite tables at runtime.
+There is a one to many relationshiop between them. The id from `Site` is a foreign key on `Diff`.
 
 To let other components know when the data has finished populating, the `ViewModel` exposes a `LiveData` object via callbacks using interfaces (inspired from [this todo app](https://github.com/googlesamples/android-architecture/tree/dev-todo-mvvm-live)).
 This could be extended to work with server and sync.
 
 #### Diff Process
 
-This app makes extensive use from [java-diff-utils](https://github.com/wumpz/java-diff-utils). All the diff process is made using Myer's diff algorithm, and the result is put on a RecyclerView (to avoid memory issues with long text).
+This app makes extensive use from [java-diff-utils](https://github.com/wumpz/java-diff-utils). In fact, part of the library was converted to Kotlin and is now working perfectly on Java 6 (the original library makes use of Streams, so only Java 8+). All the diff process is made using Myer's diff algorithm, and the result is put on a RecyclerView (to avoid memory issues with long text).
 
 #### How each Architecture Component is used
 * Navigation: this is a single activity app. All fragment transactions (except one) are made using Navigation library.
@@ -58,9 +59,8 @@ This app makes extensive use from [java-diff-utils](https://github.com/wumpz/jav
 There are four constraints: *battery not low*, *device on idle state* (API 23+), *device charging* and *wifi on*.
 Wifi is currently not a constraint from WorkManager, so I implemented it myself to work together.
 
-* Paging: on details fragment. It is possible for a website to change hundreds of times.
-If it changes frequently, in a year there will be hundreds of items.
-To avoid OOM error once and for all, Paging was implemented.
+* Paging: on details fragment. As time goes, it is possible for a website to receive hundreds of updates.
+To avoid OOM error once and for all, Paging was implemented. To make things even smarter, Paging only retrieves the Diff metadata: size, timestamp and id. The string, which can be heavy, is retrieved later. This way the app avoids from having a CursorAdapter with limited Window size having to deal with huge strings many times per second.
 
 * LiveData/ViewModel: written above.
 * Room: written above.

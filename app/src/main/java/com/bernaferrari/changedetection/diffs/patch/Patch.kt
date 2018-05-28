@@ -29,6 +29,9 @@ import java.util.*
  *
  * @author [Dmitry Naumenko](dm.naumenko@gmail.com)
  * @param T The type of the compared elements in the 'lines'.
+ *
+ * Changes:
+ * [May 2018] Converted to Kotlin
  */
 class Patch<T> @JvmOverloads constructor(estimatedPatchSize: Int = 10) {
 

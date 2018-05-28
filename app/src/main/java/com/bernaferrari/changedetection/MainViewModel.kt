@@ -1,19 +1,3 @@
-/*
- * Copyright 2016, The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.bernaferrari.changedetection
 
 import android.app.Application
@@ -28,11 +12,10 @@ import com.bernaferrari.changedetection.data.source.DiffsDataSource
 import com.bernaferrari.changedetection.data.source.DiffsRepository
 import com.bernaferrari.changedetection.data.source.SitesRepository
 import com.bernaferrari.changedetection.data.source.local.SiteAndLastDiff
-import com.bernaferrari.changedetection.util.SingleLiveEvent
 
 /**
  * Exposes the data to be used in the site list screen.
- *
+ * Inspired from Architecture Components MVVM sample app
  */
 class MainViewModel(
     context: Application,
@@ -40,7 +23,6 @@ class MainViewModel(
     private val mSitesRepository: SitesRepository
 ) : AndroidViewModel(context) {
 
-    private val mSiteUpdated = SingleLiveEvent<Void>()
     var shouldSyncWhenAppOpen = true
 
     fun getOutputStatus(): LiveData<List<WorkStatus>> {
@@ -59,7 +41,6 @@ class MainViewModel(
         val site = Site(title, url, timestamp)
 
         mSitesRepository.saveSite(site)
-        mSiteUpdated.call()
         return site
     }
 
@@ -78,13 +59,11 @@ class MainViewModel(
                 didItWork.value = false
             }
         })
-        mSiteUpdated.call()
         return didItWork
     }
 
     internal fun updateSite(site: Site) {
         mSitesRepository.saveSite(site)
-        mSiteUpdated.call()
     }
 
     val items = MutableLiveData<MutableList<SiteAndLastDiff>>()

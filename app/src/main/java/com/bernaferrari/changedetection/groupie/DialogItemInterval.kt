@@ -21,7 +21,7 @@ class DialogItemInterval(
     override fun bind(viewHolder: ViewHolder, position: Int) {
         viewHolder.seekBar.progress = progress
 
-        viewHolder.seekBar.doOnChanged { seekBar, seekbar_progress, fromUser ->
+        viewHolder.seekBar.doOnChanged { _, seekbar_progress, _ ->
             progress = seekbar_progress
             listener.invoke(minutes[progress].toLong())
             viewHolder.progress.text = getTimeString()

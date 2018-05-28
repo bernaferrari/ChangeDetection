@@ -23,9 +23,6 @@ class MarqueeItem(
             viewHolder.subtitleView.text = subtitle
         } else {
             viewHolder.subtitleView.visibility = View.GONE
-            val a = 1 + 1
-            val b = a + 1
-            val c = a
         }
     }
 }

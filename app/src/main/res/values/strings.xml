@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">Change Detection</string>
 
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
 
@@ -30,5 +33,16 @@
     <string name="icon_designer">Author</string>
 
     <string name="less_than_two">Error! Can\'t show the difference with less than two items.</string>
+    <string name="empty_please_select_two">Select two snapshots below \n to compare the differences</string>
+    <string name="empty_no_change_detected">No change detected between these two snapshots</string>
+
+    <string name="remove_this">Remove %1s</string>
+
+    <string name="are_you_sure">Are you sure you want to remove %1s from %2s?</string>
+    <string name="missing_internet">Error! Missing internet connection</string>
+    <string name="was_updated">%1s was updated!</string>
+
+    <string name="url">Website Url</string>
+    <string name="title">Title</string>
 
 </resources>

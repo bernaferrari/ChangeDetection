@@ -4,12 +4,12 @@ import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.SimpleItemAnimator
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -89,7 +89,13 @@ class MainFragment : Fragment() {
 
             defaultRecycler.run {
                 addItemDecoration(ListPaddingDecoration(this.context))
-                itemAnimator = null
+                itemAnimator = this.itemAnimator.apply {
+                    // From https://stackoverflow.com/a/33302517/4418073
+                    if (this is SimpleItemAnimator) {
+                        this.supportsChangeAnimations = false
+                    }
+                }
+
                 layoutManager = LinearLayoutManager(context)
                 adapter = groupAdapter.apply {
                     // to be used when AndroidX becomes a reality and our top bar is replaced with a bottom bar.
@@ -189,8 +195,9 @@ class MainFragment : Fragment() {
         val result = it ?: return
         val sb = StringBuilder()
         result.forEach { sb.append("${it.id}: ${it.state.name}\n") }
-        sb.setLength(sb.length - 1) // Remove the last \n from the string
-
+        if (sb.isNotEmpty()) {
+            sb.setLength(sb.length - 1) // Remove the last \n from the string
+        }
         if (result.firstOrNull()?.state == State.SUCCEEDED) {
             mViewModel.updateItems()
             Toasty.success(requireContext(), "Result has succeded").show()
@@ -253,7 +260,7 @@ class MainFragment : Fragment() {
             } else {
                 // This will happen when internet connection is missing
                 launch(UI) {
-                    Toasty.error(requireContext(), "Error! Missing internet connection")
+                    Toasty.error(requireContext(), getString(R.string.missing_internet))
                     item.updateSite(item.site)
                     sitesSection.update(sitesList)
                 }
@@ -279,8 +286,7 @@ class MainFragment : Fragment() {
                 item.updateDiff(diff)
                 Toasty.success(
                     requireContext(),
-                    "${newSite.title} was updated!",
-                    Snackbar.LENGTH_SHORT
+                    getString(R.string.was_updated, newSite.title)
                 ).show()
                 sitesList.sortByDescending { it.lastDiff?.timestamp }
                 sitesSection.update(sitesList)
@@ -303,10 +309,10 @@ class MainFragment : Fragment() {
     ) {
 
         val listOfItems = mutableListOf<Item>().apply {
-            add(FormSection("Url", true))
+            add(FormSection(getString(R.string.url), true))
             add(FormSingleEditText(item?.site?.url ?: "", Forms.URL))
 
-            add(FormSection("Title", true))
+            add(FormSection(getString(R.string.title), true))
             add(FormSingleEditText(item?.site?.title ?: "", Forms.NAME))
         }
 
@@ -334,6 +340,7 @@ class MainFragment : Fragment() {
                         reload(item)
                     }
                 } else {
+                    // Some people will forget to put the http:// on the url, so this is going to help them.
                     val url = when {
                         !newUrl.startsWith("http://") && !newUrl.startsWith("https://") -> "http://$newUrl"
                         else -> newUrl
@@ -350,8 +357,8 @@ class MainFragment : Fragment() {
                     sitesSection.update(sitesList)
                     reload(newItem)
                     // It is putting the new item on the last position before refreshing.
-                    // This is not good UX since user won't know it is there,
-                    // specially when the url results in error.
+                    // This is not good UX since user won't know it is there, specially when
+                    // the url results in error.
                 }
             }
 
