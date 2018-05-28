@@ -29,6 +29,7 @@
 
     <string name="error">ERRO</string>
     <string name="author">Autor</string>
+    <string name="icon_designer">Designer do Ícone (Famil Qasimov)</string>
 
     <string name="less_than_two">Erro! Não dá para calcular a diferença com menos de dois items.</string>
     <string name="empty_please_select_two">Selecione dois items abaixo\n para comparar as diferenças</string>
@@ -51,7 +52,7 @@
     <string name="batter_not_low">Bateria não acabando</string>
 
     <string name="min">min</string>
-    <string name="hour">hora</string>
+    <string name="hour">1 hora</string>
     <string name="hours">horas</string>
 
     <string name="original_plus_diffs">Original + Mudanças</string>

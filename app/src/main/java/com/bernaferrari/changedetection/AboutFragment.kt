@@ -140,7 +140,7 @@ class AboutFragment : MaterialAboutFragment() {
 
         val iconDesigner = MaterialAboutCard.Builder()
 
-        iconDesigner.title("Icon Designer (Famil Qasimov)")
+        iconDesigner.title(R.string.icon_designer)
 
         iconDesigner.addItem(
             ConvenienceBuilder.createWebsiteActionItem(

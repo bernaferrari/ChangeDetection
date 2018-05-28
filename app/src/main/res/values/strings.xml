@@ -30,7 +30,7 @@
 
     <string name="error">ERROR</string>
     <string name="author">Author</string>
-    <string name="icon_designer">Author</string>
+    <string name="icon_designer">Icon Designer (Famil Qasimov)</string>
 
     <string name="less_than_two">Error! Can\'t show the difference with less than two items.</string>
     <string name="empty_please_select_two">Select two snapshots below \n to compare the differences</string>
