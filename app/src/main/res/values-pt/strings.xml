@@ -41,4 +41,21 @@
     <string name="url">Link do Site</string>
     <string name="title">Título</string>
 
+    <string name="background_sync">Sincronização automática</string>
+    <string name="sync_interval">Intervalo da Sincronização</string>
+
+    <string name="wifi_on">Wifi Ativado</string>
+    <string name="constraints">Condições</string>
+    <string name="device_idle">Celular em repouso</string>
+    <string name="charging">Carregando</string>
+    <string name="batter_not_low">Bateria não acabando</string>
+
+    <string name="min">min</string>
+    <string name="hour">hora</string>
+    <string name="hours">horas</string>
+
+    <string name="original_plus_diffs">Original + Mudanças</string>
+    <string name="open_1_in_browser">Abrir #1 no navegador</string>
+    <string name="open_2_in_browser">Abrir #2 in navegador</string>
+
 </resources>

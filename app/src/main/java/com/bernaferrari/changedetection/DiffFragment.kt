@@ -212,7 +212,7 @@ class DiffFragment : Fragment() {
                 val updating = mutableListOf<Item<out ViewHolder>>()
 
                 updating += DialogItemSwitch(
-                    "Original + Diffs",
+                    getString(R.string.original_plus_diffs),
                     IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference).color(
                         ContextCompat.getColor(context, R.color.md_indigo_500)
                     ),
@@ -244,7 +244,7 @@ class DiffFragment : Fragment() {
                 }
 
                 updating += DialogItem(
-                    "Open #1 in Browser",
+                    getString(R.string.open_1_in_browser),
                     IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference_ba).color(
                         ContextCompat.getColor(context, R.color.md_amber_500)
                     ),
@@ -252,7 +252,7 @@ class DiffFragment : Fragment() {
                 )
 
                 updating += DialogItem(
-                    "Open #2 in Browser",
+                    getString(R.string.open_2_in_browser),
                     IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference_ab).color(
                         ContextCompat.getColor(context, R.color.md_orange_500)
                     ),

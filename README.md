@@ -29,6 +29,7 @@ This app contains four screens:
 * An about screen, with contact information.
 
 For clarity, unless otherwise noted, I'll ignore the *settings* and *about* on most of this README; I will pretend the app has two views, the main list and the details view.
+Settings makes use of Shared Preferences, there is nothing special.
 
 #### Presentation layer
 
@@ -50,7 +51,15 @@ This could be extended to work with server and sync.
 
 #### Diff Process
 
-This app makes extensive use from [java-diff-utils](https://github.com/wumpz/java-diff-utils). In fact, part of the library was converted to Kotlin and is now working perfectly on Java 6 (the original library makes use of Streams, so only Java 8+). All the diff process is made using Myer's diff algorithm, and the result is put on a RecyclerView (to avoid memory issues with long text).
+This app makes extensive use from [java-diff-utils](https://github.com/wumpz/java-diff-utils).
+In fact, part of the library was converted to Kotlin and is now working perfectly on Java 6 (the original library makes use of Streams, which is only supported on Java 8).
+All the diff process is made using Myer's diff algorithm, and the result, for performance reasons, is put on a RecyclerView.
+
+When the diff process happens, the app will remove *style*, *link* and *script* tags from html to avoid pages that generate them at every request.
+Example: pages that make use of Google Analytics and pages that were made in WordPress.
+If even after stripping these there is still a change detected, the app will show a toast (if visible) or a notification (if in background).
+
+![notification](/.github/assets/notification.jpg?raw=true)
 
 #### How each Architecture Component is used
 * Navigation: this is a single activity app. All fragment transactions (except one) are made using Navigation library.

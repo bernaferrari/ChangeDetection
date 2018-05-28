@@ -1,5 +1,6 @@
 package com.bernaferrari.changedetection.groupie
 
+import android.content.Context
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.extensions.doOnChanged
 import com.xwray.groupie.kotlinandroidextensions.Item
@@ -24,19 +25,19 @@ class DialogItemInterval(
         viewHolder.seekBar.doOnChanged { _, seekbar_progress, _ ->
             progress = seekbar_progress
             listener.invoke(minutes[progress].toLong())
-            viewHolder.progress.text = getTimeString()
+            viewHolder.progress.text = getTimeString(viewHolder.seekBar.context)
         }
-        viewHolder.progress.text = getTimeString()
+        viewHolder.progress.text = getTimeString(viewHolder.seekBar.context)
         viewHolder.title.text = title
     }
 
-    private fun getTimeString(): String {
+    private fun getTimeString(context: Context): String {
 
         return minutes[progress].let {
             when {
-                it < 60 -> return@let "$it min"
-                it == 60 -> return@let "1 hour"
-                else -> return@let "${it / 60} hours"
+                it < 60 -> return@let "$it " + context.getString(R.string.min)
+                it == 60 -> return@let context.getString(R.string.hour)
+                else -> return@let "${it / 60} " + context.getString(R.string.hours)
             }
         }
     }

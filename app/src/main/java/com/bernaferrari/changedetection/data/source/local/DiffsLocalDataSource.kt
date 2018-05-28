@@ -64,9 +64,8 @@ private constructor(
         val saveRunnable = Runnable {
             val getDiffByid = mDiffsDao.getDiffBySiteId(diff.siteId)
 
-// Uncomment for testing.
-// mDiffsDao.insertDiff(diff.copy(value = diff.value.plus(UUID.randomUUID().toString())))
-//            val wasSuccessful = true
+            // Uncomment for testing.
+            // mDiffsDao.insertDiff(diff.copy(value = diff.value.plus(UUID.randomUUID().toString())))
             val wasSuccessful =
                 if (diff.value.isNotBlank() && getDiffByid?.value?.cleanUpHtml() != diff.value.cleanUpHtml()) {
                     Logger.d("Difference detected! Size went from ${getDiffByid?.value?.count()} to ${diff.value.count()}")

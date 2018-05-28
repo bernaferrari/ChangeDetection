@@ -45,7 +45,7 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
         }
 
         updating += DialogItemSwitch(
-            "Background Sync",
+            getString(R.string.background_sync),
             IconicsDrawable(context, GoogleMaterial.Icon.gmd_sync).color(color),
             sharedPrefs.getBoolean("backgroundSync", false)
         ) {
@@ -63,7 +63,7 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
         }
 
         syncSettings += DialogItemInterval(
-            "Sync Interval",
+            getString(R.string.sync_interval),
             sharedPrefs.getLong(WorkerHelper.DELAY, 60).toInt()
         ) {
             sharedPrefs.edit {
@@ -76,7 +76,7 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
         syncSettings += DialogItemSeparator()
 
         syncSettings += DialogItemSwitch(
-            "WiFi on",
+            getString(R.string.wifi_on),
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_wifi).color(
                 color
             ),
@@ -86,7 +86,7 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
         }
 
         syncSettings += DialogItemSwitch(
-            "Charging",
+            getString(R.string.charging),
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_battery_charging).color(
                 color
             ),
@@ -96,7 +96,7 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
         }
 
         syncSettings += DialogItemSwitch(
-            "Battery not low",
+            getString(R.string.batter_not_low),
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_battery_20).color(
                 color
             ),
@@ -107,7 +107,7 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
 
         if (Build.VERSION.SDK_INT >= 23) {
             syncSettings += DialogItemSwitch(
-                "Device Idle",
+                getString(R.string.device_idle),
                 IconicsDrawable(context, CommunityMaterial.Icon.cmd_sleep).color(
                     color
                 ),
