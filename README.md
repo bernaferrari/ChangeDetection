@@ -74,6 +74,37 @@ To avoid OOM error once and for all, Paging was implemented. To make things even
 * LiveData/ViewModel: written above.
 * Room: written above.
 
+#### Third Party Libraries Used
+
+  * [Android-Iconics][1] deal with icons without suffering.
+  * [Architecture Components][2] all of them, as stated above.
+  * [Groupie][3] for making RecyclerViews as simple as possible.
+  * [java-diff-utils][4] generate the difference between two strings.
+  * [Logger][5] logs that are useful and disabled on release.
+  * [material-about-library][6] create an about page without suffering.
+  * [Material Dialogs][7] show dialogs in a simple and easy way.
+  * [Notify][8] create notifications without effort.
+  * [ok-http][9] fetch the webpages.
+  * [Stetho][10] debug the database easily.
+  * [ThreeTenABP][11] for dealing with time in a Java 8 way.
+  * [timeago][12] makes it easy display relative dates (i.e. 1 day ago).
+  * [Toasty][13] show toasts in a colorful way.
+
+[1]: https://github.com/mikepenz/Android-Iconics
+[2]: https://developer.android.com/topic/libraries/architecture/
+[3]: https://github.com/lisawray/groupie
+[4]: https://github.com/wumpz/java-diff-utils
+[5]: https://github.com/orhanobut/logger
+[6]: https://github.com/daniel-stoneuk/material-about-library
+[7]: https://github.com/afollestad/material-dialogs
+[8]: https://github.com/Karn/notify
+[9]: https://github.com/square/okhttp
+[10]: http://facebook.github.io/stetho/
+[11]: https://github.com/JakeWharton/ThreeTenABP
+[12]: https://github.com/marlonlom/timeago
+[13]: https://github.com/GrenderG/Toasty
+
+
 ### Reporting Issues
 
 Issues and Pull Requests are welcome.
