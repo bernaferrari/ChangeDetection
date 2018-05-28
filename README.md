@@ -3,7 +3,7 @@ Change Detection
 
 This app tracks changes on websites you otherwise would visit frequently to see if there is something new.
 Use cases:
-* Teacher say grades will be published "soon", but no one knows what "soon" means and you are tired of reloading.
+* Teacher says grades will be published "soon", but no one knows what "soon" means and you are tired of reloading.
 * You are working with a server and wants to know the result from a request, periodically.
 * You are working with a server and wants to know if the server is working as intended, or if the release has happened successfully.
 
@@ -15,7 +15,7 @@ This app also showcases **all** the Android Architecture Components working toge
 
 | Main Screen | Detail | Settings |
 |:-:|:-:|:-:|
-| ![First](/.github/assets/main_screen.jpg?raw=true) | ![Sec](/.github/assets/main_screen.jpg?raw=true) | ![Third](/.github/assets/settings.jpg?raw=true) |
+| ![First](/.github/assets/main_screen.jpg?raw=true) | ![Sec](/.github/assets/diff_view.jpg?raw=true) | ![Third](/.github/assets/settings.jpg?raw=true) |
 
 Introduction
 ------------
