@@ -49,6 +49,14 @@ class AboutLicenseFragment : MaterialAboutFragment() {
             c,
             colorIcon
         )
+        val javadiffutils = createLicenseCard(
+            "java-diff-utils",
+            "2018",
+            "Tobias (wumpz)",
+            OpenSourceLicense.APACHE_2,
+            c,
+            colorIcon
+        )
         val androidIconicsLicenseCard = createLicenseCard(
             "Android Iconics",
             "2017",
@@ -110,6 +118,7 @@ class AboutLicenseFragment : MaterialAboutFragment() {
 
         return MaterialAboutList(
             aosp,
+            javadiffutils,
             androidIconicsLicenseCard,
             rxjava,
             rxandroid,

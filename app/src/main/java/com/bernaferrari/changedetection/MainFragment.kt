@@ -230,6 +230,14 @@ class MainFragment : Fragment() {
 
         sitesList.sortByDescending { it.lastDiff?.timestamp }
         sitesSection.update(sitesList)
+
+        // This will be used to automatically sync when app open. Since the variable is on ViewModel,
+        // even if we navigate between the app, come back and this fragment's onCreate is called again,
+        // the variable will not change.
+        if (mViewModel.shouldSyncWhenAppOpen) {
+            sitesList.forEach(this@MainFragment::reload)
+            mViewModel.shouldSyncWhenAppOpen = false
+        }
     }
 
     private fun reload(item: MainScreenCardItem?) {

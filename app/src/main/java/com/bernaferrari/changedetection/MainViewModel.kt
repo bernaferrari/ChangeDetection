@@ -41,6 +41,7 @@ class MainViewModel(
 ) : AndroidViewModel(context) {
 
     private val mSiteUpdated = SingleLiveEvent<Void>()
+    var shouldSyncWhenAppOpen = true
 
     fun getOutputStatus(): LiveData<List<WorkStatus>> {
         return WorkManager.getInstance().getStatusesForUniqueWork(WorkerHelper.UNIQUEWORK)
