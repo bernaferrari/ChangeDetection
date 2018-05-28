@@ -22,7 +22,7 @@
         android:fontFamily="@font/work_semibold"
         android:includeFontPadding="false"
         android:maxLines="1"
-        android:text="Constraints"
+        android:text="@string/constraints"
         android:textAlignment="center"
         android:textColor="@color/FontStrong"
         android:textSize="18sp"

@@ -87,7 +87,7 @@ class SyncWorker : Worker() {
                             title = if (newSite.title.isNullOrBlank()) {
                                 "Change detected!"
                             } else {
-                                "Change detected on ${newSite.title}"
+                                "Change detected on ${newSite.title}!"
                             }
                             text = newSite.url
                         }

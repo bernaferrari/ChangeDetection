@@ -45,4 +45,21 @@
     <string name="url">Website Url</string>
     <string name="title">Title</string>
 
+    <string name="wifi_on">Wifi On</string>
+    <string name="background_sync">Background Sync</string>
+    <string name="sync_interval">Sync Interval</string>
+
+    <string name="constraints">Constraints</string>
+    <string name="device_idle">Device Idle</string>
+    <string name="charging">Charging</string>
+    <string name="batter_not_low">Battery not low</string>
+
+    <string name="min">min</string>
+    <string name="hour">1 hour</string>
+    <string name="hours">hours</string>
+
+    <string name="original_plus_diffs">Original + Diffs</string>
+    <string name="open_1_in_browser">Open #1 in Browser</string>
+    <string name="open_2_in_browser">Open #2 in Browser</string>
+
 </resources>
