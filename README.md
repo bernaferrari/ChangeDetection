@@ -1,3 +1,5 @@
+<p align="center"><img src="logo/1024px.png" alt="ChangeDetection" height="200px"></p>
+
 Change Detection
 ===================================
 
