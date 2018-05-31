@@ -63,7 +63,7 @@ class SyncWorker : Worker() {
 
         val newSite = item.copy(
             timestamp = System.currentTimeMillis(),
-            successful = !(str.count() == 0 || str.isBlank())
+            isSuccessful = !(str.count() == 0 || str.isBlank())
         )
 
         Injection.provideSitesRepository(this@SyncWorker.applicationContext).saveSite(newSite)

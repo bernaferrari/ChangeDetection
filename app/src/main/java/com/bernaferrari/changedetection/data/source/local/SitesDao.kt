@@ -50,7 +50,7 @@ interface SitesDao {
      * @param siteId    id of the site
      * @param completed status to be updated
      */
-    @Query("UPDATE sites SET successful = :completed WHERE siteId = :siteId")
+    @Query("UPDATE sites SET isSuccessful = :completed WHERE siteId = :siteId")
     fun updateCompleted(siteId: String, completed: Boolean)
 
     /**

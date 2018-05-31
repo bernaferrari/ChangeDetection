@@ -1,6 +1,7 @@
 package com.bernaferrari.changedetection.data
 
 import android.arch.persistence.room.*
+import com.bernaferrari.changedetection.WorkerHelper
 import java.util.*
 
 /**
@@ -11,44 +12,33 @@ import java.util.*
     tableName = "sites",
     indices = [(Index(value = ["siteId"], unique = true))]
 )
+@TypeConverters(Site.LanguageConverter::class)
 data class Site
 /**
  * Use this constructor to specify a completed Site if the Site already has an id (copy of
  * another Site).
  *
  * @param title       title of the site
- * @param url url of the site
+ * @param url         url of the site
  * @param id          id of the site
- * @param completed   true if the site is completed, false if it's active
+ * @param completed   true if the site is completed, false if it's isActive
  */
     (
-    @field:ColumnInfo(name = "title")
     val title: String?,
-    @field:ColumnInfo(name = "url")
     val url: String,
-    @field:ColumnInfo(name = "timestamp")
     val timestamp: Long,
     @field:PrimaryKey
     @field:ColumnInfo(name = "siteId")
     val id: String,
-    @field:ColumnInfo(name = "successful")
-    val successful: Boolean,
-    @field:ColumnInfo(name = "read")
-    val read: Boolean
+    val isSuccessful: Boolean,
+    val isRead: Boolean, // reserved for future use
+    val isActive: Boolean,
+    val isNotificationOn: Boolean,
+    val notes: String,
+    val constraints: WorkerHelper.ConstraintsRequired // reserved for future use
 ) {
-
-    val titleForList: String?
-        get() = if (!title.isNullOrEmpty()) {
-            title
-        } else {
-            url
-        }
-
-    val isActive: Boolean
-        get() = !successful
-
     /**
-     * Use this constructor to create a new active Site.
+     * Use this constructor to create a new isActive Site.
      *
      * @param title       title of the site
      * @param url url of the site
@@ -60,7 +50,11 @@ data class Site
         timestamp,
         UUID.randomUUID().toString(),
         true,
-        false
+        false,
+        true,
+        true,
+        "",
+        WorkerHelper.ConstraintsRequired(false, false, false, false)
     )
 
     @Ignore
@@ -70,7 +64,11 @@ data class Site
         timestamp,
         id,
         true,
-        false
+        false,
+        true,
+        true,
+        "",
+        WorkerHelper.ConstraintsRequired(false, false, false, false)
     )
 
     @Ignore
@@ -80,7 +78,11 @@ data class Site
         timestamp,
         UUID.randomUUID().toString(),
         completed,
-        false
+        false,
+        true,
+        true,
+        "",
+        WorkerHelper.ConstraintsRequired(false, false, false, false)
     )
 
     override fun equals(other: Any?): Boolean {
@@ -97,5 +99,25 @@ data class Site
 
     override fun toString(): String {
         return "Site with title " + title!!
+    }
+
+    class LanguageConverter {
+        @TypeConverter
+        fun storedStringToConstraintsRequired(value: String): WorkerHelper.ConstraintsRequired {
+            val langs = value.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toList()
+
+            return WorkerHelper.ConstraintsRequired(langs)
+        }
+
+        @TypeConverter
+        fun constraintsRequiredToStoredString(cl: WorkerHelper.ConstraintsRequired): String {
+            var value = ""
+            value += "${cl.batteryNotLow}, "
+            value += "${cl.wifi}, "
+            value += "${cl.charging}, "
+            value += "${cl.deviceIdle}"
+
+            return value
+        }
     }
 }

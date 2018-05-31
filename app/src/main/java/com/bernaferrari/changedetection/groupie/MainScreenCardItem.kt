@@ -74,7 +74,7 @@ class MainScreenCardItem(
     }
 
     private fun changeStatus() {
-        status = when (site.successful) {
+        status = when (site.isSuccessful) {
             true -> SYNC.OK
             false -> SYNC.ERROR
         }

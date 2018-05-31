@@ -24,7 +24,7 @@ data class Diff(
     val value: String
 ) {
     /**
-     * Use this constructor to create a new active Site.
+     * Use this constructor to create a new isActive Site.
      *
      * @param title       title of the site
      * @param url url of the site
