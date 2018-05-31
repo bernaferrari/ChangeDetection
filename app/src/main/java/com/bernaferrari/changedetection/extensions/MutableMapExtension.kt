@@ -11,7 +11,7 @@ fun <K, V> Map<out K, V>.firstKey(): K {
 }
 
 /**
- * Just a shortcut, so code is easier to read.
+ * Just a shortcut, so code is easier to isRead.
  **/
 fun <K, V> Map<out K, V>.getPositionForAdapter(color: Int): K {
     return this.filter { it.value == color }.firstKey()

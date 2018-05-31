@@ -273,7 +273,7 @@ class MainFragment : Fragment() {
 
         val newSite = item.site.copy(
             timestamp = System.currentTimeMillis(),
-            successful = !(str.count() == 0 || str.isBlank())
+            isSuccessful = !(str.count() == 0 || str.isBlank())
         )
         mViewModel.updateSite(newSite)
 
