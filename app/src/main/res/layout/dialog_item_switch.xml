@@ -45,9 +45,7 @@
         android:layout_height="wrap_content"
         android:layout_marginRight="16dp"
         android:clickable="false"
-
         android:focusable="false"
-        android:visibility="gone"
 
         app:layout_constraintBottom_toBottomOf="@+id/title"
         app:layout_constraintEnd_toEndOf="parent"

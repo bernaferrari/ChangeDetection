@@ -37,12 +37,20 @@ class MainScreenCardItem(
 ) : Item() {
     var status: SYNC = SYNC.OK
     private var isReloading = false
+    private var currentColor = "" // This variable is used to track the current color, since
+    // getColor is API 24+. It will be used when Item is created and there is no color defined for
+    // holder.syncimage and holder.radarimage
     private var siteDisposable: Disposable? = null
     private var diffDisposable: Disposable? = null
 
     fun updateSite(tas: Site) {
         this.site = tas
         changeStatus()
+        notifyChanged()
+    }
+
+    fun enableOrDisable(tas: Site) {
+        this.site = tas
         notifyChanged()
     }
 
@@ -137,27 +145,93 @@ class MainScreenCardItem(
 
         when (status) {
             SYNC.LOADING -> {
+                if (currentColor.isBlank()) {
+                    if (site.isSuccessful) {
+                        changeCardToBlue(holder, context)
+                    } else {
+                        changeCardToRed(holder, context)
+                    }
+                }
                 startProgress(holder)
                 holder.lastsync.text = holder.lastsync.context.getString(R.string.syncing)
             }
             SYNC.OK -> {
-                holder.cardView.setCardBackgroundColor(0xff356bf8.toInt())
-                stopProgress(holder)
-                setLastSync(holder)
-                setColor(holder, context)
+                stopSyncing(holder)
+                if (site.isSyncEnabled) {
+                    changeCardToBlue(holder, context)
+                } else {
+                    changeCardToGrey(holder, context)
+                }
             }
             SYNC.ERROR -> {
-                holder.cardView.setCardBackgroundColor(
-                    ContextCompat.getColor(
-                        context,
-                        R.color.md_red_A700
-                    )
-                )
-                stopProgress(holder)
-                setLastSync(holder)
-                setRedColor(holder, context)
+                stopSyncing(holder)
+                if (site.isSyncEnabled) {
+                    changeCardToRed(holder, context)
+                } else {
+                    changeCardToGrey(holder, context)
+                }
             }
         }
+    }
+
+    private fun stopSyncing(holder: ViewHolder) {
+        stopProgress(holder)
+        setLastSync(holder)
+    }
+
+    private fun changeCardToBlue(holder: ViewHolder, context: Context) {
+        currentColor = "blue"
+
+        setImageBackgroundToColor(
+            color = ContextCompat.getColor(
+                context,
+                R.color.md_blue_400
+            ),
+            holder = holder,
+            context = context
+        )
+
+        holder.cardView.setCardBackgroundColor(0xff356bf8.toInt())
+    }
+
+    private fun changeCardToGrey(holder: ViewHolder, context: Context) {
+        currentColor = "grey"
+
+        setImageBackgroundToColor(
+            color = ContextCompat.getColor(
+                context,
+                R.color.md_grey_500
+            ),
+            holder = holder,
+            context = context
+        )
+
+        holder.cardView.setCardBackgroundColor(
+            ContextCompat.getColor(
+                context,
+                R.color.md_grey_700
+            )
+        )
+    }
+
+    private fun changeCardToRed(holder: ViewHolder, context: Context) {
+        currentColor = "red"
+
+        setImageBackgroundToColor(
+            color = ContextCompat.getColor(
+                context,
+                R.color.md_red_A700
+            ),
+            holder = holder,
+            context = context
+        )
+
+        holder.cardView.setCardBackgroundColor(
+            ContextCompat.getColor(
+                context,
+                R.color.md_red_A700
+            )
+        )
     }
 
     override fun unbind(holder: ViewHolder) {
@@ -193,34 +267,9 @@ class MainScreenCardItem(
         }
     }
 
-    private fun setRedColor(holder: ViewHolder, context: Context) {
-        (holder.syncimage.background as GradientDrawable).setColor(
-            ContextCompat.getColor(
-                context,
-                R.color.md_red_400
-            )
-        )
-        (holder.radarimage.background as GradientDrawable).setColor(
-            ContextCompat.getColor(
-                context,
-                R.color.md_red_400
-            )
-        )
-    }
-
-    private fun setColor(holder: ViewHolder, context: Context) {
-        (holder.syncimage.background as GradientDrawable).setColor(
-            ContextCompat.getColor(
-                context,
-                R.color.md_blue_400
-            )
-        )
-        (holder.radarimage.background as GradientDrawable).setColor(
-            ContextCompat.getColor(
-                context,
-                R.color.md_blue_400
-            )
-        )
+    private fun setImageBackgroundToColor(color: Int, holder: ViewHolder, context: Context) {
+        (holder.syncimage.background as GradientDrawable).setColor(color)
+        (holder.radarimage.background as GradientDrawable).setColor(color)
     }
 
     private fun getTimeAgo(timestamp: Long?): String {

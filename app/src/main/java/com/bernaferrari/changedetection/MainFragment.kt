@@ -82,7 +82,7 @@ class MainFragment : Fragment() {
 
             pullToRefresh.let { mSwipeRefreshLayout ->
                 mSwipeRefreshLayout.setOnRefreshListener {
-                    sitesList.forEach(this@MainFragment::reload)
+                    sitesList.forEach(this@MainFragment::reloadEach)
                     mSwipeRefreshLayout.isRefreshing = false
                 }
             }
@@ -161,6 +161,38 @@ class MainFragment : Fragment() {
             "edit"
         )
 
+        // if item is disabled, makes no sense to enable/disable the notifications
+        if (item.site.isSyncEnabled) {
+            updating += DialogItem(
+                item.site.isNotificationEnabled
+                    .takeIf { it == true }
+                    ?.let { getString(R.string.notification_disable) }
+                        ?: getString(R.string.notification_enable),
+                IconicsDrawable(
+                    context,
+                    item.site.isNotificationEnabled
+                        .takeIf { it == true }
+                        ?.let { CommunityMaterial.Icon.cmd_bell_off }
+                            ?: CommunityMaterial.Icon.cmd_bell)
+                    .color(ContextCompat.getColor(context, R.color.md_orange_500)),
+                "isNotificationEnabled"
+            )
+        }
+
+        updating += DialogItem(
+            item.site.isSyncEnabled
+                .takeIf { it == true }
+                ?.let { getString(R.string.sync_disable) } ?: getString(R.string.sync_enable),
+            IconicsDrawable(
+                context,
+                item.site.isSyncEnabled
+                    .takeIf { it == true }
+                    ?.let { CommunityMaterial.Icon.cmd_sync_off }
+                        ?: CommunityMaterial.Icon.cmd_sync)
+                .color(ContextCompat.getColor(context, R.color.md_brown_500)),
+            "isSyncEnabled"
+        )
+
         updating += DialogItem(
             getString(R.string.remove),
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_close).color(
@@ -182,7 +214,22 @@ class MainFragment : Fragment() {
                             context,
                             item as? MainScreenCardItem
                         )
-                        "fetchFromServer" -> reload(item)
+                        "isSyncEnabled" -> {
+                            item.site.copy(isSyncEnabled = !item.site.isSyncEnabled).run {
+                                mViewModel.updateSite(this)
+                                item.enableOrDisable(this)
+                                sort()
+                            }
+                        }
+                        "isNotificationEnabled" -> {
+                            item.site.copy(isNotificationEnabled = !item.site.isNotificationEnabled)
+                                .run {
+                                    mViewModel.updateSite(this)
+                                    item.enableOrDisable(this)
+                                    sort()
+                                }
+                        }
+                        "fetchFromServer" -> reload(item, true)
                         "remove" -> removeMy(item)
                     }
                     materialdialog.dismiss()
@@ -204,7 +251,9 @@ class MainFragment : Fragment() {
         }
     }
 
-    private val reloadCallback = { item: MainScreenCardItem -> reload(item) }
+    private val reloadCallback = { item: MainScreenCardItem ->
+        reload(item, true)
+    }
 
     private fun updateList(mutable: MutableList<SiteAndLastDiff>?) {
         view?.stateLayout?.showEmptyState()
@@ -242,13 +291,17 @@ class MainFragment : Fragment() {
         // even if we navigate between the app, come back and this fragment's onCreate is called again,
         // the variable will not change.
         if (mViewModel.shouldSyncWhenAppOpen) {
-            sitesList.forEach(this@MainFragment::reload)
+            sitesList.forEach(this@MainFragment::reloadEach)
             mViewModel.shouldSyncWhenAppOpen = false
         }
     }
 
-    private fun reload(item: MainScreenCardItem?) {
-        if (item !is MainScreenCardItem) {
+    private fun reloadEach(item: MainScreenCardItem?) {
+        reload(item, false)
+    }
+
+    private fun reload(item: MainScreenCardItem?, force: Boolean = false) {
+        if (item !is MainScreenCardItem || (!item.site.isSyncEnabled && !force)) {
             return
         }
 
@@ -288,10 +341,15 @@ class MainFragment : Fragment() {
                     requireContext(),
                     getString(R.string.was_updated, newSite.title)
                 ).show()
-                sitesList.sortByDescending { it.lastDiff?.timestamp }
-                sitesSection.update(sitesList)
+
+                sort()
             }
         })
+    }
+
+    private fun sort() {
+        sitesList.sortWith(compareBy<MainScreenCardItem> { it.site.isSyncEnabled }.thenBy { it.lastDiff?.timestamp })
+        sitesSection.update(sitesList)
     }
 
     private fun removeMy(item: MainScreenCardItem?) {
@@ -337,7 +395,7 @@ class MainFragment : Fragment() {
                     item.updateSite(updatedSite)
                     // Only fetchFromServer if the url has changed.
                     if (newUrl != previousUrl) {
-                        reload(item)
+                        reload(item, true)
                     }
                 } else {
                     // Some people will forget to put the http:// on the url, so this is going to help them.
@@ -355,7 +413,7 @@ class MainFragment : Fragment() {
                     val newItem = MainScreenCardItem(site, null, reloadCallback)
                     sitesList.add(newItem)
                     sitesSection.update(sitesList)
-                    reload(newItem)
+                    reload(newItem, true)
                     // It is putting the new item on the last position before refreshing.
                     // This is not good UX since user won't know it is there, specially when
                     // the url results in error.

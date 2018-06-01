@@ -1,7 +1,6 @@
 package com.bernaferrari.changedetection.groupie
 
 import android.graphics.drawable.Drawable
-import android.view.View
 import com.bernaferrari.changedetection.R
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
@@ -29,7 +28,6 @@ class DialogItemSwitch(
         viewHolder.title.text = title
         viewHolder.image.setImageDrawable(drawable)
 
-        viewHolder.item_switch.visibility = View.VISIBLE
         viewHolder.item_switch.isChecked = isSwitchOn
     }
 }
