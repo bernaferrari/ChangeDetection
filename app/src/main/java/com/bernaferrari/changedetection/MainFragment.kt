@@ -4,6 +4,7 @@ import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
+import android.support.design.widget.BottomSheetDialog
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
@@ -44,7 +45,7 @@ class MainFragment : Fragment() {
     private var sitesList = mutableListOf<MainScreenCardItem>()
     private var sitesSection = Section(sitesList)
 
-    val color: Int by lazy { ContextCompat.getColor(requireActivity(), R.color.FontStrong) }
+    val greyColor: Int by lazy { ContextCompat.getColor(requireActivity(), R.color.FontStrong) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -139,25 +140,23 @@ class MainFragment : Fragment() {
     private fun showDialogWithOptions(item: MainScreenCardItem) {
         val context = requireActivity()
 
-        val materialdialog = MaterialDialog.Builder(context)
-            .customView(R.layout.default_recycler_grey_200, false)
-            .show()
+        val customView =
+            layoutInflater.inflate(R.layout.default_recycler_grey_200, view!!.parentLayout, false)
+        val materialdialog = BottomSheetDialog(requireContext())
+        materialdialog.setContentView(customView)
+        materialdialog.show()
 
         val updating = mutableListOf<DialogItem>()
 
         updating += DialogItem(
             getString(R.string.reload),
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_reload).color(
-                ContextCompat.getColor(context, R.color.md_green_500)
-            ),
+            IconicsDrawable(context, CommunityMaterial.Icon.cmd_reload).color(greyColor),
             "fetchFromServer"
         )
 
         updating += DialogItem(
             getString(R.string.edit),
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_pencil).color(
-                ContextCompat.getColor(context, R.color.md_blue_500)
-            ),
+            IconicsDrawable(context, CommunityMaterial.Icon.cmd_pencil).color(greyColor),
             "edit"
         )
 
@@ -174,7 +173,7 @@ class MainFragment : Fragment() {
                         .takeIf { it == true }
                         ?.let { CommunityMaterial.Icon.cmd_bell_off }
                             ?: CommunityMaterial.Icon.cmd_bell)
-                    .color(ContextCompat.getColor(context, R.color.md_orange_500)),
+                    .color(greyColor),
                 "isNotificationEnabled"
             )
         }
@@ -189,19 +188,17 @@ class MainFragment : Fragment() {
                     .takeIf { it == true }
                     ?.let { CommunityMaterial.Icon.cmd_sync_off }
                         ?: CommunityMaterial.Icon.cmd_sync)
-                .color(ContextCompat.getColor(context, R.color.md_brown_500)),
+                .color(greyColor),
             "isSyncEnabled"
         )
 
         updating += DialogItem(
             getString(R.string.remove),
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_close).color(
-                ContextCompat.getColor(context, R.color.md_red_500)
-            ),
+            IconicsDrawable(context, CommunityMaterial.Icon.cmd_delete).color(greyColor),
             "remove"
         )
 
-        materialdialog.customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.run {
+        customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.run {
             adapter = GroupAdapter<ViewHolder>().apply {
                 add(Section(updating))
 
