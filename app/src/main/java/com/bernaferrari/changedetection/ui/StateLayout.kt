@@ -9,11 +9,11 @@ import com.bernaferrari.changedetection.R
 import kotlinx.android.synthetic.main.empty_layout.view.*
 
 /**
- * Created by Kosh on 20 Nov 2016, 12:21 AM
+Created by bernardoferrari on 09/11/17.
+Inspired on FastHub implementation.
+TODO need to change some variable names and update some methods
  */
 class StateLayout : FrameLayout {
-    private var layoutState = HIDDEN
-
     constructor(context: Context) : super(context)
 
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
@@ -25,7 +25,6 @@ class StateLayout : FrameLayout {
     )
 
     fun showLoading() {
-        layoutState = SHOW_PROGRESS_STATE
         visibility = View.VISIBLE
         cardView.visibility = View.GONE
         loading_indicator.visibility = View.VISIBLE
@@ -48,19 +47,10 @@ class StateLayout : FrameLayout {
         cardView.visibility = View.VISIBLE
         textWhenEmpty.visibility = View.VISIBLE
         loading_indicator.visibility = View.GONE
-        layoutState = SHOW_EMPTY_STATE
     }
 
     override fun onFinishInflate() {
         super.onFinishInflate()
         View.inflate(context, R.layout.empty_layout, this)
-    }
-
-    companion object {
-        private val SHOW_PROGRESS_STATE = 1
-        private val SHOW_INSUFFICENT_INFO_STATE = 2
-        private val SHOW_EMPTY_STATE = 3
-        private val HIDDEN = 4
-        private val SHOWN = 5
     }
 }
