@@ -7,7 +7,8 @@ import android.view.View
 
 /*
   Created by bernardoferrari on 09/11/17.
-  Inspired on FastHub implementation, which is GPL-3, so I can't use it.
+  Inspired on FastHub implementation.
+  TODO need to change some variable names and update some methods
  */
 
 class DynamicRecyclerView @JvmOverloads constructor(
@@ -45,14 +46,14 @@ class DynamicRecyclerView @JvmOverloads constructor(
     }
 
     private fun showEmptyView() {
-        val adapter = adapter
         if (adapter != null) {
-            if (emptyView != null) {
-                if (adapter.itemCount == 0) {
-                    showParentOrSelf(false)
-                } else {
-                    showParentOrSelf(true)
-                }
+            if (emptyView == null) {
+                return
+            }
+            if (adapter.itemCount == 0) {
+                showParentOrSelf(false)
+            } else {
+                showParentOrSelf(true)
             }
         } else {
             if (emptyView != null) {
