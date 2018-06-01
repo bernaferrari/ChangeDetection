@@ -13,17 +13,7 @@ import java.util.*
     indices = [(Index(value = ["siteId"], unique = true))]
 )
 @TypeConverters(Site.LanguageConverter::class)
-data class Site
-/**
- * Use this constructor to specify a completed Site if the Site already has an id (copy of
- * another Site).
- *
- * @param title       title of the site
- * @param url         url of the site
- * @param id          id of the site
- * @param completed   true if the site is completed, false if it's isActive
- */
-    (
+data class Site(
     val title: String?,
     val url: String,
     val timestamp: Long,
@@ -32,17 +22,12 @@ data class Site
     val id: String,
     val isSuccessful: Boolean,
     val isRead: Boolean, // reserved for future use
-    val isActive: Boolean,
-    val isNotificationOn: Boolean,
+    val isSyncEnabled: Boolean, // enable/disable sync
+    val isNotificationEnabled: Boolean,
     val notes: String,
     val constraints: WorkerHelper.ConstraintsRequired // reserved for future use
 ) {
-    /**
-     * Use this constructor to create a new isActive Site.
-     *
-     * @param title       title of the site
-     * @param url url of the site
-     */
+
     @Ignore
     constructor(title: String?, url: String, timestamp: Long) : this(
         title,

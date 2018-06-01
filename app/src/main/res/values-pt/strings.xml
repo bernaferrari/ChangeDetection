@@ -25,6 +25,12 @@
     <string name="remove">Remover</string>
     <string name="add">Adicionar</string>
     <string name="edit">Editar</string>
+    <string name="sync_disable">Desativar sincronização</string>
+    <string name="sync_enable">Ativar sincronização</string>
+
+    <string name="notification_disable">Desativar notificações</string>
+    <string name="notification_enable">Ativar notificações</string>
+
     <string name="reload">Recarregar</string>
 
     <string name="error">ERRO</string>

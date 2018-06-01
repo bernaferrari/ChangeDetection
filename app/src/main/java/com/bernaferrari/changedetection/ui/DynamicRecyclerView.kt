@@ -37,7 +37,7 @@ class DynamicRecyclerView @JvmOverloads constructor(
 
     override fun setAdapter(adapter: RecyclerView.Adapter<*>?) {
         super.setAdapter(adapter)
-        if (isInEditMode) return
+//        if (isInEditMode) return
         if (adapter != null) {
             adapter.registerAdapterDataObserver(observer)
             observer.onChanged()

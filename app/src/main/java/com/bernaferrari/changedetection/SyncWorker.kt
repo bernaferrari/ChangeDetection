@@ -50,6 +50,10 @@ class SyncWorker : Worker() {
     }
 
     private fun reload(item: Site) {
+        if (!item.isSyncEnabled) {
+            return
+        }
+
         launch {
             val serverResult = WorkerHelper.fetchFromServer(item)
             if (serverResult != null) {
@@ -73,6 +77,9 @@ class SyncWorker : Worker() {
         Injection.provideDiffsRepository(this@SyncWorker.applicationContext)
             .saveDiff(diff, callback = object : DiffsDataSource.GetDiffCallback {
                 override fun onDiffLoaded(diff: Diff) {
+                    if (!item.isNotificationEnabled) {
+                        return
+                    }
 
                     Notify
                         .with(applicationContext)
