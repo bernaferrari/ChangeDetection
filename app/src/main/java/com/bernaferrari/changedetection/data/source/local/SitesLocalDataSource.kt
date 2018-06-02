@@ -76,6 +76,14 @@ private constructor(
     override fun saveSite(site: Site) {
         checkNotNull(site)
         val saveRunnable = Runnable { mSitesDao.insertSite(site) }
+
+        mAppExecutors.diskIO().execute(saveRunnable)
+    }
+
+    override fun updateSite(site: Site) {
+        checkNotNull(site)
+        val saveRunnable = Runnable { mSitesDao.updateSite(site) }
+
         mAppExecutors.diskIO().execute(saveRunnable)
     }
 

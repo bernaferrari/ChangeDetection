@@ -1,6 +1,7 @@
 package com.bernaferrari.changedetection.data
 
 import android.arch.persistence.room.*
+import android.arch.persistence.room.ForeignKey.CASCADE
 import java.util.*
 
 @Entity(
@@ -10,7 +11,8 @@ import java.util.*
             ForeignKey(
                 entity = Site::class,
                 parentColumns = arrayOf("siteId"),
-                childColumns = arrayOf("siteId")
+                childColumns = arrayOf("siteId"),
+                onDelete = CASCADE
             )
             )
     ]
@@ -23,7 +25,7 @@ data class Diff(
     val size: Int,
     val value: String
 ) {
-    /**
+    /**maxLineHeight
      * Use this constructor to create a new isActive Site.
      *
      * @param title       title of the site
