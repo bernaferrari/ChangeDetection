@@ -1,52 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/fullscreen"
+    xmlns:tools="http://schemas.android.com/tools"
+
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="1dp"
+    android:minHeight="?android:attr/actionBarSize"
     android:background="@color/CARD"
-    android:orientation="horizontal">
+    android:padding="8dp"
+    android:theme="@style/ActionBar"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent">
 
     <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="16dp"
-        android:layout_height="16dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="@+id/nome"
+        android:id="@+id/kind_input"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:importantForAccessibility="no"
+        android:paddingStart="@dimen/horizontal_spacing"
+        android:paddingEnd="@dimen/horizontal_spacing"
+        android:scaleType="center"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/nome" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
-        android:id="@+id/nome"
+        android:id="@+id/text_input"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="8dp"
-        android:hint="Email"
-        android:imeOptions="actionNext"
-        android:inputType="text"
-        android:singleLine="true"
-        android:textColor="@color/FontStrong"
+        android:layout_height="0dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:background="@null"
+        android:imeOptions="actionGo|flagNoExtractUi"
+        android:inputType="textCapWords"
+        android:privateImeOptions="nm"
+        android:selectAllOnFocus="true"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/delete"
-        app:layout_constraintStart_toEndOf="@+id/imageView"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toStartOf="@+id/clear_input"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/kind_input"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:hint="Type the name here" />
 
     <ImageView
-        android:id="@+id/delete"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="8dp"
-        android:padding="6dp"
+        android:id="@+id/clear_input"
+        style="@style/ClickableImageView"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:paddingStart="@dimen/horizontal_spacing"
+        android:paddingEnd="@dimen/horizontal_spacing"
+        android:scaleType="center"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_close_white_24dp" />
 </android.support.constraint.ConstraintLayout>
+

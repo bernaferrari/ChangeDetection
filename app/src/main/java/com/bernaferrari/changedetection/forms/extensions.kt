@@ -1,13 +1,13 @@
 package com.bernaferrari.changedetection.forms
 
+import android.support.v4.content.ContextCompat
 import android.text.Editable
 import android.widget.ImageView
-import com.mikepenz.community_material_typeface_library.CommunityMaterial
+import com.bernaferrari.changedetection.R
 import com.mikepenz.iconics.IconicsDrawable
 import com.orhanobut.logger.Logger
 
 object extensions {
-    const val color = 0xFF9E9E9E.toInt()
 
     fun setImage(image: ImageView, kind: String) {
         Logger.d("icon kind: $kind")
@@ -16,18 +16,9 @@ object extensions {
             IconicsDrawable(
                 image.context,
                 icon
-            ).color(color)
-        )
-    }
-
-    fun setDelete(image: ImageView) {
-        val icon = CommunityMaterial.Icon.cmd_close
-
-        image.setImageDrawable(
-            IconicsDrawable(
-                image.context,
-                icon
-            ).color(color)
+            ).color(
+                ContextCompat.getColor(image.context, R.color.FontWeaker)
+            ).sizeDp(20)
         )
     }
 

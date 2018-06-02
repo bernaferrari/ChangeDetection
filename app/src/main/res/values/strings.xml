@@ -68,4 +68,6 @@
     <string name="open_1_in_browser">Open #1 in Browser</string>
     <string name="open_2_in_browser">Open #2 in Browser</string>
 
+    <string name="incorrect_url">Incorrect URL</string>
+
 </resources>

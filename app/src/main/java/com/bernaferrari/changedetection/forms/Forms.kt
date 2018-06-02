@@ -3,10 +3,10 @@ package com.bernaferrari.changedetection.forms
 import android.content.Context
 import android.text.InputType
 import com.bernaferrari.changedetection.R
+import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.google_material_typeface_library.GoogleMaterial
 import com.mikepenz.iconics.typeface.IIcon
 import com.orhanobut.logger.Logger
-import com.xwray.groupie.kotlinandroidextensions.Item
 
 object Forms {
 
@@ -30,24 +30,20 @@ object Forms {
 
     internal fun getIcon(kind: String): IIcon {
         return when (kind) {
-            Forms.URL -> GoogleMaterial.Icon.gmd_web
-            Forms.NAME -> GoogleMaterial.Icon.gmd_title
+            Forms.URL -> CommunityMaterial.Icon.cmd_web
+            Forms.NAME -> GoogleMaterial.Icon.gmd_edit
             else -> GoogleMaterial.Icon.gmd_error
         }
     }
 
     internal fun saveData(
-        listOfItems: MutableList<Item>
+        listOfItems: MutableList<FormSingleEditText>
     ): MutableMap<String, Any?> {
-        val map = mutableMapOf<String, Any?>()
-        listOfItems.forEach { item ->
-            when (item) {
-                is FormSingleEditText -> {
-                    map[item.kind] = item.retrieveText()
-                }
+        return mutableMapOf<String, Any?>().apply {
+            listOfItems.forEach { item ->
+                this[item.kind] = item.retrieveText()
             }
+            Logger.d("returning map: $this")
         }
-        Logger.d("returning map: $map")
-        return map
     }
 }

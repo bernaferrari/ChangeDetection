@@ -1,17 +1,12 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/md_grey_500</item>
         <item name="colorAccent">@color/atlasianblue</item>
 
-        <item name="android:textColorPrimary">@color/md_white_1000</item>
         <item name="android:windowBackground">@color/windowBackground</item>
-
-        <item name="md_background_color">@color/CARD</item>
-        <item name="md_title_color">@color/FontStrong</item>
-        <item name="md_content_color">@color/FontWeak</item>
     </style>
 
     <!--https://gist.github.com/ArthurNagy/1c4a64e6c8a7ddfca58638a9453e4aed-->
@@ -55,6 +50,15 @@
         <item name="android:lines">1</item>
         <item name="android:textColor">@color/FontStrong</item>
         <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="ActionBar" parent="@style/Theme.AppCompat.Light.Dialog">
+        <item name="colorAccent">@color/atlasianblue</item>
+    </style>
+
+    <style name="ClickableImageView">
+        <item name="android:clickable">true</item>
+        <item name="android:background">?android:selectableItemBackgroundBorderless</item>
     </style>
 
 </resources>
