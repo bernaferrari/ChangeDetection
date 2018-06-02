@@ -48,9 +48,9 @@ object WorkerHelper {
 
             response1.body()?.string() ?: ""
         } catch (e: UnknownHostException) {
-            // When internet connection is not available
+            // When internet connection is not available OR website doesn't exist
             Logger.e("UnknownHostException for ${item.url}")
-            null
+            ""
         } catch (e: IllegalArgumentException) {
             // When input is "http://"
             Logger.e("IllegalArgumentException for ${item.url}")
