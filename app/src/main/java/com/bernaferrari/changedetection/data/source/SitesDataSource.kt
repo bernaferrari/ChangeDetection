@@ -31,6 +31,8 @@ interface SitesDataSource {
 
     fun saveSite(site: Site)
 
+    fun updateSite(site: Site)
+
     fun deleteAllSites()
 
     fun deleteSite(siteId: String)

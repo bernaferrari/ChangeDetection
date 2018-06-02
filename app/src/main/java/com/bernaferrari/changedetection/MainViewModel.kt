@@ -32,7 +32,7 @@ class MainViewModel(
     fun currentTime(): Long = System.currentTimeMillis()
 
     fun removeSite(site: Site) {
-        mDiffsRepository.deleteAllDiffsForSite(site.id)
+        // CASCADE on Diff will take care of the rest
         mSitesRepository.deleteSite(site.id)
     }
 
@@ -63,7 +63,7 @@ class MainViewModel(
     }
 
     internal fun updateSite(site: Site) {
-        mSitesRepository.saveSite(site)
+        mSitesRepository.updateSite(site)
     }
 
     val items = MutableLiveData<MutableList<SiteAndLastDiff>>()
