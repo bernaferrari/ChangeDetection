@@ -3,25 +3,29 @@ package com.bernaferrari.changedetection
 import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.graphics.Color
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
+import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.SimpleItemAnimator
+import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.core.os.bundleOf
 import androidx.navigation.Navigation
 import androidx.work.State
 import androidx.work.WorkStatus
+import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.data.Diff
 import com.bernaferrari.changedetection.data.source.local.SiteAndLastDiff
-import com.bernaferrari.changedetection.forms.FormSection
 import com.bernaferrari.changedetection.forms.FormSingleEditText
 import com.bernaferrari.changedetection.forms.Forms
 import com.bernaferrari.changedetection.groupie.DialogItem
@@ -33,7 +37,6 @@ import com.orhanobut.logger.Logger
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
-import com.xwray.groupie.kotlinandroidextensions.Item
 import es.dmoral.toasty.Toasty
 import kotlinx.android.synthetic.main.state_layout.view.*
 import kotlinx.android.synthetic.main.todos_encontros_activity.view.*
@@ -283,6 +286,7 @@ class MainFragment : Fragment() {
 
         sitesList.sortByDescending { it.lastDiff?.timestamp }
         sitesSection.update(sitesList)
+        sort()
 
         // This will be used to automatically sync when app open. Since the variable is on ViewModel,
         // even if we navigate between the app, come back and this fragment's onCreate is called again,
@@ -363,46 +367,60 @@ class MainFragment : Fragment() {
         item: MainScreenCardItem? = null
     ) {
 
-        val listOfItems = mutableListOf<Item>().apply {
-            add(FormSection(getString(R.string.url), true))
-            add(FormSingleEditText(item?.site?.url ?: "", Forms.URL))
-
-            add(FormSection(getString(R.string.title), true))
-            add(FormSingleEditText(item?.site?.title ?: "", Forms.NAME))
+        val listOfItems = mutableListOf<FormSingleEditText>().apply {
+            add(FormSingleEditText(item?.site?.url ?: "", getString(R.string.url), Forms.URL))
+            add(FormSingleEditText(item?.site?.title ?: "", getString(R.string.title), Forms.NAME))
         }
 
         val materialdialogpiece = MaterialDialog.Builder(activity)
             .customView(R.layout.default_recycler_grey_200, false)
             .negativeText(R.string.cancel)
-            .onPositive { _, _ ->
+            .positiveText("Save")
+            .autoDismiss(false) // we need this for wiggle/shake effect, else it would dismiss
+            .positiveColor(Color.WHITE)
+            .btnSelector(R.drawable.md_btn_selector_custom, DialogAction.POSITIVE)
+            .onNegative { dialog, _ -> dialog.dismiss() }
+            .onPositive { dialog, _ ->
                 val fromForm = Forms.saveData(listOfItems)
                 Logger.d(fromForm)
 
                 val newTitle = fromForm[Forms.NAME] as? String ?: ""
-                val newUrl = fromForm[Forms.URL] as? String ?: ""
+                val potentialUrl = fromForm[Forms.URL] as? String ?: ""
 
                 if (isInEditingMode && item != null) {
-                    val updatedSite = item.site.copy(
-                        title = newTitle,
-                        url = newUrl
-                    )
-                    val previousUrl = item.site.url
-                    // Update internally
-                    mViewModel.updateSite(updatedSite)
-                    item.updateSite(updatedSite)
-                    // Only fetchFromServer if the url has changed.
-                    if (newUrl != previousUrl) {
-                        reload(item, true)
+                    if (!isCorrectUrl(potentialUrl)) {
+                        incorrectUrl(potentialUrl, listOfItems)
+                        return@onPositive
+                    }
+
+                    item.site.url.let { previousUrl ->
+
+                        val updatedSite = item.site.copy(
+                            title = newTitle,
+                            url = potentialUrl
+                        )
+
+                        // Update internally, i.e. what the user doesn't see
+                        mViewModel.updateSite(updatedSite)
+
+                        // Update visually, i.e. what the user see
+                        item.updateSite(updatedSite)
+
+                        // Only reload if the url has changed.
+                        if (potentialUrl != previousUrl) {
+                            reload(item, true)
+                        }
                     }
                 } else {
                     // Some people will forget to put the http:// on the url, so this is going to help them.
-                    val url = when {
-                        !newUrl.startsWith("http://") && !newUrl.startsWith("https://") -> "http://$newUrl"
-                        else -> newUrl
-                    }
+                    // This is going to be absolutely sure the current url is invalid, before adding http:// before it.
+                    val url = if (!isCorrectUrl(potentialUrl)) {
+                        "http://$potentialUrl"
+                    } else potentialUrl
 
-                    if (url.isBlank()) {
-                        return@onPositive
+                    // If even after this it is still invalid, we wiggle
+                    if (!isCorrectUrl(url)) {
+                        return@onPositive incorrectUrl(url, listOfItems)
                     }
 
                     val site = mViewModel.saveSite(newTitle, url, mViewModel.currentTime())
@@ -415,17 +433,12 @@ class MainFragment : Fragment() {
                     // This is not good UX since user won't know it is there, specially when
                     // the url results in error.
                 }
+                dialog.dismiss()
             }
 
         when (isInEditingMode) {
-            true ->
-                materialdialogpiece
-                    .title("Edit")
-                    .positiveText("Save")
-            false ->
-                materialdialogpiece
-                    .title("Add")
-                    .positiveText("Save")
+            true -> materialdialogpiece.title("Edit")
+            false -> materialdialogpiece.title("Add")
         }
 
         val materialdialog = materialdialogpiece.build()
@@ -435,12 +448,30 @@ class MainFragment : Fragment() {
             adapter = GroupAdapter<ViewHolder>().apply {
                 add(Section(listOfItems))
             }
+
+            addItemDecoration(DividerItemDecoration(this.context, DividerItemDecoration.VERTICAL))
         }
 
+        // This will call the keyboard when dialog is shown.
+        materialdialog.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         materialdialog.show()
     }
 
-    fun obtainViewModel(activity: FragmentActivity): MainViewModel {
+    private fun incorrectUrl(url: String, listOfItems: MutableList<FormSingleEditText>) {
+        if (!isCorrectUrl(url)) {
+            listOfItems.first { it.kind == Forms.URL }.shakeIt()
+            Toasty.error(requireContext(), "Incorrect URL").show()
+        }
+    }
+
+    private fun isCorrectUrl(potentialUrl: String): Boolean {
+        // first one will not catch links without http:// before them.
+        return Patterns.WEB_URL.matcher(potentialUrl).matches() && potentialUrl.toLowerCase().matches(
+            "^\\w+://.*".toRegex()
+        )
+    }
+
+    private fun obtainViewModel(activity: FragmentActivity): MainViewModel {
         // Use a Factory to inject dependencies into the ViewModel
         val factory = ViewModelFactory.getInstance(activity.application)
         return ViewModelProviders.of(activity, factory).get(MainViewModel::class.java)

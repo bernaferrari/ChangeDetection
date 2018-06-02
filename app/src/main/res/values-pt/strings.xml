@@ -65,4 +65,6 @@
     <string name="open_1_in_browser">Abrir #1 no navegador</string>
     <string name="open_2_in_browser">Abrir #2 in navegador</string>
 
+    <string name="incorrect_url">Link errado</string>
+
 </resources>
