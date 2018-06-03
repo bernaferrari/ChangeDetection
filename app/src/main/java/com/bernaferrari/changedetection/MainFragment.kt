@@ -350,7 +350,7 @@ class MainFragment : Fragment() {
     }
 
     private fun sort() {
-        sitesList.sortWith(compareBy<MainScreenCardItem> { it.site.isSyncEnabled }.thenBy { it.lastDiff?.timestamp })
+        sitesList.sortWith(compareByDescending<MainScreenCardItem> { it.site.isSyncEnabled }.thenBy { it.lastDiff?.timestamp })
         sitesSection.update(sitesList)
     }
 
