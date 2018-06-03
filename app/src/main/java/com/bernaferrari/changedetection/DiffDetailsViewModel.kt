@@ -6,7 +6,7 @@ import android.arch.lifecycle.LiveData
 import android.arch.paging.LivePagedListBuilder
 import android.arch.paging.PagedList
 import com.bernaferrari.changedetection.data.Diff
-import com.bernaferrari.changedetection.data.DiffWithoutValue
+import com.bernaferrari.changedetection.data.MinimalDiff
 import com.bernaferrari.changedetection.data.source.DiffsDataSource
 import com.bernaferrari.changedetection.data.source.DiffsRepository
 import com.bernaferrari.changedetection.data.source.SitesRepository
@@ -99,7 +99,6 @@ class DiffDetailsViewModel(
                 })
         }
 
-
     suspend fun getDiff(diffId: String): Diff = suspendCoroutine { cont ->
         mDiffsRepository.getDiff(diffId,
             object : DiffsDataSource.GetDiffCallback {
@@ -145,7 +144,7 @@ class DiffDetailsViewModel(
 
                                     generateDiff(
                                         topSection,
-                                        item.diff?.diffId!!,
+                                        item.minimalDiff?.diffId!!,
                                         item.adapter.getItemFromAdapter(
                                             item.adapter.colorSelected.getPositionForAdapter(
                                                 2
@@ -157,7 +156,7 @@ class DiffDetailsViewModel(
 
                                     generateDiff(
                                         topSection,
-                                        item.diff?.diffId!!,
+                                        item.minimalDiff?.diffId!!,
                                         item.adapter.getItemFromAdapter(
                                             item.adapter.colorSelected.getPositionForAdapter(
                                                 1
@@ -182,7 +181,7 @@ class DiffDetailsViewModel(
                                     1
                                 )
                             )?.diffId!!,
-                            item.diff?.diffId!!
+                            item.minimalDiff?.diffId!!
                         )
 
                         item.setColor(2)
@@ -259,7 +258,7 @@ class DiffDetailsViewModel(
         return Pair(updatingOnlyDiff, updatingNonDiff)
     }
 
-    fun getWebHistoryForId(id: String): LiveData<PagedList<DiffWithoutValue>> {
+    fun getWebHistoryForId(id: String): LiveData<PagedList<MinimalDiff>> {
         return LivePagedListBuilder(
             mDiffsRepository.getDiffForPaging(id), PagedList.Config.Builder()
                 .setPageSize(PAGE_SIZE)

@@ -8,7 +8,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.graphics.drawable.toDrawable
-import com.bernaferrari.changedetection.data.DiffWithoutValue
+import com.bernaferrari.changedetection.data.MinimalDiff
 import com.github.marlonlom.utilities.timeago.TimeAgo
 import com.github.marlonlom.utilities.timeago.TimeAgoMessages
 import kotlinx.android.synthetic.main.diff_item.view.*
@@ -38,7 +38,7 @@ class DiffViewHolder(
         }
     }
 
-    var diff: DiffWithoutValue? = null
+    var minimalDiff: MinimalDiff? = null
 
     fun setColor(color: Int) {
         colorSelected = color
@@ -49,17 +49,17 @@ class DiffViewHolder(
      * Items might be null if they are not paged in yet. PagedListAdapter will re-bind the
      * ViewHolder when Item is loaded.
      */
-    fun bindTo(diff: DiffWithoutValue?, colorSelected: Int) {
-        this.diff = diff
+    fun bindTo(MinimalDiff: MinimalDiff?, colorSelected: Int) {
+        this.minimalDiff = MinimalDiff
         this.colorSelected = colorSelected
 
-        if (this.diff == null) {
+        if (this.minimalDiff == null) {
             return
         }
 
         val messages = TimeAgoMessages.Builder().withLocale(Locale.getDefault()).build()
-        stringFromTimeAgo = TimeAgo.using(this.diff!!.timestamp, messages)
-        readableFileSize = readableFileSize(this.diff!!.size)
+        stringFromTimeAgo = TimeAgo.using(this.minimalDiff!!.timestamp, messages)
+        readableFileSize = readableFileSize(this.minimalDiff!!.size)
 
         itemView.subtitleTextView.text = stringFromTimeAgo
         itemView.titleTextView.text = readableFileSize

@@ -10,7 +10,7 @@ import android.view.View
 import android.widget.ImageView
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.data.Diff
-import com.bernaferrari.changedetection.data.DiffWithoutValue
+import com.bernaferrari.changedetection.data.MinimalDiff
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.extensions.onAnimationEnd
 import com.github.marlonlom.utilities.timeago.TimeAgo
@@ -32,7 +32,7 @@ enum class SYNC {
 
 class MainScreenCardItem(
     var site: Site,
-    var lastDiff: DiffWithoutValue?,
+    var lastMinimalDiff: MinimalDiff?,
     private val reloadCallback: ((MainScreenCardItem) -> Unit)
 ) : Item() {
     var status: SYNC = SYNC.OK
@@ -54,20 +54,20 @@ class MainScreenCardItem(
         notifyChanged()
     }
 
-    fun updateSiteDiff(tas: Site, lastDiff: DiffWithoutValue?) {
+    fun updateSiteDiff(tas: Site, lastMinimalDiff: MinimalDiff?) {
         this.site = tas
-        this.lastDiff = lastDiff
+        this.lastMinimalDiff = lastMinimalDiff
         changeStatus()
         notifyChanged()
     }
 
-    fun updateDiff(lastDiff: DiffWithoutValue?) {
-        this.lastDiff = lastDiff
+    fun updateDiff(lastMinimalDiff: MinimalDiff?) {
+        this.lastMinimalDiff = lastMinimalDiff
         notifyChanged()
     }
 
     fun updateDiff(lastDiff: Diff) {
-        this.lastDiff = DiffWithoutValue(
+        this.lastMinimalDiff = MinimalDiff(
             lastDiff.diffId,
             lastDiff.siteId,
             lastDiff.timestamp,
@@ -249,7 +249,7 @@ class MainScreenCardItem(
         holder.lastsync.text = if (status == SYNC.ERROR) {
             getTimeAgo(site.timestamp) + " – " + holder.lastsync.context.getString(R.string.error)
         } else {
-            getTimeAgo(site.timestamp) + " – ${readableFileSize(lastDiff?.size ?: 0)}"
+            getTimeAgo(site.timestamp) + " – ${readableFileSize(lastMinimalDiff?.size ?: 0)}"
         }
 
         siteDisposable?.dispose()
@@ -259,13 +259,13 @@ class MainScreenCardItem(
     }
 
     private fun setLastDiff(holder: ViewHolder) {
-        if (lastDiff == null) {
+        if (lastMinimalDiff == null) {
             holder.lastradar.text = holder.lastradar.context.getString(R.string.nothing_yet)
         } else {
-            Logger.d("id: ${lastDiff?.diffId} ts: ${lastDiff?.timestamp}")
-            holder.lastradar.text = getTimeAgo(lastDiff?.timestamp)
+            Logger.d("id: ${lastMinimalDiff?.diffId} ts: ${lastMinimalDiff?.timestamp}")
+            holder.lastradar.text = getTimeAgo(lastMinimalDiff?.timestamp)
             diffDisposable?.dispose()
-            diffDisposable = generateDisposable(lastDiff?.timestamp ?: 0).subscribe {
+            diffDisposable = generateDisposable(lastMinimalDiff?.timestamp ?: 0).subscribe {
                 setLastDiff(holder)
             }
         }

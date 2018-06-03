@@ -3,7 +3,7 @@ package com.bernaferrari.changedetection.data.source.local
 import android.arch.paging.DataSource
 import android.support.annotation.VisibleForTesting
 import com.bernaferrari.changedetection.data.Diff
-import com.bernaferrari.changedetection.data.DiffWithoutValue
+import com.bernaferrari.changedetection.data.MinimalDiff
 import com.bernaferrari.changedetection.data.source.DiffsDataSource
 import com.bernaferrari.changedetection.extensions.cleanUpHtml
 import com.bernaferrari.changedetection.util.AppExecutors
@@ -19,7 +19,22 @@ private constructor(
     private val mDiffsDao: DiffsDao
 ) : DiffsDataSource {
 
-    override fun getDiffForPaging(id: String): DataSource.Factory<Int, DiffWithoutValue> {
+    override fun getMostRecentMinimalDiffs(
+        siteId: String,
+        callback: DiffsDataSource.GetMinimalDiffCallback
+    ) {
+        val runnable = Runnable {
+            val original = mDiffsDao.getLastDiffsSize(siteId)
+
+            mAppExecutors.mainThread().execute {
+                callback.onMinimalDiffLoaded(original)
+            }
+        }
+
+        mAppExecutors.diskIO().execute(runnable)
+    }
+
+    override fun getDiffForPaging(id: String): DataSource.Factory<Int, MinimalDiff> {
         return mDiffsDao.allDiffsBySiteId(id)
     }
 
@@ -65,7 +80,7 @@ private constructor(
             val getDiffByid = mDiffsDao.getDiffBySiteId(diff.siteId)
 
             // Uncomment for testing.
-            // mDiffsDao.insertDiff(diff.copy(value = diff.value.plus(UUID.randomUUID().toString())))
+            // mDiffsDao.insertDiff(minimalDiff.copy(value = minimalDiff.value.plus(UUID.randomUUID().toString())))
             val wasSuccessful =
                 if (diff.value.isNotBlank() && getDiffByid?.value?.cleanUpHtml() != diff.value.cleanUpHtml()) {
                     Logger.d("Difference detected! Size went from ${getDiffByid?.value?.count()} to ${diff.value.count()}")

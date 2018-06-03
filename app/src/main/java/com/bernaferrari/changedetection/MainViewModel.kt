@@ -12,6 +12,7 @@ import com.bernaferrari.changedetection.data.source.DiffsDataSource
 import com.bernaferrari.changedetection.data.source.DiffsRepository
 import com.bernaferrari.changedetection.data.source.SitesRepository
 import com.bernaferrari.changedetection.data.source.local.SiteAndLastDiff
+import kotlin.coroutines.experimental.suspendCoroutine
 
 /**
  * Exposes the data to be used in the site list screen.
@@ -60,6 +61,15 @@ class MainViewModel(
             }
         })
         return didItWork
+    }
+
+    suspend fun getRecentMinimalDiffs(siteId: String): List<Int>? = suspendCoroutine { cont ->
+        mDiffsRepository.getMostRecentMinimalDiffs(siteId,
+            object : DiffsDataSource.GetMinimalDiffCallback {
+                override fun onMinimalDiffLoaded(minimalDiffList: List<Int>?) {
+                    cont.resume(minimalDiffList)
+                }
+            })
     }
 
     internal fun updateSite(site: Site) {
