@@ -45,7 +45,7 @@
     <string name="icon_designer">Icon Designer (Famil Qasimov)</string>
 
     <string name="less_than_two">Error! Can\'t show the difference with less than two items.</string>
-    <string name="empty_please_select_two">Select two snapshots below \n to compare the differences</string>
+    <string name="empty_please_select_two">Select two snapshots below\nto compare the differences</string>
     <string name="empty_no_change_detected">No change detected between these two snapshots</string>
 
     <string name="remove_this">Remove %1s</string>
