@@ -24,7 +24,13 @@
     <string name="bugs">Bugs? Questions? Feedback?</string>
 
     <string name="remove">Remove</string>
-    <string name="add">Add</string>
+
+    <string name="edittitle">Edit Tracking</string>
+    <string name="editsubtitle">Edit a website that is being tracked</string>
+
+    <string name="addtitle">New Tracking</string>
+    <string name="addsubtitle">Add a website to be tracked</string>
+
     <string name="edit">Edit</string>
     <string name="sync_disable">Disable sync</string>
     <string name="sync_enable">Enable sync</string>

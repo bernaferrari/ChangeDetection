@@ -192,6 +192,7 @@ class MainScreenCardItem(
         )
 
         holder.cardView.setCardBackgroundColor(0xff356bf8.toInt())
+        holder.reload.drawable.setTint(0xff356bf8.toInt())
     }
 
     private fun changeCardToGrey(holder: ViewHolder, context: Context) {
@@ -220,18 +221,14 @@ class MainScreenCardItem(
         setImageBackgroundToColor(
             color = ContextCompat.getColor(
                 context,
-                R.color.md_red_A700
+                R.color.md_red_400
             ),
             holder = holder,
             context = context
         )
 
-        holder.cardView.setCardBackgroundColor(
-            ContextCompat.getColor(
-                context,
-                R.color.md_red_A700
-            )
-        )
+        holder.reload.drawable.setTint(0xfff04a43.toInt())
+        holder.cardView.setCardBackgroundColor(0xfff04a43.toInt())
     }
 
     override fun unbind(holder: ViewHolder) {
