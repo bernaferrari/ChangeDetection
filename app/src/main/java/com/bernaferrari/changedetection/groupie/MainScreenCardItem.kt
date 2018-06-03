@@ -213,6 +213,13 @@ class MainScreenCardItem(
                 R.color.md_grey_700
             )
         )
+
+        holder.reload.drawable.setTint(
+            ContextCompat.getColor(
+                context,
+                R.color.md_grey_700
+            )
+        )
     }
 
     private fun changeCardToRed(holder: ViewHolder, context: Context) {
