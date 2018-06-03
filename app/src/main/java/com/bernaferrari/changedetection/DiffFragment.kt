@@ -132,7 +132,7 @@ class DiffFragment : Fragment() {
                             // If the item is selected, first deselect, then remove it.
                             model.fsmSelectWithCorrectColor(item, topSection)
                         }
-                        model.removeDiff(item.diff!!.diffId)
+                        model.removeDiff(item.minimalDiff!!.diffId)
 
                     }
                     .show()

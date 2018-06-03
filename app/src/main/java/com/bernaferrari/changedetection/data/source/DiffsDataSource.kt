@@ -2,7 +2,7 @@ package com.bernaferrari.changedetection.data.source
 
 import android.arch.paging.DataSource
 import com.bernaferrari.changedetection.data.Diff
-import com.bernaferrari.changedetection.data.DiffWithoutValue
+import com.bernaferrari.changedetection.data.MinimalDiff
 
 /**
  * Main entry point for accessing sites data.
@@ -24,7 +24,13 @@ interface DiffsDataSource {
         fun onDataNotAvailable()
     }
 
-    fun getDiffForPaging(id: String): DataSource.Factory<Int, DiffWithoutValue>
+    interface GetMinimalDiffCallback {
+        fun onMinimalDiffLoaded(minimalDiffList: List<Int>?)
+    }
+
+    fun getMostRecentMinimalDiffs(siteId: String, callback: GetMinimalDiffCallback)
+
+    fun getDiffForPaging(id: String): DataSource.Factory<Int, MinimalDiff>
 
     fun getDiff(diffId: String, callback: GetDiffCallback)
 

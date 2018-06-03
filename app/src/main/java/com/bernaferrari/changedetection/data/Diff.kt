@@ -39,22 +39,10 @@ data class Diff(
         size,
         value
     )
-
-    // DiffWithoutValue was a temporary solution.
-    // Migrating it to this constructor might be a better idea.
-    @Ignore
-    constructor(timestamp: Long, size: Int, siteId: String) : this(
-        UUID.randomUUID().toString(),
-        siteId,
-        timestamp,
-        size,
-        ""
-    )
 }
 
 // Same as Diff, but without Value.
-// Temporary solution.
-data class DiffWithoutValue(
+data class MinimalDiff(
     val diffId: String,
     val siteId: String,
     val timestamp: Long,

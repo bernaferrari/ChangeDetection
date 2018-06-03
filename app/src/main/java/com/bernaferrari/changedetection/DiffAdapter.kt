@@ -3,7 +3,7 @@ package com.bernaferrari.changedetection
 import android.arch.paging.PagedListAdapter
 import android.support.v7.util.DiffUtil
 import android.view.ViewGroup
-import com.bernaferrari.changedetection.data.DiffWithoutValue
+import com.bernaferrari.changedetection.data.MinimalDiff
 
 /**
  * A simple PagedListAdapter that binds Cheese items into CardViews.
@@ -20,7 +20,7 @@ import com.bernaferrari.changedetection.data.DiffWithoutValue
  * @see android.arch.paging.AsyncPagedListDiffer
  */
 class DiffAdapter(val callback: DiffFragment.RecyclerViewItemListener) :
-    PagedListAdapter<DiffWithoutValue, DiffViewHolder>(
+    PagedListAdapter<MinimalDiff, DiffViewHolder>(
         diffCallback
     ) {
     val colorSelected = mutableMapOf<Int, Int>()
@@ -34,7 +34,7 @@ class DiffAdapter(val callback: DiffFragment.RecyclerViewItemListener) :
         holder.bindTo(getItem(position), colorSelected.getOrDefault(position, 0))
     }
 
-    fun getItemFromAdapter(position: Int): DiffWithoutValue? {
+    fun getItemFromAdapter(position: Int): MinimalDiff? {
         return this.getItem(position)
     }
 
@@ -42,16 +42,16 @@ class DiffAdapter(val callback: DiffFragment.RecyclerViewItemListener) :
         DiffViewHolder(parent, this, callback)
 
     companion object {
-        private val diffCallback = object : DiffUtil.ItemCallback<DiffWithoutValue>() {
+        private val diffCallback = object : DiffUtil.ItemCallback<MinimalDiff>() {
             override fun areItemsTheSame(
-                oldItem: DiffWithoutValue,
-                newItem: DiffWithoutValue
+                oldItem: MinimalDiff,
+                newItem: MinimalDiff
             ): Boolean =
                 oldItem.diffId == newItem.diffId
 
             override fun areContentsTheSame(
-                oldItem: DiffWithoutValue,
-                newItem: DiffWithoutValue
+                oldItem: MinimalDiff,
+                newItem: MinimalDiff
             ): Boolean =
                 oldItem == newItem
         }

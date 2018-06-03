@@ -150,6 +150,7 @@ class MainFragment : Fragment() {
         materialdialog.setContentView(customView)
         materialdialog.show()
 
+        val chart = Section()
         val updating = mutableListOf<DialogItem>()
 
         updating += DialogItem(
@@ -163,6 +164,15 @@ class MainFragment : Fragment() {
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_pencil).color(greyColor),
             "edit"
         )
+
+//        Code is working but this isn't the right moment to put it.
+//        launch {
+//            val minimalDiffs = mViewModel.getRecentMinimalDiffs(item.site.id)
+//            if (minimalDiffs != null && minimalDiffs.size > 2){
+//                val chartItem = DialogItemSpark(minimalDiffs, item.site.isSuccessful)
+//                launch (UI) { chart.update(mutableListOf(chartItem)) }
+//            }
+//        }
 
         // if item is disabled, makes no sense to enable/disable the notifications
         if (item.site.isSyncEnabled) {
@@ -204,6 +214,7 @@ class MainFragment : Fragment() {
 
         customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.run {
             adapter = GroupAdapter<ViewHolder>().apply {
+                add(chart)
                 add(Section(updating))
 
                 setOnItemClickListener { dialogitem, _ ->
@@ -264,7 +275,7 @@ class MainFragment : Fragment() {
         }
 
         if (sitesList.isNotEmpty()) {
-            //Verifies if list is not empty and add values that are not there. Basically, makes a diff.
+            //Verifies if list is not empty and add values that are not there. Basically, makes a minimalDiff.
             mutable.forEach { siteAndLastDiff ->
                 // if item from new list is curerently on the list, update it. Else, add.
                 sitesList.find { carditem -> carditem.site.id == siteAndLastDiff.site.id }.also {
@@ -272,20 +283,20 @@ class MainFragment : Fragment() {
                         sitesList.add(
                             MainScreenCardItem(
                                 siteAndLastDiff.site,
-                                siteAndLastDiff.diff,
+                                siteAndLastDiff.minimalDiff,
                                 reloadCallback
                             )
                         )
                     } else {
-                        it.updateSiteDiff(siteAndLastDiff.site, siteAndLastDiff.diff)
+                        it.updateSiteDiff(siteAndLastDiff.site, siteAndLastDiff.minimalDiff)
                     }
                 }
             }
         } else {
-            mutable.mapTo(sitesList) { MainScreenCardItem(it.site, it.diff, reloadCallback) }
+            mutable.mapTo(sitesList) { MainScreenCardItem(it.site, it.minimalDiff, reloadCallback) }
         }
 
-        sitesList.sortByDescending { it.lastDiff?.timestamp }
+        sitesList.sortByDescending { it.lastMinimalDiff?.timestamp }
         sitesSection.update(sitesList)
         sort()
 
@@ -350,7 +361,7 @@ class MainFragment : Fragment() {
     }
 
     private fun sort() {
-        sitesList.sortWith(compareByDescending<MainScreenCardItem> { it.site.isSyncEnabled }.thenBy { it.lastDiff?.timestamp })
+        sitesList.sortWith(compareByDescending<MainScreenCardItem> { it.site.isSyncEnabled }.thenBy { it.lastMinimalDiff?.timestamp })
         sitesSection.update(sitesList)
     }
 
