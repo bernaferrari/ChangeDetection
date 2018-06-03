@@ -8,7 +8,7 @@
             android:insetRight="4dp"
             android:insetBottom="6dp">
             <shape android:shape="rectangle">
-                <solid android:color="@color/md_deep_orange_A200" />
+                <solid android:color="@color/md_indigo_A200" />
                 <corners android:radius="4dp" />
                 <padding
                     android:bottom="4dp"
