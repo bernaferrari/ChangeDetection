@@ -278,10 +278,18 @@ class DiffFragment : Fragment() {
                                     .also {
                                         val position =
                                             adapter.colorSelected.getPositionForAdapter(1)
-                                        putDataOnWebView(
-                                            it.customView?.findViewById<PrettifyWebView>(R.id.webview),
-                                            adapter.getItemFromAdapter(position)!!.diffId
-                                        )
+
+                                        launch {
+                                            val diff =
+                                                model.getDiff(adapter.getItemFromAdapter(position)!!.diffId)
+                                            launch(UI) {
+                                                putDataOnWebView(
+                                                    it.customView?.findViewById<PrettifyWebView>(R.id.webview),
+                                                    diff.value
+                                                )
+                                            }
+                                        }
+
                                     }.show()
                             }
                             "second" -> {
@@ -291,10 +299,17 @@ class DiffFragment : Fragment() {
                                     .also {
                                         val position =
                                             adapter.colorSelected.getPositionForAdapter(2)
-                                        putDataOnWebView(
-                                            it.customView?.findViewById<PrettifyWebView>(R.id.webview),
-                                            adapter.getItemFromAdapter(position)!!.diffId
-                                        )
+
+                                        launch {
+                                            val diff =
+                                                model.getDiff(adapter.getItemFromAdapter(position)!!.diffId)
+                                            launch(UI) {
+                                                putDataOnWebView(
+                                                    it.customView?.findViewById<PrettifyWebView>(R.id.webview),
+                                                    diff.value
+                                                )
+                                            }
+                                        }
                                     }.show()
                             }
                         }

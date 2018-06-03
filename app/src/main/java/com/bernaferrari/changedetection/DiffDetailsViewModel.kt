@@ -39,9 +39,8 @@ class DiffDetailsViewModel(
         mDiffsRepository.deleteDiff(id)
     }
 
-    var currentJob: Job? = null
+    private var currentJob: Job? = null
     var withAllDiff: Boolean = false
-
 
     /**
      * Called when we want to generate a diff between two items. Takes as input two ids and the top
@@ -99,6 +98,18 @@ class DiffDetailsViewModel(
                         cont.resumeWithException(NullPointerException())
                 })
         }
+
+
+    suspend fun getDiff(diffId: String): Diff = suspendCoroutine { cont ->
+        mDiffsRepository.getDiff(diffId,
+            object : DiffsDataSource.GetDiffCallback {
+                override fun onDiffLoaded(diff: Diff) {
+                    cont.resume(diff)
+                }
+
+                override fun onDataNotAvailable() = cont.resumeWithException(NullPointerException())
+            })
+    }
 
     /**
      * Called when there is a selection. This is a simple Finite State Machine, where
