@@ -23,7 +23,13 @@
     <string name="bugs">Problemas? Dúvidas? Sugestões?</string>
 
     <string name="remove">Remover</string>
-    <string name="add">Adicionar</string>
+
+    <string name="edittitle">Editar Rastreamento</string>
+    <string name="editsubtitle">Editar um site que está sendo rastreado</string>
+
+    <string name="addtitle">Novo Rastreamento</string>
+    <string name="addsubtitle">Adicione um site para ser rastreado</string>
+
     <string name="edit">Editar</string>
     <string name="sync_disable">Desativar sincronização</string>
     <string name="sync_enable">Ativar sincronização</string>

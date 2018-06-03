@@ -29,6 +29,7 @@ import com.bernaferrari.changedetection.data.source.local.SiteAndLastDiff
 import com.bernaferrari.changedetection.forms.FormSingleEditText
 import com.bernaferrari.changedetection.forms.Forms
 import com.bernaferrari.changedetection.groupie.DialogItem
+import com.bernaferrari.changedetection.groupie.DialogItemTitle
 import com.bernaferrari.changedetection.groupie.MainScreenCardItem
 import com.bernaferrari.changedetection.ui.ListPaddingDecoration
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
@@ -378,7 +379,6 @@ class MainFragment : Fragment() {
             .positiveText("Save")
             .autoDismiss(false) // we need this for wiggle/shake effect, else it would dismiss
             .positiveColor(Color.WHITE)
-            .btnSelector(R.drawable.md_btn_selector_custom, DialogAction.POSITIVE)
             .onNegative { dialog, _ -> dialog.dismiss() }
             .onPositive { dialog, _ ->
                 val fromForm = Forms.saveData(listOfItems)
@@ -436,20 +436,49 @@ class MainFragment : Fragment() {
                 dialog.dismiss()
             }
 
-        when (isInEditingMode) {
-            true -> materialdialogpiece.title("Edit")
-            false -> materialdialogpiece.title("Add")
+        val shouldTintOrange = isInEditingMode && item?.site?.isSuccessful == false
+
+        if (shouldTintOrange) {
+            // tint the dialog orange when there was an error on last sync
+            materialdialogpiece
+                .btnSelector(R.drawable.dialog_positive_button_orange, DialogAction.POSITIVE)
+                .negativeColorRes(R.color.md_deep_orange_A200)
+        } else {
+            materialdialogpiece
+                .btnSelector(R.drawable.dialog_positive_button_indigo, DialogAction.POSITIVE)
         }
 
         val materialdialog = materialdialogpiece.build()
 
         materialdialog.customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.run {
-            layoutManager = LinearLayoutManager(this.context)
-            adapter = GroupAdapter<ViewHolder>().apply {
+            this.overScrollMode = View.OVER_SCROLL_NEVER
+            this.layoutManager = LinearLayoutManager(this.context)
+            this.addItemDecoration(
+                DividerItemDecoration(
+                    this.context,
+                    DividerItemDecoration.VERTICAL
+                )
+            )
+            this.adapter = GroupAdapter<ViewHolder>().apply {
+                when (isInEditingMode) {
+                    true -> add(
+                        DialogItemTitle(
+                            getString(R.string.edittitle),
+                            getString(R.string.editsubtitle),
+                            shouldTintOrange
+                        )
+                    )
+                    false -> add(
+                        DialogItemTitle(
+                            getString(R.string.addtitle),
+                            getString(R.string.addsubtitle),
+                            false
+                        )
+                    )
+                }
+
                 add(Section(listOfItems))
             }
-
-            addItemDecoration(DividerItemDecoration(this.context, DividerItemDecoration.VERTICAL))
         }
 
         // This will call the keyboard when dialog is shown.
