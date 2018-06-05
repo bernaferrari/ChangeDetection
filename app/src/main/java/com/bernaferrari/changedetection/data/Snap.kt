@@ -5,8 +5,8 @@ import android.arch.persistence.room.ForeignKey.CASCADE
 import java.util.*
 
 @Entity(
-    tableName = "diffs",
-    indices = [(Index(value = ["siteId", "diffId"], unique = true))],
+    tableName = "snaps",
+    indices = [(Index(value = ["siteId", "snapId"], unique = true))],
     foreignKeys = [(
             ForeignKey(
                 entity = Site::class,
@@ -17,20 +17,24 @@ import java.util.*
             )
     ]
 )
-data class Diff(
+/**
+ * Snap is short for Snapshot. A snapshot will be a downloaded website which is different from
+ * the one before it.
+ *
+ * @param snapId the unique snap id
+ * @param siteId the unique site id
+ * @param timestamp recorded in milliseconds
+ * @param size [value] size in bytes
+ * @param value the retrieved information from website, can be heavy if webpage is heavy.
+ */
+data class Snap(
     @PrimaryKey
-    val diffId: String,
+    val snapId: String,
     val siteId: String,
     val timestamp: Long,
     val size: Int,
     val value: String
 ) {
-    /**maxLineHeight
-     * Use this constructor to create a new isActive Site.
-     *
-     * @param title       title of the site
-     * @param url url of the site
-     */
     @Ignore
     constructor(timestamp: Long, size: Int, siteId: String, value: String) : this(
         UUID.randomUUID().toString(),
@@ -40,11 +44,3 @@ data class Diff(
         value
     )
 }
-
-// Same as Diff, but without Value.
-data class MinimalDiff(
-    val diffId: String,
-    val siteId: String,
-    val timestamp: Long,
-    val size: Int
-)

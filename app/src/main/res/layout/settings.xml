@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/title_bar"
-        tools:listitem="@layout/bottomsheet_item_card_list" />
+        tools:listitem="@layout/main_item_card" />
 
 </FrameLayout>
 

@@ -2,9 +2,9 @@ package com.bernaferrari.changedetection.data.source.local
 
 import android.arch.paging.DataSource
 import android.support.annotation.VisibleForTesting
-import com.bernaferrari.changedetection.data.Diff
-import com.bernaferrari.changedetection.data.MinimalDiff
-import com.bernaferrari.changedetection.data.source.DiffsDataSource
+import com.bernaferrari.changedetection.data.MinimalSnap
+import com.bernaferrari.changedetection.data.Snap
+import com.bernaferrari.changedetection.data.source.SnapsDataSource
 import com.bernaferrari.changedetection.extensions.cleanUpHtml
 import com.bernaferrari.changedetection.util.AppExecutors
 import com.orhanobut.logger.Logger
@@ -13,43 +13,53 @@ import com.orhanobut.logger.Logger
  * Concrete implementation of a data source as a db.
  * Inspired from Architecture Components MVVM sample app
  */
-class DiffsLocalDataSource// Prevent direct instantiation.
+class SnapsLocalDataSource// Prevent direct instantiation.
 private constructor(
     private val mAppExecutors: AppExecutors,
-    private val mDiffsDao: DiffsDao
-) : DiffsDataSource {
+    private val mSnapsDao: SnapsDao
+) : SnapsDataSource {
 
-    override fun getMostRecentMinimalDiffs(
+    /**
+     * get the most recent diffs without value.
+     *
+     * @param siteId the site id for filtering the diffs.
+     */
+    override fun getMostRecentMinimalSnaps(
         siteId: String,
-        callback: DiffsDataSource.GetMinimalDiffCallback
+        callback: SnapsDataSource.GetMinimalSnapCallback
     ) {
         val runnable = Runnable {
-            val original = mDiffsDao.getLastDiffsSize(siteId)
+            val original = mSnapsDao.getLastSnapsSize(siteId)
 
             mAppExecutors.mainThread().execute {
-                callback.onMinimalDiffLoaded(original)
+                callback.onLoaded(original)
             }
         }
 
         mAppExecutors.diskIO().execute(runnable)
     }
 
-    override fun getDiffForPaging(id: String): DataSource.Factory<Int, MinimalDiff> {
-        return mDiffsDao.allDiffsBySiteId(id)
+    /**
+     * get diffs for Paging Adapter.
+     *
+     * @param siteId the site id for filtering the diffs.
+     */
+    override fun getSnapForPaging(siteId: String): DataSource.Factory<Int, MinimalSnap> {
+        return mSnapsDao.getAllSnapsForSiteIdForPaging(siteId)
     }
 
-    override fun getDiffPair(
+    override fun getSnapPair(
         originalId: String,
         newId: String,
-        callback: DiffsDataSource.GetPairCallback
+        callback: SnapsDataSource.GetPairCallback
     ) {
         val runnable = Runnable {
-            val original = mDiffsDao.getDiffById(originalId)
-            val new = mDiffsDao.getDiffById(newId)
+            val original = mSnapsDao.getSnapById(originalId)
+            val new = mSnapsDao.getSnapById(newId)
 
             mAppExecutors.mainThread().execute {
                 if (original != null && new != null) {
-                    callback.onDiffLoaded(Pair(original, new))
+                    callback.onSnapsLoaded(Pair(original, new))
                 } else {
                     callback.onDataNotAvailable()
                 }
@@ -59,13 +69,13 @@ private constructor(
         mAppExecutors.diskIO().execute(runnable)
     }
 
-    override fun getDiff(diffId: String, callback: DiffsDataSource.GetDiffCallback) {
+    override fun getSnap(snapId: String, callback: SnapsDataSource.GetSnapsCallback) {
         val runnable = Runnable {
-            val diff = mDiffsDao.getDiffById(diffId)
+            val diff = mSnapsDao.getSnapById(snapId)
 
             mAppExecutors.mainThread().execute {
                 if (diff != null) {
-                    callback.onDiffLoaded(diff)
+                    callback.onSnapsLoaded(diff)
                 } else {
                     callback.onDataNotAvailable()
                 }
@@ -75,16 +85,16 @@ private constructor(
         mAppExecutors.diskIO().execute(runnable)
     }
 
-    override fun saveDiff(diff: Diff, callback: DiffsDataSource.GetDiffCallback) {
+    override fun saveSnap(snap: Snap, callback: SnapsDataSource.GetSnapsCallback) {
         val saveRunnable = Runnable {
-            val getDiffByid = mDiffsDao.getDiffBySiteId(diff.siteId)
+            val getDiffByid = mSnapsDao.getLastSnapForSiteId(snap.siteId)
 
             // Uncomment for testing.
-            // mDiffsDao.insertDiff(minimalDiff.copy(value = minimalDiff.value.plus(UUID.randomUUID().toString())))
+            // mSnapsDao.insertSnap(minimalSnap.copy(value = minimalSnap.value.plus(UUID.randomUUID().toString())))
             val wasSuccessful =
-                if (diff.value.isNotBlank() && getDiffByid?.value?.cleanUpHtml() != diff.value.cleanUpHtml()) {
-                    Logger.d("Difference detected! Size went from ${getDiffByid?.value?.count()} to ${diff.value.count()}")
-                    mDiffsDao.insertDiff(diff)
+                if (snap.value.isNotBlank() && getDiffByid?.value?.cleanUpHtml() != snap.value.cleanUpHtml()) {
+                    Logger.d("Difference detected! Size went from ${getDiffByid?.value?.count()} to ${snap.value.count()}")
+                    mSnapsDao.insertSnap(snap)
                     true
                 } else {
                     Logger.d("Beep beep! No difference detected!")
@@ -93,7 +103,7 @@ private constructor(
 
             mAppExecutors.mainThread().execute {
                 if (wasSuccessful) {
-                    callback.onDiffLoaded(diff)
+                    callback.onSnapsLoaded(snap)
                 } else {
                     callback.onDataNotAvailable()
                 }
@@ -103,14 +113,14 @@ private constructor(
         mAppExecutors.diskIO().execute(saveRunnable)
     }
 
-    override fun deleteDiff(diffId: String) {
-        val deleteRunnable = Runnable { mDiffsDao.deleteDiffById(diffId) }
+    override fun deleteSnap(snapId: String) {
+        val deleteRunnable = Runnable { mSnapsDao.deleteSnapById(snapId) }
         mAppExecutors.diskIO().execute(deleteRunnable)
     }
 
-    override fun deleteAllDiffsForSite(siteId: String) {
+    override fun deleteAllSnapsForSite(siteId: String) {
         val runnable = Runnable {
-            mDiffsDao.deleteAllDiffsForSite(siteId)
+            mSnapsDao.deleteAllSnapsForSite(siteId)
         }
 
         mAppExecutors.diskIO().execute(runnable)
@@ -118,16 +128,16 @@ private constructor(
 
     companion object {
         @Volatile
-        private var INSTANCE: DiffsLocalDataSource? = null
+        private var INSTANCE: SnapsLocalDataSource? = null
 
         fun getInstance(
             appExecutors: AppExecutors,
-            diffsDao: DiffsDao
-        ): DiffsLocalDataSource {
+            snapsDao: SnapsDao
+        ): SnapsLocalDataSource {
             if (INSTANCE == null) {
-                synchronized(DiffsLocalDataSource::class.java) {
+                synchronized(SnapsLocalDataSource::class.java) {
                     if (INSTANCE == null) {
-                        INSTANCE = DiffsLocalDataSource(appExecutors, diffsDao)
+                        INSTANCE = SnapsLocalDataSource(appExecutors, snapsDao)
                     }
                 }
             }

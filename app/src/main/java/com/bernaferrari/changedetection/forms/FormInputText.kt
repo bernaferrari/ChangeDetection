@@ -7,9 +7,9 @@ import androidx.core.view.isVisible
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.extensions.onTextChanged
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
-import kotlinx.android.synthetic.main.dialog_single_edittext.*
+import kotlinx.android.synthetic.main.item_input_text.*
 
-internal class FormSingleEditText(
+internal class FormInputText(
     var textInput: String,
     val title: String,
     val kind: String
@@ -17,12 +17,12 @@ internal class FormSingleEditText(
     com.xwray.groupie.kotlinandroidextensions.Item() {
     private var visibleHolder: ViewHolder? = null
 
-    override fun getLayout(): Int = R.layout.dialog_single_edittext
+    override fun getLayout(): Int = R.layout.item_input_text
 
     override fun bind(holder: ViewHolder, position: Int) {
         visibleHolder = holder
 
-        extensions.setImage(holder.kind_input, kind)
+        Forms.setImage(holder.kind_input, kind)
 
         val queryClear: View = holder.clear_input
 

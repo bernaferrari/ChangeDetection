@@ -24,15 +24,16 @@ import androidx.work.State
 import androidx.work.WorkStatus
 import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
-import com.bernaferrari.changedetection.data.Diff
-import com.bernaferrari.changedetection.data.source.local.SiteAndLastDiff
-import com.bernaferrari.changedetection.forms.FormSingleEditText
+import com.bernaferrari.changedetection.data.Snap
+import com.bernaferrari.changedetection.data.source.local.SiteAndLastSnap
+import com.bernaferrari.changedetection.forms.FormInputText
 import com.bernaferrari.changedetection.forms.Forms
-import com.bernaferrari.changedetection.groupie.DialogItem
-import com.bernaferrari.changedetection.groupie.DialogItemColorRecycler
+import com.bernaferrari.changedetection.groupie.ColorPickerRecyclerViewItem
+import com.bernaferrari.changedetection.groupie.DialogItemSimple
 import com.bernaferrari.changedetection.groupie.DialogItemTitle
-import com.bernaferrari.changedetection.groupie.MainScreenCardItem
+import com.bernaferrari.changedetection.groupie.MainCardItem
 import com.bernaferrari.changedetection.ui.ListPaddingDecoration
+import com.bernaferrari.changedetection.util.GradientColors
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
 import com.orhanobut.logger.Logger
@@ -40,14 +41,14 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
 import es.dmoral.toasty.Toasty
+import kotlinx.android.synthetic.main.main_fragment.view.*
 import kotlinx.android.synthetic.main.state_layout.view.*
-import kotlinx.android.synthetic.main.todos_encontros_activity.view.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 
 class MainFragment : Fragment() {
     private lateinit var mViewModel: MainViewModel
-    private var sitesList = mutableListOf<MainScreenCardItem>()
+    private var sitesList = mutableListOf<MainCardItem>()
     private var sitesSection = Section(sitesList)
 
     val greyColor: Int by lazy { ContextCompat.getColor(requireActivity(), R.color.FontStrong) }
@@ -61,7 +62,7 @@ class MainFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.todos_encontros_activity, container, false)
+        val view = inflater.inflate(R.layout.main_fragment, container, false)
         mViewModel = obtainViewModel(requireActivity())
         val groupAdapter = GroupAdapter<ViewHolder>()
 
@@ -111,12 +112,12 @@ class MainFragment : Fragment() {
 
                 setEmptyView(view.stateLayout.apply {
                     setEmptyText(context.getString(R.string.no_websites_being_monitored))
-                }, this)
+                })
             }
         }
 
         groupAdapter.setOnItemLongClickListener { item, _ ->
-            return@setOnItemLongClickListener if (item is MainScreenCardItem) {
+            return@setOnItemLongClickListener if (item is MainCardItem) {
                 showDialogWithOptions(item)
                 true
             } else {
@@ -125,7 +126,7 @@ class MainFragment : Fragment() {
         }
 
         groupAdapter.setOnItemClickListener { item, _ ->
-            if (item is MainScreenCardItem) {
+            if (item is MainCardItem) {
                 val bundle = bundleOf(
                     "SITEID" to item.site.id,
                     "TITLE" to item.site.title,
@@ -142,25 +143,25 @@ class MainFragment : Fragment() {
         return view
     }
 
-    private fun showDialogWithOptions(item: MainScreenCardItem) {
+    private fun showDialogWithOptions(item: MainCardItem) {
         val context = requireActivity()
 
         val customView =
-            layoutInflater.inflate(R.layout.default_recycler_grey_200, view!!.parentLayout, false)
+            layoutInflater.inflate(R.layout.recyclerview, view!!.parentLayout, false)
         val materialdialog = BottomSheetDialog(requireContext())
         materialdialog.setContentView(customView)
         materialdialog.show()
 
         val chart = Section()
-        val updating = mutableListOf<DialogItem>()
+        val updating = mutableListOf<DialogItemSimple>()
 
-        updating += DialogItem(
+        updating += DialogItemSimple(
             getString(R.string.reload),
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_reload).color(greyColor),
             "fetchFromServer"
         )
 
-        updating += DialogItem(
+        updating += DialogItemSimple(
             getString(R.string.edit),
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_pencil).color(greyColor),
             "edit"
@@ -168,16 +169,16 @@ class MainFragment : Fragment() {
 
 //        Code is working but this isn't the right moment to put it.
 //        launch {
-//            val minimalDiffs = mViewModel.getRecentMinimalDiffs(item.site.id)
+//            val minimalDiffs = mViewModel.getRecentMinimalSnaps(item.site.id)
 //            if (minimalDiffs != null && minimalDiffs.size > 2){
-//                val chartItem = DialogItemSpark(minimalDiffs, item.site.isSuccessful)
+//                val chartItem = ItemChart(minimalDiffs, item.site.isSuccessful)
 //                launch (UI) { chart.update(mutableListOf(chartItem)) }
 //            }
 //        }
 
         // if item is disabled, makes no sense to enable/disable the notifications
         if (item.site.isSyncEnabled) {
-            updating += DialogItem(
+            updating += DialogItemSimple(
                 item.site.isNotificationEnabled
                     .takeIf { it == true }
                     ?.let { getString(R.string.notification_disable) }
@@ -193,7 +194,7 @@ class MainFragment : Fragment() {
             )
         }
 
-        updating += DialogItem(
+        updating += DialogItemSimple(
             item.site.isSyncEnabled
                 .takeIf { it == true }
                 ?.let { getString(R.string.sync_disable) } ?: getString(R.string.sync_enable),
@@ -207,7 +208,7 @@ class MainFragment : Fragment() {
             "isSyncEnabled"
         )
 
-        updating += DialogItem(
+        updating += DialogItemSimple(
             getString(R.string.remove),
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_delete).color(greyColor),
             "remove"
@@ -219,18 +220,18 @@ class MainFragment : Fragment() {
                 add(Section(updating))
 
                 setOnItemClickListener { dialogitem, _ ->
-                    if (dialogitem !is DialogItem) return@setOnItemClickListener
+                    if (dialogitem !is DialogItemSimple) return@setOnItemClickListener
 
                     when (dialogitem.kind) {
                         "edit" -> showCreateEditDialog(
                             true,
                             context,
-                            item as? MainScreenCardItem
+                            item as? MainCardItem
                         )
                         "isSyncEnabled" -> {
                             item.site.copy(isSyncEnabled = !item.site.isSyncEnabled).run {
                                 mViewModel.updateSite(this)
-                                item.enableOrDisable(this)
+                                item.update(this)
                                 sort()
                             }
                         }
@@ -238,7 +239,7 @@ class MainFragment : Fragment() {
                             item.site.copy(isNotificationEnabled = !item.site.isNotificationEnabled)
                                 .run {
                                     mViewModel.updateSite(this)
-                                    item.enableOrDisable(this)
+                                    item.update(this)
                                     sort()
                                 }
                         }
@@ -264,40 +265,40 @@ class MainFragment : Fragment() {
         }
     }
 
-    private val reloadCallback = { item: MainScreenCardItem ->
+    private val reloadCallback = { item: MainCardItem ->
         reload(item, true)
     }
 
-    private fun updateList(mutable: MutableList<SiteAndLastDiff>?) {
-        view?.stateLayout?.showEmptyState()
-
+    private fun updateList(mutable: MutableList<SiteAndLastSnap>?) {
         if (mutable == null) {
             return
         }
 
+        view?.stateLayout?.showEmptyState()
+
         if (sitesList.isNotEmpty()) {
-            //Verifies if list is not empty and add values that are not there. Basically, makes a minimalDiff.
-            mutable.forEach { siteAndLastDiff ->
+            //Verifies if list is not empty and add values that are not there. Basically, makes a minimalSnap.
+            mutable.forEach { siteAndLastSnap ->
                 // if item from new list is curerently on the list, update it. Else, add.
-                sitesList.find { carditem -> carditem.site.id == siteAndLastDiff.site.id }.also {
+                sitesList.find { carditem -> carditem.site.id == siteAndLastSnap.site.id }.also {
                     if (it == null) {
                         sitesList.add(
-                            MainScreenCardItem(
-                                siteAndLastDiff.site,
-                                siteAndLastDiff.minimalDiff,
+                            MainCardItem(
+                                siteAndLastSnap.site,
+                                siteAndLastSnap.minimalSnap,
                                 reloadCallback
                             )
                         )
                     } else {
-                        it.updateSiteDiff(siteAndLastDiff.site, siteAndLastDiff.minimalDiff)
+                        it.update(siteAndLastSnap.site, siteAndLastSnap.minimalSnap)
                     }
                 }
             }
         } else {
-            mutable.mapTo(sitesList) { MainScreenCardItem(it.site, it.minimalDiff, reloadCallback) }
+            mutable.mapTo(sitesList) { MainCardItem(it.site, it.minimalSnap, reloadCallback) }
         }
 
-        sitesList.sortByDescending { it.lastMinimalDiff?.timestamp }
+        sitesList.sortByDescending { it.lastMinimalSnap?.timestamp }
         sitesSection.update(sitesList)
         sort()
 
@@ -310,12 +311,12 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun reloadEach(item: MainScreenCardItem?) {
+    private fun reloadEach(item: MainCardItem?) {
         reload(item, false)
     }
 
-    private fun reload(item: MainScreenCardItem?, force: Boolean = false) {
-        if (item !is MainScreenCardItem || (!item.site.isSyncEnabled && !force)) {
+    private fun reload(item: MainCardItem?, force: Boolean = false) {
+        if (item !is MainCardItem || (!item.site.isSyncEnabled && !force)) {
             return
         }
 
@@ -328,14 +329,14 @@ class MainFragment : Fragment() {
                 // This will happen when internet connection is missing
                 launch(UI) {
                     Toasty.error(requireContext(), getString(R.string.missing_internet))
-                    item.updateSite(item.site)
+                    item.update(item.site)
                     sitesSection.update(sitesList)
                 }
             }
         }
     }
 
-    private fun subscribe(str: String, item: MainScreenCardItem) {
+    private fun subscribe(str: String, item: MainCardItem) {
         Logger.d("count size -> ${str.count()}")
 
         val newSite = item.site.copy(
@@ -344,13 +345,13 @@ class MainFragment : Fragment() {
         )
         mViewModel.updateSite(newSite)
 
-        val diff = Diff(mViewModel.currentTime(), str.count(), item.site.id, str)
-        mViewModel.saveWebsite(diff).observe(this, Observer {
-            item.updateSite(newSite)
+        val snap = Snap(mViewModel.currentTime(), str.count(), item.site.id, str)
+        mViewModel.saveWebsite(snap).observe(this, Observer {
+            item.update(newSite)
 
             if (it == true) {
-                Logger.d("Diff: " + diff.diffId)
-                item.updateDiff(diff)
+                Logger.d("Snap: " + snap.snapId)
+                item.update(snap)
                 Toasty.success(
                     requireContext(),
                     getString(
@@ -364,11 +365,11 @@ class MainFragment : Fragment() {
     }
 
     private fun sort() {
-        sitesList.sortWith(compareByDescending<MainScreenCardItem> { it.site.isSyncEnabled }.thenBy { it.lastMinimalDiff?.timestamp })
+        sitesList.sortWith(compareByDescending<MainCardItem> { it.site.isSyncEnabled }.thenBy { it.lastMinimalSnap?.timestamp })
         sitesSection.update(sitesList)
     }
 
-    private fun removeMy(item: MainScreenCardItem?) {
+    private fun removeMy(item: MainCardItem?) {
         if (item != null) {
             sitesList.remove(item)
             sitesSection.update(sitesList)
@@ -379,12 +380,12 @@ class MainFragment : Fragment() {
     private fun showCreateEditDialog(
         isInEditingMode: Boolean,
         activity: Activity,
-        item: MainScreenCardItem? = null
+        item: MainCardItem? = null
     ) {
 
-        val listOfItems = mutableListOf<FormSingleEditText>().apply {
-            add(FormSingleEditText(item?.site?.url ?: "", getString(R.string.url), Forms.URL))
-            add(FormSingleEditText(item?.site?.title ?: "", getString(R.string.title), Forms.NAME))
+        val listOfItems = mutableListOf<FormInputText>().apply {
+            add(FormInputText(item?.site?.url ?: "", getString(R.string.url), Forms.URL))
+            add(FormInputText(item?.site?.title ?: "", getString(R.string.title), Forms.NAME))
         }
 
         val errorOnLastSync = isInEditingMode && item?.site?.isSuccessful == false
@@ -397,25 +398,23 @@ class MainFragment : Fragment() {
             true -> DialogItemTitle(
                 getString(R.string.edittitle),
                 getString(R.string.editsubtitle),
-                errorOnLastSync,
                 selectedColor
             )
             false ->
                 DialogItemTitle(
                     getString(R.string.addtitle),
                     getString(R.string.addsubtitle),
-                    false,
                     selectedColor
                 )
         }
 
-        val dialogItemColorPicker = DialogItemColorRecycler(selectedColor, colorsList) {
+        val dialogItemColorPicker = ColorPickerRecyclerViewItem(selectedColor, colorsList) {
             dialogItemTitle.gradientColors = it
             dialogItemTitle.notifyChanged()
         }
 
         val materialDialog = MaterialDialog.Builder(activity)
-            .customView(R.layout.default_recycler_grey_200, false)
+            .customView(R.layout.recyclerview, false)
             .negativeText(R.string.cancel)
             .positiveText("Save")
             .autoDismiss(false) // we need this for wiggle/shake effect, else it would dismiss
@@ -446,7 +445,7 @@ class MainFragment : Fragment() {
                         mViewModel.updateSite(updatedSite)
 
                         // Update visually, i.e. what the user see
-                        item.updateSite(updatedSite)
+                        item.update(updatedSite)
 
                         // Only reload if the url has changed.
                         if (potentialUrl != previousUrl) {
@@ -472,7 +471,7 @@ class MainFragment : Fragment() {
                         dialogItemTitle.gradientColors
                     )
                     // add and sort the card
-                    val newItem = MainScreenCardItem(site, null, reloadCallback)
+                    val newItem = MainCardItem(site, null, reloadCallback)
                     sitesList.add(newItem)
                     sitesSection.update(sitesList)
                     reload(newItem, true)
@@ -516,7 +515,7 @@ class MainFragment : Fragment() {
         materialdialog.show()
     }
 
-    private fun incorrectUrl(url: String, listOfItems: MutableList<FormSingleEditText>) {
+    private fun incorrectUrl(url: String, listOfItems: MutableList<FormInputText>) {
         if (!isCorrectUrl(url)) {
             listOfItems.first { it.kind == Forms.URL }.shakeIt()
             Toasty.error(requireContext(), getString(R.string.incorrect_url)).show()

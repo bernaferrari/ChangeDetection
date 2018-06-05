@@ -6,10 +6,16 @@ import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.dialog_item_title.*
 
+/**
+ * Dialog header with title, subtitle and a colorful background
+ *
+ * @param title              for item title
+ * @param subtitle           for item subtitle
+ * @param gradientColors     colors that will be used for background
+ */
 class DialogItemTitle(
     val title: String,
     val subtitle: String,
-    private val errorOnLastSync: Boolean,
     var gradientColors: Pair<Int, Int>
 ) : Item() {
 
@@ -19,22 +25,12 @@ class DialogItemTitle(
         viewHolder.title.text = title
         viewHolder.subtitle.text = subtitle
 
-        if (gradientColors.first == 0 && gradientColors.second == 0) {
-            if (errorOnLastSync) {
-                viewHolder.containerView.background =
-                        viewHolder.containerView.context.getDrawable(R.drawable.red_orange_drawable)
-            } else {
-                viewHolder.containerView.background =
-                        viewHolder.containerView.context.getDrawable(R.drawable.light_blue_drawable)
-            }
-        } else {
-            val shape = GradientDrawable(
-                GradientDrawable.Orientation.TR_BL, intArrayOf(
-                    gradientColors.first, gradientColors.second
-                )
+        val shape = GradientDrawable(
+            GradientDrawable.Orientation.TR_BL, intArrayOf(
+                gradientColors.first, gradientColors.second
             )
+        )
 
-            viewHolder.containerView.background = shape
-        }
+        viewHolder.containerView.background = shape
     }
 }

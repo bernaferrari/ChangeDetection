@@ -5,20 +5,14 @@ import android.support.v7.widget.RecyclerView
 import android.util.AttributeSet
 import android.view.View
 
-/*
-  Created by bernardoferrari on 09/11/17.
-  Inspired on FastHub implementation.
-  TODO need to change some variable names and update some methods
- */
 
-class DynamicRecyclerView @JvmOverloads constructor(
+class RecyclerViewWithEmptyState @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyle: Int = 0
 ) : RecyclerView(context, attrs, defStyle) {
 
-    private var emptyView: StateLayout? = null
-    private var parentView: View? = null
+    private var emptyLayout: EmptyLayout? = null
 
     private val observer = object : RecyclerView.AdapterDataObserver() {
         override fun onChanged() {
@@ -38,7 +32,6 @@ class DynamicRecyclerView @JvmOverloads constructor(
 
     override fun setAdapter(adapter: RecyclerView.Adapter<*>?) {
         super.setAdapter(adapter)
-//        if (isInEditMode) return
         if (adapter != null) {
             adapter.registerAdapterDataObserver(observer)
             observer.onChanged()
@@ -47,32 +40,24 @@ class DynamicRecyclerView @JvmOverloads constructor(
 
     private fun showEmptyView() {
         if (adapter != null) {
-            if (emptyView == null) {
+            if (emptyLayout == null) {
                 return
             }
-            if (adapter.itemCount == 0) {
-                showParentOrSelf(false)
-            } else {
-                showParentOrSelf(true)
-            }
+
+            updateVisibility(adapter.itemCount != 0)
         } else {
-            if (emptyView != null) {
-                showParentOrSelf(false)
+            if (emptyLayout != null) {
+                updateVisibility(false)
             }
         }
     }
 
-    private fun showParentOrSelf(showRecyclerView: Boolean) {
-        if (parentView != null) {
-            parentView!!.visibility = View.VISIBLE
-        }
-        visibility = View.VISIBLE
-        emptyView!!.visibility = if (!showRecyclerView) View.VISIBLE else View.GONE
+    private fun updateVisibility(showEmptyView: Boolean) {
+        emptyLayout?.visibility = if (!showEmptyView) View.VISIBLE else View.GONE
     }
 
-    fun setEmptyView(emptyView: StateLayout, parentView: View? = null) {
-        this.emptyView = emptyView
-        this.parentView = parentView
+    fun setEmptyView(emptyView: EmptyLayout) {
+        this.emptyLayout = emptyView
         showEmptyView()
     }
 }

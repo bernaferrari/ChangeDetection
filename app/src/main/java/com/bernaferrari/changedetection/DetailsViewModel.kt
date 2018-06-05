@@ -5,11 +5,10 @@ import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.paging.LivePagedListBuilder
 import android.arch.paging.PagedList
-import com.bernaferrari.changedetection.data.Diff
-import com.bernaferrari.changedetection.data.MinimalDiff
-import com.bernaferrari.changedetection.data.source.DiffsDataSource
-import com.bernaferrari.changedetection.data.source.DiffsRepository
-import com.bernaferrari.changedetection.data.source.SitesRepository
+import com.bernaferrari.changedetection.data.MinimalSnap
+import com.bernaferrari.changedetection.data.Snap
+import com.bernaferrari.changedetection.data.source.SnapsDataSource
+import com.bernaferrari.changedetection.data.source.SnapsRepository
 import com.bernaferrari.changedetection.diffs.text.DiffRowGenerator
 import com.bernaferrari.changedetection.extensions.cleanUpHtml
 import com.bernaferrari.changedetection.extensions.getPositionForAdapter
@@ -25,22 +24,26 @@ import kotlin.coroutines.experimental.suspendCoroutine
 /**
  * Exposes the data to be used in the site diff screen.
  */
-class DiffDetailsViewModel(
+class DetailsViewModel(
     context: Application,
-    private val mDiffsRepository: DiffsRepository,
-    private val mSitesRepository: SitesRepository
+    private val mDiffsRepository: SnapsRepository
 ) : AndroidViewModel(context) {
 
-    val showDiffError = SingleLiveEvent<Boolean>()
+    val showNotEnoughtInfoError = SingleLiveEvent<Boolean>()
     val showNoChangesDetectedError = SingleLiveEvent<Void>()
     val showProgress = SingleLiveEvent<Void>()
 
-    fun removeDiff(id: String) {
-        mDiffsRepository.deleteDiff(id)
+    /**
+     * Called to remove a diff
+     *
+     * @param id The diff id to be removed.
+     */
+    fun removeSnap(id: String) {
+        mDiffsRepository.deleteSnap(id)
     }
 
     private var currentJob: Job? = null
-    var withAllDiff: Boolean = false
+    var changePlusOriginal: Boolean = false
 
     /**
      * Called when we want to generate a diff between two items. Takes as input two ids and the top
@@ -48,8 +51,8 @@ class DiffDetailsViewModel(
      *
      * @param topSection    The section corresponding to the top recyclerview, which will
      * be updated with the result from the diff.
-     * @param originalId    The diffId from the original item (which will be in red)
-     * @param newId         The diffId from the new item (which will be in green)
+     * @param originalId    The snapId from the original item (which will be in red)
+     * @param newId         The snapId from the new item (which will be in green)
      * which will be updated by [generateDiff] with corresponding diff
      */
     fun generateDiff(topSection: Section, originalId: String, newId: String) {
@@ -64,14 +67,14 @@ class DiffDetailsViewModel(
             val (onlyDiff, nonDiff) = generateDiffRows(original, new)
 
             mutableListOf<TextRecycler>().also { mutableList ->
-                if (withAllDiff) {
+                if (changePlusOriginal) {
                     mutableList.addAll(nonDiff)
                 }
                 mutableList.addAll(onlyDiff)
                 mutableList.sortBy { it.index }
 
                 launch(UI) {
-                    if (showDiffError.value == false && mutableList.isEmpty()) {
+                    if (showNotEnoughtInfoError.value == false && mutableList.isEmpty()) {
                         showNoChangesDetectedError.call()
                     }
 
@@ -84,13 +87,20 @@ class DiffDetailsViewModel(
         }
     }
 
-    private suspend fun getFromDb(originalId: String, newId: String): Pair<Diff, Diff> =
+    /**
+     * This will asynchronously fetch a pair of snaps from the database based on their ids
+     *
+     * @param originalId The original diff id to be fetched.
+     * @param newId The newest id to be fetched.
+     * @return a pair of diffs
+     */
+    private suspend fun getFromDb(originalId: String, newId: String): Pair<Snap, Snap> =
         suspendCoroutine { cont ->
-            mDiffsRepository.getDiffPair(
+            mDiffsRepository.getSnapPair(
                 originalId,
                 newId,
-                object : DiffsDataSource.GetPairCallback {
-                    override fun onDiffLoaded(pair: Pair<Diff, Diff>) {
+                object : SnapsDataSource.GetPairCallback {
+                    override fun onSnapsLoaded(pair: Pair<Snap, Snap>) {
                         cont.resume(pair)
                     }
 
@@ -99,11 +109,19 @@ class DiffDetailsViewModel(
                 })
         }
 
-    suspend fun getDiff(diffId: String): Diff = suspendCoroutine { cont ->
-        mDiffsRepository.getDiff(diffId,
-            object : DiffsDataSource.GetDiffCallback {
-                override fun onDiffLoaded(diff: Diff) {
-                    cont.resume(diff)
+    /**
+     * This will asynchronously fetch a pair of diffs from the database based on their ids
+     *
+     * @param originalId The original diff id to be fetched.
+     * @param newId The newest id to be fetched.
+     * @return a pair of diffs
+     */
+    suspend fun getSnap(snapId: String): Snap = suspendCoroutine { cont ->
+        mDiffsRepository.getSnap(
+            snapId,
+            object : SnapsDataSource.GetSnapsCallback {
+                override fun onSnapsLoaded(snap: Snap) {
+                    cont.resume(snap)
                 }
 
                 override fun onDataNotAvailable() = cont.resumeWithException(NullPointerException())
@@ -118,7 +136,7 @@ class DiffDetailsViewModel(
      * @param topSection Pass the top part of the screen,
      * which will be updated by [generateDiff] with corresponding diff
      */
-    fun fsmSelectWithCorrectColor(item: DiffViewHolder, topSection: Section) {
+    fun fsmSelectWithCorrectColor(item: DetailsViewHolder, topSection: Section) {
         when (item.colorSelected) {
             2 -> {
                 // ORANGE -> GREY
@@ -146,8 +164,8 @@ class DiffDetailsViewModel(
 
                                             generateDiff(
                                                 topSection,
-                                                item.minimalDiff?.diffId!!,
-                                                item.adapter.getItemFromAdapter(position)?.diffId!!
+                                                item.minimalSnap?.snapId!!,
+                                                item.adapter.getItemFromAdapter(position)?.snapId!!
                                             )
                                         }
 
@@ -158,8 +176,8 @@ class DiffDetailsViewModel(
 
                                             generateDiff(
                                                 topSection,
-                                                item.minimalDiff?.diffId!!,
-                                                item.adapter.getItemFromAdapter(position)?.diffId!!
+                                                item.minimalSnap?.snapId!!,
+                                                item.adapter.getItemFromAdapter(position)?.snapId!!
                                             )
                                         }
                                 }
@@ -176,8 +194,8 @@ class DiffDetailsViewModel(
                         item.adapter.colorSelected.getPositionForAdapter(1)?.let { position ->
                             generateDiff(
                                 topSection,
-                                item.adapter.getItemFromAdapter(position)?.diffId!!,
-                                item.minimalDiff?.diffId!!
+                                item.adapter.getItemFromAdapter(position)?.snapId!!,
+                                item.minimalSnap?.snapId!!
                             )
 
                             item.setColor(2)
@@ -194,23 +212,23 @@ class DiffDetailsViewModel(
      * When there is only one item selected, we want to show an error message
      * and clear the RecyclerView
      *
-     * @param adapter    The adapter with a map of selected colors
+     * @param adapter    The adapter with a map of selected gradientColor
      * @param topSection The top section, which will be cleared if there are
-     * not enought colors selected
+     * not enought gradientColor selected
      */
-    private fun updateCanShowDiff(adapter: DiffAdapter, topSection: Section) {
+    private fun updateCanShowDiff(adapter: DetailsAdapter, topSection: Section) {
 
         if (adapter.colorSelected.count { it.value > 0 } < 2) {
             // Empty when there is not enough selection
             topSection.update(mutableListOf())
         }
 
-        showDiffError.value = adapter.colorSelected.count { it.value > 0 } != 2
+        showNotEnoughtInfoError.value = adapter.colorSelected.count { it.value > 0 } != 2
     }
 
     private fun generateDiffRows(
-        original: Diff?,
-        it: Diff?
+        original: Snap?,
+        it: Snap?
     ): Pair<MutableList<TextRecycler>, MutableList<TextRecycler>> {
         if (original == null || it == null) {
             Logger.d("original or it are null")
@@ -255,9 +273,9 @@ class DiffDetailsViewModel(
         return Pair(updatingOnlyDiff, updatingNonDiff)
     }
 
-    fun getWebHistoryForId(id: String): LiveData<PagedList<MinimalDiff>> {
+    fun getWebHistoryForId(id: String): LiveData<PagedList<MinimalSnap>> {
         return LivePagedListBuilder(
-            mDiffsRepository.getDiffForPaging(id), PagedList.Config.Builder()
+            mDiffsRepository.getSnapForPaging(id), PagedList.Config.Builder()
                 .setPageSize(PAGE_SIZE)
                 .setEnablePlaceholders(ENABLE_PLACEHOLDERS)
                 .build()

@@ -130,7 +130,7 @@ public final class UnifiedDiffUtils {
     }
 
     /**
-     * generateUnifiedDiff takes a Patch and some other arguments, returning the Unified Diff format text representing
+     * generateUnifiedDiff takes a Patch and some other arguments, returning the Unified Snap format text representing
      * the Patch.
      *
      * @param originalFileName - Filename of the original (unrevised file)
@@ -138,7 +138,7 @@ public final class UnifiedDiffUtils {
      * @param originalLines    - Lines of the original file
      * @param patch            - Patch created by the diff() function
      * @param contextSize      - number of lines of context output around each difference in the file.
-     * @return List of strings representing the Unified Diff representation of the Patch argument.
+     * @return List of strings representing the Unified Snap representation of the Patch argument.
      * @author Bill James (tankerbay@gmail.com)
      */
     public static List<String> generateUnifiedDiff(String originalFileName,
@@ -201,7 +201,7 @@ public final class UnifiedDiffUtils {
     }
 
     /**
-     * processDeltas takes a list of Deltas and outputs them together in a single block of Unified-Diff-format text.
+     * processDeltas takes a list of Deltas and outputs them together in a single block of Unified-Snap-format text.
      *
      * @param origLines   - the lines of the original file
      * @param deltas      - the Deltas to be output as a single block
@@ -276,7 +276,7 @@ public final class UnifiedDiffUtils {
             revTotal++;
         }
 
-        // Create and insert the block header, conforming to the Unified Diff
+        // Create and insert the block header, conforming to the Unified Snap
         // standard
         StringBuffer header = new StringBuffer();
         header.append("@@ -");
@@ -294,7 +294,7 @@ public final class UnifiedDiffUtils {
     }
 
     /**
-     * getDeltaText returns the lines to be added to the Unified Diff text from the Delta parameter
+     * getDeltaText returns the lines to be added to the Unified Snap text from the Delta parameter
      *
      * @param delta - the Delta to output
      * @return list of String lines of code.

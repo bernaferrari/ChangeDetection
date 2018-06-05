@@ -1,13 +1,13 @@
-package com.bernaferrari.changedetection
+package com.bernaferrari.changedetection.util
 
 /**
- * Some gradient colors are inspired from uiGradients:
+ * Some gradient gradientColor are inspired from uiGradients:
  * https://uigradients.com/#Celestial
  *
- * Some gradient colors are inspired from Spark
+ * Some gradient gradientColor are inspired from Spark
  * https://github.com/TonnyL/Spark
  *
- * Some gradient colors are are mixing the them.
+ * Some gradient gradientColor are are mixing the them.
  *
  * Colors are right to left
  */

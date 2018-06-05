@@ -8,13 +8,13 @@
         android:id="@+id/mainFragment"
         android:name="com.bernaferrari.changedetection.MainFragment"
         android:label="MainFragment"
-        tools:layout="@layout/todos_encontros_activity">
+        tools:layout="@layout/main_fragment">
         <action
             android:id="@+id/action_mainFragment_to_openFragment"
             app:destination="@id/openFragment"
-            app:enterAnim="@anim/slide_up2"
+            app:enterAnim="@anim/slide_up"
             app:exitAnim="@anim/design_bottom_sheet_slide_out"
-            app:popEnterAnim="@anim/slide_up2"
+            app:popEnterAnim="@anim/slide_up"
             app:popExitAnim="@anim/design_bottom_sheet_slide_out" />
         <action
             android:id="@+id/action_mainFragment_to_aboutFragment"
@@ -27,9 +27,9 @@
 
     <fragment
         android:id="@+id/openFragment"
-        android:name="com.bernaferrari.changedetection.DiffFragment"
+        android:name="com.bernaferrari.changedetection.DetailsFragment"
         android:label="OpenFragment"
-        tools:layout="@layout/default_recycler_dialog"></fragment>
+        tools:layout="@layout/details_fragment"></fragment>
 
     <fragment
         android:id="@+id/aboutFragment"

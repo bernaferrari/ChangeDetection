@@ -21,8 +21,8 @@ import android.app.Application
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import android.support.annotation.VisibleForTesting
-import com.bernaferrari.changedetection.data.source.DiffsRepository
 import com.bernaferrari.changedetection.data.source.SitesRepository
+import com.bernaferrari.changedetection.data.source.SnapsRepository
 
 /**
  * A creator is used to inject the product ID into the ViewModel
@@ -33,15 +33,15 @@ import com.bernaferrari.changedetection.data.source.SitesRepository
  */
 class ViewModelFactory private constructor(
     private val mApplication: Application,
-    private val mDiffsRepository: DiffsRepository,
+    private val mSnapsRepository: SnapsRepository,
     private val mSitesRepository: SitesRepository
 ) : ViewModelProvider.NewInstanceFactory() {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-            return MainViewModel(mApplication, mDiffsRepository, mSitesRepository) as T
-        } else if (modelClass.isAssignableFrom(DiffDetailsViewModel::class.java)) {
-            return DiffDetailsViewModel(mApplication, mDiffsRepository, mSitesRepository) as T
+            return MainViewModel(mApplication, mSnapsRepository, mSitesRepository) as T
+        } else if (modelClass.isAssignableFrom(DetailsViewModel::class.java)) {
+            return DetailsViewModel(mApplication, mSnapsRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: " + modelClass.name)
     }
@@ -57,7 +57,7 @@ class ViewModelFactory private constructor(
                     if (INSTANCE == null) {
                         INSTANCE = ViewModelFactory(
                             application,
-                            Injection.provideDiffsRepository(application.applicationContext),
+                            Injection.provideSnapsRepository(application.applicationContext),
                             Injection.provideSitesRepository(application.applicationContext)
                         )
                     }

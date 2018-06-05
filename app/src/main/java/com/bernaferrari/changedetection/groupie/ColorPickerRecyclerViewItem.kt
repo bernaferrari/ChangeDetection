@@ -7,9 +7,16 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
-import kotlinx.android.synthetic.main.default_recycler_grey_200.*
+import kotlinx.android.synthetic.main.recyclerview.*
 
-class DialogItemColorRecycler(
+/**
+ * Creates a ColorPicker RecyclerView. This will be used on create/edit dialogs.
+ *
+ * @param currentColors the current selected gradientColor for the item
+ * @param gradientList the gradient list with all the color pairs
+ * @param listener callback for transmitting back the results
+ */
+class ColorPickerRecyclerViewItem(
     private val currentColors: Pair<Int, Int>,
     private val gradientList: List<Pair<Int, Int>>,
     private val listener: (Pair<Int, Int>) -> (Unit)
@@ -18,18 +25,22 @@ class DialogItemColorRecycler(
 
     override fun bind(viewHolder: ViewHolder, position: Int) {
         viewHolder.defaultRecycler.apply {
-            val selectorList = mutableListOf<DialogItemColorSelector>()
+            val selectorList = mutableListOf<ColorPickerItem>()
 
+            // Create each color picker item, checking for the first (because it needs extra margin)
+            // and checking for the one which is selected (so it becomes selected)
             gradientList.mapIndexedTo(selectorList) { index, it ->
-                DialogItemColorSelector(index == 0, currentColors == it, it) { itemClicked ->
+
+                ColorPickerItem(index == 0, currentColors == it, it) { itemClicked ->
+
                     // When a value is selected, all others must be unselected.
                     selectorList.forEach { listItem ->
                         if (listItem != itemClicked && listItem.isSwitchOn) {
-                            listItem.unselectAndNotify()
+                            listItem.deselectAndNotify()
                         }
                     }
 
-                    listener.invoke(itemClicked.colors)
+                    listener.invoke(itemClicked.gradientColor)
                 }
             }
 

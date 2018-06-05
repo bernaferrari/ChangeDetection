@@ -14,15 +14,15 @@ class SitesLocalDataSource// Prevent direct instantiation.
 private constructor(
     private val mAppExecutors: AppExecutors,
     private val mSitesDao: SitesDao,
-    private val mDiffsDao: DiffsDao
+    private val mSnapsDao: SnapsDao
 ) : SitesDataSource {
 
-    override fun getSiteAndLastDiff(callback: (MutableList<SiteAndLastDiff>) -> Unit) {
+    override fun getSiteAndLastSnap(callback: (MutableList<SiteAndLastSnap>) -> Unit) {
         val runnable = Runnable {
             val sites = mSitesDao.sites
-            val list = mutableListOf<SiteAndLastDiff>()
+            val list = mutableListOf<SiteAndLastSnap>()
             sites.mapTo(list) { site ->
-                SiteAndLastDiff(site, mDiffsDao.getLastDiffWithoutValueBySiteId(site.id))
+                SiteAndLastSnap(site, mSnapsDao.getLastMinimalSnapForSiteId(site.id))
             }
 
             mAppExecutors.mainThread().execute {
@@ -107,12 +107,12 @@ private constructor(
         fun getInstance(
             appExecutors: AppExecutors,
             sitesDao: SitesDao,
-            diffsDao: DiffsDao
+            snapsDao: SnapsDao
         ): SitesLocalDataSource {
             if (INSTANCE == null) {
                 synchronized(SitesLocalDataSource::class.java) {
                     if (INSTANCE == null) {
-                        INSTANCE = SitesLocalDataSource(appExecutors, sitesDao, diffsDao)
+                        INSTANCE = SitesLocalDataSource(appExecutors, sitesDao, snapsDao)
                     }
                 }
             }

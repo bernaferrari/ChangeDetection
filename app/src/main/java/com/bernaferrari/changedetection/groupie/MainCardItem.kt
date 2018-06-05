@@ -9,9 +9,9 @@ import android.support.v4.content.ContextCompat
 import android.view.View
 import android.widget.ImageView
 import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.data.Diff
-import com.bernaferrari.changedetection.data.MinimalDiff
+import com.bernaferrari.changedetection.data.MinimalSnap
 import com.bernaferrari.changedetection.data.Site
+import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.onAnimationEnd
 import com.github.marlonlom.utilities.timeago.TimeAgo
 import com.github.marlonlom.utilities.timeago.TimeAgoMessages
@@ -21,20 +21,29 @@ import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
-import kotlinx.android.synthetic.main.bottomsheet_item_card_list.*
+import kotlinx.android.synthetic.main.main_item_card.*
 import java.text.DecimalFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-enum class SYNC {
-    LOADING, OK, ERROR
-}
-
-class MainScreenCardItem(
+/**
+ * Main screen card item
+ *
+ * @param site               site item
+ * @param lastMinimalSnap    for item subtitle
+ * @param reloadCallback     when reload button is selected
+ */
+class MainCardItem(
     var site: Site,
-    var lastMinimalDiff: MinimalDiff?,
-    private val reloadCallback: ((MainScreenCardItem) -> Unit)
+    var lastMinimalSnap: MinimalSnap?,
+    private val reloadCallback: ((MainCardItem) -> Unit)
 ) : Item() {
+
+    // this will be used to track the current item status
+    enum class SYNC {
+        LOADING, OK, ERROR
+    }
+
     var status: SYNC = SYNC.OK
     private var isReloading = false
     private var currentColor = "" // This variable is used to track the current color, since
@@ -43,35 +52,34 @@ class MainScreenCardItem(
     private var siteDisposable: Disposable? = null
     private var diffDisposable: Disposable? = null
 
-    fun updateSite(tas: Site) {
-        this.site = tas
+    // update the current site, change the status and notifyChanged
+    fun update(site: Site) {
+        this.site = site
         changeStatus()
         notifyChanged()
     }
 
-    fun enableOrDisable(tas: Site) {
+    // update the site and the minimalSnap
+    fun update(tas: Site, lastMinimalSnap: MinimalSnap?) {
         this.site = tas
-        notifyChanged()
-    }
-
-    fun updateSiteDiff(tas: Site, lastMinimalDiff: MinimalDiff?) {
-        this.site = tas
-        this.lastMinimalDiff = lastMinimalDiff
+        this.lastMinimalSnap = lastMinimalSnap
         changeStatus()
         notifyChanged()
     }
 
-    fun updateDiff(lastMinimalDiff: MinimalDiff?) {
-        this.lastMinimalDiff = lastMinimalDiff
+    // update the minimalSnap.
+    fun update(lastMinimalSnap: MinimalSnap?) {
+        this.lastMinimalSnap = lastMinimalSnap
         notifyChanged()
     }
 
-    fun updateDiff(lastDiff: Diff) {
-        this.lastMinimalDiff = MinimalDiff(
-            lastDiff.diffId,
-            lastDiff.siteId,
-            lastDiff.timestamp,
-            lastDiff.size
+    // update the minimalSnap with a snap that gets converted to a minimalSnap
+    fun update(lastSnap: Snap) {
+        this.lastMinimalSnap = MinimalSnap(
+            lastSnap.snapId,
+            lastSnap.siteId,
+            lastSnap.timestamp,
+            lastSnap.size
         )
         notifyChanged()
     }
@@ -88,9 +96,10 @@ class MainScreenCardItem(
         }
     }
 
+    // when used with a GridLayoutManager items only take one span
     override fun getSpanSize(spanCount: Int, position: Int) = 1
 
-    override fun getLayout() = R.layout.bottomsheet_item_card_list
+    override fun getLayout() = R.layout.main_item_card
 
     override fun bind(holder: ViewHolder, position: Int, payloads: List<Any>) {
         if (status != SYNC.LOADING) {
@@ -99,13 +108,14 @@ class MainScreenCardItem(
 
         val context = holder.containerView.context
         // imageview:src on xml sometimes doesn't cast as AnimatedVectorDrawableCompat, so this is necessary.
-        holder.syncimage.takeIf { it.drawable == null }?.setImageDrawable(
+        holder.syncimage.setImageDrawableIfNull(
             AnimatedVectorDrawableCompat.create(
                 context,
                 R.drawable.vector_anim_sync
             )
         )
-        holder.reload.takeIf { it.drawable == null }?.setImageDrawable(
+
+        holder.reload.setImageDrawableIfNull(
             AnimatedVectorDrawableCompat.create(
                 context,
                 R.drawable.vector_anim_reload
@@ -114,6 +124,12 @@ class MainScreenCardItem(
 
         bind(holder, position)
         bindMutable(holder)
+    }
+
+    private fun ImageView.setImageDrawableIfNull(drawable: AnimatedVectorDrawableCompat?) {
+        if (this.drawable == null) {
+            this.setImageDrawable(drawable)
+        }
     }
 
     override fun bind(viewHolder: ViewHolder, position: Int) {
@@ -147,7 +163,7 @@ class MainScreenCardItem(
             SYNC.LOADING -> {
                 if (currentColor.isBlank()) {
                     if (site.isSuccessful) {
-                        changeCardToBlue(holder, context)
+                        changeCardToStandardColor(holder, context)
                     } else {
                         changeCardToRed(holder, context)
                     }
@@ -158,7 +174,7 @@ class MainScreenCardItem(
             SYNC.OK -> {
                 stopSyncing(holder)
                 if (site.isSyncEnabled) {
-                    changeCardToBlue(holder, context)
+                    changeCardToStandardColor(holder, context)
                 } else {
                     changeCardToGrey(holder, context)
                 }
@@ -179,13 +195,12 @@ class MainScreenCardItem(
         setLastSync(holder)
     }
 
-    private fun changeCardToBlue(holder: ViewHolder, context: Context) {
-        currentColor = "blue"
+    private fun changeCardToStandardColor(holder: ViewHolder, context: Context) {
+        currentColor = "standard"
 
         setImageBackgroundToColor(
             color = site.colors.second,
-            holder = holder,
-            context = context
+            holder = holder
         )
 
         val shape = GradientDrawable(
@@ -194,8 +209,8 @@ class MainScreenCardItem(
             )
         )
 
-        val density = context.resources.displayMetrics.density
-        shape.cornerRadius = 8 * density
+        // radius should be 8dp
+        shape.cornerRadius = 8 * context.resources.displayMetrics.density
         holder.cardView.background = shape
 
         holder.reload.drawable.setTint(site.colors.first)
@@ -209,8 +224,7 @@ class MainScreenCardItem(
                 context,
                 R.color.md_grey_500
             ),
-            holder = holder,
-            context = context
+            holder = holder
         )
 
         // This needed since setCardBackgroundColor stops working when we change the background
@@ -244,8 +258,7 @@ class MainScreenCardItem(
                 context,
                 R.color.md_red_400
             ),
-            holder = holder,
-            context = context
+            holder = holder
         )
 
         holder.reload.drawable.setTint(0xfff04a43.toInt())
@@ -272,29 +285,30 @@ class MainScreenCardItem(
         holder.lastsync.text = if (status == SYNC.ERROR) {
             getTimeAgo(site.timestamp) + " – " + holder.lastsync.context.getString(R.string.error)
         } else {
-            getTimeAgo(site.timestamp) + " – ${readableFileSize(lastMinimalDiff?.size ?: 0)}"
+            getTimeAgo(site.timestamp) + " – ${readableFileSize(lastMinimalSnap?.size ?: 0)}"
         }
 
         siteDisposable?.dispose()
-        siteDisposable = generateDisposable(site.timestamp).subscribe {
+        siteDisposable = generateTimerDisposable(site.timestamp).subscribe {
             setLastSync(holder)
         }
     }
 
     private fun setLastDiff(holder: ViewHolder) {
-        if (lastMinimalDiff == null) {
+        if (lastMinimalSnap == null) {
+            // if "last" snapshot was null, there is not a single snapshot for this site
             holder.lastradar.text = holder.lastradar.context.getString(R.string.nothing_yet)
         } else {
-            Logger.d("id: ${lastMinimalDiff?.diffId} ts: ${lastMinimalDiff?.timestamp}")
-            holder.lastradar.text = getTimeAgo(lastMinimalDiff?.timestamp)
+            Logger.d("id: ${lastMinimalSnap?.snapId} ts: ${lastMinimalSnap?.timestamp}")
+            holder.lastradar.text = getTimeAgo(lastMinimalSnap?.timestamp)
             diffDisposable?.dispose()
-            diffDisposable = generateDisposable(lastMinimalDiff?.timestamp ?: 0).subscribe {
+            diffDisposable = generateTimerDisposable(lastMinimalSnap?.timestamp ?: 0).subscribe {
                 setLastDiff(holder)
             }
         }
     }
 
-    private fun setImageBackgroundToColor(color: Int, holder: ViewHolder, context: Context) {
+    private fun setImageBackgroundToColor(color: Int, holder: ViewHolder) {
         (holder.syncimage.background as GradientDrawable).setColor(color)
         (holder.radarimage.background as GradientDrawable).setColor(color)
     }
@@ -339,6 +353,7 @@ class MainScreenCardItem(
         holder.reload.visibility = View.VISIBLE
     }
 
+    // creates a completable animation for fading the reload button when pressed
     private fun View.fadeOut(duration: Long = 30): Completable {
         return Completable.create {
             animate().setDuration(duration)
@@ -350,6 +365,7 @@ class MainScreenCardItem(
         }
     }
 
+    // creates a completable animation for shrinking the reload button when pressed
     private fun View.shrinkIn(duration: Long = 30): Completable {
         return Completable.create {
             animate().setDuration(duration)
@@ -361,6 +377,7 @@ class MainScreenCardItem(
         }
     }
 
+    // converts a size in bytes into a readable format
     private fun readableFileSize(size: Int): String {
         if (size <= 0) return "EMPTY"
         val units = arrayOf("B", "kB", "MB", "GB", "TB")
@@ -373,8 +390,13 @@ class MainScreenCardItem(
         ) + " " + units[digitGroups]
     }
 
-    private fun generateDisposable(timestamp: Long): Completable {
-        // Get the abs value just in case our user is the terminator.
+    /**
+     * This calculates how long it will take until updating the "last sync" text again.
+     *
+     * @param timestamp in milliseconds
+     */
+    private fun generateTimerDisposable(timestamp: Long): Completable {
+        // Get the abs value just in case our user is the terminator and came from the future.
         val delay = Math.abs(System.currentTimeMillis() - timestamp)
 
         val seconds = delay / 1000

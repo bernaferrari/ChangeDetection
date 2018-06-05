@@ -12,7 +12,7 @@ import android.widget.TextView
 import com.bernaferrari.changedetection.R
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
-import kotlinx.android.synthetic.main.item_recyclerview_diff.*
+import kotlinx.android.synthetic.main.details_item_recyclerview_diff.*
 
 class TextRecycler(
     val title: String,
@@ -20,7 +20,7 @@ class TextRecycler(
 ) : Item() {
 
     override fun getLayout(): Int {
-        return R.layout.item_recyclerview_diff
+        return R.layout.details_item_recyclerview_diff
     }
 
     // This will make the spannable showing the diffs

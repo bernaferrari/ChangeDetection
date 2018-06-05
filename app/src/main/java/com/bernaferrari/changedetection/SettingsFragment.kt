@@ -73,7 +73,7 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
             Logger.d("Reloaded! $it min")
         }
 
-        syncSettings += DialogItemSeparator()
+        syncSettings += DialogItemSeparator(getString(R.string.constraints))
 
         syncSettings += DialogItemSwitch(
             getString(R.string.wifi_on),

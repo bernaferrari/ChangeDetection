@@ -48,6 +48,7 @@
     <string name="empty_no_change_detected">Nenhuma mudança detectada entre esses dois items</string>
 
     <string name="remove_this">Remover %1s</string>
+    <string name="are_you_sure">Você tem certeza que deseja remover %1s de %2s?</string>
     <string name="missing_internet">Erro! Sem conexão com a internet</string>
     <string name="was_updated">Mudança detectada em %1s!</string>
 
