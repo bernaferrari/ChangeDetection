@@ -9,6 +9,4 @@
         android:startColor="@color/md_indigo_A200"
         android:type="linear" />
 
-    <corners android:radius="0dp" />
-
 </shape>

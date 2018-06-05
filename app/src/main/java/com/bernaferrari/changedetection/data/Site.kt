@@ -12,7 +12,7 @@ import java.util.*
     tableName = "sites",
     indices = [(Index(value = ["siteId"], unique = true))]
 )
-@TypeConverters(Site.LanguageConverter::class)
+@TypeConverters(Site.ConstraintsConverter::class, Site.PairConverter::class)
 data class Site(
     val title: String?,
     val url: String,
@@ -25,25 +25,18 @@ data class Site(
     val isSyncEnabled: Boolean, // enable/disable sync
     val isNotificationEnabled: Boolean,
     val notes: String,
+    val colors: Pair<Int, Int>,
     val constraints: WorkerHelper.ConstraintsRequired // reserved for future use
 ) {
 
     @Ignore
-    constructor(title: String?, url: String, timestamp: Long) : this(
-        title,
-        url,
-        timestamp,
-        UUID.randomUUID().toString(),
-        true,
-        false,
-        true,
-        true,
-        "",
-        WorkerHelper.ConstraintsRequired(false, false, false, false)
-    )
-
-    @Ignore
-    constructor(title: String?, url: String, timestamp: Long, id: String) : this(
+    constructor(
+        title: String?,
+        url: String,
+        timestamp: Long,
+        id: String,
+        colors: Pair<Int, Int>
+    ) : this(
         title,
         url,
         timestamp,
@@ -53,20 +46,22 @@ data class Site(
         true,
         true,
         "",
+        colors,
         WorkerHelper.ConstraintsRequired(false, false, false, false)
     )
 
     @Ignore
-    constructor(title: String?, url: String, timestamp: Long, completed: Boolean) : this(
+    constructor(title: String?, url: String, timestamp: Long, colors: Pair<Int, Int>) : this(
         title,
         url,
         timestamp,
         UUID.randomUUID().toString(),
-        completed,
+        true,
         false,
         true,
         true,
         "",
+        colors,
         WorkerHelper.ConstraintsRequired(false, false, false, false)
     )
 
@@ -86,7 +81,7 @@ data class Site(
         return "Site with title " + title!!
     }
 
-    class LanguageConverter {
+    class ConstraintsConverter {
         @TypeConverter
         fun storedStringToConstraintsRequired(value: String): WorkerHelper.ConstraintsRequired {
             val langs = value.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toList()
@@ -103,6 +98,19 @@ data class Site(
             value += "${cl.deviceIdle}"
 
             return value
+        }
+    }
+
+    class PairConverter {
+        @TypeConverter
+        fun storedStringToPair(value: String): Pair<Int, Int> {
+            val langs = value.split(",".toRegex())
+            return Pair(langs.getOrNull(0)?.toInt() ?: 0, langs.getOrNull(1)?.toInt() ?: 0)
+        }
+
+        @TypeConverter
+        fun pairToStoredString(pair: Pair<Int, Int>): String {
+            return "${pair.first},${pair.second}"
         }
     }
 }
