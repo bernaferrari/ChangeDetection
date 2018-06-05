@@ -140,29 +140,28 @@ class DiffDetailsViewModel(
                         for ((_, value) in item.adapter.colorSelected) {
                             if (value > 0) {
                                 if (value == 2) {
-                                    item.setColor(1)
+                                    item.adapter.colorSelected.getPositionForAdapter(2)
+                                        ?.let { position ->
+                                            item.setColor(1)
 
-                                    generateDiff(
-                                        topSection,
-                                        item.minimalDiff?.diffId!!,
-                                        item.adapter.getItemFromAdapter(
-                                            item.adapter.colorSelected.getPositionForAdapter(
-                                                2
+                                            generateDiff(
+                                                topSection,
+                                                item.minimalDiff?.diffId!!,
+                                                item.adapter.getItemFromAdapter(position)?.diffId!!
                                             )
-                                        )?.diffId!!
-                                    )
+                                        }
+
                                 } else {
-                                    item.setColor(2)
+                                    item.adapter.colorSelected.getPositionForAdapter(1)
+                                        ?.let { position ->
+                                            item.setColor(2)
 
-                                    generateDiff(
-                                        topSection,
-                                        item.minimalDiff?.diffId!!,
-                                        item.adapter.getItemFromAdapter(
-                                            item.adapter.colorSelected.getPositionForAdapter(
-                                                1
+                                            generateDiff(
+                                                topSection,
+                                                item.minimalDiff?.diffId!!,
+                                                item.adapter.getItemFromAdapter(position)?.diffId!!
                                             )
-                                        )?.diffId!!
-                                    )
+                                        }
                                 }
                                 break
                             }
@@ -174,17 +173,15 @@ class DiffDetailsViewModel(
                             item.adapter.setColor(0, position)
                         }
 
-                        generateDiff(
-                            topSection,
-                            item.adapter.getItemFromAdapter(
-                                item.adapter.colorSelected.getPositionForAdapter(
-                                    1
-                                )
-                            )?.diffId!!,
-                            item.minimalDiff?.diffId!!
-                        )
+                        item.adapter.colorSelected.getPositionForAdapter(1)?.let { position ->
+                            generateDiff(
+                                topSection,
+                                item.adapter.getItemFromAdapter(position)?.diffId!!,
+                                item.minimalDiff?.diffId!!
+                            )
 
-                        item.setColor(2)
+                            item.setColor(2)
+                        }
                     }
                 }
             }

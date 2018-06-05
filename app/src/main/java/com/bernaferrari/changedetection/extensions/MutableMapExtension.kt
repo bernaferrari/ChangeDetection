@@ -3,17 +3,17 @@ package com.bernaferrari.changedetection.extensions
 /**
  * Returns a new map containing the first value it finds.
  **/
-fun <K, V> Map<out K, V>.firstKey(): K {
+fun <K, V> Map<out K, V>.firstKey(): K? {
     for ((key, _) in this) {
         return key
     }
-    return this.entries.first().key
+    return null
 }
 
 /**
  * Just a shortcut, so code is easier to isRead.
  **/
-fun <K, V> Map<out K, V>.getPositionForAdapter(color: Int): K {
+fun <K, V> Map<out K, V>.getPositionForAdapter(color: Int): K? {
     return this.filter { it.value == color }.firstKey()
 }
 
