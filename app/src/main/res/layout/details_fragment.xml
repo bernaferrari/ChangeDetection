@@ -38,7 +38,7 @@
                 android:layout_marginEnd="@dimen/avatar_margin"
                 android:background="?android:selectableItemBackgroundBorderless"
                 android:padding="@dimen/avatar_margin"
-                app:srcCompat="@drawable/ic_close_down" />
+                app:srcCompat="@drawable/ic_close_dark" />
 
             <TextView
                 android:id="@+id/titlecontent"
@@ -64,7 +64,7 @@
                 android:scaleType="center" />
         </LinearLayout>
 
-        <com.bernaferrari.changedetection.ui.DynamicRecyclerView
+        <com.bernaferrari.changedetection.ui.RecyclerViewWithEmptyState
             android:id="@+id/topRecycler"
             android:layout_width="match_parent"
             android:layout_height="0dp"

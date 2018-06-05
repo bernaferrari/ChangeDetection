@@ -8,12 +8,7 @@ import android.widget.FrameLayout
 import com.bernaferrari.changedetection.R
 import kotlinx.android.synthetic.main.empty_layout.view.*
 
-/**
-Created by bernardoferrari on 09/11/17.
-Inspired on FastHub implementation.
-TODO need to change some variable names and update some methods
- */
-class StateLayout : FrameLayout {
+class EmptyLayout : FrameLayout {
     constructor(context: Context) : super(context)
 
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs)

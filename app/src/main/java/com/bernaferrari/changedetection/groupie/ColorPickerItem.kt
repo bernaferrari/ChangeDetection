@@ -1,155 +1,86 @@
 package com.bernaferrari.changedetection.groupie
 
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
-import android.content.Context
-import android.graphics.*
-import android.util.AttributeSet
-import android.util.TypedValue
-import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
+import android.content.res.Resources
+import android.view.ViewGroup.MarginLayoutParams
+import com.bernaferrari.changedetection.R
+import com.xwray.groupie.kotlinandroidextensions.Item
+import com.xwray.groupie.kotlinandroidextensions.ViewHolder
+import kotlinx.android.synthetic.main.colorpicker_item.*
 
-class ColorPickerItem @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0, defStyleRes: Int = 0
-) : View(context, attrs, defStyleAttr, defStyleRes) {
+/**
+ * Creates a ColorPicker RecyclerView. This will be used on create/edit dialogs.
+ *
+ * @param isFirstIndex if true, adds extra padding to the first item
+ * @param isSwitchOn if true, sets the item as selected
+ * @param gradientColor the color pair which will be set for this item
+ */
+class ColorPickerItem(
+    private val isFirstIndex: Boolean,
+    var isSwitchOn: Boolean,
+    val gradientColor: Pair<Int, Int>,
+    private val listener: (ColorPickerItem) -> (Unit)
+) : Item() {
 
-    var progress: Float = 0f
-    var circlePaint: Paint? = null
-    var outlinePaint: Paint? = null
-    var colors = Pair(Color.WHITE, Color.WHITE)
+    override fun getLayout(): Int = R.layout.colorpicker_item
 
-    fun updateColor() {
-        // If the value is set here, it risks getting a solid color if width is blue.
-        // This way, it will be refreshed on onDraw.
-        circlePaint = null
-        outlinePaint = null
-        invalidate()
-    }
+    override fun bind(viewHolder: ViewHolder, position: Int) {
 
-    fun areColorsSet(): Boolean = circlePaint != null && outlinePaint != null
-
-    init {
-        setLayerType(1, null)
-    }
-
-    fun setOutlineColor(i: Int) {
-        outlinePaint?.color = i
-        invalidate()
-    }
-
-    private fun dpToPixels(i: Int): Float {
-        return TypedValue.applyDimension(
-            1,
-            i.toFloat(),
-            context.resources.displayMetrics
-        )
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-
-        if (circlePaint == null) {
-            circlePaint = createPaintInside()
+        viewHolder.containerView.setOnClickListener {
+            // We don't want to allow deselection
+            if (!isSwitchOn) {
+                isSwitchOn = true
+                listener.invoke(this)
+                viewHolder.paintItem.reverseSelection()
+            }
         }
 
-        if (outlinePaint == null) {
-            outlinePaint = createPaintOutside()
+        // This is necessary for extra left padding on the first item, so it looks
+        // visually identical to other items.
+        // Since it is inside a recyclerView, the margin needs to be set at all the items.
+        viewHolder.containerView.run {
+            val dp8 = dp(8, resources)
+            val dp16 = dp(16, resources)
+            val dp32 = dp(32, resources)
+
+            val layoutParams = layoutParams as MarginLayoutParams
+            layoutParams.width = dp32
+            layoutParams.height = dp32
+
+            if (isFirstIndex) {
+                layoutParams.setMargins(dp16, dp8, dp8, dp8)
+            } else {
+                layoutParams.setMargins(dp8, dp8, dp8, dp8)
+            }
+
+            viewHolder.containerView.layoutParams = layoutParams
         }
 
-        val min = Math.min(
-            width,
-            height
-        ).toFloat() / 2.0f - dpToPixels(6) * this.progress
-        canvas.drawCircle(
-            width.toFloat() / 2.0f,
-            height.toFloat() / 2.0f,
-            (Math.min(
-                width,
-                height
-            ).toFloat() / 2.0f - dpToPixels(2)) * this.progress + 0.0f * (1.toFloat() - this.progress),
-            outlinePaint
-        )
+        // first time it loads, or if recycles, the gradientColor need to be set correctly.
+        if (!viewHolder.paintItem.areColorsSet() || viewHolder.paintItem.colors != gradientColor) {
+            viewHolder.paintItem.colors = gradientColor
+            viewHolder.paintItem.updateColor()
 
-        canvas.drawCircle(
-            width.toFloat() / 2.0f,
-            height.toFloat() / 2.0f,
-            min,
-            circlePaint
-        )
-    }
+            // select/deselect without animation. Sometimes this will be called while scrolling,
+            // so we want it to behave invisibly.
+            when (isSwitchOn) {
+                true -> viewHolder.paintItem.selectIfDeselected(false)
+                false -> viewHolder.paintItem.deselectIfSelected(false)
+            }
+        }
 
-    fun reverseSelection() {
-        if (this.isSelected) {
-            deselectIfSelected(true)
-        } else {
-            selectIfDeselected(true)
+        // when deselectAndNotify is called, this is used to deselect with animation.
+        when (isSwitchOn) {
+            true -> viewHolder.paintItem.selectIfDeselected(true)
+            false -> viewHolder.paintItem.deselectIfSelected(true)
         }
     }
 
-    fun selectIfDeselected(animated: Boolean) {
-        if (!this.isSelected) {
-            startAnimation(0.0f, 1.0f, animated)
-            this.isSelected = true
-        }
+    fun deselectAndNotify() {
+        isSwitchOn = false
+        notifyChanged()
     }
 
-    fun deselectIfSelected(animated: Boolean) {
-        if (this.isSelected) {
-            startAnimation(1.0f, 0.0f, animated)
-            this.isSelected = false
-        }
-    }
-
-    private fun startAnimation(f: Float, f2: Float, z: Boolean) {
-        if (z) {
-            val ofFloat = ObjectAnimator.ofFloat(f, f2)
-            ofFloat.duration = 250
-            ofFloat.interpolator = AccelerateDecelerateInterpolator()
-            ofFloat.addUpdateListener(updateListener())
-            ofFloat.start()
-            return
-        }
-        this.progress = f2
-        invalidate()
-    }
-
-    private fun updateListener(): ValueAnimator.AnimatorUpdateListener =
-        ValueAnimator.AnimatorUpdateListener { valueAnimator2 ->
-            val valueAnimator = valueAnimator2?.animatedValue ?: throw NullPointerException()
-            this@ColorPickerItem.progress = (valueAnimator as Float).toFloat()
-            this@ColorPickerItem.invalidate()
-        }
-
-    private fun createPaintInside(): Paint {
-        val paint = Paint()
-        paint.isAntiAlias = true
-        paint.style = Paint.Style.FILL
-        paint.shader = LinearGradient(
-            width.toFloat(),
-            0f,
-            0f,
-            height.toFloat(),
-            colors.first,
-            colors.second,
-            Shader.TileMode.MIRROR
-        )
-        return paint
-    }
-
-    private fun createPaintOutside(): Paint {
-        val paint = Paint()
-        paint.isAntiAlias = true
-        paint.color = Color.WHITE
-        paint.shader = LinearGradient(
-            width.toFloat(), 0f, 0f, height.toFloat(),
-            colors.first,
-            colors.second,
-            Shader.TileMode.CLAMP
-        )
-        paint.style = Paint.Style.STROKE
-        paint.strokeWidth = dpToPixels(3)
-
-        return paint
+    private fun dp(value: Int, resources: Resources): Int {
+        return (resources.displayMetrics.density * value).toInt()
     }
 }

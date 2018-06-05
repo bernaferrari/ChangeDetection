@@ -70,7 +70,7 @@
     <string name="hour">1 hour</string>
     <string name="hours">hours</string>
 
-    <string name="original_plus_diffs">Original + Diffs</string>
+    <string name="original_plus_diffs">Original + Changes</string>
     <string name="open_1_in_browser">Open #1 in Browser</string>
     <string name="open_2_in_browser">Open #2 in Browser</string>
 

@@ -7,7 +7,10 @@ import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.item_spark.*
 
-class DialogItemSpark(
+/**
+ * Used to create a simple line chart.
+ */
+class ItemChart(
     private val list: List<Int>,
     private val wasSuccessful: Boolean
 ) : Item() {

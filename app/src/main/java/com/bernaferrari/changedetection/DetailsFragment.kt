@@ -24,7 +24,7 @@ import androidx.core.net.toUri
 import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.extensions.getPositionForAdapter
-import com.bernaferrari.changedetection.groupie.DialogItem
+import com.bernaferrari.changedetection.groupie.DialogItemSimple
 import com.bernaferrari.changedetection.groupie.DialogItemSwitch
 import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
@@ -36,15 +36,15 @@ import com.xwray.groupie.Item
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
 import es.dmoral.toasty.Toasty
-import kotlinx.android.synthetic.main.default_recycler_dialog.*
+import kotlinx.android.synthetic.main.details_fragment.*
 import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-class DiffFragment : Fragment() {
-    lateinit var model: DiffDetailsViewModel
+class DetailsFragment : Fragment() {
+    lateinit var model: DetailsViewModel
     val color: Int by lazy { ContextCompat.getColor(requireContext(), R.color.FontStrong) }
 
     interface RecyclerViewItemListener {
@@ -74,7 +74,7 @@ class DiffFragment : Fragment() {
 
         val topSection = Section()
 
-        model.showDiffError.observe(this, Observer {
+        model.showNotEnoughtInfoError.observe(this, Observer {
             if (it == true) {
                 state.setEmptyText(R.string.empty_please_select_two)
                 state.showEmptyState()
@@ -95,7 +95,7 @@ class DiffFragment : Fragment() {
         topRecycler.run {
             layoutManager = LinearLayoutManager(context)
 
-            setEmptyView(state, this)
+            setEmptyView(state)
 
             adapter = GroupAdapter<ViewHolder>().apply {
                 add(topSection)
@@ -108,13 +108,13 @@ class DiffFragment : Fragment() {
 
         val recyclerListener = object : RecyclerViewItemListener {
             override fun onClickListener(item: RecyclerView.ViewHolder) {
-                if (item !is DiffViewHolder) return
+                if (item !is DetailsViewHolder) return
                 state.showLoading()
                 model.fsmSelectWithCorrectColor(item, topSection)
             }
 
             override fun onLongClickListener(item: RecyclerView.ViewHolder) {
-                if (item !is DiffViewHolder) return
+                if (item !is DetailsViewHolder) return
 
                 MaterialDialog.Builder(requireActivity())
                     .title(getString(R.string.remove_this, item.readableFileSize))
@@ -132,7 +132,7 @@ class DiffFragment : Fragment() {
                             // If the item is selected, first deselect, then remove it.
                             model.fsmSelectWithCorrectColor(item, topSection)
                         }
-                        model.removeDiff(item.minimalDiff!!.diffId)
+                        model.removeSnap(item.minimalSnap!!.snapId)
 
                     }
                     .show()
@@ -140,7 +140,7 @@ class DiffFragment : Fragment() {
         }
 
         // Create adapter for the RecyclerView
-        val adapter = DiffAdapter(recyclerListener)
+        val adapter = DetailsAdapter(recyclerListener)
 
         bottomRecycler.run {
             this.adapter = adapter
@@ -166,8 +166,8 @@ class DiffFragment : Fragment() {
 //                    (adapter.getItemFromAdapter(0) != null || adapter.getItemFromAdapter(1) != null)
                     model.generateDiff(
                         topSection,
-                        adapter.getItemFromAdapter(1)!!.diffId,
-                        adapter.getItemFromAdapter(0)!!.diffId
+                        adapter.getItemFromAdapter(1)!!.snapId,
+                        adapter.getItemFromAdapter(0)!!.snapId
                     )
                 } catch (e: Exception) {
                     Toasty.error(
@@ -206,7 +206,7 @@ class DiffFragment : Fragment() {
 
             setOnClickListener {
                 val materialdialog = MaterialDialog.Builder(this.context)
-                    .customView(R.layout.default_recycler_grey_200, false)
+                    .customView(R.layout.recyclerview, false)
                     .build()
 
                 val updating = mutableListOf<Item<out ViewHolder>>()
@@ -216,9 +216,9 @@ class DiffFragment : Fragment() {
                     IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference).color(
                         ContextCompat.getColor(context, R.color.md_indigo_500)
                     ),
-                    model.withAllDiff
+                    model.changePlusOriginal
                 ) {
-                    model.withAllDiff = !model.withAllDiff
+                    model.changePlusOriginal = !model.changePlusOriginal
 
                     try {
                         val pos1 = adapter.colorSelected.getPositionForAdapter(1)
@@ -226,8 +226,8 @@ class DiffFragment : Fragment() {
 
                         model.generateDiff(
                             topSection,
-                            adapter.getItemFromAdapter(pos1!!)!!.diffId,
-                            adapter.getItemFromAdapter(pos2!!)!!.diffId
+                            adapter.getItemFromAdapter(pos1!!)!!.snapId,
+                            adapter.getItemFromAdapter(pos2!!)!!.snapId
                         )
                     } catch (e: Exception) {
                         // Don't do anything. If this exception happened, is because there are not
@@ -243,7 +243,7 @@ class DiffFragment : Fragment() {
                     }
                 }
 
-                updating += DialogItem(
+                updating += DialogItemSimple(
                     getString(R.string.open_1_in_browser),
                     IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference_ba).color(
                         ContextCompat.getColor(context, R.color.md_amber_500)
@@ -251,7 +251,7 @@ class DiffFragment : Fragment() {
                     "first"
                 )
 
-                updating += DialogItem(
+                updating += DialogItemSimple(
                     getString(R.string.open_2_in_browser),
                     IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference_ab).color(
                         ContextCompat.getColor(context, R.color.md_orange_500)
@@ -269,32 +269,14 @@ class DiffFragment : Fragment() {
                 }
 
                 groupAdapter.setOnItemClickListener { itemDialog, _ ->
-                    if (itemDialog is DialogItem) {
+                    if (itemDialog is DialogItemSimple) {
                         when (itemDialog.kind) {
                             "first" -> {
                                 MaterialDialog.Builder(context)
                                     .customView(R.layout.content_web, false)
                                     .build()
                                     .also {
-                                        adapter.colorSelected.getPositionForAdapter(1)
-                                            ?.let { position ->
-                                                launch {
-                                                    val diff =
-                                                        model.getDiff(
-                                                            adapter.getItemFromAdapter(
-                                                                position
-                                                            )!!.diffId
-                                                        )
-                                                    launch(UI) {
-                                                        putDataOnWebView(
-                                                            it.customView?.findViewById<PrettifyWebView>(
-                                                                R.id.webview
-                                                            ),
-                                                            diff.value
-                                                        )
-                                                    }
-                                                }
-                                            }
+                                        fetchAndOpenOnWebView(adapter, it, 1)
                                     }.show()
                             }
                             "second" -> {
@@ -302,25 +284,7 @@ class DiffFragment : Fragment() {
                                     .customView(R.layout.content_web, false)
                                     .build()
                                     .also {
-                                        adapter.colorSelected.getPositionForAdapter(2)
-                                            ?.let { position ->
-                                                launch {
-                                                    val diff =
-                                                        model.getDiff(
-                                                            adapter.getItemFromAdapter(
-                                                                position
-                                                            )!!.diffId
-                                                        )
-                                                    launch(UI) {
-                                                        putDataOnWebView(
-                                                            it.customView?.findViewById<PrettifyWebView>(
-                                                                R.id.webview
-                                                            ),
-                                                            diff.value
-                                                        )
-                                                    }
-                                            }
-                                        }
+                                        fetchAndOpenOnWebView(adapter, it, 2)
                                     }.show()
                             }
                         }
@@ -328,6 +292,28 @@ class DiffFragment : Fragment() {
                 }
 
                 materialdialog.show()
+            }
+        }
+    }
+
+    private fun fetchAndOpenOnWebView(adapter: DetailsAdapter, dialog: MaterialDialog, color: Int) {
+        val position = adapter.colorSelected.getPositionForAdapter(color) ?: return
+
+        launch {
+            val snap =
+                model.getSnap(
+                    adapter.getItemFromAdapter(
+                        position
+                    )?.snapId ?: return@launch
+                )
+
+            launch(UI) {
+                putDataOnWebView(
+                    dialog.customView?.findViewById<PrettifyWebView>(
+                        R.id.webview
+                    ),
+                    snap.value
+                )
             }
         }
     }
@@ -350,7 +336,7 @@ class DiffFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         super.onCreateView(inflater, container, savedInstanceState)
-        return inflater.inflate(R.layout.default_recycler_dialog, container, false)
+        return inflater.inflate(R.layout.details_fragment, container, false)
     }
 
     private fun dismiss() {
@@ -358,10 +344,10 @@ class DiffFragment : Fragment() {
 //        activity?.supportFragmentManager?.popBackStack()
     }
 
-    private fun obtainViewModel(activity: FragmentActivity): DiffDetailsViewModel {
+    private fun obtainViewModel(activity: FragmentActivity): DetailsViewModel {
         // Use a Factory to inject dependencies into the ViewModel
         val factory = ViewModelFactory.getInstance(activity.application)
-        return ViewModelProviders.of(activity, factory).get(DiffDetailsViewModel::class.java)
+        return ViewModelProviders.of(activity, factory).get(DetailsViewModel::class.java)
     }
 
     companion object {
@@ -369,8 +355,8 @@ class DiffFragment : Fragment() {
         private val TITLE = "TITLE"
         private val URL = "URL"
 
-        fun newInstance(id: String, title: String, url: String): DiffFragment {
-            return DiffFragment().apply {
+        fun newInstance(id: String, title: String, url: String): DetailsFragment {
+            return DetailsFragment().apply {
                 arguments = Bundle(3).apply {
                     putString(SITEID, id)
                     putString(TITLE, title)

@@ -5,14 +5,14 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
-import com.bernaferrari.changedetection.data.Diff;
 import com.bernaferrari.changedetection.data.Site;
+import com.bernaferrari.changedetection.data.Snap;
 
 /**
  * The Room Database that contains the Site table.
  * Inspired from Architecture Components MVVM sample app
  */
-@Database(entities = {Site.class, Diff.class}, version = 1, exportSchema = false)
+@Database(entities = {Site.class, Snap.class}, version = 1, exportSchema = false)
 public abstract class ChangeDatabase extends RoomDatabase {
 
     private static final Object sLock = new Object();
@@ -32,5 +32,5 @@ public abstract class ChangeDatabase extends RoomDatabase {
 
     public abstract SitesDao siteDao();
 
-    public abstract DiffsDao diffsDao();
+    public abstract SnapsDao snapsDao();
 }

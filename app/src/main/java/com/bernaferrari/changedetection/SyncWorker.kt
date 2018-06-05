@@ -6,10 +6,10 @@ import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.work.Worker
-import com.bernaferrari.changedetection.data.Diff
 import com.bernaferrari.changedetection.data.Site
-import com.bernaferrari.changedetection.data.source.DiffsDataSource
+import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SitesDataSource
+import com.bernaferrari.changedetection.data.source.SnapsDataSource
 import com.orhanobut.logger.Logger
 import io.karn.notify.Notify
 import kotlinx.coroutines.experimental.launch
@@ -72,11 +72,11 @@ class SyncWorker : Worker() {
 
         Injection.provideSitesRepository(this@SyncWorker.applicationContext).saveSite(newSite)
 
-        val diff = Diff(currentTime(), str.count(), item.id, str)
+        val snap = Snap(currentTime(), str.count(), item.id, str)
 
-        Injection.provideDiffsRepository(this@SyncWorker.applicationContext)
-            .saveDiff(diff, callback = object : DiffsDataSource.GetDiffCallback {
-                override fun onDiffLoaded(diff: Diff) {
+        Injection.provideSnapsRepository(this@SyncWorker.applicationContext)
+            .saveSnap(snap, callback = object : SnapsDataSource.GetSnapsCallback {
+                override fun onSnapsLoaded(snap: Snap) {
                     if (!item.isNotificationEnabled) {
                         return
                     }

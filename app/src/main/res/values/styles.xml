@@ -39,10 +39,6 @@
         <item name="mal_color_secondary">@color/FontWeak</item>
     </style>
 
-    <style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="android:windowBackground">@drawable/splashtest</item>
-    </style>
-
     <style name="ItemTitle">
         <item name="android:ellipsize">end</item>
         <item name="android:fontFamily">@font/work_medium</item>

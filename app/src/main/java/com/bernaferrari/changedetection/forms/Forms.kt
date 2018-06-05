@@ -1,10 +1,13 @@
 package com.bernaferrari.changedetection.forms
 
 import android.content.Context
+import android.support.v4.content.ContextCompat
 import android.text.InputType
+import android.widget.ImageView
 import com.bernaferrari.changedetection.R
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.google_material_typeface_library.GoogleMaterial
+import com.mikepenz.iconics.IconicsDrawable
 import com.mikepenz.iconics.typeface.IIcon
 import com.orhanobut.logger.Logger
 
@@ -37,7 +40,7 @@ object Forms {
     }
 
     internal fun saveData(
-        listOfItems: MutableList<FormSingleEditText>
+        listOfItems: MutableList<FormInputText>
     ): MutableMap<String, Any?> {
         return mutableMapOf<String, Any?>().apply {
             listOfItems.forEach { item ->
@@ -45,5 +48,18 @@ object Forms {
             }
             Logger.d("returning map: $this")
         }
+    }
+
+    internal fun setImage(image: ImageView, kind: String) {
+        Logger.d("icon kind: $kind")
+        val icon = Forms.getIcon(kind)
+        image.setImageDrawable(
+            IconicsDrawable(
+                image.context,
+                icon
+            ).color(
+                ContextCompat.getColor(image.context, R.color.FontWeaker)
+            ).sizeDp(20)
+        )
     }
 }
