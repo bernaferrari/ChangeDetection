@@ -52,7 +52,7 @@
 
     <string name="are_you_sure">Are you sure you want to remove %1s from %2s?</string>
     <string name="missing_internet">Error! Missing internet connection</string>
-    <string name="was_updated">%1s was updated!</string>
+    <string name="was_updated">Change detected on %1s!</string>
 
     <string name="url">Website Url</string>
     <string name="title">Title</string>
@@ -75,5 +75,6 @@
     <string name="open_2_in_browser">Open #2 in Browser</string>
 
     <string name="incorrect_url">Incorrect URL</string>
+    <string name="no_websites_being_monitored">No websites are being monitored</string>
 
 </resources>

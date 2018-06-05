@@ -110,7 +110,7 @@ class MainFragment : Fragment() {
                 }
 
                 setEmptyView(view.stateLayout.apply {
-                    setEmptyText("No websites are being monitored")
+                    setEmptyText(context.getString(R.string.no_websites_being_monitored))
                 }, this)
             }
         }
@@ -353,7 +353,9 @@ class MainFragment : Fragment() {
                 item.updateDiff(diff)
                 Toasty.success(
                     requireContext(),
-                    getString(R.string.was_updated, newSite.title)
+                    getString(
+                        R.string.was_updated,
+                        newSite.title?.takeIf { it.isNotBlank() } ?: newSite.url)
                 ).show()
 
                 sort()
@@ -517,7 +519,7 @@ class MainFragment : Fragment() {
     private fun incorrectUrl(url: String, listOfItems: MutableList<FormSingleEditText>) {
         if (!isCorrectUrl(url)) {
             listOfItems.first { it.kind == Forms.URL }.shakeIt()
-            Toasty.error(requireContext(), "Incorrect URL").show()
+            Toasty.error(requireContext(), getString(R.string.incorrect_url)).show()
         }
     }
 
