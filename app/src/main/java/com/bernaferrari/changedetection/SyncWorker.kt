@@ -83,7 +83,10 @@ class SyncWorker : Worker() {
 
                     Notify
                         .with(applicationContext)
-                        .header { this.icon = R.drawable.vector_sync }
+                        .header {
+                            this.icon = R.drawable.vector_sync
+                            this.color = item.colors.second
+                        }
                         .meta {
                             this.clickIntent = PendingIntent.getActivity(
                                 applicationContext, 0,

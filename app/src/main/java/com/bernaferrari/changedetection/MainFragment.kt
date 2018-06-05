@@ -51,7 +51,12 @@ class MainFragment : Fragment() {
     private var sitesList = mutableListOf<MainCardItem>()
     private var sitesSection = Section(sitesList)
 
-    val greyColor: Int by lazy { ContextCompat.getColor(requireActivity(), R.color.FontStrong) }
+    private val greyColor: Int by lazy {
+        ContextCompat.getColor(
+            requireActivity(),
+            R.color.FontStrong
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
