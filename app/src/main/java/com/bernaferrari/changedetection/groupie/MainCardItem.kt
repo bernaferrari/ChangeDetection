@@ -198,7 +198,7 @@ class MainCardItem(
     private fun changeCardToStandardColor(holder: ViewHolder, context: Context) {
         currentColor = "standard"
 
-        setImageBackgroundToColor(
+        updateRoundBackgrounds(
             color = site.colors.second,
             holder = holder
         )
@@ -219,7 +219,7 @@ class MainCardItem(
     private fun changeCardToGrey(holder: ViewHolder, context: Context) {
         currentColor = "grey"
 
-        setImageBackgroundToColor(
+        updateRoundBackgrounds(
             color = ContextCompat.getColor(
                 context,
                 R.color.md_grey_500
@@ -253,7 +253,7 @@ class MainCardItem(
     private fun changeCardToRed(holder: ViewHolder, context: Context) {
         currentColor = "red"
 
-        setImageBackgroundToColor(
+        updateRoundBackgrounds(
             color = ContextCompat.getColor(
                 context,
                 R.color.md_red_400
@@ -308,7 +308,7 @@ class MainCardItem(
         }
     }
 
-    private fun setImageBackgroundToColor(color: Int, holder: ViewHolder) {
+    private fun updateRoundBackgrounds(color: Int, holder: ViewHolder) {
         (holder.syncimage.background as GradientDrawable).setColor(color)
         (holder.radarimage.background as GradientDrawable).setColor(color)
     }
