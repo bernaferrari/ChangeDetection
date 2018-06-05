@@ -49,7 +49,7 @@
 
     <string name="remove_this">Remover %1s</string>
     <string name="missing_internet">Erro! Sem conexão com a internet</string>
-    <string name="was_updated">%1s foi atualizado!</string>
+    <string name="was_updated">Mudança detectada em %1s!</string>
 
     <string name="url">Link do Site</string>
     <string name="title">Título</string>
@@ -72,5 +72,6 @@
     <string name="open_2_in_browser">Abrir #2 in navegador</string>
 
     <string name="incorrect_url">Link errado</string>
+    <string name="no_websites_being_monitored">Nenhum site está sendo monitorado</string>
 
 </resources>
