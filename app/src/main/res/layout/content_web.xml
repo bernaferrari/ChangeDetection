@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.bernaferrari.changedetection.ui.PrettifyWebView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.bernaferrari.changedetection.ui.CustomWebView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/webview"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-</com.bernaferrari.changedetection.ui.PrettifyWebView>
+</com.bernaferrari.changedetection.ui.CustomWebView>

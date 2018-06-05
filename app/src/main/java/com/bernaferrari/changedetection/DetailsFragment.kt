@@ -27,8 +27,8 @@ import com.bernaferrari.changedetection.extensions.getPositionForAdapter
 import com.bernaferrari.changedetection.groupie.DialogItemSimple
 import com.bernaferrari.changedetection.groupie.DialogItemSwitch
 import com.bernaferrari.changedetection.groupie.TextRecycler
+import com.bernaferrari.changedetection.ui.CustomWebView
 import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
-import com.bernaferrari.changedetection.ui.PrettifyWebView
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
 import com.xwray.groupie.GroupAdapter
@@ -309,7 +309,7 @@ class DetailsFragment : Fragment() {
 
             launch(UI) {
                 putDataOnWebView(
-                    dialog.customView?.findViewById<PrettifyWebView>(
+                    dialog.customView?.findViewById<CustomWebView>(
                         R.id.webview
                     ),
                     snap.value
