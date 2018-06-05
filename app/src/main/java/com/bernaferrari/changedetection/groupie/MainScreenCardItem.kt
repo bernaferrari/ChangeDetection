@@ -183,16 +183,22 @@ class MainScreenCardItem(
         currentColor = "blue"
 
         setImageBackgroundToColor(
-            color = ContextCompat.getColor(
-                context,
-                R.color.md_blue_400
-            ),
+            color = site.colors.second,
             holder = holder,
             context = context
         )
 
-        holder.cardView.setCardBackgroundColor(0xff356bf8.toInt())
-        holder.reload.drawable.setTint(0xff356bf8.toInt())
+        val shape = GradientDrawable(
+            GradientDrawable.Orientation.TR_BL, intArrayOf(
+                site.colors.first, site.colors.second
+            )
+        )
+
+        val density = context.resources.displayMetrics.density
+        shape.cornerRadius = 8 * density
+        holder.cardView.background = shape
+
+        holder.reload.drawable.setTint(site.colors.first)
     }
 
     private fun changeCardToGrey(holder: ViewHolder, context: Context) {
@@ -207,12 +213,20 @@ class MainScreenCardItem(
             context = context
         )
 
-        holder.cardView.setCardBackgroundColor(
-            ContextCompat.getColor(
-                context,
-                R.color.md_grey_700
-            )
-        )
+        // This needed since setCardBackgroundColor stops working when we change the background
+        // drawable, and we need to change it for gradients to work. Also if we just edit the
+        // drawable, it will be changed elsewhere, so we need to allow mutation first.
+        holder.cardView.background =
+                ContextCompat.getDrawable(holder.cardView.context, R.drawable.full_round_corner)
+                    ?.mutate()
+                    ?.also {
+                        it.setTint(
+                            ContextCompat.getColor(
+                                context,
+                                R.color.md_grey_700
+                            )
+                        )
+                    }
 
         holder.reload.drawable.setTint(
             ContextCompat.getColor(
@@ -235,7 +249,16 @@ class MainScreenCardItem(
         )
 
         holder.reload.drawable.setTint(0xfff04a43.toInt())
-        holder.cardView.setCardBackgroundColor(0xfff04a43.toInt())
+
+        // This needed since setCardBackgroundColor stops working when we change the background
+        // drawable, and we need to change it for gradients to work. Also if we just edit the
+        // drawable, it will be changed elsewhere, so we need to allow mutation first.
+        holder.cardView.background =
+                ContextCompat.getDrawable(holder.cardView.context, R.drawable.full_round_corner)
+                    ?.mutate()
+                    ?.also {
+                        it.setTint(0xfff04a43.toInt())
+                    }
     }
 
     override fun unbind(holder: ViewHolder) {

@@ -29,6 +29,7 @@ import com.bernaferrari.changedetection.data.source.local.SiteAndLastDiff
 import com.bernaferrari.changedetection.forms.FormSingleEditText
 import com.bernaferrari.changedetection.forms.Forms
 import com.bernaferrari.changedetection.groupie.DialogItem
+import com.bernaferrari.changedetection.groupie.DialogItemColorRecycler
 import com.bernaferrari.changedetection.groupie.DialogItemTitle
 import com.bernaferrari.changedetection.groupie.MainScreenCardItem
 import com.bernaferrari.changedetection.ui.ListPaddingDecoration
@@ -384,7 +385,34 @@ class MainFragment : Fragment() {
             add(FormSingleEditText(item?.site?.title ?: "", getString(R.string.title), Forms.NAME))
         }
 
-        val materialdialogpiece = MaterialDialog.Builder(activity)
+        val errorOnLastSync = isInEditingMode && item?.site?.isSuccessful == false
+
+        val colorsList = GradientColors.getGradients()
+
+        val selectedColor = item?.site?.colors ?: colorsList.first()
+
+        val dialogItemTitle = when (isInEditingMode) {
+            true -> DialogItemTitle(
+                getString(R.string.edittitle),
+                getString(R.string.editsubtitle),
+                errorOnLastSync,
+                selectedColor
+            )
+            false ->
+                DialogItemTitle(
+                    getString(R.string.addtitle),
+                    getString(R.string.addsubtitle),
+                    false,
+                    selectedColor
+                )
+        }
+
+        val dialogItemColorPicker = DialogItemColorRecycler(selectedColor, colorsList) {
+            dialogItemTitle.gradientColors = it
+            dialogItemTitle.notifyChanged()
+        }
+
+        val materialDialog = MaterialDialog.Builder(activity)
             .customView(R.layout.default_recycler_grey_200, false)
             .negativeText(R.string.cancel)
             .positiveText("Save")
@@ -408,7 +436,8 @@ class MainFragment : Fragment() {
 
                         val updatedSite = item.site.copy(
                             title = newTitle,
-                            url = potentialUrl
+                            url = potentialUrl,
+                            colors = dialogItemTitle.gradientColors
                         )
 
                         // Update internally, i.e. what the user doesn't see
@@ -434,7 +463,12 @@ class MainFragment : Fragment() {
                         return@onPositive incorrectUrl(url, listOfItems)
                     }
 
-                    val site = mViewModel.saveSite(newTitle, url, mViewModel.currentTime())
+                    val site = mViewModel.saveSite(
+                        newTitle,
+                        url,
+                        mViewModel.currentTime(),
+                        dialogItemTitle.gradientColors
+                    )
                     // add and sort the card
                     val newItem = MainScreenCardItem(site, null, reloadCallback)
                     sitesList.add(newItem)
@@ -447,19 +481,17 @@ class MainFragment : Fragment() {
                 dialog.dismiss()
             }
 
-        val shouldTintOrange = isInEditingMode && item?.site?.isSuccessful == false
-
-        if (shouldTintOrange) {
+        if (errorOnLastSync) {
             // tint the dialog orange when there was an error on last sync
-            materialdialogpiece
+            materialDialog
                 .btnSelector(R.drawable.dialog_positive_button_orange, DialogAction.POSITIVE)
                 .negativeColorRes(R.color.md_deep_orange_A200)
         } else {
-            materialdialogpiece
+            materialDialog
                 .btnSelector(R.drawable.dialog_positive_button_indigo, DialogAction.POSITIVE)
         }
 
-        val materialdialog = materialdialogpiece.build()
+        val materialdialog = materialDialog.build()
 
         materialdialog.customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.run {
             this.overScrollMode = View.OVER_SCROLL_NEVER
@@ -471,24 +503,9 @@ class MainFragment : Fragment() {
                 )
             )
             this.adapter = GroupAdapter<ViewHolder>().apply {
-                when (isInEditingMode) {
-                    true -> add(
-                        DialogItemTitle(
-                            getString(R.string.edittitle),
-                            getString(R.string.editsubtitle),
-                            shouldTintOrange
-                        )
-                    )
-                    false -> add(
-                        DialogItemTitle(
-                            getString(R.string.addtitle),
-                            getString(R.string.addsubtitle),
-                            false
-                        )
-                    )
-                }
-
+                add(dialogItemTitle)
                 add(Section(listOfItems))
+                add(dialogItemColorPicker)
             }
         }
 

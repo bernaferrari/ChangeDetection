@@ -38,8 +38,13 @@ class MainViewModel(
     }
 
     // Called when clicking on fab.
-    internal fun saveSite(title: String, url: String, timestamp: Long): Site {
-        val site = Site(title, url, timestamp)
+    internal fun saveSite(
+        title: String,
+        url: String,
+        timestamp: Long,
+        colors: Pair<Int, Int>
+    ): Site {
+        val site = Site(title, url, timestamp, colors)
 
         mSitesRepository.saveSite(site)
         return site
