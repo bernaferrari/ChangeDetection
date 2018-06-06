@@ -15,11 +15,11 @@ import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.SimpleItemAnimator
-import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.core.content.edit
 import androidx.core.os.bundleOf
 import androidx.navigation.Navigation
 import androidx.work.State
@@ -28,6 +28,7 @@ import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.local.SiteAndLastSnap
+import com.bernaferrari.changedetection.extensions.isValidUrl
 import com.bernaferrari.changedetection.forms.FormInputText
 import com.bernaferrari.changedetection.forms.Forms
 import com.bernaferrari.changedetection.groupie.ColorPickerRecyclerViewItem
@@ -278,7 +279,7 @@ class MainFragment : Fragment() {
         }
         if (result.firstOrNull()?.state == State.SUCCEEDED) {
             mViewModel.updateItems()
-            Toasty.success(requireContext(), "Result has succeded").show()
+            Logger.d("Just refreshed")
         }
     }
 
@@ -341,7 +342,7 @@ class MainFragment : Fragment() {
         launch {
             val strFetched = WorkerHelper.fetchFromServer(item.site)
             if (strFetched != null) {
-                launch(UI) { subscribe(strFetched, item) }
+                launch(UI) { updateSiteAndSnap(strFetched, item) }
             } else {
                 // This will happen when internet connection is missing
                 launch(UI) {
@@ -353,7 +354,7 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun subscribe(str: String, item: MainCardItem) {
+    private fun updateSiteAndSnap(str: String, item: MainCardItem) {
         Logger.d("count size -> ${str.count()}")
 
         val newSite = item.site.copy(
@@ -362,22 +363,28 @@ class MainFragment : Fragment() {
         )
         mViewModel.updateSite(newSite)
 
-        val snap = Snap(mViewModel.currentTime(), str.count(), item.site.id, str)
+        val snap = Snap(newSite.timestamp, str.count(), item.site.id, str)
         mViewModel.saveWebsite(snap).observe(this, Observer {
             item.update(newSite)
 
-            if (it == true) {
-                Logger.d("Snap: " + snap.snapId)
-                item.update(snap)
+            if (it != true) {
+                return@Observer
+            }
+
+            Logger.d("Snap: " + snap.snapId)
+
+            if (item.lastMinimalSnap != null) {
+                // Only show this toast when there was a change, which means, not on the first sync.
                 Toasty.success(
                     requireContext(),
                     getString(
                         R.string.was_updated,
                         newSite.title?.takeIf { it.isNotBlank() } ?: newSite.url)
                 ).show()
-
-                sort()
             }
+
+            item.update(snap)
+            sort()
         })
     }
 
@@ -439,15 +446,16 @@ class MainFragment : Fragment() {
             .positiveColor(Color.WHITE)
             .onNegative { dialog, _ -> dialog.dismiss() }
             .onPositive { dialog, _ ->
-                val fromForm = Forms.saveData(listOfItems)
-                Logger.d(fromForm)
 
+                // This was adapted from an app which was using NoSql. Not the best syntax, but
+                // can be adapted for any scenario, kind of a
+                // Eureka (https://github.com/xmartlabs/Eureka) for Android.
+                val fromForm = Forms.saveData(listOfItems)
                 val newTitle = fromForm[Forms.NAME] as? String ?: ""
                 val potentialUrl = fromForm[Forms.URL] as? String ?: ""
 
                 if (isInEditingMode && item != null) {
-                    if (!isCorrectUrl(potentialUrl)) {
-                        incorrectUrl(potentialUrl, listOfItems)
+                    if (isUrlWrong(potentialUrl, listOfItems)) {
                         return@onPositive
                     }
 
@@ -473,13 +481,13 @@ class MainFragment : Fragment() {
                 } else {
                     // Some people will forget to put the http:// on the url, so this is going to help them.
                     // This is going to be absolutely sure the current url is invalid, before adding http:// before it.
-                    val url = if (!isCorrectUrl(potentialUrl)) {
+                    val url = if (!potentialUrl.isValidUrl()) {
                         "http://$potentialUrl"
                     } else potentialUrl
 
                     // If even after this it is still invalid, we wiggle
-                    if (!isCorrectUrl(url)) {
-                        return@onPositive incorrectUrl(url, listOfItems)
+                    if (isUrlWrong(url, listOfItems)) {
+                        return@onPositive
                     }
 
                     val site = mViewModel.saveSite(
@@ -497,6 +505,30 @@ class MainFragment : Fragment() {
                     reload(newItem, true)
                 }
                 dialog.dismiss()
+
+                val sharedPrefs = Application.instance!!.sharedPrefs("workerPreferences")
+                // when list size is 1 or 2, warn the user that background sync is off
+                if (!isInEditingMode && sitesList.size < 3 && !sharedPrefs.getBoolean(
+                        "backgroundSync",
+                        false
+                    )
+                ) {
+                    MaterialDialog.Builder(activity)
+                        .title(R.string.turn_on_background_sync_title)
+                        .content(R.string.turn_on_background_sync_content)
+                        .negativeText(R.string.no)
+                        .positiveText(R.string.yes)
+                        .positiveColor(Color.WHITE)
+                        .btnSelector(
+                            R.drawable.dialog_positive_button_indigo,
+                            DialogAction.POSITIVE
+                        )
+                        .onPositive { _, _ ->
+                            sharedPrefs.edit { putBoolean("backgroundSync", true) }
+                            WorkerHelper.updateWorkerWithConstraints(sharedPrefs)
+                        }
+                        .show()
+                }
             }
 
         if (errorOnLastSync) {
@@ -532,18 +564,13 @@ class MainFragment : Fragment() {
         materialdialog.show()
     }
 
-    private fun incorrectUrl(url: String, listOfItems: MutableList<FormInputText>) {
-        if (!isCorrectUrl(url)) {
+    private fun isUrlWrong(url: String, listOfItems: MutableList<FormInputText>): Boolean {
+        if (!url.isValidUrl()) {
             listOfItems.first { it.kind == Forms.URL }.shakeIt()
             Toasty.error(requireContext(), getString(R.string.incorrect_url)).show()
+            return true
         }
-    }
-
-    private fun isCorrectUrl(potentialUrl: String): Boolean {
-        // first one will not catch links without http:// before them.
-        return Patterns.WEB_URL.matcher(potentialUrl).matches() && potentialUrl.toLowerCase().matches(
-            "^\\w+://.*".toRegex()
-        )
+        return false
     }
 
     private fun obtainViewModel(activity: FragmentActivity): MainViewModel {

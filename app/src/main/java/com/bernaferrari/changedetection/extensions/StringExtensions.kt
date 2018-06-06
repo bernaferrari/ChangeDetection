@@ -1,5 +1,7 @@
 package com.bernaferrari.changedetection.extensions
 
+import android.util.Patterns
+
 fun String.cleanUpHtml(): String {
     return this.replaceScriptTag().replaceStyleTag().replaceLinkTag().replaceMetaTag()
 }
@@ -26,4 +28,12 @@ fun String.replaceLinkTag(): String {
 // From https://stackoverflow.com/a/29888314/4418073
 fun String.replaceMetaTag(): String {
     return this.replace("</?meta(?:(?= )[^>]*)?>".toRegex(), "")
+}
+
+// verify if a url is valid
+fun String.isValidUrl(): Boolean {
+    // first one will not catch links without http:// before them.
+    return Patterns.WEB_URL.matcher(this).matches() && this.toLowerCase().matches(
+        "^\\w+://.*".toRegex()
+    )
 }
