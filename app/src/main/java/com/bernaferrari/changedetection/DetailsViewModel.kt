@@ -74,7 +74,8 @@ class DetailsViewModel(
                 mutableList.sortBy { it.index }
 
                 launch(UI) {
-                    if (showNotEnoughtInfoError.value == false && mutableList.isEmpty()) {
+                    // this way it captures if showNotEnoughtInfoError is null or false
+                    if (showNotEnoughtInfoError.value != true && mutableList.isEmpty()) {
                         showNoChangesDetectedError.call()
                     }
 
@@ -116,12 +117,12 @@ class DetailsViewModel(
      * @param newId The newest id to be fetched.
      * @return a pair of diffs
      */
-    suspend fun getSnap(snapId: String): Snap = suspendCoroutine { cont ->
+    suspend fun getSnapValue(snapId: String): String = suspendCoroutine { cont ->
         mDiffsRepository.getSnap(
             snapId,
             object : SnapsDataSource.GetSnapsCallback {
                 override fun onSnapsLoaded(snap: Snap) {
-                    cont.resume(snap)
+                    cont.resume(snap.value)
                 }
 
                 override fun onDataNotAvailable() = cont.resumeWithException(NullPointerException())
