@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.support.design.widget.BottomSheetDialog
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
@@ -36,8 +37,8 @@ import com.xwray.groupie.Item
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
 import es.dmoral.toasty.Toasty
-import kotlinx.android.synthetic.main.details_fragment.*
-import kotlinx.android.synthetic.main.state_layout.*
+import kotlinx.android.synthetic.main.details_fragment.view.*
+import kotlinx.android.synthetic.main.state_layout.view.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
@@ -52,22 +53,27 @@ class DetailsFragment : Fragment() {
         fun onLongClickListener(item: RecyclerView.ViewHolder)
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        super.onCreateView(inflater, container, savedInstanceState)
+        val view = inflater.inflate(R.layout.details_fragment, container, false)
 
         model = obtainViewModel(requireActivity())
 
-        closecontent.setOnClickListener { dismiss() }
-        titlecontent.text = arguments?.getString(TITLE) ?: ""
+        view.closecontent.setOnClickListener { dismiss() }
+        view.titlecontent.text = arguments?.getString(TITLE) ?: ""
 
-        this.elastic.addListener(object :
+        view.elastic.addListener(object :
             ElasticDragDismissFrameLayout.ElasticDragDismissCallback() {
             override fun onDragDismissed() {
                 view?.let { Navigation.findNavController(it).navigateUp() }
             }
         })
 
-        val state = stateLayout
+        val state = view.stateLayout
         state.apply {
             showLoading()
         }
@@ -92,7 +98,7 @@ class DetailsFragment : Fragment() {
 
         val siteId = arguments?.getString(SITEID) ?: ""
 
-        topRecycler.run {
+        view.topRecycler.run {
             layoutManager = LinearLayoutManager(context)
 
             setEmptyView(state)
@@ -142,7 +148,7 @@ class DetailsFragment : Fragment() {
         // Create adapter for the RecyclerView
         val adapter = DetailsAdapter(recyclerListener)
 
-        bottomRecycler.run {
+        view.bottomRecycler.run {
             this.adapter = adapter
             this.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             itemAnimator = this.itemAnimator.apply {
@@ -182,11 +188,11 @@ class DetailsFragment : Fragment() {
             }
         })
 
-        closecontent.setOnClickListener {
+        view.closecontent.setOnClickListener {
             dismiss()
         }
 
-        settings.run {
+        view.settings.run {
             setImageDrawable(
                 IconicsDrawable(context, CommunityMaterial.Icon.cmd_dots_vertical)
                     .color(ContextCompat.getColor(requireContext(), R.color.dark_icon))
@@ -205,9 +211,12 @@ class DetailsFragment : Fragment() {
             }
 
             setOnClickListener {
-                val materialdialog = MaterialDialog.Builder(this.context)
-                    .customView(R.layout.recyclerview, false)
-                    .build()
+
+                val customView =
+                    layoutInflater.inflate(R.layout.recyclerview, view as ViewGroup, false)
+
+                val materialdialog = BottomSheetDialog(requireContext())
+                materialdialog.setContentView(customView)
 
                 val updating = mutableListOf<Item<out ViewHolder>>()
 
@@ -246,7 +255,7 @@ class DetailsFragment : Fragment() {
                 updating += DialogItemSimple(
                     getString(R.string.open_1_in_browser),
                     IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference_ba).color(
-                        ContextCompat.getColor(context, R.color.md_amber_500)
+                        ContextCompat.getColor(context, R.color.md_orange_500)
                     ),
                     "first"
                 )
@@ -254,7 +263,7 @@ class DetailsFragment : Fragment() {
                 updating += DialogItemSimple(
                     getString(R.string.open_2_in_browser),
                     IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference_ab).color(
-                        ContextCompat.getColor(context, R.color.md_orange_500)
+                        ContextCompat.getColor(context, R.color.md_amber_500)
                     ),
                     "second"
                 )
@@ -263,7 +272,7 @@ class DetailsFragment : Fragment() {
                     add(Section(updating))
                 }
 
-                materialdialog.customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.run {
+                customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.run {
                     this.adapter = groupAdapter
                     this.layoutManager = LinearLayoutManager(requireContext())
                 }
@@ -294,14 +303,16 @@ class DetailsFragment : Fragment() {
                 materialdialog.show()
             }
         }
+
+        return view
     }
 
     private fun fetchAndOpenOnWebView(adapter: DetailsAdapter, dialog: MaterialDialog, color: Int) {
         val position = adapter.colorSelected.getPositionForAdapter(color) ?: return
 
         launch {
-            val snap =
-                model.getSnap(
+            val snapValue =
+                model.getSnapValue(
                     adapter.getItemFromAdapter(
                         position
                     )?.snapId ?: return@launch
@@ -312,7 +323,7 @@ class DetailsFragment : Fragment() {
                     dialog.customView?.findViewById<CustomWebView>(
                         R.id.webview
                     ),
-                    snap.value
+                    snapValue
                 )
             }
         }
@@ -328,15 +339,6 @@ class DetailsFragment : Fragment() {
 
     private fun putDataOnWebView(webView: WebView?, data: String) {
         webView?.loadDataWithBaseURL("", data, "text/html", "UTF-8", "")
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        super.onCreateView(inflater, container, savedInstanceState)
-        return inflater.inflate(R.layout.details_fragment, container, false)
     }
 
     private fun dismiss() {
