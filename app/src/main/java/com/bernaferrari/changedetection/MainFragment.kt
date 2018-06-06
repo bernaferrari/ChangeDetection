@@ -41,6 +41,7 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
 import es.dmoral.toasty.Toasty
+import kotlinx.android.synthetic.main.main_fragment.*
 import kotlinx.android.synthetic.main.main_fragment.view.*
 import kotlinx.android.synthetic.main.state_layout.view.*
 import kotlinx.coroutines.experimental.android.UI
@@ -370,7 +371,7 @@ class MainFragment : Fragment() {
     }
 
     private fun sort() {
-        sitesList.sortWith(compareByDescending<MainCardItem> { it.site.isSyncEnabled }.thenBy { it.lastMinimalSnap?.timestamp })
+        sitesList.sortWith(compareByDescending<MainCardItem> { it.site.isSyncEnabled }.thenByDescending { it.lastMinimalSnap?.timestamp })
         sitesSection.update(sitesList)
     }
 
@@ -479,10 +480,9 @@ class MainFragment : Fragment() {
                     val newItem = MainCardItem(site, null, reloadCallback)
                     sitesList.add(newItem)
                     sitesSection.update(sitesList)
+                    // Scroll down, so user can see there is a new item.
+                    defaultRecycler.smoothScrollToPosition(sitesList.size - 1)
                     reload(newItem, true)
-                    // It is putting the new item on the last position before refreshing.
-                    // This is not good UX since user won't know it is there, specially when
-                    // the url results in error.
                 }
                 dialog.dismiss()
             }
