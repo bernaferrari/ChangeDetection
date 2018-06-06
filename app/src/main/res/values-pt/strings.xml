@@ -56,6 +56,9 @@
     <string name="url">Link do Site</string>
     <string name="title">Título</string>
 
+    <string name="turn_on_background_sync_title">Ativar sincronização automática</string>
+    <string name="turn_on_background_sync_content">Sincronização automática está desativada. Gostaria de ativar ela? Você pode mudar as opções nas Configurações</string>
+
     <string name="background_sync">Sincronização automática</string>
     <string name="sync_interval">Intervalo da Sincronização</string>
 

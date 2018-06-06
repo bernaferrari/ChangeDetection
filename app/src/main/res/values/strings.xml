@@ -59,6 +59,8 @@
     <string name="title">Title</string>
 
     <string name="wifi_on">Wifi On</string>
+    <string name="turn_on_background_sync_title">Turn on background sync</string>
+    <string name="turn_on_background_sync_content">Background sync is turned off. Would you like to turn it on? You can customize it on Settings</string>
     <string name="background_sync">Background Sync</string>
     <string name="sync_interval">Sync Interval</string>
 
