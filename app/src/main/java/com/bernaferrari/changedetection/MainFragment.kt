@@ -382,7 +382,8 @@ class MainFragment : Fragment() {
     }
 
     private fun sort() {
-        sitesList.sortWith(compareByDescending<MainCardItem> { it.site.isSyncEnabled }.thenByDescending { it.lastMinimalSnap?.timestamp })
+        // sort by active/inactive, then by timestamp of the last snapshot, then by item title, and if they are still the same, by the url
+        sitesList.sortWith(compareByDescending<MainCardItem> { it.site.isSyncEnabled }.thenByDescending { it.lastMinimalSnap?.timestamp }.thenBy { it.site.title }.thenBy { it.site.url })
         sitesSection.update(sitesList)
     }
 
