@@ -4,13 +4,14 @@
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/md_grey_500</item>
-        <item name="colorAccent">@color/atlasianblue</item>
+        <item name="colorAccent">@color/md_indigo_A200</item>
 
         <item name="android:windowBackground">@color/windowBackground</item>
     </style>
 
     <!--https://gist.github.com/ArthurNagy/1c4a64e6c8a7ddfca58638a9453e4aed-->
     <style name="BottomSheetDialogTheme" parent="BaseBottomSheetDialog">
+        <item name="colorAccent">@color/md_blue_A400</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@color/white</item>
     </style>

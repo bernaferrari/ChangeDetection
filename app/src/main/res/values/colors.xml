@@ -16,7 +16,6 @@
     <!--Atlasian window background: #F4F7F9-->
 
     <color name="atlasiandark">#253858</color>
-    <!--<color name="atlasianblue">#2a50cc</color>-->
     <color name="atlasianblue">#2a50cc</color>
     <color name="goooglephotosblue">#4285f4</color>
     <color name="goooglephotoswhite">#ccFFFFFF</color>
