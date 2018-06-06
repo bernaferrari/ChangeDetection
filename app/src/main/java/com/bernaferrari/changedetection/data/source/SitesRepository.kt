@@ -11,7 +11,7 @@ import com.bernaferrari.changedetection.data.source.local.SiteAndLastSnap
  * obtained from the server, by using the remote data source only if the local database doesn't
  * exist or is empty.
  *
- * //TODO: Implement this class using LiveData.
+ * TODO: Implement this class using LiveData.
  *
  * Inspired from Architecture Components MVVM sample app
  */
@@ -28,14 +28,6 @@ private constructor(
         }
     }
 
-    /**
-     * Gets sites from cache, local data source (SQLite) or remote data source, whichever is
-     * available first.
-     *
-     *
-     * Note: [LoadTasksCallback.onDataNotAvailable] is fired if all data sources fail to
-     * get the data.
-     */
     override fun getSites(callback: SitesDataSource.LoadSitesCallback) {
         checkNotNull(callback)
 
@@ -91,13 +83,6 @@ private constructor(
 
     override fun deleteSite(siteId: String) {
         mSitesLocalDataSource.deleteSite(checkNotNull(siteId))
-    }
-
-    private fun refreshLocalDataSource(sites: List<Site>) {
-        mSitesLocalDataSource.deleteAllSites()
-        for (site in sites) {
-            mSitesLocalDataSource.saveSite(site)
-        }
     }
 
     companion object {
