@@ -32,6 +32,7 @@
     <string name="addsubtitle">Add a website to be tracked</string>
 
     <string name="edit">Edit</string>
+    <string name="open_in_browser">Open in browser</string>
     <string name="sync_disable">Disable sync</string>
     <string name="sync_enable">Enable sync</string>
 

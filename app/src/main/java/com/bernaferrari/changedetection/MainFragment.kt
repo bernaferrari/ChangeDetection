@@ -3,7 +3,9 @@ package com.bernaferrari.changedetection
 import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
 import android.support.v4.app.Fragment
@@ -173,6 +175,12 @@ class MainFragment : Fragment() {
             "edit"
         )
 
+        updating += DialogItemSimple(
+            getString(R.string.open_in_browser),
+            IconicsDrawable(context, CommunityMaterial.Icon.cmd_google_chrome).color(greyColor),
+            "openInBrowser"
+        )
+
 //        Code is working but this isn't the right moment to put it.
 //        launch {
 //            val minimalDiffs = mViewModel.getRecentMinimalSnaps(item.site.id)
@@ -234,6 +242,9 @@ class MainFragment : Fragment() {
                             context,
                             item as? MainCardItem
                         )
+                        "openInBrowser" -> {
+                            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(item.site.url)))
+                        }
                         "isSyncEnabled" -> {
                             item.site.copy(isSyncEnabled = !item.site.isSyncEnabled).run {
                                 mViewModel.updateSite(this)
