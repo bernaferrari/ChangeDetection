@@ -91,6 +91,7 @@ To avoid OOM error once and for all, Paging was implemented. To make things even
   * [ThreeTenABP][11] for dealing with time in a Java 8 way.
   * [timeago][12] makes it easy display relative dates (i.e. 1 day ago).
   * [Toasty][13] show toasts in a colorful way.
+  * [RxJava][14] responsible for coordinating the reload button animation and updating the text on main screen cards periodically.
 
 [1]: https://github.com/mikepenz/Android-Iconics
 [2]: https://developer.android.com/topic/libraries/architecture/
@@ -105,6 +106,7 @@ To avoid OOM error once and for all, Paging was implemented. To make things even
 [11]: https://github.com/JakeWharton/ThreeTenABP
 [12]: https://github.com/marlonlom/timeago
 [13]: https://github.com/GrenderG/Toasty
+[14]: https://github.com/ReactiveX/RxJava
 
 
 ### Reporting Issues
