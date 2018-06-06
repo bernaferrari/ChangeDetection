@@ -65,13 +65,13 @@ interface SnapsDao {
     fun getLastSnapsSize(siteId: String): List<Int>?
 
     /**
-     * Select the most recent minimalSnap by siteId
+     * Select the most recent snap value by siteId
      *
      * @param snapId the minimalSnap id.
      * @return the minimalSnap with snapId.
      */
-    @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 1")
-    fun getLastSnapForSiteId(siteId: String): Snap?
+    @Query("SELECT value FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 1")
+    fun getLastSnapValueForSiteId(siteId: String): String?
 
     /**
      * Get all snaps

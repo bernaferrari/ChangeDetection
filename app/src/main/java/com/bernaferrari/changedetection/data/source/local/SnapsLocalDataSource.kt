@@ -87,13 +87,13 @@ private constructor(
 
     override fun saveSnap(snap: Snap, callback: SnapsDataSource.GetSnapsCallback) {
         val saveRunnable = Runnable {
-            val getDiffByid = mSnapsDao.getLastSnapForSiteId(snap.siteId)
+            val lastSnapValue = mSnapsDao.getLastSnapValueForSiteId(snap.siteId)
 
             // Uncomment for testing.
             // mSnapsDao.insertSnap(minimalSnap.copy(value = minimalSnap.value.plus(UUID.randomUUID().toString())))
             val wasSuccessful =
-                if (snap.value.isNotBlank() && getDiffByid?.value?.cleanUpHtml() != snap.value.cleanUpHtml()) {
-                    Logger.d("Difference detected! Size went from ${getDiffByid?.value?.count()} to ${snap.value.count()}")
+                if (snap.value.isNotBlank() && lastSnapValue?.cleanUpHtml() != snap.value.cleanUpHtml()) {
+                    Logger.d("Difference detected! Size went from ${lastSnapValue?.count()} to ${snap.value.count()}")
                     mSnapsDao.insertSnap(snap)
                     true
                 } else {

@@ -70,7 +70,7 @@ class SyncWorker : Worker() {
             isSuccessful = !(str.count() == 0 || str.isBlank())
         )
 
-        Injection.provideSitesRepository(this@SyncWorker.applicationContext).saveSite(newSite)
+        Injection.provideSitesRepository(this@SyncWorker.applicationContext).updateSite(newSite)
 
         val snap = Snap(currentTime(), str.count(), item.id, str)
 
