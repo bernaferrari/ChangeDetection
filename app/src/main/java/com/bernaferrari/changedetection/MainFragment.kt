@@ -31,10 +31,7 @@ import com.bernaferrari.changedetection.data.source.local.SiteAndLastSnap
 import com.bernaferrari.changedetection.extensions.isValidUrl
 import com.bernaferrari.changedetection.forms.FormInputText
 import com.bernaferrari.changedetection.forms.Forms
-import com.bernaferrari.changedetection.groupie.ColorPickerRecyclerViewItem
-import com.bernaferrari.changedetection.groupie.DialogItemSimple
-import com.bernaferrari.changedetection.groupie.DialogItemTitle
-import com.bernaferrari.changedetection.groupie.MainCardItem
+import com.bernaferrari.changedetection.groupie.*
 import com.bernaferrari.changedetection.ui.ListPaddingDecoration
 import com.bernaferrari.changedetection.util.GradientColors
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
@@ -135,14 +132,48 @@ class MainFragment : Fragment() {
         }
 
         groupAdapter.setOnItemClickListener { item, _ ->
-            if (item is MainCardItem) {
-                val bundle = bundleOf(
-                    "SITEID" to item.site.id,
-                    "TITLE" to item.site.title,
-                    "URL" to item.site.url
-                )
-                Navigation.findNavController(view)
-                    .navigate(R.id.action_mainFragment_to_openFragment, bundle)
+
+            if (item !is MainCardItem) {
+                return@setOnItemClickListener
+            }
+
+            val customView =
+                layoutInflater.inflate(R.layout.recyclerview, view!!.parentLayout, false)
+
+            val bottomSheet = BottomSheetDialog(requireContext()).apply {
+                setContentView(customView)
+                show()
+            }
+
+            customView.findViewById<RecyclerView>(R.id.defaultRecycler).run {
+                adapter = GroupAdapter<ViewHolder>().apply {
+                    add(Section(LoadingItem()))
+                }
+            }
+
+
+            launch {
+                val contentTypes = mViewModel.getRecentContentTypes(item.site.id)
+                if (contentTypes.size > 3) {
+
+                } else {
+                    val bundle = bundleOf(
+                        "SITEID" to item.site.id,
+                        "TITLE" to item.site.title,
+                        "URL" to item.site.url
+                    )
+
+                    launch(UI) {
+                        bottomSheet.dismiss()
+                        if (contentTypes.first().split("/").first() == "image") {
+                            Navigation.findNavController(view)
+                                .navigate(R.id.action_mainFragment_to_imageCarouselFragment, bundle)
+                        } else {
+                            Navigation.findNavController(view)
+                                .navigate(R.id.action_mainFragment_to_openFragment, bundle)
+                        }
+                    }
+                }
             }
         }
 
@@ -157,9 +188,9 @@ class MainFragment : Fragment() {
 
         val customView =
             layoutInflater.inflate(R.layout.recyclerview, view!!.parentLayout, false)
-        val materialdialog = BottomSheetDialog(requireContext())
-        materialdialog.setContentView(customView)
-        materialdialog.show()
+        val bottomSheet = BottomSheetDialog(requireContext())
+        bottomSheet.setContentView(customView)
+        bottomSheet.show()
 
         val chart = Section()
         val updating = mutableListOf<DialogItemSimple>()
@@ -184,7 +215,7 @@ class MainFragment : Fragment() {
 
 //        Code is working but this isn't the right moment to put it.
 //        launch {
-//            val minimalDiffs = mViewModel.getRecentMinimalSnaps(item.site.id)
+//            val minimalDiffs = mViewModel.getRecentMinimalSnaps(item.site.url)
 //            if (minimalDiffs != null && minimalDiffs.size > 2){
 //                val chartItem = ItemChart(minimalDiffs, item.site.isSuccessful)
 //                launch (UI) { chart.update(mutableListOf(chartItem)) }
@@ -264,7 +295,7 @@ class MainFragment : Fragment() {
                         "fetchFromServer" -> reload(item, true)
                         "remove" -> removeMy(item)
                     }
-                    materialdialog.dismiss()
+                    bottomSheet.dismiss()
                 }
             }
         }

@@ -23,6 +23,8 @@ import android.arch.lifecycle.ViewModelProvider
 import android.support.annotation.VisibleForTesting
 import com.bernaferrari.changedetection.data.source.SitesRepository
 import com.bernaferrari.changedetection.data.source.SnapsRepository
+import com.bernaferrari.changedetection.screenDiffImage.ImageViewModel
+import com.bernaferrari.changedetection.screenDiffText.TextViewModel
 
 /**
  * A creator is used to inject the product ID into the ViewModel
@@ -38,12 +40,22 @@ class ViewModelFactory private constructor(
 ) : ViewModelProvider.NewInstanceFactory() {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-            return MainViewModel(mApplication, mSnapsRepository, mSitesRepository) as T
-        } else if (modelClass.isAssignableFrom(DetailsViewModel::class.java)) {
-            return DetailsViewModel(mApplication, mSnapsRepository) as T
+        return when {
+            modelClass.isAssignableFrom(MainViewModel::class.java) -> MainViewModel(
+                mApplication,
+                mSnapsRepository,
+                mSitesRepository
+            ) as T
+            modelClass.isAssignableFrom(TextViewModel::class.java) -> TextViewModel(
+                mApplication,
+                mSnapsRepository
+            ) as T
+            modelClass.isAssignableFrom(ImageViewModel::class.java) -> ImageViewModel(
+                mApplication,
+                mSnapsRepository
+            ) as T
+            else -> throw IllegalArgumentException("Unknown ViewModel class: " + modelClass.name)
         }
-        throw IllegalArgumentException("Unknown ViewModel class: " + modelClass.name)
     }
 
     companion object {

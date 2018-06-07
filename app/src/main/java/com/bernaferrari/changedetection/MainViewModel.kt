@@ -68,14 +68,18 @@ class MainViewModel(
         return didItWork
     }
 
+    suspend fun getRecentContentTypes(siteId: String): List<String> = suspendCoroutine { cont ->
+        mSitesRepository.getLastFewContentTypes(
+            siteId
+        ) {
+            cont.resume(it)
+        }
+    }
+
     suspend fun getRecentMinimalSnaps(siteId: String): List<Int>? = suspendCoroutine { cont ->
-        mSnapsRepository.getMostRecentMinimalSnaps(
-            siteId,
-            object : SnapsDataSource.GetMinimalSnapCallback {
-                override fun onLoaded(intList: List<Int>?) {
-                    cont.resume(intList)
-                }
-            })
+        mSnapsRepository.getMostRecentMinimalSnaps(siteId) {
+            cont.resume(it)
+        }
     }
 
     internal fun updateSite(site: Site) {

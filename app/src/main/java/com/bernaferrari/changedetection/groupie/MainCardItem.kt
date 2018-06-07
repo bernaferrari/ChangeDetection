@@ -12,9 +12,9 @@ import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.data.MinimalSnap
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.Snap
+import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.onAnimationEnd
-import com.github.marlonlom.utilities.timeago.TimeAgo
-import com.github.marlonlom.utilities.timeago.TimeAgoMessages
+import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.orhanobut.logger.Logger
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
@@ -22,8 +22,6 @@ import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.main_item_card.*
-import java.text.DecimalFormat
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 /**
@@ -284,9 +282,9 @@ class MainCardItem(
 
     private fun setLastSync(holder: ViewHolder) {
         holder.lastsync.text = if (status == SYNC.ERROR) {
-            getTimeAgo(site.timestamp) + " – " + holder.lastsync.context.getString(R.string.error)
+            site.timestamp.convertTimestampToDate() + " – " + holder.lastsync.context.getString(R.string.error)
         } else {
-            getTimeAgo(site.timestamp) + " – ${readableFileSize(lastMinimalSnap?.contentSize ?: 0)}"
+            site.timestamp.convertTimestampToDate() + " – ${lastMinimalSnap?.contentSize?.readableFileSize()}"
         }
 
         siteDisposable?.dispose()
@@ -300,8 +298,8 @@ class MainCardItem(
             // if "last" snapshot was null, there is not a single snapshot for this site
             holder.lastradar.text = holder.lastradar.context.getString(R.string.nothing_yet)
         } else {
-            Logger.d("id: ${lastMinimalSnap?.snapId} ts: ${lastMinimalSnap?.timestamp}")
-            holder.lastradar.text = getTimeAgo(lastMinimalSnap?.timestamp)
+            Logger.d("url: ${lastMinimalSnap?.snapId} ts: ${lastMinimalSnap?.timestamp}")
+            holder.lastradar.text = lastMinimalSnap?.timestamp?.convertTimestampToDate()
             diffDisposable?.dispose()
             diffDisposable = generateTimerDisposable(lastMinimalSnap?.timestamp ?: 0).subscribe {
                 setLastDiff(holder)
@@ -312,14 +310,6 @@ class MainCardItem(
     private fun updateRoundBackgrounds(color: Int, holder: ViewHolder) {
         (holder.syncimage.background as GradientDrawable).setColor(color)
         (holder.radarimage.background as GradientDrawable).setColor(color)
-    }
-
-    private fun getTimeAgo(timestamp: Long?): String {
-        if (timestamp == null) {
-            return ""
-        }
-        val messages = TimeAgoMessages.Builder().withLocale(Locale.getDefault()).build()
-        return TimeAgo.using(timestamp, messages)
     }
 
     private fun startProgress(holder: ViewHolder) {
@@ -376,19 +366,6 @@ class MainCardItem(
                     it.onComplete()
                 }
         }
-    }
-
-    // converts a size in bytes into a readable format
-    private fun readableFileSize(size: Int): String {
-        if (size <= 0) return "EMPTY"
-        val units = arrayOf("B", "kB", "MB", "GB", "TB")
-        val digitGroups = (Math.log10(size.toDouble()) / Math.log10(1024.0)).toInt()
-        return DecimalFormat("#,##0.#").format(
-            size / Math.pow(
-                1024.0,
-                digitGroups.toDouble()
-            )
-        ) + " " + units[digitGroups]
     }
 
     /**

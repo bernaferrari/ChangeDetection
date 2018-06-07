@@ -20,6 +20,12 @@ private constructor(
     sitesLocalDataSource: SitesDataSource
 ) : SitesDataSource {
 
+    override fun getLastFewContentTypes(siteId: String, callback: (List<String>) -> Unit) {
+        mSitesLocalDataSource.getLastFewContentTypes(siteId) {
+            callback.invoke(it)
+        }
+    }
+
     private val mSitesLocalDataSource: SitesDataSource = checkNotNull(sitesLocalDataSource)
 
     override fun getSiteAndLastSnap(callback: (MutableList<SiteAndLastSnap>) -> Unit) {

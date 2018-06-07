@@ -8,7 +8,7 @@
     <!--Not good enough for now-->
     <!--<TextView-->
     <!--android:visibility="gone"-->
-    <!--android:id="@+id/textView"-->
+    <!--android:url="@+url/textView"-->
     <!--android:layout_width="0dp"-->
     <!--android:layout_height="wrap_content"-->
     <!--android:layout_marginStart="16dp"-->

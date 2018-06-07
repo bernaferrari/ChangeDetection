@@ -27,6 +27,8 @@ interface SitesDataSource {
 
     fun getSites(callback: LoadSitesCallback)
 
+    fun getLastFewContentTypes(siteId: String, callback: (List<String>) -> (Unit))
+
     fun getSite(siteId: String, callback: GetSiteCallback)
 
     fun saveSite(site: Site)

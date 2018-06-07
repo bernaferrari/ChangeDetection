@@ -21,8 +21,8 @@ import java.util.*
  * Snap is short for Snapshot. A snapshot will be a downloaded website which is different from
  * the one before it.
  *
- * @param snapId the unique snap id
- * @param siteId the unique site id
+ * @param snapId the unique snap url
+ * @param siteId the unique site url
  * @param timestamp recorded in milliseconds
  * @param contentType the mime type as retrieved from the header on the request
  * @param contentSize [content] size in bytes

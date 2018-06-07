@@ -10,12 +10,24 @@ import com.bernaferrari.changedetection.util.AppExecutors
  * Concrete implementation of a data source as a db.
  * Inspired from Architecture Components MVVM sample app
  */
-class SitesLocalDataSource// Prevent direct instantiation.
+class SitesLocalDataSource
 private constructor(
     private val mAppExecutors: AppExecutors,
     private val mSitesDao: SitesDao,
     private val mSnapsDao: SnapsDao
 ) : SitesDataSource {
+
+    override fun getLastFewContentTypes(siteId: String, callback: (List<String>) -> Unit) {
+        val runnable = Runnable {
+            val list = mSnapsDao.getLastFewContentTypes(siteId)
+
+            mAppExecutors.mainThread().execute {
+                callback.invoke(list)
+            }
+        }
+
+        mAppExecutors.diskIO().execute(runnable)
+    }
 
     override fun getSiteAndLastSnap(callback: (MutableList<SiteAndLastSnap>) -> Unit) {
         val runnable = Runnable {

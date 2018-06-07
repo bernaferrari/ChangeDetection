@@ -19,9 +19,9 @@ interface SitesDao {
     val sites: List<Site>
 
     /**
-     * Select a site by id.
+     * Select a site by url.
      *
-     * @param siteId the site id.
+     * @param siteId the site url.
      * @return the site with siteId.
      */
     @Query("SELECT * FROM sites WHERE siteId = :siteId")
@@ -47,14 +47,14 @@ interface SitesDao {
     /**
      * Update the complete status of a site
      *
-     * @param siteId    id of the site
+     * @param siteId    url of the site
      * @param completed status to be updated
      */
     @Query("UPDATE sites SET isSuccessful = :completed WHERE siteId = :siteId")
     fun updateCompleted(siteId: String, completed: Boolean)
 
     /**
-     * Delete a site by id.
+     * Delete a site by url.
      *
      * @return the number of sites deleted. This should always be 1.
      */
