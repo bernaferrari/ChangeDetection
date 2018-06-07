@@ -1,15 +1,13 @@
 package com.bernaferrari.changedetection.data.source.local
 
+import android.arch.lifecycle.LiveData
 import android.arch.paging.DataSource
 import android.support.annotation.VisibleForTesting
 import com.bernaferrari.changedetection.data.MinimalSnap
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SnapsDataSource
-import com.bernaferrari.changedetection.extensions.cleanUpHtml
 import com.bernaferrari.changedetection.util.AppExecutors
 import com.orhanobut.logger.Logger
-import java.net.URLConnection
-import java.nio.charset.Charset
 
 /**
  * Concrete implementation of a data source as a db.
@@ -21,20 +19,27 @@ private constructor(
     private val mSnapsDao: SnapsDao
 ) : SnapsDataSource {
 
+
+    override fun getMinimalSnaps(siteId: String): LiveData<List<MinimalSnap>> {
+        return mSnapsDao.getAllMinimalSnapsForSiteId(siteId)
+    }
+
+
+    override fun getHeavySnapForPaging(siteId: String): DataSource.Factory<Int, Snap> {
+        return mSnapsDao.getAllSnapsForSiteIdForPaging(siteId)
+    }
+
     /**
      * get the most recent diffs without value.
      *
-     * @param siteId the site id for filtering the diffs.
+     * @param siteId the site url for filtering the diffs.
      */
-    override fun getMostRecentMinimalSnaps(
-        siteId: String,
-        callback: SnapsDataSource.GetMinimalSnapCallback
-    ) {
+    override fun getMostRecentMinimalSnaps(siteId: String, callback: (List<Int>) -> Unit) {
         val runnable = Runnable {
             val original = mSnapsDao.getLastSnapsSize(siteId)
 
             mAppExecutors.mainThread().execute {
-                callback.onLoaded(original)
+                callback.invoke(original!!)
             }
         }
 
@@ -44,10 +49,10 @@ private constructor(
     /**
      * get diffs for Paging Adapter.
      *
-     * @param siteId the site id for filtering the diffs.
+     * @param siteId the site url for filtering the diffs.
      */
     override fun getSnapForPaging(siteId: String): DataSource.Factory<Int, MinimalSnap> {
-        return mSnapsDao.getAllSnapsForSiteIdForPaging(siteId)
+        return mSnapsDao.getAllMinimalSnapsForSiteIdForPaging(siteId)
     }
 
     override fun getSnapPair(
@@ -85,27 +90,19 @@ private constructor(
         }
 
         mAppExecutors.diskIO().execute(runnable)
-
-
     }
 
     override fun saveSnap(snap: Snap, callback: SnapsDataSource.GetSnapsCallback) {
         val saveRunnable = Runnable {
             val lastSnapValue = mSnapsDao.getLastSnapValueForSiteId(snap.siteId)
 
-
-            println("RAWRRRR")
-            println(URLConnection.guessContentTypeFromName("https://github.com/bernaferrari/ChangeDetection"))
-            println(URLConnection.guessContentTypeFromStream(snap.content.inputStream(0, 16)))
-
-
             // Uncomment for testing.
             // mSnapsDao.insertSnap(minimalSnap.copy(value = minimalSnap.value.plus(UUID.randomUUID().toString())))
             val wasSuccessful =
-                if (snap.content.isNotEmpty() && lastSnapValue?.toString(Charset.defaultCharset())?.cleanUpHtml() != snap.content.toString(
-                        Charset.defaultCharset()
-                    ).cleanUpHtml()
-                ) {
+                if (snap.content.isNotEmpty()) {// && lastSnapValue?.toString(Charset.defaultCharset())?.cleanUpHtml() != snap.content.toString(
+//                        Charset.defaultCharset()
+//                    ).cleanUpHtml()
+                    //  ) {
                     println(lastSnapValue)
                     Logger.d("Difference detected! Size went from ${lastSnapValue?.size} to ${snap.content.size}")
                     mSnapsDao.insertSnap(snap)

@@ -1,5 +1,6 @@
 package com.bernaferrari.changedetection.data.source
 
+import android.arch.lifecycle.LiveData
 import android.arch.paging.DataSource
 import com.bernaferrari.changedetection.data.MinimalSnap
 import com.bernaferrari.changedetection.data.Snap
@@ -17,18 +18,16 @@ private constructor(
     snapsLocalDataSource: SnapsDataSource
 ) : SnapsDataSource {
 
-    override fun getMostRecentMinimalSnaps(
-        siteId: String,
-        callback: SnapsDataSource.GetMinimalSnapCallback
-    ) {
+    override fun getMinimalSnaps(
+        siteId: String
+    ): LiveData<List<MinimalSnap>> = mSnapsLocalDataSource.getMinimalSnaps(siteId)
+
+    override fun getMostRecentMinimalSnaps(siteId: String, callback: (List<Int>) -> Unit) {
         mSnapsLocalDataSource.getMostRecentMinimalSnaps(
-            siteId,
-            object : SnapsDataSource.GetMinimalSnapCallback {
-                override fun onLoaded(intList: List<Int>?) {
-                    callback.onLoaded(intList)
-                }
-            }
-        )
+            siteId
+        ) {
+            callback.invoke(it)
+        }
     }
 
     override fun getSnapPair(
@@ -49,6 +48,10 @@ private constructor(
                 }
             }
         )
+    }
+
+    override fun getHeavySnapForPaging(siteId: String): DataSource.Factory<Int, Snap> {
+        return mSnapsLocalDataSource.getHeavySnapForPaging(siteId)
     }
 
     override fun getSnapForPaging(siteId: String): DataSource.Factory<Int, MinimalSnap> {

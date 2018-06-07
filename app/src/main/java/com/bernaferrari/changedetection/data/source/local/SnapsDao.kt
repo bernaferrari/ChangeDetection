@@ -1,5 +1,6 @@
 package com.bernaferrari.changedetection.data.source.local
 
+import android.arch.lifecycle.LiveData
 import android.arch.paging.DataSource
 import android.arch.persistence.room.Dao
 import android.arch.persistence.room.Insert
@@ -19,18 +20,48 @@ interface SnapsDao {
      * Select all snap metadata (which is everything except for its value) by siteId.
      * This is going to be used by the Paging Library.
      *
-     * @param siteId the site id to be filtered.
-     * @return all snaps for the siteId.
+     * @param siteId the site url to be filtered.
+     * @return all minimal snaps for the siteId.
      */
     @Query("SELECT snapId, siteId, timestamp, contentSize, contentType FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC")
-    fun getAllSnapsForSiteIdForPaging(siteId: String): DataSource.Factory<Int, MinimalSnap>
+    fun getAllMinimalSnapsForSiteIdForPaging(siteId: String): DataSource.Factory<Int, MinimalSnap>
+
+    /**
+     * Select all snap metadata (which is everything except for its value) by siteId.
+     *
+     * @param siteId the site url to be filtered.
+     * @return all minimal snaps for the siteId.
+     */
+    @Query("SELECT snapId, siteId, timestamp, contentSize, contentType FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC")
+    fun getAllMinimalSnapsForSiteId(siteId: String): LiveData<List<MinimalSnap>>
 
 
     /**
      * Select all snap by siteId.
      * This is going to be used by the Paging Library.
      *
-     * @param siteId the site id to be filtered.
+     * @param siteId the site url to be filtered.
+     * @return all snaps for the siteId.
+     */
+    @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC")
+    fun getAllSnapsForSiteIdForPaging(siteId: String): DataSource.Factory<Int, Snap>
+
+    /**
+     * Get last few contentTypes.
+     * This is going to be to know if the contentType is changing or constant and will allow to
+     * go to imageFragment or httpFragment
+     *
+     * @param siteId the site url to be filtered.
+     * @return list with last 3 contentTypes.
+     */
+    @Query("SELECT contentType FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 3")
+    fun getLastFewContentTypes(siteId: String): List<String>
+
+    /**
+     * Select all snap by siteId.
+     * This is going to be used by the Paging Library.
+     *
+     * @param siteId the site url to be filtered.
      * @return all snaps for the siteId.
      */
     @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC")
@@ -38,9 +69,9 @@ interface SnapsDao {
 
 
     /**
-     * Select a snap by id
+     * Select a snap by url
      *
-     * @param snapId the minimalSnap id.
+     * @param snapId the minimalSnap url.
      * @return the minimalSnap with snapId.
      */
     @Query("SELECT * FROM snaps WHERE snapId = :id")
@@ -49,7 +80,7 @@ interface SnapsDao {
     /**
      * Select the most recent minimalSnap metadata (which is everything except for its value) by siteId
      *
-     * @param snapId the minimalSnap id.
+     * @param snapId the minimalSnap url.
      * @return the minimalSnap metadata with snapId.
      */
     @Query("SELECT snapId, siteId, timestamp, contentSize, contentType FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 1")
@@ -58,7 +89,7 @@ interface SnapsDao {
     /**
      * Select the most recent snap metadata (which is everything except for its value) by siteId
      *
-     * @param siteId the site id.
+     * @param siteId the site url.
      * @return a list with the last 100 sizes.
      */
     @Query("SELECT contentSize FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 100")
@@ -67,7 +98,7 @@ interface SnapsDao {
     /**
      * Select the most recent snap value by siteId
      *
-     * @param snapId the snap id.
+     * @param snapId the snap url.
      * @return the snap with snapId.
      */
     @Query("SELECT content FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 1")
@@ -83,9 +114,9 @@ interface SnapsDao {
 
 
     /**
-     * Delete a snap by id
+     * Delete a snap by url
      *
-     * @param snapId the snap id.
+     * @param snapId the snap url.
      */
     @Query("DELETE FROM snaps WHERE snapId = :snapId")
     fun deleteSnapById(snapId: String): Int

@@ -23,11 +23,18 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_right"
             app:popExitAnim="@anim/slide_out_left" />
+        <action
+            android:id="@+id/action_mainFragment_to_imageCarouselFragment"
+            app:destination="@id/imageCarouselFragment"
+            app:enterAnim="@anim/slide_up"
+            app:exitAnim="@anim/design_bottom_sheet_slide_out"
+            app:popEnterAnim="@anim/slide_up"
+            app:popExitAnim="@anim/design_bottom_sheet_slide_out" />
     </fragment>
 
     <fragment
         android:id="@+id/openFragment"
-        android:name="com.bernaferrari.changedetection.DetailsFragment"
+        android:name="com.bernaferrari.changedetection.screenDiffText.TextFragment"
         android:label="OpenFragment"
         tools:layout="@layout/details_fragment"></fragment>
 
@@ -47,5 +54,9 @@
         android:id="@+id/aboutLicenseFragment"
         android:name="com.bernaferrari.changedetection.AboutLicenseFragment"
         android:label="AboutLicenseFragment" />
+    <fragment
+        android:id="@+id/imageCarouselFragment"
+        android:name="com.bernaferrari.changedetection.screenDiffImage.ImageFragment"
+        android:label="ImageCarouselFragment" />
 
 </navigation>

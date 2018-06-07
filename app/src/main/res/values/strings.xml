@@ -50,6 +50,7 @@
     <string name="empty_no_change_detected">No change detected between these two snapshots</string>
 
     <string name="remove_this">Remove %1s</string>
+    <string name="remove_content">Are you sure you would like to remove this?</string>
 
     <string name="are_you_sure">Are you sure you want to remove %1s from %2s?</string>
     <string name="missing_internet">Error! Missing internet connection</string>

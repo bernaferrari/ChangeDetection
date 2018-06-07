@@ -44,7 +44,7 @@
                 tools:src="@drawable/vector_anim_reload" />
 
             <!--<ImageView-->
-            <!--android:id="@+id/info"-->
+            <!--android:url="@+url/info"-->
             <!--android:layout_width="32dp"-->
             <!--android:layout_height="32dp"-->
             <!--android:scaleType="center"-->
@@ -53,7 +53,7 @@
             <!--app:layout_constraintTop_toTopOf="parent" />-->
 
             <!--<TextView-->
-            <!--android:id="@+id/textInsideCircle"-->
+            <!--android:url="@+url/textInsideCircle"-->
             <!--android:layout_width="48dp"-->
             <!--android:layout_height="48dp"-->
             <!--android:layout_marginLeft="@dimen/mark_margin"-->
@@ -112,7 +112,7 @@
 
 
             <!--<View-->
-            <!--android:id="@+id/view"-->
+            <!--android:url="@+url/view"-->
             <!--android:layout_width="0.5dp"-->
             <!--android:layout_height="0dp"-->
             <!--android:layout_marginTop="16dp"-->
@@ -120,7 +120,7 @@
             <!--app:layout_constraintBottom_toBottomOf="parent"-->
             <!--app:layout_constraintEnd_toEndOf="parent"-->
             <!--app:layout_constraintStart_toStartOf="parent"-->
-            <!--app:layout_constraintTop_toBottomOf="@+id/subtitleTextView" />-->
+            <!--app:layout_constraintTop_toBottomOf="@+url/subtitleTextView" />-->
 
             <android.support.constraint.Guideline
                 android:id="@+id/guideline"
