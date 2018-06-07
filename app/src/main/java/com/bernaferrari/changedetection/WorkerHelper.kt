@@ -34,7 +34,7 @@ object WorkerHelper {
         )
     }
 
-    fun fetchFromServer(item: Site): String? {
+    fun fetchFromServer(item: Site): Pair<String, ByteArray>? {
         val client = OkHttpClient()
 
         return try {
@@ -46,11 +46,12 @@ object WorkerHelper {
             Logger.d("isSuccessful -> ${response1.isSuccessful}")
             Logger.d("header -> ${response1.headers()}")
 
-            response1.body()?.string() ?: ""
+            val contentType = response1.headers()["Content-Type"]?.split(";")?.first() ?: ""
+            Pair(contentType, response1.body()!!.bytes())
         } catch (e: UnknownHostException) {
             // When internet connection is not available OR website doesn't exist
             Logger.e("UnknownHostException for ${item.url}")
-            ""
+            Pair("", byteArrayOf())
         } catch (e: IllegalArgumentException) {
             // When input is "http://"
             Logger.e("IllegalArgumentException for ${item.url}")
@@ -58,10 +59,10 @@ object WorkerHelper {
         } catch (e: SocketTimeoutException) {
             // When site is not available
             Logger.e("SocketTimeoutException for ${item.url}")
-            ""
+            Pair("", byteArrayOf())
         } catch (e: Exception) {
             Logger.e("New Exception for ${item.url}")
-            ""
+            Pair("", byteArrayOf())
         }
     }
 

@@ -57,22 +57,26 @@ class SyncWorker : Worker() {
         launch {
             val serverResult = WorkerHelper.fetchFromServer(item)
             if (serverResult != null) {
-                processServerResult(serverResult, item)
+                processServerResult(serverResult.first, serverResult.second, item)
             }
         }
     }
 
-    private fun processServerResult(str: String, item: Site) {
-        Logger.d("count size -> ${str.count()}")
+    private fun processServerResult(
+        contentType: String,
+        content: ByteArray,
+        item: Site
+    ) {
+        Logger.d("count size -> ${content.size}")
 
         val newSite = item.copy(
             timestamp = System.currentTimeMillis(),
-            isSuccessful = !(str.count() == 0 || str.isBlank())
+            isSuccessful = content.isNotEmpty()
         )
 
         Injection.provideSitesRepository(this@SyncWorker.applicationContext).updateSite(newSite)
 
-        val snap = Snap(currentTime(), str.count(), item.id, str)
+        val snap = Snap(item.id, newSite.timestamp, contentType, content.size, content)
 
         Injection.provideSnapsRepository(this@SyncWorker.applicationContext)
             .saveSnap(snap, callback = object : SnapsDataSource.GetSnapsCallback {
@@ -109,8 +113,6 @@ class SyncWorker : Worker() {
                 }
             })
     }
-
-    private fun currentTime(): Long = System.currentTimeMillis()
 
     private fun isWifiConnected(): Boolean {
         // From https://stackoverflow.com/a/34576776/4418073

@@ -79,7 +79,8 @@ class MainCardItem(
             lastSnap.snapId,
             lastSnap.siteId,
             lastSnap.timestamp,
-            lastSnap.size
+            lastSnap.contentType,
+            lastSnap.contentSize
         )
         notifyChanged()
     }
@@ -285,7 +286,7 @@ class MainCardItem(
         holder.lastsync.text = if (status == SYNC.ERROR) {
             getTimeAgo(site.timestamp) + " – " + holder.lastsync.context.getString(R.string.error)
         } else {
-            getTimeAgo(site.timestamp) + " – ${readableFileSize(lastMinimalSnap?.size ?: 0)}"
+            getTimeAgo(site.timestamp) + " – ${readableFileSize(lastMinimalSnap?.contentSize ?: 0)}"
         }
 
         siteDisposable?.dispose()
