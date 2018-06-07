@@ -1,10 +1,10 @@
 package com.bernaferrari.changedetection.extensions
 
 import android.util.Patterns
-import com.bernaferrari.changedetection.util.jsoup.Jsoup
-import com.bernaferrari.changedetection.util.jsoup.nodes.Document
-import com.bernaferrari.changedetection.util.jsoup.parser.Parser
-import com.bernaferrari.changedetection.util.jsoup.safety.Whitelist
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.parser.Parser
+import org.jsoup.safety.Whitelist
 
 fun String.cleanUpHtml(): String {
     return Jsoup.clean(this, "", Whitelist.relaxed(), Document.OutputSettings().prettyPrint(false))
