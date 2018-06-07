@@ -19,6 +19,7 @@ import com.xwray.groupie.Section
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
+import java.nio.charset.Charset
 import kotlin.coroutines.experimental.suspendCoroutine
 
 /**
@@ -122,7 +123,7 @@ class DetailsViewModel(
             snapId,
             object : SnapsDataSource.GetSnapsCallback {
                 override fun onSnapsLoaded(snap: Snap) {
-                    cont.resume(snap.value)
+                    cont.resume(snap.content.toString(Charset.defaultCharset()))
                 }
 
                 override fun onDataNotAvailable() = cont.resumeWithException(NullPointerException())
@@ -245,8 +246,8 @@ class DetailsViewModel(
 
         //compute the differences for two test texts.
         val rows = generator.generateDiffRows(
-            it.value.cleanUpHtml().split("\n"),
-            original.value.cleanUpHtml().split("\n")
+            it.content.toString(Charset.defaultCharset()).cleanUpHtml().split("\n"),
+            original.content.toString(Charset.defaultCharset()).cleanUpHtml().split("\n")
         )
 
         val updatingNonDiff = mutableListOf<TextRecycler>()

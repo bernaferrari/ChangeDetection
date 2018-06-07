@@ -59,7 +59,7 @@ class DetailsViewHolder(
 
         val messages = TimeAgoMessages.Builder().withLocale(Locale.getDefault()).build()
         stringFromTimeAgo = TimeAgo.using(this.minimalSnap!!.timestamp, messages)
-        readableFileSize = readableFileSize(this.minimalSnap!!.size)
+        readableFileSize = readableFileSize(this.minimalSnap!!.contentSize)
 
         itemView.subtitleTextView.text = stringFromTimeAgo
         itemView.titleTextView.text = readableFileSize

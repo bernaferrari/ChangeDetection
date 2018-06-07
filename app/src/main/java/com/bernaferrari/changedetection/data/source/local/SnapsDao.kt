@@ -16,18 +16,18 @@ import com.bernaferrari.changedetection.data.Snap
 interface SnapsDao {
 
     /**
-     * Select all minimalSnap metadata (which is everything except for its value) by siteId.
+     * Select all snap metadata (which is everything except for its value) by siteId.
      * This is going to be used by the Paging Library.
      *
      * @param siteId the site id to be filtered.
      * @return all snaps for the siteId.
      */
-    @Query("SELECT snapId, siteId, timestamp, size FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC")
+    @Query("SELECT snapId, siteId, timestamp, contentSize, contentType FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC")
     fun getAllSnapsForSiteIdForPaging(siteId: String): DataSource.Factory<Int, MinimalSnap>
 
 
     /**
-     * Select all minimalSnap by siteId.
+     * Select all snap by siteId.
      * This is going to be used by the Paging Library.
      *
      * @param siteId the site id to be filtered.
@@ -38,7 +38,7 @@ interface SnapsDao {
 
 
     /**
-     * Select a minimalSnap by id
+     * Select a snap by id
      *
      * @param snapId the minimalSnap id.
      * @return the minimalSnap with snapId.
@@ -52,26 +52,26 @@ interface SnapsDao {
      * @param snapId the minimalSnap id.
      * @return the minimalSnap metadata with snapId.
      */
-    @Query("SELECT snapId, siteId, timestamp, size FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 1")
+    @Query("SELECT snapId, siteId, timestamp, contentSize, contentType FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 1")
     fun getLastMinimalSnapForSiteId(siteId: String): MinimalSnap?
 
     /**
-     * Select the most recent minimalSnap metadata (which is everything except for its value) by siteId
+     * Select the most recent snap metadata (which is everything except for its value) by siteId
      *
      * @param siteId the site id.
      * @return a list with the last 100 sizes.
      */
-    @Query("SELECT size FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 100")
+    @Query("SELECT contentSize FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 100")
     fun getLastSnapsSize(siteId: String): List<Int>?
 
     /**
      * Select the most recent snap value by siteId
      *
-     * @param snapId the minimalSnap id.
-     * @return the minimalSnap with snapId.
+     * @param snapId the snap id.
+     * @return the snap with snapId.
      */
-    @Query("SELECT value FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 1")
-    fun getLastSnapValueForSiteId(siteId: String): String?
+    @Query("SELECT content FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 1")
+    fun getLastSnapValueForSiteId(siteId: String): ByteArray?
 
     /**
      * Get all snaps
@@ -83,9 +83,9 @@ interface SnapsDao {
 
 
     /**
-     * Delete a minimalSnap by id
+     * Delete a snap by id
      *
-     * @param snapId the minimalSnap id.
+     * @param snapId the snap id.
      */
     @Query("DELETE FROM snaps WHERE snapId = :snapId")
     fun deleteSnapById(snapId: String): Int
@@ -97,9 +97,9 @@ interface SnapsDao {
     fun deleteAllSnapsForSite(id: String)
 
     /**
-     * Insert a minimalSnap in the database. If the minimalSnap already exists, replace it.
+     * Insert a snap in the database. If the snap already exists, replace it.
      *
-     * @param snap the minimalSnap to be inserted.
+     * @param snap the snap to be inserted.
      */
     @Insert(onConflict = OnConflictStrategy.FAIL)
     fun insertSnap(snap: Snap)

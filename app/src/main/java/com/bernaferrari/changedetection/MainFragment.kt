@@ -342,7 +342,7 @@ class MainFragment : Fragment() {
         launch {
             val strFetched = WorkerHelper.fetchFromServer(item.site)
             if (strFetched != null) {
-                launch(UI) { updateSiteAndSnap(strFetched, item) }
+                launch(UI) { updateSiteAndSnap(strFetched.first, strFetched.second, item) }
             } else {
                 // This will happen when internet connection is missing
                 launch(UI) {
@@ -354,16 +354,16 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun updateSiteAndSnap(str: String, item: MainCardItem) {
-        Logger.d("count size -> ${str.count()}")
+    private fun updateSiteAndSnap(contentType: String, value: ByteArray, item: MainCardItem) {
+        Logger.d("count size -> ${value.size}")
 
         val newSite = item.site.copy(
             timestamp = System.currentTimeMillis(),
-            isSuccessful = !(str.count() == 0 || str.isBlank())
+            isSuccessful = value.isNotEmpty()
         )
         mViewModel.updateSite(newSite)
 
-        val snap = Snap(newSite.timestamp, str.count(), item.site.id, str)
+        val snap = Snap(item.site.id, newSite.timestamp, contentType, value.size, value)
         mViewModel.saveWebsite(snap).observe(this, Observer {
             item.update(newSite)
 

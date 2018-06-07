@@ -6,5 +6,6 @@ data class MinimalSnap(
     val snapId: String,
     val siteId: String,
     val timestamp: Long,
-    val size: Int
+    val contentType: String,
+    val contentSize: Int
 )
