@@ -115,6 +115,14 @@ class AboutLicenseFragment : MaterialAboutFragment() {
             c,
             colorIcon
         )
+        val jsoup = createLicenseCard(
+            "Jsoup",
+            "2009-2018",
+            "Jonathan Hedley <jonathan@hedley.net>",
+            OpenSourceLicense.MIT,
+            c,
+            colorIcon
+        )
 
         return MaterialAboutList(
             aosp,
@@ -125,6 +133,7 @@ class AboutLicenseFragment : MaterialAboutFragment() {
             groupie,
             materialAboutLIbraryLicenseCard,
             logger,
+            jsoup,
             kotlin,
             okhttp,
             materialdialogs

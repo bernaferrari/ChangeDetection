@@ -10,8 +10,9 @@ import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SnapsDataSource
 import com.bernaferrari.changedetection.data.source.SnapsRepository
 import com.bernaferrari.changedetection.diffs.text.DiffRowGenerator
-import com.bernaferrari.changedetection.extensions.cleanUpHtml
 import com.bernaferrari.changedetection.extensions.getPositionForAdapter
+import com.bernaferrari.changedetection.extensions.removeClutterAndBeautifyHtml
+import com.bernaferrari.changedetection.extensions.unescapeHtml
 import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.util.SingleLiveEvent
 import com.orhanobut.logger.Logger
@@ -244,29 +245,32 @@ class DetailsViewModel(
             .newTag { _ -> "TEXTADDED" }
             .build()
 
-        //compute the differences for two test texts.
+        // compute the differences for two test texts.
+        // generateDiffRows will split the lines anyway, so there is no need for splitting again here.
         val rows = generator.generateDiffRows(
-            it.content.toString(Charset.defaultCharset()).cleanUpHtml().split("\n"),
-            original.content.toString(Charset.defaultCharset()).cleanUpHtml().split("\n")
+            mutableListOf(it.content.toString(Charset.defaultCharset()).removeClutterAndBeautifyHtml()),
+            mutableListOf(original.content.toString(Charset.defaultCharset()).removeClutterAndBeautifyHtml())
         )
 
         val updatingNonDiff = mutableListOf<TextRecycler>()
         val updatingOnlyDiff = mutableListOf<TextRecycler>()
 
+        // for some reason, unescapeHtml isn't working when put after removeClutterAndBeautifyHtml
+        // but it is working fine when put here.
         rows.forEachIndexed { index, row ->
             if (row.oldLine == row.newLine) {
-                updatingNonDiff.add(TextRecycler(row.oldLine, index))
+                updatingNonDiff.add(TextRecycler(row.oldLine.unescapeHtml(), index))
             } else {
                 when {
                     row.newLine.isBlank() -> {
-                        updatingOnlyDiff.add(TextRecycler("-" + row.oldLine, index))
+                        updatingOnlyDiff.add(TextRecycler("-" + row.oldLine.unescapeHtml(), index))
                     }
                     row.oldLine.isBlank() -> {
-                        updatingOnlyDiff.add(TextRecycler("+" + row.newLine, index))
+                        updatingOnlyDiff.add(TextRecycler("+" + row.newLine.unescapeHtml(), index))
                     }
                     else -> {
-                        updatingOnlyDiff.add(TextRecycler("-" + row.oldLine, index))
-                        updatingOnlyDiff.add(TextRecycler("+" + row.newLine, index))
+                        updatingOnlyDiff.add(TextRecycler("-" + row.oldLine.unescapeHtml(), index))
+                        updatingOnlyDiff.add(TextRecycler("+" + row.newLine.unescapeHtml(), index))
                     }
                 }
             }
