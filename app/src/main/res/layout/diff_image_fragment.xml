@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false">
+
+    <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/linearLayout3"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/white">
+
+        <FrameLayout
+            android:id="@+id/frameLayout"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/title_bar"
+            app:layout_constraintVertical_bias="1.0">
+
+            <com.yarolegovich.discretescrollview.DiscreteScrollView
+                android:id="@+id/carouselRecycler"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/title_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/background_light"
+            android:baselineAligned="false"
+            android:minHeight="?android:actionBarSize"
+            android:orientation="horizontal"
+            android:paddingTop="@dimen/spacing_micro"
+            android:paddingBottom="@dimen/spacing_micro"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/closecontent"
+                style="@style/ClickableImageView"
+                android:layout_width="@dimen/avatar_bounds"
+                android:layout_height="@dimen/avatar_bounds"
+                android:layout_gravity="center"
+                android:layout_marginStart="@dimen/avatar_margin"
+                android:layout_marginEnd="@dimen/avatar_margin"
+                android:padding="@dimen/avatar_margin"
+                app:srcCompat="@drawable/ic_close_dark" />
+
+            <TextView
+                android:id="@+id/titlecontent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                style="@style/TextAppearance.AppCompat.Title"
+                android:layout_gravity="start|center_vertical"
+                android:layout_weight="1"
+                android:paddingRight="@dimen/padding_normal"
+                android:singleLine="true"
+                android:fontFamily="@font/work_semibold"
+                android:textColor="@color/FontStrong" />
+
+            <ImageView
+                android:id="@+id/menucontent"
+                style="@style/ClickableImageView"
+                android:layout_width="@dimen/avatar_bounds"
+                android:layout_height="@dimen/avatar_bounds"
+                android:layout_gravity="center"
+                android:layout_marginStart="@dimen/avatar_margin"
+                android:layout_marginEnd="@dimen/avatar_margin"
+                android:padding="@dimen/avatar_margin"
+                app:srcCompat="@drawable/ic_menu" />
+
+        </LinearLayout>
+
+    </android.support.constraint.ConstraintLayout>
+
+    <LinearLayout
+        android:id="@+id/drawerlayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+
+        android:layout_gravity="end"
+        android:background="@color/background_light"
+        android:elevation="6dp"
+        android:orientation="vertical">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/drawerRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:scrollbarStyle="outsideOverlay"
+            android:scrollbars="vertical"
+            app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+            />
+
+    </LinearLayout>
+
+</android.support.v4.widget.DrawerLayout>

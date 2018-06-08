@@ -6,8 +6,10 @@ import android.support.annotation.VisibleForTesting
 import com.bernaferrari.changedetection.data.MinimalSnap
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SnapsDataSource
+import com.bernaferrari.changedetection.extensions.cleanUpHtml
 import com.bernaferrari.changedetection.util.AppExecutors
 import com.orhanobut.logger.Logger
+import java.nio.charset.Charset
 
 /**
  * Concrete implementation of a data source as a db.
@@ -99,10 +101,10 @@ private constructor(
             // Uncomment for testing.
             // mSnapsDao.insertSnap(minimalSnap.copy(value = minimalSnap.value.plus(UUID.randomUUID().toString())))
             val wasSuccessful =
-                if (snap.content.isNotEmpty()) {// && lastSnapValue?.toString(Charset.defaultCharset())?.cleanUpHtml() != snap.content.toString(
-//                        Charset.defaultCharset()
-//                    ).cleanUpHtml()
-                    //  ) {
+                if (snap.content.isNotEmpty() && lastSnapValue?.toString(Charset.defaultCharset())?.cleanUpHtml() != snap.content.toString(
+                        Charset.defaultCharset()
+                    ).cleanUpHtml()
+                ) {
                     println(lastSnapValue)
                     Logger.d("Difference detected! Size went from ${lastSnapValue?.size} to ${snap.content.size}")
                     mSnapsDao.insertSnap(snap)
