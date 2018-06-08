@@ -1,7 +1,7 @@
 package com.bernaferrari.changedetection.data.source
 
 import com.bernaferrari.changedetection.data.Site
-import com.bernaferrari.changedetection.data.source.local.SiteAndLastSnap
+import com.bernaferrari.changedetection.data.source.local.SiteAndLastMinimalSnap
 
 /**
  * Concrete implementation to load sites from the data sources into a cache.
@@ -28,8 +28,8 @@ private constructor(
 
     private val mSitesLocalDataSource: SitesDataSource = checkNotNull(sitesLocalDataSource)
 
-    override fun getSiteAndLastSnap(callback: (MutableList<SiteAndLastSnap>) -> Unit) {
-        mSitesLocalDataSource.getSiteAndLastSnap {
+    override fun getSiteAndLastMinimalSnap(callback: (MutableList<SiteAndLastMinimalSnap>) -> Unit) {
+        mSitesLocalDataSource.getSiteAndLastMinimalSnap {
             callback.invoke(it)
         }
     }

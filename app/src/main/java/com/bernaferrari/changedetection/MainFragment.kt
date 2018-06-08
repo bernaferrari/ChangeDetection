@@ -27,7 +27,7 @@ import androidx.work.WorkStatus
 import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.data.source.local.SiteAndLastSnap
+import com.bernaferrari.changedetection.data.source.local.SiteAndLastMinimalSnap
 import com.bernaferrari.changedetection.extensions.isValidUrl
 import com.bernaferrari.changedetection.forms.FormInputText
 import com.bernaferrari.changedetection.forms.Forms
@@ -165,7 +165,13 @@ class MainFragment : Fragment() {
 
                     launch(UI) {
                         bottomSheet.dismiss()
-                        if (contentTypes.first().split("/").first() == "image") {
+
+                        val selectedType = contentTypes.first()
+
+                        if (selectedType == "application/pdf") {
+                            Navigation.findNavController(view)
+                                .navigate(R.id.action_mainFragment_to_pdfFragment, bundle)
+                        } else if (selectedType.split("/").first() == "image") {
                             Navigation.findNavController(view)
                                 .navigate(R.id.action_mainFragment_to_imageCarouselFragment, bundle)
                         } else {
@@ -318,7 +324,7 @@ class MainFragment : Fragment() {
         reload(item, true)
     }
 
-    private fun updateList(mutable: MutableList<SiteAndLastSnap>?) {
+    private fun updateList(mutable: MutableList<SiteAndLastMinimalSnap>?) {
         if (mutable == null) {
             return
         }

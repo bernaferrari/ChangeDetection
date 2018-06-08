@@ -24,6 +24,7 @@ import android.support.annotation.VisibleForTesting
 import com.bernaferrari.changedetection.data.source.SitesRepository
 import com.bernaferrari.changedetection.data.source.SnapsRepository
 import com.bernaferrari.changedetection.screenDiffImage.ImageViewModel
+import com.bernaferrari.changedetection.screenDiffPdf.PdfViewModel
 import com.bernaferrari.changedetection.screenDiffText.TextViewModel
 
 /**
@@ -47,6 +48,10 @@ class ViewModelFactory private constructor(
                 mSitesRepository
             ) as T
             modelClass.isAssignableFrom(TextViewModel::class.java) -> TextViewModel(
+                mApplication,
+                mSnapsRepository
+            ) as T
+            modelClass.isAssignableFrom(PdfViewModel::class.java) -> PdfViewModel(
                 mApplication,
                 mSnapsRepository
             ) as T

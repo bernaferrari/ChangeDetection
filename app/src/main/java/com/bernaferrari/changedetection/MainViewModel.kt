@@ -11,7 +11,7 @@ import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SitesRepository
 import com.bernaferrari.changedetection.data.source.SnapsDataSource
 import com.bernaferrari.changedetection.data.source.SnapsRepository
-import com.bernaferrari.changedetection.data.source.local.SiteAndLastSnap
+import com.bernaferrari.changedetection.data.source.local.SiteAndLastMinimalSnap
 import kotlin.coroutines.experimental.suspendCoroutine
 
 /**
@@ -86,16 +86,16 @@ class MainViewModel(
         mSitesRepository.updateSite(site)
     }
 
-    val items = MutableLiveData<MutableList<SiteAndLastSnap>>()
+    val items = MutableLiveData<MutableList<SiteAndLastMinimalSnap>>()
 
-    fun loadSites(): MutableLiveData<MutableList<SiteAndLastSnap>> {
+    fun loadSites(): MutableLiveData<MutableList<SiteAndLastMinimalSnap>> {
         items.value = null
         updateItems()
         return items
     }
 
     fun updateItems() {
-        mSitesRepository.getSiteAndLastSnap {
+        mSitesRepository.getSiteAndLastMinimalSnap {
             items.value = it
         }
     }
