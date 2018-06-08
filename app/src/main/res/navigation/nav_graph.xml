@@ -30,6 +30,13 @@
             app:exitAnim="@anim/design_bottom_sheet_slide_out"
             app:popEnterAnim="@anim/slide_up"
             app:popExitAnim="@anim/design_bottom_sheet_slide_out" />
+        <action
+            android:id="@+id/action_mainFragment_to_pdfFragment"
+            app:destination="@id/pdfFragment"
+            app:enterAnim="@anim/slide_up"
+            app:exitAnim="@anim/design_bottom_sheet_slide_out"
+            app:popEnterAnim="@anim/slide_up"
+            app:popExitAnim="@anim/design_bottom_sheet_slide_out" />
     </fragment>
 
     <fragment
@@ -58,5 +65,9 @@
         android:id="@+id/imageCarouselFragment"
         android:name="com.bernaferrari.changedetection.screenDiffImage.ImageFragment"
         android:label="ImageCarouselFragment" />
+    <fragment
+        android:id="@+id/pdfFragment"
+        android:name="com.bernaferrari.changedetection.screenDiffPdf.PdfFragment"
+        android:label="PdfFragment" />
 
 </navigation>

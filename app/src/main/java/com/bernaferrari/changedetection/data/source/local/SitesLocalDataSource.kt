@@ -29,12 +29,12 @@ private constructor(
         mAppExecutors.diskIO().execute(runnable)
     }
 
-    override fun getSiteAndLastSnap(callback: (MutableList<SiteAndLastSnap>) -> Unit) {
+    override fun getSiteAndLastMinimalSnap(callback: (MutableList<SiteAndLastMinimalSnap>) -> Unit) {
         val runnable = Runnable {
             val sites = mSitesDao.sites
-            val list = mutableListOf<SiteAndLastSnap>()
+            val list = mutableListOf<SiteAndLastMinimalSnap>()
             sites.mapTo(list) { site ->
-                SiteAndLastSnap(site, mSnapsDao.getLastMinimalSnapForSiteId(site.id))
+                SiteAndLastMinimalSnap(site, mSnapsDao.getLastMinimalSnapForSiteId(site.id))
             }
 
             mAppExecutors.mainThread().execute {
