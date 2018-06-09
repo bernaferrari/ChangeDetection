@@ -23,7 +23,6 @@ import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ViewModelFactory
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.RowItem
-import com.bernaferrari.changedetection.screenDiffPdf.PdfViewHolder
 import com.bernaferrari.changedetection.screenDiffText.TextFragment
 import com.bernaferrari.changedetection.util.GlideApp
 import com.xwray.groupie.GroupAdapter
@@ -59,12 +58,18 @@ class ImageFragment : Fragment(),
 
     override fun onCurrentItemChanged(viewHolder: RecyclerView.ViewHolder?, adapterPosition: Int) {
 
-        titlecontent.text =
-                adapter.getItemFromAdapter(adapterPosition)?.timestamp?.convertTimestampToDate()
+        if (items.isEmpty()) {
+            Navigation.findNavController(view!!).navigateUp()
+            return
+        }
 
-        // deslect the previous item on the drawer
-        items[previousAdapterPosition].isSelected = false
-        groupAdapter.notifyItemChanged(previousAdapterPosition)
+        // deslect the previous item on the drawer. This might trigger an exception if item was added/removed
+        try {
+            items[previousAdapterPosition].isSelected = false
+            groupAdapter.notifyItemChanged(previousAdapterPosition)
+        } catch (e: IndexOutOfBoundsException) {
+
+        }
 
         drawerRecycler.scrollToIndexWithMargins(
             previousAdapterPosition,
@@ -73,14 +78,17 @@ class ImageFragment : Fragment(),
         )
 
         previousAdapterPosition = adapterPosition
+        println("adapter position: $adapterPosition")
 
         // select the new item on the drawer
         items[adapterPosition].isSelected = true
         groupAdapter.notifyItemChanged(adapterPosition)
         section.notifyChanged()
 
-        // set the photo_view with current file
         val item = adapter.getItemFromAdapter(adapterPosition) ?: return
+        titlecontent.text = item.timestamp.convertTimestampToDate()
+
+        // set the photo_view with current file
         GlideApp.with(requireContext())
             .load(item.content)
             .into(photo_view)
@@ -137,7 +145,7 @@ class ImageFragment : Fragment(),
             }
 
             override fun onLongClickListener(item: RecyclerView.ViewHolder) {
-                removeItemDialog((item as PdfViewHolder).currentSnap?.snapId ?: "")
+                removeItemDialog((item as ImageViewHolder).currentSnap?.snapId ?: "")
             }
         }
 

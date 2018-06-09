@@ -2,14 +2,20 @@ package com.bernaferrari.changedetection.data.source.local
 
 import android.arch.lifecycle.LiveData
 import android.arch.paging.DataSource
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.support.annotation.VisibleForTesting
 import com.bernaferrari.changedetection.data.MinimalSnap
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SnapsDataSource
 import com.bernaferrari.changedetection.extensions.cleanUpHtml
+import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.bernaferrari.changedetection.util.AppExecutors
 import com.orhanobut.logger.Logger
+import java.io.ByteArrayOutputStream
 import java.nio.charset.Charset
+import kotlin.math.roundToInt
+
 
 /**
  * Concrete implementation of a data source as a db.
@@ -94,20 +100,61 @@ private constructor(
         mAppExecutors.diskIO().execute(runnable)
     }
 
+    private fun compress(snap: Snap): Snap {
+
+        // from observations, where a 18mb would become:
+        // size | sampleSize
+        // 1 - 18mb
+        // 2 - 9mb
+        // 3 - 3.5mb
+        // 4 - 2.4mb
+        // 5 - 1.8mb
+        // 8 - 650kb
+        // I came to a formula where estimatedFinalSize = size / (x^2/2).
+        // for example, 18mb/(8*4) ~= 560kb ~= 650kb from the table.
+        // so.. 600kb/size = 1/(x^2/2) => size/600kb = x^2/2 => x = sqrt(size/300kb)
+
+        val options = BitmapFactory.Options()
+        options.inSampleSize = Math.sqrt(snap.contentSize / 300000.0).roundToInt()
+
+        if (options.inSampleSize == 0) {
+            return snap
+        }
+
+        val bmp = BitmapFactory.decodeByteArray(snap.content, 0, snap.contentSize, options)
+
+        val stream = ByteArrayOutputStream()
+        Logger.d("Previous Size: " + snap.contentSize.readableFileSize())
+        if (bmp.compress(Bitmap.CompressFormat.JPEG, 90, stream)) {
+            val byteArray = stream.toByteArray()
+            bmp.recycle()
+            Logger.d("New Size: " + byteArray.size.readableFileSize())
+
+            return snap.copy(contentSize = byteArray.size, content = byteArray)
+        }
+        return snap
+    }
+
     override fun saveSnap(snap: Snap, callback: SnapsDataSource.GetSnapsCallback) {
         val saveRunnable = Runnable {
             val lastSnapValue = mSnapsDao.getLastSnapValueForSiteId(snap.siteId)
 
+            val newSnap = if (snap.contentType.contains("image")) {
+                compress(snap)
+            } else {
+                snap
+            }
+
             // Uncomment for testing.
             // mSnapsDao.insertSnap(minimalSnap.copy(value = minimalSnap.value.plus(UUID.randomUUID().toString())))
             val wasSuccessful =
-                if (snap.content.isNotEmpty() && lastSnapValue?.toString(Charset.defaultCharset())?.cleanUpHtml() != snap.content.toString(
+                if (newSnap.content.isNotEmpty() && lastSnapValue?.toString(Charset.defaultCharset())?.cleanUpHtml() != newSnap.content.toString(
                         Charset.defaultCharset()
                     ).cleanUpHtml()
                 ) {
                     println(lastSnapValue)
                     Logger.d("Difference detected! Size went from ${lastSnapValue?.size} to ${snap.content.size}")
-                    mSnapsDao.insertSnap(snap)
+                    mSnapsDao.insertSnap(newSnap)
                     true
                 } else {
                     Logger.d("Beep beep! No difference detected!")
@@ -116,7 +163,7 @@ private constructor(
 
             mAppExecutors.mainThread().execute {
                 if (wasSuccessful) {
-                    callback.onSnapsLoaded(snap)
+                    callback.onSnapsLoaded(newSnap)
                 } else {
                     callback.onDataNotAvailable()
                 }

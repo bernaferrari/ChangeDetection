@@ -92,12 +92,19 @@ class PdfFragment : Fragment(),
         TransitionManager.beginDelayedTransition(container, transition)
 
     override fun onCurrentItemChanged(viewHolder: RecyclerView.ViewHolder?, adapterPosition: Int) {
-        titlecontent.text =
-                adapter.getItemFromAdapter(adapterPosition)?.timestamp?.convertTimestampToDate()
 
-        // deslect the previous item on the drawer
-        items[previousAdapterPosition].isSelected = false
-        groupAdapter.notifyItemChanged(previousAdapterPosition)
+        if (items.isEmpty()) {
+            Navigation.findNavController(view!!).navigateUp()
+            return
+        }
+
+        // deslect the previous item on the drawer. This might trigger an exception if item was added/removed
+        try {
+            items[previousAdapterPosition].isSelected = false
+            groupAdapter.notifyItemChanged(previousAdapterPosition)
+        } catch (e: IndexOutOfBoundsException) {
+
+        }
 
         drawerRecycler.scrollToIndexWithMargins(
             previousAdapterPosition,
@@ -114,6 +121,8 @@ class PdfFragment : Fragment(),
 
         // set the photo_view with current file
         val item = adapter.getItemFromAdapter(adapterPosition) ?: return
+        titlecontent.text = item.timestamp.convertTimestampToDate()
+
         updateFileDescriptor(item.content)
         showPage(0)
     }
@@ -193,8 +202,8 @@ class PdfFragment : Fragment(),
         val siteId = arguments?.getString("SITEID") ?: ""
         model.getAllSnapsPagedForId(siteId).observe(this, Observer(adapter::submitList))
         model.getAllMinimalSnapsForId(siteId).observe(this, Observer {
+            items.clear()
             if (it != null) {
-                items.clear()
                 it.forEach { items.add(RowItem(it)) }
                 section.update(items)
                 // Since isSelected is being set at onCurrentItemChanged, there is a small bug where
