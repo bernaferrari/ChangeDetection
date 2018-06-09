@@ -65,7 +65,7 @@ dependencies {
 
 
     // Android Architecture Components
-    def navigation_version = "1.0.0-alpha01"
+    def navigation_version = "1.0.0-alpha02"
     implementation "android.arch.navigation:navigation-ui:$navigation_version"
     implementation "android.arch.navigation:navigation-fragment:$navigation_version"
 
@@ -134,7 +134,7 @@ dependencies {
     // AndroidX, eventually..
     implementation 'androidx.core:core-ktx:0.3'
     implementation 'com.android.support:multidex:1.0.3'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.1'
 
 
     // Internal
