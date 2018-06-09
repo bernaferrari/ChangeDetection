@@ -9,19 +9,20 @@ import com.bernaferrari.changedetection.screenDiffText.TextFragment
 
 class PdfAdapter(
     val callback: TextFragment.Companion.RecyclerViewItemListener,
-    val itemHeight: Int,
-    val context: Context
+    private val itemHeight: Int,
+    private val itemWidth: Int,
+    private val context: Context
 ) :
     PagedListAdapter<Snap, PdfViewHolder>(
         diffCallback
     ) {
 
     override fun onBindViewHolder(holder: PdfViewHolder, position: Int) {
-        holder.bindTo(getItem(position), context)
+        holder.bindTo(getItem(position), position, context)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PdfViewHolder =
-        PdfViewHolder(parent, this, itemHeight, callback)
+        PdfViewHolder(parent, itemHeight, itemWidth, callback)
 
     fun getItemFromAdapter(position: Int): Snap? {
         return this.getItem(position)

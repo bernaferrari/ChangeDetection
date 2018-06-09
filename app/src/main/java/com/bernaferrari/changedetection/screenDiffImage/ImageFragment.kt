@@ -4,8 +4,11 @@ import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.graphics.Point
 import android.os.Bundle
+import android.support.transition.AutoTransition
+import android.support.transition.TransitionManager
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
+import android.support.v4.content.ContextCompat
 import android.support.v4.view.GravityCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
@@ -13,22 +16,26 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ViewModelFactory
-import com.bernaferrari.changedetection.extensions.convertTimestampToDate
+import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.RowItem
+import com.bernaferrari.changedetection.screenDiffPdf.PdfViewHolder
 import com.bernaferrari.changedetection.screenDiffText.TextFragment
 import com.bernaferrari.changedetection.util.GlideApp
-import com.github.chrisbanes.photoview.PhotoView
-import com.orhanobut.logger.Logger
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.yarolegovich.discretescrollview.DiscreteScrollView
 import com.yarolegovich.discretescrollview.transform.ScaleTransformer
+import kotlinx.android.synthetic.main.control_bar.*
+import kotlinx.android.synthetic.main.control_bar_update_page.*
 import kotlinx.android.synthetic.main.diff_image_fragment.*
 import kotlinx.android.synthetic.main.diff_image_fragment.view.*
+import kotlin.properties.ObservableProperty
+import kotlin.reflect.KProperty
 
 //
 // This is adapted from Bíblia em Libras app, which has a GIF dictionary in a carousel powered by ExoMedia.
@@ -45,72 +52,108 @@ class ImageFragment : Fragment(),
     private val items = mutableListOf<RowItem>()
     private val section = Section()
 
+    private val transition = AutoTransition().apply { duration = 175 }
+    private val uiState = UiState { updateUiFromState() }
+
+    private val groupAdapter = GroupAdapter<com.xwray.groupie.ViewHolder>()
+
     override fun onCurrentItemChanged(viewHolder: RecyclerView.ViewHolder?, adapterPosition: Int) {
+
         titlecontent.text =
                 adapter.getItemFromAdapter(adapterPosition)?.timestamp?.convertTimestampToDate()
 
+        // deslect the previous item on the drawer
         items[previousAdapterPosition].isSelected = false
         groupAdapter.notifyItemChanged(previousAdapterPosition)
 
-        scrollToIndex(previousAdapterPosition, adapterPosition, items.size, drawerRecycler)
+        drawerRecycler.scrollToIndexWithMargins(
+            previousAdapterPosition,
+            adapterPosition,
+            items.size
+        )
+
         previousAdapterPosition = adapterPosition
 
+        // select the new item on the drawer
         items[adapterPosition].isSelected = true
         groupAdapter.notifyItemChanged(adapterPosition)
         section.notifyChanged()
-    }
 
-    private val groupAdapter = GroupAdapter<com.xwray.groupie.ViewHolder>()
+        // set the photo_view with current file
+        val item = adapter.getItemFromAdapter(adapterPosition) ?: return
+        GlideApp.with(requireContext())
+            .load(item.content)
+            .into(photo_view)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        super.onCreateView(inflater, container, savedInstanceState)
-        val view = inflater.inflate(R.layout.diff_image_fragment, container, false)
+    ): View = inflater.inflate(R.layout.diff_image_fragment, container, false)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         model = obtainViewModel(requireActivity())
 
-        view.closecontent.setOnClickListener {
+        closecontent.setOnClickListener {
             view.let { Navigation.findNavController(it).navigateUp() }
         }
 
-        view.menucontent.setOnClickListener {
-            view.drawer.openDrawer(GravityCompat.END)
+        next_previous_bar.isVisible = false
+        // highQualityToggle.isVisible = false this will be uncommented when share is implemented
+        controlBar.isVisible = false // this will be commented when share is implemented
+
+        view.menucontent.setOnClickListener { view.drawer.openDrawer(GravityCompat.END) }
+
+        // this is needed. If visibility is off and the fragment is reopened,
+        // drawable will keep the drawable from                                                                                                                                                                                                                                                      last state (off) even thought it should be on.
+        visibility.setImageDrawable(
+            ContextCompat.getDrawable(
+                requireContext(),
+                R.drawable.visibility_on
+            )
+        )
+
+        visibility.setOnClickListener {
+            uiState.visibility++
+
+            uiState.carousel = uiState.visibility
+            uiState.controlBar = false
+
+            updateUiFromState()
+
+            // set and run the correct animation
+            if (uiState.visibility) {
+                visibility.setAndStartAnimation(R.drawable.visibility_off_to_on, requireContext())
+            } else {
+                visibility.setAndStartAnimation(R.drawable.visibility_on_to_off, requireContext())
+            }
         }
 
         val recyclerListener = object :
             TextFragment.Companion.RecyclerViewItemListener {
             override fun onClickListener(item: RecyclerView.ViewHolder) {
-
-                val materialDialog = MaterialDialog.Builder(requireContext())
-                    .customView(R.layout.diff_image_photo_view, false)
-                    .negativeText(R.string.cancel)
-                // TODO Add option to share the image
-
-                val materialdialog = materialDialog.build()
-
-                materialdialog.customView?.findViewById<PhotoView>(R.id.photo_view)?.run {
-                    GlideApp.with(this.context)
-                        .load((item as ImageViewHolder).currentSnap?.content)
-                        .into(this)
-                }
-
-                materialdialog.show()
+                carouselRecycler.smoothScrollToPosition((item as ImageViewHolder).itemPosition)
             }
 
             override fun onLongClickListener(item: RecyclerView.ViewHolder) {
-                removeItemDialog((item as ImageViewHolder).currentSnap?.snapId ?: "")
+                removeItemDialog((item as PdfViewHolder).currentSnap?.snapId ?: "")
             }
+        }
+
+        menucontent.setOnClickListener {
+            view.drawer.openDrawer(GravityCompat.END)
         }
 
         val windowDimensions = Point()
         requireActivity().windowManager.defaultDisplay.getSize(windowDimensions)
-        val itemHeight = Math.round(Math.min(windowDimensions.y, windowDimensions.x) * 0.7f)
+        val itemWidth = Math.round(Math.min(windowDimensions.y, windowDimensions.x) * 0.5f)
+        val itemHeight = (120 * 0.7).toInt().toDp(view.resources)
 
         adapter = ImageAdapter(
             recyclerListener,
             itemHeight,
+            itemWidth,
             GlideApp.with(this)
         )
 
@@ -127,7 +170,7 @@ class ImageFragment : Fragment(),
             }
         })
 
-        view.carouselRecycler.also {
+        carouselRecycler.also {
             it.adapter = adapter
 
             it.setSlideOnFling(true)
@@ -142,7 +185,7 @@ class ImageFragment : Fragment(),
             it.addOnItemChangedListener(this@ImageFragment)
         }
 
-        view.drawerRecycler.also {
+        drawerRecycler.also {
             it.layoutManager = LinearLayoutManager(this.context)
             it.adapter = groupAdapter
             it.addItemDecoration(
@@ -168,8 +211,6 @@ class ImageFragment : Fragment(),
             }
             true
         }
-
-        return view
     }
 
     private fun removeItemDialog(snapId: String) {
@@ -190,27 +231,34 @@ class ImageFragment : Fragment(),
         return ViewModelProviders.of(activity, factory).get(ImageViewModel::class.java)
     }
 
-    private fun scrollToIndex(
-        previousIndex: Int,
-        index: Int,
-        size: Int,
-        recyclerView: RecyclerView
-    ) {
-        if (previousIndex == -1) {
-            // This will run on first iteration
-            Logger.d("index value: $index")
-            when (index) {
-                in 1 until (size - 1) -> recyclerView.scrollToPosition(index - 1)
-                (size - 1) -> recyclerView.scrollToPosition(index)
-                else -> recyclerView.scrollToPosition(0)
+    private fun updateUiFromState() {
+        beginDelayedTransition()
+
+        carouselRecycler.isVisible = uiState.carousel
+        controlBar.isVisible = uiState.controlBar
+    }
+
+    private fun beginDelayedTransition() =
+        TransitionManager.beginDelayedTransition(container, transition)
+
+    companion object {
+        private class UiState(private val callback: () -> Unit) {
+
+            private inner class BooleanProperty(initialValue: Boolean) :
+                ObservableProperty<Boolean>(initialValue) {
+                override fun afterChange(
+                    property: KProperty<*>,
+                    oldValue: Boolean,
+                    newValue: Boolean
+                ) {
+                    callback()
+                }
             }
-        } else {
-            Logger.d("index: " + index + " previousIndex = " + previousIndex + " /// " + (index in 1 until (previousIndex - 1)))
-            when (index) {
-                in 1 until previousIndex -> recyclerView.scrollToPosition(index - 1)
-                in previousIndex until (size - 1) -> recyclerView.scrollToPosition(index + 1)
-                else -> recyclerView.scrollToPosition(index)
-            }
+
+            var visibility by BooleanProperty(true)
+            var carousel by BooleanProperty(true)
+            var controlBar by BooleanProperty(true)
+            var highQuality by BooleanProperty(false)
         }
     }
 }

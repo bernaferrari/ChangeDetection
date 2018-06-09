@@ -34,6 +34,12 @@
 
     <color name="CCC">#CCCCCC</color>
 
+    <!--Lottie colors-->
+    <color name="item_deselected">#eaeaea</color>
+    <color name="item_selected_teal">#009587</color>
+    <color name="control_bar_content_unactivated">#444444</color>
+
+
     <color name="navigationBarColor">#283593</color>
     <color name="colorBottomNavigationAccent">#3d5afe</color>
     <color name="colorAccent">#c8e8ff</color>
@@ -45,6 +51,8 @@
     <color name="test1">#FAFAFA</color>
     <color name="redaccent1">#b7253d</color>
     <color name="redaccent2">#dd2c00</color>
+
+    <color name="lottie_divider">#CFCFCF</color>
 
     <color name="divider">#F5F5F5</color>
     <!-- A transparent black -->

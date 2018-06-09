@@ -9,19 +9,20 @@ import com.bernaferrari.changedetection.util.GlideRequests
 
 class ImageAdapter(
     val callback: TextFragment.Companion.RecyclerViewItemListener,
-    val itemHeight: Int,
-    val glide: GlideRequests
+    private val itemHeight: Int,
+    private val itemWidth: Int,
+    private val glide: GlideRequests
 ) :
     PagedListAdapter<Snap, ImageViewHolder>(
         diffCallback
     ) {
 
     override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
-        holder.bindTo(getItem(position), glide)
+        holder.bindTo(getItem(position), position, glide)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder =
-        ImageViewHolder(parent, this, itemHeight, callback)
+        ImageViewHolder(parent, itemHeight, itemWidth, callback)
 
     fun getItemFromAdapter(position: Int): Snap? {
         return this.getItem(position)

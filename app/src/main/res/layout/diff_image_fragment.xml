@@ -6,32 +6,12 @@
     android:layout_height="match_parent"
     android:clipToPadding="false">
 
-    <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/linearLayout3"
+    <LinearLayout
+        android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/white">
-
-        <FrameLayout
-            android:id="@+id/frameLayout"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="1.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/title_bar"
-            app:layout_constraintVertical_bias="1.0">
-
-            <com.yarolegovich.discretescrollview.DiscreteScrollView
-                android:id="@+id/carouselRecycler"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-        </FrameLayout>
+        android:background="@color/white"
+        android:orientation="vertical">
 
         <LinearLayout
             android:id="@+id/title_bar"
@@ -41,6 +21,7 @@
             android:baselineAligned="false"
             android:minHeight="?android:actionBarSize"
             android:orientation="horizontal"
+            android:gravity="top"
             android:paddingTop="@dimen/spacing_micro"
             android:paddingBottom="@dimen/spacing_micro"
             app:layout_constraintEnd_toEndOf="parent"
@@ -71,19 +52,60 @@
                 android:textColor="@color/FontStrong" />
 
             <ImageView
+                android:id="@+id/visibility"
+                style="@style/ClickableImageView"
+                android:layout_width="@dimen/avatar_bounds"
+                android:layout_height="@dimen/avatar_bounds"
+                android:layout_gravity="center"
+                android:layout_marginLeft="@dimen/avatar_margin"
+                android:padding="@dimen/avatar_margin"
+                android:scaleType="centerCrop"
+                app:srcCompat="@drawable/visibility_on_to_off" />
+
+
+            <ImageView
                 android:id="@+id/menucontent"
                 style="@style/ClickableImageView"
                 android:layout_width="@dimen/avatar_bounds"
                 android:layout_height="@dimen/avatar_bounds"
                 android:layout_gravity="center"
-                android:layout_marginStart="@dimen/avatar_margin"
-                android:layout_marginEnd="@dimen/avatar_margin"
+                android:layout_marginRight="@dimen/avatar_margin"
                 android:padding="@dimen/avatar_margin"
                 app:srcCompat="@drawable/ic_menu" />
 
         </LinearLayout>
 
-    </android.support.constraint.ConstraintLayout>
+        <com.github.chrisbanes.photoview.PhotoView
+            android:id="@+id/photo_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scaleType="fitCenter"
+            app:layout_constraintBottom_toTopOf="@id/next_previous_bar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/title_bar" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/lottie_divider_height"
+            android:background="@color/lottie_divider" />
+
+        <include layout="@layout/control_bar_update_page" />
+
+        <include layout="@layout/control_bar" />
+
+        <com.yarolegovich.discretescrollview.DiscreteScrollView
+            android:id="@+id/carouselRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    </LinearLayout>
+
 
     <LinearLayout
         android:id="@+id/drawerlayout"

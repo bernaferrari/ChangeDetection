@@ -81,4 +81,13 @@
     <string name="incorrect_url">Incorrect URL</string>
     <string name="no_websites_being_monitored">No websites are being monitored</string>
 
+    <string name="one_x">1x</string>
+    <string name="two_x">2x</string>
+    <string name="three_x">3x</string>
+    <string name="four_x">4x</string>
+    <string name="five_x">5x</string>
+
+    <string name="control_bar_quality">High Quality</string>
+
+
 </resources>

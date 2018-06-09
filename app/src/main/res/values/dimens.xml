@@ -7,6 +7,9 @@
 
     <dimen name="horizontal_spacing">12sp</dimen>
 
+    <!--Lottie-->
+    <dimen name="control_bar_button_padding">8dp</dimen>
+
     <!-- Text sizes -->
     <dimen name="text_size_extra_micro">10sp</dimen>
     <dimen name="text_size_micro">12sp</dimen>
@@ -42,6 +45,7 @@
 
     <dimen name="keyline_2">76dp</dimen>
     <dimen name="divider_height">1px</dimen>
+    <dimen name="lottie_divider_height">0.6dp</dimen>
 
     <dimen name="cardview_shadow_size">2dp</dimen>
 
