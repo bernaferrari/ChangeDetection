@@ -26,7 +26,6 @@ class PdfViewModel(
         mSnapsRepository.deleteSnap(id)
     }
 
-
     fun getAllSnapsPagedForId(id: String): LiveData<PagedList<Snap>> {
         return LivePagedListBuilder(
             mSnapsRepository.getHeavySnapForPaging(id), PagedList.Config.Builder()

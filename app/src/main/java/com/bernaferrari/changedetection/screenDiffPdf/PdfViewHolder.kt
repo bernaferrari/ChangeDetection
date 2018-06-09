@@ -11,14 +11,15 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.data.Snap
+import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.screenDiffText.TextFragment
 import kotlinx.android.synthetic.main.diff_image_item_paging.view.*
 import java.io.File
 
 class PdfViewHolder(
     parent: ViewGroup,
-    val adapter: PdfAdapter,
-    val itemHeight: Int,
+    private val itemHeight: Int,
+    private val itemWidth: Int,
     val callback: TextFragment.Companion.RecyclerViewItemListener
 ) : RecyclerView.ViewHolder(
     LayoutInflater.from(parent.context).inflate(
@@ -27,7 +28,7 @@ class PdfViewHolder(
         false
     ).apply {
         val params = FrameLayout.LayoutParams(
-            itemHeight,
+            itemWidth,
             itemHeight
         )
         params.gravity = Gravity.CENTER
@@ -46,16 +47,16 @@ class PdfViewHolder(
         }
     }
 
-
     var currentSnap: Snap? = null
-
+    var itemPosition: Int = 0
 
     fun bindTo(
         snap: Snap?,
+        position: Int,
         context: Context
     ) {
         currentSnap = snap
-
+        itemPosition = position
 
         if (snap != null) {
             val filename = "temporary.pdf"
@@ -80,7 +81,7 @@ class PdfViewHolder(
             mCurrentPage.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
             // We are ready to show the Bitmap to user.
             this.itemView.imageView.setImageBitmap(bitmap)
-
+            this.itemView.subtitle.text = snap.timestamp.convertTimestampToDate()
             mCurrentPage.close()
             mPdfRenderer.close()
         }

@@ -7,7 +7,7 @@
 
     <!--Not good enough for now-->
     <!--<TextView-->
-    <!--android:visibility="gone"-->
+    <!--android:visibility_on_to_off="gone"-->
     <!--android:url="@+url/textView"-->
     <!--android:layout_width="0dp"-->
     <!--android:layout_height="wrap_content"-->
