@@ -166,12 +166,12 @@ class MainFragment : Fragment() {
                     launch(UI) {
                         bottomSheet.dismiss()
 
-                        val selectedType = contentTypes.first()
+                        val selectedType = contentTypes.firstOrNull()
 
                         if (selectedType == "application/pdf") {
                             Navigation.findNavController(view)
                                 .navigate(R.id.action_mainFragment_to_pdfFragment, bundle)
-                        } else if (selectedType.split("/").first() == "image") {
+                        } else if (selectedType?.split("/")?.first() == "image") {
                             Navigation.findNavController(view)
                                 .navigate(R.id.action_mainFragment_to_imageCarouselFragment, bundle)
                         } else {
