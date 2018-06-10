@@ -2,13 +2,17 @@ package com.bernaferrari.changedetection.screenDiffImage
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Intent
 import android.graphics.Point
 import android.os.Bundle
 import android.support.transition.AutoTransition
 import android.support.transition.TransitionManager
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
+import android.support.v4.app.ShareCompat
 import android.support.v4.content.ContextCompat
+import android.support.v4.content.FileProvider
+import android.support.v4.content.FileProvider.getUriForFile
 import android.support.v4.view.GravityCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
@@ -19,12 +23,15 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
+import com.bernaferrari.changedetection.Application
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ViewModelFactory
+import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.RowItem
 import com.bernaferrari.changedetection.screenDiffText.TextFragment
 import com.bernaferrari.changedetection.util.GlideApp
+import com.davemorrissey.labs.subscaleview.ImageSource
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.yarolegovich.discretescrollview.DiscreteScrollView
@@ -33,6 +40,7 @@ import kotlinx.android.synthetic.main.control_bar.*
 import kotlinx.android.synthetic.main.control_bar_update_page.*
 import kotlinx.android.synthetic.main.diff_image_fragment.*
 import kotlinx.android.synthetic.main.diff_image_fragment.view.*
+import java.io.File
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
 
@@ -55,6 +63,10 @@ class ImageFragment : Fragment(),
     private val uiState = UiState { updateUiFromState() }
 
     private val groupAdapter = GroupAdapter<com.xwray.groupie.ViewHolder>()
+
+    // this variable is necessary since onCurrentItemChanged might be triggered when RecyclerView is shown/hidden
+    // (visibility button). This way, the app never has to refresh the file
+    private var currentFileId = ""
 
     override fun onCurrentItemChanged(viewHolder: RecyclerView.ViewHolder?, adapterPosition: Int) {
 
@@ -88,10 +100,14 @@ class ImageFragment : Fragment(),
         val item = adapter.getItemFromAdapter(adapterPosition) ?: return
         titlecontent.text = item.timestamp.convertTimestampToDate()
 
-        // set the photo_view with current file
-        GlideApp.with(requireContext())
-            .load(item.content)
-            .into(photo_view)
+        if (item.snapId == currentFileId) return
+        currentFileId = item.snapId
+
+        val newFile = File(Application.instance.filesDir, item.snapId)
+        val contentUri =
+            getUriForFile(Application.instance, "com.bernaferrari.changedetection.files", newFile)
+
+        photo_view.setImage(ImageSource.uri(contentUri))
     }
 
     override fun onCreateView(
@@ -108,10 +124,17 @@ class ImageFragment : Fragment(),
         }
 
         next_previous_bar.isVisible = false
-        // highQualityToggle.isVisible = false this will be uncommented when share is implemented
-        controlBar.isVisible = false // this will be commented when share is implemented
+        highQualityToggle.isVisible = false
+        controlBar.isVisible = false
 
         view.menucontent.setOnClickListener { view.drawer.openDrawer(GravityCompat.END) }
+
+        shareToggle.setOnClickListener {
+            val item =
+                adapter.getItemFromAdapter(previousAdapterPosition) ?: return@setOnClickListener
+            shareItem(item)
+        }
+
 
         // this is needed. If visibility is off and the fragment is reopened,
         // drawable will keep the drawable from                                                                                                                                                                                                                                                      last state (off) even thought it should be on.
@@ -127,8 +150,6 @@ class ImageFragment : Fragment(),
 
             uiState.carousel = uiState.visibility
             uiState.controlBar = false
-
-            updateUiFromState()
 
             // set and run the correct animation
             if (uiState.visibility) {
@@ -208,17 +229,43 @@ class ImageFragment : Fragment(),
         groupAdapter.setOnItemClickListener { item, _ ->
             if (item is RowItem) {
                 val nextPosition =
-                    items.indexOfFirst { it.minimalSnap.snapId == item.minimalSnap.snapId }
+                    items.indexOfFirst { it.snap.snapId == item.snap.snapId }
                 drawer.closeDrawer(GravityCompat.END)
                 carouselRecycler.smoothScrollToPosition(nextPosition) // position becomes selected with animated scroll
             }
         }
         groupAdapter.setOnItemLongClickListener { item, _ ->
             if (item is RowItem) {
-                removeItemDialog(item.minimalSnap.snapId)
+                removeItemDialog(item.snap.snapId)
             }
             true
         }
+    }
+
+    private fun shareItem(item: Snap) {
+        // images/jpeg should become jpeg
+
+        val fileExtension = item.contentType.split("/").getOrNull(1) ?: ""
+
+        val file = File(requireContext().cacheDir, "share.$fileExtension")
+        file.createNewFile()
+        file.writeBytes(requireContext().openFileInput(item.snapId).readBytes())
+
+        val contentUri = FileProvider.getUriForFile(
+            requireContext(),
+            "com.bernaferrari.changedetection.files",
+            file
+        )
+
+        val shareIntent = ShareCompat.IntentBuilder.from(activity)
+            .setStream(contentUri)
+            .intent
+
+        shareIntent.type = item.contentType
+        shareIntent.data = contentUri
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+        startActivity(shareIntent)
     }
 
     private fun removeItemDialog(snapId: String) {

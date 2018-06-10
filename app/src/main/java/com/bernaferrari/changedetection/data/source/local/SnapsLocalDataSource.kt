@@ -2,19 +2,15 @@ package com.bernaferrari.changedetection.data.source.local
 
 import android.arch.lifecycle.LiveData
 import android.arch.paging.DataSource
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.content.Context
 import android.support.annotation.VisibleForTesting
-import com.bernaferrari.changedetection.data.MinimalSnap
+import com.bernaferrari.changedetection.Application
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SnapsDataSource
 import com.bernaferrari.changedetection.extensions.cleanUpHtml
-import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.bernaferrari.changedetection.util.AppExecutors
 import com.orhanobut.logger.Logger
-import java.io.ByteArrayOutputStream
 import java.nio.charset.Charset
-import kotlin.math.roundToInt
 
 
 /**
@@ -28,8 +24,8 @@ private constructor(
 ) : SnapsDataSource {
 
 
-    override fun getMinimalSnaps(siteId: String): LiveData<List<MinimalSnap>> {
-        return mSnapsDao.getAllMinimalSnapsForSiteId(siteId)
+    override fun getSnaps(siteId: String): LiveData<List<Snap>> {
+        return mSnapsDao.getAllSnapsForSiteIdWithLiveData(siteId)
     }
 
 
@@ -42,7 +38,7 @@ private constructor(
      *
      * @param siteId the site url for filtering the diffs.
      */
-    override fun getMostRecentMinimalSnaps(siteId: String, callback: (List<Int>) -> Unit) {
+    override fun getMostRecentSnaps(siteId: String, callback: (List<Int>) -> Unit) {
         val runnable = Runnable {
             val original = mSnapsDao.getLastSnapsSize(siteId)
 
@@ -59,102 +55,124 @@ private constructor(
      *
      * @param siteId the site url for filtering the diffs.
      */
-    override fun getSnapForPaging(siteId: String): DataSource.Factory<Int, MinimalSnap> {
-        return mSnapsDao.getAllMinimalSnapsForSiteIdForPaging(siteId)
+    override fun getSnapForPaging(siteId: String): DataSource.Factory<Int, Snap> {
+        return mSnapsDao.getAllSnapsForSiteIdForPaging(siteId)
     }
 
     override fun getSnapPair(
         originalId: String,
         newId: String,
-        callback: SnapsDataSource.GetPairCallback
+        callback: ((Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>>) -> (Unit))
     ) {
         val runnable = Runnable {
-            val original = mSnapsDao.getSnapById(originalId)
-            val new = mSnapsDao.getSnapById(newId)
+            val originalSnap = mSnapsDao.getSnapById(originalId)!!
+            val newSnap = mSnapsDao.getSnapById(newId)!!
+
+            val originalContent = Application.instance.openFileInput(originalId).readBytes()
+            val newContent = Application.instance.openFileInput(newId).readBytes()
 
             mAppExecutors.mainThread().execute {
-                if (original != null && new != null) {
-                    callback.onSnapsLoaded(Pair(original, new))
-                } else {
-                    callback.onDataNotAvailable()
-                }
+                callback.invoke(
+                    Pair(
+                        Pair(originalSnap, originalContent),
+                        Pair(newSnap, newContent)
+                    )
+                )
             }
         }
 
         mAppExecutors.diskIO().execute(runnable)
     }
 
-    override fun getSnap(snapId: String, callback: SnapsDataSource.GetSnapsCallback) {
+    override fun getSnapContent(snapId: String, callback: ((ByteArray) -> (Unit))) {
         val runnable = Runnable {
-            val diff = mSnapsDao.getSnapById(snapId)
+            val content = Application.instance.openFileInput(snapId).readBytes()
 
             mAppExecutors.mainThread().execute {
-                if (diff != null) {
-                    callback.onSnapsLoaded(diff)
-                } else {
-                    callback.onDataNotAvailable()
-                }
+                callback.invoke(content)
             }
         }
 
         mAppExecutors.diskIO().execute(runnable)
     }
 
-    private fun compress(snap: Snap): Snap {
+//    private fun imageCompressor(snap: Snap): Snap {
+//
+////        // from observations, where a 18mb would become:
+////        // size | sampleSize
+////        // 1 - 18mb
+////        // 2 - 9mb
+////        // 3 - 3.5mb
+////        // 4 - 2.4mb
+////        // 5 - 1.8mb
+////        // 8 - 650kb
+////        // I came to a formula where estimatedFinalSize = size / (x^2/2).
+////        // for example, 18mb/(8*4) ~= 560kb ~= 650kb from the table.
+////        // so.. 600kb/size = 1/(x^2/2) => size/600kb = x^2/2 => x = sqrt(size/300kb)
+////
+////        val options = BitmapFactory.Options()
+////        options.inSampleSize = Math.sqrt(snap.contentSize / 300000.0).roundToInt()
+////
+////        if (options.inSampleSize == 0) {
+////            return snap
+////        }
+////
+////        val bmp = BitmapFactory.decodeByteArray(snap.content, 0, snap.contentSize, options)
+////
+////        val stream = ByteArrayOutputStream()
+////        Logger.i("Previous Size: " + snap.contentSize.readableFileSize())
+////        if (bmp.compress(Bitmap.CompressFormat.JPEG, 90, stream)) {
+////            val byteArray = stream.toByteArray()
+////            bmp.recycle()
+////            Logger.i("New Size: " + byteArray.size.readableFileSize())
+////
+////            return snap.copy(contentSize = byteArray.size, content = byteArray)
+////        }
+////        return snap
+//    }
 
-        // from observations, where a 18mb would become:
-        // size | sampleSize
-        // 1 - 18mb
-        // 2 - 9mb
-        // 3 - 3.5mb
-        // 4 - 2.4mb
-        // 5 - 1.8mb
-        // 8 - 650kb
-        // I came to a formula where estimatedFinalSize = size / (x^2/2).
-        // for example, 18mb/(8*4) ~= 560kb ~= 650kb from the table.
-        // so.. 600kb/size = 1/(x^2/2) => size/600kb = x^2/2 => x = sqrt(size/300kb)
 
-        val options = BitmapFactory.Options()
-        options.inSampleSize = Math.sqrt(snap.contentSize / 300000.0).roundToInt()
-
-        if (options.inSampleSize == 0) {
-            return snap
+    private fun fileExists(context: Context, filename: String?): Boolean {
+        if (filename == null) {
+            return false
         }
-
-        val bmp = BitmapFactory.decodeByteArray(snap.content, 0, snap.contentSize, options)
-
-        val stream = ByteArrayOutputStream()
-        Logger.d("Previous Size: " + snap.contentSize.readableFileSize())
-        if (bmp.compress(Bitmap.CompressFormat.JPEG, 90, stream)) {
-            val byteArray = stream.toByteArray()
-            bmp.recycle()
-            Logger.d("New Size: " + byteArray.size.readableFileSize())
-
-            return snap.copy(contentSize = byteArray.size, content = byteArray)
-        }
-        return snap
+        val file = context.getFileStreamPath(filename)
+        return file != null && file.exists()
     }
 
-    override fun saveSnap(snap: Snap, callback: SnapsDataSource.GetSnapsCallback) {
+    override fun saveSnap(
+        snap: Snap,
+        content: ByteArray,
+        callback: SnapsDataSource.GetSnapsCallback
+    ) {
         val saveRunnable = Runnable {
-            val lastSnapValue = mSnapsDao.getLastSnapValueForSiteId(snap.siteId)
 
-            val newSnap = if (snap.contentType.contains("image")) {
-                compress(snap)
-            } else {
-                snap
+            val lastSnapValue = mSnapsDao.getLastSnapForSiteId(snap.siteId).let { previousValue ->
+                if (fileExists(Application.instance, previousValue?.snapId)) {
+                    Application.instance.openFileInput(previousValue?.snapId).readBytes()
+                } else {
+                    ByteArray(0)
+                }
             }
+
+            // uncomment for testing:
+            //  val lastSnapValue = ByteArray(0)
 
             // Uncomment for testing.
-            // mSnapsDao.insertSnap(minimalSnap.copy(value = minimalSnap.value.plus(UUID.randomUUID().toString())))
+            // mSnapsDao.insertSnap(snap.copy(value = snap.value.plus(UUID.randomUUID().toString())))
             val wasSuccessful =
-                if (newSnap.content.isNotEmpty() && lastSnapValue?.toString(Charset.defaultCharset())?.cleanUpHtml() != newSnap.content.toString(
+                if (content.isNotEmpty() && lastSnapValue.toString(Charset.defaultCharset()).cleanUpHtml() != content.toString(
                         Charset.defaultCharset()
                     ).cleanUpHtml()
                 ) {
                     println(lastSnapValue)
-                    Logger.d("Difference detected! Size went from ${lastSnapValue?.size} to ${snap.content.size}")
-                    mSnapsDao.insertSnap(newSnap)
+                    Logger.d("Difference detected! Size went from ${lastSnapValue.size} to ${content.size}")
+                    mSnapsDao.insertSnap(snap)
+
+                    Application.instance.openFileOutput(snap.snapId, Context.MODE_PRIVATE).use {
+                        it.write(content)
+                    }
+
                     true
                 } else {
                     Logger.d("Beep beep! No difference detected!")
@@ -163,7 +181,7 @@ private constructor(
 
             mAppExecutors.mainThread().execute {
                 if (wasSuccessful) {
-                    callback.onSnapsLoaded(newSnap)
+                    callback.onSnapsLoaded(snap)
                 } else {
                     callback.onDataNotAvailable()
                 }
@@ -174,13 +192,20 @@ private constructor(
     }
 
     override fun deleteSnap(snapId: String) {
-        val deleteRunnable = Runnable { mSnapsDao.deleteSnapById(snapId) }
+        val deleteRunnable = Runnable {
+            Application.instance.deleteFile(snapId)
+            mSnapsDao.deleteSnapById(snapId)
+        }
         mAppExecutors.diskIO().execute(deleteRunnable)
     }
 
     override fun deleteAllSnapsForSite(siteId: String) {
         val runnable = Runnable {
-            mSnapsDao.deleteAllSnapsForSite(siteId)
+            mSnapsDao.getAllSnapsForSiteId(siteId).forEach {
+                Application.instance.deleteFile(it.snapId)
+            }
+
+            mSnapsDao.deleteSnapById(siteId)
         }
 
         mAppExecutors.diskIO().execute(runnable)
