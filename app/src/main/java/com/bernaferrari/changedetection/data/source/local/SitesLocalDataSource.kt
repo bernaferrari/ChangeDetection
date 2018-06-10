@@ -29,12 +29,12 @@ private constructor(
         mAppExecutors.diskIO().execute(runnable)
     }
 
-    override fun getSiteAndLastMinimalSnap(callback: (MutableList<SiteAndLastMinimalSnap>) -> Unit) {
+    override fun getSiteAndLastSnap(callback: (MutableList<SiteAndLastSnap>) -> Unit) {
         val runnable = Runnable {
             val sites = mSitesDao.sites
-            val list = mutableListOf<SiteAndLastMinimalSnap>()
+            val list = mutableListOf<SiteAndLastSnap>()
             sites.mapTo(list) { site ->
-                SiteAndLastMinimalSnap(site, mSnapsDao.getLastMinimalSnapForSiteId(site.id))
+                SiteAndLastSnap(site, mSnapsDao.getLastSnapForSiteId(site.id))
             }
 
             mAppExecutors.mainThread().execute {
@@ -45,10 +45,6 @@ private constructor(
         mAppExecutors.diskIO().execute(runnable)
     }
 
-    /**
-     * Note: [LoadTasksCallback.onDataNotAvailable] is fired if the database doesn't exist
-     * or the table is empty.
-     */
     override fun getSites(callback: SitesDataSource.LoadSitesCallback) {
         val runnable = Runnable {
             val sites = mSitesDao.sites
@@ -65,10 +61,6 @@ private constructor(
         mAppExecutors.diskIO().execute(runnable)
     }
 
-    /**
-     * Note: [GetTaskCallback.onDataNotAvailable] is fired if the [Site] isn't
-     * found.
-     */
     override fun getSite(siteId: String, callback: SitesDataSource.GetSiteCallback) {
         val runnable = Runnable {
             val site = mSitesDao.getSiteById(siteId)

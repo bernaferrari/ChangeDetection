@@ -25,8 +25,8 @@ import java.util.*
  * @param siteId the unique site url
  * @param timestamp recorded in milliseconds
  * @param contentType the mime type as retrieved from the header on the request
- * @param contentSize [content] size in bytes
- * @param content the retrieved information from website, can be heavy if webpage is heavy
+ * @param contentSize content size in bytes
+ * @param contentCharset content charset
  */
 data class Snap(
     @PrimaryKey
@@ -34,49 +34,22 @@ data class Snap(
     val siteId: String,
     val timestamp: Long,
     val contentType: String,
-    val contentSize: Int,
-    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
-    val content: ByteArray
+    val contentCharset: String,
+    val contentSize: Int
 ) {
     @Ignore
     constructor(
         siteId: String,
         timestamp: Long,
         contentType: String,
-        contentSize: Int,
-        content: ByteArray
+        contentCharset: String,
+        contentSize: Int
     ) : this(
         UUID.randomUUID().toString(),
         siteId,
         timestamp,
         contentType,
-        contentSize,
-        content
+        contentCharset,
+        contentSize
     )
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as Snap
-
-        if (snapId != other.snapId) return false
-        if (siteId != other.siteId) return false
-        if (timestamp != other.timestamp) return false
-        if (contentType != other.contentType) return false
-        if (contentSize != other.contentSize) return false
-        if (!Arrays.equals(content, other.content)) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = snapId.hashCode()
-        result = 31 * result + siteId.hashCode()
-        result = 31 * result + timestamp.hashCode()
-        result = 31 * result + contentType.hashCode()
-        result = 31 * result + contentSize
-        result = 31 * result + Arrays.hashCode(content)
-        return result
-    }
 }

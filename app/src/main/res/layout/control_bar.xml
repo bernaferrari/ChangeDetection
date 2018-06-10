@@ -26,6 +26,12 @@
                 app:src="@drawable/ic_image"
                 app:text="@string/control_bar_quality" />
 
+            <com.bernaferrari.changedetection.ui.ControlBarItemToggleView
+                android:id="@+id/shareToggle"
+                style="@style/ControlBarItem"
+                app:src="@drawable/ic_share"
+                app:text="@string/share" />
+
         </LinearLayout>
 
     </HorizontalScrollView>

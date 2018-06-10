@@ -11,7 +11,7 @@ import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SitesRepository
 import com.bernaferrari.changedetection.data.source.SnapsDataSource
 import com.bernaferrari.changedetection.data.source.SnapsRepository
-import com.bernaferrari.changedetection.data.source.local.SiteAndLastMinimalSnap
+import com.bernaferrari.changedetection.data.source.local.SiteAndLastSnap
 import kotlin.coroutines.experimental.suspendCoroutine
 
 /**
@@ -33,7 +33,7 @@ class MainViewModel(
     fun currentTime(): Long = System.currentTimeMillis()
 
     fun removeSite(site: Site) {
-        // CASCADE on Snap will take care of the rest
+        mSnapsRepository.deleteAllSnapsForSite(site.id)
         mSitesRepository.deleteSite(site.id)
     }
 
@@ -52,11 +52,12 @@ class MainViewModel(
 
     // Called when clicking on fab.
     internal fun saveWebsite(
-        snap: Snap
+        snap: Snap,
+        content: ByteArray
     ): MutableLiveData<Boolean> {
 
         val didItWork = MutableLiveData<Boolean>()
-        mSnapsRepository.saveSnap(snap, object : SnapsDataSource.GetSnapsCallback {
+        mSnapsRepository.saveSnap(snap, content, object : SnapsDataSource.GetSnapsCallback {
             override fun onSnapsLoaded(snap: Snap) {
                 didItWork.value = true
             }
@@ -77,7 +78,7 @@ class MainViewModel(
     }
 
     suspend fun getRecentMinimalSnaps(siteId: String): List<Int>? = suspendCoroutine { cont ->
-        mSnapsRepository.getMostRecentMinimalSnaps(siteId) {
+        mSnapsRepository.getMostRecentSnaps(siteId) {
             cont.resume(it)
         }
     }
@@ -86,16 +87,16 @@ class MainViewModel(
         mSitesRepository.updateSite(site)
     }
 
-    val items = MutableLiveData<MutableList<SiteAndLastMinimalSnap>>()
+    val items = MutableLiveData<MutableList<SiteAndLastSnap>>()
 
-    fun loadSites(): MutableLiveData<MutableList<SiteAndLastMinimalSnap>> {
+    fun loadSites(): MutableLiveData<MutableList<SiteAndLastSnap>> {
         items.value = null
         updateItems()
         return items
     }
 
     fun updateItems() {
-        mSitesRepository.getSiteAndLastMinimalSnap {
+        mSitesRepository.getSiteAndLastSnap {
             items.value = it
         }
     }

@@ -2,6 +2,7 @@ package com.bernaferrari.changedetection.screenDiffPdf
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Point
 import android.graphics.pdf.PdfRenderer
@@ -11,7 +12,9 @@ import android.support.transition.AutoTransition
 import android.support.transition.TransitionManager
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
+import android.support.v4.app.ShareCompat
 import android.support.v4.content.ContextCompat
+import android.support.v4.content.FileProvider
 import android.support.v4.view.GravityCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
@@ -22,11 +25,14 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
+import com.bernaferrari.changedetection.Application
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ViewModelFactory
+import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.RowItem
 import com.bernaferrari.changedetection.screenDiffText.TextFragment
+import com.davemorrissey.labs.subscaleview.ImageSource
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.yarolegovich.discretescrollview.DiscreteScrollView
@@ -63,7 +69,14 @@ class PdfFragment : Fragment(),
     // this value is needed on updateUiFromState when uiState.highQuality is toggled, so it keeps the same page opened.
     private var currentIndex = 0
 
+    // this variable is necessary since onCurrentItemChanged might be triggered when RecyclerView is shown/hidden
+    // (visibility button). This way, the app never has to refresh the file
+    private var currentFileName = ""
+
+    // this variable is used to track the last position, so the app knows the direction the user is going
+    // and can provide the correct padding. Also, it is used for items selection/deselection.
     private var previousAdapterPosition = 0
+
     private val items = mutableListOf<RowItem>()
     private val section = Section()
 
@@ -77,14 +90,26 @@ class PdfFragment : Fragment(),
             highQualityToggle.isActivated = uiState.highQuality
 
             val item = adapter.getItemFromAdapter(previousAdapterPosition) ?: return
-            updateFileDescriptor(item.content)
+            updateFileDescriptor(item.snapId)
             showPage(currentIndex)
         }
     }
 
     override fun onStop() {
-        mCurrentPage?.close()
-        mPdfRenderer?.close()
+        // this is necessary to avoid java.lang.IllegalStateException: Already closed
+        // if (mCurrentPage != null) isn't working when sharing
+        try {
+            mCurrentPage?.close()
+        } catch (e: IllegalStateException) {
+
+        }
+
+        try {
+            mPdfRenderer?.close()
+        } catch (e: IllegalStateException) {
+
+        }
+
         super.onStop()
     }
 
@@ -123,8 +148,9 @@ class PdfFragment : Fragment(),
         val item = adapter.getItemFromAdapter(adapterPosition) ?: return
         titlecontent.text = item.timestamp.convertTimestampToDate()
 
-        updateFileDescriptor(item.content)
-        showPage(0)
+        if (updateFileDescriptor(item.snapId)) {
+            showPage(0)
+        }
     }
 
     private val groupAdapter = GroupAdapter<com.xwray.groupie.ViewHolder>()
@@ -151,6 +177,12 @@ class PdfFragment : Fragment(),
 
         mButtonNext.setOnClickListener { showPage(currentIndex + 1) }
 
+        shareToggle.setOnClickListener {
+            val item =
+                adapter.getItemFromAdapter(previousAdapterPosition) ?: return@setOnClickListener
+            shareItem(item)
+        }
+
         // this is needed. If visibility is off and the fragment is reopened,
         // drawable will keep the drawable from                                                                                                                                                                                                                                                      last state (off) even thought it should be on.
         visibility.setImageDrawable(
@@ -165,8 +197,6 @@ class PdfFragment : Fragment(),
 
             uiState.carousel = uiState.visibility
             uiState.controlBar = uiState.visibility
-
-            updateUiFromState()
 
             // set and run the correct animation
             if (uiState.visibility) {
@@ -242,17 +272,39 @@ class PdfFragment : Fragment(),
         groupAdapter.setOnItemClickListener { item, _ ->
             if (item is RowItem) {
                 val nextPosition =
-                    items.indexOfFirst { it.minimalSnap.snapId == item.minimalSnap.snapId }
+                    items.indexOfFirst { it.snap.snapId == item.snap.snapId }
                 drawer.closeDrawer(GravityCompat.END)
                 carouselRecycler.smoothScrollToPosition(nextPosition) // position becomes selected with animated scroll
             }
         }
         groupAdapter.setOnItemLongClickListener { item, _ ->
             if (item is RowItem) {
-                removeItemDialog(item.minimalSnap.snapId)
+                removeItemDialog(item.snap.snapId)
             }
             true
         }
+    }
+
+    private fun shareItem(item: Snap) {
+        val file = File(requireContext().cacheDir, "share.pdf")
+        file.createNewFile()
+        file.writeBytes(requireContext().openFileInput(item.snapId).readBytes())
+
+        val contentUri = FileProvider.getUriForFile(
+            requireContext(),
+            "com.bernaferrari.changedetection.files",
+            file
+        )
+
+        val shareIntent = ShareCompat.IntentBuilder.from(activity)
+            .setStream(contentUri)
+            .setType(item.contentType)
+            .intent
+
+        shareIntent.data = contentUri
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+        startActivity(shareIntent)
     }
 
     private fun removeItemDialog(snapId: String) {
@@ -267,16 +319,17 @@ class PdfFragment : Fragment(),
             .show()
     }
 
-    private fun updateFileDescriptor(content: ByteArray) {
-        val filename = "temporary.pdf"
-        val file = File(requireContext().cacheDir, filename)
-        file.createNewFile()
-        file.writeBytes(content)
+    private fun updateFileDescriptor(fileName: String): Boolean {
+        if (currentFileName == fileName) return false
+        currentFileName = fileName
+
+        val file = File("${Application.instance.filesDir.absolutePath}/$fileName")
 
         val mFileDescriptor =
             ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
 
         mPdfRenderer = PdfRenderer(mFileDescriptor)
+        return true
     }
 
 
@@ -298,8 +351,11 @@ class PdfFragment : Fragment(),
         }
 
         // Make sure to close the current page before opening another one.
-        if (mCurrentPage != null) {
+        // The exception catches "Already closed"
+        try {
             mCurrentPage?.close()
+        } catch (e: IllegalStateException) {
+
         }
 
         // Use `openPage` to open a specific page in PDF.
@@ -323,7 +379,7 @@ class PdfFragment : Fragment(),
                 PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY
             )
             // We are ready to show the Bitmap to user.
-            view?.photo_view?.setImageBitmap(bitmap)
+            view?.photo_view?.setImage(ImageSource.bitmap(bitmap))
         }
 
         updateUi()

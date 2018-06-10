@@ -24,7 +24,7 @@ class SyncWorker : Worker() {
                 heavyWork()
             } else {
                 Logger.d("SyncWorker: wifi is not connected. Try again next time..")
-                WorkerHelper.updateWorkerWithConstraints(Application.instance!!.sharedPrefs("workerPreferences"))
+                WorkerHelper.updateWorkerWithConstraints(Application.instance.sharedPrefs("workerPreferences"))
             }
         } else {
             heavyWork()
@@ -40,7 +40,7 @@ class SyncWorker : Worker() {
             .getSites(object : SitesDataSource.LoadSitesCallback {
                 override fun onSitesLoaded(sites: List<Site>) {
                     sites.forEach(::reload)
-                    WorkerHelper.updateWorkerWithConstraints(Application.instance!!.sharedPrefs("workerPreferences"))
+                    WorkerHelper.updateWorkerWithConstraints(Application.instance.sharedPrefs("workerPreferences"))
                 }
 
                 override fun onDataNotAvailable() {
@@ -63,7 +63,7 @@ class SyncWorker : Worker() {
     }
 
     private fun processServerResult(
-        contentType: String,
+        contentTypeCharset: String,
         content: ByteArray,
         item: Site
     ) {
@@ -76,10 +76,16 @@ class SyncWorker : Worker() {
 
         Injection.provideSitesRepository(this@SyncWorker.applicationContext).updateSite(newSite)
 
-        val snap = Snap(item.id, newSite.timestamp, contentType, content.size, content)
+        val snap = Snap(
+            siteId = item.id,
+            timestamp = newSite.timestamp,
+            contentType = contentTypeCharset.split(":").first(),
+            contentCharset = contentTypeCharset.split(":").getOrNull(1) ?: "",
+            contentSize = content.size
+        )
 
         Injection.provideSnapsRepository(this@SyncWorker.applicationContext)
-            .saveSnap(snap, callback = object : SnapsDataSource.GetSnapsCallback {
+            .saveSnap(snap, content, callback = object : SnapsDataSource.GetSnapsCallback {
                 override fun onSnapsLoaded(snap: Snap) {
                     if (!item.isNotificationEnabled) {
                         return

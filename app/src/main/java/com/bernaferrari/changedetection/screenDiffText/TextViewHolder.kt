@@ -9,7 +9,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.graphics.drawable.toDrawable
 import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.data.MinimalSnap
+import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.readableFileSize
 import kotlinx.android.synthetic.main.details_item.view.*
@@ -37,7 +37,7 @@ class TextViewHolder(
         }
     }
 
-    var minimalSnap: MinimalSnap? = null
+    var snap: Snap? = null
 
     fun setColor(color: Int) {
         colorSelected = color
@@ -48,16 +48,16 @@ class TextViewHolder(
      * Items might be null if they are not paged in yet. PagedListAdapter will re-bind the
      * ViewHolder when Item is loaded.
      */
-    fun bindTo(minimalSnap: MinimalSnap?, colorSelected: Int) {
-        this.minimalSnap = minimalSnap
+    fun bindTo(snap: Snap?, colorSelected: Int) {
+        this.snap = snap
         this.colorSelected = colorSelected
 
-        if (this.minimalSnap == null) {
+        if (this.snap == null) {
             return
         }
 
-        stringFromTimeAgo = this.minimalSnap!!.timestamp.convertTimestampToDate()
-        readableFileSize = this.minimalSnap!!.contentSize.readableFileSize()
+        stringFromTimeAgo = this.snap!!.timestamp.convertTimestampToDate()
+        readableFileSize = this.snap!!.contentSize.readableFileSize()
 
         itemView.subtitleTextView.text = stringFromTimeAgo
         itemView.titleTextView.text = readableFileSize

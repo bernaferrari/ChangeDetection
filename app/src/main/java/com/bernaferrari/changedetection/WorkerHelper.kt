@@ -46,8 +46,17 @@ object WorkerHelper {
             Logger.d("isSuccessful -> ${response1.isSuccessful}")
             Logger.d("header -> ${response1.headers()}")
 
-            val contentType = response1.headers()["Content-Type"]?.split(";")?.first() ?: ""
-            Pair(contentType, response1.body()!!.bytes())
+            val contentTypeAndCharset = response1.headers().get("content-type") ?: ""
+
+            val bytes = if (contentTypeAndCharset.contains("text")) {
+                response1.body()!!.string()
+                    .toByteArray() // VERY inefficient solution for this problem:
+                // https://stackoverflow.com/questions/50788229/how-to-convert-response-body-from-bytearray-to-string-without-using-okhttp-owns
+            } else {
+                response1.body()!!.bytes()
+            }
+
+            Pair(contentTypeAndCharset, bytes)
         } catch (e: UnknownHostException) {
             // When internet connection is not available OR website doesn't exist
             Logger.e("UnknownHostException for ${item.url}")

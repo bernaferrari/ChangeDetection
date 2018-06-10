@@ -26,7 +26,7 @@ class Application : MultiDexApplication() {
     }
 
     companion object {
-        var instance: Application? = null
+        lateinit var instance: Application
             private set
     }
 
