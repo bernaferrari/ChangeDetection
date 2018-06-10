@@ -109,6 +109,7 @@ class Patch<T> @JvmOverloads constructor(estimatedPatchSize: Int = 10) {
                     DELETE -> patch.addDelta(DeleteDelta(orgChunk, revChunk))
                     INSERT -> patch.addDelta(InsertDelta(orgChunk, revChunk))
                     DeltaType.CHANGE -> patch.addDelta(ChangeDelta(orgChunk, revChunk))
+                    else -> Unit
                 }
             }
             return patch
