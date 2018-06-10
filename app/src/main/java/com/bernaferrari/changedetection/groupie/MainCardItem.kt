@@ -9,7 +9,6 @@ import android.support.v4.content.ContextCompat
 import android.view.View
 import android.widget.ImageView
 import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.data.MinimalSnap
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
@@ -28,12 +27,12 @@ import java.util.concurrent.TimeUnit
  * Main screen card item
  *
  * @param site               site item
- * @param lastMinimalSnap    for item subtitle
+ * @param lastSnap    for item subtitle
  * @param reloadCallback     when reload button is selected
  */
 class MainCardItem(
     var site: Site,
-    var lastMinimalSnap: MinimalSnap?,
+    var lastSnap: Snap?,
     private val reloadCallback: ((MainCardItem) -> Unit)
 ) : Item() {
 
@@ -57,29 +56,17 @@ class MainCardItem(
         notifyChanged()
     }
 
-    // update the site and the minimalSnap
-    fun update(tas: Site, lastMinimalSnap: MinimalSnap?) {
+    // update the site and the snap
+    fun update(tas: Site, lastSnap: Snap?) {
         this.site = tas
-        this.lastMinimalSnap = lastMinimalSnap
+        this.lastSnap = lastSnap
         changeStatus()
         notifyChanged()
     }
 
-    // update the minimalSnap.
-    fun update(lastMinimalSnap: MinimalSnap?) {
-        this.lastMinimalSnap = lastMinimalSnap
-        notifyChanged()
-    }
-
-    // update the minimalSnap with a snap that gets converted to a minimalSnap
-    fun update(lastSnap: Snap) {
-        this.lastMinimalSnap = MinimalSnap(
-            lastSnap.snapId,
-            lastSnap.siteId,
-            lastSnap.timestamp,
-            lastSnap.contentType,
-            lastSnap.contentSize
-        )
+    // update the snap.
+    fun update(lastSnap: Snap?) {
+        this.lastSnap = lastSnap
         notifyChanged()
     }
 
@@ -284,7 +271,7 @@ class MainCardItem(
         holder.lastsync.text = if (status == SYNC.ERROR) {
             site.timestamp.convertTimestampToDate() + " – " + holder.lastsync.context.getString(R.string.error)
         } else {
-            site.timestamp.convertTimestampToDate() + " – ${lastMinimalSnap?.contentSize?.readableFileSize()}"
+            site.timestamp.convertTimestampToDate() + " – ${lastSnap?.contentSize?.readableFileSize()}"
         }
 
         siteDisposable?.dispose()
@@ -294,14 +281,14 @@ class MainCardItem(
     }
 
     private fun setLastDiff(holder: ViewHolder) {
-        if (lastMinimalSnap == null) {
+        if (lastSnap == null) {
             // if "last" snapshot was null, there is not a single snapshot for this site
             holder.lastradar.text = holder.lastradar.context.getString(R.string.nothing_yet)
         } else {
-            Logger.d("url: ${lastMinimalSnap?.snapId} ts: ${lastMinimalSnap?.timestamp}")
-            holder.lastradar.text = lastMinimalSnap?.timestamp?.convertTimestampToDate()
+            Logger.d("url: ${lastSnap?.snapId} ts: ${lastSnap?.timestamp}")
+            holder.lastradar.text = lastSnap?.timestamp?.convertTimestampToDate()
             diffDisposable?.dispose()
-            diffDisposable = generateTimerDisposable(lastMinimalSnap?.timestamp ?: 0).subscribe {
+            diffDisposable = generateTimerDisposable(lastSnap?.timestamp ?: 0).subscribe {
                 setLastDiff(holder)
             }
         }

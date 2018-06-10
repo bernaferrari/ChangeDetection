@@ -3,7 +3,7 @@ package com.bernaferrari.changedetection.groupie
 import android.support.v4.content.ContextCompat
 import android.view.View
 import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.data.MinimalSnap
+import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.xwray.groupie.kotlinandroidextensions.Item
@@ -11,7 +11,7 @@ import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.item_row.*
 
 class RowItem(
-    val minimalSnap: MinimalSnap,
+    val snap: Snap,
     var isSelected: Boolean = false
 ) : Item() {
 
@@ -25,8 +25,8 @@ class RowItem(
     override fun bind(viewHolder: ViewHolder, position: Int) {
 
         viewHolder.run {
-            title.text = minimalSnap.timestamp.convertTimestampToDate()
-            subtitle.text = minimalSnap.contentSize.readableFileSize()
+            title.text = snap.timestamp.convertTimestampToDate()
+            subtitle.text = snap.contentSize.readableFileSize()
 
             if (isSelected) {
                 subtitle.setTextColor(

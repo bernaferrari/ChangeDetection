@@ -30,8 +30,6 @@ import com.bernaferrari.changedetection.extensions.getPositionForAdapter
 import com.bernaferrari.changedetection.groupie.DialogItemSimple
 import com.bernaferrari.changedetection.groupie.DialogItemSwitch
 import com.bernaferrari.changedetection.groupie.TextRecycler
-import com.bernaferrari.changedetection.screenDiffPdf.PdfViewHolder
-import com.bernaferrari.changedetection.screenDiffPdf.PdfViewModel
 import com.bernaferrari.changedetection.ui.CustomWebView
 import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
@@ -140,7 +138,7 @@ class TextFragment : Fragment() {
                             // If the item is selected, first deselect, then remove it.
                             model.fsmSelectWithCorrectColor(item, topSection)
                         }
-                        model.removeSnap(item.minimalSnap!!.snapId)
+                        model.removeSnap(item.snap!!.snapId)
 
                     }
                     .show()
@@ -165,7 +163,7 @@ class TextFragment : Fragment() {
         // Subscribe the adapter to the ViewModel, so the items in the adapter are refreshed
         // when the list changes
         var hasSetInitialColor = false
-        model.getAllMinimalSnapsPagedForId(siteId).observe(this, Observer {
+        model.getAllSnapsPagedForId(siteId).observe(this, Observer {
             adapter.submitList(it)
             if (!hasSetInitialColor) {
                 adapter.setColor(2, 0)

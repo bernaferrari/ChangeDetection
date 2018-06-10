@@ -2,7 +2,6 @@ package com.bernaferrari.changedetection.data.source
 
 import android.arch.lifecycle.LiveData
 import android.arch.paging.DataSource
-import com.bernaferrari.changedetection.data.MinimalSnap
 import com.bernaferrari.changedetection.data.Snap
 
 /**
@@ -18,12 +17,12 @@ private constructor(
     snapsLocalDataSource: SnapsDataSource
 ) : SnapsDataSource {
 
-    override fun getMinimalSnaps(
+    override fun getSnaps(
         siteId: String
-    ): LiveData<List<MinimalSnap>> = mSnapsLocalDataSource.getMinimalSnaps(siteId)
+    ): LiveData<List<Snap>> = mSnapsLocalDataSource.getSnaps(siteId)
 
-    override fun getMostRecentMinimalSnaps(siteId: String, callback: (List<Int>) -> Unit) {
-        mSnapsLocalDataSource.getMostRecentMinimalSnaps(
+    override fun getMostRecentSnaps(siteId: String, callback: (List<Int>) -> Unit) {
+        mSnapsLocalDataSource.getMostRecentSnaps(
             siteId
         ) {
             callback.invoke(it)
@@ -33,28 +32,21 @@ private constructor(
     override fun getSnapPair(
         originalId: String,
         newId: String,
-        callback: SnapsDataSource.GetPairCallback
+        callback: ((Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>>) -> (Unit))
     ) {
         mSnapsLocalDataSource.getSnapPair(
             originalId,
-            newId,
-            callback = object : SnapsDataSource.GetPairCallback {
-                override fun onSnapsLoaded(pair: Pair<Snap, Snap>) {
-                    callback.onSnapsLoaded(pair)
-                }
-
-                override fun onDataNotAvailable() {
-                    callback.onDataNotAvailable()
-                }
-            }
-        )
+            newId
+        ) {
+            callback.invoke(it)
+        }
     }
 
     override fun getHeavySnapForPaging(siteId: String): DataSource.Factory<Int, Snap> {
         return mSnapsLocalDataSource.getHeavySnapForPaging(siteId)
     }
 
-    override fun getSnapForPaging(siteId: String): DataSource.Factory<Int, MinimalSnap> {
+    override fun getSnapForPaging(siteId: String): DataSource.Factory<Int, Snap> {
         return mSnapsLocalDataSource.getSnapForPaging(siteId)
     }
 
@@ -62,20 +54,14 @@ private constructor(
         mSnapsLocalDataSource.deleteAllSnapsForSite(siteId)
     }
 
-    override fun getSnap(snapId: String, callback: SnapsDataSource.GetSnapsCallback) {
+    override fun getSnapContent(snapId: String, callback: ((ByteArray) -> (Unit))) {
         checkNotNull(snapId)
         checkNotNull(callback)
 
         // Is the site in the local data source? If not, query the network.
-        mSnapsLocalDataSource.getSnap(snapId, object : SnapsDataSource.GetSnapsCallback {
-            override fun onSnapsLoaded(snap: Snap) {
-                callback.onSnapsLoaded(snap)
-            }
-
-            override fun onDataNotAvailable() {
-                callback.onDataNotAvailable()
-            }
-        })
+        mSnapsLocalDataSource.getSnapContent(snapId) {
+            callback.invoke(it)
+        }
     }
 
     override fun deleteSnap(snapId: String) {
@@ -84,9 +70,13 @@ private constructor(
 
     private val mSnapsLocalDataSource: SnapsDataSource = checkNotNull(snapsLocalDataSource)
 
-    override fun saveSnap(snap: Snap, callback: SnapsDataSource.GetSnapsCallback) {
+    override fun saveSnap(
+        snap: Snap,
+        content: ByteArray,
+        callback: SnapsDataSource.GetSnapsCallback
+    ) {
         checkNotNull(snap)
-        mSnapsLocalDataSource.saveSnap(snap, object : SnapsDataSource.GetSnapsCallback {
+        mSnapsLocalDataSource.saveSnap(snap, content, object : SnapsDataSource.GetSnapsCallback {
             override fun onSnapsLoaded(snap: Snap) {
                 callback.onSnapsLoaded(snap)
             }

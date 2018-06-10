@@ -5,6 +5,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import com.bernaferrari.changedetection.Application
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
@@ -59,7 +60,7 @@ class ImageViewHolder(
             this.itemView.subtitle.text = snap.timestamp.convertTimestampToDate()
 
             glide
-                .load(snap.content)
+                .load(Application.instance.openFileInput(snap.snapId).readBytes())
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .into(this.itemView.imageView)
         } else {

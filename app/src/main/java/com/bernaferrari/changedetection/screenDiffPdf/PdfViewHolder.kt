@@ -59,12 +59,11 @@ class PdfViewHolder(
         itemPosition = position
 
         if (snap != null) {
-            val filename = "temporary.pdf"
-            val file = File(context.cacheDir, filename)
-            file.createNewFile()
-            file.writeBytes(snap.content)
+            val file = File("${context.filesDir.absolutePath}/${snap.snapId}")
 
-            val mFileDescriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+            val mFileDescriptor =
+                ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+
             val mPdfRenderer = PdfRenderer(mFileDescriptor)
 
             // Use `openPage` to open a specific page in PDF.

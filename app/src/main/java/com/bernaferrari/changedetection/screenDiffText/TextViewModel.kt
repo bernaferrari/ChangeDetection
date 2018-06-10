@@ -5,9 +5,7 @@ import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.paging.LivePagedListBuilder
 import android.arch.paging.PagedList
-import com.bernaferrari.changedetection.data.MinimalSnap
 import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.data.source.SnapsDataSource
 import com.bernaferrari.changedetection.data.source.SnapsRepository
 import com.bernaferrari.changedetection.diffs.text.DiffRowGenerator
 import com.bernaferrari.changedetection.extensions.getPositionForAdapter
@@ -97,19 +95,17 @@ class TextViewModel(
      * @param newId The newest url to be fetched.
      * @return a pair of diffs
      */
-    private suspend fun getFromDb(originalId: String, newId: String): Pair<Snap, Snap> =
+    private suspend fun getFromDb(
+        originalId: String,
+        newId: String
+    ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>> =
         suspendCoroutine { cont ->
             mSnapsRepository.getSnapPair(
                 originalId,
-                newId,
-                object : SnapsDataSource.GetPairCallback {
-                    override fun onSnapsLoaded(pair: Pair<Snap, Snap>) {
-                        cont.resume(pair)
-                    }
-
-                    override fun onDataNotAvailable() =
-                        cont.resumeWithException(NullPointerException())
-                })
+                newId
+            ) {
+                cont.resume(it)
+            }
         }
 
     /**
@@ -120,15 +116,11 @@ class TextViewModel(
      * @return a pair of diffs
      */
     suspend fun getSnapValue(snapId: String): String = suspendCoroutine { cont ->
-        mSnapsRepository.getSnap(
-            snapId,
-            object : SnapsDataSource.GetSnapsCallback {
-                override fun onSnapsLoaded(snap: Snap) {
-                    cont.resume(snap.content.toString(Charset.defaultCharset()))
-                }
-
-                override fun onDataNotAvailable() = cont.resumeWithException(NullPointerException())
-            })
+        mSnapsRepository.getSnapContent(
+            snapId
+        ) {
+            cont.resume(it.toString(Charset.defaultCharset()))
+        }
     }
 
     /**
@@ -167,7 +159,7 @@ class TextViewModel(
 
                                             generateDiff(
                                                 topSection,
-                                                item.minimalSnap?.snapId!!,
+                                                item.snap?.snapId!!,
                                                 item.adapter.getItemFromAdapter(position)?.snapId!!
                                             )
                                         }
@@ -179,7 +171,7 @@ class TextViewModel(
 
                                             generateDiff(
                                                 topSection,
-                                                item.minimalSnap?.snapId!!,
+                                                item.snap?.snapId!!,
                                                 item.adapter.getItemFromAdapter(position)?.snapId!!
                                             )
                                         }
@@ -198,7 +190,7 @@ class TextViewModel(
                             generateDiff(
                                 topSection,
                                 item.adapter.getItemFromAdapter(position)?.snapId!!,
-                                item.minimalSnap?.snapId!!
+                                item.snap?.snapId!!
                             )
 
                             item.setColor(2)
@@ -230,10 +222,10 @@ class TextViewModel(
     }
 
     private fun generateDiffRows(
-        original: Snap?,
-        it: Snap?
+        original: Pair<Snap, ByteArray>,
+        new: Pair<Snap, ByteArray>
     ): Pair<MutableList<TextRecycler>, MutableList<TextRecycler>> {
-        if (original == null || it == null) {
+        if (original == null || new == null) {
             Logger.d("original or it are null")
             return Pair(mutableListOf(), mutableListOf())
         }
@@ -247,9 +239,39 @@ class TextViewModel(
 
         // compute the differences for two test texts.
         // generateDiffRows will split the lines anyway, so there is no need for splitting again here.
+
+
+        Logger.d("CHARSET -> " + new.first.contentCharset)
+
+        val newCharset = if (new.first.contentCharset.isBlank()) {
+            Charset.defaultCharset()
+        } else {
+            Charset.forName(new.first.contentCharset)
+        }
+
+        val originalCharset = if (original.first.contentCharset.isBlank()) {
+            Charset.defaultCharset()
+        } else {
+            Charset.forName(new.first.contentCharset)
+        }
+
         val rows = generator.generateDiffRows(
-            mutableListOf(it.content.toString(Charset.defaultCharset()).removeClutterAndBeautifyHtml()),
-            mutableListOf(original.content.toString(Charset.defaultCharset()).removeClutterAndBeautifyHtml())
+            mutableListOf(
+                new.second.toString(
+                    OkHttpCharset.bomAwareCharset(
+                        source = new.second,
+                        charset = newCharset
+                    )
+                ).removeClutterAndBeautifyHtml()
+            ),
+            mutableListOf(
+                original.second.toString(
+                    OkHttpCharset.bomAwareCharset(
+                        source = original.second,
+                        charset = originalCharset
+                    )
+                ).removeClutterAndBeautifyHtml()
+            )
         )
 
         val updatingNonDiff = mutableListOf<TextRecycler>()
@@ -260,18 +282,17 @@ class TextViewModel(
         rows.forEachIndexed { index, row ->
             if (row.oldLine == row.newLine) {
                 updatingNonDiff.add(TextRecycler(row.oldLine.unescapeHtml(), index))
-            } else {
-                when {
-                    row.newLine.isBlank() -> {
-                        updatingOnlyDiff.add(TextRecycler("-" + row.oldLine.unescapeHtml(), index))
-                    }
-                    row.oldLine.isBlank() -> {
-                        updatingOnlyDiff.add(TextRecycler("+" + row.newLine.unescapeHtml(), index))
-                    }
-                    else -> {
-                        updatingOnlyDiff.add(TextRecycler("-" + row.oldLine.unescapeHtml(), index))
-                        updatingOnlyDiff.add(TextRecycler("+" + row.newLine.unescapeHtml(), index))
-                    }
+                println(row.oldLine)
+            } else when {
+                row.newLine.isBlank() -> {
+                    updatingOnlyDiff.add(TextRecycler("-" + row.oldLine.unescapeHtml(), index))
+                }
+                row.oldLine.isBlank() -> {
+                    updatingOnlyDiff.add(TextRecycler("+" + row.newLine.unescapeHtml(), index))
+                }
+                else -> {
+                    updatingOnlyDiff.add(TextRecycler("-" + row.oldLine.unescapeHtml(), index))
+                    updatingOnlyDiff.add(TextRecycler("+" + row.newLine.unescapeHtml(), index))
                 }
             }
         }
@@ -279,7 +300,7 @@ class TextViewModel(
         return Pair(updatingOnlyDiff, updatingNonDiff)
     }
 
-    fun getAllMinimalSnapsPagedForId(id: String): LiveData<PagedList<MinimalSnap>> {
+    fun getAllSnapsPagedForId(id: String): LiveData<PagedList<Snap>> {
         return LivePagedListBuilder(
             mSnapsRepository.getSnapForPaging(id), PagedList.Config.Builder()
                 .setPageSize(PAGE_SIZE)

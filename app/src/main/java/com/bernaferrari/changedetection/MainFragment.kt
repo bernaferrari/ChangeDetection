@@ -27,7 +27,7 @@ import androidx.work.WorkStatus
 import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.data.source.local.SiteAndLastMinimalSnap
+import com.bernaferrari.changedetection.data.source.local.SiteAndLastSnap
 import com.bernaferrari.changedetection.extensions.isValidUrl
 import com.bernaferrari.changedetection.forms.FormInputText
 import com.bernaferrari.changedetection.forms.Forms
@@ -61,7 +61,7 @@ class MainFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WorkerHelper.updateWorkerWithConstraints(Application.instance!!.sharedPrefs("workerPreferences"))
+        WorkerHelper.updateWorkerWithConstraints(Application.instance.sharedPrefs("workerPreferences"))
     }
 
     override fun onCreateView(
@@ -324,7 +324,7 @@ class MainFragment : Fragment() {
         reload(item, true)
     }
 
-    private fun updateList(mutable: MutableList<SiteAndLastMinimalSnap>?) {
+    private fun updateList(mutable: MutableList<SiteAndLastSnap>?) {
         if (mutable == null) {
             return
         }
@@ -332,7 +332,7 @@ class MainFragment : Fragment() {
         view?.stateLayout?.showEmptyState()
 
         if (sitesList.isNotEmpty()) {
-            //Verifies if list is not empty and add values that are not there. Basically, makes a minimalSnap.
+            //Verifies if list is not empty and add values that are not there. Basically, makes a snap.
             mutable.forEach { siteAndLastSnap ->
                 // if item from new list is curerently on the list, update it. Else, add.
                 sitesList.find { carditem -> carditem.site.id == siteAndLastSnap.site.id }.also {
@@ -340,20 +340,20 @@ class MainFragment : Fragment() {
                         sitesList.add(
                             MainCardItem(
                                 siteAndLastSnap.site,
-                                siteAndLastSnap.minimalSnap,
+                                siteAndLastSnap.snap,
                                 reloadCallback
                             )
                         )
                     } else {
-                        it.update(siteAndLastSnap.site, siteAndLastSnap.minimalSnap)
+                        it.update(siteAndLastSnap.site, siteAndLastSnap.snap)
                     }
                 }
             }
         } else {
-            mutable.mapTo(sitesList) { MainCardItem(it.site, it.minimalSnap, reloadCallback) }
+            mutable.mapTo(sitesList) { MainCardItem(it.site, it.snap, reloadCallback) }
         }
 
-        sitesList.sortByDescending { it.lastMinimalSnap?.timestamp }
+        sitesList.sortByDescending { it.lastSnap?.timestamp }
         sitesSection.update(sitesList)
         sort()
 
@@ -391,17 +391,28 @@ class MainFragment : Fragment() {
         }
     }
 
-    private fun updateSiteAndSnap(contentType: String, value: ByteArray, item: MainCardItem) {
-        Logger.d("count size -> ${value.size}")
+    private fun updateSiteAndSnap(
+        contentTypeCharset: String,
+        content: ByteArray,
+        item: MainCardItem
+    ) {
+        Logger.d("count size -> ${content.size}")
 
         val newSite = item.site.copy(
             timestamp = System.currentTimeMillis(),
-            isSuccessful = value.isNotEmpty()
+            isSuccessful = content.isNotEmpty()
         )
         mViewModel.updateSite(newSite)
 
-        val snap = Snap(item.site.id, newSite.timestamp, contentType, value.size, value)
-        mViewModel.saveWebsite(snap).observe(this, Observer {
+        val snap = Snap(
+            siteId = item.site.id,
+            timestamp = newSite.timestamp,
+            contentType = contentTypeCharset.split(":").first(),
+            contentCharset = contentTypeCharset.split(":").getOrNull(1) ?: "",
+            contentSize = content.size
+        )
+
+        mViewModel.saveWebsite(snap, content).observe(this, Observer {
             item.update(newSite)
 
             if (it != true) {
@@ -410,7 +421,7 @@ class MainFragment : Fragment() {
 
             Logger.d("Snap: " + snap.snapId)
 
-            if (item.lastMinimalSnap != null) {
+            if (item.lastSnap != null) {
                 // Only show this toast when there was a change, which means, not on the first sync.
                 Toasty.success(
                     requireContext(),
@@ -427,7 +438,7 @@ class MainFragment : Fragment() {
 
     private fun sort() {
         // sort by active/inactive, then by timestamp of the last snapshot, then by item title, and if they are still the same, by the url
-        sitesList.sortWith(compareByDescending<MainCardItem> { it.site.isSyncEnabled }.thenByDescending { it.lastMinimalSnap?.timestamp }.thenBy { it.site.title }.thenBy { it.site.url })
+        sitesList.sortWith(compareByDescending<MainCardItem> { it.site.isSyncEnabled }.thenByDescending { it.lastSnap?.timestamp }.thenBy { it.site.title }.thenBy { it.site.url })
         sitesSection.update(sitesList)
     }
 
@@ -543,7 +554,7 @@ class MainFragment : Fragment() {
                 }
                 dialog.dismiss()
 
-                val sharedPrefs = Application.instance!!.sharedPrefs("workerPreferences")
+                val sharedPrefs = Application.instance.sharedPrefs("workerPreferences")
                 // when list size is 1 or 2, warn the user that background sync is off
                 if (!isInEditingMode && sitesList.size < 3 && !sharedPrefs.getBoolean(
                         "backgroundSync",

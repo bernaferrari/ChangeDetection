@@ -5,7 +5,6 @@ import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
 import android.arch.paging.LivePagedListBuilder
 import android.arch.paging.PagedList
-import com.bernaferrari.changedetection.data.MinimalSnap
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SnapsRepository
 
@@ -36,8 +35,8 @@ class ImageViewModel(
         ).build()
     }
 
-    fun getAllMinimalSnapsForId(id: String): LiveData<List<MinimalSnap>> {
-        return mSnapsRepository.getMinimalSnaps(id)
+    fun getAllMinimalSnapsForId(id: String): LiveData<List<Snap>> {
+        return mSnapsRepository.getSnaps(id)
     }
 
     companion object {

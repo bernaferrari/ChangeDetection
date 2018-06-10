@@ -2,7 +2,6 @@ package com.bernaferrari.changedetection.data.source
 
 import android.arch.lifecycle.LiveData
 import android.arch.paging.DataSource
-import com.bernaferrari.changedetection.data.MinimalSnap
 import com.bernaferrari.changedetection.data.Snap
 
 /**
@@ -18,26 +17,23 @@ interface SnapsDataSource {
         fun onDataNotAvailable()
     }
 
-    interface GetPairCallback {
+    fun getMostRecentSnaps(siteId: String, callback: ((List<Int>) -> (Unit)))
 
-        fun onSnapsLoaded(pair: Pair<Snap, Snap>)
+    fun getSnaps(siteId: String): LiveData<List<Snap>>
 
-        fun onDataNotAvailable()
-    }
-
-    fun getMostRecentMinimalSnaps(siteId: String, callback: ((List<Int>) -> (Unit)))
-
-    fun getMinimalSnaps(siteId: String): LiveData<List<MinimalSnap>>
-
-    fun getSnapForPaging(siteId: String): DataSource.Factory<Int, MinimalSnap>
+    fun getSnapForPaging(siteId: String): DataSource.Factory<Int, Snap>
 
     fun getHeavySnapForPaging(siteId: String): DataSource.Factory<Int, Snap>
 
-    fun getSnap(snapId: String, callback: GetSnapsCallback)
+    fun getSnapContent(snapId: String, callback: ((ByteArray) -> (Unit)))
 
-    fun getSnapPair(originalId: String, newId: String, callback: GetPairCallback)
+    fun getSnapPair(
+        originalId: String,
+        newId: String,
+        callback: ((Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>>) -> (Unit))
+    )
 
-    fun saveSnap(snap: Snap, callback: GetSnapsCallback)
+    fun saveSnap(snap: Snap, content: ByteArray, callback: GetSnapsCallback)
 
     fun deleteAllSnapsForSite(siteId: String)
 

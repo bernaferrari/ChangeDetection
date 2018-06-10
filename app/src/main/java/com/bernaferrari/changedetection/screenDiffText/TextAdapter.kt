@@ -3,7 +3,7 @@ package com.bernaferrari.changedetection.screenDiffText
 import android.arch.paging.PagedListAdapter
 import android.support.v7.util.DiffUtil
 import android.view.ViewGroup
-import com.bernaferrari.changedetection.data.MinimalSnap
+import com.bernaferrari.changedetection.data.Snap
 
 /**
  * A simple PagedListAdapter that binds Snap items into CardViews.
@@ -14,7 +14,7 @@ import com.bernaferrari.changedetection.data.MinimalSnap
  * the RecyclerView to ensure minimal UI thread work.
  **/
 class TextAdapter(val callback: TextFragment.Companion.RecyclerViewItemListener) :
-    PagedListAdapter<MinimalSnap, TextViewHolder>(
+    PagedListAdapter<Snap, TextViewHolder>(
         diffCallback
     ) {
     val colorSelected = mutableMapOf<Int, Int>()
@@ -28,7 +28,7 @@ class TextAdapter(val callback: TextFragment.Companion.RecyclerViewItemListener)
         holder.bindTo(getItem(position), colorSelected.getOrDefault(position, 0))
     }
 
-    fun getItemFromAdapter(position: Int): MinimalSnap? {
+    fun getItemFromAdapter(position: Int): Snap? {
         return this.getItem(position)
     }
 
@@ -36,16 +36,16 @@ class TextAdapter(val callback: TextFragment.Companion.RecyclerViewItemListener)
         TextViewHolder(parent, this, callback)
 
     companion object {
-        private val diffCallback = object : DiffUtil.ItemCallback<MinimalSnap>() {
+        private val diffCallback = object : DiffUtil.ItemCallback<Snap>() {
             override fun areItemsTheSame(
-                oldItem: MinimalSnap,
-                newItem: MinimalSnap
+                oldItem: Snap,
+                newItem: Snap
             ): Boolean =
                 oldItem.snapId == newItem.snapId
 
             override fun areContentsTheSame(
-                oldItem: MinimalSnap,
-                newItem: MinimalSnap
+                oldItem: Snap,
+                newItem: Snap
             ): Boolean =
                 oldItem == newItem
         }
