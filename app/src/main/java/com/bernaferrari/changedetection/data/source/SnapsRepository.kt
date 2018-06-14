@@ -53,16 +53,12 @@ private constructor(
         }
     }
 
-    override fun getHeavySnapForPaging(siteId: String): DataSource.Factory<Int, Snap> {
-        return mSnapsLocalDataSource.getHeavySnapForPaging(siteId)
-    }
-
     override fun getSnapForPaging(siteId: String): DataSource.Factory<Int, Snap> {
         return mSnapsLocalDataSource.getSnapForPaging(siteId)
     }
 
-    override fun deleteAllSnapsForSite(siteId: String) {
-        mSnapsLocalDataSource.deleteAllSnapsForSite(siteId)
+    override fun deleteAllSnaps(siteId: String) {
+        mSnapsLocalDataSource.deleteAllSnaps(siteId)
     }
 
     override fun getSnapContent(snapId: String, callback: ((ByteArray) -> (Unit))) {

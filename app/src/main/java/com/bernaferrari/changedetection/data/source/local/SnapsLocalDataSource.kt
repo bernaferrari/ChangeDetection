@@ -71,18 +71,13 @@ private constructor(
         mAppExecutors.diskIO().execute(runnable)
     }
 
-
-    override fun getHeavySnapForPaging(siteId: String): DataSource.Factory<Int, Snap> {
-        return mSnapsDao.getAllSnapsForSiteIdForPaging(siteId)
-    }
-
     /**
      * get diffs for Paging Adapter.
      *
      * @param siteId the site url for filtering the diffs.
      */
     override fun getSnapForPaging(siteId: String): DataSource.Factory<Int, Snap> {
-        return mSnapsDao.getAllSnapsForSiteIdForPaging(siteId)
+        return mSnapsDao.getSnapsForSiteIdForPaging(siteId)
     }
 
     override fun getSnapPair(
@@ -225,7 +220,7 @@ private constructor(
         mAppExecutors.diskIO().execute(deleteRunnable)
     }
 
-    override fun deleteAllSnapsForSite(siteId: String) {
+    override fun deleteAllSnaps(siteId: String) {
         val runnable = Runnable {
             mSnapsDao.getAllSnapsForSiteId(siteId).forEach {
                 Application.instance.deleteFile(it.snapId)

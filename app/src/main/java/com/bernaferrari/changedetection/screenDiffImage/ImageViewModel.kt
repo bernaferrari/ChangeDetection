@@ -29,7 +29,7 @@ class ImageViewModel(
 
     fun getAllSnapsPagedForId(id: String): LiveData<PagedList<Snap>> {
         return LivePagedListBuilder(
-            mSnapsRepository.getHeavySnapForPaging(id), PagedList.Config.Builder()
+            mSnapsRepository.getSnapForPaging(id), PagedList.Config.Builder()
                 .setPageSize(PAGE_SIZE)
                 .setEnablePlaceholders(ENABLE_PLACEHOLDERS)
                 .build()
