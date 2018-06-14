@@ -36,7 +36,7 @@ class MainViewModel(
     fun currentTime(): Long = System.currentTimeMillis()
 
     fun removeSite(site: Site) {
-        mSnapsRepository.deleteAllSnapsForSite(site.id)
+        mSnapsRepository.deleteAllSnaps(site.id)
         mSitesRepository.deleteSite(site.id)
     }
 

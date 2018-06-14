@@ -59,8 +59,7 @@ class ImageViewHolder(
         if (snap != null) {
             this.itemView.subtitle.text = snap.timestamp.convertTimestampToDate()
 
-            glide
-                .load(Application.instance.openFileInput(snap.snapId).readBytes())
+            glide.load(Application.instance.openFileInput(snap.snapId).readBytes())
                 .transition(DrawableTransitionOptions.withCrossFade())
                 .into(this.itemView.imageView)
         } else {

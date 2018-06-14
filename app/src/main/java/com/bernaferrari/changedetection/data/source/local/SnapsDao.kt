@@ -33,7 +33,7 @@ interface SnapsDao {
      * @return all snaps for the siteId.
      */
     @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC")
-    fun getAllSnapsForSiteIdForPaging(siteId: String): DataSource.Factory<Int, Snap>
+    fun getSnapsForSiteIdForPaging(siteId: String): DataSource.Factory<Int, Snap>
 
 
     /**
