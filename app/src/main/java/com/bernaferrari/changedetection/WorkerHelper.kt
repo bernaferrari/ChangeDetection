@@ -34,7 +34,7 @@ object WorkerHelper {
         )
     }
 
-    fun fetchFromServer(item: Site): Pair<String, ByteArray>? {
+    fun fetchFromServer(item: Site): Pair<String, ByteArray> {
         val client = OkHttpClient()
 
         return try {
@@ -64,7 +64,7 @@ object WorkerHelper {
         } catch (e: IllegalArgumentException) {
             // When input is "http://"
             Logger.e("IllegalArgumentException for ${item.url}")
-            null
+            Pair("", byteArrayOf())
         } catch (e: SocketTimeoutException) {
             // When site is not available
             Logger.e("SocketTimeoutException for ${item.url}")
