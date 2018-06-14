@@ -26,8 +26,6 @@ interface SnapsDataSource {
 
     fun getSnapForPaging(siteId: String): DataSource.Factory<Int, Snap>
 
-    fun getHeavySnapForPaging(siteId: String): DataSource.Factory<Int, Snap>
-
     fun getSnapContent(snapId: String, callback: ((ByteArray) -> (Unit)))
 
     fun getSnapPair(
@@ -38,7 +36,7 @@ interface SnapsDataSource {
 
     fun saveSnap(snap: Snap, content: ByteArray, callback: GetSnapsCallback)
 
-    fun deleteAllSnapsForSite(siteId: String)
+    fun deleteAllSnaps(siteId: String)
 
     fun deleteSnap(snapId: String)
 }
