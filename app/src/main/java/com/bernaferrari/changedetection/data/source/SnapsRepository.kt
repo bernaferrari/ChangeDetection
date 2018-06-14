@@ -2,6 +2,7 @@ package com.bernaferrari.changedetection.data.source
 
 import android.arch.lifecycle.LiveData
 import android.arch.paging.DataSource
+import com.bernaferrari.changedetection.data.ContentTypeInfo
 import com.bernaferrari.changedetection.data.Snap
 
 /**
@@ -17,14 +18,24 @@ private constructor(
     snapsLocalDataSource: SnapsDataSource
 ) : SnapsDataSource {
 
-    override fun getSnaps(
-        siteId: String
-    ): LiveData<List<Snap>> = mSnapsLocalDataSource.getSnaps(siteId)
-
-    override fun getMostRecentSnaps(siteId: String, callback: (List<Int>) -> Unit) {
-        mSnapsLocalDataSource.getMostRecentSnaps(
+    override fun getContentTypeInfo(siteId: String, callback: (List<ContentTypeInfo>) -> Unit) {
+        mSnapsLocalDataSource.getContentTypeInfo(
             siteId
         ) {
+            callback.invoke(it)
+        }
+    }
+
+    override fun getMostRecentSnap(siteId: String, callback: (Snap?) -> Unit) {
+        mSnapsLocalDataSource.getMostRecentSnap(
+            siteId
+        ) {
+            callback.invoke(it)
+        }
+    }
+
+    override fun getSnaps(siteId: String, callback: (LiveData<List<Snap>>) -> Unit) {
+        mSnapsLocalDataSource.getSnaps(siteId) {
             callback.invoke(it)
         }
     }

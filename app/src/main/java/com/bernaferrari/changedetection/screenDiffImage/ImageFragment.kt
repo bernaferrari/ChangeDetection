@@ -12,7 +12,6 @@ import android.support.v4.app.FragmentActivity
 import android.support.v4.app.ShareCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.FileProvider
-import android.support.v4.content.FileProvider.getUriForFile
 import android.support.v4.view.GravityCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
@@ -40,6 +39,8 @@ import kotlinx.android.synthetic.main.control_bar.*
 import kotlinx.android.synthetic.main.control_bar_update_page.*
 import kotlinx.android.synthetic.main.diff_image_fragment.*
 import kotlinx.android.synthetic.main.diff_image_fragment.view.*
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.launch
 import java.io.File
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
@@ -70,8 +71,23 @@ class ImageFragment : Fragment(),
 
     override fun onCurrentItemChanged(viewHolder: RecyclerView.ViewHolder?, adapterPosition: Int) {
 
+        val item = adapter.getItemFromAdapter(adapterPosition) ?: return
+        titlecontent.text = item.timestamp.convertTimestampToDate()
+
+        if (item.snapId == currentFileId) return
+        currentFileId = item.snapId
+
+        val newFile = File(Application.instance.filesDir, item.snapId)
+        val contentUri =
+            FileProvider.getUriForFile(
+                Application.instance,
+                "com.bernaferrari.changedetection.files",
+                newFile
+            )
+
+        photo_view.setImage(ImageSource.uri(contentUri))
+
         if (items.isEmpty()) {
-            Navigation.findNavController(view!!).navigateUp()
             return
         }
 
@@ -96,18 +112,6 @@ class ImageFragment : Fragment(),
         items[adapterPosition].isSelected = true
         groupAdapter.notifyItemChanged(adapterPosition)
         section.notifyChanged()
-
-        val item = adapter.getItemFromAdapter(adapterPosition) ?: return
-        titlecontent.text = item.timestamp.convertTimestampToDate()
-
-        if (item.snapId == currentFileId) return
-        currentFileId = item.snapId
-
-        val newFile = File(Application.instance.filesDir, item.snapId)
-        val contentUri =
-            getUriForFile(Application.instance, "com.bernaferrari.changedetection.files", newFile)
-
-        photo_view.setImage(ImageSource.uri(contentUri))
     }
 
     override fun onCreateView(
@@ -188,16 +192,29 @@ class ImageFragment : Fragment(),
 
         val siteId = arguments?.getString("SITEID") ?: ""
         model.getAllSnapsPagedForId(siteId).observe(this, Observer(adapter::submitList))
-        model.getAllMinimalSnapsForId(siteId).observe(this, Observer {
-            if (it != null) {
-                items.clear()
-                it.forEach { items.add(RowItem(it)) }
-                section.update(items)
-                // Since isSelected is being set at onCurrentItemChanged, there is a small bug where
-                // when the list is refreshed and position doesn't change (which happens when it is in the first),
-                // onCurrentItemChanged is not called again and thus the current item is not selected.
+
+        // this is needed since getAllSnaps retrieves a liveData from Room to be observed
+        launch {
+            val liveData = model.getAllSnaps(siteId)
+            launch(UI) {
+                liveData.observe(this@ImageFragment, Observer {
+                    items.clear()
+
+                    if (it != null) {
+                        it.mapTo(items) { RowItem(it) }
+                        section.update(items)
+                        // Since isSelected is being set at onCurrentItemChanged, there is a small bug where
+                        // when the list is refreshed and position doesn't change (which happens when it is in the first),
+                        // onCurrentItemChanged is not called again and thus the current item is not selected.
+
+                        // If all items were removed, close this fragment
+                        if (items.isEmpty()) {
+                            Navigation.findNavController(view).navigateUp()
+                        }
+                    }
+                })
             }
-        })
+        }
 
         carouselRecycler.also {
             it.adapter = adapter

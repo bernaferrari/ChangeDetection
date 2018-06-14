@@ -89,5 +89,8 @@
 
     <string name="control_bar_quality">High Quality</string>
     <string name="share">Share</string>
+    <string name="no_changes_detected">No changes detected</string>
+    <string name="next">NEXT</string>
+    <string name="previous">PREVIOUS</string>
 
 </resources>

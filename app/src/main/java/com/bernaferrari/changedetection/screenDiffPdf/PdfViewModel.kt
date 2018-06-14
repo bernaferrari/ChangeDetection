@@ -7,6 +7,7 @@ import android.arch.paging.LivePagedListBuilder
 import android.arch.paging.PagedList
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SnapsRepository
+import kotlin.coroutines.experimental.suspendCoroutine
 
 /**
  * Exposes the data to be used in the site diff screen.
@@ -34,9 +35,12 @@ class PdfViewModel(
         ).build()
     }
 
-    fun getAllMinimalSnapsForId(id: String): LiveData<List<Snap>> {
-        return mSnapsRepository.getSnaps(id)
+    suspend fun getAllSnaps(id: String): LiveData<List<Snap>> = suspendCoroutine { cont ->
+        mSnapsRepository.getSnaps(id) {
+            cont.resume(it)
+        }
     }
+
 
     companion object {
         /**

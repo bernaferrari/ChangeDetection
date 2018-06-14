@@ -41,6 +41,8 @@ import kotlinx.android.synthetic.main.control_bar.*
 import kotlinx.android.synthetic.main.control_bar_update_page.*
 import kotlinx.android.synthetic.main.diff_image_fragment.*
 import kotlinx.android.synthetic.main.diff_image_fragment.view.*
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.launch
 import java.io.File
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
@@ -118,8 +120,15 @@ class PdfFragment : Fragment(),
 
     override fun onCurrentItemChanged(viewHolder: RecyclerView.ViewHolder?, adapterPosition: Int) {
 
+        // set the photo_view with current file
+        val item = adapter.getItemFromAdapter(adapterPosition) ?: return
+        titlecontent.text = item.timestamp.convertTimestampToDate()
+
+        if (updateFileDescriptor(item.snapId)) {
+            showPage(0)
+        }
+
         if (items.isEmpty()) {
-            Navigation.findNavController(view!!).navigateUp()
             return
         }
 
@@ -143,14 +152,6 @@ class PdfFragment : Fragment(),
         items[adapterPosition].isSelected = true
         groupAdapter.notifyItemChanged(adapterPosition)
         section.notifyChanged()
-
-        // set the photo_view with current file
-        val item = adapter.getItemFromAdapter(adapterPosition) ?: return
-        titlecontent.text = item.timestamp.convertTimestampToDate()
-
-        if (updateFileDescriptor(item.snapId)) {
-            showPage(0)
-        }
     }
 
     private val groupAdapter = GroupAdapter<com.xwray.groupie.ViewHolder>()
@@ -229,19 +230,6 @@ class PdfFragment : Fragment(),
             requireContext()
         )
 
-        val siteId = arguments?.getString("SITEID") ?: ""
-        model.getAllSnapsPagedForId(siteId).observe(this, Observer(adapter::submitList))
-        model.getAllMinimalSnapsForId(siteId).observe(this, Observer {
-            items.clear()
-            if (it != null) {
-                it.forEach { items.add(RowItem(it)) }
-                section.update(items)
-                // Since isSelected is being set at onCurrentItemChanged, there is a small bug where
-                // when the list is refreshed and position doesn't change (which happens when it is in the first),
-                // onCurrentItemChanged is not called again and thus the current item is not selected.
-            }
-        })
-
         carouselRecycler.also {
             it.adapter = adapter
 
@@ -266,6 +254,32 @@ class PdfFragment : Fragment(),
                     DividerItemDecoration.VERTICAL
                 )
             )
+        }
+
+        val siteId = arguments?.getString("SITEID") ?: ""
+        model.getAllSnapsPagedForId(siteId).observe(this, Observer(adapter::submitList))
+
+        // this is needed since getAllSnaps retrieves a liveData from Room to be observed
+        launch {
+            val liveData = model.getAllSnaps(siteId)
+            launch(UI) {
+                liveData.observe(this@PdfFragment, Observer {
+                    items.clear()
+
+                    if (it != null) {
+                        it.mapTo(items) { RowItem(it) }
+                        section.update(items)
+                        // Since isSelected is being set at onCurrentItemChanged, there is a small bug where
+                        // when the list is refreshed and position doesn't change (which happens when it is in the first),
+                        // onCurrentItemChanged is not called again and thus the current item is not selected.
+
+                        // If all items were removed, close this fragment
+                        if (items.isEmpty()) {
+                            Navigation.findNavController(view).navigateUp()
+                        }
+                    }
+                })
+            }
         }
 
         groupAdapter.add(section)

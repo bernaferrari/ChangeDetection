@@ -134,12 +134,12 @@ dependencies {
     // AndroidX, eventually..
     implementation 'androidx.core:core-ktx:0.3'
     implementation 'com.android.support:multidex:1.0.3'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.1'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
 
 
     // Internal
     implementation 'org.jsoup:jsoup:1.11.3'
-    implementation 'com.facebook.stetho:stetho:1.5.0'
+    debugImplementation 'com.facebook.stetho:stetho:1.5.0'
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 

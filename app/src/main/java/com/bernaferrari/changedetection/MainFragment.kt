@@ -26,8 +26,8 @@ import androidx.work.State
 import androidx.work.WorkStatus
 import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
+import com.bernaferrari.changedetection.data.SiteAndLastSnap
 import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.data.source.local.SiteAndLastSnap
 import com.bernaferrari.changedetection.extensions.isValidUrl
 import com.bernaferrari.changedetection.forms.FormInputText
 import com.bernaferrari.changedetection.forms.Forms
@@ -67,8 +67,10 @@ class MainFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.main_fragment, container, false)
+    ): View? = inflater.inflate(R.layout.main_fragment, container, false)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         mViewModel = obtainViewModel(requireActivity())
         val groupAdapter = GroupAdapter<ViewHolder>()
 
@@ -138,55 +140,72 @@ class MainFragment : Fragment() {
             }
 
             val customView =
-                layoutInflater.inflate(R.layout.recyclerview, view!!.parentLayout, false)
+                layoutInflater.inflate(R.layout.recyclerview, view.parentLayout, false)
 
             val bottomSheet = BottomSheetDialog(requireContext()).apply {
                 setContentView(customView)
                 show()
             }
 
-            customView.findViewById<RecyclerView>(R.id.defaultRecycler).run {
-                adapter = GroupAdapter<ViewHolder>().apply {
-                    add(Section(LoadingItem()))
-                }
+            val bottomSheetGroupAdapter = GroupAdapter<ViewHolder>().apply {
+                add(Section(LoadingItem()))
             }
 
+            customView.findViewById<RecyclerView>(R.id.defaultRecycler).run {
+                adapter = bottomSheetGroupAdapter
+            }
 
             launch {
                 val contentTypes = mViewModel.getRecentContentTypes(item.site.id)
-                if (contentTypes.size > 3) {
 
-                } else {
-                    val bundle = bundleOf(
-                        "SITEID" to item.site.id,
-                        "TITLE" to item.site.title,
-                        "URL" to item.site.url
-                    )
+                val selectedType = item.lastSnap?.contentType
 
-                    launch(UI) {
-                        bottomSheet.dismiss()
+                launch(UI) {
 
-                        val selectedType = contentTypes.firstOrNull()
+                    bottomSheetGroupAdapter.clear()
 
-                        if (selectedType == "application/pdf") {
-                            Navigation.findNavController(view)
-                                .navigate(R.id.action_mainFragment_to_pdfFragment, bundle)
-                        } else if (selectedType?.split("/")?.first() == "image") {
-                            Navigation.findNavController(view)
-                                .navigate(R.id.action_mainFragment_to_imageCarouselFragment, bundle)
-                        } else {
-                            Navigation.findNavController(view)
-                                .navigate(R.id.action_mainFragment_to_openFragment, bundle)
+                    when {
+                        contentTypes.size <= 1
+                                && contentTypes.firstOrNull()?.count!! <= 1
+                                && (selectedType != "application/pdf"
+                                && selectedType?.split("/")?.first() != "image") -> {
+                            // SHOW EMPTY
+                            bottomSheetGroupAdapter.add(EmptyItem(item.site.colors.second))
+                        }
+                        contentTypes.size == 1 -> {
+                            bottomSheet.dismiss()
+                            navigateTo(selectedType, item)
+                        }
+                        else -> {
+
                         }
                     }
+//                    bottomSheet.dismiss()
                 }
             }
         }
 
         mViewModel.loadSites().observe(this, Observer(::updateList))
         mViewModel.getOutputStatus().observe(this, Observer(::workOutput))
+    }
 
-        return view
+    private fun navigateTo(selectedType: String?, item: MainCardItem) {
+        val bundle = bundleOf(
+            "SITEID" to item.site.id,
+            "TITLE" to item.site.title,
+            "URL" to item.site.url
+        )
+
+        view?.let { view ->
+            when {
+                selectedType == "application/pdf" -> Navigation.findNavController(view)
+                    .navigate(R.id.action_mainFragment_to_pdfFragment, bundle)
+                selectedType?.split("/")?.first() == "image" -> Navigation.findNavController(view)
+                    .navigate(R.id.action_mainFragment_to_imageCarouselFragment, bundle)
+                else -> Navigation.findNavController(view)
+                    .navigate(R.id.action_mainFragment_to_openFragment, bundle)
+            }
+        }
     }
 
     private fun showDialogWithOptions(item: MainCardItem) {

@@ -33,8 +33,7 @@ object Injection {
         return SitesRepository.getInstance(
             SitesLocalDataSource.getInstance(
                 AppExecutors(),
-                database.siteDao(),
-                database.snapsDao()
+                database.siteDao()
             )
         )
     }

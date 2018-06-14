@@ -5,6 +5,7 @@ import android.arch.paging.DataSource
 import android.content.Context
 import android.support.annotation.VisibleForTesting
 import com.bernaferrari.changedetection.Application
+import com.bernaferrari.changedetection.data.ContentTypeInfo
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SnapsDataSource
 import com.bernaferrari.changedetection.extensions.cleanUpHtml
@@ -23,31 +24,56 @@ private constructor(
     private val mSnapsDao: SnapsDao
 ) : SnapsDataSource {
 
+    override fun getContentTypeInfo(siteId: String, callback: (List<ContentTypeInfo>) -> Unit) {
+        val runnable = Runnable {
 
-    override fun getSnaps(siteId: String): LiveData<List<Snap>> {
-        return mSnapsDao.getAllSnapsForSiteIdWithLiveData(siteId)
+            // "SELECT count(*), contentType..." generates an error from Room, so this is needed.
+            val listOfContentTypes = mutableListOf<ContentTypeInfo>()
+            mSnapsDao.getContentTypesCount(siteId).forEachIndexed { index, count ->
+                listOfContentTypes += ContentTypeInfo(
+                    mSnapsDao.getContentTypesParams(siteId)[index],
+                    count
+                )
+            }
+
+            mSnapsDao.getContentTypesParams(siteId)
+            mAppExecutors.mainThread().execute {
+                callback.invoke(listOfContentTypes)
+            }
+        }
+
+        mAppExecutors.diskIO().execute(runnable)
+    }
+
+
+    override fun getMostRecentSnap(siteId: String, callback: ((Snap?) -> (Unit))) {
+        val runnable = Runnable {
+            val snap = mSnapsDao.getLastSnapForSiteId(siteId)
+
+            mAppExecutors.mainThread().execute {
+                callback.invoke(snap)
+            }
+        }
+
+        mAppExecutors.diskIO().execute(runnable)
+    }
+
+
+    override fun getSnaps(siteId: String, callback: ((LiveData<List<Snap>>) -> (Unit))) {
+        val runnable = Runnable {
+            val snap = mSnapsDao.getAllSnapsForSiteIdWithLiveData(siteId)
+
+            mAppExecutors.mainThread().execute {
+                callback.invoke(snap)
+            }
+        }
+
+        mAppExecutors.diskIO().execute(runnable)
     }
 
 
     override fun getHeavySnapForPaging(siteId: String): DataSource.Factory<Int, Snap> {
         return mSnapsDao.getAllSnapsForSiteIdForPaging(siteId)
-    }
-
-    /**
-     * get the most recent diffs without value.
-     *
-     * @param siteId the site url for filtering the diffs.
-     */
-    override fun getMostRecentSnaps(siteId: String, callback: (List<Int>) -> Unit) {
-        val runnable = Runnable {
-            val original = mSnapsDao.getLastSnapsSize(siteId)
-
-            mAppExecutors.mainThread().execute {
-                callback.invoke(original!!)
-            }
-        }
-
-        mAppExecutors.diskIO().execute(runnable)
     }
 
     /**

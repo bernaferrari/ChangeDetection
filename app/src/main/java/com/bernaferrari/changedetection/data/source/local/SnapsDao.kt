@@ -44,9 +44,11 @@ interface SnapsDao {
      * @param siteId the site url to be filtered.
      * @return list with last 3 contentTypes.
      */
-    @Query("SELECT contentType FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 3")
-    fun getLastFewContentTypes(siteId: String): List<String>
+    @Query("SELECT count(*) FROM snaps WHERE siteId = :siteId GROUP BY contentType")
+    fun getContentTypesCount(siteId: String): List<Int>
 
+    @Query("SELECT contentType FROM snaps WHERE siteId = :siteId GROUP BY contentType")
+    fun getContentTypesParams(siteId: String): List<String>
 
     /**
      * Select all snap by siteId.

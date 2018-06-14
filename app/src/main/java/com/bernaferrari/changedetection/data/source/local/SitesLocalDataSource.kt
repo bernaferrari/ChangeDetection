@@ -13,64 +13,26 @@ import com.bernaferrari.changedetection.util.AppExecutors
 class SitesLocalDataSource
 private constructor(
     private val mAppExecutors: AppExecutors,
-    private val mSitesDao: SitesDao,
-    private val mSnapsDao: SnapsDao
+    private val mSitesDao: SitesDao
 ) : SitesDataSource {
 
-    override fun getLastFewContentTypes(siteId: String, callback: (List<String>) -> Unit) {
-        val runnable = Runnable {
-            val list = mSnapsDao.getLastFewContentTypes(siteId)
-
-            mAppExecutors.mainThread().execute {
-                callback.invoke(list)
-            }
-        }
-
-        mAppExecutors.diskIO().execute(runnable)
-    }
-
-    override fun getSiteAndLastSnap(callback: (MutableList<SiteAndLastSnap>) -> Unit) {
-        val runnable = Runnable {
-            val sites = mSitesDao.sites
-            val list = mutableListOf<SiteAndLastSnap>()
-            sites.mapTo(list) { site ->
-                SiteAndLastSnap(site, mSnapsDao.getLastSnapForSiteId(site.id))
-            }
-
-            mAppExecutors.mainThread().execute {
-                callback.invoke(list)
-            }
-        }
-
-        mAppExecutors.diskIO().execute(runnable)
-    }
-
-    override fun getSites(callback: SitesDataSource.LoadSitesCallback) {
+    override fun getSites(callback: ((List<Site>) -> (Unit))) {
         val runnable = Runnable {
             val sites = mSitesDao.sites
             mAppExecutors.mainThread().execute {
-                if (sites.isEmpty()) {
-                    // This will be called if the table is new or just empty.
-                    callback.onDataNotAvailable()
-                } else {
-                    callback.onSitesLoaded(sites)
-                }
+                callback.invoke(sites)
             }
         }
 
         mAppExecutors.diskIO().execute(runnable)
     }
 
-    override fun getSite(siteId: String, callback: SitesDataSource.GetSiteCallback) {
+    override fun getSite(siteId: String, callback: ((Site?) -> (Unit))) {
         val runnable = Runnable {
             val site = mSitesDao.getSiteById(siteId)
 
             mAppExecutors.mainThread().execute {
-                if (site != null) {
-                    callback.onSiteLoaded(site)
-                } else {
-                    callback.onDataNotAvailable()
-                }
+                callback.invoke(site)
             }
         }
 
@@ -110,13 +72,12 @@ private constructor(
 
         fun getInstance(
             appExecutors: AppExecutors,
-            sitesDao: SitesDao,
-            snapsDao: SnapsDao
+            sitesDao: SitesDao
         ): SitesLocalDataSource {
             if (INSTANCE == null) {
                 synchronized(SitesLocalDataSource::class.java) {
                     if (INSTANCE == null) {
-                        INSTANCE = SitesLocalDataSource(appExecutors, sitesDao, snapsDao)
+                        INSTANCE = SitesLocalDataSource(appExecutors, sitesDao)
                     }
                 }
             }
