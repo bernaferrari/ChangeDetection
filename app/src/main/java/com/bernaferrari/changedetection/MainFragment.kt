@@ -467,8 +467,8 @@ class MainFragment : Fragment() {
     ) {
 
         val listOfItems = mutableListOf<FormInputText>().apply {
-            add(FormInputText(item?.site?.url ?: "", getString(R.string.url), Forms.URL))
             add(FormInputText(item?.site?.title ?: "", getString(R.string.title), Forms.NAME))
+            add(FormInputText(item?.site?.url ?: "", getString(R.string.url), Forms.URL))
         }
 
         val errorOnLastSync = isInEditingMode && item?.site?.isSuccessful == false
