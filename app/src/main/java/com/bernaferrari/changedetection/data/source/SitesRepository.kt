@@ -1,7 +1,6 @@
 package com.bernaferrari.changedetection.data.source
 
 import com.bernaferrari.changedetection.data.Site
-import com.bernaferrari.changedetection.data.source.local.SiteAndLastSnap
 
 /**
  * Concrete implementation to load sites from the data sources into a cache.
@@ -20,33 +19,15 @@ private constructor(
     sitesLocalDataSource: SitesDataSource
 ) : SitesDataSource {
 
-    override fun getLastFewContentTypes(siteId: String, callback: (List<String>) -> Unit) {
-        mSitesLocalDataSource.getLastFewContentTypes(siteId) {
-            callback.invoke(it)
-        }
-    }
-
     private val mSitesLocalDataSource: SitesDataSource = checkNotNull(sitesLocalDataSource)
 
-    override fun getSiteAndLastSnap(callback: (MutableList<SiteAndLastSnap>) -> Unit) {
-        mSitesLocalDataSource.getSiteAndLastSnap {
-            callback.invoke(it)
-        }
-    }
-
-    override fun getSites(callback: SitesDataSource.LoadSitesCallback) {
+    override fun getSites(callback: ((List<Site>) -> (Unit))) {
         checkNotNull(callback)
 
         // Query the local storage if available. If not, query the network.
-        mSitesLocalDataSource.getSites(object : SitesDataSource.LoadSitesCallback {
-            override fun onSitesLoaded(sites: List<Site>) {
-                callback.onSitesLoaded(sites)
-            }
-
-            override fun onDataNotAvailable() {
-                callback.onDataNotAvailable()
-            }
-        })
+        mSitesLocalDataSource.getSites {
+            callback.invoke(it)
+        }
     }
 
     override fun saveSite(site: Site) {
@@ -63,24 +44,14 @@ private constructor(
     /**
      * Gets sites from local data source (sqlite) unless the table is new or empty. In that case it
      * uses the network data source. This is done to simplify the sample.
-     *
-     *
-     * Note: [GetTaskCallback.onDataNotAvailable] is fired if both data sources fail to
-     * get the data.
      */
-    override fun getSite(siteId: String, callback: SitesDataSource.GetSiteCallback) {
+    override fun getSite(siteId: String, callback: (Site?) -> (Unit)) {
         // Load from server/persisted if needed.
 
         // Is the site in the local data source? If not, query the network.
-        mSitesLocalDataSource.getSite(siteId, object : SitesDataSource.GetSiteCallback {
-            override fun onSiteLoaded(site: Site) {
-                callback.onSiteLoaded(site)
-            }
-
-            override fun onDataNotAvailable() {
-                callback.onDataNotAvailable()
-            }
-        })
+        mSitesLocalDataSource.getSite(siteId) {
+            callback.invoke(it)
+        }
     }
 
     override fun deleteAllSites() {
