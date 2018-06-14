@@ -378,16 +378,7 @@ class MainFragment : Fragment() {
         item.startSyncing()
         launch {
             val strFetched = WorkerHelper.fetchFromServer(item.site)
-            if (strFetched != null) {
-                launch(UI) { updateSiteAndSnap(strFetched.first, strFetched.second, item) }
-            } else {
-                // This will happen when internet connection is missing
-                launch(UI) {
-                    Toasty.error(requireContext(), getString(R.string.missing_internet))
-                    item.update(item.site)
-                    sitesSection.update(sitesList)
-                }
-            }
+            launch(UI) { updateSiteAndSnap(strFetched.first, strFetched.second, item) }
         }
     }
 
@@ -407,8 +398,8 @@ class MainFragment : Fragment() {
         val snap = Snap(
             siteId = item.site.id,
             timestamp = newSite.timestamp,
-            contentType = contentTypeCharset.split(":").first(),
-            contentCharset = contentTypeCharset.split(":").getOrNull(1) ?: "",
+            contentType = contentTypeCharset.split(";").first(),
+            contentCharset = contentTypeCharset.split(";").getOrNull(1) ?: "",
             contentSize = content.size
         )
 
