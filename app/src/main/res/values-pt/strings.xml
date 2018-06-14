@@ -89,5 +89,8 @@
 
     <string name="control_bar_quality">Alta Qualidade</string>
     <string name="share">Compartilhar</string>
+    <string name="no_changes_detected">Nenhuma mudança encontrada</string>
+    <string name="next">PRÓXIMA</string>
+    <string name="previous">ANTERIOR</string>
 
 </resources>

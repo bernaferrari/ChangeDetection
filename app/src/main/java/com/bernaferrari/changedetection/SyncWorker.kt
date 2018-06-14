@@ -8,7 +8,6 @@ import android.net.NetworkCapabilities
 import androidx.work.Worker
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.data.source.SitesDataSource
 import com.bernaferrari.changedetection.data.source.SnapsDataSource
 import com.orhanobut.logger.Logger
 import io.karn.notify.Notify
@@ -37,16 +36,10 @@ class SyncWorker : Worker() {
         val now = LocalTime.now()
         Logger.d("Doing background work! " + now.hour + ":" + now.minute)
         Injection.provideSitesRepository(this@SyncWorker.applicationContext)
-            .getSites(object : SitesDataSource.LoadSitesCallback {
-                override fun onSitesLoaded(sites: List<Site>) {
-                    sites.forEach(::reload)
-                    WorkerHelper.updateWorkerWithConstraints(Application.instance.sharedPrefs("workerPreferences"))
-                }
-
-                override fun onDataNotAvailable() {
-
-                }
-            })
+            .getSites { sites ->
+                sites.forEach(::reload)
+                WorkerHelper.updateWorkerWithConstraints(Application.instance.sharedPrefs("workerPreferences"))
+            }
     }
 
     private fun reload(item: Site) {

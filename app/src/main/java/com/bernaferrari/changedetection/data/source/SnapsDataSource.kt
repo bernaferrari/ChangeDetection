@@ -2,6 +2,7 @@ package com.bernaferrari.changedetection.data.source
 
 import android.arch.lifecycle.LiveData
 import android.arch.paging.DataSource
+import com.bernaferrari.changedetection.data.ContentTypeInfo
 import com.bernaferrari.changedetection.data.Snap
 
 /**
@@ -17,9 +18,11 @@ interface SnapsDataSource {
         fun onDataNotAvailable()
     }
 
-    fun getMostRecentSnaps(siteId: String, callback: ((List<Int>) -> (Unit)))
+    fun getContentTypeInfo(siteId: String, callback: ((List<ContentTypeInfo>) -> Unit))
 
-    fun getSnaps(siteId: String): LiveData<List<Snap>>
+    fun getMostRecentSnap(siteId: String, callback: ((Snap?) -> (Unit)))
+
+    fun getSnaps(siteId: String, callback: ((LiveData<List<Snap>>) -> Unit))
 
     fun getSnapForPaging(siteId: String): DataSource.Factory<Int, Snap>
 

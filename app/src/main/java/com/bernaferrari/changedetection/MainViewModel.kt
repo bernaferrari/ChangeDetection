@@ -6,12 +6,15 @@ import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import androidx.work.WorkManager
 import androidx.work.WorkStatus
+import com.bernaferrari.changedetection.data.ContentTypeInfo
 import com.bernaferrari.changedetection.data.Site
+import com.bernaferrari.changedetection.data.SiteAndLastSnap
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SitesRepository
 import com.bernaferrari.changedetection.data.source.SnapsDataSource
 import com.bernaferrari.changedetection.data.source.SnapsRepository
-import com.bernaferrari.changedetection.data.source.local.SiteAndLastSnap
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.launch
 import kotlin.coroutines.experimental.suspendCoroutine
 
 /**
@@ -69,16 +72,11 @@ class MainViewModel(
         return didItWork
     }
 
-    suspend fun getRecentContentTypes(siteId: String): List<String> = suspendCoroutine { cont ->
-        mSitesRepository.getLastFewContentTypes(
+    suspend fun getRecentContentTypes(siteId: String): List<ContentTypeInfo> =
+        suspendCoroutine { cont ->
+            mSnapsRepository.getContentTypeInfo(
             siteId
         ) {
-            cont.resume(it)
-        }
-    }
-
-    suspend fun getRecentMinimalSnaps(siteId: String): List<Int>? = suspendCoroutine { cont ->
-        mSnapsRepository.getMostRecentSnaps(siteId) {
             cont.resume(it)
         }
     }
@@ -96,8 +94,24 @@ class MainViewModel(
     }
 
     fun updateItems() {
-        mSitesRepository.getSiteAndLastSnap {
-            items.value = it
+        mSitesRepository.getSites { siteList ->
+            launch {
+                val listOfSitesAndSnaps = mutableListOf<SiteAndLastSnap>()
+
+                siteList.forEach { site ->
+                    listOfSitesAndSnaps += SiteAndLastSnap(site, getLastSnap(site.id))
+                }
+
+                launch(UI) {
+                    items.value = listOfSitesAndSnaps
+                }
+            }
+        }
+    }
+
+    private suspend fun getLastSnap(siteId: String): Snap? = suspendCoroutine { cont ->
+        mSnapsRepository.getMostRecentSnap(siteId) {
+            cont.resume(it)
         }
     }
 }

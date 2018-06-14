@@ -1,7 +1,6 @@
 package com.bernaferrari.changedetection.data.source
 
 import com.bernaferrari.changedetection.data.Site
-import com.bernaferrari.changedetection.data.source.local.SiteAndLastSnap
 
 /**
  * Main entry point for accessing sites data.
@@ -9,27 +8,9 @@ import com.bernaferrari.changedetection.data.source.local.SiteAndLastSnap
  */
 interface SitesDataSource {
 
-    interface LoadSitesCallback {
+    fun getSites(callback: ((List<Site>) -> (Unit)))
 
-        fun onSitesLoaded(sites: List<Site>)
-
-        fun onDataNotAvailable()
-    }
-
-    interface GetSiteCallback {
-
-        fun onSiteLoaded(site: Site)
-
-        fun onDataNotAvailable()
-    }
-
-    fun getSiteAndLastSnap(callback: (MutableList<SiteAndLastSnap>) -> (Unit))
-
-    fun getSites(callback: LoadSitesCallback)
-
-    fun getLastFewContentTypes(siteId: String, callback: (List<String>) -> (Unit))
-
-    fun getSite(siteId: String, callback: GetSiteCallback)
+    fun getSite(siteId: String, callback: ((Site?) -> (Unit)))
 
     fun saveSite(site: Site)
 
