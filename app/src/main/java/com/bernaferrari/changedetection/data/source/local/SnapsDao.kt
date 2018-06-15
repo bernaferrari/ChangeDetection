@@ -60,6 +60,29 @@ interface SnapsDao {
     @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC")
     fun getAllSnapsForSiteId(siteId: String): List<Snap>
 
+    /**
+     * Select all snap by siteId.
+     * This is going to be used by the Paging Library.
+     *
+     * @param siteId the site url to be filtered.
+     * @return all snaps for the siteId.
+     */
+    @Query("SELECT * FROM snaps WHERE siteId = :siteId AND contentType = :contentType ORDER BY timestamp DESC")
+    fun getAllSnapsForSiteIdAndContentType(siteId: String, contentType: String): List<Snap>
+
+    /**
+     * Select all snap by siteId, filtered by the contentType.
+     *
+     * @param siteId the site url to be filtered.
+     * @param filter the filter
+     * @return all snaps filtered
+     */
+    @Query("SELECT * FROM snaps WHERE siteId = :siteId AND contentType LIKE :filter ORDER BY timestamp DESC")
+    fun getAllSnapsForSiteIdFilteredWithLiveData(
+        siteId: String,
+        filter: String
+    ): LiveData<List<Snap>>
+
 
     /**
      * Select a snap by url
