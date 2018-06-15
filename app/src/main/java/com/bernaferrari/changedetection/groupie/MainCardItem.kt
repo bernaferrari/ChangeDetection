@@ -94,7 +94,7 @@ class MainCardItem(
 
         val context = holder.containerView.context
         // imageview:src on xml sometimes doesn't cast as AnimatedVectorDrawableCompat, so this is necessary.
-        holder.syncimage.setImageDrawableIfNull(
+        holder.lastSyncImage.setImageDrawableIfNull(
             AnimatedVectorDrawableCompat.create(
                 context,
                 R.drawable.vector_anim_sync
@@ -155,7 +155,7 @@ class MainCardItem(
                     }
                 }
                 startProgress(holder)
-                holder.lastsync.text = holder.lastsync.context.getString(R.string.syncing)
+                holder.lastSyncText.text = holder.lastSyncText.context.getString(R.string.syncing)
             }
             SYNC.OK -> {
                 stopSyncing(holder)
@@ -268,8 +268,10 @@ class MainCardItem(
     }
 
     private fun setLastSync(holder: ViewHolder) {
-        holder.lastsync.text = if (status == SYNC.ERROR) {
-            site.timestamp.convertTimestampToDate() + " – " + holder.lastsync.context.getString(R.string.error)
+        holder.lastSyncText.text = if (status == SYNC.ERROR) {
+            site.timestamp.convertTimestampToDate() + " – " + holder.lastSyncText.context.getString(
+                R.string.error
+            )
         } else {
             site.timestamp.convertTimestampToDate() + " – ${lastSnap?.contentSize?.readableFileSize()}"
         }
@@ -283,10 +285,11 @@ class MainCardItem(
     private fun setLastDiff(holder: ViewHolder) {
         if (lastSnap == null) {
             // if "last" snapshot was null, there is not a single snapshot for this site
-            holder.lastradar.text = holder.lastradar.context.getString(R.string.nothing_yet)
+            holder.lastChangeText.text =
+                    holder.lastChangeText.context.getString(R.string.nothing_yet)
         } else {
             Logger.d("url: ${lastSnap?.snapId} ts: ${lastSnap?.timestamp}")
-            holder.lastradar.text = lastSnap?.timestamp?.convertTimestampToDate()
+            holder.lastChangeText.text = lastSnap?.timestamp?.convertTimestampToDate()
             diffDisposable?.dispose()
             diffDisposable = generateTimerDisposable(lastSnap?.timestamp ?: 0).subscribe {
                 setLastDiff(holder)
@@ -295,8 +298,8 @@ class MainCardItem(
     }
 
     private fun updateRoundBackgrounds(color: Int, holder: ViewHolder) {
-        (holder.syncimage.background as GradientDrawable).setColor(color)
-        (holder.radarimage.background as GradientDrawable).setColor(color)
+        (holder.lastSyncImage.background as GradientDrawable).setColor(color)
+        (holder.lastChangeImage.background as GradientDrawable).setColor(color)
     }
 
     private fun startProgress(holder: ViewHolder) {
@@ -307,7 +310,7 @@ class MainCardItem(
             Completable.mergeArray(this.fadeOut(500), this.shrinkIn(500)).subscribe()
         }
 
-        startAndReloadAnim(holder.syncimage)
+        startAndReloadAnim(holder.lastSyncImage)
     }
 
     private fun startAndReloadAnim(imageView: ImageView) {

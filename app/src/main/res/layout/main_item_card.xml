@@ -43,34 +43,6 @@
                 app:layout_constraintTop_toTopOf="@+id/titleTextView"
                 tools:src="@drawable/vector_anim_reload" />
 
-            <!--<ImageView-->
-            <!--android:url="@+url/info"-->
-            <!--android:layout_width="32dp"-->
-            <!--android:layout_height="32dp"-->
-            <!--android:scaleType="center"-->
-            <!--android:visibility_on_to_off="gone"-->
-            <!--app:layout_constraintEnd_toEndOf="parent"-->
-            <!--app:layout_constraintTop_toTopOf="parent" />-->
-
-            <!--<TextView-->
-            <!--android:url="@+url/textInsideCircle"-->
-            <!--android:layout_width="48dp"-->
-            <!--android:layout_height="48dp"-->
-            <!--android:layout_marginLeft="@dimen/mark_margin"-->
-            <!--android:layout_marginTop="@dimen/mark_margin"-->
-            <!--android:background="@drawable/circle_shape"-->
-            <!--android:fontFamily="@font/work_semibold"-->
-            <!--android:gravity="center"-->
-            <!--android:textColor="@color/white"-->
-
-            <!--android:textSize="26dp"-->
-            <!--android:visibility_on_to_off="gone"-->
-            <!--app:layout_constraintStart_toStartOf="parent"-->
-
-            <!--app:layout_constraintTop_toTopOf="parent"-->
-            <!--tools:text="M" />-->
-
-
             <TextView
                 android:id="@+id/titleTextView"
                 android:layout_width="0dp"
@@ -80,9 +52,9 @@
                 android:layout_marginEnd="@dimen/mark_margin"
                 android:fontFamily="@font/work_semibold"
                 android:includeFontPadding="false"
-                android:text="Dinf"
                 android:textColor="@color/white"
                 android:textSize="24sp"
+                tools:text="Dinf"
                 app:layout_constraintBottom_toTopOf="@+id/subtitleTextView"
                 app:layout_constraintEnd_toStartOf="@+id/reload"
                 app:layout_constraintHorizontal_bias="0.5"
@@ -101,26 +73,14 @@
                 android:fontFamily="@font/work_regular"
                 android:includeFontPadding="false"
                 android:lines="1"
-                android:text="http://inf.ufpr.br/dinf/andrey/ci163/index.html"
                 android:textAppearance="@style/Base.TextAppearance.AppCompat.Caption"
                 android:textColor="#90FFFFFF"
+                tools:text="http://inf.ufpr.br/dinf/andrey/ci163/index.html"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/reload"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/titleTextView" />
-
-
-            <!--<View-->
-            <!--android:url="@+url/view"-->
-            <!--android:layout_width="0.5dp"-->
-            <!--android:layout_height="0dp"-->
-            <!--android:layout_marginTop="16dp"-->
-            <!--android:background="@color/md_grey_400"-->
-            <!--app:layout_constraintBottom_toBottomOf="parent"-->
-            <!--app:layout_constraintEnd_toEndOf="parent"-->
-            <!--app:layout_constraintStart_toStartOf="parent"-->
-            <!--app:layout_constraintTop_toBottomOf="@+url/subtitleTextView" />-->
 
             <android.support.constraint.Guideline
                 android:id="@+id/guideline"
@@ -137,73 +97,73 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/textView5"
+            android:id="@+id/lastChangeTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:fontFamily="@font/work_medium"
             android:includeFontPadding="false"
-            android:text="Last Change"
+            android:text="@string/last_change"
             android:textColor="#67687c"
             android:textSize="16sp"
-            app:layout_constraintBottom_toTopOf="@+id/lastradar"
+            app:layout_constraintBottom_toTopOf="@+id/lastChangeText"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/radarimage"
-            app:layout_constraintTop_toTopOf="@+id/radarimage"
+            app:layout_constraintStart_toEndOf="@+id/lastChangeImage"
+            app:layout_constraintTop_toTopOf="@+id/lastChangeImage"
             app:layout_constraintVertical_chainStyle="packed" />
 
         <TextView
-            android:id="@+id/lastradar"
+            android:id="@+id/lastChangeText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:fontFamily="@font/work_medium"
             android:includeFontPadding="false"
-            android:text="3 days ago"
             android:textColor="@color/md_grey_500"
-            app:layout_constraintBottom_toBottomOf="@+id/radarimage"
+            tools:text="2 days ago"
+            app:layout_constraintBottom_toBottomOf="@+id/lastChangeImage"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/radarimage"
-            app:layout_constraintTop_toBottomOf="@+id/textView5" />
+            app:layout_constraintStart_toEndOf="@+id/lastChangeImage"
+            app:layout_constraintTop_toBottomOf="@+id/lastChangeTitle" />
 
         <TextView
-            android:id="@+id/lastsync"
+            android:id="@+id/lastSyncText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:fontFamily="@font/work_medium"
             android:includeFontPadding="false"
-            android:text="3 days ago"
             android:textColor="@color/md_grey_500"
-            app:layout_constraintBottom_toBottomOf="@+id/syncimage"
+            tools:text="3 days ago"
+            app:layout_constraintBottom_toBottomOf="@+id/lastSyncImage"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/syncimage"
-            app:layout_constraintTop_toBottomOf="@+id/textView4" />
+            app:layout_constraintStart_toEndOf="@+id/lastSyncImage"
+            app:layout_constraintTop_toBottomOf="@+id/lastSyncTitle" />
 
         <TextView
-            android:id="@+id/textView4"
+            android:id="@+id/lastSyncTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:fontFamily="@font/work_medium"
             android:includeFontPadding="false"
-            android:text="Last Sync"
+            android:text="@string/last_sync"
             android:textColor="#67687c"
             android:textSize="16sp"
-            app:layout_constraintBottom_toTopOf="@+id/lastsync"
+            app:layout_constraintBottom_toTopOf="@+id/lastSyncText"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/syncimage"
-            app:layout_constraintTop_toTopOf="@+id/syncimage"
+            app:layout_constraintStart_toEndOf="@+id/lastSyncImage"
+            app:layout_constraintTop_toTopOf="@+id/lastSyncImage"
             app:layout_constraintVertical_chainStyle="packed" />
 
         <ImageView
-            android:id="@+id/syncimage"
+            android:id="@+id/lastSyncImage"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:layout_marginLeft="@dimen/mark_margin"
@@ -216,11 +176,11 @@
             tools:src="@drawable/vector_anim_sync" />
 
         <ImageView
-            android:id="@+id/radarimage"
+            android:id="@+id/lastChangeImage"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:layout_marginLeft="@dimen/mark_margin"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="16dp"
             android:layout_marginBottom="8dp"
             android:background="@drawable/circle_shape"
             android:padding="8dp"
@@ -228,15 +188,15 @@
             android:src="@drawable/vector_diff"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/view2" />
+            app:layout_constraintTop_toBottomOf="@+id/lastSyncImage" />
 
         <View
-            android:id="@+id/view2"
+            android:id="@+id/view"
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_marginTop="8dp"
             android:background="@color/md_grey_200"
-            app:layout_constraintTop_toBottomOf="@+id/syncimage" />
+            app:layout_constraintTop_toBottomOf="@+id/lastSyncImage" />
 
     </android.support.constraint.ConstraintLayout>
 
