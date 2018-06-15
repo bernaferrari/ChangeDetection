@@ -300,9 +300,9 @@ class TextViewModel(
         return Pair(updatingOnlyDiff, updatingNonDiff)
     }
 
-    fun getAllSnapsPagedForId(id: String): LiveData<PagedList<Snap>> {
+    fun getAllSnapsPagedForId(id: String, filter: String): LiveData<PagedList<Snap>> {
         return LivePagedListBuilder(
-            mSnapsRepository.getSnapForPaging(id), PagedList.Config.Builder()
+            mSnapsRepository.getSnapForPaging(id, filter), PagedList.Config.Builder()
                 .setPageSize(PAGE_SIZE)
                 .setEnablePlaceholders(ENABLE_PLACEHOLDERS)
                 .build()

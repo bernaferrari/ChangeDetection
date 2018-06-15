@@ -191,11 +191,11 @@ class ImageFragment : Fragment(),
         )
 
         val siteId = arguments?.getString("SITEID") ?: ""
-        model.getAllSnapsPagedForId(siteId).observe(this, Observer(adapter::submitList))
+        model.getAllSnapsPagedForId(siteId, "image%").observe(this, Observer(adapter::submitList))
 
-        // this is needed since getAllSnaps retrieves a liveData from Room to be observed
+        // this is needed since getSnapsFiltered retrieves a liveData from Room to be observed
         launch {
-            val liveData = model.getAllSnaps(siteId)
+            val liveData = model.getSnapsFiltered(siteId, "image%")
             launch(UI) {
                 liveData.observe(this@ImageFragment, Observer {
                     items.clear()

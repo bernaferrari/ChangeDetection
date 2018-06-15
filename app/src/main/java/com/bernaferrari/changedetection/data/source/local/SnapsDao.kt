@@ -32,8 +32,8 @@ interface SnapsDao {
      * @param siteId the site url to be filtered.
      * @return all snaps for the siteId.
      */
-    @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC")
-    fun getSnapsForSiteIdForPaging(siteId: String): DataSource.Factory<Int, Snap>
+    @Query("SELECT * FROM snaps WHERE siteId = :siteId AND contentType LIKE :filter ORDER BY timestamp DESC")
+    fun getSnapsForSiteIdForPaging(siteId: String, filter: String): DataSource.Factory<Int, Snap>
 
 
     /**
