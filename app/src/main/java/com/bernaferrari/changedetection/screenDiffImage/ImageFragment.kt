@@ -91,27 +91,7 @@ class ImageFragment : Fragment(),
             return
         }
 
-        // deslect the previous item on the drawer. This might trigger an exception if item was added/removed
-        try {
-            items[previousAdapterPosition].isSelected = false
-            groupAdapter.notifyItemChanged(previousAdapterPosition)
-        } catch (e: IndexOutOfBoundsException) {
-
-        }
-
-        drawerRecycler.scrollToIndexWithMargins(
-            previousAdapterPosition,
-            adapterPosition,
-            items.size
-        )
-
-        previousAdapterPosition = adapterPosition
-        println("adapter position: $adapterPosition")
-
-        // select the new item on the drawer
-        items[adapterPosition].isSelected = true
-        groupAdapter.notifyItemChanged(adapterPosition)
-        section.notifyChanged()
+        selectItem(adapterPosition)
     }
 
     override fun onCreateView(
@@ -198,14 +178,19 @@ class ImageFragment : Fragment(),
             val liveData = model.getSnapsFiltered(siteId, "image%")
             launch(UI) {
                 liveData.observe(this@ImageFragment, Observer {
+                    val isItemsEmpty = items.isEmpty()
                     items.clear()
 
                     if (it != null) {
                         it.mapTo(items) { RowItem(it) }
                         section.update(items)
-                        // Since isSelected is being set at onCurrentItemChanged, there is a small bug where
-                        // when the list is refreshed and position doesn't change (which happens when it is in the first),
-                        // onCurrentItemChanged is not called again and thus the current item is not selected.
+
+                        // Since selectItem is being set at onCurrentItemChanged, and this code is ran async,
+                        // if it happens after onCurrentItemChanged is called, which usually happens, the
+                        // first item won't be selected. The two lines below fix this.
+                        if (isItemsEmpty) {
+                            selectItem(0)
+                        }
 
                         // If all items were removed, close this fragment
                         if (items.isEmpty()) {
@@ -257,6 +242,29 @@ class ImageFragment : Fragment(),
             }
             true
         }
+    }
+
+    private fun selectItem(adapterPosition: Int) {
+        // deslect the previous item on the drawer. This might trigger an exception if item was added/removed
+        try {
+            items[previousAdapterPosition].isSelected = false
+            groupAdapter.notifyItemChanged(previousAdapterPosition)
+        } catch (e: IndexOutOfBoundsException) {
+
+        }
+
+        drawerRecycler.scrollToIndexWithMargins(
+            previousAdapterPosition,
+            adapterPosition,
+            items.size
+        )
+
+        previousAdapterPosition = adapterPosition
+
+        // select the new item on the drawer
+        items[adapterPosition].isSelected = true
+        groupAdapter.notifyItemChanged(adapterPosition)
+        section.notifyChanged()
     }
 
     private fun shareItem(item: Snap) {
