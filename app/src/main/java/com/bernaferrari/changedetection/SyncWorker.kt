@@ -38,7 +38,11 @@ class SyncWorker : Worker() {
         Injection.provideSitesRepository(this@SyncWorker.applicationContext)
             .getSites { sites ->
                 sites.forEach(::reload)
-                WorkerHelper.updateWorkerWithConstraints(Application.instance.sharedPrefs("workerPreferences"))
+
+                // if there is nothing to sync, auto-sync will be automatically disabled
+                if (sites.count { it.isSyncEnabled } > 0) {
+                    WorkerHelper.updateWorkerWithConstraints(Application.instance.sharedPrefs("workerPreferences"))
+                }
             }
     }
 
@@ -49,9 +53,7 @@ class SyncWorker : Worker() {
 
         launch {
             val serverResult = WorkerHelper.fetchFromServer(item)
-            if (serverResult != null) {
-                processServerResult(serverResult.first, serverResult.second, item)
-            }
+            processServerResult(serverResult.first, serverResult.second, item)
         }
     }
 
