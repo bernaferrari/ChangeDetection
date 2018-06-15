@@ -97,4 +97,9 @@
     <string name="last_change">Última mudança</string>
     <string name="last_sync">Última Sincronização</string>
 
+    <plurals name="items">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+
 </resources>
