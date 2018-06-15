@@ -165,10 +165,7 @@ class MainFragment : Fragment() {
                     bottomSheetGroupAdapter.clear()
 
                     when {
-                        contentTypes.size <= 1
-                                && contentTypes.firstOrNull()?.count!! <= 1
-                                && (selectedType != "application/pdf"
-                                && selectedType?.split("/")?.first() != "image") -> {
+                        contentTypes.size <= 1 && contentTypes.firstOrNull()?.count!! <= 1 -> {
                             // SHOW EMPTY
                             bottomSheetGroupAdapter.add(EmptyItem(item.site.colors.second))
                         }

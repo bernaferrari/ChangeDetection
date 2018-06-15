@@ -18,6 +18,16 @@ private constructor(
     snapsLocalDataSource: SnapsDataSource
 ) : SnapsDataSource {
 
+    override fun getSnapsFiltered(
+        siteId: String,
+        filter: String,
+        callback: (LiveData<List<Snap>>) -> Unit
+    ) {
+        mSnapsLocalDataSource.getSnapsFiltered(siteId, filter) {
+            callback.invoke(it)
+        }
+    }
+
     override fun getContentTypeInfo(siteId: String, callback: (List<ContentTypeInfo>) -> Unit) {
         mSnapsLocalDataSource.getContentTypeInfo(
             siteId
@@ -53,8 +63,8 @@ private constructor(
         }
     }
 
-    override fun getSnapForPaging(siteId: String): DataSource.Factory<Int, Snap> {
-        return mSnapsLocalDataSource.getSnapForPaging(siteId)
+    override fun getSnapForPaging(siteId: String, filter: String): DataSource.Factory<Int, Snap> {
+        return mSnapsLocalDataSource.getSnapForPaging(siteId, filter)
     }
 
     override fun deleteAllSnaps(siteId: String) {

@@ -76,8 +76,8 @@ private constructor(
      *
      * @param siteId the site url for filtering the diffs.
      */
-    override fun getSnapForPaging(siteId: String): DataSource.Factory<Int, Snap> {
-        return mSnapsDao.getSnapsForSiteIdForPaging(siteId)
+    override fun getSnapForPaging(siteId: String, filter: String): DataSource.Factory<Int, Snap> {
+        return mSnapsDao.getSnapsForSiteIdForPaging(siteId, filter)
     }
 
     override fun getSnapPair(
