@@ -27,17 +27,18 @@ class ImageViewModel(
     }
 
 
-    fun getAllSnapsPagedForId(id: String): LiveData<PagedList<Snap>> {
+    fun getAllSnapsPagedForId(id: String, filter: String): LiveData<PagedList<Snap>> {
         return LivePagedListBuilder(
-            mSnapsRepository.getSnapForPaging(id), PagedList.Config.Builder()
+            mSnapsRepository.getSnapForPaging(id, filter), PagedList.Config.Builder()
                 .setPageSize(PAGE_SIZE)
                 .setEnablePlaceholders(ENABLE_PLACEHOLDERS)
                 .build()
         ).build()
     }
 
-    suspend fun getAllSnaps(id: String): LiveData<List<Snap>> = suspendCoroutine { cont ->
-        mSnapsRepository.getSnaps(id) {
+    suspend fun getSnapsFiltered(id: String, filter: String): LiveData<List<Snap>> =
+        suspendCoroutine { cont ->
+            mSnapsRepository.getSnapsFiltered(id, filter) {
             cont.resume(it)
         }
     }

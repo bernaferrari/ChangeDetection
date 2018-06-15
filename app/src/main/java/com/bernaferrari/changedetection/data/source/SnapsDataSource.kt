@@ -24,7 +24,9 @@ interface SnapsDataSource {
 
     fun getSnaps(siteId: String, callback: ((LiveData<List<Snap>>) -> Unit))
 
-    fun getSnapForPaging(siteId: String): DataSource.Factory<Int, Snap>
+    fun getSnapsFiltered(siteId: String, filter: String, callback: ((LiveData<List<Snap>>) -> Unit))
+
+    fun getSnapForPaging(siteId: String, filter: String): DataSource.Factory<Int, Snap>
 
     fun getSnapContent(snapId: String, callback: ((ByteArray) -> (Unit)))
 
