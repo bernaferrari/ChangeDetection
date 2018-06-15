@@ -69,11 +69,13 @@ class SyncWorker : Worker() {
 
         Injection.provideSitesRepository(this@SyncWorker.applicationContext).updateSite(newSite)
 
+        // text/html;charset=UTF-8 needs to become text/html and UTF-8
         val snap = Snap(
             siteId = item.id,
             timestamp = newSite.timestamp,
-            contentType = contentTypeCharset.split(":").first(),
-            contentCharset = contentTypeCharset.split(":").getOrNull(1) ?: "",
+            contentType = contentTypeCharset.split(";").first(),
+            contentCharset = contentTypeCharset.split(";").getOrNull(1)?.split("=")?.getOrNull(1)
+                    ?: "",
             contentSize = content.size
         )
 

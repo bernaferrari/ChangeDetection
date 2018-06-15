@@ -41,4 +41,6 @@ interface SnapsDataSource {
     fun deleteAllSnaps(siteId: String)
 
     fun deleteSnap(snapId: String)
+
+    fun deleteSnapsForSiteIdAndContentType(siteId: String, contentType: String)
 }

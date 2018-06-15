@@ -18,6 +18,10 @@ private constructor(
     snapsLocalDataSource: SnapsDataSource
 ) : SnapsDataSource {
 
+    override fun deleteSnapsForSiteIdAndContentType(siteId: String, contentType: String) {
+        mSnapsLocalDataSource.deleteSnapsForSiteIdAndContentType(siteId, contentType)
+    }
+
     override fun getSnapsFiltered(
         siteId: String,
         filter: String,

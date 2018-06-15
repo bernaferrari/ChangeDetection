@@ -147,43 +147,72 @@ class MainFragment : Fragment() {
                 show()
             }
 
-            val bottomSheetGroupAdapter = GroupAdapter<ViewHolder>().apply {
-                add(Section(LoadingItem()))
+            val bottomSheetAdapter = GroupAdapter<ViewHolder>().apply {
+                add(LoadingItem())
             }
 
             customView.findViewById<RecyclerView>(R.id.defaultRecycler).run {
-                adapter = bottomSheetGroupAdapter
+                adapter = bottomSheetAdapter
             }
 
-            launch {
-                val contentTypes = mViewModel.getRecentContentTypes(item.site.id)
-
-                val selectedType = item.lastSnap?.contentType
-
-                launch(UI) {
-
-                    bottomSheetGroupAdapter.clear()
-
-                    when {
-                        contentTypes.size <= 1 && contentTypes.firstOrNull()?.count!! <= 1 -> {
-                            // SHOW EMPTY
-                            bottomSheetGroupAdapter.add(EmptyItem(item.site.colors.second))
-                        }
-                        contentTypes.size == 1 -> {
-                            bottomSheet.dismiss()
-                            navigateTo(selectedType, item)
-                        }
-                        else -> {
-
-                        }
-                    }
-//                    bottomSheet.dismiss()
-                }
-            }
+            updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
         }
 
         mViewModel.loadSites().observe(this, Observer(::updateList))
         mViewModel.getOutputStatus().observe(this, Observer(::workOutput))
+    }
+
+    private fun updateBottomSheet(
+        item: MainCardItem,
+        bottomSheetAdapter: GroupAdapter<ViewHolder>,
+        bottomSheet: BottomSheetDialog
+    ) {
+        launch {
+            val contentTypes = mViewModel.getRecentContentTypes(item.site.id)
+
+            val selectedType = item.lastSnap?.contentType
+
+            launch(UI) {
+
+                bottomSheetAdapter.clear()
+
+                when {
+                    contentTypes.size <= 1 && contentTypes.firstOrNull()?.count!! <= 1 -> {
+                        bottomSheetAdapter.add(EmptyItem(item.site.colors.second))
+                    }
+                    contentTypes.size == 1 -> {
+                        bottomSheet.dismiss()
+                        navigateTo(selectedType, item)
+                    }
+                    else -> {
+                        val remove: ((String) -> (Unit)) = {
+                            MaterialDialog.Builder(requireContext())
+                                .title(R.string.remove)
+                                .content(R.string.remove_content)
+                                .positiveText(R.string.yes)
+                                .negativeText(R.string.no)
+                                .onPositive { _, _ ->
+                                    mViewModel.removeSnapsByType(item.site.id, it)
+                                    updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
+                                }
+                                .show()
+                        }
+
+                        contentTypes.forEach {
+                            bottomSheetAdapter.add(
+                                ItemContentType(
+                                    it.contentType,
+                                    it.count,
+                                    remove
+                                ) { selected ->
+                                    bottomSheet.dismiss()
+                                    navigateTo(selected, item)
+                                })
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun navigateTo(selectedType: String?, item: MainCardItem) {
@@ -411,11 +440,13 @@ class MainFragment : Fragment() {
         )
         mViewModel.updateSite(newSite)
 
+        // text/html;charset=UTF-8 needs to become text/html and UTF-8
         val snap = Snap(
             siteId = item.site.id,
             timestamp = newSite.timestamp,
             contentType = contentTypeCharset.split(";").first(),
-            contentCharset = contentTypeCharset.split(";").getOrNull(1) ?: "",
+            contentCharset = contentTypeCharset.split(";").getOrNull(1)?.split("=")?.getOrNull(1)
+                    ?: "",
             contentSize = content.size
         )
 

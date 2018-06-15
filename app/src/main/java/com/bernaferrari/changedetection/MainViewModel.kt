@@ -40,6 +40,10 @@ class MainViewModel(
         mSitesRepository.deleteSite(site.id)
     }
 
+    fun removeSnapsByType(siteId: String, contentType: String) {
+        mSnapsRepository.deleteSnapsForSiteIdAndContentType(siteId, contentType)
+    }
+
     // Called when clicking on fab.
     internal fun saveSite(
         title: String,

@@ -24,6 +24,33 @@ private constructor(
     private val mSnapsDao: SnapsDao
 ) : SnapsDataSource {
 
+    override fun deleteSnapsForSiteIdAndContentType(siteId: String, contentType: String) {
+        val runnable = Runnable {
+            mSnapsDao.getAllSnapsForSiteIdAndContentType(siteId, contentType).forEach {
+                Application.instance.deleteFile(it.snapId)
+                mSnapsDao.deleteSnapById(it.snapId)
+            }
+        }
+
+        mAppExecutors.diskIO().execute(runnable)
+    }
+
+    override fun getSnapsFiltered(
+        siteId: String,
+        filter: String,
+        callback: (LiveData<List<Snap>>) -> Unit
+    ) {
+        val runnable = Runnable {
+            val liveSnaps = mSnapsDao.getAllSnapsForSiteIdFilteredWithLiveData(siteId, filter)
+
+            mAppExecutors.mainThread().execute {
+                callback.invoke(liveSnaps)
+            }
+        }
+
+        mAppExecutors.diskIO().execute(runnable)
+    }
+
     override fun getContentTypeInfo(siteId: String, callback: (List<ContentTypeInfo>) -> Unit) {
         val runnable = Runnable {
 
@@ -61,10 +88,10 @@ private constructor(
 
     override fun getSnaps(siteId: String, callback: ((LiveData<List<Snap>>) -> (Unit))) {
         val runnable = Runnable {
-            val snap = mSnapsDao.getAllSnapsForSiteIdWithLiveData(siteId)
+            val liveSnaps = mSnapsDao.getAllSnapsForSiteIdWithLiveData(siteId)
 
             mAppExecutors.mainThread().execute {
-                callback.invoke(snap)
+                callback.invoke(liveSnaps)
             }
         }
 
@@ -224,9 +251,8 @@ private constructor(
         val runnable = Runnable {
             mSnapsDao.getAllSnapsForSiteId(siteId).forEach {
                 Application.instance.deleteFile(it.snapId)
+                mSnapsDao.deleteSnapById(it.snapId)
             }
-
-            mSnapsDao.deleteSnapById(siteId)
         }
 
         mAppExecutors.diskIO().execute(runnable)
