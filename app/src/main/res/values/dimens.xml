@@ -17,6 +17,8 @@
     <dimen name="text_size_medium">16sp</dimen>
     <dimen name="text_size_large">18sp</dimen>
 
+    <dimen name="long_press_separator_margin">68dp</dimen> <!-- leftMargin + width + rightMargin -->
+
     <!-- Nofication bar button -->
     <dimen name="status_bar_button_width_height">48dp</dimen>
     <dimen name="status_bar_album_art">64dp</dimen>

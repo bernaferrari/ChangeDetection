@@ -52,13 +52,6 @@ class MainFragment : Fragment() {
     private var sitesList = mutableListOf<MainCardItem>()
     private var sitesSection = Section(sitesList)
 
-    private val greyColor: Int by lazy {
-        ContextCompat.getColor(
-            requireActivity(),
-            R.color.FontStrong
-        )
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WorkerHelper.updateWorkerWithConstraints(Application.instance.sharedPrefs("workerPreferences"))
@@ -236,6 +229,7 @@ class MainFragment : Fragment() {
 
     private fun showDialogWithOptions(item: MainCardItem) {
         val context = requireActivity()
+        val color = item.site.colors.second
 
         val customView =
             layoutInflater.inflate(R.layout.recyclerview, view!!.parentLayout, false)
@@ -246,21 +240,21 @@ class MainFragment : Fragment() {
         val chart = Section()
         val updating = mutableListOf<DialogItemSimple>()
 
-        updating += DialogItemSimple(
-            getString(R.string.reload),
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_reload).color(greyColor),
-            "fetchFromServer"
-        )
+//        updating += DialogItemSimple(
+//            getString(R.string.reload),
+//            IconicsDrawable(context, CommunityMaterial.Icon.cmd_reload).color(color),
+//            "fetchFromServer"
+//        )
 
         updating += DialogItemSimple(
             getString(R.string.edit),
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_pencil).color(greyColor),
+            IconicsDrawable(context, CommunityMaterial.Icon.cmd_pencil).color(color),
             "edit"
         )
 
         updating += DialogItemSimple(
             getString(R.string.open_in_browser),
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_google_chrome).color(greyColor),
+            IconicsDrawable(context, CommunityMaterial.Icon.cmd_google_chrome).color(color),
             "openInBrowser"
         )
 
@@ -286,7 +280,7 @@ class MainFragment : Fragment() {
                         .takeIf { it == true }
                         ?.let { CommunityMaterial.Icon.cmd_bell_off }
                             ?: CommunityMaterial.Icon.cmd_bell)
-                    .color(greyColor),
+                    .color(color),
                 "isNotificationEnabled"
             )
         }
@@ -301,17 +295,26 @@ class MainFragment : Fragment() {
                     .takeIf { it == true }
                     ?.let { CommunityMaterial.Icon.cmd_sync_off }
                         ?: CommunityMaterial.Icon.cmd_sync)
-                .color(greyColor),
+                .color(color),
             "isSyncEnabled"
         )
 
         updating += DialogItemSimple(
             getString(R.string.remove),
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_delete).color(greyColor),
+            IconicsDrawable(context, CommunityMaterial.Icon.cmd_delete).color(color),
             "remove"
         )
 
         customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.run {
+
+            this.addItemDecoration(
+                com.bernaferrari.changedetection.ui.InsetDecoration(
+                    resources.getDimensionPixelSize(R.dimen.divider_height),
+                    resources.getDimensionPixelSize(R.dimen.long_press_separator_margin),
+                    ContextCompat.getColor(this.context, R.color.CCC)
+                )
+            )
+
             adapter = GroupAdapter<ViewHolder>().apply {
                 add(chart)
                 add(Section(updating))
