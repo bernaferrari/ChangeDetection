@@ -15,53 +15,69 @@ This app also showcases **all** the Android Architecture Components working toge
 
 ## Screenshots
 
-| Main Screen | Detail | Settings |
-|:-:|:-:|:-:|
-| ![First](/.github/assets/main_screen.jpg?raw=true) | ![Sec](/.github/assets/diff_view.jpg?raw=true) | ![Third](/.github/assets/settings.jpg?raw=true) |
+| Main Screen | Text Comparison | PDF Comparison | Settings |
+|:-:|:-:|:-:|:-:|
+| ![First](/.github/assets/main_screen.jpg?raw=true) | ![Sec](/.github/assets/diff_view_html.jpg?raw=true) | ![Third](/.github/assets/diff_view_pdf.jpg?raw=true) | ![Fourth](/.github/assets/settings.jpg?raw=true) |
 
 Introduction
 ------------
 
 ### Features
 
-This app contains four screens: 
+This app contains the following screens:
 * A list of websites that are currently being tracked.
-* A detail view, that allows the user to compare the current website version with previous versions.
+* A text details view, that allows the user to compare the current website version with previous versions.
+* An image details view, that allows the user to compare images in a carousel.
+* A pdf details view, that allows the user to compare pdfs in a carousel, similar to the images.
 * A settings view, that allows user to toggle auto-sync on/off and configure what is required for a sync to occur.
 * An about screen, with contact information.
 
-For clarity, unless otherwise noted, I'll ignore the *settings* and *about* on most of this README; I will pretend the app has two views, the main list and the details view.
-Settings makes use of Shared Preferences, there is nothing special.
-
 #### Presentation layer
 
-The presentation layer consists of the following components:
+This app is a Single-Activity app, with the following components:
 * A main activity that handles navigation.
 * A fragment to display the list of websites currently tracked.
-* A fragment to display the details (history of changes) from the selected website.
+* A fragment to display the history of changes from the selected website, when changes are not an image or a pdf.
+* A fragment to display the history of changes from images in a carousel format.
+* A fragment to display the history of changes from pdfs in a carousel format.
 
 The app uses a Model-View-ViewModel (MVVM) architecture for the presentation layer. Each of the fragments corresponds to a MVVM View.
 The View and ViewModel communicate using LiveData and general good principles.
 
 #### Data layer
 
-The database is created using Room and it has two entities: a `Site` and a `Diff` that generate corresponding SQLite tables at runtime.
-There is a one to many relationshiop between them. The id from `Site` is a foreign key on `Diff`.
+The database is created using Room and it has two entities: a `Site` and a `Snap` that generate corresponding SQLite tables at runtime.
+There is a one to many relationshiop between them. The id from `Site` is a foreign key on `Snap`. Snap only contains the snapshot metadata, all the data retrieved from the http request (body response) is stored in Android's own File storage.
 
 To let other components know when the data has finished populating, the `ViewModel` exposes a `LiveData` object via callbacks using interfaces (inspired from [this todo app](https://github.com/googlesamples/android-architecture/tree/dev-todo-mvvm-live)).
-This could be extended to work with server and sync.
+This could be, eventually, easily extended to work with server and sync. The app also makes use of Kotlin's Coroutines to deal with some callbacks.
 
-#### Diff Process
+#### Simple comparision process
+The app works like this:
 
-This app makes extensive use from [java-diff-utils](https://github.com/wumpz/java-diff-utils).
+1. Make http request and store the body response in a byteArray.
+2. Retrieve most recent stored file for that site, if any.
+3. Convert to string, clean up Jsoup and compare them. If same, don't do anything else.
+If different, add the new byteArray to storage and create a new entry on Snap table. When this happens in background, a notification is created to warn the user.
+
+![notification](/.github/assets/notification.jpg?raw=true)
+
+
+#### Diff Process for text files
+
+After a change is detected and user taps to see it, a byte to byte comparision wouldn't be readable, so it makes sense to make a text comparison.
+
+That's why this app makes extensive use from [java-diff-utils](https://github.com/wumpz/java-diff-utils).
 In fact, part of the library was converted to Kotlin and is now working perfectly on Java 6 (the original library makes use of Streams, which is only supported on Java 8).
 All the diff process is made using Myer's diff algorithm, and the result, for performance reasons, is put on a RecyclerView.
 
-When the diff process happens, the app will remove *style*, *link* and *script* tags from html to avoid pages that generate them at every request.
+When this diff process happens, the app will use [jsoup](https://jsoup.org) with a [relaxed whitelist](https://jsoup.org/apidocs/org/jsoup/safety/Whitelist.html#relaxed--) to remove all the useless tags from html to avoid pages that generate them at every request.
 Example: pages that make use of Google Analytics and pages that were made in WordPress.
-If even after stripping these there is still a change detected, the app will show a toast (if visible) or a notification (if in background).
+The app will also use jsoup to unescape "<" and ">" from html.
 
-![notification](/.github/assets/notification.jpg?raw=true)
+#### Diff Process for image and pdf files
+
+It makes no sense to compare images and visual files using strings, so there is a carousel to compare them. PDF's are rendered to an imageView, while images are rendered with support for tiling, which is great for ultra-heavy pictures - in case user is tracking changes for a 20mb photo.
 
 #### How each Architecture Component is used
 * Navigation: this is a single activity app. All fragment transactions (except one) are made using Navigation library.
@@ -92,6 +108,7 @@ To avoid OOM error once and for all, Paging was implemented. To make things even
   * [timeago][12] makes it easy display relative dates (i.e. 1 day ago).
   * [Toasty][13] show toasts in a colorful way.
   * [RxJava][14] responsible for coordinating the reload button animation and updating the text on main screen cards periodically.
+  * [jsoup][15] cleaning up html files.
 
 [1]: https://github.com/mikepenz/Android-Iconics
 [2]: https://developer.android.com/topic/libraries/architecture/
@@ -107,6 +124,7 @@ To avoid OOM error once and for all, Paging was implemented. To make things even
 [12]: https://github.com/marlonlom/timeago
 [13]: https://github.com/GrenderG/Toasty
 [14]: https://github.com/ReactiveX/RxJava
+[15]: https://github.com/ReactiveX/RxJava
 
 
 ### Reporting Issues
