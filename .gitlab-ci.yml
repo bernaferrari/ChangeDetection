@@ -1,0 +1,47 @@
+image: openjdk:8-jdk
+
+cache:
+  paths:
+    - .m2/
+    - .gradle/
+
+variables:
+  ANDROID_COMPILE_SDK: "26"
+  ANDROID_BUILD_TOOLS: "25.0.2"
+  ANDROID_SDK_TOOLS: "27.0.1"
+  
+
+before_script:
+  - apt-get --quiet update --yes
+  - apt-get --quiet install --yes wget tar unzip lib32stdc++6 lib32z1
+  
+  - wget --quiet --output-document=android-sdk.zip https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip
+  - unzip -q android-sdk.zip -d android-sdk-linux
+
+  - mkdir android-sdk-linux/licenses
+  - printf "8933bad161af4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb78af6dfcb131a6481e" > android-sdk-linux/licenses/android-sdk-license
+  - printf "84831b9409646a918e30573bab4c9c91346d8abd" > android-sdk-linux/licenses/android-sdk-preview-license
+  - android-sdk-linux/tools/bin/sdkmanager --update > update.log
+  - android-sdk-linux/tools/bin/sdkmanager "platforms;android-${ANDROID_COMPILE_SDK}" "build-tools;${ANDROID_BUILD_TOOLS}" "extras;google;m2repository" "extras;android;m2repository" > installPlatform.log
+
+  - export ANDROID_HOME=$PWD/android-sdk-linux
+  - export PATH=$PATH:$PWD/android-sdk-linux/platform-tools/
+  - chmod +x ./gradlew
+
+stages:
+  - build
+  - test
+  
+build:
+  stage: build
+  script:
+    - ./gradlew assembleDebug
+  artifacts:
+    paths:
+    - app/build/outputs/
+
+unitTests:
+  stage: test
+  script:
+    - ./gradlew test
+
