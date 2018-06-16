@@ -23,7 +23,7 @@
             <com.bernaferrari.changedetection.ui.ControlBarItemToggleView
                 android:id="@+id/highQualityToggle"
                 style="@style/ControlBarItem"
-                app:src="@drawable/ic_image"
+                app:src="@drawable/ic_expand"
                 app:text="@string/control_bar_quality" />
 
             <com.bernaferrari.changedetection.ui.ControlBarItemToggleView
