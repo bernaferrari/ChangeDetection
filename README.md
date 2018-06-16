@@ -9,7 +9,7 @@ Use cases:
 * You are working with a server and wants to know the result from a request, periodically.
 * You are working with a server and wants to know if the server is working as intended, or if the release has happened successfully.
 
-This app also showcases **all** the Android Architecture Components working together: [Room](https://developer.android.com/topic/libraries/architecture/room.html), [ViewModels](https://developer.android.com/reference/android/arch/lifecycle/ViewModel.html), [LiveData](https://developer.android.com/reference/android/arch/lifecycle/LiveData.html), [Paging](https://developer.android.com/topic/libraries/architecture/paging/), [WorkManager](https://developer.android.com/topic/libraries/architecture/workmanager) and [Navigation](https://developer.android.com/topic/libraries/architecture/navigation/). 
+This app also showcases **all** the Android Architecture Components working together: [Room](https://developer.android.com/topic/libraries/architecture/room.html), [ViewModels](https://developer.android.com/reference/android/arch/lifecycle/ViewModel.html), [LiveData](https://developer.android.com/reference/android/arch/lifecycle/LiveData.html), [Paging](https://developer.android.com/topic/libraries/architecture/paging/), [WorkManager](https://developer.android.com/topic/libraries/architecture/workmanager) and [Navigation](https://developer.android.com/topic/libraries/architecture/navigation/).
 
  ![GIF](/.github/assets/card_gif.gif?raw=true)
 
@@ -18,6 +18,12 @@ This app also showcases **all** the Android Architecture Components working toge
 | Main Screen | Text Comparison | PDF Comparison | Settings |
 |:-:|:-:|:-:|:-:|
 | ![First](/.github/assets/main_screen.jpg?raw=true) | ![Sec](/.github/assets/diff_view_html.jpg?raw=true) | ![Third](/.github/assets/diff_view_pdf.jpg?raw=true) | ![Fourth](/.github/assets/settings.jpg?raw=true) |
+
+
+### APK:
+[Download here](/.github/assets/app-debug.apk)
+
+Soon on Play Store.
 
 Introduction
 ------------
