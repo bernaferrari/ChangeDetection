@@ -92,8 +92,8 @@ It makes no sense to compare images and visual files using strings, so there is 
 There are four constraints: *battery not low*, *device on idle state* (API 23+), *device charging* and *wifi on*.
 Wifi is currently not a constraint from WorkManager, so I implemented it myself to work together.
 
-* Paging: on details fragment. As time goes, it is possible for a website to receive hundreds of updates.
-To avoid OOM error once and for all, Paging was implemented. To make things even smarter, Paging only retrieves the Diff metadata: size, timestamp and id. The string, which can be heavy, is retrieved later. This way the app avoids from having a CursorAdapter with limited Window size having to deal with huge strings many times per second.
+* Paging: on details fragment. As time goes, it is possible for a website to receive hundreds of updates. To avoid OOM error once and for all, Paging was implemented. When visualizing PDF/Image changes (the carousel view), paging is implemented on the carousel, so that it doesn't loads all Files into memory at once.
+
 
 * LiveData/ViewModel: written above.
 * Room: written above.
