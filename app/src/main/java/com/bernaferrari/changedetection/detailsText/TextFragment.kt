@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.screenDiffText
+package com.bernaferrari.changedetection.detailsText
 
 import android.annotation.TargetApi
 import android.arch.lifecycle.Observer
@@ -163,14 +163,14 @@ class TextFragment : Fragment() {
         // Subscribe the adapter to the ViewModel, so the items in the adapter are refreshed
         // when the list changes
         var hasSetInitialColor = false
-        model.getAllSnapsPagedForId(siteId, "%").observe(this, Observer {
+        model.getAllSnapsPagedForId(siteId, arguments?.getString("TYPE") ?: "%")
+            .observe(this, Observer {
             adapter.submitList(it)
             if (!hasSetInitialColor) {
                 adapter.setColor(2, 0)
                 adapter.setColor(1, 1)
 
                 try {
-//                    (adapter.getItemFromAdapter(0) != null || adapter.getItemFromAdapter(1) != null)
                     model.generateDiff(
                         topSection,
                         adapter.getItemFromAdapter(1)!!.snapId,

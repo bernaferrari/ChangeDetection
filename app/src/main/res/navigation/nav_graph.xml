@@ -41,7 +41,7 @@
 
     <fragment
         android:id="@+id/openFragment"
-        android:name="com.bernaferrari.changedetection.screenDiffText.TextFragment"
+        android:name="com.bernaferrari.changedetection.detailsText.TextFragment"
         android:label="OpenFragment"
         tools:layout="@layout/details_fragment"></fragment>
 
@@ -63,11 +63,11 @@
         android:label="AboutLicenseFragment" />
     <fragment
         android:id="@+id/imageCarouselFragment"
-        android:name="com.bernaferrari.changedetection.screenDiffImage.ImageFragment"
+        android:name="com.bernaferrari.changedetection.detailsImage.ImageFragment"
         android:label="ImageCarouselFragment" />
     <fragment
         android:id="@+id/pdfFragment"
-        android:name="com.bernaferrari.changedetection.screenDiffPdf.PdfFragment"
+        android:name="com.bernaferrari.changedetection.detailsPdf.PdfFragment"
         android:label="PdfFragment" />
 
 </navigation>

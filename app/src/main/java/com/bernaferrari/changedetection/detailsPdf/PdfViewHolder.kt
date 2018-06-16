@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.screenDiffPdf
+package com.bernaferrari.changedetection.detailsPdf
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -11,8 +11,8 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.data.Snap
+import com.bernaferrari.changedetection.detailsText.TextFragment
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
-import com.bernaferrari.changedetection.screenDiffText.TextFragment
 import kotlinx.android.synthetic.main.diff_image_item_paging.view.*
 import java.io.File
 

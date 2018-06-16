@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.screenDiffImage
+package com.bernaferrari.changedetection.detailsImage
 
 import android.support.v7.widget.RecyclerView
 import android.view.Gravity
@@ -8,8 +8,8 @@ import android.widget.FrameLayout
 import com.bernaferrari.changedetection.Application
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.data.Snap
+import com.bernaferrari.changedetection.detailsText.TextFragment
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
-import com.bernaferrari.changedetection.screenDiffText.TextFragment
 import com.bernaferrari.changedetection.util.GlideRequests
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import kotlinx.android.synthetic.main.diff_image_item_paging.view.*

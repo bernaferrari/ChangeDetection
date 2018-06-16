@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.screenDiffText
+package com.bernaferrari.changedetection.detailsText
 
 import android.arch.paging.PagedListAdapter
 import android.support.v7.util.DiffUtil

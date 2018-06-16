@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.screenDiffText
+package com.bernaferrari.changedetection.detailsText
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
@@ -237,12 +237,7 @@ class TextViewModel(
             .newTag { _ -> "TEXTADDED" }
             .build()
 
-        // compute the differences for two test texts.
-        // generateDiffRows will split the lines anyway, so there is no need for splitting again here.
-
-
-        Logger.d("CHARSET -> " + new.first.contentCharset)
-
+        // find the correct charset
         val newCharset = if (new.first.contentCharset.isBlank()) {
             Charset.defaultCharset()
         } else {
@@ -255,6 +250,8 @@ class TextViewModel(
             Charset.forName(new.first.contentCharset)
         }
 
+        // compute the differences for two test texts.
+        // generateDiffRows will split the lines anyway, so there is no need for splitting again here.
         val rows = generator.generateDiffRows(
             mutableListOf(
                 new.second.toString(

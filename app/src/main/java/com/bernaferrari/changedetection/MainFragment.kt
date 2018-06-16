@@ -212,7 +212,8 @@ class MainFragment : Fragment() {
         val bundle = bundleOf(
             "SITEID" to item.site.id,
             "TITLE" to item.site.title,
-            "URL" to item.site.url
+            "URL" to item.site.url,
+            "TYPE" to selectedType
         )
 
         view?.let { view ->
@@ -240,12 +241,6 @@ class MainFragment : Fragment() {
         val chart = Section()
         val updating = mutableListOf<DialogItemSimple>()
 
-//        updating += DialogItemSimple(
-//            getString(R.string.reload),
-//            IconicsDrawable(context, CommunityMaterial.Icon.cmd_reload).color(color),
-//            "fetchFromServer"
-//        )
-
         updating += DialogItemSimple(
             getString(R.string.edit),
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_pencil).color(color),
@@ -257,15 +252,6 @@ class MainFragment : Fragment() {
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_google_chrome).color(color),
             "openInBrowser"
         )
-
-//        Code is working but this isn't the right moment to put it.
-//        launch {
-//            val minimalDiffs = mViewModel.getRecentMinimalSnaps(item.site.url)
-//            if (minimalDiffs != null && minimalDiffs.size > 2){
-//                val chartItem = ItemChart(minimalDiffs, item.site.isSuccessful)
-//                launch (UI) { chart.update(mutableListOf(chartItem)) }
-//            }
-//        }
 
         // if item is disabled, makes no sense to enable/disable the notifications
         if (item.site.isSyncEnabled) {

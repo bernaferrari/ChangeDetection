@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.screenDiffImage
+package com.bernaferrari.changedetection.detailsPdf
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
@@ -12,7 +12,7 @@ import kotlin.coroutines.experimental.suspendCoroutine
 /**
  * Exposes the data to be used in the site diff screen.
  */
-class ImageViewModel(
+class PdfViewModel(
     context: Application,
     private val mSnapsRepository: SnapsRepository
 ) : AndroidViewModel(context) {
@@ -25,7 +25,6 @@ class ImageViewModel(
     fun removeSnap(id: String) {
         mSnapsRepository.deleteSnap(id)
     }
-
 
     fun getAllSnapsPagedForId(id: String, filter: String): LiveData<PagedList<Snap>> {
         return LivePagedListBuilder(
@@ -42,6 +41,7 @@ class ImageViewModel(
             cont.resume(it)
         }
     }
+
 
     companion object {
         /**
