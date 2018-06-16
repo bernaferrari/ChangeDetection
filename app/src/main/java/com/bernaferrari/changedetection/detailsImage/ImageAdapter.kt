@@ -1,28 +1,28 @@
-package com.bernaferrari.changedetection.screenDiffPdf
+package com.bernaferrari.changedetection.detailsImage
 
 import android.arch.paging.PagedListAdapter
-import android.content.Context
 import android.support.v7.util.DiffUtil
 import android.view.ViewGroup
 import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.screenDiffText.TextFragment
+import com.bernaferrari.changedetection.detailsText.TextFragment
+import com.bernaferrari.changedetection.util.GlideRequests
 
-class PdfAdapter(
+class ImageAdapter(
     val callback: TextFragment.Companion.RecyclerViewItemListener,
     private val itemHeight: Int,
     private val itemWidth: Int,
-    private val context: Context
+    private val glide: GlideRequests
 ) :
-    PagedListAdapter<Snap, PdfViewHolder>(
+    PagedListAdapter<Snap, ImageViewHolder>(
         diffCallback
     ) {
 
-    override fun onBindViewHolder(holder: PdfViewHolder, position: Int) {
-        holder.bindTo(getItem(position), position, context)
+    override fun onBindViewHolder(holder: ImageViewHolder, position: Int) {
+        holder.bindTo(getItem(position), position, glide)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PdfViewHolder =
-        PdfViewHolder(parent, itemHeight, itemWidth, callback)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder =
+        ImageViewHolder(parent, itemHeight, itemWidth, callback)
 
     fun getItemFromAdapter(position: Int): Snap? {
         return this.getItem(position)

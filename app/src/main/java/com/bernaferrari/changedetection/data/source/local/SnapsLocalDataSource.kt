@@ -205,9 +205,8 @@ private constructor(
 
             // uncomment for testing:
             //  val lastSnapValue = ByteArray(0)
-
-            // Uncomment for testing.
             // mSnapsDao.insertSnap(snap.copy(value = snap.value.plus(UUID.randomUUID().toString())))
+
             val wasSuccessful =
                 if (content.isNotEmpty() && lastSnapValue.toString(Charset.defaultCharset()).cleanUpHtml() != content.toString(
                         Charset.defaultCharset()

@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.screenDiffText
+package com.bernaferrari.changedetection.detailsText
 
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.TransitionDrawable
