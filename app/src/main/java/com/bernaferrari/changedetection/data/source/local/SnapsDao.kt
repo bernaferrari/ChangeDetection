@@ -129,7 +129,7 @@ interface SnapsDao {
      * @param snapId the snap url.
      */
     @Query("DELETE FROM snaps WHERE snapId = :snapId")
-    fun deleteSnapById(snapId: String): Int
+    fun deleteSnapById(snapId: String)
 
 
     /**

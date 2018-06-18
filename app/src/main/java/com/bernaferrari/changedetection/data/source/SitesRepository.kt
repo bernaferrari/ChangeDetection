@@ -19,46 +19,33 @@ private constructor(
     sitesLocalDataSource: SitesDataSource
 ) : SitesDataSource {
 
-    private val mSitesLocalDataSource: SitesDataSource = checkNotNull(sitesLocalDataSource)
-
-    override fun getSites(callback: ((List<Site>) -> (Unit))) {
-        checkNotNull(callback)
-
-        // Query the local storage if available. If not, query the network.
-        mSitesLocalDataSource.getSites {
-            callback.invoke(it)
-        }
+    override suspend fun getSites(): List<Site> {
+        return mSitesLocalDataSource.getSites()
     }
 
-    override fun saveSite(site: Site) {
+    override suspend fun getSite(siteId: String): Site? {
+        return mSitesLocalDataSource.getSite(siteId)
+    }
+
+    private val mSitesLocalDataSource: SitesDataSource = checkNotNull(sitesLocalDataSource)
+
+
+    override suspend fun saveSite(site: Site) {
         checkNotNull(site)
         mSitesLocalDataSource.saveSite(site)
     }
 
-    override fun updateSite(site: Site) {
+    override suspend fun updateSite(site: Site) {
         checkNotNull(site)
         mSitesLocalDataSource.updateSite(site)
     }
 
 
-    /**
-     * Gets sites from local data source (sqlite) unless the table is new or empty. In that case it
-     * uses the network data source. This is done to simplify the sample.
-     */
-    override fun getSite(siteId: String, callback: (Site?) -> (Unit)) {
-        // Load from server/persisted if needed.
-
-        // Is the site in the local data source? If not, query the network.
-        mSitesLocalDataSource.getSite(siteId) {
-            callback.invoke(it)
-        }
-    }
-
-    override fun deleteAllSites() {
+    override suspend fun deleteAllSites() {
         mSitesLocalDataSource.deleteAllSites()
     }
 
-    override fun deleteSite(siteId: String) {
+    override suspend fun deleteSite(siteId: String) {
         mSitesLocalDataSource.deleteSite(checkNotNull(siteId))
     }
 

@@ -39,10 +39,9 @@ interface SitesDao {
      * Update a site.
      *
      * @param site site to be updated
-     * @return the number of sites updated. This should always be 1.
      */
     @Update
-    fun updateSite(site: Site): Int
+    fun updateSite(site: Site)
 
     /**
      * Update the complete status of a site
@@ -56,10 +55,9 @@ interface SitesDao {
     /**
      * Delete a site by url.
      *
-     * @return the number of sites deleted. This should always be 1.
      */
     @Query("DELETE FROM sites WHERE siteId = :siteId")
-    fun deleteSiteById(siteId: String): Int
+    fun deleteSiteById(siteId: String)
 
     /**
      * Delete all sites.

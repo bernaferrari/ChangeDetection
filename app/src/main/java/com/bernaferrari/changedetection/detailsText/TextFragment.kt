@@ -32,6 +32,7 @@ import com.bernaferrari.changedetection.groupie.DialogItemSwitch
 import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.ui.CustomWebView
 import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
+import com.bernaferrari.changedetection.util.launchSilent
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
 import com.xwray.groupie.GroupAdapter
@@ -163,31 +164,37 @@ class TextFragment : Fragment() {
         // Subscribe the adapter to the ViewModel, so the items in the adapter are refreshed
         // when the list changes
         var hasSetInitialColor = false
-        model.getAllSnapsPagedForId(siteId, arguments?.getString("TYPE") ?: "%")
-            .observe(this, Observer {
-            adapter.submitList(it)
-            if (!hasSetInitialColor) {
-                adapter.setColor(2, 0)
-                adapter.setColor(1, 1)
 
-                try {
-                    model.generateDiff(
-                        topSection,
-                        adapter.getItemFromAdapter(1)!!.snapId,
-                        adapter.getItemFromAdapter(0)!!.snapId
-                    )
-                } catch (e: Exception) {
-                    Toasty.error(
-                        requireContext(),
-                        getString(R.string.less_than_two),
-                        Toast.LENGTH_LONG
-                    ).show()
-                    view?.let { Navigation.findNavController(it).navigateUp() }
-                }
+        launchSilent {
+            val liveData = model.getAllSnapsPagedForId(siteId, arguments?.getString("TYPE") ?: "%")
 
-                hasSetInitialColor = true
+            launch(UI) {
+                liveData.observe(this@TextFragment, Observer {
+                    adapter.submitList(it)
+                    if (!hasSetInitialColor) {
+                        adapter.setColor(2, 0)
+                        adapter.setColor(1, 1)
+
+                        try {
+                            model.generateDiff(
+                                topSection,
+                                adapter.getItemFromAdapter(1)!!.snapId,
+                                adapter.getItemFromAdapter(0)!!.snapId
+                            )
+                        } catch (e: Exception) {
+                            Toasty.error(
+                                requireContext(),
+                                getString(R.string.less_than_two),
+                                Toast.LENGTH_LONG
+                            ).show()
+                            view?.let { Navigation.findNavController(it).navigateUp() }
+                        }
+
+                        hasSetInitialColor = true
+                    }
+                })
             }
-        })
+        }
 
         view.closecontent.setOnClickListener {
             dismiss()
