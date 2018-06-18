@@ -19,6 +19,7 @@ android {
         }
     }
     compileSdkVersion 27
+    buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "com.bernaferrari.changedetection"
         minSdkVersion 21
@@ -29,17 +30,14 @@ android {
     }
 
     buildTypes {
-
-        all {
-            // Proguard configs
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-
-        release {
-            debuggable false
-            signingConfig signingConfigs.release
+        buildTypes {
+            release {
+                debuggable false
+                minifyEnabled true
+                shrinkResources true
+                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+                signingConfig signingConfigs.release
+            }
         }
     }
 
