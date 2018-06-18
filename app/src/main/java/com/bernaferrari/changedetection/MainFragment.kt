@@ -26,6 +26,7 @@ import androidx.work.State
 import androidx.work.WorkStatus
 import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
+import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.SiteAndLastSnap
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.isValidUrl
@@ -565,12 +566,15 @@ class MainFragment : Fragment() {
                         return@onPositive
                     }
 
-                    val site = mViewModel.saveSite(
+
+                    val site = Site(
                         newTitle,
                         url,
                         mViewModel.currentTime(),
                         dialogItemTitle.gradientColors
                     )
+
+                    mViewModel.saveSite(site)
                     // add and sort the card
                     val newItem = MainCardItem(site, null, reloadCallback)
                     sitesList.add(newItem)

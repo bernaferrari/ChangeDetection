@@ -10,12 +10,11 @@ import com.bernaferrari.changedetection.data.ContentTypeInfo
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.SiteAndLastSnap
 import com.bernaferrari.changedetection.data.Snap
+import com.bernaferrari.changedetection.data.source.Result
 import com.bernaferrari.changedetection.data.source.SitesRepository
-import com.bernaferrari.changedetection.data.source.SnapsDataSource
 import com.bernaferrari.changedetection.data.source.SnapsRepository
+import com.bernaferrari.changedetection.util.launchSilent
 import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import kotlin.coroutines.experimental.suspendCoroutine
 
 /**
  * Exposes the data to be used in the site list screen.
@@ -35,26 +34,20 @@ class MainViewModel(
 
     fun currentTime(): Long = System.currentTimeMillis()
 
-    fun removeSite(site: Site) {
+    fun removeSite(site: Site) = launchSilent {
         mSnapsRepository.deleteAllSnaps(site.id)
         mSitesRepository.deleteSite(site.id)
     }
 
-    fun removeSnapsByType(siteId: String, contentType: String) {
+    fun removeSnapsByType(siteId: String, contentType: String) = launchSilent {
         mSnapsRepository.deleteSnapsForSiteIdAndContentType(siteId, contentType)
     }
 
     // Called when clicking on fab.
     internal fun saveSite(
-        title: String,
-        url: String,
-        timestamp: Long,
-        colors: Pair<Int, Int>
-    ): Site {
-        val site = Site(title, url, timestamp, colors)
-
+        site: Site
+    ) = launchSilent {
         mSitesRepository.saveSite(site)
-        return site
     }
 
     // Called when clicking on fab.
@@ -64,28 +57,23 @@ class MainViewModel(
     ): MutableLiveData<Boolean> {
 
         val didItWork = MutableLiveData<Boolean>()
-        mSnapsRepository.saveSnap(snap, content, object : SnapsDataSource.GetSnapsCallback {
-            override fun onSnapsLoaded(snap: Snap) {
-                didItWork.value = true
-            }
 
-            override fun onDataNotAvailable() {
-                didItWork.value = false
+        launchSilent {
+            val saveSnap = mSnapsRepository.saveSnap(snap, content)
+
+            launchSilent(UI) {
+                didItWork.value = saveSnap is Result.Success
             }
-        })
+        }
+
         return didItWork
     }
 
-    suspend fun getRecentContentTypes(siteId: String): List<ContentTypeInfo> =
-        suspendCoroutine { cont ->
-            mSnapsRepository.getContentTypeInfo(
-            siteId
-        ) {
-            cont.resume(it)
-        }
+    suspend fun getRecentContentTypes(siteId: String): List<ContentTypeInfo> {
+        return mSnapsRepository.getContentTypeInfo(siteId)
     }
 
-    internal fun updateSite(site: Site) {
+    internal fun updateSite(site: Site) = launchSilent {
         mSitesRepository.updateSite(site)
     }
 
@@ -97,25 +85,19 @@ class MainViewModel(
         return items
     }
 
-    fun updateItems() {
-        mSitesRepository.getSites { siteList ->
-            launch {
-                val listOfSitesAndSnaps = mutableListOf<SiteAndLastSnap>()
+    fun updateItems() = launchSilent {
 
-                siteList.forEach { site ->
-                    listOfSitesAndSnaps += SiteAndLastSnap(site, getLastSnap(site.id))
-                }
+        mutableListOf<SiteAndLastSnap>().also { list ->
+            mSitesRepository.getSites().mapTo(list) { SiteAndLastSnap(it, getLastSnap(it.id)) }
 
-                launch(UI) {
-                    items.value = listOfSitesAndSnaps
-                }
+            launchSilent(UI) {
+                items.value = list
             }
         }
+
     }
 
-    private suspend fun getLastSnap(siteId: String): Snap? = suspendCoroutine { cont ->
-        mSnapsRepository.getMostRecentSnap(siteId) {
-            cont.resume(it)
-        }
+    private suspend fun getLastSnap(siteId: String): Snap? {
+        return mSnapsRepository.getMostRecentSnap(siteId)
     }
 }
