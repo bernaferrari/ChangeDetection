@@ -1,23 +1,27 @@
 language: android
-jdk: oraclejdk8
-sudo: false
-
 android:
   components:
-    - platform-tools
     - tools
-    - build-tools-24.0.2
-    - android-22
-    - android-24
-    - sys-img-armeabi-v7a-android-22
-    - extra-android-m2repository
-
-before_script:
-  # Create and start emulator
-  - echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a
-  - emulator -avd test -no-skin -no-audio -no-window &
-  - android-wait-for-emulator
-  - adb shell input keyevent 82 &
-
-script: ./gradlew connectedAndroidTest
-
+    - platform-tools
+    - build-tools-28.0.0
+    - android-28
+    - sys-img-armeabi-v7a-android-18
+before_install:
+    - yes | sdkmanager "platforms;android-28"
+    - yes | sdkmanager "build-tools;28.0.0"
+jdk:
+    - oraclejdk8
+script:
+    - ./gradlew clean test
+branches:
+  except:
+    - gh-pages
+# notifications:
+#   email: false
+before_cache:
+    - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+cache:
+  directories:
+    - $HOME/.m2
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
