@@ -46,7 +46,11 @@ android {
             coroutines 'enable'
         }
     }
-
+    android {
+        lintOptions {
+            abortOnError false
+        }
+    }
     compileOptions {
         sourceCompatibility = '1.8'
         targetCompatibility = '1.8'
