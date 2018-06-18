@@ -4,6 +4,7 @@ import android.support.annotation.VisibleForTesting
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.source.SitesDataSource
 import com.bernaferrari.changedetection.util.AppExecutors
+import kotlinx.coroutines.experimental.withContext
 
 
 /**
@@ -16,53 +17,28 @@ private constructor(
     private val mSitesDao: SitesDao
 ) : SitesDataSource {
 
-    override fun getSites(callback: ((List<Site>) -> (Unit))) {
-        val runnable = Runnable {
-            val sites = mSitesDao.sites
-            mAppExecutors.mainThread().execute {
-                callback.invoke(sites)
-            }
-        }
-
-        mAppExecutors.diskIO().execute(runnable)
+    override suspend fun getSites(): List<Site> = withContext(mAppExecutors.ioContext) {
+        mSitesDao.sites
     }
 
-    override fun getSite(siteId: String, callback: ((Site?) -> (Unit))) {
-        val runnable = Runnable {
-            val site = mSitesDao.getSiteById(siteId)
-
-            mAppExecutors.mainThread().execute {
-                callback.invoke(site)
-            }
-        }
-
-        mAppExecutors.diskIO().execute(runnable)
+    override suspend fun getSite(siteId: String): Site? = withContext(mAppExecutors.ioContext) {
+        mSitesDao.getSiteById(siteId)
     }
 
-    override fun saveSite(site: Site) {
-        checkNotNull(site)
-        val saveRunnable = Runnable { mSitesDao.insertSite(site) }
-
-        mAppExecutors.diskIO().execute(saveRunnable)
+    override suspend fun saveSite(site: Site) = withContext(mAppExecutors.ioContext) {
+        mSitesDao.insertSite(site)
     }
 
-    override fun updateSite(site: Site) {
-        checkNotNull(site)
-        val saveRunnable = Runnable { mSitesDao.updateSite(site) }
-
-        mAppExecutors.diskIO().execute(saveRunnable)
+    override suspend fun updateSite(site: Site) = withContext(mAppExecutors.ioContext) {
+        mSitesDao.updateSite(site)
     }
 
-    override fun deleteAllSites() {
-        val deleteRunnable = Runnable { mSitesDao.deleteSites() }
-
-        mAppExecutors.diskIO().execute(deleteRunnable)
+    override suspend fun deleteAllSites() = withContext(mAppExecutors.ioContext) {
+        mSitesDao.deleteSites()
     }
 
-    override fun deleteSite(siteId: String) {
-        val deleteRunnable = Runnable { mSitesDao.deleteSiteById(siteId) }
-
-        mAppExecutors.diskIO().execute(deleteRunnable)
+    override suspend fun deleteSite(siteId: String) = withContext(mAppExecutors.ioContext) {
+        mSitesDao.deleteSiteById(siteId)
     }
 
     companion object {

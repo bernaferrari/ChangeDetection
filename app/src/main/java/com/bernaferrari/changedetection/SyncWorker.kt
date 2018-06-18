@@ -8,10 +8,10 @@ import android.net.NetworkCapabilities
 import androidx.work.Worker
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.data.source.SnapsDataSource
+import com.bernaferrari.changedetection.data.source.Result
+import com.bernaferrari.changedetection.util.launchSilent
 import com.orhanobut.logger.Logger
 import io.karn.notify.Notify
-import kotlinx.coroutines.experimental.launch
 import org.threeten.bp.LocalTime
 
 class SyncWorker : Worker() {
@@ -35,29 +35,30 @@ class SyncWorker : Worker() {
     private fun heavyWork() {
         val now = LocalTime.now()
         Logger.d("Doing background work! " + now.hour + ":" + now.minute)
-        Injection.provideSitesRepository(this@SyncWorker.applicationContext)
-            .getSites { sites ->
-                sites.forEach(::reload)
-
-                // if there is nothing to sync, auto-sync will be automatically disabled
-                if (sites.count { it.isSyncEnabled } > 0) {
-                    WorkerHelper.updateWorkerWithConstraints(Application.instance.sharedPrefs("workerPreferences"))
-                }
+        launchSilent {
+            val sites =
+                Injection.provideSitesRepository(this@SyncWorker.applicationContext).getSites()
+            sites.forEach {
+                reload(it)
             }
+
+            // if there is nothing to sync, auto-sync will be automatically disabled
+            if (sites.count { it.isSyncEnabled } > 0) {
+                WorkerHelper.updateWorkerWithConstraints(Application.instance.sharedPrefs("workerPreferences"))
+            }
+        }
     }
 
-    private fun reload(item: Site) {
+    private suspend fun reload(item: Site) {
         if (!item.isSyncEnabled) {
             return
         }
 
-        launch {
-            val serverResult = WorkerHelper.fetchFromServer(item)
-            processServerResult(serverResult.first, serverResult.second, item)
-        }
+        val serverResult = WorkerHelper.fetchFromServer(item)
+        processServerResult(serverResult.first, serverResult.second, item)
     }
 
-    private fun processServerResult(
+    private suspend fun processServerResult(
         contentTypeCharset: String,
         content: ByteArray,
         item: Site
@@ -81,40 +82,37 @@ class SyncWorker : Worker() {
             contentSize = content.size
         )
 
-        Injection.provideSnapsRepository(this@SyncWorker.applicationContext)
-            .saveSnap(snap, content, callback = object : SnapsDataSource.GetSnapsCallback {
-                override fun onSnapsLoaded(snap: Snap) {
-                    if (!item.isNotificationEnabled) {
-                        return
-                    }
+        val snapSavedResult = Injection.provideSnapsRepository(this@SyncWorker.applicationContext)
+            .saveSnap(snap, content)
 
-                    Notify
-                        .with(applicationContext)
-                        .header {
-                            this.icon = R.drawable.vector_sync
+        if (snapSavedResult is Result.Success) {
+            if (!item.isNotificationEnabled) {
+                return
+            }
+
+            Notify
+                .with(applicationContext)
+                .header {
+                    this.icon = R.drawable.vector_sync
 //                            this.color = item.colors.second Notify can't handle this for now
-                        }
-                        .meta {
-                            this.clickIntent = PendingIntent.getActivity(
-                                applicationContext, 0,
-                                Intent(applicationContext, MainActivity::class.java), 0
-                            )
-                        }
-                        .content {
-                            title = if (newSite.title.isNullOrBlank()) {
-                                "Change detected!"
-                            } else {
-                                "Change detected on ${newSite.title}!"
-                            }
-                            text = newSite.url
-                        }
-                        .show()
                 }
-
-                override fun onDataNotAvailable() {
-
+                .meta {
+                    this.clickIntent = PendingIntent.getActivity(
+                        applicationContext, 0,
+                        Intent(applicationContext, MainActivity::class.java), 0
+                    )
                 }
-            })
+                .content {
+                    title = if (newSite.title.isNullOrBlank()) {
+                        "Change detected!"
+                    } else {
+                        "Change detected on ${newSite.title}!"
+                    }
+                    text = newSite.url
+                }
+                .show()
+        }
+
     }
 
     private fun isWifiConnected(): Boolean {

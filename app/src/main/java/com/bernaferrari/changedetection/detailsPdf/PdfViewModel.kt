@@ -7,7 +7,7 @@ import android.arch.paging.LivePagedListBuilder
 import android.arch.paging.PagedList
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SnapsRepository
-import kotlin.coroutines.experimental.suspendCoroutine
+import com.bernaferrari.changedetection.util.launchSilent
 
 /**
  * Exposes the data to be used in the site diff screen.
@@ -22,11 +22,11 @@ class PdfViewModel(
      *
      * @param id The diff url to be removed.
      */
-    fun removeSnap(id: String) {
+    fun removeSnap(id: String) = launchSilent {
         mSnapsRepository.deleteSnap(id)
     }
 
-    fun getAllSnapsPagedForId(id: String, filter: String): LiveData<PagedList<Snap>> {
+    suspend fun getAllSnapsPagedForId(id: String, filter: String): LiveData<PagedList<Snap>> {
         return LivePagedListBuilder(
             mSnapsRepository.getSnapForPaging(id, filter), PagedList.Config.Builder()
                 .setPageSize(PAGE_SIZE)
@@ -36,12 +36,7 @@ class PdfViewModel(
     }
 
     suspend fun getSnapsFiltered(id: String, filter: String): LiveData<List<Snap>> =
-        suspendCoroutine { cont ->
-            mSnapsRepository.getSnapsFiltered(id, filter) {
-            cont.resume(it)
-        }
-    }
-
+        mSnapsRepository.getSnapsFiltered(id, filter)
 
     companion object {
         /**

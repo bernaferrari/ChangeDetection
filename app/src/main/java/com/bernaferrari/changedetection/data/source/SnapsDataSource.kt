@@ -11,36 +11,28 @@ import com.bernaferrari.changedetection.data.Snap
  */
 interface SnapsDataSource {
 
-    interface GetSnapsCallback {
+    suspend fun getContentTypeInfo(siteId: String): List<ContentTypeInfo>
 
-        fun onSnapsLoaded(snap: Snap)
+    suspend fun getMostRecentSnap(siteId: String): Snap?
 
-        fun onDataNotAvailable()
-    }
+    suspend fun getSnaps(siteId: String): LiveData<List<Snap>>
 
-    fun getContentTypeInfo(siteId: String, callback: ((List<ContentTypeInfo>) -> Unit))
+    suspend fun getSnapsFiltered(siteId: String, filter: String): LiveData<List<Snap>>
 
-    fun getMostRecentSnap(siteId: String, callback: ((Snap?) -> (Unit)))
+    suspend fun getSnapForPaging(siteId: String, filter: String): DataSource.Factory<Int, Snap>
 
-    fun getSnaps(siteId: String, callback: ((LiveData<List<Snap>>) -> Unit))
+    suspend fun getSnapContent(snapId: String): ByteArray
 
-    fun getSnapsFiltered(siteId: String, filter: String, callback: ((LiveData<List<Snap>>) -> Unit))
-
-    fun getSnapForPaging(siteId: String, filter: String): DataSource.Factory<Int, Snap>
-
-    fun getSnapContent(snapId: String, callback: ((ByteArray) -> (Unit)))
-
-    fun getSnapPair(
+    suspend fun getSnapPair(
         originalId: String,
-        newId: String,
-        callback: ((Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>>) -> (Unit))
-    )
+        newId: String
+    ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>>
 
-    fun saveSnap(snap: Snap, content: ByteArray, callback: GetSnapsCallback)
+    suspend fun saveSnap(snap: Snap, content: ByteArray): Result<Snap>
 
-    fun deleteAllSnaps(siteId: String)
+    suspend fun deleteAllSnaps(siteId: String)
 
-    fun deleteSnap(snapId: String)
+    suspend fun deleteSnap(snapId: String)
 
-    fun deleteSnapsForSiteIdAndContentType(siteId: String, contentType: String)
+    suspend fun deleteSnapsForSiteIdAndContentType(siteId: String, contentType: String)
 }

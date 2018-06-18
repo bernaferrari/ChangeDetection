@@ -13,13 +13,13 @@ import com.bernaferrari.changedetection.extensions.removeClutterAndBeautifyHtml
 import com.bernaferrari.changedetection.extensions.unescapeHtml
 import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.util.SingleLiveEvent
+import com.bernaferrari.changedetection.util.launchSilent
 import com.orhanobut.logger.Logger
 import com.xwray.groupie.Section
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import java.nio.charset.Charset
-import kotlin.coroutines.experimental.suspendCoroutine
 
 /**
  * Exposes the data to be used in the site diff screen.
@@ -38,7 +38,7 @@ class TextViewModel(
      *
      * @param id The diff url to be removed.
      */
-    fun removeSnap(id: String) {
+    fun removeSnap(id: String) = launchSilent {
         mSnapsRepository.deleteSnap(id)
     }
 
@@ -99,14 +99,10 @@ class TextViewModel(
         originalId: String,
         newId: String
     ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>> =
-        suspendCoroutine { cont ->
-            mSnapsRepository.getSnapPair(
-                originalId,
-                newId
-            ) {
-                cont.resume(it)
-            }
-        }
+        mSnapsRepository.getSnapPair(
+            originalId,
+            newId
+        )
 
     /**
      * This will asynchronously fetch a pair of diffs from the database based on their ids
@@ -115,12 +111,10 @@ class TextViewModel(
      * @param newId The newest url to be fetched.
      * @return a pair of diffs
      */
-    suspend fun getSnapValue(snapId: String): String = suspendCoroutine { cont ->
-        mSnapsRepository.getSnapContent(
+    suspend fun getSnapValue(snapId: String): String {
+        return mSnapsRepository.getSnapContent(
             snapId
-        ) {
-            cont.resume(it.toString(Charset.defaultCharset()))
-        }
+        ).toString(Charset.defaultCharset())
     }
 
     /**
@@ -297,7 +291,7 @@ class TextViewModel(
         return Pair(updatingOnlyDiff, updatingNonDiff)
     }
 
-    fun getAllSnapsPagedForId(id: String, filter: String): LiveData<PagedList<Snap>> {
+    suspend fun getAllSnapsPagedForId(id: String, filter: String): LiveData<PagedList<Snap>> {
         return LivePagedListBuilder(
             mSnapsRepository.getSnapForPaging(id, filter), PagedList.Config.Builder()
                 .setPageSize(PAGE_SIZE)

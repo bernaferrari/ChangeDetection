@@ -8,15 +8,15 @@ import com.bernaferrari.changedetection.data.Site
  */
 interface SitesDataSource {
 
-    fun getSites(callback: ((List<Site>) -> (Unit)))
+    suspend fun getSites(): List<Site>
 
-    fun getSite(siteId: String, callback: ((Site?) -> (Unit)))
+    suspend fun getSite(siteId: String): Site?
 
-    fun saveSite(site: Site)
+    suspend fun saveSite(site: Site)
 
-    fun updateSite(site: Site)
+    suspend fun updateSite(site: Site)
 
-    fun deleteAllSites()
+    suspend fun deleteAllSites()
 
-    fun deleteSite(siteId: String)
+    suspend fun deleteSite(siteId: String)
 }
