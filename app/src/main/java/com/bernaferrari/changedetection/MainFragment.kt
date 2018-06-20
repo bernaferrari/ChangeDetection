@@ -173,7 +173,7 @@ class MainFragment : Fragment() {
                 bottomSheetAdapter.clear()
 
                 when {
-                    contentTypes.size <= 1 && contentTypes.firstOrNull()?.count!! <= 1 -> {
+                    contentTypes.size <= 1 && contentTypes.firstOrNull()?.count?.let { it > 1 } != true -> {
                         bottomSheetAdapter.add(EmptyItem(item.site.colors.second))
                     }
                     contentTypes.size == 1 -> {
