@@ -3,6 +3,8 @@
 Change Detection
 ===================================
 
+[![CircleCI](https://circleci.com/gh/bernaferrari/ChangeDetection.svg?style=svg)](https://circleci.com/gh/bernaferrari/ChangeDetection)
+
 This app tracks changes on websites you otherwise would visit frequently to see if there is something new.
 Use cases:
 * Teacher says grades will be published "soon", but no one knows what "soon" means and you are tired of reloading.

@@ -39,7 +39,7 @@ class MainViewModel(
         mSitesRepository.deleteSite(site.id)
     }
 
-    fun removeSnapsByType(siteId: String, contentType: String) = launchSilent {
+    suspend fun removeSnapsByType(siteId: String, contentType: String) {
         mSnapsRepository.deleteSnapsForSiteIdAndContentType(siteId, contentType)
     }
 
