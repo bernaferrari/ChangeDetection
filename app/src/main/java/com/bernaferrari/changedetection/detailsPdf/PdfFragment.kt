@@ -25,7 +25,7 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
-import com.bernaferrari.changedetection.Application
+import com.bernaferrari.changedetection.Injector
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ViewModelFactory
 import com.bernaferrari.changedetection.data.Snap
@@ -325,7 +325,7 @@ class PdfFragment : Fragment(),
         if (currentFileName == fileName) return false
         currentFileName = fileName
 
-        val file = File("${Application.instance.filesDir.absolutePath}/$fileName")
+        val file = File("${Injector.get().appContext().filesDir.absolutePath}/$fileName")
 
         val mFileDescriptor =
             ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)

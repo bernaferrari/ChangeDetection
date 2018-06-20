@@ -22,7 +22,6 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
-import com.bernaferrari.changedetection.Application
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ViewModelFactory
 import com.bernaferrari.changedetection.data.Snap
@@ -77,10 +76,10 @@ class ImageFragment : Fragment(),
         if (item.snapId == currentFileId) return
         currentFileId = item.snapId
 
-        val newFile = File(Application.instance.filesDir, item.snapId)
+        val newFile = File(requireContext().filesDir, item.snapId)
         val contentUri =
             FileProvider.getUriForFile(
-                Application.instance,
+                requireContext(),
                 "com.bernaferrari.changedetection.files",
                 newFile
             )

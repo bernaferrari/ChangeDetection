@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.edit
+import com.bernaferrari.changedetection.extensions.getWorkerSharedPrefs
 import com.bernaferrari.changedetection.groupie.DialogItemInterval
 import com.bernaferrari.changedetection.groupie.DialogItemSeparator
 import com.bernaferrari.changedetection.groupie.DialogItemSwitch
@@ -35,7 +36,7 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
         val updating = mutableListOf<Item>()
         val syncSettings = mutableListOf<Item>()
         val syncSection = Section()
-        val sharedPrefs = Application.instance!!.sharedPrefs("workerPreferences")
+        val sharedPrefs = Injector.get().appContext().getWorkerSharedPrefs()
 
         fun updateSharedPreferences(key: String, value: Boolean) {
             sharedPrefs.edit {
