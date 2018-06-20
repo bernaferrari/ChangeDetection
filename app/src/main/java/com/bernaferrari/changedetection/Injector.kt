@@ -17,6 +17,13 @@
 package com.bernaferrari.changedetection
 
 import android.content.Context
+import android.content.SharedPreferences
+import com.bernaferrari.changedetection.data.source.SitesRepository
+import com.bernaferrari.changedetection.data.source.SnapsRepository
+import com.bernaferrari.changedetection.data.source.local.ChangeDatabase
+import com.bernaferrari.changedetection.data.source.local.SitesLocalDataSource
+import com.bernaferrari.changedetection.data.source.local.SnapsLocalDataSource
+import com.bernaferrari.changedetection.util.AppExecutors
 import dagger.Component
 import dagger.Module
 import dagger.Provides
@@ -28,14 +35,52 @@ class ContextModule(private val appContext: Context) {
     fun appContext(): Context = appContext
 }
 
-@Component(modules = [ContextModule::class])
+@Module
+class AppModule(private val appContext: Context) {
+
+    @Provides
+    @Singleton
+    fun sharedPrefs(): SharedPreferences {
+        return appContext.getSharedPreferences("workerPreferences", Context.MODE_PRIVATE)
+    }
+
+    @Provides
+    @Singleton
+    fun sitesRepository(): SitesRepository {
+        val database = ChangeDatabase.getInstance(appContext)
+        return SitesRepository.getInstance(
+            SitesLocalDataSource.getInstance(
+                AppExecutors(),
+                database.siteDao()
+            )
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun snapsRepository(): SnapsRepository {
+        val database = ChangeDatabase.getInstance(appContext)
+        return SnapsRepository.getInstance(
+            SnapsLocalDataSource.getInstance(
+                AppExecutors(),
+                database.snapsDao()
+            )
+        )
+    }
+}
+
+
+@Component(modules = [ContextModule::class, AppModule::class])
 @Singleton
 interface SingletonComponent {
     fun appContext(): Context
+    fun sharedPrefs(): SharedPreferences
+    fun sitesRepository(): SitesRepository
+    fun snapsRepository(): SnapsRepository
 }
 
 class Injector private constructor() {
     companion object {
-        fun get(): SingletonComponent = Application.INSTANCE.component
+        fun get(): SingletonComponent = Application.get().component
     }
 }

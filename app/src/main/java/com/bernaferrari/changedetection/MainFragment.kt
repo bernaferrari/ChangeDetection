@@ -29,7 +29,6 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.SiteAndLastSnap
 import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.extensions.getWorkerSharedPrefs
 import com.bernaferrari.changedetection.extensions.isValidUrl
 import com.bernaferrari.changedetection.forms.FormInputText
 import com.bernaferrari.changedetection.forms.Forms
@@ -59,7 +58,7 @@ class MainFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        WorkerHelper.updateWorkerWithConstraints(Injector.get().appContext().getWorkerSharedPrefs())
+        WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs())
     }
 
     override fun onCreateView(
@@ -592,7 +591,7 @@ class MainFragment : Fragment() {
                 }
                 dialog.dismiss()
 
-                val sharedPrefs = Injector.get().appContext().getWorkerSharedPrefs()
+                val sharedPrefs = Injector.get().sharedPrefs()
                 // when list size is 1 or 2, warn the user that background sync is off
                 if (!isInEditingMode && sitesList.size < 3 && !sharedPrefs.getBoolean(
                         "backgroundSync",

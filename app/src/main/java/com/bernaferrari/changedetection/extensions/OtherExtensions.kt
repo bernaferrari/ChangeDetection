@@ -1,7 +1,6 @@
 package com.bernaferrari.changedetection.extensions
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.content.res.Resources
 import android.support.annotation.StringRes
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat
@@ -55,8 +54,4 @@ fun RecyclerView.scrollToIndexWithMargins(
 
 fun Int.toDp(resources: Resources): Int {
     return (resources.displayMetrics.density * this).toInt()
-}
-
-fun Context.getWorkerSharedPrefs(): SharedPreferences {
-    return this.getSharedPreferences("workerPreferences", Context.MODE_PRIVATE)
 }

@@ -74,8 +74,8 @@ class ViewModelFactory private constructor(
                     if (INSTANCE == null) {
                         INSTANCE = ViewModelFactory(
                             application,
-                            Injection.provideSnapsRepository(application.applicationContext),
-                            Injection.provideSitesRepository(application.applicationContext)
+                            Injector.get().snapsRepository(),
+                            Injector.get().sitesRepository()
                         )
                     }
                 }
