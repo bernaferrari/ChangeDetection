@@ -16,6 +16,7 @@ class Application : MultiDexApplication() {
 
         component = DaggerSingletonComponent.builder()
             .contextModule(ContextModule(this))
+            .appModule(AppModule(this))
             .build()
 
         AndroidThreeTen.init(this)
@@ -31,7 +32,9 @@ class Application : MultiDexApplication() {
     }
 
     companion object {
-        lateinit var INSTANCE: Application
-            private set
+        private var INSTANCE: Application? = null
+        @JvmStatic
+
+        fun get(): Application = INSTANCE!!
     }
 }
