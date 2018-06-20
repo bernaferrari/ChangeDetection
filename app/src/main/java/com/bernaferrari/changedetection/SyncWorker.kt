@@ -8,7 +8,7 @@ import android.net.NetworkCapabilities
 import androidx.work.Worker
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.data.source.Result
+import com.bernaferrari.changedetection.extensions.getWorkerSharedPrefs
 import com.bernaferrari.changedetection.util.launchSilent
 import com.orhanobut.logger.Logger
 import io.karn.notify.Notify
@@ -16,35 +16,38 @@ import org.threeten.bp.LocalTime
 
 class SyncWorker : Worker() {
 
-    override fun doWork(): Worker.WorkerResult {
+    override fun doWork(): Worker.Result {
 
         if (inputData.getBoolean(WorkerHelper.WIFI, false)) {
             if (isWifiConnected()) {
                 heavyWork()
             } else {
                 Logger.d("SyncWorker: wifi is not connected. Try again next time..")
-                WorkerHelper.updateWorkerWithConstraints(Application.instance.sharedPrefs("workerPreferences"))
+                WorkerHelper.updateWorkerWithConstraints(
+                    applicationContext.getWorkerSharedPrefs()
+                )
             }
         } else {
             heavyWork()
         }
 
-        return WorkerResult.SUCCESS
+        return Result.SUCCESS
     }
 
     private fun heavyWork() {
         val now = LocalTime.now()
         Logger.d("Doing background work! " + now.hour + ":" + now.minute)
         launchSilent {
-            val sites =
-                Injection.provideSitesRepository(this@SyncWorker.applicationContext).getSites()
+            val sites = Injection.provideSitesRepository(applicationContext).getSites()
             sites.forEach {
                 reload(it)
             }
 
             // if there is nothing to sync, auto-sync will be automatically disabled
             if (sites.count { it.isSyncEnabled } > 0) {
-                WorkerHelper.updateWorkerWithConstraints(Application.instance.sharedPrefs("workerPreferences"))
+                WorkerHelper.updateWorkerWithConstraints(
+                    applicationContext.getWorkerSharedPrefs()
+                )
             }
         }
     }
@@ -82,10 +85,10 @@ class SyncWorker : Worker() {
             contentSize = content.size
         )
 
-        val snapSavedResult = Injection.provideSnapsRepository(this@SyncWorker.applicationContext)
-            .saveSnap(snap, content)
+        val snapSavedResult =
+            Injection.provideSnapsRepository(applicationContext).saveSnap(snap, content)
 
-        if (snapSavedResult is Result.Success) {
+        if (snapSavedResult is com.bernaferrari.changedetection.data.source.Result.Success) {
             if (!item.isNotificationEnabled) {
                 return
             }

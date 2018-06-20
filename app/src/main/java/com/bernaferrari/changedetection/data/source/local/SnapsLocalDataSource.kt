@@ -4,7 +4,7 @@ import android.arch.lifecycle.LiveData
 import android.arch.paging.DataSource
 import android.content.Context
 import android.support.annotation.VisibleForTesting
-import com.bernaferrari.changedetection.Application
+import com.bernaferrari.changedetection.Injector
 import com.bernaferrari.changedetection.data.ContentTypeInfo
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.Result
@@ -28,13 +28,13 @@ private constructor(
 
     override suspend fun deleteAllSnaps(siteId: String) {
         mSnapsDao.getAllSnapsForSiteId(siteId).forEach {
-            Application.instance.deleteFile(it.snapId)
+            Injector.get().appContext().deleteFile(it.snapId)
             mSnapsDao.deleteSnapById(it.snapId)
         }
     }
 
     override suspend fun deleteSnap(snapId: String) = withContext(mAppExecutors.ioContext) {
-        Application.instance.deleteFile(snapId)
+        Injector.get().appContext().deleteFile(snapId)
         mSnapsDao.deleteSnapById(snapId)
     }
 
@@ -50,15 +50,15 @@ private constructor(
 
     override suspend fun getSnapContent(snapId: String): ByteArray =
         withContext(mAppExecutors.ioContext) {
-            Application.instance.openFileInput(snapId).readBytes()
+            Injector.get().appContext().openFileInput(snapId).readBytes()
         }
 
     override suspend fun saveSnap(snap: Snap, content: ByteArray): Result<Snap> =
         withContext(mAppExecutors.ioContext) {
 
             val lastSnapValue = mSnapsDao.getLastSnapForSiteId(snap.siteId).let { previousValue ->
-                if (fileExists(Application.instance, previousValue?.snapId)) {
-                    Application.instance.openFileInput(previousValue?.snapId).readBytes()
+                if (fileExists(Injector.get().appContext(), previousValue?.snapId)) {
+                    Injector.get().appContext().openFileInput(previousValue?.snapId).readBytes()
                 } else {
                     ByteArray(0)
                 }
@@ -76,7 +76,7 @@ private constructor(
                 Logger.d("Difference detected! Size went from ${lastSnapValue.size} to ${content.size}")
                 mSnapsDao.insertSnap(snap)
 
-                Application.instance.openFileOutput(snap.snapId, Context.MODE_PRIVATE).use {
+                Injector.get().appContext().openFileOutput(snap.snapId, Context.MODE_PRIVATE).use {
                     it.write(content)
                 }
 
@@ -90,7 +90,7 @@ private constructor(
     override suspend fun deleteSnapsForSiteIdAndContentType(siteId: String, contentType: String) =
         withContext(mAppExecutors.ioContext) {
             mSnapsDao.getAllSnapsForSiteIdAndContentType(siteId, contentType).forEach {
-                Application.instance.deleteFile(it.snapId)
+                Injector.get().appContext().deleteFile(it.snapId)
                 mSnapsDao.deleteSnapById(it.snapId)
             }
         }
@@ -132,8 +132,8 @@ private constructor(
         val originalSnap = mSnapsDao.getSnapById(originalId)!!
         val newSnap = mSnapsDao.getSnapById(newId)!!
 
-        val originalContent = Application.instance.openFileInput(originalId).readBytes()
-        val newContent = Application.instance.openFileInput(newId).readBytes()
+        val originalContent = Injector.get().appContext().openFileInput(originalId).readBytes()
+        val newContent = Injector.get().appContext().openFileInput(newId).readBytes()
 
         Pair(
             Pair(originalSnap, originalContent),
