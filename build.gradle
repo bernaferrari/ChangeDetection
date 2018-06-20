@@ -21,13 +21,6 @@ allprojects {
         google()
         jcenter()
         maven { url 'https://jitpack.io' }
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-    }
-}
-
-configurations.all {
-    resolutionStrategy {
-        force 'android.arch.lifecycle:livedata:1.1.1'
     }
 }
 
