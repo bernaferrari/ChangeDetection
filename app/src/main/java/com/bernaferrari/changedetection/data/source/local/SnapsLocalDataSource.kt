@@ -100,14 +100,13 @@ private constructor(
 
             // "SELECT count(*), contentType..." generates an error from Room, so this is needed.
             val listOfContentTypes = mutableListOf<ContentTypeInfo>()
+
             mSnapsDao.getContentTypesCount(siteId).forEachIndexed { index, count ->
                 listOfContentTypes += ContentTypeInfo(
                     mSnapsDao.getContentTypesParams(siteId)[index],
                     count
                 )
             }
-
-            mSnapsDao.getContentTypesParams(siteId)
 
             listOfContentTypes
     }

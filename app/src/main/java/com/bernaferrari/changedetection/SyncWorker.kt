@@ -8,11 +8,11 @@ import android.net.NetworkCapabilities
 import androidx.work.Worker
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.extensions.getWorkerSharedPrefs
 import com.bernaferrari.changedetection.util.launchSilent
 import com.orhanobut.logger.Logger
 import io.karn.notify.Notify
 import org.threeten.bp.LocalTime
+import com.bernaferrari.changedetection.data.source.Result as DataResult
 
 class SyncWorker : Worker() {
 
@@ -24,7 +24,7 @@ class SyncWorker : Worker() {
             } else {
                 Logger.d("SyncWorker: wifi is not connected. Try again next time..")
                 WorkerHelper.updateWorkerWithConstraints(
-                    applicationContext.getWorkerSharedPrefs()
+                    Injector.get().sharedPrefs()
                 )
             }
         } else {
@@ -38,7 +38,7 @@ class SyncWorker : Worker() {
         val now = LocalTime.now()
         Logger.d("Doing background work! " + now.hour + ":" + now.minute)
         launchSilent {
-            val sites = Injection.provideSitesRepository(applicationContext).getSites()
+            val sites = Injector.get().sitesRepository().getSites()
             sites.forEach {
                 reload(it)
             }
@@ -46,7 +46,7 @@ class SyncWorker : Worker() {
             // if there is nothing to sync, auto-sync will be automatically disabled
             if (sites.count { it.isSyncEnabled } > 0) {
                 WorkerHelper.updateWorkerWithConstraints(
-                    applicationContext.getWorkerSharedPrefs()
+                    Injector.get().sharedPrefs()
                 )
             }
         }
@@ -73,7 +73,7 @@ class SyncWorker : Worker() {
             isSuccessful = content.isNotEmpty()
         )
 
-        Injection.provideSitesRepository(this@SyncWorker.applicationContext).updateSite(newSite)
+        Injector.get().sitesRepository().updateSite(newSite)
 
         // text/html;charset=UTF-8 needs to become text/html and UTF-8
         val snap = Snap(
@@ -85,10 +85,9 @@ class SyncWorker : Worker() {
             contentSize = content.size
         )
 
-        val snapSavedResult =
-            Injection.provideSnapsRepository(applicationContext).saveSnap(snap, content)
+        val snapSavedResult = Injector.get().snapsRepository().saveSnap(snap, content)
 
-        if (snapSavedResult is com.bernaferrari.changedetection.data.source.Result.Success) {
+        if (snapSavedResult is DataResult.Success) {
             if (!item.isNotificationEnabled) {
                 return
             }
