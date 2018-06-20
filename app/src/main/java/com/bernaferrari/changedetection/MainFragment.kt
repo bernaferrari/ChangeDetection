@@ -46,8 +46,10 @@ import es.dmoral.toasty.Toasty
 import kotlinx.android.synthetic.main.main_fragment.*
 import kotlinx.android.synthetic.main.main_fragment.view.*
 import kotlinx.android.synthetic.main.state_layout.view.*
+import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.withContext
 
 class MainFragment : Fragment() {
     private lateinit var mViewModel: MainViewModel
@@ -151,60 +153,63 @@ class MainFragment : Fragment() {
                 adapter = bottomSheetAdapter
             }
 
-            updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
+            launch {
+                updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
+            }
         }
 
         mViewModel.loadSites().observe(this, Observer(::updateList))
         mViewModel.getOutputStatus().observe(this, Observer(::workOutput))
     }
 
-    private fun updateBottomSheet(
+    private suspend fun updateBottomSheet(
         item: MainCardItem,
         bottomSheetAdapter: GroupAdapter<ViewHolder>,
         bottomSheet: BottomSheetDialog
-    ) {
-        launch {
-            val contentTypes = mViewModel.getRecentContentTypes(item.site.id)
+    ): Unit = withContext(CommonPool) {
 
-            val selectedType = item.lastSnap?.contentType
+        val contentTypes = mViewModel.getRecentContentTypes(item.site.id)
 
-            launch(UI) {
+        val selectedType = item.lastSnap?.contentType
 
-                bottomSheetAdapter.clear()
+        withContext(UI) {
 
-                when {
-                    contentTypes.size <= 1 && contentTypes.firstOrNull()?.count?.let { it > 1 } != true -> {
-                        bottomSheetAdapter.add(EmptyItem(item.site.colors.second))
-                    }
-                    contentTypes.size == 1 -> {
-                        bottomSheet.dismiss()
-                        navigateTo(selectedType, item)
-                    }
-                    else -> {
-                        val remove: ((String) -> (Unit)) = {
-                            MaterialDialog.Builder(requireContext())
-                                .title(R.string.remove)
-                                .content(R.string.remove_content)
-                                .positiveText(R.string.yes)
-                                .negativeText(R.string.no)
-                                .onPositive { _, _ ->
+            bottomSheetAdapter.clear()
+
+            when {
+                contentTypes.size <= 1 && contentTypes.firstOrNull()?.count?.let { it > 1 } != true -> {
+                    bottomSheetAdapter.add(EmptyItem(item.site.colors.second))
+                }
+                contentTypes.size == 1 -> {
+                    bottomSheet.dismiss()
+                    navigateTo(selectedType, item)
+                }
+                else -> {
+                    val remove: ((String) -> (Unit)) = {
+                        MaterialDialog.Builder(requireContext())
+                            .title(R.string.remove)
+                            .content(R.string.remove_content)
+                            .positiveText(R.string.yes)
+                            .negativeText(R.string.no)
+                            .onPositive { _, _ ->
+                                launch {
                                     mViewModel.removeSnapsByType(item.site.id, it)
                                     updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
                                 }
-                                .show()
-                        }
+                            }
+                            .show()
+                    }
 
-                        contentTypes.forEach {
-                            bottomSheetAdapter.add(
-                                ItemContentType(
-                                    it.contentType,
-                                    it.count,
-                                    remove
-                                ) { selected ->
-                                    bottomSheet.dismiss()
-                                    navigateTo(selected, item)
-                                })
-                        }
+                    contentTypes.forEach {
+                        bottomSheetAdapter.add(
+                            ItemContentType(
+                                it.contentType,
+                                it.count,
+                                remove
+                            ) { selected ->
+                                bottomSheet.dismiss()
+                                navigateTo(selected, item)
+                            })
                     }
                 }
             }
