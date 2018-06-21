@@ -13,11 +13,9 @@ import com.bernaferrari.changedetection.data.Snap
  *
  * Inspired from Architecture Components MVVM sample app
  */
-class SnapsRepository // Prevent direct instantiation.
-private constructor(
-    snapsLocalDataSource: SnapsDataSource
+class SnapsRepository(
+    private val mSnapsLocalDataSource: SnapsDataSource
 ) : SnapsDataSource {
-
 
     override suspend fun getSnapForPaging(
         siteId: String,
@@ -67,42 +65,5 @@ private constructor(
 
     override suspend fun deleteSnap(snapId: String) {
         mSnapsLocalDataSource.deleteSnap(snapId)
-    }
-
-    private val mSnapsLocalDataSource: SnapsDataSource = checkNotNull(snapsLocalDataSource)
-
-    companion object {
-
-        @Volatile
-        private var INSTANCE: SnapsRepository? = null
-
-        /**
-         * Returns the single instance of this class, creating it if necessary.
-         *
-         * @param tasksRemoteDataSource the backend data source
-         * @param tasksLocalDataSource  the device storage data source
-         * @return the [SnapsRepository] instance
-         */
-
-        fun getInstance(
-            snapsLocalDataSource: SnapsDataSource
-        ): SnapsRepository {
-            if (INSTANCE == null) {
-                synchronized(SnapsRepository::class.java) {
-                    if (INSTANCE == null) {
-                        INSTANCE = SnapsRepository(snapsLocalDataSource)
-                    }
-                }
-            }
-            return INSTANCE!!
-        }
-
-        /**
-         * Used to force [.getInstance] to create a new instance
-         * next time it's called.
-         */
-        fun destroyInstance() {
-            INSTANCE = null
-        }
     }
 }
