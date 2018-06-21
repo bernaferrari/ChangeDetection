@@ -7,7 +7,8 @@ This app tracks changes on websites you otherwise would visit frequently to see 
 Use cases:
 * Teacher says grades will be published "soon", but no one knows what "soon" means and you are tired of reloading.
 * You are working with a server and wants to know the result from a request, periodically.
-* You are working with a server and wants to know if the server is working as intended, or if the release has happened successfully.
+* You are waiting for updates on an Exam, like if something was postponed or updated.
+* You want to monitor the Dagger documentation to see when Thermosiphon's explanation improves.
 
 This app also showcases **all** the Android Architecture Components working together: [Room](https://developer.android.com/topic/libraries/architecture/room.html), [ViewModels](https://developer.android.com/reference/android/arch/lifecycle/ViewModel.html), [LiveData](https://developer.android.com/reference/android/arch/lifecycle/LiveData.html), [Paging](https://developer.android.com/topic/libraries/architecture/paging/), [WorkManager](https://developer.android.com/topic/libraries/architecture/workmanager) and [Navigation](https://developer.android.com/topic/libraries/architecture/navigation/).
 
@@ -115,6 +116,7 @@ Wifi is currently not a constraint from WorkManager, so I implemented it myself 
   * [Toasty][13] show toasts in a colorful way.
   * [RxJava][14] responsible for coordinating the reload button animation and updating the text on main screen cards periodically.
   * [jsoup][15] cleaning up html files.
+  * [Dagger 2][16] dependency injection for sharedPreferences with application Context, provides singleton database instances.
 
 [1]: https://github.com/mikepenz/Android-Iconics
 [2]: https://developer.android.com/topic/libraries/architecture/
@@ -130,7 +132,8 @@ Wifi is currently not a constraint from WorkManager, so I implemented it myself 
 [12]: https://github.com/marlonlom/timeago
 [13]: https://github.com/GrenderG/Toasty
 [14]: https://github.com/ReactiveX/RxJava
-[15]: https://github.com/ReactiveX/RxJava
+[15]: https://jsoup.org
+[16]: https://github.com/google/dagger
 
 
 ### Reporting Issues
