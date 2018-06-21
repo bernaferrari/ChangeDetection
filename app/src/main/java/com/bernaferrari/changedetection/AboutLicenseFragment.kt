@@ -123,10 +123,19 @@ class AboutLicenseFragment : MaterialAboutFragment() {
             c,
             colorIcon
         )
+        val dagger = createLicenseCard(
+            "Dagger",
+            "2012",
+            "The Dagger Authors",
+            OpenSourceLicense.APACHE_2,
+            c,
+            colorIcon
+        )
 
         return MaterialAboutList(
             aosp,
             javadiffutils,
+            dagger,
             androidIconicsLicenseCard,
             rxjava,
             rxandroid,
