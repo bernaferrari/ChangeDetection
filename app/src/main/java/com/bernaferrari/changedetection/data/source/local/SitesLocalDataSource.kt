@@ -1,18 +1,17 @@
 package com.bernaferrari.changedetection.data.source.local
 
-import android.support.annotation.VisibleForTesting
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.source.SitesDataSource
 import com.bernaferrari.changedetection.util.AppExecutors
 import kotlinx.coroutines.experimental.withContext
+import javax.inject.Inject
 
 
 /**
  * Concrete implementation of a data source as a db.
  * Inspired from Architecture Components MVVM sample app
  */
-class SitesLocalDataSource
-private constructor(
+class SitesLocalDataSource @Inject constructor(
     private val mAppExecutors: AppExecutors,
     private val mSitesDao: SitesDao
 ) : SitesDataSource {
@@ -39,30 +38,5 @@ private constructor(
 
     override suspend fun deleteSite(siteId: String) = withContext(mAppExecutors.ioContext) {
         mSitesDao.deleteSiteById(siteId)
-    }
-
-    companion object {
-
-        @Volatile
-        private var INSTANCE: SitesLocalDataSource? = null
-
-        fun getInstance(
-            appExecutors: AppExecutors,
-            sitesDao: SitesDao
-        ): SitesLocalDataSource {
-            if (INSTANCE == null) {
-                synchronized(SitesLocalDataSource::class.java) {
-                    if (INSTANCE == null) {
-                        INSTANCE = SitesLocalDataSource(appExecutors, sitesDao)
-                    }
-                }
-            }
-            return INSTANCE!!
-        }
-
-        @VisibleForTesting
-        internal fun clearInstance() {
-            INSTANCE = null
-        }
     }
 }
