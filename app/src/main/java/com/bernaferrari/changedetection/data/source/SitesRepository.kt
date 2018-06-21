@@ -14,8 +14,7 @@ import com.bernaferrari.changedetection.data.Site
  *
  * Inspired from Architecture Components MVVM sample app
  */
-class SitesRepository // Prevent direct instantiation.
-private constructor(
+class SitesRepository(
     sitesLocalDataSource: SitesDataSource
 ) : SitesDataSource {
 
@@ -47,38 +46,5 @@ private constructor(
 
     override suspend fun deleteSite(siteId: String) {
         mSitesLocalDataSource.deleteSite(checkNotNull(siteId))
-    }
-
-    companion object {
-
-        @Volatile
-        private var INSTANCE: SitesRepository? = null
-
-        /**
-         * Returns the single instance of this class, creating it if necessary.
-         *
-         * @param sitesLocalDataSource  the device storage data source
-         * @return the [SitesRepository] instance
-         */
-        fun getInstance(
-            sitesLocalDataSource: SitesDataSource
-        ): SitesRepository {
-            if (INSTANCE == null) {
-                synchronized(SitesRepository::class.java) {
-                    if (INSTANCE == null) {
-                        INSTANCE = SitesRepository(sitesLocalDataSource)
-                    }
-                }
-            }
-            return INSTANCE!!
-        }
-
-        /**
-         * Used to force [.getInstance] to create a new instance
-         * next time it's called.
-         */
-        fun destroyInstance() {
-            INSTANCE = null
-        }
     }
 }

@@ -3,8 +3,6 @@ package com.bernaferrari.changedetection.data.source.local
 import android.arch.lifecycle.LiveData
 import android.arch.paging.DataSource
 import android.content.Context
-import android.support.annotation.VisibleForTesting
-import com.bernaferrari.changedetection.Injector
 import com.bernaferrari.changedetection.data.ContentTypeInfo
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.Result
@@ -14,27 +12,28 @@ import com.bernaferrari.changedetection.util.AppExecutors
 import com.orhanobut.logger.Logger
 import kotlinx.coroutines.experimental.withContext
 import java.nio.charset.Charset
+import javax.inject.Inject
 
 
 /**
  * Concrete implementation of a data source as a db.
  * Inspired from Architecture Components MVVM sample app
  */
-class SnapsLocalDataSource// Prevent direct instantiation.
-private constructor(
+class SnapsLocalDataSource @Inject constructor(
     private val mAppExecutors: AppExecutors,
-    private val mSnapsDao: SnapsDao
+    private val mSnapsDao: SnapsDao,
+    private val appContext: Context
 ) : SnapsDataSource {
 
     override suspend fun deleteAllSnaps(siteId: String) {
         mSnapsDao.getAllSnapsForSiteId(siteId).forEach {
-            Injector.get().appContext().deleteFile(it.snapId)
+            appContext.deleteFile(it.snapId)
             mSnapsDao.deleteSnapById(it.snapId)
         }
     }
 
     override suspend fun deleteSnap(snapId: String) = withContext(mAppExecutors.ioContext) {
-        Injector.get().appContext().deleteFile(snapId)
+        appContext.deleteFile(snapId)
         mSnapsDao.deleteSnapById(snapId)
     }
 
@@ -50,15 +49,15 @@ private constructor(
 
     override suspend fun getSnapContent(snapId: String): ByteArray =
         withContext(mAppExecutors.ioContext) {
-            Injector.get().appContext().openFileInput(snapId).readBytes()
+            appContext.openFileInput(snapId).readBytes()
         }
 
     override suspend fun saveSnap(snap: Snap, content: ByteArray): Result<Snap> =
         withContext(mAppExecutors.ioContext) {
 
             val lastSnapValue = mSnapsDao.getLastSnapForSiteId(snap.siteId).let { previousValue ->
-                if (fileExists(Injector.get().appContext(), previousValue?.snapId)) {
-                    Injector.get().appContext().openFileInput(previousValue?.snapId).readBytes()
+                if (fileExists(appContext, previousValue?.snapId)) {
+                    appContext.openFileInput(previousValue?.snapId).readBytes()
                 } else {
                     ByteArray(0)
                 }
@@ -76,7 +75,7 @@ private constructor(
                 Logger.d("Difference detected! Size went from ${lastSnapValue.size} to ${content.size}")
                 mSnapsDao.insertSnap(snap)
 
-                Injector.get().appContext().openFileOutput(snap.snapId, Context.MODE_PRIVATE).use {
+                appContext.openFileOutput(snap.snapId, Context.MODE_PRIVATE).use {
                     it.write(content)
                 }
 
@@ -90,7 +89,7 @@ private constructor(
     override suspend fun deleteSnapsForSiteIdAndContentType(siteId: String, contentType: String) =
         withContext(mAppExecutors.ioContext) {
             mSnapsDao.getAllSnapsForSiteIdAndContentType(siteId, contentType).forEach {
-                Injector.get().appContext().deleteFile(it.snapId)
+                appContext.deleteFile(it.snapId)
                 mSnapsDao.deleteSnapById(it.snapId)
             }
         }
@@ -131,8 +130,8 @@ private constructor(
         val originalSnap = mSnapsDao.getSnapById(originalId)!!
         val newSnap = mSnapsDao.getSnapById(newId)!!
 
-        val originalContent = Injector.get().appContext().openFileInput(originalId).readBytes()
-        val newContent = Injector.get().appContext().openFileInput(newId).readBytes()
+        val originalContent = appContext.openFileInput(originalId).readBytes()
+        val newContent = appContext.openFileInput(newId).readBytes()
 
         Pair(
             Pair(originalSnap, originalContent),
@@ -182,30 +181,5 @@ private constructor(
         }
         val file = context.getFileStreamPath(filename)
         return file != null && file.exists()
-    }
-
-
-    companion object {
-        @Volatile
-        private var INSTANCE: SnapsLocalDataSource? = null
-
-        fun getInstance(
-            appExecutors: AppExecutors,
-            snapsDao: SnapsDao
-        ): SnapsLocalDataSource {
-            if (INSTANCE == null) {
-                synchronized(SnapsLocalDataSource::class.java) {
-                    if (INSTANCE == null) {
-                        INSTANCE = SnapsLocalDataSource(appExecutors, snapsDao)
-                    }
-                }
-            }
-            return INSTANCE!!
-        }
-
-        @VisibleForTesting
-        internal fun clearInstance() {
-            INSTANCE = null
-        }
     }
 }

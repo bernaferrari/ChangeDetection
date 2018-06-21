@@ -16,13 +16,14 @@
 
 package com.bernaferrari.changedetection
 
+import android.arch.persistence.room.Room
 import android.content.Context
 import android.content.SharedPreferences
+import com.bernaferrari.changedetection.data.source.SitesDataSource
 import com.bernaferrari.changedetection.data.source.SitesRepository
+import com.bernaferrari.changedetection.data.source.SnapsDataSource
 import com.bernaferrari.changedetection.data.source.SnapsRepository
-import com.bernaferrari.changedetection.data.source.local.ChangeDatabase
-import com.bernaferrari.changedetection.data.source.local.SitesLocalDataSource
-import com.bernaferrari.changedetection.data.source.local.SnapsLocalDataSource
+import com.bernaferrari.changedetection.data.source.local.*
 import com.bernaferrari.changedetection.util.AppExecutors
 import dagger.Component
 import dagger.Module
@@ -31,6 +32,7 @@ import javax.inject.Singleton
 
 @Module
 class ContextModule(private val appContext: Context) {
+
     @Provides
     fun appContext(): Context = appContext
 }
@@ -43,36 +45,69 @@ class AppModule(private val appContext: Context) {
     fun sharedPrefs(): SharedPreferences {
         return appContext.getSharedPreferences("workerPreferences", Context.MODE_PRIVATE)
     }
-
-    @Provides
-    @Singleton
-    fun sitesRepository(): SitesRepository {
-        val database = ChangeDatabase.getInstance(appContext)
-        return SitesRepository.getInstance(
-            SitesLocalDataSource.getInstance(
-                AppExecutors(),
-                database.siteDao()
-            )
-        )
-    }
-
-    @Provides
-    @Singleton
-    fun snapsRepository(): SnapsRepository {
-        val database = ChangeDatabase.getInstance(appContext)
-        return SnapsRepository.getInstance(
-            SnapsLocalDataSource.getInstance(
-                AppExecutors(),
-                database.snapsDao()
-            )
-        )
-    }
 }
 
+@Module
+class RepositoriesModule {
 
-@Component(modules = [ContextModule::class, AppModule::class])
+    @Singleton
+    @Provides
+    internal fun sitesRepository(sitesDataSource: SitesDataSource): SitesRepository =
+        SitesRepository(sitesDataSource)
+
+    @Singleton
+    @Provides
+    internal fun snapsRepository(snapsDataSource: SnapsDataSource): SnapsRepository =
+        SnapsRepository(snapsDataSource)
+
+    @Singleton
+    @Provides
+    internal fun provideSitesLocalDataSource(
+        dao: SitesDao,
+        executors: AppExecutors
+    ): SitesDataSource = SitesLocalDataSource(executors, dao)
+
+    @Singleton
+    @Provides
+    internal fun provideSnapsLocalDataSource(
+        dao: SnapsDao,
+        executors: AppExecutors,
+        context: Context
+    ): SnapsDataSource = SnapsLocalDataSource(executors, dao, context)
+
+    @Singleton
+    @Provides
+    internal fun provideSitesDao(db: ChangeDatabase): SitesDao = db.siteDao()
+
+    @Singleton
+    @Provides
+    internal fun provideSnapsDao(db: ChangeDatabase): SnapsDao = db.snapsDao()
+
+}
+
+@Module
+class RepositoriesMutualDependenciesModule {
+
+    @Singleton
+    @Provides
+    internal fun provideDb(context: Context): ChangeDatabase {
+        return Room.databaseBuilder(
+            context.applicationContext,
+            ChangeDatabase::class.java,
+            "Changes.db"
+        )
+            .build()
+    }
+
+    @Singleton
+    @Provides
+    internal fun provideAppExecutors(): AppExecutors = AppExecutors()
+}
+
+@Component(modules = [ContextModule::class, AppModule::class, RepositoriesModule::class, RepositoriesMutualDependenciesModule::class])
 @Singleton
 interface SingletonComponent {
+
     fun appContext(): Context
     fun sharedPrefs(): SharedPreferences
     fun sitesRepository(): SitesRepository
