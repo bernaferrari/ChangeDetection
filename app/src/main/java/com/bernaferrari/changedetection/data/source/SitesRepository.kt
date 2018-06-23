@@ -1,6 +1,8 @@
 package com.bernaferrari.changedetection.data.source
 
 import com.bernaferrari.changedetection.data.Site
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Concrete implementation to load sites from the data sources into a cache.
@@ -14,7 +16,8 @@ import com.bernaferrari.changedetection.data.Site
  *
  * Inspired from Architecture Components MVVM sample app
  */
-class SitesRepository(
+@Singleton
+class SitesRepository @Inject constructor(
     sitesLocalDataSource: SitesDataSource
 ) : SitesDataSource {
 
