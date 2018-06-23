@@ -10,9 +10,12 @@
     android:elevation="@dimen/z_fab"
     app:dragDismissDistance="@dimen/drag_dismiss_distance">
 
-    <android.support.constraint.ConstraintLayout
+    <LinearLayout
+        android:id="@+id/container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/white"
+        android:orientation="vertical">
 
         <LinearLayout
             android:id="@+id/title_bar"
@@ -20,14 +23,11 @@
             android:layout_height="wrap_content"
             android:background="@color/background_light"
             android:baselineAligned="false"
-            android:elevation="1dp"
             android:minHeight="?android:actionBarSize"
             android:orientation="horizontal"
+            android:gravity="top"
             android:paddingTop="@dimen/spacing_micro"
-            android:paddingBottom="@dimen/spacing_micro"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            android:paddingBottom="@dimen/spacing_micro">
 
             <ImageView
                 android:id="@+id/closecontent"
@@ -53,45 +53,58 @@
                 tools:text="Devocionais" />
 
             <ImageView
+                android:id="@+id/visibility"
+                style="@style/ClickableImageView"
+                android:layout_width="@dimen/avatar_bounds"
+                android:layout_height="@dimen/avatar_bounds"
+                android:layout_gravity="center"
+                android:layout_marginLeft="@dimen/avatar_margin"
+                android:padding="@dimen/avatar_margin"
+                android:scaleType="centerCrop"
+                app:srcCompat="@drawable/visibility_on_to_off" />
+
+            <ImageView
                 android:id="@+id/settings"
                 android:layout_width="@dimen/avatar_bounds"
                 android:layout_height="@dimen/avatar_bounds"
                 android:layout_gravity="center"
-                android:layout_marginStart="@dimen/avatar_margin"
-                android:layout_marginEnd="@dimen/avatar_margin"
+                android:layout_marginRight="@dimen/avatar_margin"
                 android:background="?android:selectableItemBackgroundBorderless"
                 android:padding="@dimen/avatar_margin"
                 android:scaleType="center" />
         </LinearLayout>
 
-        <com.bernaferrari.changedetection.ui.RecyclerViewWithEmptyState
-            android:id="@+id/topRecycler"
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginBottom="4dp"
-            app:layout_constraintBottom_toTopOf="@+id/bottomRecycler"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/title_bar"
-            tools:itemCount="15" />
+            android:layout_weight="1">
 
-        <include
-            layout="@layout/state_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="@+id/topRecycler"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/topRecycler" />
+            <com.bernaferrari.changedetection.ui.RecyclerViewWithEmptyState
+                android:id="@+id/topRecycler"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <include
+                layout="@layout/state_layout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center" />
+
+        </FrameLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/lottie_divider_height"
+            android:background="@color/lottie_divider" />
+
+        <include layout="@layout/control_bar" />
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/bottomRecycler"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:itemCount="2" />
+            tools:itemCount="6" />
 
-    </android.support.constraint.ConstraintLayout>
+    </LinearLayout>
+
 </com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout>

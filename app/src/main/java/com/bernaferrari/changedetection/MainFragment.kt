@@ -227,7 +227,7 @@ class MainFragment : Fragment() {
             when {
                 selectedType == "application/pdf" -> Navigation.findNavController(view)
                     .navigate(R.id.action_mainFragment_to_pdfFragment, bundle)
-                selectedType?.split("/")?.first() == "image" -> Navigation.findNavController(view)
+                selectedType?.contains("image") == true -> Navigation.findNavController(view)
                     .navigate(R.id.action_mainFragment_to_imageCarouselFragment, bundle)
                 else -> Navigation.findNavController(view)
                     .navigate(R.id.action_mainFragment_to_openFragment, bundle)
@@ -379,7 +379,7 @@ class MainFragment : Fragment() {
         if (sitesList.isNotEmpty()) {
             //Verifies if list is not empty and add values that are not there. Basically, makes a snap.
             mutable.forEach { siteAndLastSnap ->
-                // if item from new list is curerently on the list, update it. Else, add.
+                // if item from new list is currently on the list, update it. Else, add.
                 sitesList.find { carditem -> carditem.site.id == siteAndLastSnap.site.id }.also {
                     if (it == null) {
                         sitesList.add(
