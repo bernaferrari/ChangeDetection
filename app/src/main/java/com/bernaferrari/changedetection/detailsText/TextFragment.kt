@@ -10,6 +10,8 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
+import android.support.transition.AutoTransition
+import android.support.transition.TransitionManager
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
@@ -22,13 +24,15 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import android.widget.Toast
 import androidx.core.net.toUri
+import androidx.core.view.isVisible
 import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ViewModelFactory
 import com.bernaferrari.changedetection.extensions.getPositionForAdapter
+import com.bernaferrari.changedetection.extensions.inc
+import com.bernaferrari.changedetection.extensions.setAndStartAnimation
 import com.bernaferrari.changedetection.groupie.DialogItemSimple
-import com.bernaferrari.changedetection.groupie.DialogItemSwitch
 import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.ui.CustomWebView
 import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
@@ -40,11 +44,13 @@ import com.xwray.groupie.Item
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
 import es.dmoral.toasty.Toasty
-import kotlinx.android.synthetic.main.details_fragment.view.*
-import kotlinx.android.synthetic.main.state_layout.view.*
+import kotlinx.android.synthetic.main.control_bar.*
+import kotlinx.android.synthetic.main.details_fragment.*
+import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
+import kotlin.properties.ObservableProperty
+import kotlin.reflect.KProperty
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 class TextFragment : Fragment() {
@@ -53,55 +59,117 @@ class TextFragment : Fragment() {
         R.color.FontStrong
     ) }
 
+    private val transition = AutoTransition().apply { duration = 175 }
+    private val uiState = UiState { updateUiFromState() }
+    private lateinit var bottomAdapter: TextAdapter
+    private val topSection = Section()
+
+    private fun updateUiFromState() {
+        beginDelayedTransition()
+
+        bottomRecycler.isVisible = uiState.visibility
+
+        if (uiState.showOriginalAndChanges != showOriginalAndChanges.isActivated) {
+            showOriginalAndChanges.isActivated = uiState.showOriginalAndChanges
+
+            model.changePlusOriginal = !model.changePlusOriginal
+
+            try {
+                val pos1 = bottomAdapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
+                val pos2 = bottomAdapter.colorSelected.getPositionForAdapter(ItemSelected.ORIGINAL)
+
+                model.generateDiff(
+                    topSection,
+                    bottomAdapter.getItemFromAdapter(pos1!!)?.snapId,
+                    bottomAdapter.getItemFromAdapter(pos2!!)?.snapId
+                )
+            } catch (e: Exception) {
+                // Don't do anything. If this exception happened, is because there are not
+                // two items selected. So it won't change anything.
+            }
+        }
+    }
+
+    private fun beginDelayedTransition() =
+        TransitionManager.beginDelayedTransition(container, transition)
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        super.onCreateView(inflater, container, savedInstanceState)
-        val view = inflater.inflate(R.layout.details_fragment, container, false)
+    ): View = inflater.inflate(R.layout.details_fragment, container, false)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         model = obtainViewModel(requireActivity())
 
-        view.closecontent.setOnClickListener { dismiss() }
-        view.titlecontent.text = arguments?.getString(TITLE) ?: ""
+        closecontent.setOnClickListener { dismiss() }
+        titlecontent.text = arguments?.getString(TITLE) ?: ""
 
-        view.elastic.addListener(object :
+        elastic.addListener(object :
             ElasticDragDismissFrameLayout.ElasticDragDismissCallback() {
             override fun onDragDismissed() {
-                view?.let { Navigation.findNavController(it).navigateUp() }
+                view.let { Navigation.findNavController(it).navigateUp() }
             }
         })
 
-        val state = view.stateLayout
-        state.apply {
+        stateLayout.apply {
             showLoading()
         }
 
-        val topSection = Section()
-
         model.showNotEnoughtInfoError.observe(this, Observer {
             if (it == true) {
-                state.setEmptyText(R.string.empty_please_select_two)
-                state.showEmptyState()
+                stateLayout.setEmptyText(R.string.empty_please_select_two)
+                stateLayout.showEmptyState()
             }
         })
 
         model.showNoChangesDetectedError.observe(this, Observer {
-            state.setEmptyText(R.string.empty_no_change_detected)
-            state.showEmptyState()
+            stateLayout.setEmptyText(R.string.empty_no_change_detected)
+            stateLayout.showEmptyState()
         })
 
         model.showProgress.observe(this, Observer {
-            state.showLoading()
+            stateLayout.showLoading()
         })
+
+        highQualityToggle.isVisible = false
+        shareToggle.isVisible = false
+
+        showOriginalAndChanges.isActivated = model.changePlusOriginal
+        showOriginalAndChanges.setOnClickListener { uiState.showOriginalAndChanges++ }
+
+        // this is needed. If visibility is off and the fragment is reopened,
+        // drawable will keep the drawable from                                                                                                                                                                                                                                                      last state (off) even thought it should be on.
+        visibility.setImageDrawable(
+            ContextCompat.getDrawable(
+                requireContext(),
+                R.drawable.visibility_on
+            )
+        )
+
+        visibility.setOnClickListener {
+            uiState.visibility++
+
+            // set and run the correct animation
+            if (uiState.visibility) {
+                visibility.setAndStartAnimation(R.drawable.visibility_off_to_on, requireContext())
+            } else {
+                visibility.setAndStartAnimation(R.drawable.visibility_on_to_off, requireContext())
+            }
+        }
+
+        if (arguments?.getString("TYPE") ?: "" != "text/html") {
+            settings.isVisible = false
+        }
 
         val siteId = arguments?.getString(SITEID) ?: ""
 
-        view.topRecycler.run {
+        topRecycler.run {
             layoutManager = LinearLayoutManager(context)
 
-            setEmptyView(state)
+            setEmptyView(stateLayout)
 
             adapter = GroupAdapter<ViewHolder>().apply {
                 add(topSection)
@@ -116,7 +184,7 @@ class TextFragment : Fragment() {
             RecyclerViewItemListener {
             override fun onClickListener(item: RecyclerView.ViewHolder) {
                 if (item !is TextViewHolder) return
-                state.showLoading()
+                stateLayout.showLoading()
                 model.fsmSelectWithCorrectColor(item, topSection)
             }
 
@@ -135,7 +203,7 @@ class TextFragment : Fragment() {
                     .negativeText(R.string.cancel)
                     .positiveText(R.string.yes)
                     .onPositive { _, _ ->
-                        if (item.colorSelected != 0) {
+                        if (item.colorSelected != ItemSelected.NONE) {
                             // If the item is selected, first deselect, then remove it.
                             model.fsmSelectWithCorrectColor(item, topSection)
                         }
@@ -147,11 +215,10 @@ class TextFragment : Fragment() {
         }
 
         // Create adapter for the RecyclerView
-        val adapter =
-            TextAdapter(recyclerListener)
+        bottomAdapter = TextAdapter(recyclerListener)
 
-        view.bottomRecycler.run {
-            this.adapter = adapter
+        bottomRecycler.run {
+            this.adapter = bottomAdapter
             this.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             itemAnimator = this.itemAnimator.apply {
                 // From https://stackoverflow.com/a/33302517/4418073
@@ -168,18 +235,18 @@ class TextFragment : Fragment() {
         launchSilent {
             val liveData = model.getAllSnapsPagedForId(siteId, arguments?.getString("TYPE") ?: "%")
 
-            launch(UI) {
+            launchSilent(UI) {
                 liveData.observe(this@TextFragment, Observer {
-                    adapter.submitList(it)
+                    bottomAdapter.submitList(it)
                     if (!hasSetInitialColor) {
-                        adapter.setColor(2, 0)
-                        adapter.setColor(1, 1)
+                        bottomAdapter.setColor(ItemSelected.REVISED, 0)
+                        bottomAdapter.setColor(ItemSelected.ORIGINAL, 1)
 
                         try {
                             model.generateDiff(
-                                topSection,
-                                adapter.getItemFromAdapter(1)!!.snapId,
-                                adapter.getItemFromAdapter(0)!!.snapId
+                                topSection = topSection,
+                                originalId = bottomAdapter.getItemFromAdapter(1)!!.snapId,
+                                revisedId = bottomAdapter.getItemFromAdapter(0)!!.snapId
                             )
                         } catch (e: Exception) {
                             Toasty.error(
@@ -187,7 +254,7 @@ class TextFragment : Fragment() {
                                 getString(R.string.less_than_two),
                                 Toast.LENGTH_LONG
                             ).show()
-                            view?.let { Navigation.findNavController(it).navigateUp() }
+                            view.let { Navigation.findNavController(it).navigateUp() }
                         }
 
                         hasSetInitialColor = true
@@ -196,11 +263,11 @@ class TextFragment : Fragment() {
             }
         }
 
-        view.closecontent.setOnClickListener {
+        closecontent.setOnClickListener {
             dismiss()
         }
 
-        view.settings.run {
+        settings.run {
             setImageDrawable(
                 IconicsDrawable(context, CommunityMaterial.Icon.cmd_dots_vertical)
                     .color(ContextCompat.getColor(requireContext(),
@@ -232,55 +299,21 @@ class TextFragment : Fragment() {
 
                 val updating = mutableListOf<Item<out ViewHolder>>()
 
-                updating += DialogItemSwitch(
-                    getString(R.string.original_plus_diffs),
-                    IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference).color(
-                        ContextCompat.getColor(context,
-                            R.color.md_indigo_500
-                        )
-                    ),
-                    model.changePlusOriginal
-                ) {
-                    model.changePlusOriginal = !model.changePlusOriginal
-
-                    try {
-                        val pos1 = adapter.colorSelected.getPositionForAdapter(1)
-                        val pos2 = adapter.colorSelected.getPositionForAdapter(2)
-
-                        model.generateDiff(
-                            topSection,
-                            adapter.getItemFromAdapter(pos1!!)!!.snapId,
-                            adapter.getItemFromAdapter(pos2!!)!!.snapId
-                        )
-                    } catch (e: Exception) {
-                        // Don't do anything. If this exception happened, is because there are not
-                        // two items selected. So it won't change anything.
-                    }
-
-                    // Dismiss after the user taps on the switch, but not before he sees the animation
-                    launch {
-                        delay(250) // non-blocking delay for 250 ms
-                        launch(UI) {
-                            materialdialog.dismiss()
-                        }
-                    }
-                }
-
                 updating += DialogItemSimple(
-                    getString(R.string.open_1_in_browser),
+                    getString(R.string.open_revised_in_browser),
                     IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference_ba).color(
                         ContextCompat.getColor(context,
-                            R.color.md_orange_500
+                            R.color.md_green_500
                         )
                     ),
                     "first"
                 )
 
                 updating += DialogItemSimple(
-                    getString(R.string.open_2_in_browser),
+                    getString(R.string.open_original_in_browser),
                     IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference_ab).color(
                         ContextCompat.getColor(context,
-                            R.color.md_amber_500
+                            R.color.md_red_500
                         )
                     ),
                     "second"
@@ -303,7 +336,11 @@ class TextFragment : Fragment() {
                                     .customView(R.layout.content_web, false)
                                     .build()
                                     .also {
-                                        fetchAndOpenOnWebView(adapter, it, 1)
+                                        fetchAndOpenOnWebView(
+                                            bottomAdapter,
+                                            it,
+                                            ItemSelected.REVISED
+                                        )
                                     }.show()
                             }
                             "second" -> {
@@ -311,7 +348,11 @@ class TextFragment : Fragment() {
                                     .customView(R.layout.content_web, false)
                                     .build()
                                     .also {
-                                        fetchAndOpenOnWebView(adapter, it, 2)
+                                        fetchAndOpenOnWebView(
+                                            bottomAdapter,
+                                            it,
+                                            ItemSelected.ORIGINAL
+                                        )
                                     }.show()
                             }
                         }
@@ -321,11 +362,13 @@ class TextFragment : Fragment() {
                 materialdialog.show()
             }
         }
-
-        return view
     }
 
-    private fun fetchAndOpenOnWebView(adapter: TextAdapter, dialog: MaterialDialog, color: Int) {
+    private fun fetchAndOpenOnWebView(
+        adapter: TextAdapter,
+        dialog: MaterialDialog,
+        color: ItemSelected
+    ) {
         val position = adapter.colorSelected.getPositionForAdapter(color) ?: return
 
         launch {
@@ -361,7 +404,6 @@ class TextFragment : Fragment() {
 
     private fun dismiss() {
         view?.let { Navigation.findNavController(it).navigateUp() }
-//        activity?.supportFragmentManager?.popBackStack()
     }
 
     private fun obtainViewModel(activity: FragmentActivity): TextViewModel {
@@ -376,19 +418,26 @@ class TextFragment : Fragment() {
         private val TITLE = "TITLE"
         private val URL = "URL"
 
-        fun newInstance(id: String, title: String, url: String): TextFragment {
-            return TextFragment().apply {
-                arguments = Bundle(3).apply {
-                    putString(SITEID, id)
-                    putString(TITLE, title)
-                    putString(URL, url)
-                }
-            }
-        }
-
         interface RecyclerViewItemListener {
             fun onClickListener(item: RecyclerView.ViewHolder)
             fun onLongClickListener(item: RecyclerView.ViewHolder)
         }
+    }
+
+    private inner class UiState(private val callback: () -> Unit) {
+
+        private inner class BooleanProperty(initialValue: Boolean) :
+            ObservableProperty<Boolean>(initialValue) {
+            override fun afterChange(
+                property: KProperty<*>,
+                oldValue: Boolean,
+                newValue: Boolean
+            ) {
+                callback()
+            }
+        }
+
+        var visibility by BooleanProperty(true)
+        var showOriginalAndChanges by BooleanProperty(false)
     }
 }

@@ -147,11 +147,13 @@ class PdfFragment : Fragment(),
 
         model = obtainViewModel(requireActivity())
 
-        view.closecontent.setOnClickListener {
+        closecontent.setOnClickListener {
             view.let { Navigation.findNavController(it).navigateUp() }
         }
 
-        view.menucontent.setOnClickListener { view.drawer.openDrawer(GravityCompat.END) }
+        showOriginalAndChanges.isVisible = false
+
+        menucontent.setOnClickListener { view.drawer.openDrawer(GravityCompat.END) }
 
         highQualityToggle.setOnClickListener { uiState.highQuality++ }
 

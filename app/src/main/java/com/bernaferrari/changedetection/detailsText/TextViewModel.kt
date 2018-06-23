@@ -9,12 +9,11 @@ import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SnapsRepository
 import com.bernaferrari.changedetection.diffs.text.DiffRowGenerator
 import com.bernaferrari.changedetection.extensions.getPositionForAdapter
-import com.bernaferrari.changedetection.extensions.removeClutterAndBeautifyHtml
+import com.bernaferrari.changedetection.extensions.removeClutterAndBeautifyHtmlIfNecessary
 import com.bernaferrari.changedetection.extensions.unescapeHtml
 import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.util.SingleLiveEvent
 import com.bernaferrari.changedetection.util.launchSilent
-import com.orhanobut.logger.Logger
 import com.xwray.groupie.Section
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
@@ -52,18 +51,28 @@ class TextViewModel(
      * @param topSection    The section corresponding to the top recyclerview, which will
      * be updated with the result from the diff.
      * @param originalId    The snapId from the original item (which will be in red)
-     * @param newId         The snapId from the new item (which will be in green)
+     * @param revisedId     The snapId from the revised item (which will be in green)
      * which will be updated by [generateDiff] with corresponding diff
      */
-    fun generateDiff(topSection: Section, originalId: String, newId: String) {
+    fun generateDiff(topSection: Section, originalId: String?, revisedId: String?) {
         currentJob?.cancel()
-        if (originalId.isBlank() || newId.isBlank()) {
+        if (originalId.isNullOrBlank() || revisedId.isNullOrBlank()) {
+
+            mutableListOf<TextRecycler>().also { mutableList ->
+                mutableList.addAll(mutableListOf())
+                // this way it captures if showNotEnoughtInfoError is null or false
+                if (showNotEnoughtInfoError.value != true && mutableList.isEmpty()) {
+                    showNoChangesDetectedError.call()
+                }
+                topSection.update(mutableListOf())
+            }
+
             return
         }
 
         currentJob = launch {
 
-            val (original, new) = getFromDb(originalId, newId)
+            val (original, new) = getFromDb(originalId!!, revisedId!!)
             val (onlyDiff, nonDiff) = generateDiffRows(original, new)
 
             mutableListOf<TextRecycler>().also { mutableList ->
@@ -127,46 +136,40 @@ class TextViewModel(
      */
     fun fsmSelectWithCorrectColor(item: TextViewHolder, topSection: Section) {
         when (item.colorSelected) {
-            2 -> {
-                // ORANGE -> GREY
-                item.setColor(0)
-            }
-            1 -> {
-                // AMBER -> GREY
-                item.setColor(0)
-            }
-            else -> {
-                when (item.adapter.colorSelected.count { it.value > 0 }) {
+            ItemSelected.NONE -> {
+                when (item.adapter.colorSelected.count { it.value != ItemSelected.NONE }) {
                     0 -> {
-                        // NOTHING IS SELECTED -> AMBER
-                        item.setColor(1)
+                        // NOTHING IS SELECTED -> SELECT REVISED
+                        item.setColor(ItemSelected.REVISED)
                     }
                     1 -> {
-                        // ONE THING IS SELECTED AND IT IS AMBER -> ORANGE
-                        // ONE THING IS SELECTED AND IT IS ORANGE -> AMBER
+                        // ONE THING IS SELECTED AND IT IS REVISED -> ORIGINAL
+                        // ONE THING IS SELECTED AND IT IS ORIGINAL -> REVISED
                         for ((_, value) in item.adapter.colorSelected) {
-                            if (value > 0) {
-                                if (value == 2) {
-                                    item.adapter.colorSelected.getPositionForAdapter(2)
+                            if (value != ItemSelected.NONE) {
+                                if (value == ItemSelected.ORIGINAL) {
+                                    item.adapter.colorSelected.getPositionForAdapter(ItemSelected.ORIGINAL)
                                         ?.let { position ->
-                                            item.setColor(1)
+                                            item.setColor(ItemSelected.REVISED)
 
                                             generateDiff(
-                                                topSection,
-                                                item.snap?.snapId!!,
-                                                item.adapter.getItemFromAdapter(position)?.snapId!!
+                                                topSection = topSection,
+                                                originalId = item.adapter.getItemFromAdapter(
+                                                    position
+                                                )?.snapId,
+                                                revisedId = item.snap?.snapId
                                             )
                                         }
 
                                 } else {
-                                    item.adapter.colorSelected.getPositionForAdapter(1)
+                                    item.adapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
                                         ?.let { position ->
-                                            item.setColor(2)
+                                            item.setColor(ItemSelected.ORIGINAL)
 
                                             generateDiff(
-                                                topSection,
-                                                item.snap?.snapId!!,
-                                                item.adapter.getItemFromAdapter(position)?.snapId!!
+                                                topSection = topSection,
+                                                originalId = item.snap?.snapId,
+                                                revisedId = item.adapter.getItemFromAdapter(position)?.snapId
                                             )
                                         }
                                 }
@@ -175,22 +178,26 @@ class TextViewModel(
                         }
                     }
                     else -> {
-                        // TWO ARE SELECTED. UNSELECT THE ORANGE, SELECT ANOTHER THING.
-                        for ((position, _) in item.adapter.colorSelected.filter { it.value >= 2 }) {
-                            item.adapter.setColor(0, position)
+                        // TWO ARE SELECTED. UNSELECT THE ORIGINAL, SELECT ANOTHER THING.
+                        for ((position, _) in item.adapter.colorSelected.filter { it.value == ItemSelected.ORIGINAL }) {
+                            item.adapter.setColor(ItemSelected.NONE, position)
                         }
 
-                        item.adapter.colorSelected.getPositionForAdapter(1)?.let { position ->
-                            generateDiff(
-                                topSection,
-                                item.adapter.getItemFromAdapter(position)?.snapId!!,
-                                item.snap?.snapId!!
-                            )
+                        item.setColor(ItemSelected.ORIGINAL)
 
-                            item.setColor(2)
+                        item.adapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
+                            ?.let { position ->
+                            generateDiff(
+                                topSection = topSection,
+                                originalId = item.snap?.snapId!!,
+                                revisedId = item.adapter.getItemFromAdapter(position)?.snapId!!
+                            )
                         }
                     }
                 }
+            }
+            else -> {
+                item.setColor(ItemSelected.NONE)
             }
         }
 
@@ -207,22 +214,20 @@ class TextViewModel(
      */
     private fun updateCanShowDiff(adapter: TextAdapter, topSection: Section) {
 
-        if (adapter.colorSelected.count { it.value > 0 } < 2) {
-            // Empty when there is not enough selection
-            topSection.update(mutableListOf())
-        }
+        adapter.colorSelected.count { it.value != ItemSelected.NONE }.let { numOfItemsNotNone ->
+            if (numOfItemsNotNone < 2) {
+                // Empty when there is not enough selection
+                topSection.update(mutableListOf())
+            }
 
-        showNotEnoughtInfoError.value = adapter.colorSelected.count { it.value > 0 } != 2
+            showNotEnoughtInfoError.value = numOfItemsNotNone != 2
+        }
     }
 
     private fun generateDiffRows(
         original: Pair<Snap, ByteArray>,
-        new: Pair<Snap, ByteArray>
+        revised: Pair<Snap, ByteArray>
     ): Pair<MutableList<TextRecycler>, MutableList<TextRecycler>> {
-        if (original == null || new == null) {
-            Logger.d("original or it are null")
-            return Pair(mutableListOf(), mutableListOf())
-        }
 
         val generator = DiffRowGenerator.create()
             .showInlineDiffs(true)
@@ -232,36 +237,37 @@ class TextViewModel(
             .build()
 
         // find the correct charset
-        val newCharset = if (new.first.contentCharset.isBlank()) {
+        val newCharset = if (revised.first.contentCharset.isBlank()) {
             Charset.defaultCharset()
         } else {
-            Charset.forName(new.first.contentCharset)
+            Charset.forName(revised.first.contentCharset)
         }
 
         val originalCharset = if (original.first.contentCharset.isBlank()) {
             Charset.defaultCharset()
         } else {
-            Charset.forName(new.first.contentCharset)
+            Charset.forName(original.first.contentCharset)
         }
 
         // compute the differences for two test texts.
         // generateDiffRows will split the lines anyway, so there is no need for splitting again here.
+
         val rows = generator.generateDiffRows(
-            mutableListOf(
-                new.second.toString(
-                    OkHttpCharset.bomAwareCharset(
-                        source = new.second,
-                        charset = newCharset
-                    )
-                ).removeClutterAndBeautifyHtml()
-            ),
-            mutableListOf(
+            original = mutableListOf(
                 original.second.toString(
                     OkHttpCharset.bomAwareCharset(
                         source = original.second,
                         charset = originalCharset
                     )
-                ).removeClutterAndBeautifyHtml()
+                ).removeClutterAndBeautifyHtmlIfNecessary(original.first.contentType)
+            ),
+            revised = mutableListOf(
+                revised.second.toString(
+                    OkHttpCharset.bomAwareCharset(
+                        source = revised.second,
+                        charset = newCharset
+                    )
+                ).removeClutterAndBeautifyHtmlIfNecessary(revised.first.contentType)
             )
         )
 

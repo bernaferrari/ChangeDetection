@@ -77,8 +77,9 @@
     <string name="hours">horas</string>
 
     <string name="original_plus_diffs">Original + Mudanças</string>
-    <string name="open_1_in_browser">Abrir #1 no navegador</string>
-    <string name="open_2_in_browser">Abrir #2 in navegador</string>
+
+    <string name="open_revised_in_browser">Abrir revisado no navegador</string>
+    <string name="open_original_in_browser">Abrir original in navegador</string>
 
     <string name="incorrect_url">Link errado</string>
     <string name="no_websites_being_monitored">Nenhum site está sendo monitorado</string>

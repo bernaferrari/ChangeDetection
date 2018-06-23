@@ -18,8 +18,12 @@ fun String.isValidUrl(): Boolean {
     )
 }
 
-fun String.removeClutterAndBeautifyHtml(): String {
-    return Jsoup.clean(this, Whitelist.relaxed())
+fun String.removeClutterAndBeautifyHtmlIfNecessary(type: String): String {
+    return if (type == "text/html") {
+        Jsoup.clean(this, Whitelist.relaxed())
+    } else {
+        this
+    }
 }
 
 fun String.unescapeHtml(): String {

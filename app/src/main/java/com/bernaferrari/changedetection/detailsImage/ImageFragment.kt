@@ -108,9 +108,10 @@ class ImageFragment : Fragment(),
 
         next_previous_bar.isVisible = false
         highQualityToggle.isVisible = false
+        showOriginalAndChanges.isVisible = false
         controlBar.isVisible = false
 
-        view.menucontent.setOnClickListener { view.drawer.openDrawer(GravityCompat.END) }
+        menucontent.setOnClickListener { view.drawer.openDrawer(GravityCompat.END) }
 
         shareToggle.setOnClickListener {
             val item =
