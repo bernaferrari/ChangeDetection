@@ -48,20 +48,10 @@ class AppModule(private val appContext: Context) {
 }
 
 @Module
-class RepositoriesModule {
+class SitesRepositoryModule {
 
-    @Singleton
     @Provides
-    internal fun sitesRepository(sitesDataSource: SitesDataSource): SitesRepository =
-        SitesRepository(sitesDataSource)
-
     @Singleton
-    @Provides
-    internal fun snapsRepository(snapsDataSource: SnapsDataSource): SnapsRepository =
-        SnapsRepository(snapsDataSource)
-
-    @Singleton
-    @Provides
     internal fun provideSitesLocalDataSource(
         dao: SitesDao,
         executors: AppExecutors
@@ -69,6 +59,14 @@ class RepositoriesModule {
 
     @Singleton
     @Provides
+    internal fun provideSitesDao(db: ChangeDatabase): SitesDao = db.siteDao()
+}
+
+@Module
+class SnapsRepositoryModule {
+
+    @Provides
+    @Singleton
     internal fun provideSnapsLocalDataSource(
         dao: SnapsDao,
         executors: AppExecutors,
@@ -77,12 +75,7 @@ class RepositoriesModule {
 
     @Singleton
     @Provides
-    internal fun provideSitesDao(db: ChangeDatabase): SitesDao = db.siteDao()
-
-    @Singleton
-    @Provides
     internal fun provideSnapsDao(db: ChangeDatabase): SnapsDao = db.snapsDao()
-
 }
 
 @Module
@@ -104,7 +97,7 @@ class RepositoriesMutualDependenciesModule {
     internal fun provideAppExecutors(): AppExecutors = AppExecutors()
 }
 
-@Component(modules = [ContextModule::class, AppModule::class, RepositoriesModule::class, RepositoriesMutualDependenciesModule::class])
+@Component(modules = [ContextModule::class, AppModule::class, SitesRepositoryModule::class, SnapsRepositoryModule::class, RepositoriesMutualDependenciesModule::class])
 @Singleton
 interface SingletonComponent {
 

@@ -4,14 +4,13 @@ import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.source.SitesDataSource
 import com.bernaferrari.changedetection.util.AppExecutors
 import kotlinx.coroutines.experimental.withContext
-import javax.inject.Inject
 
 
 /**
  * Concrete implementation of a data source as a db.
  * Inspired from Architecture Components MVVM sample app
  */
-class SitesLocalDataSource @Inject constructor(
+class SitesLocalDataSource constructor(
     private val mAppExecutors: AppExecutors,
     private val mSitesDao: SitesDao
 ) : SitesDataSource {

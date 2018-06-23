@@ -12,14 +12,13 @@ import com.bernaferrari.changedetection.util.AppExecutors
 import com.orhanobut.logger.Logger
 import kotlinx.coroutines.experimental.withContext
 import java.nio.charset.Charset
-import javax.inject.Inject
 
 
 /**
  * Concrete implementation of a data source as a db.
  * Inspired from Architecture Components MVVM sample app
  */
-class SnapsLocalDataSource @Inject constructor(
+class SnapsLocalDataSource constructor(
     private val mAppExecutors: AppExecutors,
     private val mSnapsDao: SnapsDao,
     private val appContext: Context

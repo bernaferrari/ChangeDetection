@@ -4,6 +4,8 @@ import android.arch.lifecycle.LiveData
 import android.arch.paging.DataSource
 import com.bernaferrari.changedetection.data.ContentTypeInfo
 import com.bernaferrari.changedetection.data.Snap
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  *
@@ -13,7 +15,8 @@ import com.bernaferrari.changedetection.data.Snap
  *
  * Inspired from Architecture Components MVVM sample app
  */
-class SnapsRepository(
+@Singleton
+class SnapsRepository @Inject constructor(
     private val mSnapsLocalDataSource: SnapsDataSource
 ) : SnapsDataSource {
 
