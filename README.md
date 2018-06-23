@@ -20,10 +20,13 @@ This app also showcases **all** the Android Architecture Components working toge
 
 ## Screenshots
 
-| Main Screen | Text Comparison | PDF Comparison | Settings |
-|:-:|:-:|:-:|:-:|
-| ![First](/.github/assets/main_screen.jpg?raw=true) | ![Sec](/.github/assets/diff_view_html.jpg?raw=true) | ![Third](/.github/assets/diff_view_pdf.jpg?raw=true) | ![Fourth](/.github/assets/settings.jpg?raw=true) |
+| Main Screen | Settings |
+|:-:|:-:|
+| ![First](/.github/assets/main_screen.jpg?raw=true) | ![Sec](/.github/assets/settings.jpg?raw=true) |
 
+| Text Comparison | PDF Comparison |
+|:-:|:-:|
+| ![Third](/.github/assets/diff_view_html.jpg?raw=true) | ![Fourth](/.github/assets/diff_view_pdf.jpg?raw=true) |
 
 Introduction
 ------------
