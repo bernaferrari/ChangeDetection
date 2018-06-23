@@ -14,17 +14,16 @@ This app also showcases **all** the Android Architecture Components working toge
 
  ![GIF](/.github/assets/card_gif.gif?raw=true)
 
+[<img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png"
+      alt="Download from Google Play"
+      height="80">](https://play.google.com/store/apps/details?id=com.bernaferrari.changedetection)
+
 ## Screenshots
 
 | Main Screen | Text Comparison | PDF Comparison | Settings |
 |:-:|:-:|:-:|:-:|
 | ![First](/.github/assets/main_screen.jpg?raw=true) | ![Sec](/.github/assets/diff_view_html.jpg?raw=true) | ![Third](/.github/assets/diff_view_pdf.jpg?raw=true) | ![Fourth](/.github/assets/settings.jpg?raw=true) |
 
-
-### APK:
-[Download here](/.github/assets/app-debug.apk)
-
-Soon on Play Store.
 
 Introduction
 ------------
