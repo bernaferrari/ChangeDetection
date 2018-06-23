@@ -22,7 +22,7 @@ This app also showcases **all** the Android Architecture Components working toge
 
 | Main Screen | Text Diff | PDF Diff | Settings |
 |:-:|:-:|:-:|:-:|
-| ![First](/.github/assets/main_screen.jpg?raw=true) | ![Sec](/.github/assets/settings.jpg?raw=true) | ![Third](/.github/assets/diff_view_html.jpg?raw=true) | ![Fourth](/.github/assets/diff_view_pdf.jpg?raw=true) |
+| ![First](/.github/assets/main_screen.jpg?raw=true) | ![Sec](/.github/assets/diff_view_html.jpg?raw=true) | ![Third](/.github/assets/diff_view_pdf.jpg?raw=true) | ![Fourth](/.github/assets/settings.jpg?raw=true) |
 
 Introduction
 ------------
