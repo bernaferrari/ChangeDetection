@@ -17,15 +17,15 @@ class TextAdapter(val callback: TextFragment.Companion.RecyclerViewItemListener)
     PagedListAdapter<Snap, TextViewHolder>(
         diffCallback
     ) {
-    val colorSelected = mutableMapOf<Int, Int>()
+    val colorSelected = mutableMapOf<Int, ItemSelected>()
 
-    fun setColor(color: Int, position: Int) {
+    fun setColor(color: ItemSelected, position: Int) {
         colorSelected[position] = color
         notifyItemChanged(position)
     }
 
     override fun onBindViewHolder(holder: TextViewHolder, position: Int) {
-        holder.bindTo(getItem(position), colorSelected.getOrDefault(position, 0))
+        holder.bindTo(getItem(position), colorSelected.getOrDefault(position, ItemSelected.NONE))
     }
 
     fun getItemFromAdapter(position: Int): Snap? {

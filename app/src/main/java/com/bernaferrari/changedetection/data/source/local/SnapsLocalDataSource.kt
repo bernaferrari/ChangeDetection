@@ -63,13 +63,10 @@ class SnapsLocalDataSource constructor(
             }
 
             // uncomment for testing:
-            //  val lastSnapValue = ByteArray(0)
+            // val lastSnapValue = ByteArray(0)
             // mSnapsDao.insertSnap(snap.copy(value = snap.value.plus(UUID.randomUUID().toString())))
 
-            if (content.isNotEmpty() && lastSnapValue.toString(Charset.defaultCharset()).cleanUpHtml() != content.toString(
-                    Charset.defaultCharset()
-                ).cleanUpHtml()
-            ) {
+            if (cleanUpIfNecessaryAndCompare(snap.contentType, content, lastSnapValue)) {
                 println(lastSnapValue)
                 Logger.d("Difference detected! Size went from ${lastSnapValue.size} to ${content.size}")
                 mSnapsDao.insertSnap(snap)
@@ -84,6 +81,20 @@ class SnapsLocalDataSource constructor(
                 Result.Error()
             }
         }
+
+    private fun cleanUpIfNecessaryAndCompare(
+        type: String,
+        content: ByteArray,
+        lastSnapValue: ByteArray
+    ): Boolean {
+        return if (type == "text/html") {
+            content.isNotEmpty() && lastSnapValue.toString(Charset.defaultCharset()).cleanUpHtml() != content.toString(
+                Charset.defaultCharset()
+            ).cleanUpHtml()
+        } else {
+            content.isNotEmpty() && !lastSnapValue.contentEquals(content)
+        }
+    }
 
     override suspend fun deleteSnapsForSiteIdAndContentType(siteId: String, contentType: String) =
         withContext(mAppExecutors.ioContext) {
@@ -107,7 +118,7 @@ class SnapsLocalDataSource constructor(
             }
 
             listOfContentTypes
-    }
+        }
 
     override suspend fun getMostRecentSnap(siteId: String): Snap? =
         withContext(mAppExecutors.ioContext) {

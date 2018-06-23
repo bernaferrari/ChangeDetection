@@ -39,7 +39,7 @@ class TextViewHolder(
 
     var snap: Snap? = null
 
-    fun setColor(color: Int) {
+    fun setColor(color: ItemSelected) {
         colorSelected = color
         adapter.setColor(color, adapterPosition)
     }
@@ -48,7 +48,7 @@ class TextViewHolder(
      * Items might be null if they are not paged in yet. PagedListAdapter will re-bind the
      * ViewHolder when Item is loaded.
      */
-    fun bindTo(snap: Snap?, colorSelected: Int) {
+    fun bindTo(snap: Snap?, colorSelected: ItemSelected) {
         this.snap = snap
         this.colorSelected = colorSelected
 
@@ -65,7 +65,7 @@ class TextViewHolder(
         bindColors()
     }
 
-    var colorSelected = 0
+    var colorSelected = ItemSelected.NONE
         private set
 
     var readableFileSize = ""
@@ -75,16 +75,16 @@ class TextViewHolder(
         val context = itemView.container.context
 
         when (colorSelected) {
-            1 -> setCardBackgroundAnimated(
+            ItemSelected.REVISED -> setCardBackgroundAnimated(
                 itemView.container,
                 ContextCompat.getColor(context,
-                    R.color.md_orange_200
+                    R.color.code_addition_diff
                 ).toDrawable()
             )
-            2 -> setCardBackgroundAnimated(
+            ItemSelected.ORIGINAL -> setCardBackgroundAnimated(
                 itemView.container,
                 ContextCompat.getColor(context,
-                    R.color.md_amber_200
+                    R.color.code_deletion_diff
                 ).toDrawable()
             )
             else -> setCardBackgroundAnimated(
@@ -93,6 +93,7 @@ class TextViewHolder(
             )
         }
     }
+
 
     private fun setCardBackgroundAnimated(cardView: CardView, color: Drawable) {
         cardView.background = TransitionDrawable(arrayOf(cardView.background, color)).apply {
