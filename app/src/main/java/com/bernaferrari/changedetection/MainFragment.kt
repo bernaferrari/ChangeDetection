@@ -372,6 +372,10 @@ class MainFragment : Fragment() {
 
         view?.stateLayout?.showEmptyState()
 
+        if (mutable.isEmpty()) {
+            showCreateEditDialog(false, requireActivity())
+        }
+
         if (sitesList.isNotEmpty()) {
             //Verifies if list is not empty and add values that are not there. Basically, makes a snap.
             mutable.forEach { siteAndLastSnap ->
