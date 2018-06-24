@@ -69,4 +69,8 @@ class SnapsRepository @Inject constructor(
     override suspend fun deleteSnap(snapId: String) {
         mSnapsLocalDataSource.deleteSnap(snapId)
     }
+
+    override suspend fun pruneSnaps(siteId: String) {
+        mSnapsLocalDataSource.pruneSnaps(siteId)
+    }
 }
