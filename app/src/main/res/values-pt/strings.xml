@@ -105,4 +105,7 @@
         <item quantity="other">%d items</item>
     </plurals>
 
+    <string name="change_detected_notification_with_title">Mudança detectada em %s! %d </string>
+    <string name="change_detected_notification_without_title">Mudança detectada! %d </string>
+
 </resources>
