@@ -25,6 +25,10 @@
     <string name="bugs">Problemas? Dúvidas? Sugestões?</string>
 
     <string name="remove">Remover</string>
+    <string name="remove_more">Remover…</string>
+
+    <string name="remove_all">Remover tudo</string>
+    <string name="pruning">Manter só os últimos 5 items</string>
 
     <string name="edittitle">Editar Rastreamento</string>
     <string name="editsubtitle">Editar um site que está sendo rastreado</string>

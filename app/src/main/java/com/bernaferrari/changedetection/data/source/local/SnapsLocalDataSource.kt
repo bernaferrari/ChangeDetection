@@ -13,7 +13,6 @@ import com.orhanobut.logger.Logger
 import kotlinx.coroutines.experimental.withContext
 import java.nio.charset.Charset
 
-
 /**
  * Concrete implementation of a data source as a db.
  * Inspired from Architecture Components MVVM sample app
@@ -24,6 +23,36 @@ class SnapsLocalDataSource constructor(
     private val appContext: Context
 ) : SnapsDataSource {
 
+    override suspend fun pruneSnaps(siteId: String) =
+        withContext(mAppExecutors.ioContext) {
+
+            val snapsList = mSnapsDao.getAllSnapsForSiteId(siteId).toMutableList()
+
+            // this will remove items similar by contentSize
+            val distinctList = snapsList.distinctBy { it.contentSize }
+
+            // if there are no duplicated items, just remove all items except the first 5
+            if (distinctList.size == snapsList.size) {
+                snapsList.drop(5).forEach { deleteSnap(it.snapId) }
+            } else {
+                // if there are duplicated items, remove them first
+                distinctList.forEach { snap ->
+                    // keep the oldest version and remove all the other duplicates
+                    snapsList.filter { it.contentSize == snap.contentSize }.drop(1).forEach {
+                        Logger.d("Remove " + it.contentSize)
+                        deleteSnap(it.snapId)
+                        snapsList.remove(it)
+                    }
+                }
+
+                // then remove the all items except the first 5
+                snapsList.drop(5).forEach {
+                    deleteSnap(it.snapId)
+                }
+            }
+        }
+
+
     override suspend fun deleteAllSnaps(siteId: String) {
         mSnapsDao.getAllSnapsForSiteId(siteId).forEach {
             appContext.deleteFile(it.snapId)
@@ -31,10 +60,11 @@ class SnapsLocalDataSource constructor(
         }
     }
 
-    override suspend fun deleteSnap(snapId: String) = withContext(mAppExecutors.ioContext) {
-        appContext.deleteFile(snapId)
-        mSnapsDao.deleteSnapById(snapId)
-    }
+    override suspend fun deleteSnap(snapId: String) =
+        withContext(mAppExecutors.ioContext) {
+            appContext.deleteFile(snapId)
+            mSnapsDao.deleteSnapById(snapId)
+        }
 
     override suspend fun getSnaps(siteId: String): LiveData<List<Snap>> =
         withContext(mAppExecutors.ioContext) {
@@ -134,19 +164,20 @@ class SnapsLocalDataSource constructor(
     override suspend fun getSnapPair(
         originalId: String,
         newId: String
-    ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>> = withContext(mAppExecutors.ioContext) {
+    ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>> =
+        withContext(mAppExecutors.ioContext) {
 
-        val originalSnap = mSnapsDao.getSnapById(originalId)!!
-        val newSnap = mSnapsDao.getSnapById(newId)!!
+            val originalSnap = mSnapsDao.getSnapById(originalId)!!
+            val newSnap = mSnapsDao.getSnapById(newId)!!
 
-        val originalContent = appContext.openFileInput(originalId).readBytes()
-        val newContent = appContext.openFileInput(newId).readBytes()
+            val originalContent = appContext.openFileInput(originalId).readBytes()
+            val newContent = appContext.openFileInput(newId).readBytes()
 
-        Pair(
-            Pair(originalSnap, originalContent),
-            Pair(newSnap, newContent)
-        )
-    }
+            Pair(
+                Pair(originalSnap, originalContent),
+                Pair(newSnap, newContent)
+            )
+        }
 
 //    private fun imageCompressor(snap: Snap): Snap {
 //
