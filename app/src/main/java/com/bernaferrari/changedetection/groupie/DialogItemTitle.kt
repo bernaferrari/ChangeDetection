@@ -1,7 +1,7 @@
 package com.bernaferrari.changedetection.groupie
 
-import android.graphics.drawable.GradientDrawable
 import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.util.GradientColors
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.dialog_item_title.*
@@ -25,11 +25,7 @@ class DialogItemTitle(
         viewHolder.title.text = title
         viewHolder.subtitle.text = subtitle
 
-        val shape = GradientDrawable(
-            GradientDrawable.Orientation.TR_BL, intArrayOf(
-                gradientColors.first, gradientColors.second
-            )
-        )
+        val shape = GradientColors.getGradientDrawable(gradientColors.first, gradientColors.second)
 
         viewHolder.containerView.background = shape
     }
