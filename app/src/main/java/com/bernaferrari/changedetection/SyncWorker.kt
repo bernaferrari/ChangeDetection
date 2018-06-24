@@ -8,6 +8,8 @@ import android.net.NetworkCapabilities
 import androidx.work.Worker
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.Snap
+import com.bernaferrari.changedetection.extensions.findCharset
+import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.bernaferrari.changedetection.util.launchSilent
 import com.orhanobut.logger.Logger
 import io.karn.notify.Notify
@@ -23,9 +25,7 @@ class SyncWorker : Worker() {
                 heavyWork()
             } else {
                 Logger.d("SyncWorker: wifi is not connected. Try again next time..")
-                WorkerHelper.updateWorkerWithConstraints(
-                    Injector.get().sharedPrefs()
-                )
+                WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs())
             }
         } else {
             heavyWork()
@@ -80,8 +80,7 @@ class SyncWorker : Worker() {
             siteId = item.id,
             timestamp = newSite.timestamp,
             contentType = contentTypeCharset.split(";").first(),
-            contentCharset = contentTypeCharset.split(";").getOrNull(1)?.split("=")?.getOrNull(1)
-                    ?: "",
+            contentCharset = contentTypeCharset.findCharset(),
             contentSize = content.size
         )
 
