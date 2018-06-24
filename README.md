@@ -65,8 +65,9 @@ The app works like this:
 3. Convert to string, clean up Jsoup and compare them. If same, don't do anything else.
 If different, add the new byteArray to storage and create a new entry on Snap table. When this happens in background, a notification is created to warn the user.
 
-![notification](/.github/assets/notification.jpg?raw=true)
-
+| Inside the App | Outside the App |
+|:-:|:-:|
+| ![inside](/.github/assets/notification_inside.jpg?raw=true) | ![outside](/.github/assets/notification_outside.jpg?raw=true) |
 
 #### Diff Process for text files
 
@@ -93,7 +94,6 @@ Wifi is currently not a constraint from WorkManager, so I implemented it myself 
 
 * Paging: on details fragment. As time goes, it is possible for a website to receive hundreds of updates. To avoid OOM error once and for all, Paging was implemented. When visualizing PDF/Image changes (the carousel view), paging is implemented on the carousel, so that it doesn't loads all Files into memory at once.
 
-
 * LiveData/ViewModel: written above.
 * Room: written above.
 
@@ -115,6 +115,7 @@ Wifi is currently not a constraint from WorkManager, so I implemented it myself 
   * [RxJava][14] responsible for coordinating the reload button animation and updating the text on main screen cards periodically.
   * [jsoup][15] cleaning up html files.
   * [Dagger 2][16] dependency injection for sharedPreferences with application Context, provides singleton database instances.
+  * [Alerter][17] show beautiful notifications when some site was updated while the user is browsing the main fragment.
 
 [1]: https://github.com/mikepenz/Android-Iconics
 [2]: https://developer.android.com/topic/libraries/architecture/
@@ -132,6 +133,7 @@ Wifi is currently not a constraint from WorkManager, so I implemented it myself 
 [14]: https://github.com/ReactiveX/RxJava
 [15]: https://jsoup.org
 [16]: https://github.com/google/dagger
+[17]: https://github.com/Tapadoo/Alerter
 
 
 ### Reporting Issues
