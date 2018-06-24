@@ -44,11 +44,15 @@ import com.xwray.groupie.Item
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
 import es.dmoral.toasty.Toasty
+import io.reactivex.Completable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.control_bar.*
 import kotlinx.android.synthetic.main.details_fragment.*
 import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
+import java.util.concurrent.TimeUnit
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
 
@@ -59,13 +63,23 @@ class TextFragment : Fragment() {
         R.color.FontStrong
     ) }
 
-    private val transition = AutoTransition().apply { duration = 175 }
+    private val transitionDuration = 175L
+    private val transition = AutoTransition().apply { duration = transitionDuration }
     private val uiState = UiState { updateUiFromState() }
     private lateinit var bottomAdapter: TextAdapter
     private val topSection = Section()
 
+    private var disposable: Disposable? = null
+
     private fun updateUiFromState() {
         beginDelayedTransition()
+
+        // locks the recyclerview and does not allow to scroll until transition happens, else
+        // crashes will happen.
+        topRecycler.stopScroll()
+        topRecycler.setOnTouchListener { _, _ ->
+            true
+        }
 
         bottomRecycler.isVisible = uiState.visibility
 
@@ -86,6 +100,18 @@ class TextFragment : Fragment() {
             } catch (e: Exception) {
                 // Don't do anything. If this exception happened, is because there are not
                 // two items selected. So it won't change anything.
+            }
+        }
+
+        // this will make sure touch is only enabled again after the transition period occurs
+        disposable?.dispose()
+        disposable = Completable.timer(
+            transitionDuration * 2,
+            TimeUnit.MILLISECONDS,
+            AndroidSchedulers.mainThread()
+        ).subscribe {
+            topRecycler.setOnTouchListener { _, _ ->
+                false
             }
         }
     }
@@ -411,6 +437,11 @@ class TextFragment : Fragment() {
         val factory =
             ViewModelFactory.getInstance(activity.application)
         return ViewModelProviders.of(activity, factory).get(TextViewModel::class.java)
+    }
+
+    override fun onDestroy() {
+        disposable?.dispose()
+        super.onDestroy()
     }
 
     companion object {
