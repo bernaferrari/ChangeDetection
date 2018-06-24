@@ -29,6 +29,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.SiteAndLastSnap
 import com.bernaferrari.changedetection.data.Snap
+import com.bernaferrari.changedetection.extensions.findCharset
 import com.bernaferrari.changedetection.extensions.isValidUrl
 import com.bernaferrari.changedetection.forms.FormInputText
 import com.bernaferrari.changedetection.forms.Forms
@@ -445,8 +446,7 @@ class MainFragment : Fragment() {
             siteId = item.site.id,
             timestamp = newSite.timestamp,
             contentType = contentTypeCharset.split(";").first(),
-            contentCharset = contentTypeCharset.split(";").getOrNull(1)?.split("=")?.getOrNull(1)
-                    ?: "",
+            contentCharset = contentTypeCharset.findCharset(),
             contentSize = content.size
         )
 

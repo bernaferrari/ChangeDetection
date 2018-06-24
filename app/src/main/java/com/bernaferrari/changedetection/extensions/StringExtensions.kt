@@ -29,3 +29,8 @@ fun String.removeClutterAndBeautifyHtmlIfNecessary(type: String): String {
 fun String.unescapeHtml(): String {
     return Parser.unescapeEntities(this, true)
 }
+
+fun String.findCharset(): String {
+    return "charset=([^()<>@,;:\"/\\[\\]?.=\\s]*)".toRegex().find(this)
+        ?.value?.replace("charset=", "") ?: ""
+}

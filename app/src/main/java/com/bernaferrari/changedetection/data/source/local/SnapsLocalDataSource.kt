@@ -86,15 +86,14 @@ class SnapsLocalDataSource constructor(
         type: String,
         content: ByteArray,
         lastSnapValue: ByteArray
-    ): Boolean {
-        return if (type == "text/html") {
+    ): Boolean =
+        if (type == "text/html") {
             content.isNotEmpty() && lastSnapValue.toString(Charset.defaultCharset()).cleanUpHtml() != content.toString(
                 Charset.defaultCharset()
             ).cleanUpHtml()
         } else {
             content.isNotEmpty() && !lastSnapValue.contentEquals(content)
         }
-    }
 
     override suspend fun deleteSnapsForSiteIdAndContentType(siteId: String, contentType: String) =
         withContext(mAppExecutors.ioContext) {
