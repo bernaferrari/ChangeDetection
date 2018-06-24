@@ -1,5 +1,7 @@
 package com.bernaferrari.changedetection.util
 
+import android.graphics.drawable.GradientDrawable
+
 /**
  * Some gradient gradientColor are inspired from uiGradients:
  * https://uigradients.com/#Celestial
@@ -36,5 +38,11 @@ object GradientColors {
         Pair(0xff29ABE2.toInt(), 0xff4F00BC.toInt()), // Deep Sea
         Pair(0xffEBC08D.toInt(), 0xffF24645.toInt()), // Fizzy Peach
         Pair(0xff622774.toInt(), 0xffC53364.toInt())  // Dark-Purple -> Light-Purple
+    )
+
+    fun getGradientDrawable(firstColor: Int, secondColor: Int): GradientDrawable = GradientDrawable(
+        GradientDrawable.Orientation.TR_BL, intArrayOf(
+            firstColor, secondColor
+        )
     )
 }

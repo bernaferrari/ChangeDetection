@@ -58,7 +58,7 @@
 
     <string name="are_you_sure">Are you sure you want to remove %1s from %2s?</string>
     <string name="missing_internet">Error! Missing internet connection</string>
-    <string name="was_updated">Change detected on %1s!</string>
+    <string name="was_updated">%1s was updated!</string>
 
     <string name="url">Website Url</string>
     <string name="title">Title</string>
@@ -106,7 +106,7 @@
         <item quantity="other">%d items</item>
     </plurals>
 
-    <string name="change_detected_notification_with_title">Change detected on %1s! %2s</string>
-    <string name="change_detected_notification_without_title">Change detected! %1d</string>
+    <string name="change_detected_notification_with_title">%1s (%2s) was updated!</string>
+    <string name="change_detected_notification_without_title">Change detected! (%1d)</string>
 
 </resources>

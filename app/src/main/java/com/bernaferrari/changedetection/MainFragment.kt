@@ -36,9 +36,11 @@ import com.bernaferrari.changedetection.forms.Forms
 import com.bernaferrari.changedetection.groupie.*
 import com.bernaferrari.changedetection.ui.ListPaddingDecoration
 import com.bernaferrari.changedetection.util.GradientColors
+import com.bernaferrari.changedetection.util.GradientColors.getGradientDrawable
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
 import com.orhanobut.logger.Logger
+import com.tapadoo.alerter.Alerter
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
@@ -132,34 +134,34 @@ class MainFragment : Fragment() {
         }
 
         groupAdapter.setOnItemClickListener { item, _ ->
-
-            if (item !is MainCardItem) {
-                return@setOnItemClickListener
-            }
-
-            val customView =
-                layoutInflater.inflate(R.layout.recyclerview, view.parentLayout, false)
-
-            val bottomSheet = BottomSheetDialog(requireContext()).apply {
-                setContentView(customView)
-                show()
-            }
-
-            val bottomSheetAdapter = GroupAdapter<ViewHolder>().apply {
-                add(LoadingItem())
-            }
-
-            customView.findViewById<RecyclerView>(R.id.defaultRecycler).run {
-                adapter = bottomSheetAdapter
-            }
-
-            launch {
-                updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
-            }
+            if (item !is MainCardItem) return@setOnItemClickListener
+            openItem(item)
         }
 
         mViewModel.loadSites().observe(this, Observer(::updateList))
         mViewModel.getOutputStatus().observe(this, Observer(::workOutput))
+    }
+
+
+    private fun openItem(item: MainCardItem) {
+        val customView = layoutInflater.inflate(R.layout.recyclerview, view?.parentLayout, false)
+
+        val bottomSheet = BottomSheetDialog(requireContext()).apply {
+            setContentView(customView)
+            show()
+        }
+
+        val bottomSheetAdapter = GroupAdapter<ViewHolder>().apply {
+            add(LoadingItem())
+        }
+
+        customView.findViewById<RecyclerView>(R.id.defaultRecycler).run {
+            adapter = bottomSheetAdapter
+        }
+
+        launch {
+            updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
+        }
     }
 
     private suspend fun updateBottomSheet(
@@ -241,7 +243,7 @@ class MainFragment : Fragment() {
         val color = item.site.colors.second
 
         val customView =
-            layoutInflater.inflate(R.layout.recyclerview, view!!.parentLayout, false)
+            layoutInflater.inflate(R.layout.recyclerview, view?.parentLayout, false)
         val bottomSheet = BottomSheetDialog(requireContext())
         bottomSheet.setContentView(customView)
         bottomSheet.show()
@@ -459,14 +461,22 @@ class MainFragment : Fragment() {
 
             Logger.d("Snap: " + snap.snapId)
 
-            if (item.lastSnap != null) {
-                // Only show this toast when there was a change, which means, not on the first sync.
-                Toasty.success(
-                    requireContext(),
-                    getString(
+
+            // Only show this toast when there was a change, which means, not on the first sync.
+            if (item.lastSnap != null && activity != null) {
+                Alerter.create(requireActivity())
+                    .setTitle(getString(
                         R.string.was_updated,
                         newSite.title?.takeIf { it.isNotBlank() } ?: newSite.url)
-                ).show()
+                    )
+                    .setBackgroundDrawable(
+                        getGradientDrawable(newSite.colors.first, newSite.colors.second)
+                    )
+                    .setIcon(R.drawable.ic_notification)
+                    .setOnClickListener {
+                        openItem(item)
+                    }
+                    .show()
             }
 
             item.update(snap)
@@ -482,7 +492,7 @@ class MainFragment : Fragment() {
 
     private fun removeDialog(item: MainCardItem) {
 
-        val customView = layoutInflater.inflate(R.layout.recyclerview, view!!.parentLayout, false)
+        val customView = layoutInflater.inflate(R.layout.recyclerview, view?.parentLayout, false)
         val bottomSheet = BottomSheetDialog(requireContext())
         bottomSheet.setContentView(customView)
         bottomSheet.show()
