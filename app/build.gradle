@@ -24,8 +24,8 @@ android {
         applicationId "com.bernaferrari.changedetection"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 2
-        versionName "1.0.1"
+        versionCode 4
+        versionName "1.0.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -110,6 +110,7 @@ dependencies {
     // UI
     implementation "io.karn:notify:1.1.0"
     implementation 'com.github.GrenderG:Toasty:1.3.0'
+    implementation 'com.tapadoo.android:alerter:2.0.6'
     implementation 'com.afollestad.material-dialogs:commons:0.9.6.0'
     implementation 'com.davemorrissey.labs:subsampling-scale-image-view:3.10.0'
 
