@@ -294,7 +294,7 @@ class MainFragment : Fragment() {
         )
 
         updating += DialogItemSimple(
-            getString(R.string.remove),
+            getString(R.string.remove_more),
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_delete).color(color),
             "remove"
         )
@@ -341,7 +341,7 @@ class MainFragment : Fragment() {
                                 }
                         }
                         "fetchFromServer" -> reload(item, true)
-                        "remove" -> removeMy(item)
+                        "remove" -> removeDialog(item)
                     }
                     bottomSheet.dismiss()
                 }
@@ -480,12 +480,50 @@ class MainFragment : Fragment() {
         sitesSection.update(sitesList)
     }
 
-    private fun removeMy(item: MainCardItem?) {
-        if (item != null) {
-            sitesList.remove(item)
-            sitesSection.update(sitesList)
-            mViewModel.removeSite(item.site)
+    private fun removeDialog(item: MainCardItem) {
+
+        val customView = layoutInflater.inflate(R.layout.recyclerview, view!!.parentLayout, false)
+        val bottomSheet = BottomSheetDialog(requireContext())
+        bottomSheet.setContentView(customView)
+        bottomSheet.show()
+
+        val updating = mutableListOf<DialogItemSimple>()
+        val color = ContextCompat.getColor(requireContext(), R.color.FontStrong)
+
+        updating += DialogItemSimple(
+            getString(R.string.pruning),
+            IconicsDrawable(context, CommunityMaterial.Icon.cmd_content_cut).color(color),
+            "pruning"
+        )
+
+        updating += DialogItemSimple(
+            getString(R.string.remove_all),
+            IconicsDrawable(context, CommunityMaterial.Icon.cmd_delete).color(color),
+            "all"
+        )
+
+        customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.run {
+
+            adapter = GroupAdapter<ViewHolder>().apply {
+                add(Section(updating))
+
+                setOnItemClickListener { dialogitem, _ ->
+                    if (dialogitem !is DialogItemSimple) return@setOnItemClickListener
+
+                    when (dialogitem.kind) {
+                        "pruning" -> mViewModel.pruneSite(item.site.id)
+                        "all" -> removeItem(item)
+                    }
+                    bottomSheet.dismiss()
+                }
+            }
         }
+    }
+
+    private fun removeItem(item: MainCardItem) {
+        sitesList.remove(item)
+        sitesSection.update(sitesList)
+        mViewModel.removeSite(item.site)
     }
 
     private fun showCreateEditDialog(

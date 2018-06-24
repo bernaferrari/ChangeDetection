@@ -24,6 +24,10 @@
     <string name="bugs">Bugs? Questions? Feedback?</string>
 
     <string name="remove">Remove</string>
+    <string name="remove_more">Remove…</string>
+
+    <string name="remove_all">Remove all</string>
+    <string name="pruning">Keep only the last 5 items</string>
 
     <string name="edittitle">Edit Tracking</string>
     <string name="editsubtitle">Edit a website that is being tracked</string>

@@ -35,4 +35,6 @@ interface SnapsDataSource {
     suspend fun deleteSnap(snapId: String)
 
     suspend fun deleteSnapsForSiteIdAndContentType(siteId: String, contentType: String)
+
+    suspend fun pruneSnaps(siteId: String)
 }
