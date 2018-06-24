@@ -96,7 +96,7 @@ class SyncWorker : Worker() {
                 .with(applicationContext)
                 .header {
                     this.icon = R.drawable.vector_sync
-//                            this.color = item.colors.second Notify can't handle this for now
+                    this.color = item.colors.second
                 }
                 .meta {
                     this.clickIntent = PendingIntent.getActivity(
@@ -106,9 +106,16 @@ class SyncWorker : Worker() {
                 }
                 .content {
                     title = if (newSite.title.isNullOrBlank()) {
-                        "Change detected!"
+                        applicationContext.getString(
+                            R.string.change_detected_notification_without_title,
+                            snap.contentSize.readableFileSize()
+                        )
                     } else {
-                        "Change detected on ${newSite.title}!"
+                        applicationContext.getString(
+                            R.string.change_detected_notification_with_title,
+                            newSite.title,
+                            snap.contentSize.readableFileSize()
+                        )
                     }
                     text = newSite.url
                 }
