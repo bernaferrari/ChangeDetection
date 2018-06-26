@@ -3,6 +3,8 @@ package com.bernaferrari.changedetection
 import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
@@ -536,15 +538,35 @@ class MainFragment : Fragment() {
         mViewModel.removeSite(item.site)
     }
 
+    private fun urlFromClipboardOrEmpty(isItemNull: Boolean): String {
+        return if (isItemNull) {
+            val clipboard =
+                requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clipDataItem = clipboard.primaryClip.getItemAt(0)
+            val pasteData = clipDataItem.text?.toString() ?: ""
+
+            if (pasteData.isNotBlank() && pasteData.isValidUrl()) {
+                pasteData
+            } else {
+                ""
+            }
+        } else {
+            ""
+        }
+    }
+
     private fun showCreateEditDialog(
         isInEditingMode: Boolean,
         activity: Activity,
         item: MainCardItem? = null
     ) {
 
+        // Gets the clipboard
+        val defaultUrl = urlFromClipboardOrEmpty(item == null)
+
         val listOfItems = mutableListOf<FormInputText>().apply {
             add(FormInputText(item?.site?.title ?: "", getString(R.string.title), Forms.NAME))
-            add(FormInputText(item?.site?.url ?: "", getString(R.string.url), Forms.URL))
+            add(FormInputText(item?.site?.url ?: defaultUrl, getString(R.string.url), Forms.URL))
         }
 
         val errorOnLastSync = isInEditingMode && item?.site?.isSuccessful == false

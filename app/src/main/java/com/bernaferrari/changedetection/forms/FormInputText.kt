@@ -25,6 +25,7 @@ internal class FormInputText(
         Forms.setImage(holder.kind_input, kind)
 
         val queryClear: View = holder.clear_input
+        queryClear.isVisible = textInput.isNotEmpty()
 
 //        TooltipCompat.setTooltipText(queryClear, queryClear.contentDescription)
         queryClear.setOnClickListener {
