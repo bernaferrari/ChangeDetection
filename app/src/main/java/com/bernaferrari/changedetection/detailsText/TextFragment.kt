@@ -89,13 +89,15 @@ class TextFragment : Fragment() {
             model.changePlusOriginal = !model.changePlusOriginal
 
             try {
-                val pos1 = bottomAdapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
-                val pos2 = bottomAdapter.colorSelected.getPositionForAdapter(ItemSelected.ORIGINAL)
+                val posRevised =
+                    bottomAdapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
+                val posOriginal =
+                    bottomAdapter.colorSelected.getPositionForAdapter(ItemSelected.ORIGINAL)
 
                 model.generateDiff(
-                    topSection,
-                    bottomAdapter.getItemFromAdapter(pos1!!)?.snapId,
-                    bottomAdapter.getItemFromAdapter(pos2!!)?.snapId
+                    topSection = topSection,
+                    originalId = bottomAdapter.getItemFromAdapter(posOriginal!!)?.snapId,
+                    revisedId = bottomAdapter.getItemFromAdapter(posRevised!!)?.snapId
                 )
             } catch (e: Exception) {
                 // Don't do anything. If this exception happened, is because there are not
