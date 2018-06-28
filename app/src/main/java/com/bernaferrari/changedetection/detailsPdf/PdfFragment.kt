@@ -97,6 +97,20 @@ class PdfFragment : Fragment(),
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+
+        // this is needed to avoid java.lang.IllegalStateException: Already closed when app
+        // goes to background (onStop is called) and return. This won't be called on the first
+        // run, since itemCount will be 0.
+        if (adapter.itemCount > 0) {
+            val item = adapter.getItemFromAdapter(previousAdapterPosition) ?: return
+            if (updateFileDescriptor(item.snapId, true)) {
+                showPage(currentIndex)
+            }
+        }
+    }
+
     override fun onStop() {
         // this is necessary to avoid java.lang.IllegalStateException: Already closed
         // if (mCurrentPage != null) isn't working when sharing
@@ -323,8 +337,8 @@ class PdfFragment : Fragment(),
             .show()
     }
 
-    private fun updateFileDescriptor(fileName: String): Boolean {
-        if (currentFileName == fileName) return false
+    private fun updateFileDescriptor(fileName: String, forceUpdate: Boolean = false): Boolean {
+        if (currentFileName == fileName && !forceUpdate) return false
         currentFileName = fileName
 
         val file = File("${Injector.get().appContext().filesDir.absolutePath}/$fileName")
