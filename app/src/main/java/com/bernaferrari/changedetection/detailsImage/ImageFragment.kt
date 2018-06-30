@@ -29,6 +29,7 @@ import com.bernaferrari.changedetection.detailsText.TextFragment
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.RowItem
 import com.bernaferrari.changedetection.util.GlideApp
+import com.bernaferrari.changedetection.util.VisibilityHelper
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
@@ -41,8 +42,6 @@ import kotlinx.android.synthetic.main.diff_image_fragment.view.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import java.io.File
-import kotlin.properties.ObservableProperty
-import kotlin.reflect.KProperty
 
 //
 // This is adapted from Bíblia em Libras app, which has a GIF dictionary in a carousel powered by ExoMedia.
@@ -52,16 +51,15 @@ import kotlin.reflect.KProperty
 class ImageFragment : Fragment(),
     DiscreteScrollView.OnItemChangedListener<RecyclerView.ViewHolder> {
 
-    lateinit var model: ImageViewModel
-    lateinit var adapter: ImageAdapter
+    private lateinit var model: ImageViewModel
+    private lateinit var adapter: ImageAdapter
 
     private var previousAdapterPosition = 0
     private val items = mutableListOf<RowItem>()
     private val section = Section()
+    private var hasInitialImageLoaded: Boolean = false
 
     private val transition = AutoTransition().apply { duration = 175 }
-    private val uiState = UiState { updateUiFromState() }
-
     private val groupAdapter = GroupAdapter<com.xwray.groupie.ViewHolder>()
 
     // this variable is necessary since onCurrentItemChanged might be triggered when RecyclerView is shown/hidden
@@ -119,28 +117,33 @@ class ImageFragment : Fragment(),
             shareItem(item)
         }
 
+        model.updateUiFromStateLiveData.observe(this, Observer {
+            // only update if onCurrentItemChanged was called already or if there was no difference
+            // on visibility. When carousel is hidden, onCurrentItemChanged is not called.
+            if (hasInitialImageLoaded || model.uiState.visibility == carouselRecycler.isVisible) {
+                updateUiFromState()
+            }
+        })
 
         // this is needed. If visibility is off and the fragment is reopened,
-        // drawable will keep the drawable from                                                                                                                                                                                                                                                      last state (off) even thought it should be on.
+        // drawable will keep the drawable from last state (off) even thought it should be on.
         visibility.setImageDrawable(
             ContextCompat.getDrawable(
                 requireContext(),
-                R.drawable.visibility_on
+                VisibilityHelper.getStaticIcon(model.uiState.visibility)
             )
         )
 
         visibility.setOnClickListener {
-            uiState.visibility++
-
-            uiState.carousel = uiState.visibility
-            uiState.controlBar = false
+            model.uiState.visibility++
+            model.uiState.carousel = model.uiState.visibility
+            model.uiState.controlBar = false
 
             // set and run the correct animation
-            if (uiState.visibility) {
-                visibility.setAndStartAnimation(R.drawable.visibility_off_to_on, requireContext())
-            } else {
-                visibility.setAndStartAnimation(R.drawable.visibility_on_to_off, requireContext())
-            }
+            visibility.setAndStartAnimation(
+                VisibilityHelper.getAnimatedIcon(model.uiState.visibility),
+                requireContext()
+            )
         }
 
         val recyclerListener = object :
@@ -316,31 +319,10 @@ class ImageFragment : Fragment(),
     private fun updateUiFromState() {
         beginDelayedTransition()
 
-        carouselRecycler.isVisible = uiState.carousel
-        controlBar.isVisible = uiState.controlBar
+        carouselRecycler.isVisible = model.uiState.carousel
+        controlBar.isVisible = model.uiState.controlBar
     }
 
     private fun beginDelayedTransition() =
         TransitionManager.beginDelayedTransition(container, transition)
-
-    companion object {
-        private class UiState(private val callback: () -> Unit) {
-
-            private inner class BooleanProperty(initialValue: Boolean) :
-                ObservableProperty<Boolean>(initialValue) {
-                override fun afterChange(
-                    property: KProperty<*>,
-                    oldValue: Boolean,
-                    newValue: Boolean
-                ) {
-                    callback()
-                }
-            }
-
-            var visibility by BooleanProperty(true)
-            var carousel by BooleanProperty(true)
-            var controlBar by BooleanProperty(true)
-            var highQuality by BooleanProperty(false)
-        }
-    }
 }

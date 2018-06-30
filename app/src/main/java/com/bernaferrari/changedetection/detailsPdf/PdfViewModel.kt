@@ -3,11 +3,14 @@ package com.bernaferrari.changedetection.detailsPdf
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.MutableLiveData
 import android.arch.paging.LivePagedListBuilder
 import android.arch.paging.PagedList
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SnapsRepository
 import com.bernaferrari.changedetection.util.launchSilent
+import kotlin.properties.ObservableProperty
+import kotlin.reflect.KProperty
 
 /**
  * Exposes the data to be used in the site diff screen.
@@ -16,6 +19,9 @@ class PdfViewModel(
     context: Application,
     private val mSnapsRepository: SnapsRepository
 ) : AndroidViewModel(context) {
+
+    internal val updateUiFromStateLiveData = MutableLiveData<Unit>()
+    internal val uiState = UiState { updateUiFromStateLiveData.value = Unit }
 
     /**
      * Called to remove a diff
@@ -59,5 +65,24 @@ class PdfViewModel(
          * scrollbars if you disable placeholders.
          */
         private const val ENABLE_PLACEHOLDERS = true
+    }
+
+    class UiState(private val callback: () -> Unit) {
+
+        private inner class BooleanProperty(initialValue: Boolean) :
+            ObservableProperty<Boolean>(initialValue) {
+            override fun afterChange(
+                property: KProperty<*>,
+                oldValue: Boolean,
+                newValue: Boolean
+            ) {
+                callback()
+            }
+        }
+
+        var visibility by BooleanProperty(true)
+        var carousel by BooleanProperty(true)
+        var controlBar by BooleanProperty(true)
+        var highQuality by BooleanProperty(false)
     }
 }

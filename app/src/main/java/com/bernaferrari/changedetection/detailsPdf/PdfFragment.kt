@@ -32,6 +32,7 @@ import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.detailsText.TextFragment
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.RowItem
+import com.bernaferrari.changedetection.util.VisibilityHelper
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
@@ -44,8 +45,6 @@ import kotlinx.android.synthetic.main.diff_image_fragment.view.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import java.io.File
-import kotlin.properties.ObservableProperty
-import kotlin.reflect.KProperty
 
 //
 // This is adapted from Bíblia em Libras app, which has a GIF dictionary in a carousel powered by ExoMedia.
@@ -58,14 +57,14 @@ import kotlin.reflect.KProperty
 class PdfFragment : Fragment(),
     DiscreteScrollView.OnItemChangedListener<RecyclerView.ViewHolder> {
 
-    lateinit var model: PdfViewModel
-    lateinit var adapter: PdfAdapter
+    private lateinit var model: PdfViewModel
+    private lateinit var adapter: PdfAdapter
 
     private val transition = AutoTransition().apply { duration = 175 }
-    private val uiState = UiState { updateUiFromState() }
 
     private var mPdfRenderer: PdfRenderer? = null
     private var mCurrentPage: PdfRenderer.Page? = null
+    private var hasInitialPdfLoaded: Boolean = false
 
     // this variable is necessary since the CurrentPage index changes on updateFileDescriptor, and
     // this value is needed on updateUiFromState when uiState.highQuality is toggled, so it keeps the same page opened.
@@ -82,53 +81,6 @@ class PdfFragment : Fragment(),
     private val items = mutableListOf<RowItem>()
     private val section = Section()
 
-    private fun updateUiFromState() {
-        beginDelayedTransition()
-
-        carouselRecycler.isVisible = uiState.carousel
-        controlBar.isVisible = uiState.controlBar
-
-        if (uiState.highQuality != highQualityToggle.isActivated) {
-            highQualityToggle.isActivated = uiState.highQuality
-
-            val item = adapter.getItemFromAdapter(previousAdapterPosition) ?: return
-            updateFileDescriptor(item.snapId)
-            showPage(currentIndex)
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-
-        // this is needed to avoid java.lang.IllegalStateException: Already closed when app
-        // goes to background (onStop is called) and return. This won't be called on the first
-        // run, since itemCount will be 0.
-        if (adapter.itemCount > 0) {
-            val item = adapter.getItemFromAdapter(previousAdapterPosition) ?: return
-            if (updateFileDescriptor(item.snapId, true)) {
-                showPage(currentIndex)
-            }
-        }
-    }
-
-    override fun onStop() {
-        // this is necessary to avoid java.lang.IllegalStateException: Already closed
-        // if (mCurrentPage != null) isn't working when sharing
-        try {
-            mCurrentPage?.close()
-        } catch (e: IllegalStateException) {
-
-        }
-
-        try {
-            mPdfRenderer?.close()
-        } catch (e: IllegalStateException) {
-
-        }
-
-        super.onStop()
-    }
-
     private fun beginDelayedTransition() =
         TransitionManager.beginDelayedTransition(container, transition)
 
@@ -140,6 +92,10 @@ class PdfFragment : Fragment(),
 
         if (updateFileDescriptor(item.snapId)) {
             showPage(0)
+            if (!hasInitialPdfLoaded && model.uiState.visibility != carouselRecycler.isVisible) {
+                updateUiFromState()
+            }
+            hasInitialPdfLoaded = true
         }
 
         if (items.isEmpty()) {
@@ -169,7 +125,7 @@ class PdfFragment : Fragment(),
 
         menucontent.setOnClickListener { view.drawer.openDrawer(GravityCompat.END) }
 
-        highQualityToggle.setOnClickListener { uiState.highQuality++ }
+        highQualityToggle.setOnClickListener { model.uiState.highQuality++ }
 
         mButtonPrevious.setOnClickListener { showPage(currentIndex - 1) }
 
@@ -181,27 +137,32 @@ class PdfFragment : Fragment(),
             shareItem(item)
         }
 
-        // this is needed. If visibility is off and the fragment is reopened,
-        // drawable will keep the drawable from                                                                                                                                                                                                                                                      last state (off) even thought it should be on.
+        model.updateUiFromStateLiveData.observe(this, Observer {
+            if (hasInitialPdfLoaded || model.uiState.visibility == carouselRecycler.isVisible) {
+                updateUiFromState()
+            }
+        })
+
         visibility.setImageDrawable(
             ContextCompat.getDrawable(
                 requireContext(),
-                R.drawable.visibility_on
+                VisibilityHelper.getStaticIcon(model.uiState.visibility)
             )
         )
 
-        visibility.setOnClickListener {
-            uiState.visibility++
+        // this is needed. If visibility is off and the fragment is reopened,
+        // drawable will keep the drawable from last state (off) even thought it should be on.
 
-            uiState.carousel = uiState.visibility
-            uiState.controlBar = uiState.visibility
+        visibility.setOnClickListener {
+            model.uiState.visibility++
+            model.uiState.carousel = model.uiState.visibility
+            model.uiState.controlBar = model.uiState.visibility
 
             // set and run the correct animation
-            if (uiState.visibility) {
-                visibility.setAndStartAnimation(R.drawable.visibility_off_to_on, requireContext())
-            } else {
-                visibility.setAndStartAnimation(R.drawable.visibility_on_to_off, requireContext())
-            }
+            visibility.setAndStartAnimation(
+                VisibilityHelper.getAnimatedIcon(model.uiState.visibility),
+                requireContext()
+            )
         }
 
         val recyclerListener = object :
@@ -303,6 +264,23 @@ class PdfFragment : Fragment(),
         }
     }
 
+    private fun updateUiFromState() {
+        beginDelayedTransition()
+
+        carouselRecycler.isVisible = model.uiState.carousel
+        controlBar.isVisible = model.uiState.controlBar
+
+        if (model.uiState.highQuality != highQualityToggle.isActivated) {
+            highQualityToggle.isActivated = model.uiState.highQuality
+
+            if (adapter.itemCount > 0) {
+                val item = adapter.getItemFromAdapter(previousAdapterPosition) ?: return
+                updateFileDescriptor(item.snapId)
+                showPage(currentIndex)
+            }
+        }
+    }
+
     private fun shareItem(item: Snap) {
         val file = File(requireContext().cacheDir, "share.pdf")
         file.createNewFile()
@@ -379,7 +357,7 @@ class PdfFragment : Fragment(),
         // Use `openPage` to open a specific page in PDF.
         mCurrentPage = mPdfRenderer!!.openPage(index).also { mCurrentPage ->
 
-            val qualityMultiplier = if (uiState.highQuality) 4 else 2
+            val qualityMultiplier = if (model.uiState.highQuality) 4 else 2
 
             // Important: the destination bitmap must be ARGB (not RGB).
             val bitmap = Bitmap.createBitmap(
@@ -426,6 +404,38 @@ class PdfFragment : Fragment(),
         section.notifyChanged()
     }
 
+    override fun onStart() {
+        super.onStart()
+
+        // this is needed to avoid java.lang.IllegalStateException: Already closed when app
+        // goes to background (onStop is called) and return. This won't be called on the first
+        // run, since itemCount will be 0.
+        if (adapter.itemCount > 0) {
+            val item = adapter.getItemFromAdapter(previousAdapterPosition) ?: return
+            if (updateFileDescriptor(item.snapId, true)) {
+                showPage(currentIndex)
+            }
+        }
+    }
+
+    override fun onStop() {
+        // this is necessary to avoid java.lang.IllegalStateException: Already closed
+        // "if (mCurrentPage != null)" isn't working as it should
+        try {
+            mCurrentPage?.close()
+        } catch (e: IllegalStateException) {
+
+        }
+
+        try {
+            mPdfRenderer?.close()
+        } catch (e: IllegalStateException) {
+
+        }
+
+        super.onStop()
+    }
+
     /**
      * Updates the state of 2 control buttons in response to the current page index.
      */
@@ -442,26 +452,5 @@ class PdfFragment : Fragment(),
         // Use a Factory to inject dependencies into the ViewModel
         val factory = ViewModelFactory.getInstance(activity.application)
         return ViewModelProviders.of(activity, factory).get(PdfViewModel::class.java)
-    }
-
-    companion object {
-        private class UiState(private val callback: () -> Unit) {
-
-            private inner class BooleanProperty(initialValue: Boolean) :
-                ObservableProperty<Boolean>(initialValue) {
-                override fun afterChange(
-                    property: KProperty<*>,
-                    oldValue: Boolean,
-                    newValue: Boolean
-                ) {
-                    callback()
-                }
-            }
-
-            var visibility by BooleanProperty(true)
-            var carousel by BooleanProperty(true)
-            var controlBar by BooleanProperty(true)
-            var highQuality by BooleanProperty(false)
-        }
     }
 }
