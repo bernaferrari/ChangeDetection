@@ -36,6 +36,7 @@ import com.bernaferrari.changedetection.groupie.DialogItemSimple
 import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.ui.CustomWebView
 import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
+import com.bernaferrari.changedetection.util.VisibilityHelper
 import com.bernaferrari.changedetection.util.launchSilent
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
@@ -173,19 +174,21 @@ class TextFragment : Fragment() {
         visibility.setImageDrawable(
             ContextCompat.getDrawable(
                 requireContext(),
-                R.drawable.visibility_on
+                VisibilityHelper.getStaticIcon(uiState.visibility)
             )
         )
+
+        // this is needed. If visibility is off and the fragment is reopened,
+        // drawable will keep the drawable from last state (off) even thought it should be on.
 
         visibility.setOnClickListener {
             uiState.visibility++
 
             // set and run the correct animation
-            if (uiState.visibility) {
-                visibility.setAndStartAnimation(R.drawable.visibility_off_to_on, requireContext())
-            } else {
-                visibility.setAndStartAnimation(R.drawable.visibility_on_to_off, requireContext())
-            }
+            visibility.setAndStartAnimation(
+                VisibilityHelper.getAnimatedIcon(uiState.visibility),
+                requireContext()
+            )
         }
 
         if (arguments?.getString("TYPE") ?: "" != "text/html") {
