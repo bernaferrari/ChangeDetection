@@ -15,7 +15,9 @@
         android:supportsRtl="true"
         android:largeHeap="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.bernaferrari.changedetection.MainActivity">
+        <activity
+            android:name="com.bernaferrari.changedetection.MainActivity"
+            android:configChanges="orientation|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
