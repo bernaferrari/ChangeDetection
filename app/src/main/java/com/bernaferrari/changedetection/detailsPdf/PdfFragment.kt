@@ -357,7 +357,7 @@ class PdfFragment : Fragment(),
         // Use `openPage` to open a specific page in PDF.
         mCurrentPage = mPdfRenderer!!.openPage(index).also { mCurrentPage ->
 
-            val qualityMultiplier = if (model.uiState.highQuality) 4 else 2
+            val qualityMultiplier = if (model.uiState.highQuality) 6 else 4
 
             // Important: the destination bitmap must be ARGB (not RGB).
             val bitmap = Bitmap.createBitmap(
