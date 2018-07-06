@@ -29,7 +29,7 @@ class MainViewModel(
     var shouldSyncWhenAppOpen = true
 
     fun getOutputStatus(): LiveData<List<WorkStatus>> {
-        return WorkManager.getInstance().getStatusesForUniqueWork(WorkerHelper.UNIQUEWORK)
+        return WorkManager.getInstance()!!.getStatusesForUniqueWork(WorkerHelper.UNIQUEWORK)
     }
 
     fun currentTime(): Long = System.currentTimeMillis()
