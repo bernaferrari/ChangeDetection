@@ -113,12 +113,12 @@ object WorkerHelper {
             .setInputData(inputData)
             .build()
 
-        WorkManager.getInstance()
+        WorkManager.getInstance()!!
             .beginUniqueWork(WorkerHelper.UNIQUEWORK, ExistingWorkPolicy.REPLACE, photoWork)
             .enqueue()
     }
 
     fun cancelWork() {
-        WorkManager.getInstance().cancelUniqueWork(WorkerHelper.UNIQUEWORK)
+        WorkManager.getInstance()!!.cancelUniqueWork(WorkerHelper.UNIQUEWORK)
     }
 }
