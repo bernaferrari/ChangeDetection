@@ -81,10 +81,10 @@ class MainViewModel(
         mSitesRepository.updateSite(site)
     }
 
-    val items = MutableLiveData<MutableList<SiteAndLastSnap>>()
+    var items = MutableLiveData<MutableList<SiteAndLastSnap>>()
 
     fun loadSites(): MutableLiveData<MutableList<SiteAndLastSnap>> {
-        items.value = null
+        items = MutableLiveData()
         updateItems()
         return items
     }
