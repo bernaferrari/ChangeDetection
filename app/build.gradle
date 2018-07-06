@@ -24,8 +24,8 @@ android {
         applicationId "com.bernaferrari.changedetection"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 8
-        versionName "1.0.7"
+        versionCode 9
+        versionName "1.0.8"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -84,10 +84,10 @@ dependencies {
     kapt "android.arch.persistence.room:compiler:$room_version"
     implementation "android.arch.persistence.room:runtime:$room_version"
 
-    def work_version = "1.0.0-alpha03"
+    def work_version = "1.0.0-alpha04"
     implementation "android.arch.work:work-runtime:$work_version" // use -ktx for Kotlin
 
-    def paging_version = "1.0.0"
+    def paging_version = "1.0.1"
     implementation "android.arch.paging:runtime:$paging_version"
 
 
