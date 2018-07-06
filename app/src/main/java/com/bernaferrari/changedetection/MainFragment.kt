@@ -542,6 +542,10 @@ class MainFragment : Fragment() {
         return if (isItemNull) {
             val clipboard =
                 requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+
+            if (clipboard.primaryClip == null) {
+                return ""
+            }
             val clipDataItem = clipboard.primaryClip.getItemAt(0)
             val pasteData = clipDataItem.text?.toString() ?: ""
 
