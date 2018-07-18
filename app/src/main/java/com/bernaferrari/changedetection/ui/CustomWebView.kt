@@ -20,8 +20,6 @@ class CustomWebView @JvmOverloads constructor(
     private fun initView() {
 
         webChromeClient = WebChromeClient()
-
-        val settings = settings
         settings.javaScriptEnabled = true
         settings.defaultTextEncodingName = "utf-8"
         settings.loadsImagesAutomatically = true
