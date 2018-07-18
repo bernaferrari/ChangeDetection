@@ -466,19 +466,19 @@ class MainFragment : Fragment() {
 
             // Only show this toast when there was a change, which means, not on the first sync.
             if (item.lastSnap != null && activity != null) {
-                Alerter.create(requireActivity())
-                    .setTitle(getString(
+                val alert = Alerter.create(requireActivity()).setTitle(getString(
                         R.string.was_updated,
-                        newSite.title?.takeIf { it.isNotBlank() } ?: newSite.url)
-                    )
+                    newSite.title?.takeIf { it.isNotBlank() } ?: newSite.url))
                     .setBackgroundDrawable(
                         getGradientDrawable(newSite.colors.first, newSite.colors.second)
                     )
                     .setIcon(R.drawable.ic_notification)
-                    .setOnClickListener {
-                        openItem(item)
-                    }
                     .show()
+
+                alert.setOnClickListener {
+                    openItem(item)
+                    alert.hide()
+                }
             }
 
             item.update(snap)
