@@ -34,3 +34,14 @@ fun String.findCharset(): String {
     return "charset=([^()<>@,;:\"/\\[\\]?.=\\s]*)".toRegex().find(this)
         ?.value?.replace("charset=", "") ?: ""
 }
+
+// this will convert all relative paths into absolute, i.e. for Google:
+// <meta content="/images/branding/googleg/1x/googleg_standard_color_128dp.png" ...
+// will become:
+// <meta content="https://google.com//images/branding/googleg/1x/googleg_standard_color_128dp.png" ...
+// this means it will get the content from the network, so text will be versioned, but images and javascript will be not.
+fun String.replaceRelativePathWithAbsolute(absolute: String): String {
+    return this.replace("=\\s*['\"][^'\"\\s]+\\.\\w{3,4}['\"]".toRegex()) {
+        return@replace "=${it.value.last()}$absolute" + it.value.replace("=\\s*['\"]".toRegex(), "")
+    }
+}
