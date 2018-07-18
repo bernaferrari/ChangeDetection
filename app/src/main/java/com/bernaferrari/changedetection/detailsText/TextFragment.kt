@@ -25,6 +25,7 @@ import android.webkit.WebView
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.R
@@ -49,8 +50,10 @@ import es.dmoral.toasty.Toasty
 import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import kotlinx.android.synthetic.main.content_web.view.*
 import kotlinx.android.synthetic.main.control_bar.*
 import kotlinx.android.synthetic.main.details_fragment.*
+import kotlinx.android.synthetic.main.recyclerview.view.*
 import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
@@ -355,39 +358,32 @@ class TextFragment : Fragment() {
                     add(Section(updating))
                 }
 
-                customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.run {
+                customView?.defaultRecycler?.run {
                     this.adapter = groupAdapter
                     this.layoutManager = LinearLayoutManager(requireContext())
                 }
 
                 groupAdapter.setOnItemClickListener { itemDialog, _ ->
                     if (itemDialog is DialogItemSimple) {
-                        when (itemDialog.kind) {
-                            "first" -> {
-                                MaterialDialog.Builder(context)
-                                    .customView(R.layout.content_web, false)
-                                    .build()
-                                    .also {
-                                        fetchAndOpenOnWebView(
-                                            bottomAdapter,
-                                            it.customView!!.findViewById(R.id.webview),
-                                            ItemSelected.REVISED
-                                        )
-                                    }.show()
-                            }
-                            "second" -> {
-                                MaterialDialog.Builder(context)
-                                    .customView(R.layout.content_web, false)
-                                    .build()
-                                    .also {
-                                        fetchAndOpenOnWebView(
-                                            bottomAdapter,
-                                            it.customView!!.findViewById(R.id.webview),
-                                            ItemSelected.ORIGINAL
-                                        )
-                                    }.show()
-                            }
-                        }
+                        MaterialDialog.Builder(context)
+                            .customView(R.layout.content_web, false)
+                            .negativeText(R.string.close)
+                            .build()
+                            .also {
+                                it.customView!!.webview.updateLayoutParams {
+                                    this.height = resources.displayMetrics.heightPixels
+                                    this.width = resources.displayMetrics.widthPixels
+                                }
+
+                                fetchAndOpenOnWebView(
+                                    bottomAdapter,
+                                    it.customView!!.webview,
+                                    if (itemDialog.kind == "first")
+                                        ItemSelected.REVISED
+                                    else
+                                        ItemSelected.ORIGINAL
+                                )
+                            }.show()
                     }
                 }
 
@@ -414,7 +410,7 @@ class TextFragment : Fragment() {
             launch(UI) {
                 putDataOnWebView(
                     view,
-                    snapValue.replaceRelativePathWithAbsolute(arguments?.getString(URL) ?: "")
+                    snapValue.replaceRelativePathWithAbsolute(arguments!!.getString(URL))
                 )
             }
         }

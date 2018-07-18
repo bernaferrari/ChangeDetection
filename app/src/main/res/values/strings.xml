@@ -6,6 +6,7 @@
 
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
+    <string name="close">Close</string>
 
     <string name="inputName">Type the title</string>
     <string name="inputUrl">Type the url</string>
