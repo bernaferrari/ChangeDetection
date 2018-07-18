@@ -42,6 +42,22 @@ fun String.findCharset(): String {
 // this means it will get the content from the network, so text will be versioned, but images and javascript will be not.
 fun String.replaceRelativePathWithAbsolute(absolute: String): String {
     return this.replace("=\\s*['\"][^'\"\\s]+\\.\\w{3,4}['\"]".toRegex()) {
+
+        val valueWithoutWhitespace = it.value.replace(" ", "")
+        val cleanValue = valueWithoutWhitespace.substring(2, valueWithoutWhitespace.length - 1)
+
+        if (cleanValue.matches(regexEmail()) || cleanValue.matches(regexValidWebsite())) {
+            return@replace it.value
+        }
+
         return@replace "=${it.value.last()}$absolute" + it.value.replace("=\\s*['\"]".toRegex(), "")
     }
+}
+
+fun regexEmail(): Regex {
+    return "^(([\\w-]+\\.)+[\\w-]+|([a-zA-Z]|[\\w-]{2,}))@((([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9]))|([a-zA-Z]+[\\w-]+\\.)+[a-zA-Z]{2,4})$".toRegex()
+}
+
+fun regexValidWebsite(): Regex {
+    return "(http|https)://.*".toRegex()
 }
