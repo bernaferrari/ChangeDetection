@@ -461,12 +461,12 @@ class MainFragment : Fragment() {
                 return@Observer
             }
 
-            Logger.d("Snap: " + snap.snapId)
-
+            Logger.d("snapId: " + snap.snapId)
 
             // Only show this toast when there was a change, which means, not on the first sync.
             if (item.lastSnap != null && activity != null) {
-                val alert = Alerter.create(requireActivity()).setTitle(getString(
+                Alerter.create(requireActivity()).setTitle(
+                    getString(
                         R.string.was_updated,
                     newSite.title?.takeIf { it.isNotBlank() } ?: newSite.url))
                     .setBackgroundDrawable(
@@ -474,11 +474,12 @@ class MainFragment : Fragment() {
                     )
                     .setIcon(R.drawable.ic_notification)
                     .show()
-
-                alert.setOnClickListener {
-                    openItem(item)
-                    alert.hide()
-                }
+                    .also { alert ->
+                        alert.setOnClickListener {
+                            openItem(item)
+                            alert.hide()
+                        }
+                    }
             }
 
             item.update(snap)
