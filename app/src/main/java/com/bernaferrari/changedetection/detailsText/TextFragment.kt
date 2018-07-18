@@ -31,6 +31,7 @@ import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ViewModelFactory
 import com.bernaferrari.changedetection.extensions.getPositionForAdapter
 import com.bernaferrari.changedetection.extensions.inc
+import com.bernaferrari.changedetection.extensions.replaceRelativePathWithAbsolute
 import com.bernaferrari.changedetection.extensions.setAndStartAnimation
 import com.bernaferrari.changedetection.groupie.DialogItemSimple
 import com.bernaferrari.changedetection.groupie.TextRecycler
@@ -369,7 +370,7 @@ class TextFragment : Fragment() {
                                     .also {
                                         fetchAndOpenOnWebView(
                                             bottomAdapter,
-                                            it,
+                                            it.customView!!.findViewById(R.id.webview),
                                             ItemSelected.REVISED
                                         )
                                     }.show()
@@ -381,7 +382,7 @@ class TextFragment : Fragment() {
                                     .also {
                                         fetchAndOpenOnWebView(
                                             bottomAdapter,
-                                            it,
+                                            it.customView!!.findViewById(R.id.webview),
                                             ItemSelected.ORIGINAL
                                         )
                                     }.show()
@@ -397,7 +398,7 @@ class TextFragment : Fragment() {
 
     private fun fetchAndOpenOnWebView(
         adapter: TextAdapter,
-        dialog: MaterialDialog,
+        view: CustomWebView,
         color: ItemSelected
     ) {
         val position = adapter.colorSelected.getPositionForAdapter(color) ?: return
@@ -412,10 +413,8 @@ class TextFragment : Fragment() {
 
             launch(UI) {
                 putDataOnWebView(
-                    dialog.customView?.findViewById<CustomWebView>(
-                        R.id.webview
-                    ),
-                    snapValue
+                    view,
+                    snapValue.replaceRelativePathWithAbsolute(arguments?.getString(URL) ?: "")
                 )
             }
         }
