@@ -73,7 +73,7 @@ dependencies {
 
 
     // Android Architecture Components
-    def navigation_version = "1.0.0-alpha02"
+    def navigation_version = "1.0.0-alpha03"
     implementation "android.arch.navigation:navigation-ui:$navigation_version"
     implementation "android.arch.navigation:navigation-fragment:$navigation_version"
 

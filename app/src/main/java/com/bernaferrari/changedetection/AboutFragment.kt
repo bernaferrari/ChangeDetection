@@ -121,7 +121,7 @@ class AboutFragment : MaterialAboutFragment() {
         author.addItem(
             MaterialAboutActionItem.Builder()
                 .text(R.string.email)
-                .subText("bernaferrari2+cd@gmail.com")
+                .subText("bernaferrari2@gmail.com")
                 .icon(
                     IconicsDrawable(c)
                         .icon(CommunityMaterial.Icon.cmd_email)
@@ -131,7 +131,7 @@ class AboutFragment : MaterialAboutFragment() {
                 .setOnClickAction(
                     ConvenienceBuilder.createEmailOnClickAction(
                         c,
-                        "bernaferrari2+cd@gmail.com",
+                        "bernaferrari2@gmail.com",
                         getString(R.string.email_subject)
                     )
                 )
@@ -161,7 +161,7 @@ class AboutFragment : MaterialAboutFragment() {
         otherCardBuilder.addItem(
             MaterialAboutActionItem.Builder()
                 .text(R.string.bugs)
-                .subText("bernaferrari2+cd@gmail.com")
+                .subText("bernaferrari2@gmail.com")
                 .icon(
                     IconicsDrawable(c)
                         .icon(CommunityMaterial.Icon.cmd_bug)
@@ -171,7 +171,7 @@ class AboutFragment : MaterialAboutFragment() {
                 .setOnClickAction(
                     ConvenienceBuilder.createEmailOnClickAction(
                         c,
-                        "bernaferrari2+cd@gmail.com",
+                        "bernaferrari2@gmail.com",
                         getString(R.string.email_subject)
                     )
                 )
