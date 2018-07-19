@@ -45,6 +45,7 @@
                 android:layout_weight="1"
                 android:paddingRight="@dimen/padding_normal"
                 android:singleLine="true"
+                android:ellipsize="end"
                 android:fontFamily="@font/work_semibold"
                 android:textColor="@color/FontStrong" />
 
