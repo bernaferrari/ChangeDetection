@@ -50,7 +50,9 @@ fun String.replaceRelativePathWithAbsolute(absolute: String): String {
             return@replace it.value
         }
 
-        return@replace "=${it.value.last()}$absolute" + it.value.replace("=\\s*['\"]".toRegex(), "")
+        val website = if (absolute.last() != '/') "$absolute/" else absolute
+
+        return@replace "=${it.value.last()}$website" + it.value.replace("=\\s*['\"]".toRegex(), "")
     }
 }
 
