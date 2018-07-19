@@ -47,6 +47,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="start|center_vertical"
                 android:layout_weight="1"
+                android:ellipsize="end"
+                android:singleLine="true"
                 android:gravity="center_vertical|start"
                 android:paddingRight="@dimen/padding_normal"
                 android:textColor="@color/FontStrong"
