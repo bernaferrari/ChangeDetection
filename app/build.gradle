@@ -24,8 +24,8 @@ android {
         applicationId "com.bernaferrari.changedetection"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 11
-        versionName "1.1"
+        versionCode 12
+        versionName "1.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -135,7 +135,7 @@ dependencies {
     // RecyclerView
     def groupie = "2.1.0"
     implementation "com.xwray:groupie:$groupie"
-    implementation 'com.yarolegovich:discrete-scrollview:1.4.7'
+    implementation 'com.yarolegovich:discrete-scrollview:1.4.8'
     implementation "com.xwray:groupie-kotlin-android-extensions:$groupie"
 
 
