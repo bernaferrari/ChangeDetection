@@ -135,7 +135,7 @@ class MainCardItem(
 
         setLastDiff(holder)
 
-        (holder.reload.background as GradientDrawable).setColor(
+        (holder.reload.background as? GradientDrawable)?.setColor(
             ContextCompat.getColor(
                 context,
                 R.color.white
@@ -295,8 +295,8 @@ class MainCardItem(
     }
 
     private fun updateRoundBackgrounds(color: Int, holder: ViewHolder) {
-        (holder.lastSyncImage.background as GradientDrawable).setColor(color)
-        (holder.lastChangeImage.background as GradientDrawable).setColor(color)
+        (holder.lastSyncImage.background as? GradientDrawable)?.setColor(color)
+        (holder.lastChangeImage.background as? GradientDrawable)?.setColor(color)
     }
 
     private fun startProgress(holder: ViewHolder) {

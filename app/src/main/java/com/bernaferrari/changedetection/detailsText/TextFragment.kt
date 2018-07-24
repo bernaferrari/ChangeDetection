@@ -173,6 +173,7 @@ class TextFragment : Fragment() {
         shareToggle.isVisible = false
 
         showOriginalAndChanges.isActivated = model.changePlusOriginal
+        uiState.showOriginalAndChanges = model.changePlusOriginal
         showOriginalAndChanges.setOnClickListener { uiState.showOriginalAndChanges++ }
 
         // this is needed. If visibility is off and the fragment is reopened,

@@ -3,13 +3,13 @@ package com.bernaferrari.changedetection.extensions
 import android.graphics.drawable.Drawable
 import android.support.graphics.drawable.Animatable2Compat
 
-fun Animatable2Compat.onAnimationStart(action: (seekBar: Drawable) -> Unit): Animatable2Compat.AnimationCallback =
+internal fun Animatable2Compat.onAnimationStart(action: (seekBar: Drawable) -> Unit): Animatable2Compat.AnimationCallback =
     setOnAnimationChangeListener(onAnimationStart = action)
 
-fun Animatable2Compat.onAnimationEnd(action: (seekBar: Drawable) -> Unit): Animatable2Compat.AnimationCallback =
+internal fun Animatable2Compat.onAnimationEnd(action: (seekBar: Drawable) -> Unit): Animatable2Compat.AnimationCallback =
     setOnAnimationChangeListener(onAnimationEnd = action)
 
-fun Animatable2Compat.setOnAnimationChangeListener(
+internal fun Animatable2Compat.setOnAnimationChangeListener(
     onAnimationStart: ((action: Drawable) -> Unit)? = null,
     onAnimationEnd: ((action: Drawable) -> Unit)? = null
 ): Animatable2Compat.AnimationCallback {

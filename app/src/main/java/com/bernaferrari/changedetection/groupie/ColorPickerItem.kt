@@ -42,7 +42,7 @@ class ColorPickerItem(
             val dp16 = dp(16, resources)
             val dp32 = dp(32, resources)
 
-            val layoutParams = layoutParams as MarginLayoutParams
+            val layoutParams = layoutParams as? MarginLayoutParams ?: return
             layoutParams.width = dp32
             layoutParams.height = dp32
 

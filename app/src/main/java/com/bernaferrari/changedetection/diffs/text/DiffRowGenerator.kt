@@ -267,18 +267,20 @@ class DiffRowGenerator private constructor(builder: Builder) {
             // Inserted DiffRow
             if (delta is InsertDelta<*>) {
                 endPos = orig.last() + 1
-                for (line in rev.lines as List<String>) {
-                    diffRows.add(buildDiffRow(Tag.INSERT, "", line))
+                rev.lines.forEach {
+                    diffRows.add(buildDiffRow(Tag.INSERT, "", it))
                 }
+
                 continue
             }
 
             // Deleted DiffRow
             if (delta is DeleteDelta<*>) {
                 endPos = orig.last() + 1
-                for (line in orig.lines as List<String>) {
-                    diffRows.add(buildDiffRow(Tag.DELETE, line, ""))
+                orig.lines.forEach {
+                    diffRows.add(buildDiffRow(Tag.DELETE, it, ""))
                 }
+
                 continue
             }
 
