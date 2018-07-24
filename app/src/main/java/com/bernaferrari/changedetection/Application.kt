@@ -35,6 +35,7 @@ class Application : MultiDexApplication() {
         private var INSTANCE: Application? = null
         @JvmStatic
 
-        fun get(): Application = INSTANCE!!
+        fun get(): Application =
+            INSTANCE ?: throw NullPointerException("Application INSTANCE must not be null")
     }
 }

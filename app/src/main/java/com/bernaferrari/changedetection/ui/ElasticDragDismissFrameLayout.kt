@@ -156,12 +156,12 @@ class ElasticDragDismissFrameLayout @JvmOverloads constructor(
         if (callbacks == null) {
             callbacks = ArrayList()
         }
-        callbacks!!.add(listener)
+        callbacks?.add(listener)
     }
 
     fun removeListener(listener: ElasticDragDismissCallback) {
-        if (callbacks != null && callbacks!!.size > 0) {
-            callbacks!!.remove(listener)
+        if (callbacks?.size != 0) {
+            callbacks?.remove(listener)
         }
     }
 
@@ -223,21 +223,17 @@ class ElasticDragDismissFrameLayout @JvmOverloads constructor(
         elasticOffset: Float, elasticOffsetPixels: Float,
         rawOffset: Float, rawOffsetPixels: Float
     ) {
-        if (callbacks != null && !callbacks!!.isEmpty()) {
-            for (callback in callbacks!!) {
-                callback.onDrag(
-                    elasticOffset, elasticOffsetPixels,
-                    rawOffset, rawOffsetPixels
-                )
-            }
+        callbacks?.forEach {
+            it.onDrag(
+                elasticOffset, elasticOffsetPixels,
+                rawOffset, rawOffsetPixels
+            )
         }
     }
 
     private fun dispatchDismissCallback() {
-        if (callbacks != null && !callbacks!!.isEmpty()) {
-            for (callback in callbacks!!) {
-                callback.onDragDismissed()
-            }
+        callbacks?.forEach {
+            it.onDragDismissed()
         }
     }
 
