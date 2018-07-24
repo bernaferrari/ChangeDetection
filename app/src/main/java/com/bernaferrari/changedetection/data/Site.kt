@@ -68,7 +68,7 @@ data class Site(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false
-        val site = other as Site?
+        val site = other as? Site
 
         return id == site?.id && title == site.title && url == site.url
     }
@@ -78,10 +78,10 @@ data class Site(
     }
 
     override fun toString(): String {
-        return "Site with title " + title!!
+        return "Site with title $title"
     }
 
-    class ConstraintsConverter {
+    internal class ConstraintsConverter {
         @TypeConverter
         fun storedStringToConstraintsRequired(value: String): WorkerHelper.ConstraintsRequired {
             val langs = value.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toList()
@@ -101,7 +101,7 @@ data class Site(
         }
     }
 
-    class PairConverter {
+    internal class PairConverter {
         @TypeConverter
         fun storedStringToPair(value: String): Pair<Int, Int> {
             val langs = value.split(",".toRegex())

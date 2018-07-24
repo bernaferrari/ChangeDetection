@@ -2,8 +2,8 @@ package com.bernaferrari.changedetection.util
 
 import com.bernaferrari.changedetection.R
 
-object VisibilityHelper {
-    fun getStaticIcon(isOn: Boolean): Int {
+internal object VisibilityHelper {
+    internal fun getStaticIcon(isOn: Boolean): Int {
         return if (isOn) {
             R.drawable.visibility_on
         } else {
@@ -11,7 +11,7 @@ object VisibilityHelper {
         }
     }
 
-    fun getAnimatedIcon(isOn: Boolean): Int {
+    internal fun getAnimatedIcon(isOn: Boolean): Int {
         return if (isOn) {
             R.drawable.visibility_off_to_on
         } else {

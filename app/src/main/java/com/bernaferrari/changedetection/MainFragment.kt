@@ -542,11 +542,13 @@ class MainFragment : Fragment() {
     private fun urlFromClipboardOrEmpty(isItemNull: Boolean): String {
         return if (isItemNull) {
             val clipboard =
-                requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+                        ?: return ""
 
             if (clipboard.primaryClip == null) {
                 return ""
             }
+
             val clipDataItem = clipboard.primaryClip.getItemAt(0)
             val pasteData = clipDataItem.text?.toString() ?: ""
 

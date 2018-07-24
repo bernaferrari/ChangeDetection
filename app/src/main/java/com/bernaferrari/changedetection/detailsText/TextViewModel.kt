@@ -189,8 +189,8 @@ class TextViewModel(
                             ?.let { position ->
                             generateDiff(
                                 topSection = topSection,
-                                originalId = item.snap?.snapId!!,
-                                revisedId = item.adapter.getItemFromAdapter(position)?.snapId!!
+                                originalId = item.snap?.snapId,
+                                revisedId = item.adapter.getItemFromAdapter(position)?.snapId
                             )
                         }
                     }
