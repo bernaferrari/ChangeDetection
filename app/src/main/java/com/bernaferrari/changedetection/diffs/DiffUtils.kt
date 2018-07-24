@@ -55,8 +55,8 @@ object DiffUtils {
     @Throws(DiffException::class)
     fun diff(originalText: String, revisedText: String): Patch<String> {
         return DiffUtils.diff(
-            Arrays.asList(*originalText.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()),
-            Arrays.asList(*revisedText.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray())
+            originalText.split("\n"),
+            revisedText.split("\n")
         )
     }
 

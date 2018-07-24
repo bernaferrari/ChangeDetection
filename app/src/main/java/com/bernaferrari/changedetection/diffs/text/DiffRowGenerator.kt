@@ -384,10 +384,8 @@ class DiffRowGenerator private constructor(builder: Builder) {
             revResult.append(character)
         }
 
-        val original =
-            Arrays.asList(*origResult.toString().split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray())
-        val revised =
-            Arrays.asList(*revResult.toString().split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray())
+        val original = origResult.toString().split("\n")
+        val revised = revResult.toString().split("\n")
         val diffRows = ArrayList<DiffRow>()
         for (j in 0 until Math.max(original.size, revised.size)) {
             diffRows.add(
@@ -405,10 +403,10 @@ class DiffRowGenerator private constructor(builder: Builder) {
         val SPLIT_BY_WORD_PATTERN = Pattern.compile("\\s+|[,.\\[\\](){}/\\\\*+\\-#]")
 
         val IGNORE_WHITESPACE_EQUALIZER = { original: String, revised: String ->
-            original.trim({ it <= ' ' }).replace(
+            original.trim { it <= ' ' }.replace(
                 "\\s+".toRegex(),
                 " "
-            ) == revised.trim({ it <= ' ' }).replace("\\s+".toRegex(), " ")
+            ) == revised.trim { it <= ' ' }.replace("\\s+".toRegex(), " ")
         }
 
         val DEFAULT_EQUALIZER = { obj1: String, obj2: String -> obj1 == obj2 }

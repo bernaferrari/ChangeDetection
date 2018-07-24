@@ -39,16 +39,12 @@ class RecyclerViewWithEmptyState @JvmOverloads constructor(
     }
 
     private fun showEmptyView() {
-        if (adapter != null) {
-            if (emptyLayout == null) {
-                return
-            }
+        if (emptyLayout == null) return
 
+        if (adapter != null) {
             updateVisibility(adapter.itemCount != 0)
         } else {
-            if (emptyLayout != null) {
-                updateVisibility(false)
-            }
+            updateVisibility(false)
         }
     }
 
