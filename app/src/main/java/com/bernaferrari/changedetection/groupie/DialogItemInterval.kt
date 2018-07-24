@@ -40,9 +40,9 @@ class DialogItemInterval(
 
     private fun getTimeString(context: Context): String = minutes[progress].let {
         when {
-            it < 60 -> return@let "$it " + context.getString(R.string.min)
-            it == 60 -> return@let context.getString(R.string.hour)
-            else -> return@let "${it / 60} " + context.getString(R.string.hours)
+            it < 60 -> "$it " + context.getString(R.string.min)
+            it == 60 -> context.getString(R.string.hour)
+            else -> "${it / 60} " + context.getString(R.string.hours)
         }
     }
 }

@@ -60,8 +60,10 @@ class AboutFragment : MaterialAboutFragment() {
                         .sizeDp(iconsize)
                 )
                 .setOnClickAction {
-                    Navigation.findNavController(view!!)
-                        .navigate(R.id.action_aboutFragment_to_aboutLicenseFragment)
+                    view?.let {
+                        Navigation.findNavController(it)
+                            .navigate(R.id.action_aboutFragment_to_aboutLicenseFragment)
+                    }
                 }
                 .build())
 

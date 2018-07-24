@@ -47,12 +47,11 @@ fun String.replaceRelativePathWithAbsolute(absolute: String): String {
         val cleanValue = valueWithoutWhitespace.substring(2, valueWithoutWhitespace.length - 1)
 
         if (cleanValue.matches(regexEmail()) || cleanValue.matches(regexValidWebsite())) {
-            return@replace it.value
+            it.value
+        } else {
+            val website = if (absolute.last() != '/') "$absolute/" else absolute
+            "=${it.value.last()}$website" + it.value.replace("=\\s*['\"]".toRegex(), "")
         }
-
-        val website = if (absolute.last() != '/') "$absolute/" else absolute
-
-        return@replace "=${it.value.last()}$website" + it.value.replace("=\\s*['\"]".toRegex(), "")
     }
 }
 

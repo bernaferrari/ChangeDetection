@@ -117,8 +117,8 @@ class ColorPickerItem @JvmOverloads constructor(
     private fun updateListener(): ValueAnimator.AnimatorUpdateListener =
         ValueAnimator.AnimatorUpdateListener { valueAnimator2 ->
             val valueAnimator = valueAnimator2?.animatedValue ?: throw NullPointerException()
-            this@ColorPickerItem.progress = (valueAnimator as Float).toFloat()
-            this@ColorPickerItem.invalidate()
+            this.progress = (valueAnimator as Float).toFloat()
+            this.invalidate()
         }
 
     private fun createPaintInside(): Paint {

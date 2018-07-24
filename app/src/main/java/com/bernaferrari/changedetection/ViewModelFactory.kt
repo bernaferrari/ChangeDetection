@@ -80,7 +80,7 @@ class ViewModelFactory private constructor(
                     }
                 }
             }
-            return INSTANCE!!
+            return INSTANCE ?: throw NullPointerException("Expression 'INSTANCE' must not be null")
         }
 
         @VisibleForTesting
