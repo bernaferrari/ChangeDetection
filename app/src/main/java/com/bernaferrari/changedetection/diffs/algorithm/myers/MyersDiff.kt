@@ -145,10 +145,10 @@ class MyersDiff<T> : DiffAlgorithm<T> {
 
         var path: PathNode? = actualPath
         val changes = ArrayList<Change>()
-        if (path!!.isSnake) {
+        if (path?.isSnake == true) {
             path = path.prev
         }
-        while (path != null && path.prev != null && path.prev.j >= 0) {
+        while (path?.prev != null && path.prev.j >= 0) {
             if (path.isSnake) {
                 throw IllegalStateException("bad diffpath: found snake when looking for diff")
             }
@@ -156,7 +156,7 @@ class MyersDiff<T> : DiffAlgorithm<T> {
             val j = path.j
 
             path = path.prev
-            val ianchor = path!!.i
+            val ianchor = path.i
             val janchor = path.j
 
             if (ianchor == i && janchor != j) {

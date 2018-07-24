@@ -96,13 +96,15 @@ class TextFragment : Fragment() {
             try {
                 val posRevised =
                     bottomAdapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
+                            ?: return
                 val posOriginal =
                     bottomAdapter.colorSelected.getPositionForAdapter(ItemSelected.ORIGINAL)
+                            ?: return
 
                 model.generateDiff(
                     topSection = topSection,
-                    originalId = bottomAdapter.getItemFromAdapter(posOriginal!!)?.snapId,
-                    revisedId = bottomAdapter.getItemFromAdapter(posRevised!!)?.snapId
+                    originalId = bottomAdapter.getItemFromAdapter(posOriginal)?.snapId,
+                    revisedId = bottomAdapter.getItemFromAdapter(posRevised)?.snapId
                 )
             } catch (e: Exception) {
                 // Don't do anything. If this exception happened, is because there are not
@@ -209,8 +211,9 @@ class TextFragment : Fragment() {
             adapter = GroupAdapter<ViewHolder>().apply {
                 add(topSection)
                 setOnItemClickListener { item, _ ->
-                    if (item !is TextRecycler) return@setOnItemClickListener
-                    copyToClipboard(context, item.title)
+                    if (item is TextRecycler) {
+                        copyToClipboard(context, item.title)
+                    }
                 }
             }
         }
@@ -242,7 +245,10 @@ class TextFragment : Fragment() {
                             // If the item is selected, first deselect, then remove it.
                             model.fsmSelectWithCorrectColor(item, topSection)
                         }
-                        model.removeSnap(item.snap!!.snapId)
+
+                        item.snap?.let {
+                            model.removeSnap(it.snapId)
+                        }
 
                     }
                     .show()
@@ -280,8 +286,8 @@ class TextFragment : Fragment() {
                         try {
                             model.generateDiff(
                                 topSection = topSection,
-                                originalId = bottomAdapter.getItemFromAdapter(1)!!.snapId,
-                                revisedId = bottomAdapter.getItemFromAdapter(0)!!.snapId
+                                originalId = bottomAdapter.getItemFromAdapter(1)?.snapId,
+                                revisedId = bottomAdapter.getItemFromAdapter(0)?.snapId
                             )
                         } catch (e: Exception) {
                             Toasty.error(
@@ -370,19 +376,21 @@ class TextFragment : Fragment() {
                             .negativeText(R.string.close)
                             .build()
                             .also {
-                                it.customView!!.webview.updateLayoutParams {
-                                    this.height = resources.displayMetrics.heightPixels
-                                    this.width = resources.displayMetrics.widthPixels
-                                }
+                                it.customView?.also {
+                                    it.webview.updateLayoutParams {
+                                        this.height = resources.displayMetrics.heightPixels
+                                        this.width = resources.displayMetrics.widthPixels
+                                    }
 
-                                fetchAndOpenOnWebView(
-                                    bottomAdapter,
-                                    it.customView!!.webview,
-                                    if (itemDialog.kind == "first")
-                                        ItemSelected.REVISED
-                                    else
-                                        ItemSelected.ORIGINAL
-                                )
+                                    fetchAndOpenOnWebView(
+                                        bottomAdapter,
+                                        it.webview,
+                                        if (itemDialog.kind == "first")
+                                            ItemSelected.REVISED
+                                        else
+                                            ItemSelected.ORIGINAL
+                                    )
+                                }
                             }.show()
                     }
                 }
@@ -410,7 +418,7 @@ class TextFragment : Fragment() {
             launch(UI) {
                 putDataOnWebView(
                     view,
-                    snapValue.replaceRelativePathWithAbsolute(arguments!!.getString(URL))
+                    snapValue.replaceRelativePathWithAbsolute(arguments?.getString(URL) ?: "")
                 )
             }
         }

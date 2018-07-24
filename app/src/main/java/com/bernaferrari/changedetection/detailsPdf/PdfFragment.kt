@@ -132,9 +132,9 @@ class PdfFragment : Fragment(),
         mButtonNext.setOnClickListener { showPage(currentIndex + 1) }
 
         shareToggle.setOnClickListener {
-            val item =
-                adapter.getItemFromAdapter(previousAdapterPosition) ?: return@setOnClickListener
-            shareItem(item)
+            adapter.getItemFromAdapter(previousAdapterPosition)?.let {
+                shareItem(it)
+            }
         }
 
         model.updateUiFromStateLiveData.observe(this, Observer {
@@ -188,6 +188,8 @@ class PdfFragment : Fragment(),
             requireContext()
         )
 
+        carouselRecycler.addOnItemChangedListener(this)
+
         carouselRecycler.also {
             it.adapter = adapter
 
@@ -199,8 +201,6 @@ class PdfFragment : Fragment(),
                     .setMinScale(0.8f)
                     .build()
             )
-
-            it.addOnItemChangedListener(this@PdfFragment)
         }
 
         drawerRecycler.also {

@@ -52,12 +52,10 @@ class TextViewHolder(
         this.snap = snap
         this.colorSelected = colorSelected
 
-        if (this.snap == null) {
-            return
-        }
-
-        stringFromTimeAgo = this.snap!!.timestamp.convertTimestampToDate()
-        readableFileSize = this.snap!!.contentSize.readableFileSize()
+        this.snap?.also {
+            stringFromTimeAgo = it.timestamp.convertTimestampToDate()
+            readableFileSize = it.contentSize.readableFileSize()
+        } ?: return
 
         itemView.subtitleTextView.text = stringFromTimeAgo
         itemView.titleTextView.text = readableFileSize
