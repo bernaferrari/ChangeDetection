@@ -11,15 +11,16 @@ import com.github.marlonlom.utilities.timeago.TimeAgo
 import com.github.marlonlom.utilities.timeago.TimeAgoMessages
 import java.util.*
 
-fun Long.convertTimestampToDate(): String {
+internal fun Long.convertTimestampToDate(): String {
     val messages = TimeAgoMessages.Builder().withLocale(Locale.getDefault()).build()
     return TimeAgo.using(this, messages)
 }
 
-fun View.getText(@StringRes res: Int) = this.resources.getText(res)
-operator fun Boolean.inc() = !this
+internal fun View.getText(@StringRes res: Int) = this.resources.getText(res)
 
-fun ImageView.setAndStartAnimation(res: Int, context: Context) {
+internal operator fun Boolean.inc() = !this
+
+internal fun ImageView.setAndStartAnimation(res: Int, context: Context) {
     this.setImageDrawable(
         AnimatedVectorDrawableCompat.create(
             context,
@@ -31,7 +32,7 @@ fun ImageView.setAndStartAnimation(res: Int, context: Context) {
 
 // this will scroll to wanted index + or - one, giving a margin of one and allowing user to
 // keep tapping in the same place and RecyclerView keep scrolling.
-fun RecyclerView.scrollToIndexWithMargins(
+internal fun RecyclerView.scrollToIndexWithMargins(
     previousIndex: Int,
     index: Int,
     size: Int
@@ -52,6 +53,6 @@ fun RecyclerView.scrollToIndexWithMargins(
     }
 }
 
-fun Int.toDp(resources: Resources): Int {
+internal fun Int.toDp(resources: Resources): Int {
     return (resources.displayMetrics.density * this).toInt()
 }
