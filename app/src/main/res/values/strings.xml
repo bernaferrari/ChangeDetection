@@ -108,6 +108,6 @@
     </plurals>
 
     <string name="change_detected_notification_with_title">%1s (%2s) was updated!</string>
-    <string name="change_detected_notification_without_title">Change detected! (%1d)</string>
+    <string name="change_detected_notification_without_title">Change detected! (%1s)</string>
 
 </resources>
