@@ -31,6 +31,7 @@ import com.bernaferrari.changedetection.groupie.RowItem
 import com.bernaferrari.changedetection.util.GlideApp
 import com.bernaferrari.changedetection.util.VisibilityHelper
 import com.davemorrissey.labs.subscaleview.ImageSource
+import com.orhanobut.logger.Logger
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.yarolegovich.discretescrollview.DiscreteScrollView
@@ -250,12 +251,12 @@ class ImageFragment : Fragment(),
     }
 
     private fun selectItem(adapterPosition: Int) {
-        // deslect the previous item on the drawer. This might trigger an exception if item was added/removed
+        // deselect the previous item on the drawer. This might trigger an exception if item was added/removed
         try {
             items[previousAdapterPosition].isSelected = false
             groupAdapter.notifyItemChanged(previousAdapterPosition)
         } catch (e: IndexOutOfBoundsException) {
-
+            Logger.e(e.localizedMessage)
         }
 
         drawerRecycler.scrollToIndexWithMargins(
