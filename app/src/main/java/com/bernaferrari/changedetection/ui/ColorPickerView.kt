@@ -35,15 +35,10 @@ class ColorPickerView @JvmOverloads constructor(
         invalidate()
     }
 
-    fun invalidateColors() {
-        // If the value is set here, it risks getting a solid color if width is blue.
-        // This way, it will be refreshed on onDraw.
-        circlePaint = null
-        outlinePaint = null
-        invalidate()
-    }
-
-    fun areColorsSet(): Boolean = circlePaint != null && outlinePaint != null
+    val areColorsSet: Boolean
+        get() {
+            return circlePaint != null && outlinePaint != null
+        }
 
     init {
         setLayerType(LAYER_TYPE_SOFTWARE, null)

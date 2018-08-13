@@ -9,11 +9,15 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:3.3.0-alpha05'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'android.arch.navigation:navigation-safe-args-gradle-plugin:1.0.0-alpha04'
+        classpath 'android.arch.navigation:navigation-safe-args-gradle-plugin:1.0.0-alpha05'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
+}
+
+plugins {
+    id "io.gitlab.arturbosch.detekt" version "1.0.0.RC8"
 }
 
 allprojects {
@@ -24,6 +28,19 @@ allprojects {
     }
 }
 
+detekt {
+    version = "1.0.0.RC8"
+    defaultProfile {
+        input = file("app/")
+        filters = ".*/resources/.*,.*/build/.*"
+        config = file("default-detekt-config.yml")
+    }
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+
+subprojects {
+    tasks.withType(Javadoc).all { enabled = false }
 }
