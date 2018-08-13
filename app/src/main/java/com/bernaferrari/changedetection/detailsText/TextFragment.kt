@@ -145,7 +145,7 @@ class TextFragment : Fragment() {
         elastic.addListener(object :
             ElasticDragDismissFrameLayout.ElasticDragDismissCallback() {
             override fun onDragDismissed() {
-                view.let { Navigation.findNavController(it).navigateUp() }
+                Navigation.findNavController(view).navigateUp()
             }
         })
 
@@ -296,7 +296,7 @@ class TextFragment : Fragment() {
                                 getString(R.string.less_than_two),
                                 Toast.LENGTH_LONG
                             ).show()
-                            view.let { Navigation.findNavController(it).navigateUp() }
+                            Navigation.findNavController(view).navigateUp()
                         }
 
                         hasSetInitialColor = true

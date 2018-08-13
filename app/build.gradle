@@ -18,12 +18,11 @@ android {
             keyPassword RELEASE_KEY_PASSWORD
         }
     }
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
     defaultConfig {
         applicationId "com.bernaferrari.changedetection"
         minSdkVersion 21
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 14
         versionName "1.4"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -63,7 +62,7 @@ dependencies {
     })
 
     // RX
-    implementation 'io.reactivex.rxjava2:rxjava:2.1.14'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.0'
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
 
     // Coroutines
@@ -73,7 +72,7 @@ dependencies {
 
 
     // Android Architecture Components
-    def navigation_version = "1.0.0-alpha04"
+    def navigation_version = "1.0.0-alpha05"
     implementation "android.arch.navigation:navigation-ui:$navigation_version"
     implementation "android.arch.navigation:navigation-fragment:$navigation_version"
 
@@ -135,7 +134,7 @@ dependencies {
     // RecyclerView
     def groupie = "2.1.0"
     implementation "com.xwray:groupie:$groupie"
-    implementation 'com.yarolegovich:discrete-scrollview:1.4.8'
+    implementation 'com.yarolegovich:discrete-scrollview:1.4.9'
     implementation "com.xwray:groupie-kotlin-android-extensions:$groupie"
 
 
@@ -148,12 +147,12 @@ dependencies {
     // Internal
     implementation 'org.jsoup:jsoup:1.11.3'
     implementation 'com.facebook.stetho:stetho:1.5.0'
-    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation 'com.squareup.okhttp3:okhttp:3.11.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
 
     // Dagger
-    def dagger = "2.16"
+    def dagger = "2.17"
     implementation "com.google.dagger:dagger:$dagger"
     kapt "com.google.dagger:dagger-compiler:$dagger"
 

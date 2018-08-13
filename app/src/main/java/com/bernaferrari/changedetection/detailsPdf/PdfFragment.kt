@@ -118,7 +118,7 @@ class PdfFragment : Fragment(),
         model = obtainViewModel(requireActivity())
 
         closecontent.setOnClickListener {
-            view.let { Navigation.findNavController(it).navigateUp() }
+            Navigation.findNavController(view).navigateUp()
         }
 
         showOriginalAndChanges.isVisible = false
