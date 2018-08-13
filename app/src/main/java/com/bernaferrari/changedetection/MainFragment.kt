@@ -726,7 +726,7 @@ class MainFragment : Fragment() {
         }
 
         // This will call the keyboard when dialog is shown.
-        materialdialog.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        materialdialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         materialdialog.show()
     }
 
