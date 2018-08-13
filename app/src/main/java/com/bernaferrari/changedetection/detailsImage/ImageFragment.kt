@@ -101,7 +101,7 @@ class ImageFragment : Fragment(),
         model = obtainViewModel(requireActivity())
 
         closecontent.setOnClickListener {
-            view.let { Navigation.findNavController(it).navigateUp() }
+            Navigation.findNavController(view).navigateUp()
         }
 
         next_previous_bar.isVisible = false

@@ -14,12 +14,28 @@ class ColorPickerView @JvmOverloads constructor(
     defStyleAttr: Int = 0, defStyleRes: Int = 0
 ) : View(context, attrs, defStyleAttr, defStyleRes) {
 
-    var progress: Float = 0f
+    var progress: Float = ANIM_MIN_VALUE
     var circlePaint: Paint? = null
     var outlinePaint: Paint? = null
-    var colors = Pair(Color.WHITE, Color.WHITE)
+
+    var outLineColor: Int
+        get() = outlinePaint?.color ?: Color.TRANSPARENT
+        set(value) {
+            outlinePaint?.color = value
+            invalidate()
+        }
+
+    var colors = Pair(Color.YELLOW, Color.RED)
 
     fun updateColor() {
+        // If the value is set here, it risks getting a solid color if width is blue.
+        // This way, it will be refreshed on onDraw.
+        circlePaint = null
+        outlinePaint = null
+        invalidate()
+    }
+
+    fun invalidateColors() {
         // If the value is set here, it risks getting a solid color if width is blue.
         // This way, it will be refreshed on onDraw.
         circlePaint = null
@@ -30,20 +46,7 @@ class ColorPickerView @JvmOverloads constructor(
     fun areColorsSet(): Boolean = circlePaint != null && outlinePaint != null
 
     init {
-        setLayerType(1, null)
-    }
-
-    fun setOutlineColor(i: Int) {
-        outlinePaint?.color = i
-        invalidate()
-    }
-
-    private fun dpToPixels(i: Int): Float {
-        return TypedValue.applyDimension(
-            1,
-            i.toFloat(),
-            context.resources.displayMetrics
-        )
+        setLayerType(LAYER_TYPE_SOFTWARE, null)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -57,25 +60,18 @@ class ColorPickerView @JvmOverloads constructor(
             outlinePaint = createPaintOutside()
         }
 
-        val min = Math.min(
-            width,
-            height
-        ).toFloat() / 2.0f - dpToPixels(6) * this.progress
         canvas.drawCircle(
             width.toFloat() / 2.0f,
             height.toFloat() / 2.0f,
-            (Math.min(
-                width,
-                height
-            ).toFloat() / 2.0f - dpToPixels(2)) * this.progress + 0.0f * (1.toFloat() - this.progress),
-            outlinePaint
+            (Math.min(width, height) / 2f - dpToPixels(OUTER_PADDING, context)) * progress,
+            outlinePaint!!
         )
 
         canvas.drawCircle(
             width.toFloat() / 2.0f,
             height.toFloat() / 2.0f,
-            min,
-            circlePaint
+            Math.min(width, height) / 2f - dpToPixels(INNER_PADDING, context) * progress,
+            circlePaint!!
         )
     }
 
@@ -89,28 +85,28 @@ class ColorPickerView @JvmOverloads constructor(
 
     fun selectIfDeselected(animated: Boolean) {
         if (!this.isSelected) {
-            startAnimation(0.0f, 1.0f, animated)
+            startAnimation(ANIM_MIN_VALUE, ANIM_MAX_VALUE, animated)
             this.isSelected = true
         }
     }
 
     fun deselectIfSelected(animated: Boolean) {
         if (this.isSelected) {
-            startAnimation(1.0f, 0.0f, animated)
+            startAnimation(ANIM_MAX_VALUE, ANIM_MIN_VALUE, animated)
             this.isSelected = false
         }
     }
 
-    private fun startAnimation(f: Float, f2: Float, z: Boolean) {
-        if (z) {
-            val ofFloat = ObjectAnimator.ofFloat(f, f2)
-            ofFloat.duration = 250
+    private fun startAnimation(fromValue: Float, toValue: Float, isAnimated: Boolean) {
+        if (isAnimated) {
+            val ofFloat = ObjectAnimator.ofFloat(fromValue, toValue)
+            ofFloat.duration = ANIM_DURATION
             ofFloat.interpolator = AccelerateDecelerateInterpolator()
             ofFloat.addUpdateListener(updateListener())
             ofFloat.start()
             return
         }
-        this.progress = f2
+        this.progress = toValue
         invalidate()
     }
 
@@ -142,14 +138,34 @@ class ColorPickerView @JvmOverloads constructor(
         paint.isAntiAlias = true
         paint.color = Color.WHITE
         paint.shader = LinearGradient(
-            width.toFloat(), 0f, 0f, height.toFloat(),
+            width.toFloat(),
+            0f,
+            0f,
+            height.toFloat(),
             colors.first,
             colors.second,
             Shader.TileMode.CLAMP
         )
         paint.style = Paint.Style.STROKE
-        paint.strokeWidth = dpToPixels(3)
+        paint.strokeWidth = dpToPixels(SHADER_STROKE, context)
 
         return paint
+    }
+
+    private fun dpToPixels(i: Float, context: Context): Float {
+        return TypedValue.applyDimension(
+            1,
+            i,
+            context.resources.displayMetrics
+        )
+    }
+
+    private companion object {
+        private const val ANIM_MAX_VALUE = 1.0f
+        private const val ANIM_MIN_VALUE = 0.0f
+        private const val ANIM_DURATION = 250L
+        private const val SHADER_STROKE = 3f
+        private const val INNER_PADDING = 6f
+        private const val OUTER_PADDING = 2f
     }
 }
