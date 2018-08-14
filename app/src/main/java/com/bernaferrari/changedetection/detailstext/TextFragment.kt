@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.detailsText
+package com.bernaferrari.changedetection.detailstext
 
 import android.annotation.TargetApi
 import android.arch.lifecycle.Observer
@@ -64,9 +64,7 @@ import kotlin.reflect.KProperty
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 class TextFragment : Fragment() {
     lateinit var model: TextViewModel
-    val color: Int by lazy { ContextCompat.getColor(requireContext(),
-        R.color.FontStrong
-    ) }
+    val color: Int by lazy { ContextCompat.getColor(requireContext(), R.color.FontStrong) }
 
     private val transitionDuration = 175L
     private val transition = AutoTransition().apply { duration = transitionDuration }
@@ -106,7 +104,7 @@ class TextFragment : Fragment() {
                     originalId = bottomAdapter.getItemFromAdapter(posOriginal)?.snapId,
                     revisedId = bottomAdapter.getItemFromAdapter(posRevised)?.snapId
                 )
-            } catch (e: Exception) {
+            } catch (e: IllegalStateException) {
                 // Don't do anything. If this exception happened, is because there are not
                 // two items selected. So it won't change anything.
             }
@@ -149,9 +147,7 @@ class TextFragment : Fragment() {
             }
         })
 
-        stateLayout.apply {
-            showLoading()
-        }
+        stateLayout.showLoading()
 
         model.showNotEnoughtInfoError.observe(this, Observer {
             if (it == true) {

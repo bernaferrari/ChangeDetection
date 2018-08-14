@@ -1,6 +1,6 @@
 package com.bernaferrari.changedetection.extensions
 
-import com.bernaferrari.changedetection.detailsText.ItemSelected
+import com.bernaferrari.changedetection.detailstext.ItemSelected
 
 /**
  * Returns a new map containing the first value it finds.

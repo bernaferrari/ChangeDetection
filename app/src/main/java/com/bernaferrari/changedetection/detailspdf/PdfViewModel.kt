@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.detailsPdf
+package com.bernaferrari.changedetection.detailspdf
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel

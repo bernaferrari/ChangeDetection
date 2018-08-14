@@ -101,9 +101,9 @@ object WorkerHelper {
 
         if (constraints.batteryNotLow) workerConstraints.setRequiresBatteryNotLow(true)
         if (constraints.charging) workerConstraints.setRequiresCharging(true)
-        if (Build.VERSION.SDK_INT >= 23 && constraints.deviceIdle) workerConstraints.setRequiresDeviceIdle(
-            true
-        )
+        if (Build.VERSION.SDK_INT >= 23 && constraints.deviceIdle) {
+            workerConstraints.setRequiresDeviceIdle(true)
+        }
 
         val photoWork = OneTimeWorkRequest.Builder(
             SyncWorker::class.java

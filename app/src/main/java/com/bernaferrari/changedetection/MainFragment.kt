@@ -49,6 +49,7 @@ import com.xwray.groupie.ViewHolder
 import es.dmoral.toasty.Toasty
 import kotlinx.android.synthetic.main.main_fragment.*
 import kotlinx.android.synthetic.main.main_fragment.view.*
+import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.android.synthetic.main.state_layout.view.*
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
@@ -79,51 +80,48 @@ class MainFragment : Fragment() {
         // Clear it up, just in case of rotation.
         sitesSection.update(sitesList.apply { clear() })
 
-        view.run {
-            stateLayout.showLoading()
+        stateLayout.showLoading()
 
-            settings.setOnClickListener {
-                requireActivity().supportFragmentManager.beginTransaction()
-                    .add(SettingsFragment(), "settings").commit()
-            }
+        settings.setOnClickListener {
+            requireActivity().supportFragmentManager.beginTransaction()
+                .add(SettingsFragment(), "settings").commit()
+        }
 
-            info.setOnClickListener {
-                Navigation.findNavController(view)
-                    .navigate(R.id.action_mainFragment_to_aboutFragment)
-            }
+        info.setOnClickListener {
+            Navigation.findNavController(view)
+                .navigate(R.id.action_mainFragment_to_aboutFragment)
+        }
 
-            fab.run {
-                background = IconicsDrawable(requireActivity(), CommunityMaterial.Icon.cmd_plus)
-                setOnClickListener { showCreateEditDialog(false, requireActivity()) }
-            }
+        fab.run {
+            background = IconicsDrawable(requireActivity(), CommunityMaterial.Icon.cmd_plus)
+            setOnClickListener { showCreateEditDialog(false, requireActivity()) }
+        }
 
-            pullToRefresh.let { mSwipeRefreshLayout ->
-                mSwipeRefreshLayout.setOnRefreshListener {
-                    sitesList.forEach(this@MainFragment::reloadEach)
-                    mSwipeRefreshLayout.isRefreshing = false
+        pullToRefresh.setOnRefreshListener {
+            sitesList.forEach(this@MainFragment::reloadEach)
+            pullToRefresh.isRefreshing = false
+        }
+
+
+        defaultRecycler.run {
+            addItemDecoration(ListPaddingDecoration(this.context))
+            itemAnimator = this.itemAnimator.apply {
+                // From https://stackoverflow.com/a/33302517/4418073
+                if (this is SimpleItemAnimator) {
+                    this.supportsChangeAnimations = false
                 }
             }
 
-            defaultRecycler.run {
-                addItemDecoration(ListPaddingDecoration(this.context))
-                itemAnimator = this.itemAnimator.apply {
-                    // From https://stackoverflow.com/a/33302517/4418073
-                    if (this is SimpleItemAnimator) {
-                        this.supportsChangeAnimations = false
-                    }
-                }
-
-                layoutManager = LinearLayoutManager(context)
-                adapter = groupAdapter.apply {
-                    // to be used when AndroidX becomes a reality and our top bar is replaced with a bottom bar.
-                    // this.add(MarqueeItem("Change Detection"))
-                    this.add(sitesSection)
-                }
-
-                setEmptyView(view.stateLayout.apply {
-                    setEmptyText(context.getString(R.string.no_websites_being_monitored))
-                })
+            layoutManager = LinearLayoutManager(context)
+            adapter = groupAdapter.apply {
+                // to be used when AndroidX becomes a reality and our top bar is replaced with a bottom bar.
+                // this.add(MarqueeItem("Change Detection"))
+                this.add(sitesSection)
             }
+
+            setEmptyView(view.stateLayout.apply {
+                setEmptyText(context.getString(R.string.no_websites_being_monitored))
+            })
         }
 
         groupAdapter.setOnItemLongClickListener { item, _ ->
@@ -657,7 +655,7 @@ class MainFragment : Fragment() {
                     val site = Site(
                         newTitle,
                         url,
-                        mViewModel.currentTime(),
+                        System.currentTimeMillis(),
                         dialogItemTitle.gradientColors
                     )
 

@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.detailsText
+package com.bernaferrari.changedetection.detailstext
 
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.TransitionDrawable

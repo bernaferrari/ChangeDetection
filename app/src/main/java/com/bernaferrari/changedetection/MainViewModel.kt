@@ -32,8 +32,6 @@ class MainViewModel(
         return WorkManager.getInstance().getStatusesForUniqueWork(WorkerHelper.UNIQUEWORK)
     }
 
-    fun currentTime(): Long = System.currentTimeMillis()
-
     fun removeSite(site: Site) = launchSilent {
         mSnapsRepository.deleteAllSnaps(site.id)
         mSitesRepository.deleteSite(site.id)

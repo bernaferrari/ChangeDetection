@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.detailsText
+package com.bernaferrari.changedetection.detailstext
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
@@ -210,7 +210,7 @@ class TextViewModel(
      *
      * @param adapter    The adapter with a map of selected gradientColor
      * @param topSection The top section, which will be cleared if there are
-     * not enought gradientColor selected
+     * not enough gradientColor selected
      */
     private fun updateCanShowDiff(adapter: TextAdapter, topSection: Section) {
 

@@ -13,7 +13,7 @@ import com.mikepenz.iconics.IconicsDrawable
 class AboutLicenseFragment : MaterialAboutFragment() {
 
     override fun getMaterialAboutList(activityContext: Context): MaterialAboutList {
-        return createMaterialAboutLicenseList(activityContext, R.color.md_indigo_500)
+        return createMaterialAboutLicenseList(activityContext)
     }
 
     override fun getTheme(): Int = R.style.About
@@ -23,14 +23,13 @@ class AboutLicenseFragment : MaterialAboutFragment() {
         year: String,
         name: String,
         license: OpenSourceLicense,
-        context: Context,
-        colorIcon: Int
+        context: Context
     ): MaterialAboutCard {
         return ConvenienceBuilder.createLicenseCard(
             context,
             IconicsDrawable(context)
                 .icon(GoogleMaterial.Icon.gmd_book)
-                .color(ContextCompat.getColor(context, colorIcon))
+                .color(ContextCompat.getColor(context, R.color.md_indigo_500))
                 .sizeDp(18),
             libraryTitle,
             year,
@@ -39,97 +38,86 @@ class AboutLicenseFragment : MaterialAboutFragment() {
         )
     }
 
-    private fun createMaterialAboutLicenseList(c: Context, colorIcon: Int): MaterialAboutList {
+    private fun createMaterialAboutLicenseList(c: Context): MaterialAboutList {
 
         val materialAboutLIbraryLicenseCard = createLicenseCard(
             "material-about-library",
             "2016",
             "Daniel Stone",
             OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            c
         )
         val javadiffutils = createLicenseCard(
             "java-diff-utils",
             "2018",
             "Tobias (wumpz)",
             OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            c
         )
         val androidIconicsLicenseCard = createLicenseCard(
             "Android Iconics",
             "2017",
             "Mike Penz",
             OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            c
         )
         val logger = createLicenseCard(
             "Logger",
             "2017",
             "Orhan Obut",
             OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            c
         )
         val materialdialogs = createLicenseCard(
             "Material Dialogs",
             "2014-2016",
             "Aidan Michael Follestad",
             OpenSourceLicense.MIT,
-            c,
-            colorIcon
+            c
         )
         val aosp = createLicenseCard(
             "The Android Open Source Project",
             "2018",
             "Google Inc.",
             OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            c
         )
         val rxjava = createLicenseCard(
             "RxJava: Reactive Extensions for the JVM",
             "2016-present",
             "RxJava Contributors",
             OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            c
         )
         val rxandroid = createLicenseCard(
             "RxAndroid: Reactive Extensions for Android",
             "2015",
             "The RxAndroid authors",
             OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            c
         )
-        val groupie = createLicenseCard("Groupie", "2016", "", OpenSourceLicense.MIT, c, colorIcon)
-        val okhttp = createLicenseCard("OkHttp", "", "", OpenSourceLicense.APACHE_2, c, colorIcon)
+        val groupie = createLicenseCard("Groupie", "2016", "", OpenSourceLicense.MIT, c)
+        val okhttp = createLicenseCard("OkHttp", "", "", OpenSourceLicense.APACHE_2, c)
         val kotlin = createLicenseCard(
             "Kotlin",
             "2010-2017",
             "JetBrains",
             OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            c
         )
         val jsoup = createLicenseCard(
             "Jsoup",
             "2009-2018",
             "Jonathan Hedley <jonathan@hedley.net>",
             OpenSourceLicense.MIT,
-            c,
-            colorIcon
+            c
         )
         val dagger = createLicenseCard(
             "Dagger",
             "2012",
             "The Dagger Authors",
             OpenSourceLicense.APACHE_2,
-            c,
-            colorIcon
+            c
         )
 
         return MaterialAboutList(

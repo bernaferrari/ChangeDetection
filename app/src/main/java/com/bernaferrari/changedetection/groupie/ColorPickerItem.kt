@@ -56,7 +56,7 @@ class ColorPickerItem(
         }
 
         // first time it loads, or if recycles, the gradientColor need to be set correctly.
-        if (!viewHolder.paintItem.areColorsSet() || viewHolder.paintItem.colors != gradientColor) {
+        if (!viewHolder.paintItem.areColorsSet || viewHolder.paintItem.colors != gradientColor) {
             viewHolder.paintItem.colors = gradientColor
             viewHolder.paintItem.updateColor()
 

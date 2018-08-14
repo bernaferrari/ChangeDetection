@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.detailsImage
+package com.bernaferrari.changedetection.detailsimage
 
 import android.support.v7.widget.RecyclerView
 import android.view.Gravity
@@ -8,7 +8,7 @@ import android.widget.FrameLayout
 import com.bernaferrari.changedetection.Injector
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.detailsText.TextFragment
+import com.bernaferrari.changedetection.detailstext.TextFragment
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.util.GlideRequests
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions

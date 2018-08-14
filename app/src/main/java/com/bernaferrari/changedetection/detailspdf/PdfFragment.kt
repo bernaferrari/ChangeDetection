@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.detailsPdf
+package com.bernaferrari.changedetection.detailspdf
 
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
@@ -29,7 +29,7 @@ import com.bernaferrari.changedetection.Injector
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ViewModelFactory
 import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.detailsText.TextFragment
+import com.bernaferrari.changedetection.detailstext.TextFragment
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.RowItem
 import com.bernaferrari.changedetection.util.VisibilityHelper

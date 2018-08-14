@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.detailsImage
+package com.bernaferrari.changedetection.detailsimage
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
