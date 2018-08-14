@@ -23,9 +23,9 @@ import android.arch.lifecycle.ViewModelProvider
 import android.support.annotation.VisibleForTesting
 import com.bernaferrari.changedetection.data.source.SitesRepository
 import com.bernaferrari.changedetection.data.source.SnapsRepository
-import com.bernaferrari.changedetection.detailsImage.ImageViewModel
-import com.bernaferrari.changedetection.detailsPdf.PdfViewModel
-import com.bernaferrari.changedetection.detailsText.TextViewModel
+import com.bernaferrari.changedetection.detailsimage.ImageViewModel
+import com.bernaferrari.changedetection.detailspdf.PdfViewModel
+import com.bernaferrari.changedetection.detailstext.TextViewModel
 
 /**
  * A creator is used to inject the product ID into the ViewModel

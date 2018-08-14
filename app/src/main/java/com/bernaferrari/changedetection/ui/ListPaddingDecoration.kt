@@ -12,13 +12,13 @@ import android.view.View
  */
 class ListPaddingDecoration(context: Context) : RecyclerView.ItemDecoration() {
     private val mPadding: Int
-    private val PADDING_IN_DIPS = 16
+    private val paddingInDips = 16
 
     init {
         val metrics = context.resources.displayMetrics
         mPadding = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
-            PADDING_IN_DIPS.toFloat(),
+            paddingInDips.toFloat(),
             metrics
         ).toInt()
     }

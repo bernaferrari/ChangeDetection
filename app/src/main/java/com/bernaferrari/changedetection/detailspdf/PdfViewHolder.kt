@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.detailsPdf
+package com.bernaferrari.changedetection.detailspdf
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -11,7 +11,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.detailsText.TextFragment
+import com.bernaferrari.changedetection.detailstext.TextFragment
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import kotlinx.android.synthetic.main.diff_image_item_paging.view.*
 import java.io.File
