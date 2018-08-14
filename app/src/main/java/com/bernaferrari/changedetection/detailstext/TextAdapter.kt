@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.detailsText
+package com.bernaferrari.changedetection.detailstext
 
 import android.arch.paging.PagedListAdapter
 import android.support.v7.util.DiffUtil
@@ -25,7 +25,7 @@ class TextAdapter(val callback: TextFragment.Companion.RecyclerViewItemListener)
     }
 
     override fun onBindViewHolder(holder: TextViewHolder, position: Int) {
-        holder.bindTo(getItem(position), colorSelected.getOrDefault(position, ItemSelected.NONE))
+        holder.bindTo(getItem(position), colorSelected[position] ?: ItemSelected.NONE)
     }
 
     fun getItemFromAdapter(position: Int): Snap? {
