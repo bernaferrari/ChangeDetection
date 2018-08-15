@@ -34,6 +34,47 @@ object WorkerHelper {
         )
     }
 
+    internal fun customFetchFromServer(item: Site): Triple<String, ByteArray, String> {
+        val client = OkHttpClient()
+
+        return try {
+            val request = Request.Builder()
+                .url(item.url)
+                .build()
+
+            val response = client.newCall(request).execute()
+            Logger.d("isSuccessful -> ${response.isSuccessful}")
+            Logger.d("header -> ${response.headers()}")
+
+            val contentTypeAndCharset = response.headers().get("content-type") ?: ""
+
+            val bytes = if (contentTypeAndCharset.contains("text")) {
+                response.body()!!.string()
+                    .toByteArray() // VERY inefficient solution for this problem:
+                // https://stackoverflow.com/questions/50788229/how-to-convert-response-body-from-bytearray-to-string-without-using-okhttp-owns
+            } else {
+                response.body()!!.bytes()
+            }
+
+            Triple(contentTypeAndCharset, bytes, "")
+        } catch (e: UnknownHostException) {
+            // When internet connection is not available OR website doesn't exist
+            Logger.e("UnknownHostException for ${item.url}")
+            Triple("", byteArrayOf(), e.localizedMessage)
+        } catch (e: IllegalArgumentException) {
+            // When input is "http://"
+            Logger.e("IllegalArgumentException for ${item.url}")
+            Triple("", byteArrayOf(), e.localizedMessage)
+        } catch (e: SocketTimeoutException) {
+            // When site is not available
+            Logger.e("SocketTimeoutException for ${item.url}")
+            Triple("", byteArrayOf(), e.localizedMessage)
+        } catch (e: Exception) {
+            Logger.e("New Exception for ${item.url}")
+            Triple("", byteArrayOf(), e.localizedMessage)
+        }
+    }
+
     fun fetchFromServer(item: Site): Pair<String, ByteArray> {
         val client = OkHttpClient()
 

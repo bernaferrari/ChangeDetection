@@ -425,8 +425,20 @@ class MainFragment : Fragment() {
 
         item.startSyncing()
         launch {
-            val strFetched = WorkerHelper.fetchFromServer(item.site)
-            launch(UI) { updateSiteAndSnap(strFetched.first, strFetched.second, item) }
+            val strFetched = WorkerHelper.customFetchFromServer(item.site)
+            launch(UI) {
+                if (strFetched.third.isNotBlank()) {
+                    Alerter.create(requireActivity()).setTitle("error").setText(strFetched.third)
+                        .setBackgroundDrawable(
+                            getGradientDrawable(item.site.colors.first, item.site.colors.second)
+                        )
+                        .setIcon(R.drawable.ic_notification)
+                        .show()
+                }
+
+
+                updateSiteAndSnap(strFetched.first, strFetched.second, item)
+            }
         }
     }
 
