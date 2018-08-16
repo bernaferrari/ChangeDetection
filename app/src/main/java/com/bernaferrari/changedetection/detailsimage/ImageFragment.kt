@@ -1,14 +1,12 @@
 package com.bernaferrari.changedetection.detailsimage
 
 import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.graphics.Point
 import android.os.Bundle
 import android.support.transition.AutoTransition
 import android.support.transition.TransitionManager
 import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentActivity
 import android.support.v4.app.ShareCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.FileProvider
@@ -99,7 +97,7 @@ class ImageFragment : Fragment(),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        model = obtainViewModel(requireActivity())
+        model = viewModelProvider(ViewModelFactory.getInstance(requireActivity().application))
 
         closecontent.setOnClickListener {
             Navigation.findNavController(view).navigateUp()
@@ -309,12 +307,6 @@ class ImageFragment : Fragment(),
                 model.removeSnap(snapId)
             }
             .show()
-    }
-
-    private fun obtainViewModel(activity: FragmentActivity): ImageViewModel {
-        // Use a Factory to inject dependencies into the ViewModel
-        val factory = ViewModelFactory.getInstance(activity.application)
-        return ViewModelProviders.of(activity, factory).get(ImageViewModel::class.java)
     }
 
     private fun updateUiFromState() {

@@ -1,7 +1,6 @@
 package com.bernaferrari.changedetection.detailspdf
 
 import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Point
@@ -11,7 +10,6 @@ import android.os.ParcelFileDescriptor
 import android.support.transition.AutoTransition
 import android.support.transition.TransitionManager
 import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentActivity
 import android.support.v4.app.ShareCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.FileProvider
@@ -116,7 +114,7 @@ class PdfFragment : Fragment(),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        model = obtainViewModel(requireActivity())
+        model = viewModelProvider(ViewModelFactory.getInstance(requireActivity().application))
 
         closecontent.setOnClickListener {
             Navigation.findNavController(view).navigateUp()
@@ -447,11 +445,5 @@ class PdfFragment : Fragment(),
         mButtonNext.isEnabled = index + 1 < pageCount
 
         next_previous_bar.isVisible = mButtonPrevious.isEnabled || mButtonNext.isEnabled
-    }
-
-    private fun obtainViewModel(activity: FragmentActivity): PdfViewModel {
-        // Use a Factory to inject dependencies into the ViewModel
-        val factory = ViewModelFactory.getInstance(activity.application)
-        return ViewModelProviders.of(activity, factory).get(PdfViewModel::class.java)
     }
 }
