@@ -2,7 +2,6 @@ package com.bernaferrari.changedetection
 
 import android.app.Activity
 import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -11,7 +10,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
 import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
@@ -33,6 +31,7 @@ import com.bernaferrari.changedetection.data.SiteAndLastSnap
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.findCharset
 import com.bernaferrari.changedetection.extensions.isValidUrl
+import com.bernaferrari.changedetection.extensions.viewModelProvider
 import com.bernaferrari.changedetection.forms.FormInputText
 import com.bernaferrari.changedetection.forms.Forms
 import com.bernaferrari.changedetection.groupie.*
@@ -74,7 +73,7 @@ class MainFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        mViewModel = obtainViewModel(requireActivity())
+        mViewModel = viewModelProvider(ViewModelFactory.getInstance(requireActivity().application))
         val groupAdapter = GroupAdapter<ViewHolder>()
 
         // Clear it up, just in case of rotation.
@@ -463,10 +462,13 @@ class MainFragment : Fragment() {
 
             // Only show this toast when there was a change, which means, not on the first sync.
             if (item.lastSnap != null && activity != null) {
-                Alerter.create(requireActivity()).setTitle(
-                    getString(
-                        R.string.was_updated,
-                    newSite.title?.takeIf { it.isNotBlank() } ?: newSite.url))
+                Alerter.create(requireActivity())
+                    .setTitle(
+                        getString(
+                            R.string.was_updated,
+                            newSite.title?.takeIf { it.isNotBlank() } ?: newSite.url
+                        )
+                    )
                     .setBackgroundDrawable(
                         getGradientDrawable(newSite.colors.first, newSite.colors.second)
                     )
@@ -543,11 +545,7 @@ class MainFragment : Fragment() {
                 requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
                         ?: return ""
 
-            if (clipboard.primaryClip == null) {
-                return ""
-            }
-
-            val clipDataItem = clipboard.primaryClip.getItemAt(0)
+            val clipDataItem = clipboard.primaryClip?.getItemAt(0) ?: return ""
             val pasteData = clipDataItem.text?.toString() ?: ""
 
             if (pasteData.isNotBlank() && pasteData.isValidUrl()) {
@@ -735,12 +733,6 @@ class MainFragment : Fragment() {
             return true
         }
         return false
-    }
-
-    private fun obtainViewModel(activity: FragmentActivity): MainViewModel {
-        // Use a Factory to inject dependencies into the ViewModel
-        val factory = ViewModelFactory.getInstance(activity.application)
-        return ViewModelProviders.of(activity, factory).get(MainViewModel::class.java)
     }
 }
 
