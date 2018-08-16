@@ -1,9 +1,13 @@
 package com.bernaferrari.changedetection.extensions
 
+import android.arch.lifecycle.ViewModel
+import android.arch.lifecycle.ViewModelProvider
+import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.res.Resources
 import android.support.annotation.StringRes
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat
+import android.support.v4.app.Fragment
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.widget.ImageView
@@ -56,3 +60,13 @@ internal fun RecyclerView.scrollToIndexWithMargins(
 internal fun Int.toDp(resources: Resources): Int {
     return (resources.displayMetrics.density * this).toInt()
 }
+
+/**
+ * For Fragments, allows declarations like
+ * ```
+ * val myViewModel = viewModelProvider(myViewModelFactory)
+ * ```
+ */
+inline fun <reified VM : ViewModel> Fragment.viewModelProvider(
+    provider: ViewModelProvider.Factory
+) = ViewModelProviders.of(this, provider).get(VM::class.java)

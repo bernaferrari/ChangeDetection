@@ -2,7 +2,6 @@ package com.bernaferrari.changedetection.detailstext
 
 import android.annotation.TargetApi
 import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -13,7 +12,6 @@ import android.support.design.widget.BottomSheetDialog
 import android.support.transition.AutoTransition
 import android.support.transition.TransitionManager
 import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentActivity
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -30,10 +28,7 @@ import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ViewModelFactory
-import com.bernaferrari.changedetection.extensions.getPositionForAdapter
-import com.bernaferrari.changedetection.extensions.inc
-import com.bernaferrari.changedetection.extensions.replaceRelativePathWithAbsolute
-import com.bernaferrari.changedetection.extensions.setAndStartAnimation
+import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.DialogItemSimple
 import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.ui.CustomWebView
@@ -135,7 +130,7 @@ class TextFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        model = obtainViewModel(requireActivity())
+        model = viewModelProvider(ViewModelFactory.getInstance(requireActivity().application))
 
         closecontent.setOnClickListener { dismiss() }
         titlecontent.text = arguments?.getString(TITLE) ?: ""
@@ -435,13 +430,6 @@ class TextFragment : Fragment() {
 
     private fun dismiss() {
         view?.let { Navigation.findNavController(it).navigateUp() }
-    }
-
-    private fun obtainViewModel(activity: FragmentActivity): TextViewModel {
-        // Use a Factory to inject dependencies into the ViewModel
-        val factory =
-            ViewModelFactory.getInstance(activity.application)
-        return ViewModelProviders.of(activity, factory).get(TextViewModel::class.java)
     }
 
     override fun onDestroy() {
