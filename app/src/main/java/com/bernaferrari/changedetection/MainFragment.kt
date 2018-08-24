@@ -451,10 +451,10 @@ class MainFragment : Fragment() {
             contentSize = content.size
         )
 
-        mViewModel.saveWebsite(snap, content).observe(this, Observer {
+        mViewModel.saveWebsite(snap, content).observe(this, Observer { isSuccess ->
             item.update(newSite)
 
-            if (it != true) {
+            if (isSuccess != true) {
                 return@Observer
             }
 
@@ -475,7 +475,7 @@ class MainFragment : Fragment() {
                     .setIcon(R.drawable.ic_notification)
                     .show()
                     .also { alert ->
-                        alert.setOnClickListener {
+                        alert?.setOnClickListener {
                             openItem(item)
                             alert.hide()
                         }

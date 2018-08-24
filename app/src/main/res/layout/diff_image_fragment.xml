@@ -96,7 +96,6 @@
 
     </LinearLayout>
 
-
     <LinearLayout
         android:id="@+id/drawerlayout"
         android:layout_width="match_parent"

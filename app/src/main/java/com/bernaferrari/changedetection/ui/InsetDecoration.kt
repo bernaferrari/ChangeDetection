@@ -26,11 +26,11 @@ class InsetDecoration(
         paint.strokeWidth = height.toFloat()
     }
 
-    override fun onDrawOver(canvas: Canvas, parent: RecyclerView, state: RecyclerView.State?) {
+    override fun onDrawOver(canvas: Canvas, parent: RecyclerView, state: RecyclerView.State) {
         val childCount = parent.childCount
         if (childCount < 2) return
 
-        val lm = parent.layoutManager
+        val lm = parent.layoutManager ?: return
         val lines = FloatArray(childCount * 4)
 
         for (i in 0 until childCount) {

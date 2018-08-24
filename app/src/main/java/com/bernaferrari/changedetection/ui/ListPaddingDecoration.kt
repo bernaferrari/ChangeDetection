@@ -27,7 +27,7 @@ class ListPaddingDecoration(context: Context) : RecyclerView.ItemDecoration() {
         outRect: Rect,
         view: View,
         parent: RecyclerView,
-        state: RecyclerView.State?
+        state: RecyclerView.State
     ) {
         val itemPosition = parent.getChildAdapterPosition(view)
         if (itemPosition == RecyclerView.NO_POSITION) {
