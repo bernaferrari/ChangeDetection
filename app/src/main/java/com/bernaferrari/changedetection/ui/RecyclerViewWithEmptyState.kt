@@ -42,7 +42,7 @@ class RecyclerViewWithEmptyState @JvmOverloads constructor(
         if (emptyLayout == null) return
 
         if (adapter != null) {
-            updateVisibility(adapter.itemCount != 0)
+            updateVisibility(adapter!!.itemCount != 0)
         } else {
             updateVisibility(false)
         }
