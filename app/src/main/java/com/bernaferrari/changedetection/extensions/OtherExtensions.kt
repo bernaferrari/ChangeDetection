@@ -12,25 +12,15 @@ import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.widget.ImageView
 import com.github.marlonlom.utilities.timeago.TimeAgo
-import com.github.marlonlom.utilities.timeago.TimeAgoMessages
-import java.util.*
 
-internal fun Long.convertTimestampToDate(): String {
-    val messages = TimeAgoMessages.Builder().withLocale(Locale.getDefault()).build()
-    return TimeAgo.using(this, messages)
-}
+internal fun Long.convertTimestampToDate(): String = TimeAgo.using(this)
 
 internal fun View.getText(@StringRes res: Int) = this.resources.getText(res)
 
 internal operator fun Boolean.inc() = !this
 
 internal fun ImageView.setAndStartAnimation(res: Int, context: Context) {
-    this.setImageDrawable(
-        AnimatedVectorDrawableCompat.create(
-            context,
-            res
-        )
-    )
+    this.setImageDrawable(AnimatedVectorDrawableCompat.create(context, res))
     (this.drawable as AnimatedVectorDrawableCompat).start()
 }
 
