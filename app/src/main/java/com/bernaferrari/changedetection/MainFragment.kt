@@ -62,7 +62,6 @@ class MainFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs())
     }
 
@@ -97,7 +96,7 @@ class MainFragment : Fragment() {
         }
 
         pullToRefresh.setOnRefreshListener {
-            sitesList.forEach(this@MainFragment::reloadEach)
+            sitesList.forEach(this::reloadEach)
             pullToRefresh.isRefreshing = false
         }
 
@@ -408,7 +407,7 @@ class MainFragment : Fragment() {
         // even if we navigate between the app, come back and this fragment's onCreate is called again,
         // the variable will not change.
         if (mViewModel.shouldSyncWhenAppOpen) {
-            sitesList.forEach(this@MainFragment::reloadEach)
+            sitesList.forEach(this::reloadEach)
             mViewModel.shouldSyncWhenAppOpen = false
         }
     }
@@ -574,7 +573,7 @@ class MainFragment : Fragment() {
 
         val errorOnLastSync = isInEditingMode && item?.site?.isSuccessful == false
 
-        val colorsList = GradientColors.getGradients()
+        val colorsList = GradientColors.gradients
 
         val selectedColor = item?.site?.colors ?: colorsList.first()
 

@@ -67,7 +67,7 @@ class ImageViewModel(
         private const val ENABLE_PLACEHOLDERS = true
     }
 
-    class UiState(private val callback: () -> Unit) {
+    internal class UiState(private val callback: () -> Unit) {
 
         private inner class BooleanProperty(initialValue: Boolean) :
             ObservableProperty<Boolean>(initialValue) {

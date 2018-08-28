@@ -130,8 +130,8 @@ class PdfFragment : Fragment(),
 
         mButtonNext.setOnClickListener { showPage(currentIndex + 1) }
 
-        shareToggle.setOnClickListener {
-            adapter.getItemFromAdapter(previousAdapterPosition)?.let {
+        shareToggle.setOnClickListener { _ ->
+            adapter.getItemFromAdapter(previousAdapterPosition)?.also {
                 shareItem(it)
             }
         }
@@ -218,16 +218,16 @@ class PdfFragment : Fragment(),
         // this is needed since getSnapsFiltered retrieves a liveData from Room to be observed
         launch {
             model.getAllSnapsPagedForId(siteId, "%pdf")
-                .observe(this@PdfFragment, Observer(adapter::submitList))
+                .observe(requireActivity(), Observer(adapter::submitList))
 
             val liveData = model.getSnapsFiltered(siteId, "%pdf")
             launch(UI) {
-                liveData.observe(this@PdfFragment, Observer {
+                liveData.observe(requireActivity(), Observer { filtered ->
                     val isItemsEmpty = items.isEmpty()
                     items.clear()
 
-                    if (it != null) {
-                        it.mapTo(items) { RowItem(it) }
+                    if (filtered != null) {
+                        filtered.mapTo(items) { RowItem(it) }
                         section.update(items)
 
                         // Since selectItem is being set at onCurrentItemChanged, and this code is ran async,
@@ -327,12 +327,6 @@ class PdfFragment : Fragment(),
         return true
     }
 
-
-    /**
-     * Shows the specified page of PDF to the screen.
-     *
-     * @param index The page index.
-     */
     private fun showPage(index: Int) {
 
         currentIndex = index

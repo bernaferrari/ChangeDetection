@@ -26,18 +26,18 @@ class MainViewModel(
     private val mSitesRepository: SitesRepository
 ) : AndroidViewModel(context) {
 
-    var shouldSyncWhenAppOpen = true
+    internal var shouldSyncWhenAppOpen = true
 
-    fun getOutputStatus(): LiveData<List<WorkStatus>> {
+    internal fun getOutputStatus(): LiveData<List<WorkStatus>> {
         return WorkManager.getInstance().getStatusesForUniqueWork(WorkerHelper.UNIQUEWORK)
     }
 
-    fun removeSite(site: Site) = launchSilent {
+    internal fun removeSite(site: Site) = launchSilent {
         mSnapsRepository.deleteAllSnaps(site.id)
         mSitesRepository.deleteSite(site.id)
     }
 
-    fun pruneSite(siteId: String) = launchSilent {
+    internal fun pruneSite(siteId: String) = launchSilent {
         mSnapsRepository.pruneSnaps(siteId)
     }
 
@@ -79,15 +79,15 @@ class MainViewModel(
         mSitesRepository.updateSite(site)
     }
 
-    var items = MutableLiveData<MutableList<SiteAndLastSnap>>()
+    internal var items = MutableLiveData<MutableList<SiteAndLastSnap>>()
 
-    fun loadSites(): MutableLiveData<MutableList<SiteAndLastSnap>> {
+    internal fun loadSites(): MutableLiveData<MutableList<SiteAndLastSnap>> {
         items = MutableLiveData()
         updateItems()
         return items
     }
 
-    fun updateItems() = launchSilent {
+    internal fun updateItems() = launchSilent {
 
         mutableListOf<SiteAndLastSnap>().also { list ->
             mSitesRepository.getSites().mapTo(list) { SiteAndLastSnap(it, getLastSnap(it.id)) }

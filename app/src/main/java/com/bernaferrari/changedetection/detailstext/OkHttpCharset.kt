@@ -2,6 +2,10 @@ package com.bernaferrari.changedetection.detailstext
 
 import java.nio.charset.Charset
 
+/**
+ * Helps retrieving the correct charset.
+ * Adapted from OkHttp.
+ */
 object OkHttpCharset {
 
     private val UTF_8_BOM = decodeHex("efbbbf")

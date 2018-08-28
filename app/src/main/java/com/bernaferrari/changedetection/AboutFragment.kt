@@ -120,10 +120,12 @@ class AboutFragment : MaterialAboutFragment() {
                 .build()
         )
 
+        val email = "bernaferrari2@gmail.com"
+
         author.addItem(
             MaterialAboutActionItem.Builder()
                 .text(R.string.email)
-                .subText("bernaferrari2@gmail.com")
+                .subText(email)
                 .icon(
                     IconicsDrawable(c)
                         .icon(CommunityMaterial.Icon.cmd_email)
@@ -133,7 +135,7 @@ class AboutFragment : MaterialAboutFragment() {
                 .setOnClickAction(
                     ConvenienceBuilder.createEmailOnClickAction(
                         c,
-                        "bernaferrari2@gmail.com",
+                        email,
                         getString(R.string.email_subject)
                     )
                 )
@@ -163,7 +165,7 @@ class AboutFragment : MaterialAboutFragment() {
         otherCardBuilder.addItem(
             MaterialAboutActionItem.Builder()
                 .text(R.string.bugs)
-                .subText("bernaferrari2@gmail.com")
+                .subText(email)
                 .icon(
                     IconicsDrawable(c)
                         .icon(CommunityMaterial.Icon.cmd_bug)
@@ -173,7 +175,7 @@ class AboutFragment : MaterialAboutFragment() {
                 .setOnClickAction(
                     ConvenienceBuilder.createEmailOnClickAction(
                         c,
-                        "bernaferrari2@gmail.com",
+                        email,
                         getString(R.string.email_subject)
                     )
                 )
