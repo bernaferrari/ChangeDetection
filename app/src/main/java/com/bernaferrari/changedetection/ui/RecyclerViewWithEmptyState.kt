@@ -52,6 +52,9 @@ class RecyclerViewWithEmptyState @JvmOverloads constructor(
         emptyLayout?.visibility = if (!showEmptyView) View.VISIBLE else View.GONE
     }
 
+    /**
+     * Sets the emptyView.
+     */
     fun setEmptyView(emptyView: EmptyLayout) {
         this.emptyLayout = emptyView
         showEmptyView()

@@ -110,10 +110,8 @@ class ImageFragment : Fragment(),
 
         menucontent.setOnClickListener { view.drawer.openDrawer(GravityCompat.END) }
 
-        shareToggle.setOnClickListener {
-            val item =
-                adapter.getItemFromAdapter(previousAdapterPosition) ?: return@setOnClickListener
-            shareItem(item)
+        shareToggle.setOnClickListener { _ ->
+            adapter.getItemFromAdapter(previousAdapterPosition)?.also { shareItem(it) }
         }
 
         model.updateUiFromStateLiveData.observe(this, Observer {

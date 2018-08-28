@@ -11,6 +11,9 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
+/**
+ * Helps to deal with Work Manager.
+ */
 object WorkerHelper {
 
     const val UNIQUEWORK = "work"
@@ -49,11 +52,11 @@ object WorkerHelper {
             val contentTypeAndCharset = response.headers().get("content-type") ?: ""
 
             val bytes = if (contentTypeAndCharset.contains("text")) {
-                response.body()!!.string()
-                    .toByteArray() // VERY inefficient solution for this problem:
+                response.body()?.string()?.toByteArray() ?: throw NullPointerException()
+                // VERY inefficient solution for this problem:
                 // https://stackoverflow.com/questions/50788229/how-to-convert-response-body-from-bytearray-to-string-without-using-okhttp-owns
             } else {
-                response.body()!!.bytes()
+                response.body()?.bytes() ?: throw NullPointerException()
             }
 
             Pair(contentTypeAndCharset, bytes)

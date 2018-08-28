@@ -10,6 +10,9 @@ import com.danielstone.materialaboutlibrary.util.OpenSourceLicense
 import com.mikepenz.google_material_typeface_library.GoogleMaterial
 import com.mikepenz.iconics.IconicsDrawable
 
+/**
+ * Fragment which will display all app licenses.
+ */
 class AboutLicenseFragment : MaterialAboutFragment() {
 
     override fun getMaterialAboutList(activityContext: Context): MaterialAboutList {

@@ -311,9 +311,9 @@ class MainCardItem(
     }
 
     private fun startAndReloadAnim(imageView: ImageView) {
-        (imageView.drawable as Animatable).start()
-        (imageView.drawable as Animatable2Compat).onAnimationEnd {
-            if (isReloading) (imageView.drawable as Animatable).start()
+        (imageView.drawable as? Animatable)?.start()
+        (imageView.drawable as? Animatable2Compat)?.onAnimationEnd {
+            if (isReloading) (imageView.drawable as? Animatable)?.start()
         }
     }
 
