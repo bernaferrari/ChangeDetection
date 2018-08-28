@@ -9,6 +9,9 @@ import android.util.TypedValue
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 
+/**
+ * This will display round circles that can be selected
+ */
 class ColorPickerView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null,
     defStyleAttr: Int = 0, defStyleRes: Int = 0
@@ -27,6 +30,9 @@ class ColorPickerView @JvmOverloads constructor(
 
     var colors = Pair(Color.YELLOW, Color.RED)
 
+    /**
+     * Set the color for both paints to null and invalidate the view.
+     */
     fun updateColor() {
         // If the value is set here, it risks getting a solid color if width is blue.
         // This way, it will be refreshed on onDraw.
@@ -70,6 +76,9 @@ class ColorPickerView @JvmOverloads constructor(
         )
     }
 
+    /**
+     * Toggles between selection.
+     */
     fun reverseSelection() {
         if (this.isSelected) {
             deselectIfSelected(true)
@@ -78,6 +87,9 @@ class ColorPickerView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Selects if it is not selected.
+     */
     fun selectIfDeselected(animated: Boolean) {
         if (!this.isSelected) {
             startAnimation(ANIM_MIN_VALUE, ANIM_MAX_VALUE, animated)
@@ -85,6 +97,9 @@ class ColorPickerView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Deselects if it is selected.
+     */
     fun deselectIfSelected(animated: Boolean) {
         if (this.isSelected) {
             startAnimation(ANIM_MAX_VALUE, ANIM_MIN_VALUE, animated)
@@ -107,8 +122,7 @@ class ColorPickerView @JvmOverloads constructor(
 
     private fun updateListener(): ValueAnimator.AnimatorUpdateListener =
         ValueAnimator.AnimatorUpdateListener { valueAnimator2 ->
-            val valueAnimator = valueAnimator2?.animatedValue ?: throw NullPointerException()
-            this.progress = (valueAnimator as Float).toFloat()
+            this.progress = valueAnimator2?.animatedValue as? Float ?: throw NullPointerException()
             this.invalidate()
         }
 

@@ -29,19 +29,19 @@ internal object StringUtils {
      * @param str
      * @return
      */
-    fun htmlEntites(str: String): String {
+    private fun htmlEntites(str: String): String {
         return str.replace("<", "&lt;").replace(">", "&gt;")
     }
 
-    fun normalize(str: String): String {
+    internal fun normalize(str: String): String {
         return htmlEntites(str).replace("\t", "    ")
     }
 
-    fun normalize(list: List<String>): List<String> {
+    internal fun normalize(list: List<String>): List<String> {
         return list.map { normalize(it) }
     }
 
-    fun wrapText(list: List<String>, columnWidth: Int): List<String> {
+    internal fun wrapText(list: List<String>, columnWidth: Int): List<String> {
         return list.map { line -> wrapText(line, columnWidth) }
     }
 
@@ -52,7 +52,7 @@ internal object StringUtils {
      * @param columnWidth the given column
      * @return the wrapped text
      */
-    fun wrapText(line: String, columnWidth: Int): String {
+    internal fun wrapText(line: String, columnWidth: Int): String {
         if (columnWidth < 0) {
             throw IllegalArgumentException("columnWidth may not be less 0")
         }
