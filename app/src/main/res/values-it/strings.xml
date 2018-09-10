@@ -1,0 +1,107 @@
+<resources>
+    <string name="app_name">Change Detection</string>
+
+    <string name="yes">Si</string>
+    <string name="no">No</string>
+
+    <string name="save">Salva</string>
+    <string name="cancel">Annulla</string>
+    <string name="close">Chiudi</string>
+
+    <string name="inputName">Digita il titolo</string>
+    <string name="inputUrl">Digita l\' url</string>
+    <string name="syncing">Sincronizzazione…</string>
+    <string name="success_copied">Copiato</string>
+    <string name="nothing_yet">ancora niente</string>
+
+    <string name="version">Versione</string>
+    <string name="licenses">Licenze</string>
+    <string name="rate">Valuta l\'app</string>
+
+    <string name="email">Inviami una mail</string>
+    <string name="help">Aiuto</string>
+    <string name="email_subject">Change Detection feedback</string>
+    <string name="github">Fork su GitHub</string>
+    <string name="bugs">Bugs? Domande? Feedback?</string>
+
+    <string name="remove">Rimuovi</string>
+    <string name="remove_more">Rimuovi…</string>
+
+    <string name="remove_all">Rimuovi tutto</string>
+    <string name="pruning">Conserva solo gli ultimi 5 oggetti</string>
+
+    <string name="edittitle">Modifica sito web</string>
+    <string name="editsubtitle">Modifica un sito web che viene monitorato</string>
+
+    <string name="addtitle">Nuovo sito web</string>
+    <string name="addsubtitle">Aggiungi un sito web da monitorare</string>
+
+    <string name="edit">Modifica</string>
+    <string name="open_in_browser">Apri nel browser</string>
+    <string name="sync_disable">Disattiva sincronizzazione</string>
+    <string name="sync_enable">Attiva sincronizzazione</string>
+
+    <string name="notification_disable">Disattiva notifiche</string>
+    <string name="notification_enable">Attiva notifiche</string>
+
+    <string name="reload">Ricarica</string>
+
+    <string name="error">ERRORE</string>
+    <string name="author">Autore</string>
+    <string name="icon_designer">Icon Designer (Famil Qasimov)</string>
+
+    <string name="less_than_two">Errore! Impossibile vedere la differenza con meno di due elementi.</string>
+    <string name="empty_please_select_two">Seleziona due elementi sotto\per confrontare le differenze</string>
+    <string name="empty_no_change_detected">Nessuna modifica rilevata tra queste due istantanee</string>
+
+    <string name="remove_this">Rimuovi %1s</string>
+    <string name="remove_content">Sei sicuro di voler rimuovere questo?</string>
+
+    <string name="are_you_sure">Sei sicuro di voler rimuovere %1s da %2s?</string>
+    <string name="missing_internet">Errore! Connessione Internet mancante</string>
+    <string name="was_updated">%1s è stato aggiornato!</string>
+
+    <string name="url">Url sitoweb</string>
+    <string name="title">Titolo</string>
+
+    <string name="wifi_on">Wifi attivo</string>
+    <string name="turn_on_background_sync_title">Attiva la sincronizzazione in background</string>
+    <string name="turn_on_background_sync_content">La sincronizzazione in background è disattivata. Ti piacerebbe attivarla? Puoi personalizzarla su Impostazioni</string>
+    <string name="background_sync">Sincronizzazione in background</string>
+    <string name="sync_interval">Intervallo sincronizzazione</string>
+
+    <string name="constraints">Costanti</string>
+    <string name="device_idle">Dispositivo inattivo</string>
+    <string name="charging">In carica</string>
+    <string name="batter_not_low">Batteria non scarica</string>
+
+    <string name="min">min</string>
+    <string name="hour">1 ora</string>
+    <string name="hours">ore</string>
+
+    <string name="original_plus_diffs">Originale + Cambiamenti</string>
+    <string name="open_revised_in_browser">Apri cambiamenti nel Browser</string>
+    <string name="open_original_in_browser">Apri originale nel Browser</string>
+
+    <string name="incorrect_url">URL errato</string>
+    <string name="no_websites_being_monitored">Nessun sito web monitorato</string>
+
+    <string name="control_bar_quality">Alta qualità</string>
+    <string name="share">Condividi</string>
+    <string name="no_changes_detected">Nessuna modifica rilevata</string>
+
+    <string name="next">AVANTI</string>
+    <string name="previous">PRECEDENTE</string>
+
+    <string name="last_change">Ultima Modifica</string>
+    <string name="last_sync">Ultima Sincronizzazione</string>
+
+    <plurals name="items">
+        <item quantity="one">%d elemento</item>
+        <item quantity="other">%d elementi</item>
+    </plurals>
+
+    <string name="change_detected_notification_with_title">%1s (%2s) è stato aggiornato!</string>
+    <string name="change_detected_notification_without_title">Cambiamento rilevato! (%1s)</string>
+
+</resources>
