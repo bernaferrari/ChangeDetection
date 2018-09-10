@@ -52,7 +52,7 @@
     <string name="icon_designer">Designer do Ícone (Famil Qasimov)</string>
 
     <string name="less_than_two">Erro! Não dá para calcular a diferença com menos de dois items.</string>
-    <string name="empty_please_select_two">Selecione dois items abaixo\npara comparar as diferenças</string>
+    <string name="empty_please_select_two">Selecione dois itens abaixo\para comparar as diferenças</string>
     <string name="empty_no_change_detected">Nenhuma mudança detectada entre esses dois items</string>
 
     <string name="remove_this">Remover %1s</string>
@@ -88,12 +88,6 @@
 
     <string name="incorrect_url">Link errado</string>
     <string name="no_websites_being_monitored">Nenhum site está sendo monitorado</string>
-
-    <string name="one_x">1x</string>
-    <string name="two_x">2x</string>
-    <string name="three_x">3x</string>
-    <string name="four_x">4x</string>
-    <string name="five_x">5x</string>
 
     <string name="control_bar_quality">Alta Qualidade</string>
     <string name="share">Compartilhar</string>

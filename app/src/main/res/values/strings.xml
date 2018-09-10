@@ -51,7 +51,7 @@
     <string name="icon_designer">Icon Designer (Famil Qasimov)</string>
 
     <string name="less_than_two">Error! Can\'t show the difference with less than two items.</string>
-    <string name="empty_please_select_two">Select two snapshots below\nto compare the differences</string>
+    <string name="empty_please_select_two">Select two snapshots below\to compare the differences</string>
     <string name="empty_no_change_detected">No change detected between these two snapshots</string>
 
     <string name="remove_this">Remove %1s</string>
@@ -86,11 +86,11 @@
     <string name="incorrect_url">Incorrect URL</string>
     <string name="no_websites_being_monitored">No websites are being monitored</string>
 
-    <string name="one_x">1x</string>
-    <string name="two_x">2x</string>
-    <string name="three_x">3x</string>
-    <string name="four_x">4x</string>
-    <string name="five_x">5x</string>
+    <string name="one_x" translatable="false">1x</string>
+    <string name="two_x" translatable="false">2x</string>
+    <string name="three_x" translatable="false">3x</string>
+    <string name="four_x" translatable="false">4x</string>
+    <string name="five_x" translatable="false">5x</string>
 
     <string name="control_bar_quality">High Quality</string>
     <string name="share">Share</string>
