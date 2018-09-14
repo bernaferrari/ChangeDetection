@@ -17,8 +17,9 @@
 
     <string name="version">Versione</string>
     <string name="licenses">Licenze</string>
-    <string name="rate">Valuta l\' app</string>
 
+    <string name="rate">Valuta l\' app</string>
+  
     <string name="email">Inviami una mail</string>
     <string name="help">Aiuto</string>
     <string name="email_subject">Change Detection feedback</string>
@@ -49,6 +50,7 @@
 
     <string name="error">ERRORE</string>
     <string name="author">Autore</string>
+  
     <string name="icon_designer">Icon Designer (Famil Qasimov)</string>
 
     <string name="less_than_two">Errore! Impossibile vedere la differenza con meno di due elementi.</string>
