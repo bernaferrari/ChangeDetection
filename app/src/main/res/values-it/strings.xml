@@ -51,7 +51,7 @@
     <string name="icon_designer">Icon Designer (Famil Qasimov)</string>
 
     <string name="less_than_two">Errore! Impossibile vedere la differenza con meno di due elementi.</string>
-    <string name="empty_please_select_two">Seleziona due elementi sotto\per confrontare le differenze</string>
+    <string name="empty_please_select_two">Seleziona due elementi sotto\nper confrontare le differenze</string>
     <string name="empty_no_change_detected">Nessuna modifica rilevata tra queste due istantanee</string>
 
     <string name="remove_this">Rimuovi %1s</string>

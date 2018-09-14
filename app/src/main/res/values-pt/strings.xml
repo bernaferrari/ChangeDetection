@@ -52,7 +52,7 @@
     <string name="icon_designer">Designer do Ícone (Famil Qasimov)</string>
 
     <string name="less_than_two">Erro! Não dá para calcular a diferença com menos de dois items.</string>
-    <string name="empty_please_select_two">Selecione dois itens abaixo\para comparar as diferenças</string>
+    <string name="empty_please_select_two">Selecione dois itens abaixo\npara comparar as diferenças</string>
     <string name="empty_no_change_detected">Nenhuma mudança detectada entre esses dois items</string>
 
     <string name="remove_this">Remover %1s</string>
