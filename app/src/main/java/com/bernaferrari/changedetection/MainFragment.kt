@@ -137,7 +137,7 @@ class MainFragment : Fragment() {
         }
 
         mViewModel.loadSites().observe(this, Observer(::updateList))
-        mViewModel.getOutputStatus().observe(this, Observer(::workOutput))
+        mViewModel.getOutputStatus.observe(this, Observer(::workOutput))
     }
 
 
