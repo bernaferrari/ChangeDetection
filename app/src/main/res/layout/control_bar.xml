@@ -38,6 +38,12 @@
                 app:src="@drawable/ic_share"
                 app:text="@string/share" />
 
+            <com.bernaferrari.changedetection.ui.ControlBarItemToggleView
+                android:id="@+id/openBrowserToggle"
+                style="@style/ControlBarItem"
+                app:src="@drawable/ic_open_browser"
+                app:text="@string/open_in_browser" />
+
         </LinearLayout>
 
     </HorizontalScrollView>
