@@ -28,9 +28,8 @@ class MainViewModel(
 
     internal var shouldSyncWhenAppOpen = true
 
-    internal fun getOutputStatus(): LiveData<List<WorkStatus>> {
-        return WorkManager.getInstance().getStatusesForUniqueWork(WorkerHelper.UNIQUEWORK)
-    }
+    internal val getOutputStatus: LiveData<List<WorkStatus>>
+        get() = WorkManager.getInstance().getStatusesForUniqueWork(WorkerHelper.UNIQUEWORK)
 
     internal fun removeSite(site: Site) = launchSilent {
         mSnapsRepository.deleteAllSnaps(site.id)
