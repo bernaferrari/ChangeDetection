@@ -4,6 +4,7 @@ import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
+import android.content.Intent
 import android.content.res.Resources
 import android.support.annotation.StringRes
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat
@@ -11,6 +12,7 @@ import android.support.v4.app.Fragment
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.widget.ImageView
+import androidx.core.net.toUri
 import com.github.marlonlom.utilities.timeago.TimeAgo
 
 internal typealias ColorGroup = Pair<Int, Int>
@@ -62,3 +64,9 @@ internal fun Int.toDp(resources: Resources): Int {
 inline fun <reified VM : ViewModel> Fragment.viewModelProvider(
     provider: ViewModelProvider.Factory
 ) = ViewModelProviders.of(this, provider).get(VM::class.java)
+
+internal fun Context.openInBrowser(url: String?) {
+    if (url != null) {
+        this.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+    }
+}

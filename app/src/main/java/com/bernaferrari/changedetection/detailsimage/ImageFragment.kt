@@ -114,6 +114,10 @@ class ImageFragment : Fragment(),
             adapter.getItemFromAdapter(previousAdapterPosition)?.also { shareItem(it) }
         }
 
+        openBrowserToggle.setOnClickListener {
+            requireContext().openInBrowser(arguments?.getString("URL"))
+        }
+
         model.updateUiFromStateLiveData.observe(this, Observer {
             // only update if onCurrentItemChanged was called already or if there was no difference
             // on visibility. When carousel is hidden, onCurrentItemChanged is not called.
