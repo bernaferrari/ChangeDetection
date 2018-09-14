@@ -136,6 +136,10 @@ class PdfFragment : Fragment(),
             }
         }
 
+        openBrowserToggle.setOnClickListener {
+            requireContext().openInBrowser(arguments?.getString("URL"))
+        }
+
         model.updateUiFromStateLiveData.observe(this, Observer {
             if (hasInitialPdfLoaded || model.uiState.visibility == carouselRecycler.isVisible) {
                 updateUiFromState()

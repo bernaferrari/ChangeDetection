@@ -5,7 +5,6 @@ import android.arch.lifecycle.Observer
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
@@ -21,7 +20,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
-import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.navigation.Navigation
@@ -132,7 +130,7 @@ class TextFragment : Fragment() {
         model = viewModelProvider(ViewModelFactory.getInstance(requireActivity().application))
 
         closecontent.setOnClickListener { dismiss() }
-        titlecontent.text = arguments?.getString(TITLE) ?: ""
+        titlecontent.text = arguments?.getString("TITLE") ?: ""
 
         elastic.addListener(object :
             ElasticDragDismissFrameLayout.ElasticDragDismissCallback() {
@@ -165,6 +163,9 @@ class TextFragment : Fragment() {
         showOriginalAndChanges.isActivated = model.changePlusOriginal
         uiState.showOriginalAndChanges = model.changePlusOriginal
         showOriginalAndChanges.setOnClickListener { uiState.showOriginalAndChanges++ }
+        openBrowserToggle.setOnClickListener {
+            requireContext().openInBrowser(arguments?.getString("URL"))
+        }
 
         // this is needed. If visibility is off and the fragment is reopened,
         // drawable will keep the drawable from                                                                                                                                                                                                                                                      last state (off) even thought it should be on.
@@ -192,7 +193,7 @@ class TextFragment : Fragment() {
             settings.isVisible = false
         }
 
-        val siteId = arguments?.getString(SITEID) ?: ""
+        val siteId = arguments?.getString("SITEID") ?: ""
 
         topRecycler.run {
             layoutManager = LinearLayoutManager(context)
@@ -302,24 +303,20 @@ class TextFragment : Fragment() {
         settings.run {
             setImageDrawable(
                 IconicsDrawable(context, CommunityMaterial.Icon.cmd_dots_vertical)
-                    .color(ContextCompat.getColor(requireContext(),
-                        R.color.dark_icon
-                    ))
-                    .color(ContextCompat.getColor(requireContext(),
-                        R.color.dark_icon
-                    ))
+                    .color(
+                        ContextCompat.getColor(
+                            requireContext(),
+                            R.color.dark_icon
+                        )
+                    )
+                    .color(
+                        ContextCompat.getColor(
+                            requireContext(),
+                            R.color.dark_icon
+                        )
+                    )
                     .sizeDp(18)
             )
-
-            setOnLongClickListener {
-                startActivity(
-                    Intent(
-                        Intent.ACTION_VIEW,
-                        (arguments?.getString(URL) ?: "http://").toUri()
-                    )
-                )
-                true
-            }
 
             setOnClickListener {
 
@@ -334,7 +331,8 @@ class TextFragment : Fragment() {
                 updating += DialogItemSimple(
                     getString(R.string.open_revised_in_browser),
                     IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference_ba).color(
-                        ContextCompat.getColor(context,
+                        ContextCompat.getColor(
+                            context,
                             R.color.md_green_500
                         )
                     ),
@@ -344,7 +342,8 @@ class TextFragment : Fragment() {
                 updating += DialogItemSimple(
                     getString(R.string.open_original_in_browser),
                     IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference_ab).color(
-                        ContextCompat.getColor(context,
+                        ContextCompat.getColor(
+                            context,
                             R.color.md_red_500
                         )
                     ),
@@ -409,7 +408,7 @@ class TextFragment : Fragment() {
             launch(UI) {
                 putDataOnWebView(
                     view,
-                    snapValue.replaceRelativePathWithAbsolute(arguments?.getString(URL) ?: "")
+                    snapValue.replaceRelativePathWithAbsolute(arguments?.getString("URL") ?: "")
                 )
             }
         }
@@ -437,10 +436,6 @@ class TextFragment : Fragment() {
     }
 
     companion object {
-        private val SITEID = "SITEID"
-        private val TITLE = "TITLE"
-        private val URL = "URL"
-
         interface RecyclerViewItemListener {
             fun onClickListener(item: RecyclerView.ViewHolder)
             fun onLongClickListener(item: RecyclerView.ViewHolder)

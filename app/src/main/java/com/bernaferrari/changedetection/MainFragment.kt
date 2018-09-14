@@ -4,9 +4,7 @@ import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import android.graphics.Color
-import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
 import android.support.design.widget.Snackbar
@@ -33,10 +31,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.SiteAndLastSnap
 import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.extensions.ColorGroup
-import com.bernaferrari.changedetection.extensions.findCharset
-import com.bernaferrari.changedetection.extensions.isValidUrl
-import com.bernaferrari.changedetection.extensions.viewModelProvider
+import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.forms.FormInputText
 import com.bernaferrari.changedetection.forms.Forms
 import com.bernaferrari.changedetection.groupie.*
@@ -400,7 +395,7 @@ class MainFragment : Fragment() {
                             item as? MainCardItem
                         )
                         "openInBrowser" -> {
-                            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(item.site.url)))
+                            requireContext().openInBrowser(item.site.url)
                         }
                         "isSyncEnabled" -> {
                             item.site.copy(isSyncEnabled = !item.site.isSyncEnabled).also {
