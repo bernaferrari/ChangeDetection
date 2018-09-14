@@ -13,6 +13,8 @@ import android.view.View
 import android.widget.ImageView
 import com.github.marlonlom.utilities.timeago.TimeAgo
 
+internal typealias ColorGroup = Pair<Int, Int>
+
 internal fun Long.convertTimestampToDate(): String = TimeAgo.using(this)
 
 internal fun View.getText(@StringRes res: Int) = this.resources.getText(res)

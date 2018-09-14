@@ -77,9 +77,7 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
 
         syncSettings += DialogItemSwitch(
             getString(R.string.wifi_on),
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_wifi).color(
-                color
-            ),
+            IconicsDrawable(context, CommunityMaterial.Icon.cmd_wifi).color(color),
             sharedPrefs.getBoolean(WorkerHelper.WIFI, false)
         ) {
             updateSharedPreferences(WorkerHelper.WIFI, it.isSwitchOn)
@@ -97,9 +95,7 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
 
         syncSettings += DialogItemSwitch(
             getString(R.string.batter_not_low),
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_battery_20).color(
-                color
-            ),
+            IconicsDrawable(context, CommunityMaterial.Icon.cmd_battery_20).color(color),
             sharedPrefs.getBoolean(WorkerHelper.BATTERYNOTLOW, false)
         ) {
             updateSharedPreferences(WorkerHelper.BATTERYNOTLOW, it.isSwitchOn)
@@ -108,9 +104,7 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
         if (Build.VERSION.SDK_INT >= 23) {
             syncSettings += DialogItemSwitch(
                 getString(R.string.device_idle),
-                IconicsDrawable(context, CommunityMaterial.Icon.cmd_sleep).color(
-                    color
-                ),
+                IconicsDrawable(context, CommunityMaterial.Icon.cmd_sleep).color(color),
                 sharedPrefs.getBoolean(WorkerHelper.IDLE, false)
             ) {
                 updateSharedPreferences(WorkerHelper.IDLE, it.isSwitchOn)
