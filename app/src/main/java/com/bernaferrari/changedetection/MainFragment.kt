@@ -9,6 +9,7 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
+import android.support.design.widget.Snackbar
 import android.support.transition.AutoTransition
 import android.support.transition.TransitionManager
 import android.support.v4.app.Fragment
@@ -49,7 +50,6 @@ import com.tapadoo.alerter.Alerter
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
-import es.dmoral.toasty.Toasty
 import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.main_fragment.*
@@ -812,7 +812,8 @@ class MainFragment : Fragment() {
     private fun isUrlWrong(url: String, listOfItems: MutableList<FormInputText>): Boolean {
         if (!url.isValidUrl()) {
             listOfItems.first { it.kind == Forms.URL }.shakeIt()
-            Toasty.error(requireContext(), getString(R.string.incorrect_url)).show()
+            Snackbar.make(parentLayout, getString(R.string.incorrect_url), Snackbar.LENGTH_LONG)
+                .show()
             return true
         }
         return false

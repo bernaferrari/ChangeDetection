@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bernaferrari.changedetection.diffs.algorithm;
+package com.bernaferrari.diffutils.diffs.algorithm;
 
-import com.bernaferrari.changedetection.diffs.patch.DeltaType;
+import com.bernaferrari.diffutils.diffs.patch.DeltaType;
 
 /**
  * @author toben

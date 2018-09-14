@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
  * #L%
  */
-package com.bernaferrari.changedetection.diffs.algorithm.myers;
+package com.bernaferrari.diffutils.diffs.algorithm.myers;
 
 /**
  * A node in a diffpath.

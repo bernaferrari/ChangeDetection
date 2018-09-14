@@ -9,6 +9,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
+import android.support.design.widget.Snackbar
 import android.support.transition.AutoTransition
 import android.support.transition.TransitionManager
 import android.support.v4.app.Fragment
@@ -20,7 +21,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
-import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
@@ -41,7 +41,6 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Item
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
-import es.dmoral.toasty.Toasty
 import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -282,10 +281,10 @@ class TextFragment : Fragment() {
                                 revisedId = bottomAdapter.getItemFromAdapter(0)?.snapId
                             )
                         } catch (e: Exception) {
-                            Toasty.error(
-                                requireContext(),
+                            Snackbar.make(
+                                elastic,
                                 getString(R.string.less_than_two),
-                                Toast.LENGTH_LONG
+                                Snackbar.LENGTH_LONG
                             ).show()
                             Navigation.findNavController(view).navigateUp()
                         }
@@ -421,7 +420,7 @@ class TextFragment : Fragment() {
         val clip = ClipData.newPlainText(context.getString(R.string.app_name), uri)
 
         clipboard.primaryClip = clip
-        Toasty.success(context, context.getString(R.string.success_copied)).show()
+        Snackbar.make(elastic, getString(R.string.success_copied), Snackbar.LENGTH_SHORT).show()
     }
 
     private fun putDataOnWebView(webView: WebView?, data: String) {
