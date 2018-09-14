@@ -17,16 +17,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
  * #L%
  */
-package com.bernaferrari.changedetection.diffs.algorithm;
+package com.bernaferrari.diffutils.diffs.algorithm;
 
-public class DiffException extends Exception {
+/**
+ * Thrown whenever the differencing engine cannot produce the differences between two revisions of ta text.
+ *
+ * @see MyersDiff
+ * @see difflib.DiffAlgorithm
+ */
+public class DifferentiationFailedException extends DiffException {
 
     private static final long serialVersionUID = 1L;
 
-    public DiffException() {
+    public DifferentiationFailedException() {
     }
 
-    public DiffException(String msg) {
+    public DifferentiationFailedException(String msg) {
         super(msg);
     }
 }

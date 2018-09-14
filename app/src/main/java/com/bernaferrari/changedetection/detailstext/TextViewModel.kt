@@ -7,13 +7,13 @@ import android.arch.paging.LivePagedListBuilder
 import android.arch.paging.PagedList
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SnapsRepository
-import com.bernaferrari.changedetection.diffs.text.DiffRowGenerator
 import com.bernaferrari.changedetection.extensions.getPositionForAdapter
 import com.bernaferrari.changedetection.extensions.removeClutterAndBeautifyHtmlIfNecessary
 import com.bernaferrari.changedetection.extensions.unescapeHtml
 import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.util.SingleLiveEvent
 import com.bernaferrari.changedetection.util.launchSilent
+import com.bernaferrari.diffutils.diffs.text.DiffRowGenerator
 import com.xwray.groupie.Section
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI

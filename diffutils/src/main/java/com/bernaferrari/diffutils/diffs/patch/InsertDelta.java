@@ -17,40 +17,35 @@ See the License for the specific language governing permissions and
 limitations under the License.
  * #L%
  */
-package com.bernaferrari.changedetection.diffs.patch;
+package com.bernaferrari.diffutils.diffs.patch;
 
 import java.util.List;
 
 /**
- * Describes the change-delta between original and revised texts.
+ * Describes the add-delta between original and revised texts.
  *
  * @param T The type of the compared elements in the 'lines'.
  * @author <a href="dm.naumenko@gmail.com">Dmitry Naumenko</a>
  */
-public final class ChangeDelta<T> extends Delta<T> {
+public final class InsertDelta<T> extends Delta<T> {
 
     /**
-     * Creates a change delta with the two given chunks.
+     * Creates an insert delta with the two given chunks.
      *
      * @param original The original chunk. Must not be {@code null}.
      * @param revised  The original chunk. Must not be {@code null}.
      */
-    public ChangeDelta(Chunk<T> original, Chunk<T> revised) {
-        super(DeltaType.CHANGE, original, revised);
+    public InsertDelta(Chunk<T> original, Chunk<T> revised) {
+        super(DeltaType.INSERT, original, revised);
     }
 
     @Override
     public void applyTo(List<T> target) throws PatchFailedException {
         verify(target);
-        int position = getOriginal().getPosition();
-        int size = getOriginal().size();
-        for (int i = 0; i < size; i++) {
-            target.remove(position);
-        }
-        int i = 0;
-        for (T line : getRevised().getLines()) {
-            target.add(position + i, line);
-            i++;
+        int position = this.getOriginal().getPosition();
+        List<T> lines = this.getRevised().getLines();
+        for (int i = 0; i < lines.size(); i++) {
+            target.add(position + i, lines.get(i));
         }
     }
 
@@ -61,16 +56,11 @@ public final class ChangeDelta<T> extends Delta<T> {
         for (int i = 0; i < size; i++) {
             target.remove(position);
         }
-        int i = 0;
-        for (T line : getOriginal().getLines()) {
-            target.add(position + i, line);
-            i++;
-        }
     }
 
     @Override
     public String toString() {
-        return "[ChangeDelta, position: " + getOriginal().getPosition() + ", lines: "
-                + getOriginal().getLines() + " to " + getRevised().getLines() + "]";
+        return "[InsertDelta, position: " + getOriginal().getPosition()
+                + ", lines: " + getRevised().getLines() + "]";
     }
 }

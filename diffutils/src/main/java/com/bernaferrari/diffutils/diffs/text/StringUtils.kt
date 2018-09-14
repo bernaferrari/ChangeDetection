@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
  * #L%
  */
-package com.bernaferrari.changedetection.diffs.text
+package com.bernaferrari.diffutils.diffs.text
 
 // Changes:
 // [May 2018] Converted to Kotlin

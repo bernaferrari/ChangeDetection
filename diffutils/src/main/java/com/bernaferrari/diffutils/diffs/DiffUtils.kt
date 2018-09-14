@@ -17,13 +17,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
  * #L%
  */
-package com.bernaferrari.changedetection.diffs
+package com.bernaferrari.diffutils.diffs
 
-import com.bernaferrari.changedetection.diffs.algorithm.DiffAlgorithm
-import com.bernaferrari.changedetection.diffs.algorithm.DiffException
-import com.bernaferrari.changedetection.diffs.algorithm.myers.MyersDiff
-import com.bernaferrari.changedetection.diffs.patch.Patch
-import com.bernaferrari.changedetection.diffs.patch.PatchFailedException
+import com.bernaferrari.diffutils.diffs.algorithm.DiffAlgorithm
+import com.bernaferrari.diffutils.diffs.algorithm.DiffException
+import com.bernaferrari.diffutils.diffs.algorithm.myers.MyersDiff
+import com.bernaferrari.diffutils.diffs.patch.Patch
+import com.bernaferrari.diffutils.diffs.patch.PatchFailedException
 import java.util.*
 
 /**

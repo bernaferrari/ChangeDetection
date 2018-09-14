@@ -111,11 +111,10 @@ Wifi is currently not a constraint from WorkManager, so I implemented it myself 
   * [Stetho][10] debug the database easily.
   * [ThreeTenABP][11] for dealing with time in a Java 8 way.
   * [timeago][12] makes it easy display relative dates (i.e. 1 day ago).
-  * [Toasty][13] show toasts in a colorful way.
-  * [RxJava][14] responsible for coordinating the reload button animation and updating the text on main screen cards periodically.
-  * [jsoup][15] cleaning up html files.
-  * [Dagger 2][16] dependency injection for sharedPreferences with application Context, provides singleton database instances.
-  * [Alerter][17] show beautiful notifications when some site was updated while the user is browsing the main fragment.
+  * [RxJava][13] responsible for coordinating the reload button animation and updating the text on main screen cards periodically.
+  * [jsoup][14] cleaning up html files.
+  * [Dagger 2][15] dependency injection for sharedPreferences with application Context, provides singleton database instances.
+  * [Alerter][16] show beautiful notifications when some site was updated while the user is browsing the main fragment.
 
 [1]: https://github.com/mikepenz/Android-Iconics
 [2]: https://developer.android.com/topic/libraries/architecture/
@@ -129,11 +128,10 @@ Wifi is currently not a constraint from WorkManager, so I implemented it myself 
 [10]: http://facebook.github.io/stetho/
 [11]: https://github.com/JakeWharton/ThreeTenABP
 [12]: https://github.com/marlonlom/timeago
-[13]: https://github.com/GrenderG/Toasty
-[14]: https://github.com/ReactiveX/RxJava
-[15]: https://jsoup.org
-[16]: https://github.com/google/dagger
-[17]: https://github.com/Tapadoo/Alerter
+[13]: https://github.com/ReactiveX/RxJava
+[14]: https://jsoup.org
+[15]: https://github.com/google/dagger
+[16]: https://github.com/Tapadoo/Alerter
 
 
 ### Reporting Issues

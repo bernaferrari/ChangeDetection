@@ -17,12 +17,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
  * #L%
  */
-package com.bernaferrari.changedetection.diffs.text
+package com.bernaferrari.diffutils.diffs.text
 
-import com.bernaferrari.changedetection.diffs.DiffUtils
-import com.bernaferrari.changedetection.diffs.algorithm.DiffException
-import com.bernaferrari.changedetection.diffs.patch.*
-import com.bernaferrari.changedetection.diffs.text.DiffRow.Tag
+import com.bernaferrari.diffutils.diffs.DiffUtils
+import com.bernaferrari.diffutils.diffs.algorithm.DiffException
+import com.bernaferrari.diffutils.diffs.patch.*
+import com.bernaferrari.diffutils.diffs.text.DiffRow.Tag
 import java.util.*
 import java.util.regex.Pattern
 

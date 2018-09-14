@@ -17,23 +17,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
  * #L%
  */
-package com.bernaferrari.changedetection.diffs.patch;
+package com.bernaferrari.diffutils.diffs.algorithm;
 
-import com.bernaferrari.changedetection.diffs.algorithm.DiffException;
-
-/**
- * Thrown whenever a delta cannot be applied as a patch to a given text.
- *
- * @author <a href="mailto:juanco@suigeneris.org">Juanco Anez</a>
- */
-public class PatchFailedException extends DiffException {
+public class DiffException extends Exception {
 
     private static final long serialVersionUID = 1L;
 
-    public PatchFailedException() {
+    public DiffException() {
     }
 
-    public PatchFailedException(String msg) {
+    public DiffException(String msg) {
         super(msg);
     }
 }
