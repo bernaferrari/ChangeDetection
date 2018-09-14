@@ -17,9 +17,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
  * #L%
  */
-package com.bernaferrari.changedetection.diffs.algorithm;
+package com.bernaferrari.diffutils.diffs.algorithm;
 
-import com.bernaferrari.changedetection.diffs.patch.Patch;
+import com.bernaferrari.diffutils.diffs.patch.Patch;
 
 import java.util.Arrays;
 import java.util.List;

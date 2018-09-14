@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bernaferrari.changedetection.diffs;
+package com.bernaferrari.diffutils.diffs;
 
-import com.bernaferrari.changedetection.diffs.patch.ChangeDelta;
-import com.bernaferrari.changedetection.diffs.patch.Chunk;
-import com.bernaferrari.changedetection.diffs.patch.Delta;
-import com.bernaferrari.changedetection.diffs.patch.Patch;
+import com.bernaferrari.diffutils.diffs.patch.ChangeDelta;
+import com.bernaferrari.diffutils.diffs.patch.Chunk;
+import com.bernaferrari.diffutils.diffs.patch.Delta;
+import com.bernaferrari.diffutils.diffs.patch.Patch;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
  * #L%
  */
-package com.bernaferrari.changedetection.diffs.patch;
+package com.bernaferrari.diffutils.diffs.patch;
 
 /**
  * Base class for all exceptions emanating from this package.

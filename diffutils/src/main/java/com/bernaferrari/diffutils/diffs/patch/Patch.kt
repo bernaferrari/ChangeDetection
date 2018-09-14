@@ -17,11 +17,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
  * #L%
  */
-package com.bernaferrari.changedetection.diffs.patch
+package com.bernaferrari.diffutils.diffs.patch
 
-import com.bernaferrari.changedetection.diffs.algorithm.Change
-import com.bernaferrari.changedetection.diffs.patch.DeltaType.DELETE
-import com.bernaferrari.changedetection.diffs.patch.DeltaType.INSERT
+import com.bernaferrari.diffutils.diffs.algorithm.Change
+import com.bernaferrari.diffutils.diffs.patch.DeltaType.DELETE
+import com.bernaferrari.diffutils.diffs.patch.DeltaType.INSERT
 import java.util.*
 
 /**

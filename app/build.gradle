@@ -22,20 +22,18 @@ android {
         applicationId "com.bernaferrari.changedetection"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 17
-        versionName "1.7"
+        versionCode 18
+        versionName "1.8"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
-        buildTypes {
-            release {
-                debuggable false
-                minifyEnabled true
-                shrinkResources true
-                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-                signingConfig signingConfigs.release
-            }
+        release {
+            debuggable false
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 
@@ -56,9 +54,8 @@ android {
 }
 
 dependencies {
-    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
+
+    implementation project(':diffutils')
 
     // RX
     implementation 'io.reactivex.rxjava2:rxjava:2.2.1'
@@ -107,7 +104,6 @@ dependencies {
 
     // UI
     implementation "io.karn:notify:1.1.0"
-    implementation 'com.github.GrenderG:Toasty:1.3.0'
     implementation 'com.tapadoo.android:alerter:3.0.0'
     implementation 'com.afollestad.material-dialogs:commons:0.9.6.0'
     implementation 'com.davemorrissey.labs:subsampling-scale-image-view:3.10.0'
