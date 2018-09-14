@@ -107,4 +107,6 @@
     <string name="change_detected_notification_with_title">%1s (%2s) foi atualizado!</string>
     <string name="change_detected_notification_without_title">Mudança detectada! (%1s)</string>
 
+    <string name="sort_by_name">Ordenar por nome</string>
+
 </resources>

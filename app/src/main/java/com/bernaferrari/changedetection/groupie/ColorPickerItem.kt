@@ -3,6 +3,7 @@ package com.bernaferrari.changedetection.groupie
 import android.content.res.Resources
 import android.view.ViewGroup.MarginLayoutParams
 import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.extensions.ColorGroup
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.colorpicker_item.*
@@ -17,7 +18,8 @@ import kotlinx.android.synthetic.main.colorpicker_item.*
 class ColorPickerItem(
     private val isFirstIndex: Boolean,
     var isSwitchOn: Boolean,
-    val gradientColor: Pair<Int, Int>,
+    val gradientColor: ColorGroup,
+    private val allowReselection: Boolean = false,
     private val listener: (ColorPickerItem) -> (Unit)
 ) : Item() {
 
@@ -27,8 +29,8 @@ class ColorPickerItem(
 
         viewHolder.containerView.setOnClickListener {
             // We don't want to allow deselection
-            if (!isSwitchOn) {
-                isSwitchOn = true
+            if (!isSwitchOn || allowReselection) {
+                isSwitchOn = !isSwitchOn
                 listener.invoke(this)
                 viewHolder.paintItem.reverseSelection()
             }

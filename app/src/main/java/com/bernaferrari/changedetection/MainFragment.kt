@@ -9,6 +9,8 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
+import android.support.transition.AutoTransition
+import android.support.transition.TransitionManager
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DividerItemDecoration
@@ -21,6 +23,7 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.core.content.edit
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.navigation.Navigation
 import androidx.work.State
 import androidx.work.WorkStatus
@@ -29,6 +32,7 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.SiteAndLastSnap
 import com.bernaferrari.changedetection.data.Snap
+import com.bernaferrari.changedetection.extensions.ColorGroup
 import com.bernaferrari.changedetection.extensions.findCharset
 import com.bernaferrari.changedetection.extensions.isValidUrl
 import com.bernaferrari.changedetection.extensions.viewModelProvider
@@ -46,6 +50,8 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
 import es.dmoral.toasty.Toasty
+import io.reactivex.Completable
+import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.main_fragment.*
 import kotlinx.android.synthetic.main.main_fragment.view.*
 import kotlinx.android.synthetic.main.state_layout.*
@@ -54,6 +60,7 @@ import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
+import java.util.concurrent.TimeUnit
 
 class MainFragment : Fragment() {
     private lateinit var mViewModel: MainViewModel
@@ -70,9 +77,15 @@ class MainFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? = inflater.inflate(R.layout.main_fragment, container, false)
 
+    private val transitionDelay = 125L
+    private val transition = AutoTransition().apply { duration = transitionDelay }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         mViewModel = viewModelProvider(ViewModelFactory.getInstance(requireActivity().application))
+
+        mViewModel.sortAlphabetically = Injector.get().sharedPrefs().getBoolean("sortByName", false)
+
         val groupAdapter = GroupAdapter<ViewHolder>()
 
         // Clear it up, just in case of rotation.
@@ -90,6 +103,72 @@ class MainFragment : Fragment() {
                 .navigate(R.id.action_mainFragment_to_aboutFragment)
         }
 
+        filter.setOnClickListener { _ ->
+
+            if (filterRecycler.adapter == null) {
+                filterRecycler.layoutManager = LinearLayoutManager(this.context)
+
+                val color = ContextCompat.getColor(requireActivity(), R.color.FontStrong)
+                var filteredColors = listOf<ColorGroup>()
+
+                // return original list if empty, or the filtered one
+                fun filterAndScroll() {
+                    sitesSection.update(filteredColors.takeIf { it.isEmpty() }?.let { sitesList }
+                            ?: sitesList.filter { filteredColors.contains(it.site.colors) })
+
+                    defaultRecycler.smoothScrollToPosition(0)
+                }
+
+                filterRecycler.adapter = GroupAdapter<ViewHolder>().apply {
+                    add(
+                        DialogItemSwitch(
+                            getString(R.string.sort_by_name),
+                            IconicsDrawable(context, CommunityMaterial.Icon.cmd_sort_alphabetical)
+                                .color(color),
+                            mViewModel.sortAlphabetically
+                        ) {
+                            mViewModel.sortAlphabetically = it.isSwitchOn
+                            sortList()
+                            filterAndScroll()
+                            Injector.get().sharedPrefs()
+                                .edit { putBoolean("sortByName", mViewModel.sortAlphabetically) }
+                        }
+                    )
+
+                    val availableColors =
+                        sitesList.asSequence().map { it.site.colors }.distinct().toList()
+
+                    add(
+                        ColorFilterRecyclerViewItem(availableColors) { pairsList ->
+                            filteredColors = pairsList
+                            filterAndScroll()
+                        }
+                    )
+                }
+            }
+
+            defaultRecycler.stopScroll()
+            TransitionManager.beginDelayedTransition(parentLayout, transition)
+            filterRecycler.isVisible = !filterRecycler.isVisible
+            filter.setImageDrawable(
+                ContextCompat.getDrawable(
+                    requireContext(),
+                    if (!filterRecycler.isVisible) R.drawable.ic_filter else R.drawable.ic_check
+                )
+            )
+
+            // need to do this on animation to avoid RecyclerView crashing when
+            // “scrapped or attached views may not be recycled”
+            filter.isEnabled = false
+            Completable.timer(
+                transitionDelay,
+                TimeUnit.MILLISECONDS,
+                AndroidSchedulers.mainThread()
+            ).subscribe {
+                filter.isEnabled = true
+            }
+        }
+
         fab.run {
             background = IconicsDrawable(requireActivity(), CommunityMaterial.Icon.cmd_plus)
             setOnClickListener { showCreateEditDialog(false, requireActivity()) }
@@ -99,7 +178,6 @@ class MainFragment : Fragment() {
             sitesList.forEach(this::reloadEach)
             pullToRefresh.isRefreshing = false
         }
-
 
         defaultRecycler.run {
             addItemDecoration(ListPaddingDecoration(this.context))
@@ -173,7 +251,6 @@ class MainFragment : Fragment() {
         val selectedType = item.lastSnap?.contentType
 
         withContext(UI) {
-
             bottomSheetAdapter.clear()
 
             when {
@@ -326,18 +403,18 @@ class MainFragment : Fragment() {
                             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(item.site.url)))
                         }
                         "isSyncEnabled" -> {
-                            item.site.copy(isSyncEnabled = !item.site.isSyncEnabled).run {
-                                mViewModel.updateSite(this)
-                                item.update(this)
-                                sort()
+                            item.site.copy(isSyncEnabled = !item.site.isSyncEnabled).also {
+                                mViewModel.updateSite(it)
+                                item.update(it)
+                                sortList()
                             }
                         }
                         "isNotificationEnabled" -> {
                             item.site.copy(isNotificationEnabled = !item.site.isNotificationEnabled)
-                                .run {
-                                    mViewModel.updateSite(this)
-                                    item.update(this)
-                                    sort()
+                                .also {
+                                    mViewModel.updateSite(it)
+                                    item.update(it)
+                                    sortList()
                                 }
                         }
                         "fetchFromServer" -> reload(item, true)
@@ -401,7 +478,7 @@ class MainFragment : Fragment() {
 
         sitesList.sortByDescending { it.lastSnap?.timestamp }
         sitesSection.update(sitesList)
-        sort()
+        sortList()
 
         // This will be used to automatically sync when app open. Since the variable is on ViewModel,
         // even if we navigate between the app, come back and this fragment's onCreate is called again,
@@ -410,6 +487,8 @@ class MainFragment : Fragment() {
             sitesList.forEach(this::reloadEach)
             mViewModel.shouldSyncWhenAppOpen = false
         }
+
+        if (sitesList.isNotEmpty()) filter.isVisible = true
     }
 
     private fun reloadEach(item: MainCardItem?) {
@@ -482,13 +561,17 @@ class MainFragment : Fragment() {
             }
 
             item.update(snap)
-            sort()
+            sortList()
         })
     }
 
-    private fun sort() {
-        // sort by active/inactive, then by timestamp of the last snapshot, then by item title, and if they are still the same, by the url
-        sitesList.sortWith(compareByDescending<MainCardItem> { it.site.isSyncEnabled }.thenByDescending { it.lastSnap?.timestamp }.thenBy { it.site.title }.thenBy { it.site.url })
+    private fun sortList() {
+        if (mViewModel.sortAlphabetically) {
+            sitesList.sortBy { it.site.title }
+        } else {
+            // sortByStatus by active/inactive, then by timestamp of the last snapshot, then by item title, and if they are still the same, by the url
+            sitesList.sortWith(compareByDescending<MainCardItem> { it.site.isSyncEnabled }.thenByDescending { it.lastSnap?.timestamp }.thenBy { it.site.title }.thenBy { it.site.url })
+        }
         sitesSection.update(sitesList)
     }
 
@@ -591,10 +674,11 @@ class MainFragment : Fragment() {
                 )
         }
 
-        val dialogItemColorPicker = ColorPickerRecyclerViewItem(selectedColor, colorsList) {
-            dialogItemTitle.gradientColors = it
-            dialogItemTitle.notifyChanged()
-        }
+        val dialogItemColorPicker =
+            ColorPickerRecyclerViewItem(selectedColor, GradientColors.gradients) {
+                dialogItemTitle.gradientColors = it
+                dialogItemTitle.notifyChanged()
+            }
 
         val materialDialog = MaterialDialog.Builder(activity)
             .customView(R.layout.recyclerview, false)
@@ -657,7 +741,7 @@ class MainFragment : Fragment() {
                     )
 
                     mViewModel.saveSite(site)
-                    // add and sort the card
+                    // add and sortByStatus the card
                     val newItem = MainCardItem(site, null, reloadCallback)
                     sitesList.add(newItem)
                     sitesSection.update(sitesList)

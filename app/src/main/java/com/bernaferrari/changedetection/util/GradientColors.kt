@@ -1,6 +1,7 @@
 package com.bernaferrari.changedetection.util
 
 import android.graphics.drawable.GradientDrawable
+import com.bernaferrari.changedetection.extensions.ColorGroup
 
 /**
  * Some gradient gradientColor are inspired from uiGradients:
@@ -18,7 +19,7 @@ import android.graphics.drawable.GradientDrawable
  */
 object GradientColors {
 
-    val gradients: List<Pair<Int, Int>> by lazy {
+    val gradients: List<ColorGroup> by lazy {
         listOf(
             // Light Blue A200 to Indigo A200
             Pair(0xff40C4FF.toInt(), 0xff536DFE.toInt()),
