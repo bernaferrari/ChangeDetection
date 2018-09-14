@@ -27,6 +27,7 @@ class MainViewModel(
 ) : AndroidViewModel(context) {
 
     internal var shouldSyncWhenAppOpen = true
+    internal var sortAlphabetically = false
 
     internal val getOutputStatus: LiveData<List<WorkStatus>>
         get() = WorkManager.getInstance().getStatusesForUniqueWork(WorkerHelper.UNIQUEWORK)

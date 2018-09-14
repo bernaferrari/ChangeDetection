@@ -1,6 +1,7 @@
 package com.bernaferrari.changedetection.groupie
 
 import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.extensions.ColorGroup
 import com.bernaferrari.changedetection.util.GradientColors
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
@@ -16,7 +17,7 @@ import kotlinx.android.synthetic.main.dialog_item_title.*
 class DialogItemTitle(
     val title: String,
     val subtitle: String,
-    var gradientColors: Pair<Int, Int>
+    var gradientColors: ColorGroup
 ) : Item() {
 
     override fun getLayout(): Int = R.layout.dialog_item_title

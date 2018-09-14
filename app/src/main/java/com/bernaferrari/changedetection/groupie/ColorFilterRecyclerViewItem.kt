@@ -17,30 +17,29 @@ import kotlinx.android.synthetic.main.recyclerview.*
  * @param gradientList the gradient list with all the color pairs
  * @param listener callback for transmitting back the results
  */
-class ColorPickerRecyclerViewItem(
-    private val currentColors: ColorGroup,
+class ColorFilterRecyclerViewItem(
     private val gradientList: List<ColorGroup>,
-    private val listener: (ColorGroup) -> (Unit)
+    private val listener: (List<ColorGroup>) -> (Unit)
 ) : Item() {
     override fun getLayout(): Int = R.layout.colorpicker_recyclerview
 
     override fun bind(viewHolder: ViewHolder, position: Int) {
+
         val selectorList = mutableListOf<ColorPickerItem>()
+
+        val listOfSelectedItems = mutableListOf<ColorGroup>()
 
         // Create each color picker item, checking for the first (because it needs extra margin)
         // and checking for the one which is selected (so it becomes selected)
         gradientList.mapIndexedTo(selectorList) { index, it ->
-
-            ColorPickerItem(index == 0, currentColors == it, it) { itemClicked ->
-
-                // When a value is selected, all others must be unselected.
-                selectorList.forEach { listItem ->
-                    if (listItem != itemClicked && listItem.isSwitchOn) {
-                        listItem.deselectAndNotify()
-                    }
+            ColorPickerItem(index == 0, false, it, true) { itemClicked ->
+                val elementIndex = listOfSelectedItems.indexOf(itemClicked.gradientColor)
+                if (elementIndex != -1) {
+                    listOfSelectedItems.removeAt(elementIndex)
+                } else {
+                    listOfSelectedItems += itemClicked.gradientColor
                 }
-
-                listener.invoke(itemClicked.gradientColor)
+                listener.invoke(listOfSelectedItems)
             }
         }
 
@@ -55,6 +54,7 @@ class ColorPickerRecyclerViewItem(
                     this.supportsChangeAnimations = false
                 }
             }
+
         }
     }
 }
