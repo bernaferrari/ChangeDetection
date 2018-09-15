@@ -9,4 +9,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.nav_frag)
     }
+
+    companion object {
+        const val SITEID = "SITEID"
+        const val TITLE = "TITLE"
+        const val TYPE = "TYPE"
+        const val URL = "URL"
+    }
 }

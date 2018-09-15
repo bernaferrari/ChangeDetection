@@ -59,8 +59,8 @@ import java.util.concurrent.TimeUnit
 
 class MainFragment : Fragment() {
     private lateinit var mViewModel: MainViewModel
-    private var sitesList = mutableListOf<MainCardItem>()
-    private var sitesSection = Section(sitesList)
+    private val sitesList = mutableListOf<MainCardItem>()
+    private val sitesSection = Section(sitesList)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -164,7 +164,7 @@ class MainFragment : Fragment() {
             }
         }
 
-        fab.run {
+        fab.apply {
             background = IconicsDrawable(requireActivity(), CommunityMaterial.Icon.cmd_plus)
             setOnClickListener { showCreateEditDialog(false, requireActivity()) }
         }
@@ -174,7 +174,7 @@ class MainFragment : Fragment() {
             pullToRefresh.isRefreshing = false
         }
 
-        defaultRecycler.run {
+        defaultRecycler.apply {
             addItemDecoration(ListPaddingDecoration(this.context))
             itemAnimator = this.itemAnimator.apply {
                 // From https://stackoverflow.com/a/33302517/4418073
@@ -187,7 +187,7 @@ class MainFragment : Fragment() {
             adapter = groupAdapter.apply {
                 // to be used when AndroidX becomes a reality and our top bar is replaced with a bottom bar.
                 // this.add(MarqueeItem("Change Detection"))
-                this.add(sitesSection)
+                add(sitesSection)
             }
 
             setEmptyView(view.stateLayout.apply {
@@ -281,7 +281,8 @@ class MainFragment : Fragment() {
                             ) { selected ->
                                 bottomSheet.dismiss()
                                 navigateTo(selected, item)
-                            })
+                            }
+                        )
                     }
                 }
             }
@@ -290,10 +291,10 @@ class MainFragment : Fragment() {
 
     private fun navigateTo(selectedType: String?, item: MainCardItem) {
         val bundle = bundleOf(
-            "SITEID" to item.site.id,
-            "TITLE" to item.site.title,
-            "URL" to item.site.url,
-            "TYPE" to selectedType
+            MainActivity.SITEID to item.site.id,
+            MainActivity.TITLE to item.site.title,
+            MainActivity.URL to item.site.url,
+            MainActivity.TYPE to selectedType
         )
 
         view?.let { view ->
@@ -453,14 +454,12 @@ class MainFragment : Fragment() {
             //Verifies if list is not empty and add values that are not there. Basically, makes a snap.
             mutable.forEach { siteAndLastSnap ->
                 // if item from new list is currently on the list, update it. Else, add.
-                sitesList.find { carditem -> carditem.site.id == siteAndLastSnap.site.id }.also {
+                sitesList.find { cardItem -> cardItem.site.id == siteAndLastSnap.site.id }.also {
                     if (it == null) {
-                        sitesList.add(
-                            MainCardItem(
-                                siteAndLastSnap.site,
-                                siteAndLastSnap.snap,
-                                reloadCallback
-                            )
+                        sitesList += MainCardItem(
+                            siteAndLastSnap.site,
+                            siteAndLastSnap.snap,
+                            reloadCallback
                         )
                     } else {
                         it.update(siteAndLastSnap.site, siteAndLastSnap.snap)
@@ -573,9 +572,10 @@ class MainFragment : Fragment() {
     private fun removeDialog(item: MainCardItem) {
 
         val customView = layoutInflater.inflate(R.layout.recyclerview, view?.parentLayout, false)
-        val bottomSheet = BottomSheetDialog(requireContext())
-        bottomSheet.setContentView(customView)
-        bottomSheet.show()
+        val bottomSheet = BottomSheetDialog(requireContext()).apply {
+            setContentView(customView)
+            show()
+        }
 
         val updating = mutableListOf<DialogItemSimple>()
         val color = ContextCompat.getColor(requireContext(), R.color.FontStrong)
@@ -592,22 +592,20 @@ class MainFragment : Fragment() {
             "all"
         )
 
-        customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.run {
+        customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.adapter =
+                GroupAdapter<ViewHolder>().apply {
+                    add(Section(updating))
 
-            adapter = GroupAdapter<ViewHolder>().apply {
-                add(Section(updating))
+                    setOnItemClickListener { dialogitem, _ ->
+                        if (dialogitem !is DialogItemSimple) return@setOnItemClickListener
 
-                setOnItemClickListener { dialogitem, _ ->
-                    if (dialogitem !is DialogItemSimple) return@setOnItemClickListener
-
-                    when (dialogitem.kind) {
-                        "pruning" -> mViewModel.pruneSite(item.site.id)
-                        "all" -> removeItem(item)
+                        when (dialogitem.kind) {
+                            "pruning" -> mViewModel.pruneSite(item.site.id)
+                            "all" -> removeItem(item)
+                        }
+                        bottomSheet.dismiss()
                     }
-                    bottomSheet.dismiss()
                 }
-            }
-        }
     }
 
     private fun removeItem(item: MainCardItem) {
@@ -617,22 +615,11 @@ class MainFragment : Fragment() {
     }
 
     private fun urlFromClipboardOrEmpty(isItemNull: Boolean): String {
-        return if (isItemNull) {
-            val clipboard =
-                requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
-                        ?: return ""
-
-            val clipDataItem = clipboard.primaryClip?.getItemAt(0) ?: return ""
-            val pasteData = clipDataItem.text?.toString() ?: ""
-
-            if (pasteData.isNotBlank() && pasteData.isValidUrl()) {
-                pasteData
-            } else {
-                ""
-            }
-        } else {
-            ""
-        }
+        return isItemNull.takeUnless { false }
+            .let { requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager }
+            ?.let { it.primaryClip?.getItemAt(0) }
+            ?.let { it.text?.toString() }
+            ?.let { if (it.isNotBlank() && it.isValidUrl()) it else "" } ?: ""
     }
 
     private fun showCreateEditDialog(
@@ -640,7 +627,6 @@ class MainFragment : Fragment() {
         activity: Activity,
         item: MainCardItem? = null
     ) {
-
         // Gets the clipboard
         val defaultUrl = urlFromClipboardOrEmpty(item == null)
 
@@ -678,7 +664,7 @@ class MainFragment : Fragment() {
         val materialDialog = MaterialDialog.Builder(activity)
             .customView(R.layout.recyclerview, false)
             .negativeText(R.string.cancel)
-            .positiveText("Save")
+            .positiveText(R.string.save)
             .autoDismiss(false) // we need this for wiggle/shake effect, else it would dismiss
             .positiveColor(Color.WHITE)
             .onNegative { dialog, _ -> dialog.dismiss() }
@@ -696,7 +682,7 @@ class MainFragment : Fragment() {
                         return@onPositive
                     }
 
-                    item.site.url.let { previousUrl ->
+                    item.site.url.also { previousUrl ->
 
                         val updatedSite = item.site.copy(
                             title = newTitle,
@@ -727,7 +713,6 @@ class MainFragment : Fragment() {
                         return@onPositive
                     }
 
-
                     val site = Site(
                         newTitle,
                         url,
@@ -738,7 +723,7 @@ class MainFragment : Fragment() {
                     mViewModel.saveSite(site)
                     // add and sortByStatus the card
                     val newItem = MainCardItem(site, null, reloadCallback)
-                    sitesList.add(newItem)
+                    sitesList += newItem
                     sitesSection.update(sitesList)
                     // Scroll down, so user can see there is a new item.
                     defaultRecycler.smoothScrollToPosition(sitesList.size - 1)

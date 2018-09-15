@@ -24,6 +24,7 @@ import androidx.core.view.isVisible
 import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.Injector
+import com.bernaferrari.changedetection.MainActivity
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ViewModelFactory
 import com.bernaferrari.changedetection.data.Snap
@@ -137,7 +138,7 @@ class PdfFragment : Fragment(),
         }
 
         openBrowserToggle.setOnClickListener {
-            requireContext().openInBrowser(arguments?.getString("URL"))
+            requireContext().openInBrowser(getStringFromArguments(MainActivity.URL))
         }
 
         model.updateUiFromStateLiveData.observe(this, Observer {
@@ -217,7 +218,7 @@ class PdfFragment : Fragment(),
             )
         }
 
-        val siteId = arguments?.getString("SITEID") ?: ""
+        val siteId = getStringFromArguments(MainActivity.SITEID)
 
         // this is needed since getSnapsFiltered retrieves a liveData from Room to be observed
         launch {
