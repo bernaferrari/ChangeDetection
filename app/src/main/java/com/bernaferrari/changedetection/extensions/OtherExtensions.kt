@@ -70,3 +70,6 @@ internal fun Context.openInBrowser(url: String?) {
         this.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
     }
 }
+
+internal fun Fragment.getStringFromArguments(key: String, default: String = ""): String =
+    arguments?.getString(key) ?: default

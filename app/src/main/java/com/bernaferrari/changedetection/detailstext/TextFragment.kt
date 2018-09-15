@@ -24,6 +24,7 @@ import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
+import com.bernaferrari.changedetection.MainActivity
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ViewModelFactory
 import com.bernaferrari.changedetection.extensions.*
@@ -72,9 +73,7 @@ class TextFragment : Fragment() {
         // locks the recyclerview and does not allow to scroll until transition happens, else
         // crashes will happen.
         topRecycler.stopScroll()
-        topRecycler.setOnTouchListener { _, _ ->
-            true
-        }
+        topRecycler.setOnTouchListener { _, _ -> true }
 
         bottomRecycler.isVisible = uiState.visibility
 
@@ -130,10 +129,9 @@ class TextFragment : Fragment() {
         model = viewModelProvider(ViewModelFactory.getInstance(requireActivity().application))
 
         closecontent.setOnClickListener { dismiss() }
-        titlecontent.text = arguments?.getString("TITLE") ?: ""
+        titlecontent.text = getStringFromArguments(MainActivity.TITLE)
 
-        elastic.addListener(object :
-            ElasticDragDismissFrameLayout.ElasticDragDismissCallback() {
+        elastic.addListener(object : ElasticDragDismissFrameLayout.ElasticDragDismissCallback() {
             override fun onDragDismissed() {
                 Navigation.findNavController(view).navigateUp()
             }
@@ -163,9 +161,12 @@ class TextFragment : Fragment() {
         showOriginalAndChanges.isActivated = model.changePlusOriginal
         uiState.showOriginalAndChanges = model.changePlusOriginal
         showOriginalAndChanges.setOnClickListener { uiState.showOriginalAndChanges++ }
+
         openBrowserToggle.setOnClickListener {
-            requireContext().openInBrowser(arguments?.getString("URL"))
+            requireContext().openInBrowser(getStringFromArguments(MainActivity.URL))
         }
+
+        closecontent.setOnClickListener { dismiss() }
 
         // this is needed. If visibility is off and the fragment is reopened,
         // drawable will keep the drawable from                                                                                                                                                                                                                                                      last state (off) even thought it should be on.
@@ -189,11 +190,10 @@ class TextFragment : Fragment() {
             )
         }
 
-        if (arguments?.getString("TYPE") ?: "" != "text/html") {
+        if (getStringFromArguments(MainActivity.TYPE) != "text/html") {
             settings.isVisible = false
         }
 
-        val siteId = arguments?.getString("SITEID") ?: ""
 
         topRecycler.run {
             layoutManager = LinearLayoutManager(context)
@@ -266,7 +266,11 @@ class TextFragment : Fragment() {
         var hasSetInitialColor = false
 
         launchSilent {
-            val liveData = model.getAllSnapsPagedForId(siteId, arguments?.getString("TYPE") ?: "%")
+
+            val liveData = model.getAllSnapsPagedForId(
+                getStringFromArguments(MainActivity.SITEID),
+                getStringFromArguments(MainActivity.TYPE, "%")
+            )
 
             launchSilent(UI) {
                 liveData.observe(this@TextFragment, Observer {
@@ -294,10 +298,6 @@ class TextFragment : Fragment() {
                     }
                 })
             }
-        }
-
-        closecontent.setOnClickListener {
-            dismiss()
         }
 
         settings.run {
@@ -365,9 +365,9 @@ class TextFragment : Fragment() {
                             .customView(R.layout.content_web, false)
                             .negativeText(R.string.close)
                             .build()
-                            .also {
-                                it.customView?.also {
-                                    it.webview.updateLayoutParams {
+                            .also { dialog ->
+                                dialog.customView?.also { view ->
+                                    view.webview.updateLayoutParams {
                                         this.height = resources.displayMetrics.heightPixels
                                         this.width = resources.displayMetrics.widthPixels
                                     }
@@ -408,7 +408,9 @@ class TextFragment : Fragment() {
             launch(UI) {
                 putDataOnWebView(
                     view,
-                    snapValue.replaceRelativePathWithAbsolute(arguments?.getString("URL") ?: "")
+                    snapValue.replaceRelativePathWithAbsolute(
+                        getStringFromArguments(MainActivity.URL)
+                    )
                 )
             }
         }
@@ -427,7 +429,7 @@ class TextFragment : Fragment() {
     }
 
     private fun dismiss() {
-        view?.let { Navigation.findNavController(it).navigateUp() }
+        view?.also { Navigation.findNavController(it).navigateUp() }
     }
 
     override fun onDestroy() {
@@ -442,7 +444,7 @@ class TextFragment : Fragment() {
         }
     }
 
-    private inner class UiState(private val callback: () -> Unit) {
+    private class UiState(private val callback: () -> Unit) {
 
         private inner class BooleanProperty(initialValue: Boolean) :
             ObservableProperty<Boolean>(initialValue) {
