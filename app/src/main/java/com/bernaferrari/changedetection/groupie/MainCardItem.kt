@@ -109,6 +109,8 @@ class MainCardItem(
             )
         )
 
+        holder.subtitleTextView.text = site.url
+
         bind(holder, position)
         bindMutable(holder)
     }
@@ -119,25 +121,20 @@ class MainCardItem(
         }
     }
 
-    override fun bind(viewHolder: ViewHolder, position: Int) {
+    override fun bind(holder: ViewHolder, position: Int) {
         val title = if (site.title.isNullOrBlank()) {
             site.url.replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)".toRegex(), "")
         } else {
             site.title ?: ""
         }
 
-        viewHolder.titleTextView.text = title
-        viewHolder.subtitleTextView.text = site.url
-    }
-
-    private fun bindMutable(holder: ViewHolder) {
-        val context = holder.containerView.context
+        holder.titleTextView.text = title
 
         setLastDiff(holder)
 
         (holder.reload.background as? GradientDrawable)?.setColor(
             ContextCompat.getColor(
-                context,
+                holder.containerView.context,
                 R.color.white
             )
         )
@@ -145,6 +142,10 @@ class MainCardItem(
         holder.reload.setOnClickListener {
             reloadCallback.invoke(this)
         }
+    }
+
+    private fun bindMutable(holder: ViewHolder) {
+        val context = holder.containerView.context
 
         when (status) {
             SYNC.LOADING -> {

@@ -58,11 +58,11 @@ dependencies {
     implementation project(':diffutils')
 
     // RX
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.2'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
 
     // Coroutines
-    def coroutines_version = "0.24.0"
+    def coroutines_version = "0.26.0"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
 
@@ -154,6 +154,6 @@ dependencies {
 
     // Others
     implementation 'com.jakewharton.threetenabp:threetenabp:1.1.0'
-    implementation 'com.github.marlonlom:timeago:4.0.0'
+    implementation 'com.github.marlonlom:timeago:4.0.1'
     testImplementation 'junit:junit:4.12'
 }

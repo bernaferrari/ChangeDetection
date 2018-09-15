@@ -13,8 +13,10 @@ import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.Result
 import com.bernaferrari.changedetection.data.source.SitesRepository
 import com.bernaferrari.changedetection.data.source.SnapsRepository
-import com.bernaferrari.changedetection.util.launchSilent
-import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.GlobalScope
+import kotlinx.coroutines.experimental.android.Main
+import kotlinx.coroutines.experimental.launch
 
 /**
  * Exposes the data to be used in the site list screen.
@@ -32,12 +34,12 @@ class MainViewModel(
     internal val getOutputStatus: LiveData<List<WorkStatus>>
         get() = WorkManager.getInstance().getStatusesForUniqueWork(WorkerHelper.UNIQUEWORK)
 
-    internal fun removeSite(site: Site) = launchSilent {
+    internal fun removeSite(site: Site) = GlobalScope.launch {
         mSnapsRepository.deleteAllSnaps(site.id)
         mSitesRepository.deleteSite(site.id)
     }
 
-    internal fun pruneSite(siteId: String) = launchSilent {
+    internal fun pruneSite(siteId: String) = GlobalScope.launch {
         mSnapsRepository.pruneSnaps(siteId)
     }
 
@@ -48,7 +50,7 @@ class MainViewModel(
     // Called when clicking on fab.
     internal fun saveSite(
         site: Site
-    ) = launchSilent {
+    ) = GlobalScope.launch {
         mSitesRepository.saveSite(site)
     }
 
@@ -60,10 +62,10 @@ class MainViewModel(
 
         val didItWork = MutableLiveData<Boolean>()
 
-        launchSilent {
+        GlobalScope.launch {
             val saveSnap = mSnapsRepository.saveSnap(snap, content)
 
-            launchSilent(UI) {
+            GlobalScope.launch(Dispatchers.Main) {
                 didItWork.value = saveSnap is Result.Success
             }
         }
@@ -75,7 +77,7 @@ class MainViewModel(
         return mSnapsRepository.getContentTypeInfo(siteId)
     }
 
-    internal fun updateSite(site: Site) = launchSilent {
+    internal fun updateSite(site: Site) = GlobalScope.launch {
         mSitesRepository.updateSite(site)
     }
 
@@ -87,12 +89,12 @@ class MainViewModel(
         return items
     }
 
-    internal fun updateItems() = launchSilent {
+    internal fun updateItems() = GlobalScope.launch {
 
         mutableListOf<SiteAndLastSnap>().also { list ->
             mSitesRepository.getSites().mapTo(list) { SiteAndLastSnap(it, getLastSnap(it.id)) }
 
-            launchSilent(UI) {
+            GlobalScope.launch(Dispatchers.Main) {
                 items.value = list
             }
         }

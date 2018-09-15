@@ -12,11 +12,12 @@ import com.bernaferrari.changedetection.extensions.removeClutterAndBeautifyHtmlI
 import com.bernaferrari.changedetection.extensions.unescapeHtml
 import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.util.SingleLiveEvent
-import com.bernaferrari.changedetection.util.launchSilent
 import com.bernaferrari.diffutils.diffs.text.DiffRowGenerator
 import com.xwray.groupie.Section
+import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.GlobalScope
 import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.android.Main
 import kotlinx.coroutines.experimental.launch
 import java.nio.charset.Charset
 
@@ -28,7 +29,7 @@ class TextViewModel(
     private val mSnapsRepository: SnapsRepository
 ) : AndroidViewModel(context) {
 
-    val showNotEnoughtInfoError = SingleLiveEvent<Boolean>()
+    val showNotEnoughInfoError = SingleLiveEvent<Boolean>()
     val showNoChangesDetectedError = SingleLiveEvent<Void>()
     val showProgress = SingleLiveEvent<Void>()
 
@@ -37,7 +38,7 @@ class TextViewModel(
      *
      * @param id The diff url to be removed.
      */
-    fun removeSnap(id: String) = launchSilent {
+    fun removeSnap(id: String) = GlobalScope.launch {
         mSnapsRepository.deleteSnap(id)
     }
 
@@ -60,8 +61,8 @@ class TextViewModel(
 
             mutableListOf<TextRecycler>().also { mutableList ->
                 mutableList.addAll(mutableListOf())
-                // this way it captures if showNotEnoughtInfoError is null or false
-                if (showNotEnoughtInfoError.value != true && mutableList.isEmpty()) {
+                // this way it captures if showNotEnoughInfoError is null or false
+                if (showNotEnoughInfoError.value != true && mutableList.isEmpty()) {
                     showNoChangesDetectedError.call()
                 }
                 topSection.update(mutableListOf())
@@ -70,7 +71,7 @@ class TextViewModel(
             return
         }
 
-        currentJob = launch {
+        currentJob = GlobalScope.launch {
 
             val (original, new) = getFromDb(originalId!!, revisedId!!)
             val (onlyDiff, nonDiff) = generateDiffRows(original, new)
@@ -82,9 +83,9 @@ class TextViewModel(
                 mutableList.addAll(onlyDiff)
                 mutableList.sortBy { it.index }
 
-                launch(UI) {
-                    // this way it captures if showNotEnoughtInfoError is null or false
-                    if (showNotEnoughtInfoError.value != true && mutableList.isEmpty()) {
+                GlobalScope.launch(Dispatchers.Main) {
+                    // this way it captures if showNotEnoughInfoError is null or false
+                    if (showNotEnoughInfoError.value != true && mutableList.isEmpty()) {
                         showNoChangesDetectedError.call()
                     }
 
@@ -120,11 +121,8 @@ class TextViewModel(
      * @param newId The newest url to be fetched.
      * @return a pair of diffs
      */
-    suspend fun getSnapValue(snapId: String): String {
-        return mSnapsRepository.getSnapContent(
-            snapId
-        ).toString(Charset.defaultCharset())
-    }
+    suspend fun getSnapValue(snapId: String): String =
+        mSnapsRepository.getSnapContent(snapId).toString(Charset.defaultCharset())
 
     /**
      * Called when there is a selection. This is a simple Finite State Machine, where
@@ -220,7 +218,7 @@ class TextViewModel(
                 topSection.update(mutableListOf())
             }
 
-            showNotEnoughtInfoError.value = numOfItemsNotNone != 2
+            showNotEnoughInfoError.value = numOfItemsNotNone != 2
         }
     }
 

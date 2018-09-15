@@ -33,7 +33,6 @@ import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.ui.CustomWebView
 import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
 import com.bernaferrari.changedetection.util.VisibilityHelper
-import com.bernaferrari.changedetection.util.launchSilent
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
 import com.xwray.groupie.GroupAdapter
@@ -48,7 +47,9 @@ import kotlinx.android.synthetic.main.control_bar.*
 import kotlinx.android.synthetic.main.details_fragment.*
 import kotlinx.android.synthetic.main.recyclerview.view.*
 import kotlinx.android.synthetic.main.state_layout.*
-import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.GlobalScope
+import kotlinx.coroutines.experimental.android.Main
 import kotlinx.coroutines.experimental.launch
 import java.util.concurrent.TimeUnit
 import kotlin.properties.ObservableProperty
@@ -139,7 +140,7 @@ class TextFragment : Fragment() {
 
         stateLayout.showLoading()
 
-        model.showNotEnoughtInfoError.observe(this, Observer {
+        model.showNotEnoughInfoError.observe(this, Observer {
             if (it == true) {
                 stateLayout.setEmptyText(R.string.empty_please_select_two)
                 stateLayout.showEmptyState()
@@ -265,14 +266,14 @@ class TextFragment : Fragment() {
         // when the list changes
         var hasSetInitialColor = false
 
-        launchSilent {
+        GlobalScope.launch {
 
             val liveData = model.getAllSnapsPagedForId(
                 getStringFromArguments(MainActivity.SITEID),
                 getStringFromArguments(MainActivity.TYPE, "%")
             )
 
-            launchSilent(UI) {
+            GlobalScope.launch(Dispatchers.Main) {
                 liveData.observe(this@TextFragment, Observer {
                     bottomAdapter.submitList(it)
                     if (!hasSetInitialColor) {
@@ -397,7 +398,7 @@ class TextFragment : Fragment() {
     ) {
         val position = adapter.colorSelected.getPositionForAdapter(color) ?: return
 
-        launch {
+        GlobalScope.launch {
             val snapValue =
                 model.getSnapValue(
                     adapter.getItemFromAdapter(
@@ -405,7 +406,7 @@ class TextFragment : Fragment() {
                     )?.snapId ?: return@launch
                 )
 
-            launch(UI) {
+            GlobalScope.launch(Dispatchers.Main) {
                 putDataOnWebView(
                     view,
                     snapValue.replaceRelativePathWithAbsolute(

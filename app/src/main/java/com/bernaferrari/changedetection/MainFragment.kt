@@ -47,20 +47,20 @@ import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
 import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.main_fragment.*
 import kotlinx.android.synthetic.main.main_fragment.view.*
 import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.android.synthetic.main.state_layout.view.*
-import kotlinx.coroutines.experimental.CommonPool
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.android.Main
 import java.util.concurrent.TimeUnit
 
 class MainFragment : Fragment() {
     private lateinit var mViewModel: MainViewModel
     private val sitesList = mutableListOf<MainCardItem>()
     private val sitesSection = Section(sitesList)
+    private var timerDisposable: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,7 +70,7 @@ class MainFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? = inflater.inflate(R.layout.main_fragment, container, false)
+    ): View = inflater.inflate(R.layout.main_fragment, container, false)
 
     private val transitionDelay = 125L
     private val transition = AutoTransition().apply { duration = transitionDelay }
@@ -94,80 +94,12 @@ class MainFragment : Fragment() {
         }
 
         info.setOnClickListener {
-            Navigation.findNavController(view)
-                .navigate(R.id.action_mainFragment_to_aboutFragment)
+            Navigation.findNavController(view).navigate(R.id.action_mainFragment_to_aboutFragment)
         }
 
-        filter.setOnClickListener { _ ->
+        filter.setOnClickListener { _ -> onFilterTapped() }
 
-            if (filterRecycler.adapter == null) {
-                filterRecycler.layoutManager = LinearLayoutManager(this.context)
-
-                val color = ContextCompat.getColor(requireActivity(), R.color.FontStrong)
-                var filteredColors = listOf<ColorGroup>()
-
-                // return original list if empty, or the filtered one
-                fun filterAndScroll() {
-                    sitesSection.update(filteredColors.takeIf { it.isEmpty() }?.let { sitesList }
-                            ?: sitesList.filter { filteredColors.contains(it.site.colors) })
-
-                    defaultRecycler.smoothScrollToPosition(0)
-                }
-
-                filterRecycler.adapter = GroupAdapter<ViewHolder>().apply {
-                    add(
-                        DialogItemSwitch(
-                            getString(R.string.sort_by_name),
-                            IconicsDrawable(context, CommunityMaterial.Icon.cmd_sort_alphabetical)
-                                .color(color),
-                            mViewModel.sortAlphabetically
-                        ) {
-                            mViewModel.sortAlphabetically = it.isSwitchOn
-                            sortList()
-                            filterAndScroll()
-                            Injector.get().sharedPrefs()
-                                .edit { putBoolean("sortByName", mViewModel.sortAlphabetically) }
-                        }
-                    )
-
-                    val availableColors =
-                        sitesList.asSequence().map { it.site.colors }.distinct().toList()
-
-                    add(
-                        ColorFilterRecyclerViewItem(availableColors) { pairsList ->
-                            filteredColors = pairsList
-                            filterAndScroll()
-                        }
-                    )
-                }
-            }
-
-            defaultRecycler.stopScroll()
-            TransitionManager.beginDelayedTransition(parentLayout, transition)
-            filterRecycler.isVisible = !filterRecycler.isVisible
-            filter.setImageDrawable(
-                ContextCompat.getDrawable(
-                    requireContext(),
-                    if (!filterRecycler.isVisible) R.drawable.ic_filter else R.drawable.ic_check
-                )
-            )
-
-            // need to do this on animation to avoid RecyclerView crashing when
-            // “scrapped or attached views may not be recycled”
-            filter.isEnabled = false
-            Completable.timer(
-                transitionDelay,
-                TimeUnit.MILLISECONDS,
-                AndroidSchedulers.mainThread()
-            ).subscribe {
-                filter.isEnabled = true
-            }
-        }
-
-        fab.apply {
-            background = IconicsDrawable(requireActivity(), CommunityMaterial.Icon.cmd_plus)
-            setOnClickListener { showCreateEditDialog(false, requireActivity()) }
-        }
+        fab.setOnClickListener { showCreateEditDialog(false, requireActivity()) }
 
         pullToRefresh.setOnRefreshListener {
             sitesList.forEach(this::reloadEach)
@@ -196,12 +128,7 @@ class MainFragment : Fragment() {
         }
 
         groupAdapter.setOnItemLongClickListener { item, _ ->
-            return@setOnItemLongClickListener if (item is MainCardItem) {
-                showDialogWithOptions(item)
-                true
-            } else {
-                false
-            }
+            if (item is MainCardItem) consume { showDialogWithOptions(item) } else false
         }
 
         groupAdapter.setOnItemClickListener { item, _ ->
@@ -213,6 +140,70 @@ class MainFragment : Fragment() {
         mViewModel.getOutputStatus.observe(this, Observer(::workOutput))
     }
 
+    private fun onFilterTapped() {
+        if (filterRecycler.adapter == null) {
+            filterRecycler.layoutManager = LinearLayoutManager(this.context)
+
+            val color = ContextCompat.getColor(requireActivity(), R.color.FontStrong)
+            var filteredColors = listOf<ColorGroup>()
+
+            // return original list if empty, or the filtered one
+            fun filterAndScroll() {
+                sitesSection.update(filteredColors.takeIf { it.isEmpty() }?.let { sitesList }
+                        ?: sitesList.filter { filteredColors.contains(it.site.colors) })
+
+                defaultRecycler.smoothScrollToPosition(0)
+            }
+
+            filterRecycler.adapter = GroupAdapter<ViewHolder>().apply {
+                add(
+                    DialogItemSwitch(
+                        getString(R.string.sort_by_name),
+                        IconicsDrawable(context, CommunityMaterial.Icon.cmd_sort_alphabetical)
+                            .color(color),
+                        mViewModel.sortAlphabetically
+                    ) {
+                        mViewModel.sortAlphabetically = it.isSwitchOn
+                        sortList()
+                        filterAndScroll()
+                        Injector.get().sharedPrefs()
+                            .edit { putBoolean("sortByName", mViewModel.sortAlphabetically) }
+                    }
+                )
+
+                val availableColors =
+                    sitesList.asSequence().map { it.site.colors }.distinct().toList()
+
+                add(
+                    ColorFilterRecyclerViewItem(availableColors) { pairsList ->
+                        filteredColors = pairsList
+                        filterAndScroll()
+                    }
+                )
+            }
+        }
+
+        defaultRecycler.stopScroll()
+        TransitionManager.beginDelayedTransition(parentLayout, transition)
+        filterRecycler.isVisible = !filterRecycler.isVisible
+        filter.setImageDrawable(
+            ContextCompat.getDrawable(
+                requireContext(),
+                if (!filterRecycler.isVisible) R.drawable.ic_filter else R.drawable.ic_check
+            )
+        )
+
+        // need to do this on animation to avoid RecyclerView crashing when
+        // “scrapped or attached views may not be recycled”
+        filter.isEnabled = false
+        timerDisposable = Completable.timer(
+            transitionDelay,
+            TimeUnit.MILLISECONDS,
+            AndroidSchedulers.mainThread()
+        ).subscribe {
+            filter.isEnabled = true
+        }
+    }
 
     private fun openItem(item: MainCardItem) {
         val customView = layoutInflater.inflate(R.layout.recyclerview, view?.parentLayout, false)
@@ -230,7 +221,7 @@ class MainFragment : Fragment() {
             adapter = bottomSheetAdapter
         }
 
-        launch {
+        GlobalScope.launch {
             updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
         }
     }
@@ -245,7 +236,7 @@ class MainFragment : Fragment() {
 
         val selectedType = item.lastSnap?.contentType
 
-        withContext(UI) {
+        withContext(Dispatchers.Main) {
             bottomSheetAdapter.clear()
 
             when {
@@ -264,7 +255,7 @@ class MainFragment : Fragment() {
                             .positiveText(R.string.yes)
                             .negativeText(R.string.no)
                             .onPositive { _, _ ->
-                                launch {
+                                GlobalScope.launch {
                                     mViewModel.removeSnapsByType(item.site.id, it)
                                     updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
                                 }
@@ -495,9 +486,15 @@ class MainFragment : Fragment() {
         }
 
         item.startSyncing()
-        launch {
+        GlobalScope.launch {
             val strFetched = WorkerHelper.fetchFromServer(item.site)
-            launch(UI) { updateSiteAndSnap(strFetched.first, strFetched.second, item) }
+            GlobalScope.launch(Dispatchers.Main) {
+                updateSiteAndSnap(
+                    strFetched.first,
+                    strFetched.second,
+                    item
+                )
+            }
         }
     }
 
@@ -787,6 +784,11 @@ class MainFragment : Fragment() {
         // This will call the keyboard when dialog is shown.
         materialdialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         materialdialog.show()
+    }
+
+    override fun onDestroy() {
+        timerDisposable?.dispose()
+        super.onDestroy()
     }
 
     private fun isUrlWrong(url: String, listOfItems: MutableList<FormInputText>): Boolean {

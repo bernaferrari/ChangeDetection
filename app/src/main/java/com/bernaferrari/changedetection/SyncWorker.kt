@@ -10,9 +10,10 @@ import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.findCharset
 import com.bernaferrari.changedetection.extensions.readableFileSize
-import com.bernaferrari.changedetection.util.launchSilent
 import com.orhanobut.logger.Logger
 import io.karn.notify.Notify
+import kotlinx.coroutines.experimental.GlobalScope
+import kotlinx.coroutines.experimental.launch
 import org.threeten.bp.LocalTime
 import com.bernaferrari.changedetection.data.source.Result as DataResult
 
@@ -37,7 +38,7 @@ class SyncWorker : Worker() {
     private fun heavyWork() {
         val now = LocalTime.now()
         Logger.d("Doing background work! " + now.hour + ":" + now.minute)
-        launchSilent {
+        GlobalScope.launch {
             val sites = Injector.get().sitesRepository().getSites()
             sites.forEach {
                 reload(it)
