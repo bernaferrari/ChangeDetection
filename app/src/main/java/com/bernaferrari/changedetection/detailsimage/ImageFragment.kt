@@ -39,7 +39,9 @@ import kotlinx.android.synthetic.main.control_bar.*
 import kotlinx.android.synthetic.main.control_bar_update_page.*
 import kotlinx.android.synthetic.main.diff_image_fragment.*
 import kotlinx.android.synthetic.main.diff_image_fragment.view.*
-import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.GlobalScope
+import kotlinx.coroutines.experimental.android.Main
 import kotlinx.coroutines.experimental.launch
 import java.io.File
 
@@ -177,13 +179,13 @@ class ImageFragment : Fragment(),
 
         val siteId = getStringFromArguments(MainActivity.SITEID)
 
-        launch {
+        GlobalScope.launch {
 
             model.getAllSnapsPagedForId(siteId, getStringFromArguments(MainActivity.TYPE, "image%"))
                 .observe(this@ImageFragment, Observer(adapter::submitList))
 
             val liveData = model.getSnapsFiltered(siteId, "image%")
-            launch(UI) {
+            GlobalScope.launch(Dispatchers.Main) {
                 liveData.observe(this@ImageFragment, Observer {
                     val isItemsEmpty = items.isEmpty()
                     items.clear()
