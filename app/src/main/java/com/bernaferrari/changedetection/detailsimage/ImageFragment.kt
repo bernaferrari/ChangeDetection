@@ -20,6 +20,7 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
+import com.bernaferrari.changedetection.MainActivity
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ViewModelFactory
 import com.bernaferrari.changedetection.data.Snap
@@ -115,7 +116,7 @@ class ImageFragment : Fragment(),
         }
 
         openBrowserToggle.setOnClickListener {
-            requireContext().openInBrowser(arguments?.getString("URL"))
+            requireContext().openInBrowser(getStringFromArguments(MainActivity.URL))
         }
 
         model.updateUiFromStateLiveData.observe(this, Observer {
@@ -174,11 +175,11 @@ class ImageFragment : Fragment(),
             GlideApp.with(this)
         )
 
-        val siteId = arguments?.getString("SITEID") ?: ""
+        val siteId = getStringFromArguments(MainActivity.SITEID)
 
         launch {
 
-            model.getAllSnapsPagedForId(siteId, arguments?.getString("TYPE") ?: "image%")
+            model.getAllSnapsPagedForId(siteId, getStringFromArguments(MainActivity.TYPE, "image%"))
                 .observe(this@ImageFragment, Observer(adapter::submitList))
 
             val liveData = model.getSnapsFiltered(siteId, "image%")
