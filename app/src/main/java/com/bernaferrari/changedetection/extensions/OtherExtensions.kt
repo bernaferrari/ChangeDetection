@@ -73,3 +73,9 @@ internal fun Context.openInBrowser(url: String?) {
 
 internal fun Fragment.getStringFromArguments(key: String, default: String = ""): String =
     arguments?.getString(key) ?: default
+
+/** Convenience for callbacks/listeners whose return value indicates an event was consumed. */
+inline fun consume(f: () -> Unit): Boolean {
+    f()
+    return true
+}

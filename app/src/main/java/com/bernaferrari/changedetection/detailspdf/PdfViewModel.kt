@@ -8,7 +8,8 @@ import android.arch.paging.LivePagedListBuilder
 import android.arch.paging.PagedList
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SnapsRepository
-import com.bernaferrari.changedetection.util.launchSilent
+import kotlinx.coroutines.experimental.GlobalScope
+import kotlinx.coroutines.experimental.launch
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
 
@@ -28,7 +29,7 @@ class PdfViewModel(
      *
      * @param id The diff url to be removed.
      */
-    fun removeSnap(id: String) = launchSilent {
+    fun removeSnap(id: String) = GlobalScope.launch {
         mSnapsRepository.deleteSnap(id)
     }
 
