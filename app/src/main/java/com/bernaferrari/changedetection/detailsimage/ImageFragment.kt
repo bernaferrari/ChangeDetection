@@ -6,7 +6,6 @@ import android.graphics.Point
 import android.os.Bundle
 import android.support.transition.AutoTransition
 import android.support.transition.TransitionManager
-import android.support.v4.app.Fragment
 import android.support.v4.app.ShareCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.FileProvider
@@ -22,6 +21,7 @@ import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.MainActivity
 import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.ScopedFragment
 import com.bernaferrari.changedetection.ViewModelFactory
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.detailstext.TextFragment
@@ -40,7 +40,6 @@ import kotlinx.android.synthetic.main.control_bar_update_page.*
 import kotlinx.android.synthetic.main.diff_image_fragment.*
 import kotlinx.android.synthetic.main.diff_image_fragment.view.*
 import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.GlobalScope
 import kotlinx.coroutines.experimental.android.Main
 import kotlinx.coroutines.experimental.launch
 import java.io.File
@@ -49,8 +48,9 @@ import java.io.File
 // This is adapted from Bíblia em Libras app, which has a GIF dictionary in a carousel powered by ExoMedia.
 // If you are interested, download it and scroll the initial list of items for a large button named "Dicionário":
 // https://play.google.com/store/apps/details?id=com.biblialibras.android
+// This is also open sourced here: https://github.com/bernaferrari/CarouselGifViewer
 //
-class ImageFragment : Fragment(),
+class ImageFragment : ScopedFragment(),
     DiscreteScrollView.OnItemChangedListener<RecyclerView.ViewHolder> {
 
     private lateinit var model: ImageViewModel
@@ -179,13 +179,13 @@ class ImageFragment : Fragment(),
 
         val siteId = getStringFromArguments(MainActivity.SITEID)
 
-        GlobalScope.launch {
+        launch(Dispatchers.Default) {
 
             model.getAllSnapsPagedForId(siteId, getStringFromArguments(MainActivity.TYPE, "image%"))
                 .observe(this@ImageFragment, Observer(adapter::submitList))
 
             val liveData = model.getSnapsFiltered(siteId, "image%")
-            GlobalScope.launch(Dispatchers.Main) {
+            launch(Dispatchers.Main) {
                 liveData.observe(this@ImageFragment, Observer {
                     val isItemsEmpty = items.isEmpty()
                     items.clear()
