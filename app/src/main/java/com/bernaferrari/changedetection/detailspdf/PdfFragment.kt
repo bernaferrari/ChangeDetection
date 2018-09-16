@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.support.transition.AutoTransition
 import android.support.transition.TransitionManager
-import android.support.v4.app.Fragment
 import android.support.v4.app.ShareCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.FileProvider
@@ -23,10 +22,7 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
-import com.bernaferrari.changedetection.Injector
-import com.bernaferrari.changedetection.MainActivity
-import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.ViewModelFactory
+import com.bernaferrari.changedetection.*
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.detailstext.TextFragment
 import com.bernaferrari.changedetection.extensions.*
@@ -43,7 +39,6 @@ import kotlinx.android.synthetic.main.control_bar_update_page.*
 import kotlinx.android.synthetic.main.diff_image_fragment.*
 import kotlinx.android.synthetic.main.diff_image_fragment.view.*
 import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.GlobalScope
 import kotlinx.coroutines.experimental.android.Main
 import kotlinx.coroutines.experimental.launch
 import java.io.File
@@ -56,7 +51,7 @@ import java.io.File
 // This is also adapted from Lottie, which currently provides one of the best open source
 // sample app for a library I've ever seen: https://github.com/airbnb/lottie-android
 //
-class PdfFragment : Fragment(),
+class PdfFragment : ScopedFragment(),
     DiscreteScrollView.OnItemChangedListener<RecyclerView.ViewHolder> {
 
     private lateinit var model: PdfViewModel
@@ -223,12 +218,12 @@ class PdfFragment : Fragment(),
         val siteId = getStringFromArguments(MainActivity.SITEID)
 
         // this is needed since getSnapsFiltered retrieves a liveData from Room to be observed
-        GlobalScope.launch {
+        launch(Dispatchers.Default) {
             model.getAllSnapsPagedForId(siteId, "%pdf")
                 .observe(requireActivity(), Observer(adapter::submitList))
 
             val liveData = model.getSnapsFiltered(siteId, "%pdf")
-            GlobalScope.launch(Dispatchers.Main) {
+            launch(Dispatchers.Main) {
                 liveData.observe(requireActivity(), Observer { filtered ->
                     val isItemsEmpty = items.isEmpty()
                     items.clear()

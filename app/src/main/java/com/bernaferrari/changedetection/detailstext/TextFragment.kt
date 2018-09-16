@@ -11,7 +11,6 @@ import android.support.design.widget.BottomSheetDialog
 import android.support.design.widget.Snackbar
 import android.support.transition.AutoTransition
 import android.support.transition.TransitionManager
-import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -26,6 +25,7 @@ import androidx.navigation.Navigation
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.MainActivity
 import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.ScopedFragment
 import com.bernaferrari.changedetection.ViewModelFactory
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.DialogItemSimple
@@ -48,15 +48,15 @@ import kotlinx.android.synthetic.main.details_fragment.*
 import kotlinx.android.synthetic.main.recyclerview.view.*
 import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.GlobalScope
 import kotlinx.coroutines.experimental.android.Main
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.withContext
 import java.util.concurrent.TimeUnit
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-class TextFragment : Fragment() {
+class TextFragment : ScopedFragment() {
     lateinit var model: TextViewModel
     val color: Int by lazy { ContextCompat.getColor(requireContext(), R.color.FontStrong) }
 
@@ -266,14 +266,14 @@ class TextFragment : Fragment() {
         // when the list changes
         var hasSetInitialColor = false
 
-        GlobalScope.launch {
+        launch(Dispatchers.Default) {
 
             val liveData = model.getAllSnapsPagedForId(
                 getStringFromArguments(MainActivity.SITEID),
                 getStringFromArguments(MainActivity.TYPE, "%")
             )
 
-            GlobalScope.launch(Dispatchers.Main) {
+            launch(Dispatchers.Main) {
                 liveData.observe(this@TextFragment, Observer {
                     bottomAdapter.submitList(it)
                     if (!hasSetInitialColor) {
@@ -319,7 +319,7 @@ class TextFragment : Fragment() {
                     .sizeDp(18)
             )
 
-            setOnClickListener {
+            setOnClickListener { _ ->
 
                 val customView =
                     layoutInflater.inflate(R.layout.recyclerview, view as ViewGroup, false)
@@ -375,7 +375,7 @@ class TextFragment : Fragment() {
 
                                     fetchAndOpenOnWebView(
                                         bottomAdapter,
-                                        it.webview,
+                                        view.webview,
                                         if (itemDialog.kind == "first")
                                             ItemSelected.REVISED
                                         else
@@ -395,26 +395,20 @@ class TextFragment : Fragment() {
         adapter: TextAdapter,
         view: CustomWebView,
         color: ItemSelected
-    ) {
-        val position = adapter.colorSelected.getPositionForAdapter(color) ?: return
-
-        GlobalScope.launch {
-            val snapValue =
-                model.getSnapValue(
-                    adapter.getItemFromAdapter(
-                        position
-                    )?.snapId ?: return@launch
-                )
-
-            GlobalScope.launch(Dispatchers.Main) {
-                putDataOnWebView(
-                    view,
-                    snapValue.replaceRelativePathWithAbsolute(
-                        getStringFromArguments(MainActivity.URL)
+    ) = launch(Dispatchers.Default) {
+        adapter.colorSelected.getPositionForAdapter(color)
+            ?.let { adapter.getItemFromAdapter(it)?.snapId }
+            ?.let { model.getSnapValue(it) }
+            ?.also {
+                withContext(Dispatchers.Main) {
+                    putDataOnWebView(
+                        view,
+                        it.replaceRelativePathWithAbsolute(
+                            getStringFromArguments(MainActivity.URL)
+                        )
                     )
-                )
+                }
             }
-        }
     }
 
     private fun copyToClipboard(context: Context, uri: String) {
@@ -429,9 +423,7 @@ class TextFragment : Fragment() {
         webView?.loadDataWithBaseURL("", data, "text/html", "UTF-8", "")
     }
 
-    private fun dismiss() {
-        view?.also { Navigation.findNavController(it).navigateUp() }
-    }
+    private fun dismiss() = view?.also { Navigation.findNavController(it).navigateUp() }
 
     override fun onDestroy() {
         disposable?.dispose()

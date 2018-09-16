@@ -10,7 +10,6 @@ import android.support.design.widget.BottomSheetDialog
 import android.support.design.widget.Snackbar
 import android.support.transition.AutoTransition
 import android.support.transition.TransitionManager
-import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
@@ -52,11 +51,14 @@ import kotlinx.android.synthetic.main.main_fragment.*
 import kotlinx.android.synthetic.main.main_fragment.view.*
 import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.android.synthetic.main.state_layout.view.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.IO
 import kotlinx.coroutines.experimental.android.Main
+import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.withContext
 import java.util.concurrent.TimeUnit
 
-class MainFragment : Fragment() {
+class MainFragment : ScopedFragment() {
     private lateinit var mViewModel: MainViewModel
     private val sitesList = mutableListOf<MainCardItem>()
     private val sitesSection = Section(sitesList)
@@ -221,7 +223,7 @@ class MainFragment : Fragment() {
             adapter = bottomSheetAdapter
         }
 
-        GlobalScope.launch {
+        launch(Dispatchers.Default) {
             updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
         }
     }
@@ -230,7 +232,7 @@ class MainFragment : Fragment() {
         item: MainCardItem,
         bottomSheetAdapter: GroupAdapter<ViewHolder>,
         bottomSheet: BottomSheetDialog
-    ): Unit = withContext(CommonPool) {
+    ): Unit = withContext(Dispatchers.Default) {
 
         val contentTypes = mViewModel.getRecentContentTypes(item.site.id)
 
@@ -255,7 +257,7 @@ class MainFragment : Fragment() {
                             .positiveText(R.string.yes)
                             .negativeText(R.string.no)
                             .onPositive { _, _ ->
-                                GlobalScope.launch {
+                                launch(Dispatchers.Default) {
                                     mViewModel.removeSnapsByType(item.site.id, it)
                                     updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
                                 }
@@ -486,12 +488,12 @@ class MainFragment : Fragment() {
         }
 
         item.startSyncing()
-        GlobalScope.launch {
-            val strFetched = WorkerHelper.fetchFromServer(item.site)
-            GlobalScope.launch(Dispatchers.Main) {
+        launch(Dispatchers.IO) {
+            val (contentTypeCharset, content) = WorkerHelper.fetchFromServer(item.site)
+            withContext(Dispatchers.Main) {
                 updateSiteAndSnap(
-                    strFetched.first,
-                    strFetched.second,
+                    contentTypeCharset,
+                    content,
                     item
                 )
             }

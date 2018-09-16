@@ -12,7 +12,9 @@ import com.bernaferrari.changedetection.extensions.findCharset
 import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.orhanobut.logger.Logger
 import io.karn.notify.Notify
+import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.GlobalScope
+import kotlinx.coroutines.experimental.IO
 import kotlinx.coroutines.experimental.launch
 import org.threeten.bp.LocalTime
 import com.bernaferrari.changedetection.data.source.Result as DataResult
@@ -21,13 +23,9 @@ class SyncWorker : Worker() {
 
     override fun doWork(): Worker.Result {
 
-        if (inputData.getBoolean(WorkerHelper.WIFI, false)) {
-            if (isWifiConnected()) {
-                heavyWork()
-            } else {
-                Logger.d("SyncWorker: wifi is not connected. Try again next time..")
-                WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs())
-            }
+        if (inputData.getBoolean(WorkerHelper.WIFI, false) && !isWifiConnected()) {
+            Logger.d("SyncWorker: wifi is not connected. Try again next time..")
+            WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs())
         } else {
             heavyWork()
         }
@@ -35,22 +33,15 @@ class SyncWorker : Worker() {
         return Result.SUCCESS
     }
 
-    private fun heavyWork() {
+    private fun heavyWork() = GlobalScope.launch(Dispatchers.IO) {
         val now = LocalTime.now()
         Logger.d("Doing background work! " + now.hour + ":" + now.minute)
-        GlobalScope.launch {
-            val sites = Injector.get().sitesRepository().getSites()
-            sites.forEach {
-                reload(it)
-            }
 
+        Injector.get().sitesRepository().getSites()
+            .also { sites -> sites.forEach { it -> reload(it) } }
+            .takeIf { sites -> sites.count { it.isSyncEnabled } > 0 }
             // if there is nothing to sync, auto-sync will be automatically disabled
-            if (sites.count { it.isSyncEnabled } > 0) {
-                WorkerHelper.updateWorkerWithConstraints(
-                    Injector.get().sharedPrefs()
-                )
-            }
-        }
+            ?.also { WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs()) }
     }
 
     private suspend fun reload(item: Site) {

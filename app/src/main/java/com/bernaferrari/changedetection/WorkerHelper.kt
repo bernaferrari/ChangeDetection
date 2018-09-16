@@ -108,9 +108,7 @@ object WorkerHelper {
             workerConstraints.setRequiresDeviceIdle(true)
         }
 
-        val photoWork = OneTimeWorkRequest.Builder(
-            SyncWorker::class.java
-        )
+        val photoWork = OneTimeWorkRequest.Builder(SyncWorker::class.java)
             .setInitialDelay(delay, TimeUnit.MINUTES)
             .setConstraints(workerConstraints.build())
             .setInputData(inputData)
