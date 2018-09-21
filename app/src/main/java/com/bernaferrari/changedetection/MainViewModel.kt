@@ -17,6 +17,7 @@ import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.GlobalScope
 import kotlinx.coroutines.experimental.android.Main
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.withContext
 
 /**
  * Exposes the data to be used in the site list screen.
@@ -30,6 +31,7 @@ class MainViewModel(
 
     internal var shouldSyncWhenAppOpen = true
     internal var sortAlphabetically = false
+    internal var selectedIndex = 0
 
     internal val getOutputStatus: LiveData<List<WorkStatus>>
         get() = WorkManager.getInstance().getStatusesForUniqueWork(WorkerHelper.UNIQUEWORK)
@@ -65,7 +67,7 @@ class MainViewModel(
         GlobalScope.launch {
             val saveSnap = mSnapsRepository.saveSnap(snap, content)
 
-            GlobalScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 didItWork.value = saveSnap is Result.Success
             }
         }
@@ -94,7 +96,7 @@ class MainViewModel(
         mutableListOf<SiteAndLastSnap>().also { list ->
             mSitesRepository.getSites().mapTo(list) { SiteAndLastSnap(it, getLastSnap(it.id)) }
 
-            GlobalScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 items.value = list
             }
         }

@@ -15,5 +15,6 @@ class MainActivity : AppCompatActivity() {
         const val TITLE = "TITLE"
         const val TYPE = "TYPE"
         const val URL = "URL"
+        const val TRANSITION = 175L
     }
 }

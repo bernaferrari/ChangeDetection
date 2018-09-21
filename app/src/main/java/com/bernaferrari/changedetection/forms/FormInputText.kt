@@ -58,14 +58,9 @@ internal class FormInputText(
         super.unbind(holder)
     }
 
-    internal fun retrieveText(): String? {
-        return visibleHolder?.text_input?.text.toString()
-            .replace(Regex("\\s+"), " ")
-            .trim()
-            .takeIf { it.isNotBlank() }
-                ?: textInput
-                    .replace(Regex("\\s+"), " ")
-                    .trim()
-                    .takeIf { it.isNotBlank() }
+    internal fun retrieveText(): String {
+        return visibleHolder?.text_input?.text?.toString()
+            ?.replace(Regex("\\s+"), " ")?.trim()
+                ?: textInput.replace(Regex("\\s+"), " ").trim()
     }
 }

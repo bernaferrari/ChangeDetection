@@ -4,21 +4,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
     android:layout_width="112dp"
-    android:layout_height="wrap_content"
-
+    android:layout_height="match_parent"
     android:layout_marginLeft="4dp"
-    android:layout_marginTop="8dp"
     android:layout_marginRight="4dp"
+    android:layout_marginTop="8dp"
     android:layout_marginBottom="8dp"
     android:clickable="true"
-
     android:focusable="true"
     app:cardBackgroundColor="@color/grey_100"
     app:cardCornerRadius="8dp"
     app:cardElevation="0dp">
 
-    <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingTop="12dp"
@@ -34,12 +31,12 @@
             android:includeFontPadding="false"
             android:textAlignment="center"
             android:textColor="@color/FontStrong"
-            android:textSize="20sp"
+            android:textSize="20dp"
             app:layout_constraintBottom_toTopOf="@+id/subtitleTextView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_chainStyle="spread_inside"
+            app:layout_constraintVertical_chainStyle="packed"
             tools:text="32.2 kB" />
 
         <TextView
@@ -52,6 +49,7 @@
             android:fontFamily="@font/work_regular"
             android:includeFontPadding="false"
             android:lines="1"
+            android:textSize="12dp"
             android:textAlignment="center"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Caption"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -60,6 +58,6 @@
             app:layout_constraintTop_toBottomOf="@+id/titleTextView"
             tools:text="20 min ago" />
 
-
     </android.support.constraint.ConstraintLayout>
+
 </android.support.design.card.MaterialCardView>

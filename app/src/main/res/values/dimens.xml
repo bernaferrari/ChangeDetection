@@ -6,6 +6,7 @@
     <dimen name="percentsmall">0</dimen>
 
     <dimen name="horizontal_spacing">12sp</dimen>
+    <dimen name="item_selector_height">76dp</dimen>
 
     <!--Lottie-->
     <dimen name="control_bar_button_padding">8dp</dimen>

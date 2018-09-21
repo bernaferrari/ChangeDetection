@@ -22,7 +22,8 @@ import android.view.WindowManager
 import androidx.core.content.edit
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.navigation.Navigation
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.work.State
 import androidx.work.WorkStatus
 import com.afollestad.materialdialogs.DialogAction
@@ -48,14 +49,10 @@ import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.main_fragment.*
-import kotlinx.android.synthetic.main.main_fragment.view.*
 import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.android.synthetic.main.state_layout.view.*
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.IO
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.android.Main
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
 import java.util.concurrent.TimeUnit
 
 class MainFragment : ScopedFragment() {
@@ -85,7 +82,7 @@ class MainFragment : ScopedFragment() {
 
         val groupAdapter = GroupAdapter<ViewHolder>()
 
-        // Clear it up, just in case of rotation.
+        // Clear it up, in case the fragment is recreated.
         sitesSection.update(sitesList.apply { clear() })
 
         stateLayout.showLoading()
@@ -96,7 +93,7 @@ class MainFragment : ScopedFragment() {
         }
 
         info.setOnClickListener {
-            Navigation.findNavController(view).navigate(R.id.action_mainFragment_to_aboutFragment)
+            view.findNavController().navigate(R.id.action_mainFragment_to_aboutFragment)
         }
 
         filter.setOnClickListener { _ -> onFilterTapped() }
@@ -208,7 +205,7 @@ class MainFragment : ScopedFragment() {
     }
 
     private fun openItem(item: MainCardItem) {
-        val customView = layoutInflater.inflate(R.layout.recyclerview, view?.parentLayout, false)
+        val customView = layoutInflater.inflate(R.layout.recyclerview, parentLayout, false)
 
         val bottomSheet = BottomSheetDialog(requireContext()).apply {
             setContentView(customView)
@@ -219,9 +216,9 @@ class MainFragment : ScopedFragment() {
             add(LoadingItem())
         }
 
-        customView.findViewById<RecyclerView>(R.id.defaultRecycler).run {
-            adapter = bottomSheetAdapter
-        }
+        mViewModel.selectedIndex = sitesList.indexOf(item)
+
+        customView.findViewById<RecyclerView>(R.id.defaultRecycler).adapter = bottomSheetAdapter
 
         launch(Dispatchers.Default) {
             updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
@@ -257,7 +254,7 @@ class MainFragment : ScopedFragment() {
                             .positiveText(R.string.yes)
                             .negativeText(R.string.no)
                             .onPositive { _, _ ->
-                                launch(Dispatchers.Default) {
+                                GlobalScope.launch(Dispatchers.Default) {
                                     mViewModel.removeSnapsByType(item.site.id, it)
                                     updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
                                 }
@@ -290,16 +287,17 @@ class MainFragment : ScopedFragment() {
             MainActivity.TYPE to selectedType
         )
 
-        view?.let { view ->
-            when {
-                selectedType == "application/pdf" -> Navigation.findNavController(view)
-                    .navigate(R.id.action_mainFragment_to_pdfFragment, bundle)
-                selectedType?.contains("image") == true -> Navigation.findNavController(view)
-                    .navigate(R.id.action_mainFragment_to_imageCarouselFragment, bundle)
-                else -> Navigation.findNavController(view)
-                    .navigate(R.id.action_mainFragment_to_openFragment, bundle)
-            }
+        val extras = view?.findViewWithTag<View>("${item.id}")?.let {
+            FragmentNavigatorExtras(it to getString(R.string.shared_transition))
         }
+
+        val destination = when {
+            selectedType == "application/pdf" -> R.id.action_mainFragment_to_pdfFragment
+            selectedType?.contains("image") == true -> R.id.action_mainFragment_to_imageCarouselFragment
+            else -> R.id.action_mainFragment_to_openFragment
+        }
+
+        view?.findNavController()?.navigate(destination, bundle, null, extras)
     }
 
     private fun showDialogWithOptions(item: MainCardItem) {
@@ -307,7 +305,7 @@ class MainFragment : ScopedFragment() {
         val color = item.site.colors.second
 
         val customView =
-            layoutInflater.inflate(R.layout.recyclerview, view?.parentLayout, false)
+            layoutInflater.inflate(R.layout.recyclerview, parentLayout, false)
         val bottomSheet = BottomSheetDialog(requireContext())
         bottomSheet.setContentView(customView)
         bottomSheet.show()
@@ -433,11 +431,9 @@ class MainFragment : ScopedFragment() {
     }
 
     private fun updateList(mutable: MutableList<SiteAndLastSnap>?) {
-        if (mutable == null) {
-            return
-        }
+        if (mutable == null) return
 
-        view?.stateLayout?.showEmptyState()
+        stateLayout?.showEmptyState()
 
         if (mutable.isEmpty()) {
             showCreateEditDialog(false, requireActivity())
@@ -473,6 +469,11 @@ class MainFragment : ScopedFragment() {
         if (mViewModel.shouldSyncWhenAppOpen) {
             sitesList.forEach(this::reloadEach)
             mViewModel.shouldSyncWhenAppOpen = false
+        }
+
+        if (mViewModel.selectedIndex > 0) {
+            defaultRecycler.scrollToPosition(mViewModel.selectedIndex - 1)
+            mViewModel.selectedIndex = 0
         }
 
         if (sitesList.isNotEmpty()) filter.isVisible = true
@@ -570,7 +571,7 @@ class MainFragment : ScopedFragment() {
 
     private fun removeDialog(item: MainCardItem) {
 
-        val customView = layoutInflater.inflate(R.layout.recyclerview, view?.parentLayout, false)
+        val customView = layoutInflater.inflate(R.layout.recyclerview, parentLayout, false)
         val bottomSheet = BottomSheetDialog(requireContext()).apply {
             setContentView(customView)
             show()

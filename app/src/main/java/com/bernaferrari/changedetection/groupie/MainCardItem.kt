@@ -6,6 +6,7 @@ import android.graphics.drawable.GradientDrawable
 import android.support.graphics.drawable.Animatable2Compat
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat
 import android.support.v4.content.ContextCompat
+import android.support.v4.view.ViewCompat
 import android.view.View
 import android.widget.ImageView
 import com.bernaferrari.changedetection.R
@@ -28,7 +29,7 @@ import java.util.concurrent.TimeUnit
  * Main screen card item
  *
  * @param site               site item
- * @param lastSnap    for item subtitle
+ * @param lastSnap           for item subtitle
  * @param reloadCallback     when reload button is selected
  */
 class MainCardItem(
@@ -92,6 +93,10 @@ class MainCardItem(
         if (status != SYNC.LOADING) {
             changeStatus()
         }
+
+        val tag = "$id"
+        holder.containerView.tag = tag
+        ViewCompat.setTransitionName(holder.containerView, tag)
 
         val context = holder.containerView.context
         // imageview:src on xml sometimes doesn't cast as AnimatedVectorDrawableCompat, so this is necessary.

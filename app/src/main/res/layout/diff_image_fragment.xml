@@ -4,7 +4,7 @@
     android:id="@+id/drawer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clipToPadding="false">
+    android:transitionName="@string/shared_transition">
 
     <LinearLayout
         android:id="@+id/container"
@@ -19,9 +19,9 @@
             android:layout_height="wrap_content"
             android:background="@color/background_light"
             android:baselineAligned="false"
+            android:gravity="top"
             android:minHeight="?android:actionBarSize"
             android:orientation="horizontal"
-            android:gravity="top"
             android:paddingTop="@dimen/spacing_micro"
             android:paddingBottom="@dimen/spacing_micro">
 
@@ -38,15 +38,15 @@
 
             <TextView
                 android:id="@+id/titlecontent"
+                style="@style/TextAppearance.AppCompat.Title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                style="@style/TextAppearance.AppCompat.Title"
                 android:layout_gravity="start|center_vertical"
                 android:layout_weight="1"
-                android:paddingRight="@dimen/padding_normal"
-                android:singleLine="true"
                 android:ellipsize="end"
                 android:fontFamily="@font/work_semibold"
+                android:paddingRight="@dimen/padding_normal"
+                android:singleLine="true"
                 android:textColor="@color/FontStrong" />
 
             <ImageView
@@ -59,7 +59,6 @@
                 android:padding="@dimen/avatar_margin"
                 android:scaleType="centerCrop"
                 app:srcCompat="@drawable/visibility_on_to_off" />
-
 
             <ImageView
                 android:id="@+id/menucontent"
@@ -115,8 +114,7 @@
             android:paddingBottom="8dp"
             android:scrollbarStyle="outsideOverlay"
             android:scrollbars="vertical"
-            app:layoutManager="android.support.v7.widget.LinearLayoutManager"
-            />
+            app:layoutManager="android.support.v7.widget.LinearLayoutManager" />
 
     </LinearLayout>
 

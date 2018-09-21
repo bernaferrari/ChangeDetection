@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.work.Worker
+import androidx.work.WorkerParameters
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.findCharset
@@ -19,7 +20,10 @@ import kotlinx.coroutines.experimental.launch
 import org.threeten.bp.LocalTime
 import com.bernaferrari.changedetection.data.source.Result as DataResult
 
-class SyncWorker : Worker() {
+class SyncWorker(
+    context: Context,
+    workerParameters: WorkerParameters
+) : Worker(context, workerParameters) {
 
     override fun doWork(): Worker.Result {
 

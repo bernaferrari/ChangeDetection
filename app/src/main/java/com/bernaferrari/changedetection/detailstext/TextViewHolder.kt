@@ -12,7 +12,7 @@ import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.readableFileSize
-import kotlinx.android.synthetic.main.details_item.view.*
+import kotlinx.android.synthetic.main.item_text_selector.view.*
 
 /**
  * A simple ViewHolder that can bind a Cheese item. It also accepts null items since the data may
@@ -23,7 +23,7 @@ class TextViewHolder(
     val adapter: TextAdapter,
     val callback: TextFragment.Companion.RecyclerViewItemListener
 ) : RecyclerView.ViewHolder(
-    LayoutInflater.from(parent.context).inflate(R.layout.details_item, parent, false)
+    LayoutInflater.from(parent.context).inflate(R.layout.item_text_selector, parent, false)
 ) {
 
     init {

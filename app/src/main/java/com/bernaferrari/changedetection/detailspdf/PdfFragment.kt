@@ -16,11 +16,12 @@ import android.support.v4.view.GravityCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.transition.ChangeBounds
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.navigation.Navigation
+import androidx.navigation.findNavController
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.*
 import com.bernaferrari.changedetection.data.Snap
@@ -104,6 +105,13 @@ class PdfFragment : ScopedFragment(),
 
     private val groupAdapter = GroupAdapter<com.xwray.groupie.ViewHolder>()
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        sharedElementEnterTransition = ChangeBounds().apply {
+            duration = MainActivity.TRANSITION
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -115,7 +123,7 @@ class PdfFragment : ScopedFragment(),
         model = viewModelProvider(ViewModelFactory.getInstance(requireActivity().application))
 
         closecontent.setOnClickListener {
-            Navigation.findNavController(view).navigateUp()
+            view.findNavController().navigateUp()
         }
 
         showOriginalAndChanges.isVisible = false
@@ -241,7 +249,7 @@ class PdfFragment : ScopedFragment(),
 
                         // If all items were removed, close this fragment
                         if (items.isEmpty()) {
-                            Navigation.findNavController(view).navigateUp()
+                            view.findNavController().navigateUp()
                         }
                     }
                 })

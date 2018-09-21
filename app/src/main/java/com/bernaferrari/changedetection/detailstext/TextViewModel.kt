@@ -38,8 +38,8 @@ class TextViewModel(
      *
      * @param id The diff url to be removed.
      */
-    fun removeSnap(id: String) = GlobalScope.launch {
-        mSnapsRepository.deleteSnap(id)
+    fun removeSnap(id: String?) = GlobalScope.launch {
+        if (id != null) mSnapsRepository.deleteSnap(id)
     }
 
     private var currentJob: Job? = null

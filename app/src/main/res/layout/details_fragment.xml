@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -8,6 +7,7 @@
     android:layout_height="match_parent"
     android:background="@color/background_light"
     android:elevation="@dimen/z_fab"
+    android:transitionName="@string/shared_transition"
     app:dragDismissDistance="@dimen/drag_dismiss_distance">
 
     <LinearLayout
@@ -55,17 +55,6 @@
                 tools:text="Web Drivers" />
 
             <ImageView
-                android:id="@+id/visibility"
-                style="@style/ClickableImageView"
-                android:layout_width="@dimen/avatar_bounds"
-                android:layout_height="@dimen/avatar_bounds"
-                android:layout_gravity="center"
-                android:layout_marginLeft="@dimen/avatar_margin"
-                android:padding="@dimen/avatar_margin"
-                android:scaleType="centerCrop"
-                app:srcCompat="@drawable/visibility_on_to_off" />
-
-            <ImageView
                 android:id="@+id/settings"
                 android:layout_width="@dimen/avatar_bounds"
                 android:layout_height="@dimen/avatar_bounds"
@@ -104,7 +93,7 @@
         <android.support.v7.widget.RecyclerView
             android:id="@+id/bottomRecycler"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="@dimen/item_selector_height"
             tools:itemCount="6" />
 
     </LinearLayout>
