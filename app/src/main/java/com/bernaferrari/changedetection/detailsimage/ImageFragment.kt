@@ -13,11 +13,12 @@ import android.support.v4.view.GravityCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.transition.ChangeBounds
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.navigation.Navigation
+import androidx.navigation.findNavController
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.MainActivity
 import com.bernaferrari.changedetection.R
@@ -42,7 +43,10 @@ import kotlinx.android.synthetic.main.diff_image_fragment.view.*
 import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.android.Main
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.withContext
 import java.io.File
+import kotlin.properties.ObservableProperty
+import kotlin.reflect.KProperty
 
 //
 // This is adapted from Bíblia em Libras app, which has a GIF dictionary in a carousel powered by ExoMedia.
@@ -54,12 +58,11 @@ class ImageFragment : ScopedFragment(),
     DiscreteScrollView.OnItemChangedListener<RecyclerView.ViewHolder> {
 
     private lateinit var model: ImageViewModel
-    private lateinit var adapter: ImageAdapter
+    private lateinit var carouselAdapter: ImageAdapter
 
     private var previousAdapterPosition = 0
     private val items = mutableListOf<RowItem>()
     private val section = Section()
-    private var hasInitialImageLoaded: Boolean = false
 
     private val transition = AutoTransition().apply { duration = 175 }
     private val groupAdapter = GroupAdapter<com.xwray.groupie.ViewHolder>()
@@ -67,11 +70,13 @@ class ImageFragment : ScopedFragment(),
     // this variable is necessary since onCurrentItemChanged might be triggered when RecyclerView is shown/hidden
     // (visibility button). This way, the app never has to refresh the file
     private var currentFileId = ""
+    private val uiState = UiState { updateUiFromState() }
 
     override fun onCurrentItemChanged(viewHolder: RecyclerView.ViewHolder?, adapterPosition: Int) {
 
-        val item = adapter.getItemFromAdapter(adapterPosition) ?: return
-        titlecontent.text = item.timestamp.convertTimestampToDate()
+        val item = carouselAdapter.getItemFromAdapter(adapterPosition) ?: return
+
+        titlecontent?.text = item.timestamp.convertTimestampToDate()
 
         if (item.snapId == currentFileId) return
         currentFileId = item.snapId
@@ -86,11 +91,14 @@ class ImageFragment : ScopedFragment(),
 
         photo_view.setImage(ImageSource.uri(contentUri))
 
-        if (items.isEmpty()) {
-            return
-        }
+        if (items.isEmpty()) return
 
         selectItem(adapterPosition)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        sharedElementEnterTransition = ChangeBounds().apply { duration = MainActivity.TRANSITION }
     }
 
     override fun onCreateView(
@@ -103,49 +111,38 @@ class ImageFragment : ScopedFragment(),
         model = viewModelProvider(ViewModelFactory.getInstance(requireActivity().application))
 
         closecontent.setOnClickListener {
-            Navigation.findNavController(view).navigateUp()
+            view.findNavController().navigateUp()
         }
 
         next_previous_bar.isVisible = false
-        highQualityToggle.isVisible = false
-        showOriginalAndChanges.isVisible = false
         controlBar.isVisible = false
 
         menucontent.setOnClickListener { view.drawer.openDrawer(GravityCompat.END) }
 
         shareToggle.setOnClickListener { _ ->
-            adapter.getItemFromAdapter(previousAdapterPosition)?.also { shareItem(it) }
+            carouselAdapter.getItemFromAdapter(previousAdapterPosition)?.also { shareItem(it) }
         }
 
         openBrowserToggle.setOnClickListener {
             requireContext().openInBrowser(getStringFromArguments(MainActivity.URL))
         }
 
-        model.updateUiFromStateLiveData.observe(this, Observer {
-            // only update if onCurrentItemChanged was called already or if there was no difference
-            // on visibility. When carousel is hidden, onCurrentItemChanged is not called.
-            if (hasInitialImageLoaded || model.uiState.visibility == carouselRecycler.isVisible) {
-                updateUiFromState()
-            }
-        })
-
         // this is needed. If visibility is off and the fragment is reopened,
         // drawable will keep the drawable from last state (off) even thought it should be on.
         visibility.setImageDrawable(
             ContextCompat.getDrawable(
                 requireContext(),
-                VisibilityHelper.getStaticIcon(model.uiState.visibility)
+                VisibilityHelper.getStaticIcon(uiState.visibility)
             )
         )
 
         visibility.setOnClickListener {
-            model.uiState.visibility++
-            model.uiState.carousel = model.uiState.visibility
-            model.uiState.controlBar = false
+            uiState.visibility++
+            uiState.carousel = uiState.visibility
 
             // set and run the correct animation
             visibility.setAndStartAnimation(
-                VisibilityHelper.getAnimatedIcon(model.uiState.visibility),
+                VisibilityHelper.getAnimatedIcon(uiState.visibility),
                 requireContext()
             )
         }
@@ -170,7 +167,7 @@ class ImageFragment : ScopedFragment(),
         val itemWidth = Math.round(Math.min(windowDimensions.y, windowDimensions.x) * 0.5f)
         val itemHeight = (120 * 0.7).toInt().toDp(view.resources)
 
-        adapter = ImageAdapter(
+        carouselAdapter = ImageAdapter(
             recyclerListener,
             itemHeight,
             itemWidth,
@@ -182,16 +179,16 @@ class ImageFragment : ScopedFragment(),
         launch(Dispatchers.Default) {
 
             model.getAllSnapsPagedForId(siteId, getStringFromArguments(MainActivity.TYPE, "image%"))
-                .observe(this@ImageFragment, Observer(adapter::submitList))
+                .observe(this@ImageFragment, Observer(carouselAdapter::submitList))
 
             val liveData = model.getSnapsFiltered(siteId, "image%")
-            launch(Dispatchers.Main) {
-                liveData.observe(this@ImageFragment, Observer {
+            withContext(Dispatchers.Main) {
+                liveData.observe(this@ImageFragment, Observer { listOfSnaps ->
                     val isItemsEmpty = items.isEmpty()
                     items.clear()
 
-                    if (it != null) {
-                        it.mapTo(items) { RowItem(it) }
+                    if (listOfSnaps != null) {
+                        listOfSnaps.mapTo(items) { RowItem(it) }
                         section.update(items)
 
                         // Since selectItem is being set at onCurrentItemChanged, and this code is ran async,
@@ -203,26 +200,26 @@ class ImageFragment : ScopedFragment(),
 
                         // If all items were removed, close this fragment
                         if (items.isEmpty()) {
-                            Navigation.findNavController(view).navigateUp()
+                            view.findNavController().navigateUp()
                         }
                     }
                 })
             }
         }
 
-        carouselRecycler.also {
-            it.adapter = adapter
+        carouselRecycler.apply {
+            adapter = carouselAdapter
 
-            it.setSlideOnFling(true)
-            it.setSlideOnFlingThreshold(4000)
-            it.setItemTransitionTimeMillis(150)
-            it.setItemTransformer(
+            setSlideOnFling(true)
+            setSlideOnFlingThreshold(4000)
+            setItemTransitionTimeMillis(150)
+            setItemTransformer(
                 ScaleTransformer.Builder()
                     .setMinScale(0.8f)
                     .build()
             )
 
-            it.addOnItemChangedListener(this@ImageFragment)
+            addOnItemChangedListener(this@ImageFragment)
         }
 
         drawerRecycler.also {
@@ -317,10 +314,28 @@ class ImageFragment : ScopedFragment(),
     private fun updateUiFromState() {
         beginDelayedTransition()
 
-        carouselRecycler.isVisible = model.uiState.carousel
-        controlBar.isVisible = model.uiState.controlBar
+        carouselRecycler.isVisible = uiState.carousel
+//        controlBar.isVisible = uiState.controlBar
     }
 
     private fun beginDelayedTransition() =
         TransitionManager.beginDelayedTransition(container, transition)
+
+    private class UiState(private val callback: () -> Unit) {
+
+        private inner class BooleanProperty(initialValue: Boolean) :
+            ObservableProperty<Boolean>(initialValue) {
+            override fun afterChange(
+                property: KProperty<*>,
+                oldValue: Boolean,
+                newValue: Boolean
+            ) {
+                callback()
+            }
+        }
+
+        var visibility by BooleanProperty(true)
+        var carousel by BooleanProperty(true)
+        var controlBar by BooleanProperty(true)
+    }
 }

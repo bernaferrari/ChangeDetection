@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:interpolator/decelerate_quad">
+    <scale
+        android:duration="100"
+        android:fromXScale="0.95"
+        android:fromYScale="0.95"
+        android:pivotX="50%p"
+        android:pivotY="50%p"
+        android:toXScale="1"
+        android:toYScale="1" />
+
+    <alpha
+        android:duration="100"
+        android:fromAlpha="1"
+        android:toAlpha="1" />
+
+    <translate
+        android:duration="250"
+        android:fromYDelta="3%p"
+        android:toYDelta="0" />
+</set>
