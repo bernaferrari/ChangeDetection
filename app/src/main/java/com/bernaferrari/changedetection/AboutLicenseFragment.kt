@@ -73,9 +73,9 @@ class AboutLicenseFragment : MaterialAboutFragment() {
         )
         val materialdialogs = createLicenseCard(
             "Material Dialogs",
-            "2014-2016",
+            "2018",
             "Aidan Michael Follestad",
-            OpenSourceLicense.MIT,
+            OpenSourceLicense.APACHE_2,
             c
         )
         val aosp = createLicenseCard(
