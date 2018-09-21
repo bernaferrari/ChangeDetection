@@ -108,7 +108,7 @@ dependencies {
     // UI
     implementation "io.karn:notify:1.1.0"
     implementation 'com.tapadoo.android:alerter:3.0.0'
-    implementation 'com.afollestad.material-dialogs:commons:0.9.6.0'
+    implementation 'com.afollestad.material-dialogs:core:2.0.0-alpha12'
     implementation 'com.davemorrissey.labs:subsampling-scale-image-view:3.10.0'
 
 

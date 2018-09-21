@@ -300,14 +300,13 @@ class ImageFragment : ScopedFragment(),
     }
 
     private fun removeItemDialog(snapId: String) {
-        MaterialDialog.Builder(requireContext())
+        MaterialDialog(requireContext())
             .title(R.string.remove)
-            .content(R.string.remove_content)
-            .positiveText(R.string.yes)
-            .negativeText(R.string.no)
-            .onPositive { _, _ ->
+            .message(R.string.remove_content)
+            .positiveButton(R.string.yes) {
                 model.removeSnap(snapId)
             }
+            .negativeButton(R.string.no)
             .show()
     }
 

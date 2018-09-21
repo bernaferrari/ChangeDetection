@@ -4,7 +4,6 @@ import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.content.ClipboardManager
 import android.content.Context
-import android.graphics.Color
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
 import android.support.design.widget.Snackbar
@@ -26,8 +25,9 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.work.State
 import androidx.work.WorkStatus
-import com.afollestad.materialdialogs.DialogAction
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.customview.customView
+import com.afollestad.materialdialogs.customview.getCustomView
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.SiteAndLastSnap
 import com.bernaferrari.changedetection.data.Snap
@@ -115,6 +115,7 @@ class MainFragment : ScopedFragment() {
             }
 
             layoutManager = LinearLayoutManager(context)
+
             adapter = groupAdapter.apply {
                 // to be used when AndroidX becomes a reality and our top bar is replaced with a bottom bar.
                 // this.add(MarqueeItem("Change Detection"))
@@ -248,17 +249,16 @@ class MainFragment : ScopedFragment() {
                 }
                 else -> {
                     val remove: ((String) -> (Unit)) = {
-                        MaterialDialog.Builder(requireContext())
+                        MaterialDialog(requireContext())
                             .title(R.string.remove)
-                            .content(R.string.remove_content)
-                            .positiveText(R.string.yes)
-                            .negativeText(R.string.no)
-                            .onPositive { _, _ ->
+                            .message(R.string.remove_content)
+                            .positiveButton(R.string.yes) { _ ->
                                 GlobalScope.launch(Dispatchers.Default) {
                                     mViewModel.removeSnapsByType(item.site.id, it)
                                     updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
                                 }
                             }
+                            .negativeButton(R.string.no)
                             .show()
                     }
 
@@ -635,8 +635,6 @@ class MainFragment : ScopedFragment() {
             add(FormInputText(item?.site?.url ?: defaultUrl, getString(R.string.url), Forms.URL))
         }
 
-        val errorOnLastSync = isInEditingMode && item?.site?.isSuccessful == false
-
         val colorsList = GradientColors.gradients
 
         val selectedColor = item?.site?.colors ?: colorsList.first()
@@ -661,15 +659,11 @@ class MainFragment : ScopedFragment() {
                 dialogItemTitle.notifyChanged()
             }
 
-        val materialDialog = MaterialDialog.Builder(activity)
-            .customView(R.layout.recyclerview, false)
-            .negativeText(R.string.cancel)
-            .positiveText(R.string.save)
-            .autoDismiss(false) // we need this for wiggle/shake effect, else it would dismiss
-            .positiveColor(Color.WHITE)
-            .onNegative { dialog, _ -> dialog.dismiss() }
-            .onPositive { dialog, _ ->
-
+        val materialDialog = MaterialDialog(activity)
+            .customView(R.layout.recyclerview, noVerticalPadding = true)
+            .noAutoDismiss() // we need this for wiggle/shake effect, else it would dismiss
+            .negativeButton(R.string.cancel) { it.dismiss() }
+            .positiveButton(R.string.save) { dialog ->
                 // This was adapted from an app which was using NoSql. Not the best syntax, but
                 // can be adapted for any scenario, kind of a
                 // Eureka (https://github.com/xmartlabs/Eureka) for Android.
@@ -679,7 +673,7 @@ class MainFragment : ScopedFragment() {
 
                 if (isInEditingMode && item != null) {
                     if (isUrlWrong(potentialUrl, listOfItems)) {
-                        return@onPositive
+                        return@positiveButton
                     }
 
                     item.site.url.also { previousUrl ->
@@ -710,7 +704,7 @@ class MainFragment : ScopedFragment() {
 
                     // If even after this it is still invalid, we wiggle
                     if (isUrlWrong(url, listOfItems)) {
-                        return@onPositive
+                        return@positiveButton
                     }
 
                     val site = Site(
@@ -738,17 +732,11 @@ class MainFragment : ScopedFragment() {
                         false
                     )
                 ) {
-                    MaterialDialog.Builder(activity)
+                    MaterialDialog(activity)
                         .title(R.string.turn_on_background_sync_title)
-                        .content(R.string.turn_on_background_sync_content)
-                        .negativeText(R.string.no)
-                        .positiveText(R.string.yes)
-                        .positiveColor(Color.WHITE)
-                        .btnSelector(
-                            R.drawable.dialog_positive_button_indigo,
-                            DialogAction.POSITIVE
-                        )
-                        .onPositive { _, _ ->
+                        .message(R.string.turn_on_background_sync_content)
+                        .negativeButton(R.string.no)
+                        .positiveButton(R.string.yes) {
                             sharedPrefs.edit { putBoolean("backgroundSync", true) }
                             WorkerHelper.updateWorkerWithConstraints(sharedPrefs)
                         }
@@ -756,19 +744,7 @@ class MainFragment : ScopedFragment() {
                 }
             }
 
-        if (errorOnLastSync) {
-            // tint the dialog orange when there was an error on last sync
-            materialDialog
-                .btnSelector(R.drawable.dialog_positive_button_orange, DialogAction.POSITIVE)
-                .negativeColorRes(R.color.md_deep_orange_A200)
-        } else {
-            materialDialog
-                .btnSelector(R.drawable.dialog_positive_button_indigo, DialogAction.POSITIVE)
-        }
-
-        val materialdialog = materialDialog.build()
-
-        materialdialog.customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.run {
+        materialDialog.getCustomView()?.findViewById<RecyclerView>(R.id.defaultRecycler)?.apply {
             this.overScrollMode = View.OVER_SCROLL_NEVER
             this.layoutManager = LinearLayoutManager(this.context)
             this.addItemDecoration(
@@ -785,8 +761,8 @@ class MainFragment : ScopedFragment() {
         }
 
         // This will call the keyboard when dialog is shown.
-        materialdialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
-        materialdialog.show()
+        materialDialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        materialDialog.show()
     }
 
     override fun onDestroy() {
