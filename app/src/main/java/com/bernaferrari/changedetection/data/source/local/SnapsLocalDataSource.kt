@@ -38,10 +38,13 @@ class SnapsLocalDataSource constructor(
                 // if there are duplicated items, remove them first
                 distinctList.forEach { snap ->
                     // keep the oldest version and remove all the other duplicates
-                    snapsList.filter { it.contentSize == snap.contentSize }.drop(1).forEach {
-                        Logger.d("Remove " + it.contentSize)
-                        deleteSnap(it.snapId)
-                        snapsList.remove(it)
+                    snapsList.asSequence()
+                        .filter { it.contentSize == snap.contentSize }
+                        .drop(1)
+                        .forEach {
+                            Logger.d("Remove " + it.contentSize)
+                            deleteSnap(it.snapId)
+                            snapsList.remove(it)
                     }
                 }
 

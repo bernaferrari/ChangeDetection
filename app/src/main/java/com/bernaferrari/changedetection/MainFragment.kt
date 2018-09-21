@@ -13,11 +13,9 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.SimpleItemAnimator
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.core.content.edit
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -45,21 +43,16 @@ import com.tapadoo.alerter.Alerter
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
-import io.reactivex.Completable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.main_fragment.*
 import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.android.synthetic.main.state_layout.view.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.android.Main
-import java.util.concurrent.TimeUnit
 
 class MainFragment : ScopedFragment() {
     private lateinit var mViewModel: MainViewModel
     private val sitesList = mutableListOf<MainCardItem>()
     private val sitesSection = Section(sitesList)
-    private var timerDisposable: Disposable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,11 +72,6 @@ class MainFragment : ScopedFragment() {
         mViewModel = viewModelProvider(ViewModelFactory.getInstance(requireActivity().application))
 
         mViewModel.sortAlphabetically = Injector.get().sharedPrefs().getBoolean("sortByName", false)
-
-        val groupAdapter = GroupAdapter<ViewHolder>()
-
-        // Clear it up, in case the fragment is recreated.
-        sitesSection.update(sitesList.apply { clear() })
 
         stateLayout.showLoading()
 
@@ -105,16 +93,12 @@ class MainFragment : ScopedFragment() {
             pullToRefresh.isRefreshing = false
         }
 
-        defaultRecycler.apply {
-            addItemDecoration(ListPaddingDecoration(this.context))
-            itemAnimator = this.itemAnimator.apply {
-                // From https://stackoverflow.com/a/33302517/4418073
-                if (this is SimpleItemAnimator) {
-                    this.supportsChangeAnimations = false
-                }
-            }
+        val groupAdapter = GroupAdapter<ViewHolder>()
 
+        defaultRecycler.apply {
             layoutManager = LinearLayoutManager(context)
+            itemAnimator = itemAnimatorWithoutChangeAnimations()
+            addItemDecoration(ListPaddingDecoration(this.context))
 
             adapter = groupAdapter.apply {
                 // to be used when AndroidX becomes a reality and our top bar is replaced with a bottom bar.
@@ -123,7 +107,7 @@ class MainFragment : ScopedFragment() {
             }
 
             setEmptyView(view.stateLayout.apply {
-                setEmptyText(context.getString(R.string.no_websites_being_monitored))
+                setEmptyText(getString(R.string.no_websites_being_monitored))
             })
         }
 
@@ -132,8 +116,7 @@ class MainFragment : ScopedFragment() {
         }
 
         groupAdapter.setOnItemClickListener { item, _ ->
-            if (item !is MainCardItem) return@setOnItemClickListener
-            openItem(item)
+            if (item is MainCardItem) openItem(item)
         }
 
         mViewModel.loadSites().observe(this, Observer(::updateList))
@@ -196,12 +179,12 @@ class MainFragment : ScopedFragment() {
         // need to do this on animation to avoid RecyclerView crashing when
         // “scrapped or attached views may not be recycled”
         filter.isEnabled = false
-        timerDisposable = Completable.timer(
-            transitionDelay,
-            TimeUnit.MILLISECONDS,
-            AndroidSchedulers.mainThread()
-        ).subscribe {
-            filter.isEnabled = true
+
+        launch {
+            delay(transitionDelay)
+            withContext(Dispatchers.Main) {
+                filter.isEnabled = true
+            }
         }
     }
 
@@ -216,8 +199,6 @@ class MainFragment : ScopedFragment() {
         val bottomSheetAdapter = GroupAdapter<ViewHolder>().apply {
             add(LoadingItem())
         }
-
-        mViewModel.selectedIndex = sitesList.indexOf(item)
 
         customView.findViewById<RecyclerView>(R.id.defaultRecycler).adapter = bottomSheetAdapter
 
@@ -434,6 +415,7 @@ class MainFragment : ScopedFragment() {
         if (mutable == null) return
 
         stateLayout?.showEmptyState()
+        defaultRecycler.updateEmptyView()
 
         if (mutable.isEmpty()) {
             showCreateEditDialog(false, requireActivity())
@@ -469,11 +451,6 @@ class MainFragment : ScopedFragment() {
         if (mViewModel.shouldSyncWhenAppOpen) {
             sitesList.forEach(this::reloadEach)
             mViewModel.shouldSyncWhenAppOpen = false
-        }
-
-        if (mViewModel.selectedIndex > 0) {
-            defaultRecycler.scrollToPosition(mViewModel.selectedIndex - 1)
-            mViewModel.selectedIndex = 0
         }
 
         if (sitesList.isNotEmpty()) filter.isVisible = true
@@ -596,10 +573,10 @@ class MainFragment : ScopedFragment() {
                 GroupAdapter<ViewHolder>().apply {
                     add(Section(updating))
 
-                    setOnItemClickListener { dialogitem, _ ->
-                        if (dialogitem !is DialogItemSimple) return@setOnItemClickListener
+                    setOnItemClickListener { dialogItem, _ ->
+                        if (dialogItem !is DialogItemSimple) return@setOnItemClickListener
 
-                        when (dialogitem.kind) {
+                        when (dialogItem.kind) {
                             "pruning" -> mViewModel.pruneSite(item.site.id)
                             "all" -> removeItem(item)
                         }
@@ -760,14 +737,7 @@ class MainFragment : ScopedFragment() {
             }
         }
 
-        // This will call the keyboard when dialog is shown.
-        materialDialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         materialDialog.show()
-    }
-
-    override fun onDestroy() {
-        timerDisposable?.dispose()
-        super.onDestroy()
     }
 
     private fun isUrlWrong(url: String, listOfItems: MutableList<FormInputText>): Boolean {
