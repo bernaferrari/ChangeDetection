@@ -12,10 +12,10 @@
         <action
             android:id="@+id/action_mainFragment_to_openFragment"
             app:destination="@id/openFragment"
-            app:enterAnim="@anim/slide_up"
-            app:exitAnim="@anim/design_bottom_sheet_slide_out"
-            app:popEnterAnim="@anim/slide_up"
-            app:popExitAnim="@anim/design_bottom_sheet_slide_out" />
+            app:enterAnim="@anim/enter"
+            app:exitAnim="@anim/slide_out"
+            app:popEnterAnim="@anim/pop_enter"
+            app:popExitAnim="@anim/slide_out" />
         <action
             android:id="@+id/action_mainFragment_to_aboutFragment"
             app:destination="@id/aboutFragment"
@@ -26,24 +26,24 @@
         <action
             android:id="@+id/action_mainFragment_to_imageCarouselFragment"
             app:destination="@id/imageCarouselFragment"
-            app:enterAnim="@anim/slide_up"
-            app:exitAnim="@anim/design_bottom_sheet_slide_out"
-            app:popEnterAnim="@anim/slide_up"
-            app:popExitAnim="@anim/design_bottom_sheet_slide_out" />
+            app:enterAnim="@anim/enter"
+            app:exitAnim="@anim/exit"
+            app:popEnterAnim="@anim/enter"
+            app:popExitAnim="@anim/exit" />
         <action
             android:id="@+id/action_mainFragment_to_pdfFragment"
             app:destination="@id/pdfFragment"
-            app:enterAnim="@anim/slide_up"
-            app:exitAnim="@anim/design_bottom_sheet_slide_out"
-            app:popEnterAnim="@anim/slide_up"
-            app:popExitAnim="@anim/design_bottom_sheet_slide_out" />
+            app:enterAnim="@anim/enter"
+            app:exitAnim="@anim/exit"
+            app:popEnterAnim="@anim/enter"
+            app:popExitAnim="@anim/exit" />
     </fragment>
 
     <fragment
         android:id="@+id/openFragment"
         android:name="com.bernaferrari.changedetection.detailstext.TextFragment"
         android:label="OpenFragment"
-        tools:layout="@layout/details_fragment"></fragment>
+        tools:layout="@layout/details_fragment" />
 
     <fragment
         android:id="@+id/aboutFragment"

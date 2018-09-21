@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.support.v4.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.navigation.Navigation
+import androidx.navigation.findNavController
 import com.danielstone.materialaboutlibrary.ConvenienceBuilder
 import com.danielstone.materialaboutlibrary.MaterialAboutFragment
 import com.danielstone.materialaboutlibrary.items.MaterialAboutActionItem
@@ -60,10 +60,8 @@ class AboutFragment : MaterialAboutFragment() {
                         .sizeDp(iconsize)
                 )
                 .setOnClickAction {
-                    view?.let {
-                        Navigation.findNavController(it)
-                            .navigate(R.id.action_aboutFragment_to_aboutLicenseFragment)
-                    }
+                    view?.findNavController()
+                        ?.navigate(R.id.action_aboutFragment_to_aboutLicenseFragment)
                 }
                 .build())
 

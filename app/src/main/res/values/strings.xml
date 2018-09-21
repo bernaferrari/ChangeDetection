@@ -91,6 +91,7 @@
     <string name="three_x" translatable="false">3x</string>
     <string name="four_x" translatable="false">4x</string>
     <string name="five_x" translatable="false">5x</string>
+    <string name="shared_transition" translatable="false">shared_transition</string>
 
     <string name="control_bar_quality">High Quality</string>
     <string name="share">Share</string>

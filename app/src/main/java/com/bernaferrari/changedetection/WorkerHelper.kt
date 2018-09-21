@@ -108,14 +108,14 @@ object WorkerHelper {
             workerConstraints.setRequiresDeviceIdle(true)
         }
 
-        val photoWork = OneTimeWorkRequest.Builder(SyncWorker::class.java)
+        val syncWork = OneTimeWorkRequest.Builder(SyncWorker::class.java)
             .setInitialDelay(delay, TimeUnit.MINUTES)
             .setConstraints(workerConstraints.build())
             .setInputData(inputData)
             .build()
 
         WorkManager.getInstance()
-            .beginUniqueWork(WorkerHelper.UNIQUEWORK, ExistingWorkPolicy.REPLACE, photoWork)
+            .beginUniqueWork(WorkerHelper.UNIQUEWORK, ExistingWorkPolicy.REPLACE, syncWork)
             .enqueue()
     }
 

@@ -19,9 +19,7 @@ class TextRecycler(
     val index: Int
 ) : Item() {
 
-    override fun getLayout(): Int {
-        return R.layout.details_item_recyclerview_diff
-    }
+    override fun getLayout() = R.layout.details_item_recyclerview_diff
 
     // This will make the spannable showing the diffs
     private fun setSpannable(

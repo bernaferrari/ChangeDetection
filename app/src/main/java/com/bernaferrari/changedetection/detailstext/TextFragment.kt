@@ -9,19 +9,18 @@ import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
 import android.support.design.widget.Snackbar
-import android.support.transition.AutoTransition
-import android.support.transition.TransitionManager
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.SimpleItemAnimator
+import android.transition.ChangeBounds
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
-import androidx.navigation.Navigation
+import androidx.navigation.findNavController
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.MainActivity
 import com.bernaferrari.changedetection.R
@@ -32,16 +31,12 @@ import com.bernaferrari.changedetection.groupie.DialogItemSimple
 import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.ui.CustomWebView
 import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
-import com.bernaferrari.changedetection.util.VisibilityHelper
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Item
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
-import io.reactivex.Completable
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.content_web.view.*
 import kotlinx.android.synthetic.main.control_bar.*
 import kotlinx.android.synthetic.main.details_fragment.*
@@ -51,7 +46,6 @@ import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.android.Main
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
-import java.util.concurrent.TimeUnit
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
 
@@ -60,21 +54,11 @@ class TextFragment : ScopedFragment() {
     lateinit var model: TextViewModel
     val color: Int by lazy { ContextCompat.getColor(requireContext(), R.color.FontStrong) }
 
-    private val transitionDuration = 175L
-    private val transition = AutoTransition().apply { duration = transitionDuration }
     private val uiState = UiState { updateUiFromState() }
     private lateinit var bottomAdapter: TextAdapter
     private val topSection = Section()
 
-    private var disposable: Disposable? = null
-
     private fun updateUiFromState() {
-        beginDelayedTransition()
-
-        // locks the recyclerview and does not allow to scroll until transition happens, else
-        // crashes will happen.
-        topRecycler.stopScroll()
-        topRecycler.setOnTouchListener { _, _ -> true }
 
         bottomRecycler.isVisible = uiState.visibility
 
@@ -101,22 +85,12 @@ class TextFragment : ScopedFragment() {
                 // two items selected. So it won't change anything.
             }
         }
-
-        // this will make sure touch is only enabled again after the transition period occurs
-        disposable?.dispose()
-        disposable = Completable.timer(
-            transitionDuration * 2,
-            TimeUnit.MILLISECONDS,
-            AndroidSchedulers.mainThread()
-        ).subscribe {
-            topRecycler.setOnTouchListener { _, _ ->
-                false
-            }
-        }
     }
 
-    private fun beginDelayedTransition() =
-        TransitionManager.beginDelayedTransition(container, transition)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        sharedElementEnterTransition = ChangeBounds().apply { duration = MainActivity.TRANSITION }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -130,11 +104,12 @@ class TextFragment : ScopedFragment() {
         model = viewModelProvider(ViewModelFactory.getInstance(requireActivity().application))
 
         closecontent.setOnClickListener { dismiss() }
-        titlecontent.text = getStringFromArguments(MainActivity.TITLE)
+        titlecontent.text = getStringFromArguments(MainActivity.TITLE).takeIf { it.isNotBlank() }
+                ?: getStringFromArguments(MainActivity.URL)
 
         elastic.addListener(object : ElasticDragDismissFrameLayout.ElasticDragDismissCallback() {
             override fun onDragDismissed() {
-                Navigation.findNavController(view).navigateUp()
+                view.findNavController().navigateUp()
             }
         })
 
@@ -164,39 +139,14 @@ class TextFragment : ScopedFragment() {
         showOriginalAndChanges.setOnClickListener { uiState.showOriginalAndChanges++ }
 
         openBrowserToggle.setOnClickListener {
-            requireContext().openInBrowser(getStringFromArguments(MainActivity.URL))
+            context?.openInBrowser(getStringFromArguments(MainActivity.URL))
         }
 
         closecontent.setOnClickListener { dismiss() }
 
-        // this is needed. If visibility is off and the fragment is reopened,
-        // drawable will keep the drawable from                                                                                                                                                                                                                                                      last state (off) even thought it should be on.
-        visibility.setImageDrawable(
-            ContextCompat.getDrawable(
-                requireContext(),
-                VisibilityHelper.getStaticIcon(uiState.visibility)
-            )
-        )
+        settings.isVisible = getStringFromArguments(MainActivity.TYPE) == "text/html"
 
-        // this is needed. If visibility is off and the fragment is reopened,
-        // drawable will keep the drawable from last state (off) even thought it should be on.
-
-        visibility.setOnClickListener {
-            uiState.visibility++
-
-            // set and run the correct animation
-            visibility.setAndStartAnimation(
-                VisibilityHelper.getAnimatedIcon(uiState.visibility),
-                requireContext()
-            )
-        }
-
-        if (getStringFromArguments(MainActivity.TYPE) != "text/html") {
-            settings.isVisible = false
-        }
-
-
-        topRecycler.run {
+        topRecycler.apply {
             layoutManager = LinearLayoutManager(context)
 
             setEmptyView(stateLayout)
@@ -239,10 +189,7 @@ class TextFragment : ScopedFragment() {
                             model.fsmSelectWithCorrectColor(item, topSection)
                         }
 
-                        item.snap?.let {
-                            model.removeSnap(it.snapId)
-                        }
-
+                        model.removeSnap(item.snap?.snapId)
                     }
                     .show()
             }
@@ -273,7 +220,7 @@ class TextFragment : ScopedFragment() {
                 getStringFromArguments(MainActivity.TYPE, "%")
             )
 
-            launch(Dispatchers.Main) {
+            withContext(Dispatchers.Main) {
                 liveData.observe(this@TextFragment, Observer {
                     bottomAdapter.submitList(it)
                     if (!hasSetInitialColor) {
@@ -292,7 +239,7 @@ class TextFragment : ScopedFragment() {
                                 getString(R.string.less_than_two),
                                 Snackbar.LENGTH_LONG
                             ).show()
-                            Navigation.findNavController(view).navigateUp()
+                            view.findNavController().navigateUp()
                         }
 
                         hasSetInitialColor = true
@@ -423,12 +370,7 @@ class TextFragment : ScopedFragment() {
         webView?.loadDataWithBaseURL("", data, "text/html", "UTF-8", "")
     }
 
-    private fun dismiss() = view?.also { Navigation.findNavController(it).navigateUp() }
-
-    override fun onDestroy() {
-        disposable?.dispose()
-        super.onDestroy()
-    }
+    private fun dismiss() = view?.findNavController()?.navigateUp()
 
     companion object {
         interface RecyclerViewItemListener {
