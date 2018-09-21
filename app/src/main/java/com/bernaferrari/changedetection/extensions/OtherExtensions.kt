@@ -10,6 +10,7 @@ import android.support.annotation.StringRes
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat
 import android.support.v4.app.Fragment
 import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.SimpleItemAnimator
 import android.view.View
 import android.widget.ImageView
 import androidx.core.net.toUri
@@ -79,3 +80,11 @@ inline fun consume(f: () -> Unit): Boolean {
     f()
     return true
 }
+
+internal fun RecyclerView.itemAnimatorWithoutChangeAnimations() =
+    this.itemAnimator.apply {
+        // From https://stackoverflow.com/a/33302517/4418073
+        if (this is SimpleItemAnimator) {
+            this.supportsChangeAnimations = false
+        }
+    }

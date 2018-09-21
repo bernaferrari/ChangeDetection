@@ -3,7 +3,7 @@ package com.bernaferrari.changedetection.ui
 import android.content.Context
 import android.support.v7.widget.RecyclerView
 import android.util.AttributeSet
-import android.view.View
+import androidx.core.view.isVisible
 
 
 class RecyclerViewWithEmptyState @JvmOverloads constructor(
@@ -16,17 +16,17 @@ class RecyclerViewWithEmptyState @JvmOverloads constructor(
 
     private val observer = object : RecyclerView.AdapterDataObserver() {
         override fun onChanged() {
-            showEmptyView()
+            updateEmptyView()
         }
 
         override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
             super.onItemRangeInserted(positionStart, itemCount)
-            showEmptyView()
+            updateEmptyView()
         }
 
         override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
             super.onItemRangeRemoved(positionStart, itemCount)
-            showEmptyView()
+            updateEmptyView()
         }
     }
 
@@ -38,7 +38,7 @@ class RecyclerViewWithEmptyState @JvmOverloads constructor(
         }
     }
 
-    private fun showEmptyView() {
+    fun updateEmptyView() {
         if (emptyLayout == null) return
 
         if (adapter != null) {
@@ -49,7 +49,7 @@ class RecyclerViewWithEmptyState @JvmOverloads constructor(
     }
 
     private fun updateVisibility(showEmptyView: Boolean) {
-        emptyLayout?.visibility = if (!showEmptyView) View.VISIBLE else View.GONE
+        emptyLayout?.isVisible = !showEmptyView
     }
 
     /**
@@ -57,6 +57,6 @@ class RecyclerViewWithEmptyState @JvmOverloads constructor(
      */
     fun setEmptyView(emptyView: EmptyLayout) {
         this.emptyLayout = emptyView
-        showEmptyView()
+        updateEmptyView()
     }
 }

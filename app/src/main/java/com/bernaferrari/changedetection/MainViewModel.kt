@@ -31,7 +31,6 @@ class MainViewModel(
 
     internal var shouldSyncWhenAppOpen = true
     internal var sortAlphabetically = false
-    internal var selectedIndex = 0
 
     internal val getOutputStatus: LiveData<List<WorkStatus>>
         get() = WorkManager.getInstance().getStatusesForUniqueWork(WorkerHelper.UNIQUEWORK)

@@ -1,9 +1,9 @@
 package com.bernaferrari.changedetection.groupie
 
 import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.SimpleItemAnimator
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.extensions.ColorGroup
+import com.bernaferrari.changedetection.extensions.itemAnimatorWithoutChangeAnimations
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.kotlinandroidextensions.Item
@@ -49,12 +49,8 @@ class ColorPickerRecyclerViewItem(
             this.adapter = GroupAdapter<ViewHolder>().apply {
                 add(Section(selectorList))
             }
-            this.itemAnimator = this.itemAnimator.apply {
-                // From https://stackoverflow.com/a/33302517/4418073
-                if (this is SimpleItemAnimator) {
-                    this.supportsChangeAnimations = false
-                }
-            }
+            this.itemAnimator = itemAnimatorWithoutChangeAnimations()
+
         }
     }
 }

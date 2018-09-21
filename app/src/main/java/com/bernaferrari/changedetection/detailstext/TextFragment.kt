@@ -12,7 +12,6 @@ import android.support.design.widget.Snackbar
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.SimpleItemAnimator
 import android.transition.ChangeBounds
 import android.view.LayoutInflater
 import android.view.View
@@ -201,14 +200,9 @@ class TextFragment : ScopedFragment() {
         bottomAdapter = TextAdapter(recyclerListener)
 
         bottomRecycler.run {
-            this.adapter = bottomAdapter
-            this.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-            itemAnimator = this.itemAnimator.apply {
-                // From https://stackoverflow.com/a/33302517/4418073
-                if (this is SimpleItemAnimator) {
-                    this.supportsChangeAnimations = false
-                }
-            }
+            adapter = bottomAdapter
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            itemAnimator = itemAnimatorWithoutChangeAnimations()
         }
 
         // Subscribe the adapter to the ViewModel, so the items in the adapter are refreshed
@@ -273,8 +267,10 @@ class TextFragment : ScopedFragment() {
                 val customView =
                     layoutInflater.inflate(R.layout.recyclerview, view as ViewGroup, false)
 
-                val materialdialog = BottomSheetDialog(requireContext())
-                materialdialog.setContentView(customView)
+                BottomSheetDialog(requireContext()).apply {
+                    setContentView(customView)
+                    show()
+                }
 
                 val updating = mutableListOf<Item<out ViewHolder>>()
 
@@ -320,16 +316,16 @@ class TextFragment : ScopedFragment() {
                                 this.width = resources.displayMetrics.widthPixels
                             }
 
-                                    fetchAndOpenOnWebView(
-                                        bottomAdapter,
-                                        view.webview,
-                                        if (itemDialog.kind == "first")
-                                            ItemSelected.REVISED
-                                        else
-                                            ItemSelected.ORIGINAL
-                                    )
+                            fetchAndOpenOnWebView(
+                                bottomAdapter,
+                                view.webview,
+                                if (itemDialog.kind == "first") {
+                                    ItemSelected.REVISED
+                                } else {
+                                    ItemSelected.ORIGINAL
                                 }
-                            }.show()
+                            )
+                        }
                     }
                 }
             }

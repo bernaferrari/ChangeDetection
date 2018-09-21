@@ -126,6 +126,8 @@ class PdfFragment : ScopedFragment(),
             view.findNavController().navigateUp()
         }
 
+        next_previous_bar.isVisible = false
+
         showOriginalAndChanges.isVisible = false
 
         menucontent.setOnClickListener { view.drawer.openDrawer(GravityCompat.END) }
