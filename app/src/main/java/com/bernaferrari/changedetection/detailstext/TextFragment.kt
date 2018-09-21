@@ -22,6 +22,8 @@ import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.navigation.findNavController
 import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.customview.customView
+import com.afollestad.materialdialogs.customview.getCustomView
 import com.bernaferrari.changedetection.MainActivity
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ScopedFragment
@@ -172,18 +174,18 @@ class TextFragment : ScopedFragment() {
             override fun onLongClickListener(item: RecyclerView.ViewHolder) {
                 if (item !is TextViewHolder) return
 
-                MaterialDialog.Builder(requireActivity())
-                    .title(getString(R.string.remove_this, item.readableFileSize))
-                    .content(
+                MaterialDialog(requireActivity())
+                    .title(text = getString(R.string.remove_this, item.readableFileSize))
+                    .message(
+                        text =
                         getString(
                             R.string.are_you_sure,
                             item.readableFileSize,
                             item.stringFromTimeAgo
                         )
                     )
-                    .negativeText(R.string.cancel)
-                    .positiveText(R.string.yes)
-                    .onPositive { _, _ ->
+                    .negativeButton(R.string.cancel)
+                    .positiveButton(R.string.yes) { _ ->
                         if (item.colorSelected != ItemSelected.NONE) {
                             // If the item is selected, first deselect, then remove it.
                             model.fsmSelectWithCorrectColor(item, topSection)
@@ -309,16 +311,14 @@ class TextFragment : ScopedFragment() {
 
                 groupAdapter.setOnItemClickListener { itemDialog, _ ->
                     if (itemDialog is DialogItemSimple) {
-                        MaterialDialog.Builder(context)
-                            .customView(R.layout.content_web, false)
-                            .negativeText(R.string.close)
-                            .build()
-                            .also { dialog ->
-                                dialog.customView?.also { view ->
-                                    view.webview.updateLayoutParams {
-                                        this.height = resources.displayMetrics.heightPixels
-                                        this.width = resources.displayMetrics.widthPixels
-                                    }
+                        MaterialDialog(context).show {
+                            customView(R.layout.content_web, noVerticalPadding = true)
+                            negativeButton(R.string.close)
+                        }.getCustomView()?.also { view ->
+                            view.webview.updateLayoutParams {
+                                this.height = resources.displayMetrics.heightPixels
+                                this.width = resources.displayMetrics.widthPixels
+                            }
 
                                     fetchAndOpenOnWebView(
                                         bottomAdapter,
@@ -332,8 +332,6 @@ class TextFragment : ScopedFragment() {
                             }.show()
                     }
                 }
-
-                materialdialog.show()
             }
         }
     }
