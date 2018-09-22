@@ -8,16 +8,10 @@ import android.widget.FrameLayout
 import com.bernaferrari.changedetection.R
 import kotlinx.android.synthetic.main.empty_layout.view.*
 
-class EmptyLayout : FrameLayout {
-    constructor(context: Context) : super(context)
-
-    constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
-
-    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(
-        context,
-        attrs,
-        defStyleAttr
-    )
+class EmptyLayout @JvmOverloads constructor(
+    context: Context, attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0, defStyleRes: Int = 0
+) : FrameLayout(context, attrs, defStyleAttr, defStyleRes) {
 
     fun showLoading() {
         visibility = View.VISIBLE

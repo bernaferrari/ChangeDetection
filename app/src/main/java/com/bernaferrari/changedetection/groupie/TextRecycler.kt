@@ -12,14 +12,14 @@ import android.widget.TextView
 import com.bernaferrari.changedetection.R
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
-import kotlinx.android.synthetic.main.details_item_recyclerview_diff.*
+import kotlinx.android.synthetic.main.diff_text_item_text.*
 
 class TextRecycler(
     val title: String,
     val index: Int
 ) : Item() {
 
-    override fun getLayout() = R.layout.details_item_recyclerview_diff
+    override fun getLayout() = R.layout.diff_text_item_text
 
     // This will make the spannable showing the diffs
     private fun setSpannable(

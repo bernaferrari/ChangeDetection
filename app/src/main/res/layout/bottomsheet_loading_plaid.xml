@@ -13,5 +13,4 @@
 
     android:layout_marginBottom="16dp"
     android:indeterminate="true"
-    android:indeterminateTint="@color/md_grey_500"
-    android:indeterminateTintMode="src_in" />
+    android:indeterminateTint="@color/md_grey_500" />

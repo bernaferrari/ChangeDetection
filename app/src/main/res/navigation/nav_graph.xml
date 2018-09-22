@@ -10,8 +10,8 @@
         android:label="MainFragment"
         tools:layout="@layout/main_fragment">
         <action
-            android:id="@+id/action_mainFragment_to_openFragment"
-            app:destination="@id/openFragment"
+            android:id="@+id/action_mainFragment_to_textFragment"
+            app:destination="@id/textFragment"
             app:enterAnim="@anim/enter"
             app:exitAnim="@anim/slide_out"
             app:popEnterAnim="@anim/pop_enter"
@@ -25,25 +25,25 @@
             app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_mainFragment_to_imageCarouselFragment"
-            app:destination="@id/imageCarouselFragment"
+            app:destination="@id/imagePdfFragment"
             app:enterAnim="@anim/enter"
-            app:exitAnim="@anim/exit"
-            app:popEnterAnim="@anim/enter"
-            app:popExitAnim="@anim/exit" />
+            app:exitAnim="@anim/slide_out"
+            app:popEnterAnim="@anim/pop_enter"
+            app:popExitAnim="@anim/slide_out" />
         <action
             android:id="@+id/action_mainFragment_to_pdfFragment"
-            app:destination="@id/pdfFragment"
+            app:destination="@id/imagePdfFragment"
             app:enterAnim="@anim/enter"
-            app:exitAnim="@anim/exit"
-            app:popEnterAnim="@anim/enter"
-            app:popExitAnim="@anim/exit" />
+            app:exitAnim="@anim/slide_out"
+            app:popEnterAnim="@anim/pop_enter"
+            app:popExitAnim="@anim/slide_out" />
     </fragment>
 
     <fragment
-        android:id="@+id/openFragment"
+        android:id="@+id/textFragment"
         android:name="com.bernaferrari.changedetection.detailstext.TextFragment"
         android:label="OpenFragment"
-        tools:layout="@layout/details_fragment" />
+        tools:layout="@layout/diff_text_fragment" />
 
     <fragment
         android:id="@+id/aboutFragment"
@@ -61,13 +61,10 @@
         android:id="@+id/aboutLicenseFragment"
         android:name="com.bernaferrari.changedetection.AboutLicenseFragment"
         android:label="AboutLicenseFragment" />
+
     <fragment
-        android:id="@+id/imageCarouselFragment"
-        android:name="com.bernaferrari.changedetection.detailsimage.ImageFragment"
-        android:label="ImageCarouselFragment" />
-    <fragment
-        android:id="@+id/pdfFragment"
-        android:name="com.bernaferrari.changedetection.detailspdf.PdfFragment"
-        android:label="PdfFragment" />
+        android:id="@+id/imagePdfFragment"
+        android:name="com.bernaferrari.changedetection.detailsvisual.VisualFragment"
+        android:label="PdfFragment"></fragment>
 
 </navigation>

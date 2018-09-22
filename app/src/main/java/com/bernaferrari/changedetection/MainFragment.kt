@@ -265,7 +265,8 @@ class MainFragment : ScopedFragment() {
             MainActivity.SITEID to item.site.id,
             MainActivity.TITLE to item.site.title,
             MainActivity.URL to item.site.url,
-            MainActivity.TYPE to selectedType
+            MainActivity.TYPE to selectedType,
+            MainActivity.LASTCHANGE to item.lastSnap?.timestamp?.convertTimestampToDate()
         )
 
         val extras = view?.findViewWithTag<View>("${item.id}")?.let {
@@ -275,7 +276,7 @@ class MainFragment : ScopedFragment() {
         val destination = when {
             selectedType == "application/pdf" -> R.id.action_mainFragment_to_pdfFragment
             selectedType?.contains("image") == true -> R.id.action_mainFragment_to_imageCarouselFragment
-            else -> R.id.action_mainFragment_to_openFragment
+            else -> R.id.action_mainFragment_to_textFragment
         }
 
         view?.findNavController()?.navigate(destination, bundle, null, extras)

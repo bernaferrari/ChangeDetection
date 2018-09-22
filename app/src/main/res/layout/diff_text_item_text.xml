@@ -13,18 +13,16 @@
         android:id="@+id/title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-
         android:ellipsize="end"
         android:fontFamily="@font/work_regular"
         android:includeFontPadding="false"
         android:paddingStart="16dp"
-
         android:paddingTop="2dp"
         android:paddingEnd="16dp"
         android:paddingBottom="2dp"
-        android:text="Núcleos"
         android:textColor="@color/FontLessStrong"
         android:textSize="16sp"
+        tools:text="Núcleos"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/subtitle"
@@ -39,13 +37,9 @@
         android:ellipsize="end"
         android:fontFamily="@font/ibm_mono_medium"
         android:gravity="center|right"
-
         android:includeFontPadding="false"
         android:paddingLeft="4dp"
-
         android:paddingRight="4dp"
-
-        android:text="Núcleos"
         android:textColor="@color/FontStrong"
         android:textSize="16sp"
 

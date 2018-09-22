@@ -23,9 +23,8 @@ import android.arch.lifecycle.ViewModelProvider
 import android.support.annotation.VisibleForTesting
 import com.bernaferrari.changedetection.data.source.SitesRepository
 import com.bernaferrari.changedetection.data.source.SnapsRepository
-import com.bernaferrari.changedetection.detailsimage.ImageViewModel
-import com.bernaferrari.changedetection.detailspdf.PdfViewModel
 import com.bernaferrari.changedetection.detailstext.TextViewModel
+import com.bernaferrari.changedetection.detailsvisual.VisualViewModel
 
 /**
  * A creator is used to inject the product ID into the ViewModel
@@ -51,11 +50,7 @@ class ViewModelFactory private constructor(
                 mApplication,
                 mSnapsRepository
             ) as T
-            modelClass.isAssignableFrom(PdfViewModel::class.java) -> PdfViewModel(
-                mApplication,
-                mSnapsRepository
-            ) as T
-            modelClass.isAssignableFrom(ImageViewModel::class.java) -> ImageViewModel(
+            modelClass.isAssignableFrom(VisualViewModel::class.java) -> VisualViewModel(
                 mApplication,
                 mSnapsRepository
             ) as T
