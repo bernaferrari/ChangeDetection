@@ -23,10 +23,7 @@ import androidx.navigation.findNavController
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
-import com.bernaferrari.changedetection.MainActivity
-import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.ScopedFragment
-import com.bernaferrari.changedetection.ViewModelFactory
+import com.bernaferrari.changedetection.*
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.DialogItemSimple
 import com.bernaferrari.changedetection.groupie.TextRecycler
@@ -40,7 +37,7 @@ import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
 import kotlinx.android.synthetic.main.content_web.view.*
 import kotlinx.android.synthetic.main.control_bar.*
-import kotlinx.android.synthetic.main.details_fragment.*
+import kotlinx.android.synthetic.main.diff_text_fragment.*
 import kotlinx.android.synthetic.main.recyclerview.view.*
 import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.coroutines.experimental.Dispatchers
@@ -97,7 +94,7 @@ class TextFragment : ScopedFragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View = inflater.inflate(R.layout.details_fragment, container, false)
+    ): View = inflater.inflate(R.layout.diff_text_fragment, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -365,13 +362,6 @@ class TextFragment : ScopedFragment() {
     }
 
     private fun dismiss() = view?.findNavController()?.navigateUp()
-
-    companion object {
-        interface RecyclerViewItemListener {
-            fun onClickListener(item: RecyclerView.ViewHolder)
-            fun onLongClickListener(item: RecyclerView.ViewHolder)
-        }
-    }
 
     private class UiState(private val callback: () -> Unit) {
 

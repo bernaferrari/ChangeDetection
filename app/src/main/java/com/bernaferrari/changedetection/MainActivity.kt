@@ -11,6 +11,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     companion object {
+        const val LASTCHANGE = "LASTCHANGE"
         const val SITEID = "SITEID"
         const val TITLE = "TITLE"
         const val TYPE = "TYPE"
