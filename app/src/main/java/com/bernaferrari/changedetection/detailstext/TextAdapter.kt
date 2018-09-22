@@ -3,6 +3,7 @@ package com.bernaferrari.changedetection.detailstext
 import android.arch.paging.PagedListAdapter
 import android.support.v7.util.DiffUtil
 import android.view.ViewGroup
+import com.bernaferrari.changedetection.RecyclerViewItemListener
 import com.bernaferrari.changedetection.data.Snap
 
 /**
@@ -13,7 +14,7 @@ import com.bernaferrari.changedetection.data.Snap
  * computing list differences on a background thread, and dispatching minimal, efficient updates to
  * the RecyclerView to ensure minimal UI thread work.
  **/
-class TextAdapter(val callback: TextFragment.Companion.RecyclerViewItemListener) :
+class TextAdapter(val callback: RecyclerViewItemListener) :
     PagedListAdapter<Snap, TextViewHolder>(
         diffCallback
     ) {

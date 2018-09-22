@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -19,7 +18,6 @@
         android:id="@+id/cardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-
         app:cardBackgroundColor="#356bf8"
         app:cardCornerRadius="8dp"
         app:cardElevation="0dp">
@@ -38,10 +36,8 @@
                 android:padding="8dp"
                 android:scaleType="fitXY"
                 app:layout_constraintBottom_toBottomOf="@+id/subtitleTextView"
-
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/titleTextView"
-                tools:src="@drawable/vector_anim_reload" />
+                app:layout_constraintTop_toTopOf="@+id/titleTextView" />
 
             <TextView
                 android:id="@+id/titleTextView"
@@ -172,8 +168,7 @@
             android:padding="8dp"
             android:scaleType="fitXY"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:src="@drawable/vector_anim_sync" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
             android:id="@+id/lastChangeImage"
@@ -196,6 +191,8 @@
             android:layout_height="1dp"
             android:layout_marginTop="8dp"
             android:background="@color/md_grey_200"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/lastSyncImage" />
 
     </android.support.constraint.ConstraintLayout>
