@@ -82,7 +82,7 @@ class MainViewModel(
         mSitesRepository.updateSite(site)
     }
 
-    internal var items = MutableLiveData<MutableList<SiteAndLastSnap>>()
+    private var items = MutableLiveData<MutableList<SiteAndLastSnap>>()
 
     internal fun loadSites(): MutableLiveData<MutableList<SiteAndLastSnap>> {
         items = MutableLiveData()
@@ -91,7 +91,6 @@ class MainViewModel(
     }
 
     internal fun updateItems() = GlobalScope.launch {
-
         mutableListOf<SiteAndLastSnap>().also { list ->
             mSitesRepository.getSites().mapTo(list) { SiteAndLastSnap(it, getLastSnap(it.id)) }
 
@@ -99,7 +98,6 @@ class MainViewModel(
                 items.value = list
             }
         }
-
     }
 
     private suspend fun getLastSnap(siteId: String): Snap? {
