@@ -94,7 +94,7 @@ class MainCardItem(
             changeStatus()
         }
 
-        val tag = "$id"
+        val tag = site.id
         holder.containerView.tag = tag
         ViewCompat.setTransitionName(holder.containerView, tag)
 
