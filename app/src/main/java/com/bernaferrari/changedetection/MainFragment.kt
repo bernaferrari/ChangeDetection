@@ -269,7 +269,7 @@ class MainFragment : ScopedFragment() {
             MainActivity.LASTCHANGE to item.lastSnap?.timestamp?.convertTimestampToDate()
         )
 
-        val extras = view?.findViewWithTag<View>("${item.id}")?.let {
+        val extras = view?.findViewWithTag<View>(item.site.id)?.let {
             FragmentNavigatorExtras(it to getString(R.string.shared_transition))
         }
 
