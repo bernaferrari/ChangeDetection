@@ -2,7 +2,6 @@ package com.bernaferrari.changedetection
 
 import android.content.Context
 import android.net.Uri
-import android.support.v4.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.navigation.findNavController
 import com.danielstone.materialaboutlibrary.ConvenienceBuilder
@@ -25,7 +24,7 @@ class AboutFragment : MaterialAboutFragment() {
     override fun getTheme(): Int = R.style.About
 
     private fun createMaterialAboutList(c: Context): MaterialAboutList {
-        val grey = ContextCompat.getColor(c, R.color.md_grey_800)
+        val grey = R.color.md_grey_800
         val iconsize = 18
 
         val appCardBuilder = MaterialAboutCard.Builder()
@@ -43,7 +42,7 @@ class AboutFragment : MaterialAboutFragment() {
                 c,
                 IconicsDrawable(c)
                     .icon(GoogleMaterial.Icon.gmd_update)
-                    .color(grey)
+                    .colorRes(grey)
                     .sizeDp(iconsize),
                 c.getText(R.string.version),
                 false
@@ -56,7 +55,7 @@ class AboutFragment : MaterialAboutFragment() {
                 .icon(
                     IconicsDrawable(c)
                         .icon(CommunityMaterial.Icon.cmd_github_circle)
-                        .color(grey)
+                        .colorRes(grey)
                         .sizeDp(iconsize)
                 )
                 .setOnClickAction {
@@ -70,7 +69,7 @@ class AboutFragment : MaterialAboutFragment() {
                 c,
                 IconicsDrawable(c)
                     .icon(CommunityMaterial.Icon.cmd_star)
-                    .color(ContextCompat.getColor(c, R.color.md_yellow_700))
+                    .colorRes(R.color.md_yellow_700)
                     .sizeDp(iconsize),
                 c.getString(R.string.rate),
                 null
@@ -88,7 +87,7 @@ class AboutFragment : MaterialAboutFragment() {
                 .icon(
                     IconicsDrawable(c)
                         .icon(CommunityMaterial.Icon.cmd_reddit)
-                        .color(grey)
+                        .colorRes(grey)
                         .sizeDp(iconsize)
                 )
                 .setOnClickAction(
@@ -106,7 +105,7 @@ class AboutFragment : MaterialAboutFragment() {
                 .icon(
                     IconicsDrawable(c)
                         .icon(CommunityMaterial.Icon.cmd_github_circle)
-                        .color(grey)
+                        .colorRes(grey)
                         .sizeDp(iconsize)
                 )
                 .setOnClickAction(
@@ -127,7 +126,7 @@ class AboutFragment : MaterialAboutFragment() {
                 .icon(
                     IconicsDrawable(c)
                         .icon(CommunityMaterial.Icon.cmd_email)
-                        .color(grey)
+                        .colorRes(grey)
                         .sizeDp(iconsize)
                 )
                 .setOnClickAction(
@@ -149,7 +148,7 @@ class AboutFragment : MaterialAboutFragment() {
                 c,
                 IconicsDrawable(c)
                     .icon(CommunityMaterial.Icon.cmd_github_circle)
-                    .color(grey)
+                    .colorRes(grey)
                     .sizeDp(iconsize),
                 "GitHub",
                 true,
@@ -167,7 +166,7 @@ class AboutFragment : MaterialAboutFragment() {
                 .icon(
                     IconicsDrawable(c)
                         .icon(CommunityMaterial.Icon.cmd_bug)
-                        .color(grey)
+                        .colorRes(grey)
                         .sizeDp(iconsize)
                 )
                 .setOnClickAction(

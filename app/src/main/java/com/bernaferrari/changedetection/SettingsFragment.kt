@@ -85,9 +85,8 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
 
         syncSettings += DialogItemSwitch(
             getString(R.string.charging),
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_battery_charging).color(
-                color
-            ),
+            IconicsDrawable(context, CommunityMaterial.Icon.cmd_battery_charging)
+                .color(color),
             sharedPrefs.getBoolean(WorkerHelper.CHARGING, false)
         ) {
             updateSharedPreferences(WorkerHelper.CHARGING, it.isSwitchOn)
@@ -129,4 +128,3 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
         return view
     }
 }
-

@@ -234,18 +234,14 @@ class TextViewModel(
             .newTag { _ -> "TEXTADDED" }
             .build()
 
-        // find the correct charset
-        val newCharset = if (revised.first.contentCharset.isBlank()) {
-            Charset.defaultCharset()
-        } else {
-            Charset.forName(revised.first.contentCharset)
-        }
+        fun findCorrectCharset(content: Snap): Charset =
+            content.contentCharset.takeUnless { it.isBlank() }
+                ?.let { Charset.forName(it) }
+                    ?: Charset.defaultCharset()
 
-        val originalCharset = if (original.first.contentCharset.isBlank()) {
-            Charset.defaultCharset()
-        } else {
-            Charset.forName(original.first.contentCharset)
-        }
+        // find the correct charset
+        val newCharset = findCorrectCharset(revised.first)
+        val originalCharset = findCorrectCharset(original.first)
 
         // compute the differences for two test texts.
         // generateDiffRows will split the lines anyway, so there is no need for splitting again here.
