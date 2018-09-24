@@ -1,9 +1,10 @@
 package com.bernaferrari.changedetection.groupie
 
-import android.content.res.Resources
 import android.view.ViewGroup.MarginLayoutParams
+import androidx.core.view.updateLayoutParams
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.extensions.ColorGroup
+import com.bernaferrari.changedetection.extensions.toDp
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.colorpicker_item.*
@@ -39,22 +40,15 @@ class ColorPickerItem(
         // This is necessary for extra left padding on the first item, so it looks
         // visually identical to other items.
         // Since it is inside a recyclerView, the margin needs to be set at all the items.
-        viewHolder.containerView.run {
-            val dp8 = dp(8, resources)
-            val dp16 = dp(16, resources)
-            val dp32 = dp(32, resources)
+        viewHolder.containerView.apply {
+            val dp8 = 8.toDp(resources)
+            val dp32 = 32.toDp(resources)
 
-            val layoutParams = layoutParams as? MarginLayoutParams ?: return
-            layoutParams.width = dp32
-            layoutParams.height = dp32
-
-            if (isFirstIndex) {
-                layoutParams.setMargins(dp16, dp8, dp8, dp8)
-            } else {
-                layoutParams.setMargins(dp8, dp8, dp8, dp8)
+            viewHolder.containerView.updateLayoutParams<MarginLayoutParams> {
+                this.width = dp32
+                this.height = dp32
+                this.setMargins(if (isFirstIndex) 16.toDp(resources) else dp8, dp8, dp8, dp8)
             }
-
-            viewHolder.containerView.layoutParams = layoutParams
         }
 
         // first time it loads, or if recycles, the gradientColor need to be set correctly.
@@ -80,9 +74,5 @@ class ColorPickerItem(
     fun deselectAndNotify() {
         isSwitchOn = false
         notifyChanged()
-    }
-
-    private fun dp(value: Int, resources: Resources): Int {
-        return (resources.displayMetrics.density * value).toInt()
     }
 }

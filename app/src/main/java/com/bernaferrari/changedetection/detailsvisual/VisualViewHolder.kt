@@ -5,14 +5,14 @@ import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import android.support.v7.widget.RecyclerView
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.FrameLayout
+import androidx.core.view.updateLayoutParams
 import com.bernaferrari.changedetection.Injector
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.RecyclerViewItemListener
 import com.bernaferrari.changedetection.data.Snap
+import com.bernaferrari.changedetection.extensions.consume
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.util.GlideRequests
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
@@ -31,12 +31,10 @@ class VisualViewHolder(
         parent,
         false
     ).apply {
-        val params = FrameLayout.LayoutParams(
-            itemWidth,
-            itemHeight
-        )
-        params.gravity = Gravity.CENTER
-        this.layoutParams = params
+        this.updateLayoutParams {
+            width = itemWidth
+            height = itemHeight
+        }
     }
 ) {
     init {
@@ -45,8 +43,7 @@ class VisualViewHolder(
         }
 
         itemView.setOnLongClickListener {
-            callback.onLongClickListener(this)
-            true
+            consume { callback.onLongClickListener(this) }
         }
     }
 

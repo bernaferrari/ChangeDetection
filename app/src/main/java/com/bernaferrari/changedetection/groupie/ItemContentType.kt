@@ -1,6 +1,5 @@
 package com.bernaferrari.changedetection.groupie
 
-import android.support.v4.content.ContextCompat
 import com.bernaferrari.changedetection.R
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
@@ -27,7 +26,7 @@ class ItemContentType(
 
         viewHolder.remove.setImageDrawable(
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_delete)
-                .color(ContextCompat.getColor(context, R.color.FontWeak))
+                .colorRes(R.color.FontWeak)
                 .sizeDp(20)
         )
 
@@ -39,25 +38,25 @@ class ItemContentType(
             contentType == "application/pdf" -> {
                 viewHolder.icon.setImageDrawable(
                     IconicsDrawable(context, CommunityMaterial.Icon.cmd_file_pdf)
-                        .color(ContextCompat.getColor(context, R.color.md_red_500))
+                        .colorRes(R.color.md_red_500)
                 )
             }
             contentType.split("/").firstOrNull() == "image" -> {
                 viewHolder.icon.setImageDrawable(
                     IconicsDrawable(context, CommunityMaterial.Icon.cmd_file_image)
-                        .color(ContextCompat.getColor(context, R.color.md_green_500))
+                        .colorRes(R.color.md_green_500)
                 )
             }
             contentType == "text/html" -> {
                 viewHolder.icon.setImageDrawable(
                     IconicsDrawable(context, CommunityMaterial.Icon.cmd_file_document)
-                        .color(ContextCompat.getColor(context, R.color.md_blue_500))
+                        .colorRes(R.color.md_blue_500)
                 )
             }
             else -> {
                 viewHolder.icon.setImageDrawable(
                     IconicsDrawable(context, CommunityMaterial.Icon.cmd_file)
-                        .color(ContextCompat.getColor(context, R.color.md_grey_500))
+                        .colorRes(R.color.md_grey_500)
                 )
             }
         }

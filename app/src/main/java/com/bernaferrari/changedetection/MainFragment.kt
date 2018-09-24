@@ -1,6 +1,5 @@
 package com.bernaferrari.changedetection
 
-import android.app.Activity
 import android.arch.lifecycle.Observer
 import android.content.ClipboardManager
 import android.content.Context
@@ -86,7 +85,7 @@ class MainFragment : ScopedFragment() {
 
         filter.setOnClickListener { _ -> onFilterTapped() }
 
-        fab.setOnClickListener { showCreateEditDialog(false, requireActivity()) }
+        fab.setOnClickListener { showCreateEditDialog(false) }
 
         pullToRefresh.setOnRefreshListener {
             sitesList.forEach(this::reloadEach)
@@ -127,7 +126,6 @@ class MainFragment : ScopedFragment() {
         if (filterRecycler.adapter == null) {
             filterRecycler.layoutManager = LinearLayoutManager(this.context)
 
-            val color = ContextCompat.getColor(requireActivity(), R.color.FontStrong)
             var filteredColors = listOf<ColorGroup>()
 
             // return original list if empty, or the filtered one
@@ -143,7 +141,7 @@ class MainFragment : ScopedFragment() {
                     DialogItemSwitch(
                         getString(R.string.sort_by_name),
                         IconicsDrawable(context, CommunityMaterial.Icon.cmd_sort_alphabetical)
-                            .color(color),
+                            .colorRes(R.color.FontStrong),
                         mViewModel.sortAlphabetically
                     ) {
                         mViewModel.sortAlphabetically = it.isSwitchOn
@@ -283,25 +281,26 @@ class MainFragment : ScopedFragment() {
     }
 
     private fun showDialogWithOptions(item: MainCardItem) {
-        val context = requireActivity()
+
         val color = item.site.colors.second
 
         val customView =
             layoutInflater.inflate(R.layout.recyclerview, parentLayout, false)
-        val bottomSheet = BottomSheetDialog(requireContext())
-        bottomSheet.setContentView(customView)
-        bottomSheet.show()
 
-        val chart = Section()
-        val updating = mutableListOf<DialogItemSimple>()
+        val bottomSheet = BottomSheetDialog(requireContext()).apply {
+            setContentView(customView)
+            show()
+        }
 
-        updating += DialogItemSimple(
+        val dialogItems = mutableListOf<DialogItemSimple>()
+
+        dialogItems += DialogItemSimple(
             getString(R.string.edit),
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_pencil).color(color),
             "edit"
         )
 
-        updating += DialogItemSimple(
+        dialogItems += DialogItemSimple(
             getString(R.string.open_in_browser),
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_google_chrome).color(color),
             "openInBrowser"
@@ -309,15 +308,13 @@ class MainFragment : ScopedFragment() {
 
         // if item is disabled, makes no sense to enable/disable the notifications
         if (item.site.isSyncEnabled) {
-            updating += DialogItemSimple(
-                item.site.isNotificationEnabled
-                    .takeIf { it == true }
+            dialogItems += DialogItemSimple(
+                item.site.takeIf { it.isNotificationEnabled == true }
                     ?.let { getString(R.string.notification_disable) }
                         ?: getString(R.string.notification_enable),
                 IconicsDrawable(
                     context,
-                    item.site.isNotificationEnabled
-                        .takeIf { it == true }
+                    item.site.takeIf { it.isNotificationEnabled == true }
                         ?.let { CommunityMaterial.Icon.cmd_bell_off }
                             ?: CommunityMaterial.Icon.cmd_bell)
                     .color(color),
@@ -325,27 +322,25 @@ class MainFragment : ScopedFragment() {
             )
         }
 
-        updating += DialogItemSimple(
-            item.site.isSyncEnabled
-                .takeIf { it == true }
+        dialogItems += DialogItemSimple(
+            item.site.takeIf { it.isSyncEnabled == true }
                 ?.let { getString(R.string.sync_disable) } ?: getString(R.string.sync_enable),
             IconicsDrawable(
                 context,
-                item.site.isSyncEnabled
-                    .takeIf { it == true }
+                item.site.takeIf { it.isSyncEnabled == true }
                     ?.let { CommunityMaterial.Icon.cmd_sync_off }
                         ?: CommunityMaterial.Icon.cmd_sync)
                 .color(color),
             "isSyncEnabled"
         )
 
-        updating += DialogItemSimple(
+        dialogItems += DialogItemSimple(
             getString(R.string.remove_more),
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_delete).color(color),
             "remove"
         )
 
-        customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.run {
+        customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.apply {
 
             this.addItemDecoration(
                 com.bernaferrari.changedetection.ui.InsetDecoration(
@@ -355,9 +350,8 @@ class MainFragment : ScopedFragment() {
                 )
             )
 
-            adapter = GroupAdapter<ViewHolder>().apply {
-                add(chart)
-                add(Section(updating))
+            this.adapter = GroupAdapter<ViewHolder>().apply {
+                add(Section(dialogItems))
 
                 setOnItemClickListener { dialogitem, _ ->
                     if (dialogitem !is DialogItemSimple) return@setOnItemClickListener
@@ -365,7 +359,6 @@ class MainFragment : ScopedFragment() {
                     when (dialogitem.kind) {
                         "edit" -> showCreateEditDialog(
                             true,
-                            context,
                             item as? MainCardItem
                         )
                         "openInBrowser" -> {
@@ -397,11 +390,6 @@ class MainFragment : ScopedFragment() {
 
     private fun workOutput(it: List<WorkStatus>?) {
         val result = it ?: return
-        val sb = StringBuilder()
-        result.forEach { sb.append("${it.id}: ${it.state.name}\n") }
-        if (sb.isNotEmpty()) {
-            sb.setLength(sb.length - 1) // Remove the last \n from the string
-        }
         if (result.firstOrNull()?.state == State.SUCCEEDED) {
             mViewModel.updateItems()
             Logger.d("Just refreshed")
@@ -419,7 +407,7 @@ class MainFragment : ScopedFragment() {
         defaultRecycler.updateEmptyView()
 
         if (mutable.isEmpty()) {
-            showCreateEditDialog(false, requireActivity())
+            showCreateEditDialog(false)
         }
 
         if (sitesList.isNotEmpty()) {
@@ -602,7 +590,6 @@ class MainFragment : ScopedFragment() {
 
     private fun showCreateEditDialog(
         isInEditingMode: Boolean,
-        activity: Activity,
         item: MainCardItem? = null
     ) {
         // Gets the clipboard
@@ -637,7 +624,7 @@ class MainFragment : ScopedFragment() {
                 dialogItemTitle.notifyChanged()
             }
 
-        val materialDialog = MaterialDialog(activity)
+        val materialDialog = MaterialDialog(requireContext())
             .customView(R.layout.recyclerview, noVerticalPadding = true)
             .noAutoDismiss() // we need this for wiggle/shake effect, else it would dismiss
             .negativeButton(R.string.cancel) { it.dismiss() }
@@ -710,7 +697,7 @@ class MainFragment : ScopedFragment() {
                         false
                     )
                 ) {
-                    MaterialDialog(activity)
+                    MaterialDialog(requireContext())
                         .title(R.string.turn_on_background_sync_title)
                         .message(R.string.turn_on_background_sync_content)
                         .negativeButton(R.string.no)
