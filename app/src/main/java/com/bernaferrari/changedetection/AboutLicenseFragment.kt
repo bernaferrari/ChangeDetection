@@ -1,7 +1,6 @@
 package com.bernaferrari.changedetection
 
 import android.content.Context
-import android.support.v4.content.ContextCompat
 import com.danielstone.materialaboutlibrary.ConvenienceBuilder
 import com.danielstone.materialaboutlibrary.MaterialAboutFragment
 import com.danielstone.materialaboutlibrary.model.MaterialAboutCard
@@ -32,7 +31,7 @@ class AboutLicenseFragment : MaterialAboutFragment() {
             context,
             IconicsDrawable(context)
                 .icon(GoogleMaterial.Icon.gmd_book)
-                .color(ContextCompat.getColor(context, R.color.md_indigo_500))
+                .colorRes(R.color.md_indigo_500)
                 .sizeDp(18),
             libraryTitle,
             year,

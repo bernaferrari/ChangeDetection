@@ -93,17 +93,29 @@ class VisualFragment : ScopedFragment(),
         PDF, IMAGE
     }
 
+    private val groupAdapter = GroupAdapter<com.xwray.groupie.ViewHolder>()
+
+    private val recyclerListener = object :
+        RecyclerViewItemListener {
+        override fun onClickListener(item: RecyclerView.ViewHolder) {
+            carouselRecycler.smoothScrollToPosition((item as VisualViewHolder).itemPosition)
+        }
+
+        override fun onLongClickListener(item: RecyclerView.ViewHolder) {
+            removeItemDialog((item as VisualViewHolder).currentSnap?.snapId ?: "")
+        }
+    }
+
     private fun beginDelayedTransition() =
         TransitionManager.beginDelayedTransition(container, transition)
 
     override fun onCurrentItemChanged(viewHolder: RecyclerView.ViewHolder?, adapterPosition: Int) {
 
         // set the photo_view with current file
-        val item = carouselAdapter.getItemFromAdapter(adapterPosition) ?: return
-        titlecontent?.text = item.timestamp.convertTimestampToDate()
-
-        if (item.snapId == currentFileId) return
-        currentFileId = item.snapId
+        val item = carouselAdapter.getItemFromAdapter(adapterPosition)
+            ?.also { titlecontent?.text = it.timestamp.convertTimestampToDate() }
+            ?.takeIf { it.snapId != currentFileId }
+            ?.also { currentFileId = it.snapId } ?: return
 
         when (fileKind) {
             FORMAT.PDF -> {
@@ -123,11 +135,10 @@ class VisualFragment : ScopedFragment(),
             }
         }
 
-        if (items.isEmpty()) return
-        selectItem(adapterPosition)
+        if (items.isNotEmpty()) {
+            selectItem(adapterPosition)
+        }
     }
-
-    private val groupAdapter = GroupAdapter<com.xwray.groupie.ViewHolder>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -146,9 +157,7 @@ class VisualFragment : ScopedFragment(),
 
         model = viewModelProvider(ViewModelFactory.getInstance(requireActivity().application))
 
-        closecontent.setOnClickListener {
-            view.findNavController().navigateUp()
-        }
+        closecontent.setOnClickListener { view.findNavController().navigateUp() }
 
         elastic.addListener(object : ElasticDragDismissFrameLayout.ElasticDragDismissCallback() {
             override fun onDragDismissed() {
@@ -176,9 +185,7 @@ class VisualFragment : ScopedFragment(),
         mButtonNext.setOnClickListener { showPage(currentIndex + 1) }
 
         shareToggle.setOnClickListener { _ ->
-            carouselAdapter.getItemFromAdapter(previousAdapterPosition)?.also {
-                shareItem(it)
-            }
+            carouselAdapter.getItemFromAdapter(previousAdapterPosition)?.also { shareItem(it) }
         }
 
         openBrowserToggle.setOnClickListener {
@@ -204,17 +211,6 @@ class VisualFragment : ScopedFragment(),
                 VisibilityHelper.getAnimatedIcon(uiState.visibility),
                 requireContext()
             )
-        }
-
-        val recyclerListener = object :
-            RecyclerViewItemListener {
-            override fun onClickListener(item: RecyclerView.ViewHolder) {
-                carouselRecycler.smoothScrollToPosition((item as VisualViewHolder).itemPosition)
-            }
-
-            override fun onLongClickListener(item: RecyclerView.ViewHolder) {
-                removeItemDialog((item as VisualViewHolder).currentSnap?.snapId ?: "")
-            }
         }
 
         val windowDimensions = Point()
@@ -257,56 +253,12 @@ class VisualFragment : ScopedFragment(),
             )
         }
 
-        val siteId = getStringFromArguments(MainActivity.SITEID)
-
-        val filtering = when (fileKind) {
-            FORMAT.PDF -> "%pdf"
-            FORMAT.IMAGE -> "image%"
-        }
-
-        // this is needed since getSnapsFiltered retrieves a liveData from Room to be observed
-        launch(Dispatchers.Default) {
-
-            val liveData = model.getSnapsFiltered(siteId, filtering)
-
-            // add a delay corresponding to the transition time to avoid anim lag
-            delay(MainActivity.TRANSITION + 25 + 15)
-
-            model.getAllSnapsPagedForId(siteId, filtering)
-                .observe(requireActivity(), Observer(carouselAdapter::submitList))
-
-            withContext(Dispatchers.Main) {
-                progressBar.isVisible = false
-
-                liveData.observe(requireActivity(), Observer { filtered ->
-                    val isItemsEmpty = items.isEmpty()
-                    items.clear()
-
-                    if (filtered != null) {
-                        filtered.mapTo(items) { RowItem(it) }
-                        section.update(items)
-
-                        // Since selectItem is being set at onCurrentItemChanged, and this code is ran async,
-                        // if it happens after onCurrentItemChanged is called, which usually happens, the
-                        // first item won't be selected.
-                        if (isItemsEmpty) {
-                            selectItem(0)
-                        }
-
-                        // If all items were removed, close this fragment
-                        if (items.isEmpty()) {
-                            view.findNavController().navigateUp()
-                        }
-                    }
-                })
-            }
-        }
+        fetchData()
 
         groupAdapter.add(section)
         groupAdapter.setOnItemClickListener { item, _ ->
             if (item is RowItem) {
-                val nextPosition =
-                    items.indexOfFirst { it.snap.snapId == item.snap.snapId }
+                val nextPosition = items.indexOfFirst { it.snap.snapId == item.snap.snapId }
                 drawer.closeDrawer(GravityCompat.END)
                 carouselRecycler.smoothScrollToPosition(nextPosition) // position becomes selected with animated scroll
             }
@@ -316,6 +268,50 @@ class VisualFragment : ScopedFragment(),
                 removeItemDialog(item.snap.snapId)
             }
             true
+        }
+    }
+
+    // this is needed since getSnapsFiltered retrieves a liveData from Room to be observed
+    private fun fetchData() = launch(Dispatchers.Default) {
+        val siteId = getStringFromArguments(MainActivity.SITEID)
+
+        val filtering = when (fileKind) {
+            FORMAT.PDF -> "%pdf"
+            FORMAT.IMAGE -> "image%"
+        }
+
+        val liveData = model.getSnapsFiltered(siteId, filtering)
+
+        // add a delay corresponding to the transition time to avoid anim lag
+        delay(MainActivity.TRANSITION + 25 + 15)
+
+        model.getAllSnapsPagedForId(siteId, filtering)
+            .observe(requireActivity(), Observer(carouselAdapter::submitList))
+
+        withContext(Dispatchers.Main) {
+            progressBar?.isVisible = false
+
+            liveData.observe(requireActivity(), Observer { filtered ->
+                val isItemsEmpty = items.isEmpty()
+                items.clear()
+
+                if (filtered != null) {
+                    filtered.mapTo(items) { RowItem(it) }
+                    section.update(items)
+
+                    // Since selectItem is being set at onCurrentItemChanged, and this code is ran async,
+                    // if it happens after onCurrentItemChanged is called, which usually happens, the
+                    // first item won't be selected.
+                    if (isItemsEmpty) {
+                        selectItem(0)
+                    }
+
+                    // If all items were removed, close this fragment
+                    if (items.isEmpty()) {
+                        view?.findNavController()?.navigateUp()
+                    }
+                }
+            })
         }
     }
 
@@ -406,7 +402,6 @@ class VisualFragment : ScopedFragment(),
         try {
             mCurrentPage?.close()
         } catch (e: IllegalStateException) {
-
         }
 
         // Use `openPage` to open a specific page in PDF.
@@ -445,7 +440,7 @@ class VisualFragment : ScopedFragment(),
             Logger.e(e.localizedMessage)
         }
 
-        drawerRecycler.scrollToIndexWithMargins(
+        drawerRecycler?.scrollToIndexWithMargins(
             previousAdapterPosition,
             adapterPosition,
             items.size
@@ -477,17 +472,13 @@ class VisualFragment : ScopedFragment(),
 
         if (fileKind == FORMAT.PDF) {
             // this is necessary to avoid java.lang.IllegalStateException: Already closed
-            // "if (mCurrentPage != null)" isn't working as it should
             try {
                 mCurrentPage?.close()
             } catch (e: IllegalStateException) {
-
             }
-
             try {
                 mPdfRenderer?.close()
             } catch (e: IllegalStateException) {
-
             }
         }
 

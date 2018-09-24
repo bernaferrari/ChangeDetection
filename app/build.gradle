@@ -22,8 +22,8 @@ android {
         applicationId "com.bernaferrari.changedetection"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 18
-        versionName "1.8"
+        versionCode 19
+        versionName "1.9"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
@@ -65,7 +65,7 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
 
     // Coroutines
-    def coroutines_version = "0.26.0"
+    def coroutines_version = "0.26.1"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
 
@@ -90,7 +90,7 @@ dependencies {
 
 
     // Support Library (RIP)
-    def supportLibrary = '28.0.0-rc02'
+    def supportLibrary = '28.0.0'
     implementation "com.android.support:design:${supportLibrary}"
     implementation "com.android.support:support-v4:${supportLibrary}"
     implementation "com.android.support:cardview-v7:${supportLibrary}"

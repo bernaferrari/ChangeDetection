@@ -117,7 +117,7 @@ class MainCardItem(
         holder.subtitleTextView.text = site.url
 
         bind(holder, position)
-        bindMutable(holder)
+        bindMutable(holder, context)
     }
 
     private fun ImageView.setImageDrawableIfNull(drawable: AnimatedVectorDrawableCompat?) {
@@ -149,9 +149,7 @@ class MainCardItem(
         }
     }
 
-    private fun bindMutable(holder: ViewHolder) {
-        val context = holder.containerView.context
-
+    private fun bindMutable(holder: ViewHolder, context: Context) {
         when (status) {
             SYNC.LOADING -> {
                 if (currentColor.isBlank()) {

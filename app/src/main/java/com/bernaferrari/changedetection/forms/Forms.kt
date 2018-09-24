@@ -1,7 +1,6 @@
 package com.bernaferrari.changedetection.forms
 
 import android.content.Context
-import android.support.v4.content.ContextCompat
 import android.text.InputType
 import android.widget.ImageView
 import com.bernaferrari.changedetection.R
@@ -57,9 +56,8 @@ object Forms {
             IconicsDrawable(
                 image.context,
                 icon
-            ).color(
-                ContextCompat.getColor(image.context, R.color.FontWeaker)
-            ).sizeDp(20)
+            ).colorRes(R.color.FontWeaker)
+                .sizeDp(20)
         )
     }
 }
