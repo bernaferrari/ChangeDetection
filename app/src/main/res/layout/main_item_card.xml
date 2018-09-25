@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,198 +7,192 @@
     android:layout_marginLeft="8dp"
     android:layout_marginRight="8dp"
     android:layout_marginBottom="24dp"
-    android:background="@drawable/full_round_corner"
     android:clickable="true"
-    android:elevation="1dp"
+    app:cardBackgroundColor="?cardColor"
     android:focusable="true"
-    android:foreground="@drawable/photos_press"
-    android:orientation="vertical">
+    app:cardCornerRadius="8dp">
 
-    <android.support.design.card.MaterialCardView
-        android:id="@+id/cardView"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="#356bf8"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="0dp">
+        android:foreground="@drawable/photos_press"
+        android:orientation="vertical">
+
+        <android.support.design.card.MaterialCardView
+            android:id="@+id/cardView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            tools:cardBackgroundColor="#356bf8">
+
+            <android.support.constraint.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/reload"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginRight="@dimen/mark_margin"
+                    android:background="@drawable/circle_shape"
+                    android:elevation="4dp"
+                    android:padding="8dp"
+                    android:scaleType="fitXY"
+                    app:layout_constraintBottom_toBottomOf="@+id/subtitleTextView"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/titleTextView" />
+
+                <TextView
+                    android:id="@+id/titleTextView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/mark_margin"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginEnd="@dimen/mark_margin"
+                    android:fontFamily="@font/work_semibold"
+                    android:includeFontPadding="false"
+                    android:textColor="@color/white"
+                    android:textSize="24sp"
+                    app:layout_constraintBottom_toTopOf="@+id/subtitleTextView"
+                    app:layout_constraintEnd_toStartOf="@+id/reload"
+                    app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_chainStyle="packed"
+                    tools:text="Dinf" />
+
+                <TextView
+                    android:id="@+id/subtitleTextView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/mark_margin"
+                    android:layout_marginEnd="@dimen/mark_margin"
+                    android:layout_marginBottom="16dp"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/work_regular"
+                    android:includeFontPadding="false"
+                    android:lines="1"
+                    android:textAppearance="@style/Base.TextAppearance.AppCompat.Caption"
+                    android:textColor="#90FFFFFF"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/reload"
+                    app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/titleTextView"
+                    tools:text="http://inf.ufpr.br/dinf/andrey/ci163/index.html" />
+
+            </android.support.constraint.ConstraintLayout>
+        </android.support.design.card.MaterialCardView>
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <ImageView
-                android:id="@+id/reload"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginRight="@dimen/mark_margin"
-                android:background="@drawable/circle_shape"
-                android:elevation="4dp"
-                android:padding="8dp"
-                android:scaleType="fitXY"
-                app:layout_constraintBottom_toBottomOf="@+id/subtitleTextView"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/titleTextView" />
+            android:layout_height="wrap_content">
 
             <TextView
-                android:id="@+id/titleTextView"
+                android:id="@+id/lastChangeTitle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/mark_margin"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="@dimen/mark_margin"
-                android:fontFamily="@font/work_semibold"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:fontFamily="@font/work_medium"
                 android:includeFontPadding="false"
-                android:textColor="@color/white"
-                android:textSize="24sp"
-                tools:text="Dinf"
-                app:layout_constraintBottom_toTopOf="@+id/subtitleTextView"
-                app:layout_constraintEnd_toStartOf="@+id/reload"
+                android:text="@string/last_change"
+                android:textColor="#67687c"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toTopOf="@+id/lastChangeText"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/lastChangeImage"
+                app:layout_constraintTop_toTopOf="@+id/lastChangeImage"
                 app:layout_constraintVertical_chainStyle="packed" />
 
             <TextView
-                android:id="@+id/subtitleTextView"
+                android:id="@+id/lastChangeText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/mark_margin"
-                android:layout_marginEnd="@dimen/mark_margin"
-                android:layout_marginBottom="16dp"
-                android:ellipsize="end"
-                android:fontFamily="@font/work_regular"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:fontFamily="@font/work_medium"
                 android:includeFontPadding="false"
-                android:lines="1"
-                android:textAppearance="@style/Base.TextAppearance.AppCompat.Caption"
-                android:textColor="#90FFFFFF"
-                tools:text="http://inf.ufpr.br/dinf/andrey/ci163/index.html"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/reload"
+                android:textColor="@color/md_grey_500"
+                app:layout_constraintBottom_toBottomOf="@+id/lastChangeImage"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/titleTextView" />
+                app:layout_constraintStart_toEndOf="@+id/lastChangeImage"
+                app:layout_constraintTop_toBottomOf="@+id/lastChangeTitle"
+                tools:text="2 days ago" />
 
-            <android.support.constraint.Guideline
-                android:id="@+id/guideline"
-                android:layout_width="wrap_content"
+            <TextView
+                android:id="@+id/lastSyncText"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                app:layout_constraintGuide_percent="0.5" />
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:fontFamily="@font/work_medium"
+                android:includeFontPadding="false"
+                android:textColor="@color/md_grey_500"
+                app:layout_constraintBottom_toBottomOf="@+id/lastSyncImage"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/lastSyncImage"
+                app:layout_constraintTop_toBottomOf="@+id/lastSyncTitle"
+                tools:text="3 days ago" />
+
+            <TextView
+                android:id="@+id/lastSyncTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:fontFamily="@font/work_medium"
+                android:includeFontPadding="false"
+                android:text="@string/last_sync"
+                android:textColor="#67687c"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toTopOf="@+id/lastSyncText"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/lastSyncImage"
+                app:layout_constraintTop_toTopOf="@+id/lastSyncImage"
+                app:layout_constraintVertical_chainStyle="packed" />
+
+            <ImageView
+                android:id="@+id/lastSyncImage"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginLeft="@dimen/mark_margin"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/circle_shape"
+                android:padding="8dp"
+                android:scaleType="fitXY"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:src="@drawable/ic_sync" />
+
+            <ImageView
+                android:id="@+id/lastChangeImage"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginLeft="@dimen/mark_margin"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/circle_shape"
+                android:padding="8dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_diff"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/lastSyncImage" />
+
+            <View
+                android:id="@+id/view"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_marginTop="8dp"
+                android:background="?cardSeparatorColor"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/lastSyncImage" />
 
         </android.support.constraint.ConstraintLayout>
-    </android.support.design.card.MaterialCardView>
-
-    <android.support.constraint.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/lastChangeTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:fontFamily="@font/work_medium"
-            android:includeFontPadding="false"
-            android:text="@string/last_change"
-            android:textColor="#67687c"
-            android:textSize="16sp"
-            app:layout_constraintBottom_toTopOf="@+id/lastChangeText"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/lastChangeImage"
-            app:layout_constraintTop_toTopOf="@+id/lastChangeImage"
-            app:layout_constraintVertical_chainStyle="packed" />
-
-        <TextView
-            android:id="@+id/lastChangeText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:fontFamily="@font/work_medium"
-            android:includeFontPadding="false"
-            android:textColor="@color/md_grey_500"
-            tools:text="2 days ago"
-            app:layout_constraintBottom_toBottomOf="@+id/lastChangeImage"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/lastChangeImage"
-            app:layout_constraintTop_toBottomOf="@+id/lastChangeTitle" />
-
-        <TextView
-            android:id="@+id/lastSyncText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:fontFamily="@font/work_medium"
-            android:includeFontPadding="false"
-            android:textColor="@color/md_grey_500"
-            tools:text="3 days ago"
-            app:layout_constraintBottom_toBottomOf="@+id/lastSyncImage"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/lastSyncImage"
-            app:layout_constraintTop_toBottomOf="@+id/lastSyncTitle" />
-
-        <TextView
-            android:id="@+id/lastSyncTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:fontFamily="@font/work_medium"
-            android:includeFontPadding="false"
-            android:text="@string/last_sync"
-            android:textColor="#67687c"
-            android:textSize="16sp"
-            app:layout_constraintBottom_toTopOf="@+id/lastSyncText"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/lastSyncImage"
-            app:layout_constraintTop_toTopOf="@+id/lastSyncImage"
-            app:layout_constraintVertical_chainStyle="packed" />
-
-        <ImageView
-            android:id="@+id/lastSyncImage"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginLeft="@dimen/mark_margin"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/circle_shape"
-            android:padding="8dp"
-            android:scaleType="fitXY"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <ImageView
-            android:id="@+id/lastChangeImage"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginLeft="@dimen/mark_margin"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/circle_shape"
-            android:padding="8dp"
-            android:scaleType="fitXY"
-            android:src="@drawable/vector_diff"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/lastSyncImage" />
-
-        <View
-            android:id="@+id/view"
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_marginTop="8dp"
-            android:background="@color/md_grey_200"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/lastSyncImage" />
-
-    </android.support.constraint.ConstraintLayout>
-
-</LinearLayout>
-
-
-
-
+    </LinearLayout>
+</android.support.design.card.MaterialCardView>

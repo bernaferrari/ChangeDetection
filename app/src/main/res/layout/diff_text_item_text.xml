@@ -6,8 +6,7 @@
     android:layout_height="wrap_content"
     android:clickable="true"
     android:focusable="true"
-    android:foreground="?android:attr/selectableItemBackground"
-    app:cardBackgroundColor="@color/CARD">
+    android:foreground="?android:attr/selectableItemBackground">
 
     <TextView
         android:id="@+id/title"

@@ -21,10 +21,12 @@ class AboutFragment : MaterialAboutFragment() {
         return createMaterialAboutList(activityContext) // This creates an empty screen, add cards with .addCard()
     }
 
-    override fun getTheme(): Int = R.style.About
+    var isNight = true
+
+    override fun getTheme() = if (isNight) R.style.AboutDark else R.style.AboutLight
 
     private fun createMaterialAboutList(c: Context): MaterialAboutList {
-        val grey = R.color.md_grey_800
+        val grey = if (isNight) R.color.md_grey_200 else R.color.md_grey_800
         val iconsize = 18
 
         val appCardBuilder = MaterialAboutCard.Builder()

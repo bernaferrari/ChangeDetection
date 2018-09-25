@@ -112,5 +112,6 @@
     <string name="change_detected_notification_without_title">Change detected! (%1s)</string>
 
     <string name="sort_by_name">Sort by name</string>
+    <string name="dot" translatable="false">•</string>
 
 </resources>

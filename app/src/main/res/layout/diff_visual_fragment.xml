@@ -4,7 +4,7 @@
     android:id="@+id/elastic"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
+    android:background="?windowBackground"
     android:elevation="@dimen/z_fab"
     android:transitionName="@string/shared_transition"
     app:dragDismissDistance="@dimen/drag_dismiss_distance">
@@ -24,7 +24,7 @@
                 android:id="@+id/title_bar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/background_light"
+                android:background="?toolbarColor"
                 android:baselineAligned="false"
                 android:gravity="top"
                 android:minHeight="?android:actionBarSize"
@@ -54,7 +54,7 @@
                     android:fontFamily="@font/work_semibold"
                     android:paddingRight="@dimen/padding_normal"
                     android:singleLine="true"
-                    android:textColor="@color/FontStrong" />
+                    android:textColor="?strongColor" />
 
                 <ImageView
                     android:id="@+id/visibility"
@@ -125,11 +125,10 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/drawerlayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="end"
-            android:background="@color/background_light"
+            android:background="?windowBackground"
             android:elevation="6dp"
             android:orientation="vertical">
 
@@ -143,8 +142,6 @@
                 android:scrollbarStyle="outsideOverlay"
                 android:scrollbars="vertical"
                 app:layoutManager="android.support.v7.widget.LinearLayoutManager" />
-
         </LinearLayout>
-
     </android.support.v4.widget.DrawerLayout>
 </com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout>

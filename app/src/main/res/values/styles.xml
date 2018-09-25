@@ -1,23 +1,55 @@
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/md_grey_500</item>
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/primary_light</item>
+        <item name="colorPrimaryDark">@color/primary_dark_light</item>
         <item name="colorAccent">@color/md_indigo_A200</item>
 
-        <item name="android:windowBackground">@color/windowBackground</item>
+        <item name="cardColor">@color/md_grey_50</item>
+        <item name="cardSeparatorColor">@color/md_grey_200</item>
+
+        <item name="toolbarColor">@color/white</item>
+        <item name="iconColor">@color/icon_dark</item>
+        <item name="strongColor">@color/FontStrong</item>
+        <item name="weakColor">@color/white</item>
+        <item name="settingsCardColor">@color/md_grey_100</item>
+
+        <item name="settingsBackground">@color/white</item>
+
+        <item name="windowBackground">@color/window_background_light</item>
+        <item name="android:windowBackground">?windowBackground</item>
+
+        <item name="inputTheme">@style/DialogLight</item>
+    </style>
+
+    <style name="AppThemeDark" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="colorPrimary">@color/primary_dark</item>
+        <item name="colorPrimaryDark">@color/primary_dark_dark</item>
+        <item name="colorAccent">@color/md_indigo_A200</item>
+
+        <item name="cardColor">@color/primary_dark</item>
+        <item name="cardSeparatorColor">#22ffffff</item>
+
+        <item name="toolbarColor">@color/primary_dark</item>
+        <item name="iconColor">@color/white</item>
+        <item name="strongColor">@color/white</item>
+        <item name="weakColor">@color/white</item>
+        <item name="settingsCardColor">@color/primary_dark</item>
+
+        <item name="settingsBackground">@color/window_background_dark</item>
+
+        <item name="windowBackground">@color/window_background_dark</item>
+        <item name="md_background_color">?windowBackground</item>
+        <item name="android:windowBackground">?windowBackground</item>
+
+        <item name="inputTheme">@style/DialogDark</item>
     </style>
 
     <!--https://gist.github.com/ArthurNagy/1c4a64e6c8a7ddfca58638a9453e4aed-->
     <style name="BottomSheetDialogTheme" parent="BaseBottomSheetDialog">
         <item name="colorAccent">@color/md_blue_A400</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@color/white</item>
-    </style>
-
-    <style name="BottomSheet" parent="@style/Widget.Design.BottomSheet.Modal">
-        <item name="android:background">@drawable/bg_bottom_sheet_dialog_fragment</item>
+        <item name="android:navigationBarColor">?settingsBackground</item>
     </style>
 
     <style name="BaseBottomSheetDialog" parent="@style/Theme.Design.Light.BottomSheetDialog">
@@ -25,18 +57,23 @@
         <item name="bottomSheetStyle">@style/BottomSheet</item>
     </style>
 
-    <style name="ProgressColor">
-        <item name="colorAccent">@color/colorPrimary</item> <!-- Whatever color you want-->
+    <style name="BottomSheet" parent="@style/Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/bg_bottom_sheet_dialog_fragment</item>
     </style>
 
-    <style name="About" parent="Theme.Mal.Light">
-        <item name="colorPrimary">@color/md_white_1000</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+    <style name="AboutLight" parent="Theme.Mal.Light">
+        <item name="mal_card_background">?cardColor</item>
+        <item name="android:windowBackground">?windowBackground</item>
 
-        <item name="mal_card_background">@color/CARD</item>
-        <item name="android:windowBackground">@color/windowBackground</item>
+        <item name="mal_color_primary">?strongColor</item>
+        <item name="mal_color_secondary">#772979FF</item>
+    </style>
 
-        <item name="mal_color_primary">@color/FontStrong</item>
+    <style name="AboutDark" parent="Theme.Mal.Dark">
+        <item name="mal_card_background">?cardColor</item>
+        <item name="android:windowBackground">?windowBackground</item>
+
+        <item name="mal_color_primary">?strongColor</item>
         <item name="mal_color_secondary">@color/FontWeak</item>
     </style>
 
@@ -45,23 +82,21 @@
         <item name="android:fontFamily">@font/work_medium</item>
         <item name="android:includeFontPadding">false</item>
         <item name="android:lines">1</item>
-        <item name="android:textColor">@color/FontStrong</item>
+        <item name="android:textColor">?strongColor</item>
         <item name="android:textSize">18sp</item>
     </style>
 
-    <style name="ActionBar" parent="@style/Theme.AppCompat.Light.Dialog">
-        <item name="colorAccent">@color/atlasianblue</item>
+    <style name="DialogLight" parent="@style/Theme.MaterialComponents.Light.Dialog">
+        <item name="colorAccent">@color/really_blue</item>
+    </style>
+
+    <style name="DialogDark" parent="@style/Theme.MaterialComponents.Dialog">
+        <item name="colorAccent">@color/really_blue</item>
     </style>
 
     <style name="ClickableImageView">
         <item name="android:clickable">true</item>
         <item name="android:background">?android:selectableItemBackgroundBorderless</item>
-    </style>
-
-    <style name="SpeedItem">
-        <item name="android:layout_width">48dp</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:gravity">center</item>
     </style>
 
     <style name="ControlBarItem">

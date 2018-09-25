@@ -8,8 +8,7 @@
     android:focusable="true"
     android:foreground="?android:attr/selectableItemBackground"
     android:paddingTop="16dp"
-    android:paddingBottom="16dp"
-    app:cardBackgroundColor="@color/CARD">
+    android:paddingBottom="16dp">
 
     <ImageView
         android:id="@+id/image"

@@ -5,6 +5,7 @@ import android.view.View
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
+import com.bernaferrari.changedetection.extensions.getColorFromAttr
 import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
@@ -24,7 +25,7 @@ class RowItem(
 
     override fun bind(viewHolder: ViewHolder, position: Int) {
 
-        viewHolder.run {
+        viewHolder.apply {
             title.text = snap.timestamp.convertTimestampToDate()
             subtitle.text = snap.contentSize.readableFileSize()
 
@@ -53,10 +54,7 @@ class RowItem(
                 )
 
                 title.setTextColor(
-                    ContextCompat.getColor(
-                        viewHolder.containerView.context,
-                        R.color.FontStrong
-                    )
+                    viewHolder.containerView.context.getColorFromAttr(R.attr.strongColor)
                 )
             }
         }

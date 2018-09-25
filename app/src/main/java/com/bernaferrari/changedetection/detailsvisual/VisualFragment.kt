@@ -14,7 +14,6 @@ import android.support.v4.content.ContextCompat
 import android.support.v4.content.FileProvider
 import android.support.v4.view.GravityCompat
 import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.transition.ChangeBounds
 import android.view.LayoutInflater
@@ -243,7 +242,6 @@ class VisualFragment : ScopedFragment(),
         }
 
         drawerRecycler.apply {
-            layoutManager = LinearLayoutManager(this.context)
             adapter = groupAdapter
             addItemDecoration(
                 DividerItemDecoration(

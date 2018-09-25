@@ -2,12 +2,11 @@ package com.bernaferrari.changedetection
 
 import android.os.Build
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
-import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.edit
+import com.bernaferrari.changedetection.extensions.getColorFromAttr
 import com.bernaferrari.changedetection.groupie.DialogItemInterval
 import com.bernaferrari.changedetection.groupie.DialogItemSeparator
 import com.bernaferrari.changedetection.groupie.DialogItemSwitch
@@ -20,18 +19,20 @@ import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
-import kotlinx.android.synthetic.main.settings.view.*
+import kotlinx.android.synthetic.main.recyclerview.*
 
 class SettingsFragment : RoundedBottomSheetDialogFragment() {
-    val color: Int by lazy { ContextCompat.getColor(requireActivity(), R.color.FontStrong) }
+    val color: Int by lazy { requireContext().getColorFromAttr(R.attr.strongColor) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.settings, container, false)
-        val groupAdapter = GroupAdapter<ViewHolder>()
+    ): View = inflater.inflate(R.layout.recyclerview, container, false)
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val groupAdapter = GroupAdapter<ViewHolder>()
         val updating = mutableListOf<Item>()
         val syncSettings = mutableListOf<Item>()
         val syncSection = Section()
@@ -114,9 +115,7 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
             syncSection.update(syncSettings)
         }
 
-        view.defaultRecycler.run {
-            layoutManager = LinearLayoutManager(this.context)
-
+        defaultRecycler.apply {
             adapter = groupAdapter.apply {
                 if (this.itemCount == 0) {
                     this.add(Section(updating))
@@ -124,7 +123,5 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
                 }
             }
         }
-
-        return view
     }
 }

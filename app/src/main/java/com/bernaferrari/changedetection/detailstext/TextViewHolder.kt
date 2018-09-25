@@ -88,7 +88,7 @@ class TextViewHolder(
             )
             else -> setCardBackgroundAnimated(
                 itemView.container,
-                ContextCompat.getColor(context, R.color.grey_100).toDrawable()
+                ContextCompat.getColor(context, R.color.md_grey_100).toDrawable()
             )
         }
     }

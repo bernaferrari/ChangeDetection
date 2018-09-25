@@ -12,8 +12,7 @@
 
     android:paddingTop="8dp"
     android:paddingRight="16dp"
-    android:paddingBottom="8dp"
-    app:cardBackgroundColor="@color/CARD">
+    android:paddingBottom="8dp">
 
     <TextView
         android:id="@+id/title"
