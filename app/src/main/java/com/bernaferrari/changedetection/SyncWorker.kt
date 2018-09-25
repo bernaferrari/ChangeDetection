@@ -90,7 +90,7 @@ class SyncWorker(
             Notify
                 .with(applicationContext)
                 .header {
-                    this.icon = R.drawable.vector_sync
+                    this.icon = R.drawable.ic_sync
                     this.color = item.colors.first
                 }
                 .meta {

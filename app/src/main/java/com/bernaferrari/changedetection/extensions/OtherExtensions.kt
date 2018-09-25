@@ -6,14 +6,19 @@ import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.Intent
 import android.content.res.Resources
+import android.graphics.drawable.ColorDrawable
+import android.support.annotation.AttrRes
 import android.support.annotation.StringRes
+import android.support.design.widget.BottomSheetDialog
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat
 import android.support.v4.app.Fragment
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.SimpleItemAnimator
+import android.util.TypedValue
 import android.view.View
 import android.widget.ImageView
 import androidx.core.net.toUri
+import com.bernaferrari.changedetection.R
 import com.github.marlonlom.utilities.timeago.TimeAgo
 
 internal typealias ColorGroup = Pair<Int, Int>
@@ -87,4 +92,20 @@ internal fun RecyclerView.itemAnimatorWithoutChangeAnimations() =
         if (this is SimpleItemAnimator) {
             this.supportsChangeAnimations = false
         }
+    }
+
+internal fun Context.getColorFromAttr(
+    @AttrRes attrColor: Int,
+    typedValue: TypedValue = TypedValue(),
+    resolveRefs: Boolean = true
+): Int {
+    theme.resolveAttribute(attrColor, typedValue, resolveRefs)
+    return typedValue.data
+}
+
+internal fun View.generateBottomSheet() =
+    BottomSheetDialog(this.context).also {
+        this.background = ColorDrawable(context.getColorFromAttr(R.attr.windowBackground))
+        it.setContentView(this)
+        it.show()
     }

@@ -110,12 +110,12 @@ class MainFragment : ScopedFragment() {
             })
         }
 
-        groupAdapter.setOnItemLongClickListener { item, _ ->
-            if (item is MainCardItem) consume { showDialogWithOptions(item) } else false
-        }
-
         groupAdapter.setOnItemClickListener { item, _ ->
             if (item is MainCardItem) openItem(item)
+        }
+
+        groupAdapter.setOnItemLongClickListener { item, _ ->
+            if (item is MainCardItem) consume { showDialogWithOptions(item) } else false
         }
 
         mViewModel.loadSites().observe(this, Observer(::updateList))
@@ -136,12 +136,14 @@ class MainFragment : ScopedFragment() {
                 defaultRecycler.smoothScrollToPosition(0)
             }
 
+
+
             filterRecycler.adapter = GroupAdapter<ViewHolder>().apply {
                 add(
                     DialogItemSwitch(
                         getString(R.string.sort_by_name),
                         IconicsDrawable(context, CommunityMaterial.Icon.cmd_sort_alphabetical)
-                            .colorRes(R.color.FontStrong),
+                            .color(requireContext().getColorFromAttr(R.attr.iconColor)),
                         mViewModel.sortAlphabetically
                     ) {
                         mViewModel.sortAlphabetically = it.isSwitchOn
@@ -189,10 +191,7 @@ class MainFragment : ScopedFragment() {
     private fun openItem(item: MainCardItem) {
         val customView = layoutInflater.inflate(R.layout.recyclerview, parentLayout, false)
 
-        val bottomSheet = BottomSheetDialog(requireContext()).apply {
-            setContentView(customView)
-            show()
-        }
+        val bottomSheet = customView.generateBottomSheet()
 
         val bottomSheetAdapter = GroupAdapter<ViewHolder>().apply {
             add(LoadingItem())
@@ -287,10 +286,7 @@ class MainFragment : ScopedFragment() {
         val customView =
             layoutInflater.inflate(R.layout.recyclerview, parentLayout, false)
 
-        val bottomSheet = BottomSheetDialog(requireContext()).apply {
-            setContentView(customView)
-            show()
-        }
+        val bottomSheet = customView.generateBottomSheet()
 
         val dialogItems = mutableListOf<DialogItemSimple>()
 
@@ -346,7 +342,7 @@ class MainFragment : ScopedFragment() {
                 com.bernaferrari.changedetection.ui.InsetDecoration(
                     resources.getDimensionPixelSize(R.dimen.divider_height),
                     resources.getDimensionPixelSize(R.dimen.long_press_separator_margin),
-                    ContextCompat.getColor(this.context, R.color.CCC)
+                    ContextCompat.getColor(this.context, R.color.separator_color)
                 )
             )
 
@@ -538,13 +534,10 @@ class MainFragment : ScopedFragment() {
     private fun removeDialog(item: MainCardItem) {
 
         val customView = layoutInflater.inflate(R.layout.recyclerview, parentLayout, false)
-        val bottomSheet = BottomSheetDialog(requireContext()).apply {
-            setContentView(customView)
-            show()
-        }
+        val bottomSheet = customView.generateBottomSheet()
 
         val updating = mutableListOf<DialogItemSimple>()
-        val color = ContextCompat.getColor(requireContext(), R.color.FontStrong)
+        val color = requireContext().getColorFromAttr(R.attr.strongColor)
 
         updating += DialogItemSimple(
             getString(R.string.pruning),
@@ -563,13 +556,13 @@ class MainFragment : ScopedFragment() {
                     add(Section(updating))
 
                     setOnItemClickListener { dialogItem, _ ->
-                        if (dialogItem !is DialogItemSimple) return@setOnItemClickListener
-
-                        when (dialogItem.kind) {
-                            "pruning" -> mViewModel.pruneSite(item.site.id)
-                            "all" -> removeItem(item)
+                        if (dialogItem is DialogItemSimple) {
+                            when (dialogItem.kind) {
+                                "pruning" -> mViewModel.pruneSite(item.site.id)
+                                "all" -> removeItem(item)
+                            }
+                            bottomSheet.dismiss()
                         }
-                        bottomSheet.dismiss()
                     }
                 }
     }

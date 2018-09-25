@@ -21,7 +21,7 @@ class DialogItemSwitch(
     val listener: (DialogItemSwitch) -> (Unit)
 ) : Item() {
 
-    override fun getLayout(): Int = R.layout.item_switch
+    override fun getLayout() = R.layout.item_switch
 
     override fun bind(viewHolder: ViewHolder, position: Int) {
 
@@ -33,7 +33,6 @@ class DialogItemSwitch(
 
         viewHolder.title.text = title
         viewHolder.image.setImageDrawable(drawable)
-
         viewHolder.item_switch.isChecked = isSwitchOn
     }
 }

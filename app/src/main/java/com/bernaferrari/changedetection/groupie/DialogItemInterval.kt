@@ -22,9 +22,7 @@ class DialogItemInterval(
     val minutes = arrayOf(15, 30, 45, 60, 120, 240, 360, 720, 1440, 2880)
     var progress: Int = minutes.indexOfFirst { it == initialDelay }
 
-    override fun getLayout(): Int {
-        return R.layout.settings_item_interval
-    }
+    override fun getLayout() = R.layout.settings_item_interval
 
     override fun bind(viewHolder: ViewHolder, position: Int) {
         viewHolder.seekBar.progress = progress
