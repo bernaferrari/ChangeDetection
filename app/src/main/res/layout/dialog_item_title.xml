@@ -33,7 +33,7 @@
         android:ellipsize="end"
         android:fontFamily="sans-serif-regular"
         android:lines="1"
-        android:textColor="@color/goooglephotoswhite"
+        android:textColor="@color/transparent_white"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -1,38 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <color name="primary_light">@color/md_indigo_500</color>
+    <color name="primary_dark">#1d2a3a</color>
 
-    <color name="text_color">#7e7e7e</color>
-    <color name="text_color_dark">#484848</color>
+    <color name="window_background_light">#FAFAFA</color>
+    <color name="window_background_dark">#141D26</color>
+
+    <color name="primary_dark_light">@color/md_grey_500</color>
+    <color name="primary_dark_dark">#161F2B</color>
+
+    <color name="white">#ffffff</color>
+    <color name="really_blue">#2a50cc</color>
+    <color name="transparent_white">#ccFFFFFF</color>
 
 
-    <color name="colorPrimary">@color/md_indigo_500</color>
-    <color name="colorPrimaryDark">@color/md_indigo_700</color>
-    <color name="textColorPrimary">#FFFFFF</color>
+    <color name="secondary">#2B3D50</color>
+    <color name="divider">#1FFFFFFF</color>
+    <color name="cardBackground">#1B2836</color>
 
-    <color name="windowBackground">#FAFAFA</color>
-
-    <color name="windowBackground2">#eaecf0</color>
-    <!--Atlasian window background: #F4F7F9-->
-
-    <color name="atlasiandark">#253858</color>
-    <color name="atlasianblue">#2a50cc</color>
-    <color name="goooglephotosblue">#4285f4</color>
-    <color name="goooglephotoswhite">#ccFFFFFF</color>
-
-    <color name="atlasianjumboblue">#0052CC</color>
-    <color name="atlasiangrayweak">#97a0af</color>
-
-    <color name="FontStrongAtlassian">@color/atlasiandark</color>
-
-    <color name="transparentwhite">#40FFFFFF</color>
-
-    <!--f4f7f9-->
-    <!--<color name="CARD2">#F4F5F7</color> even previously, like january 2018.. -->
-    <!--<color name="CARD2">#F1F3F4</color> 14 march 2018 -->
-    <color name="CARD2">#F5F5F5</color>
-
-    <color name="CCC">#CCCCCC</color>
+    <color name="separator_color">#CCCCCC</color>
 
     <!--Lottie colors-->
     <color name="item_deselected">#eaeaea</color>
@@ -40,60 +27,28 @@
     <color name="control_bar_content_unactivated">#444444</color>
 
 
-    <color name="navigationBarColor">#283593</color>
-    <color name="colorBottomNavigationAccent">#3d5afe</color>
-    <color name="colorAccent">#c8e8ff</color>
-    <color name="whitestatus">#9E9E9E</color>
-    <color name="referencia">#999999</color>
-    <color name="title">#222222</color>
-    <color name="white">#ffffff</color>
-
-    <color name="test1">#FAFAFA</color>
-    <color name="redaccent1">#b7253d</color>
-    <color name="redaccent2">#dd2c00</color>
-
     <color name="lottie_divider">#CFCFCF</color>
 
-    <color name="divider">#F5F5F5</color>
-    <!-- A transparent black -->
-    <color name="transparent_black">#aa000000</color>
+    <color name="icon_dark">#99000000</color> <!-- 60% black-->
 
-    <!-- isSelected tab text -->
-    <color name="selected_tabtext">#bb000000</color>
+    <!-- COLORS FROM GITHUB -->
+    <color name="num_deletion">#ffeef0</color>
+    <color name="code_deletion">#ffdce0</color>
+    <color name="code_deletion_diff">#fdb8c0</color>
 
-    <color name="primaryColor">#1c8158</color>
-    <color name="primaryLightColor">#4eb564</color>
-    <color name="primaryDarkColor">#00560c</color>
-    <color name="secondaryColor">#0d8438</color>
-    <color name="secondaryLightColor">#4eb564</color>
-    <color name="secondaryDarkColor">#00560c</color>
-    <color name="primaryTextColor">@color/md_white_1000</color>
-    <color name="secondaryTextColor">@color/md_white_1000</color>
+    <color name="num_addition">#bef5cb</color>
+    <color name="code_addition">#e6ffed</color>
+    <color name="code_addition_diff">#acf2bd</color>
 
-    <color name="CARD">@color/md_white_1000</color>
-    <color name="CARD_EBD">@color/md_white_1000</color>
-
-    <color name="bolinhaNomeCurto">@color/md_grey_300</color>
-    <color name="highlight">#E3F2FD</color>
-    <color name="highlight_actionbar">#3a5573</color>
-
-    <color name="dark_icon">#99000000</color> <!-- 60% black-->
-
-    <color name="base100">#fff</color> <!-- B AAA: Base background, Highlight from grey -->
-    <!--mdgrety100 -->
-    <color name="windowBackgroundNucleosBottom">@color/md_grey_100</color>
-    <color name="windowBackgroundNucleosTop">@color/md_grey_200</color>
-    <color name="STICKYBG">@color/md_grey_200</color>
-    <color name="cardNucleosTop">@color/md_white_1000</color>
-    <color name="TODOSENCONTROSTITLE">@color/md_black_1000</color>
-
-    <color name="FontStrongest">@color/md_black_1000</color>
+    <!-- COLORS FROM PLAID -->
     <color name="FontStrong">@color/md_grey_900</color>
+    <color name="FontLessStrong">@color/md_grey_700</color>
+    <color name="FontWeak">@color/md_grey_600</color>
+    <color name="FontWeaker">@color/md_grey_500</color>
+    <color name="FontStrongest">@color/md_black_1000</color>
 
     <!--<color name="FontStrongTransparent">#70000000</color>-->
     <color name="FontStrongTransparent2">#A0000000</color>
-
-
     <color name="FontStrongestTransparent">@color/md_black_1000</color>
     <color name="FontStrongTransparent">@color/md_grey_900</color>
     <color name="FontLessStrongTransparent">@color/md_grey_700</color>
@@ -126,52 +81,6 @@
     <color name="md_grey_transparent_900">#DD212121</color>
     <!--<color name="md_black_1000">#000000</color>-->
     <!--<color name="md_white_1000">#ffffff</color>-->
-
-
-    <!-- COLORS FROM GITHUB -->
-    <color name="num_deletion">#ffeef0</color>
-    <color name="code_deletion">#ffdce0</color>
-    <color name="code_deletion_diff">#fdb8c0</color>
-
-    <color name="num_addition">#bef5cb</color>
-    <color name="code_addition">#e6ffed</color>
-    <color name="code_addition_diff">#acf2bd</color>
-
-    <!-- COLORS FROM PLAID -->
-    <color name="background_light">@color/CARD</color> <!-- grey 50 -->
-
-
-    <color name="FontLessStrong">@color/md_grey_700</color>
-    <color name="FontWeak">@color/md_grey_600</color>
-    <color name="FontWeaker">@color/md_grey_500</color>
-
-    <color name="TwitterWeak">#657786</color>
-    <color name="Deezer">#C3C2C8</color>
-
-    <!--<color name="FontWeak">@color/md_grey_600</color>-->
-
-    <color name="SELECTEDPAGEINDICATOR">#202020</color>
-    <color name="CARD_HOUR_MAIN_TITLE">#37474F</color>
-
-    <color name="CONTRAST_CARD_HOUR">@color/md_grey_100</color>
-    <color name="ARROW">#424242</color>
-
-    <color name="TODASPESSOASTITLE">#424242</color>
-
-    <!-- non isSelected tab text -->
-    <color name="unselected_tabtext">#77000000</color>
-    <color name="shuffle_grey">#ffdedede</color>
-    <color name="background_grey">#ffdedede</color>
-
-    <!-- Transparent -->
-    <color name="transparent">#00000000</color>
-
-    <!-- Black -->
-    <color name="black">#ffffff</color>
-
-    <!-- White -->
-    <color name="grey_100">#F5F5F5</color>
-    <color name="grey_300">#E0E0E0</color>
 
     <!-- google's material design colours from
 http://www.google.com/design/spec/style/color.html#color-ui-color-palette -->

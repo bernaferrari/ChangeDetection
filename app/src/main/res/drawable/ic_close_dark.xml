@@ -11,19 +11,19 @@
             android:name="bottom_left"
             android:pathData="M5.7,18.3L11.3,12.7"
             android:strokeWidth="2"
-            android:strokeColor="@color/dark_icon" />
+            android:strokeColor="?iconColor" />
 
         <path
             android:name="bottom_right"
             android:pathData="M18.3,18.3L12.7,12.7"
             android:strokeWidth="2"
-            android:strokeColor="@color/dark_icon" />
+            android:strokeColor="?iconColor" />
 
         <path
             android:name="down_arrow"
             android:pathData="M5.7,5.698L12,12L18.3,5.7"
             android:strokeWidth="2"
-            android:strokeColor="@color/dark_icon" />
+            android:strokeColor="?iconColor" />
 
     </group>
 

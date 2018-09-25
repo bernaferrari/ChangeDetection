@@ -18,7 +18,9 @@ class AboutLicenseFragment : MaterialAboutFragment() {
         return createMaterialAboutLicenseList(activityContext)
     }
 
-    override fun getTheme(): Int = R.style.About
+    var isNight = true
+
+    override fun getTheme() = if (isNight) R.style.AboutDark else R.style.AboutLight
 
     private fun createLicenseCard(
         libraryTitle: String,

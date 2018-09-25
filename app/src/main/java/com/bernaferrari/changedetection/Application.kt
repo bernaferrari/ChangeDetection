@@ -33,8 +33,8 @@ class Application : MultiDexApplication() {
 
     companion object {
         private var INSTANCE: Application? = null
-        @JvmStatic
 
+        @JvmStatic
         fun get(): Application =
             INSTANCE ?: throw NullPointerException("Application INSTANCE must not be null")
     }

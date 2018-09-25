@@ -7,7 +7,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
-import android.support.design.widget.BottomSheetDialog
 import android.support.design.widget.Snackbar
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.LinearLayoutManager
@@ -209,7 +208,7 @@ class TextFragment : ScopedFragment() {
     private fun configureSettingsButton() = settings.apply {
         setImageDrawable(
             IconicsDrawable(context, CommunityMaterial.Icon.cmd_dots_vertical)
-                .colorRes(R.color.dark_icon)
+                .color(context.getColorFromAttr(R.attr.iconColor))
                 .sizeDp(18)
         )
 
@@ -218,10 +217,7 @@ class TextFragment : ScopedFragment() {
             val customView =
                 layoutInflater.inflate(R.layout.recyclerview, view as ViewGroup, false)
 
-            BottomSheetDialog(requireContext()).apply {
-                setContentView(customView)
-                show()
-            }
+            customView.generateBottomSheet()
 
             val updating = mutableListOf<Item<out ViewHolder>>()
 
