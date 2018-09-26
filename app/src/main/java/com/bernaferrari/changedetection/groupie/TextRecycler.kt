@@ -2,7 +2,6 @@ package com.bernaferrari.changedetection.groupie
 
 
 import android.graphics.Color
-import android.support.v4.content.ContextCompat
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
@@ -10,6 +9,7 @@ import android.text.style.BackgroundColorSpan
 import android.view.Gravity
 import android.widget.TextView
 import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.extensions.getColorFromAttr
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.diff_text_item_text.*
@@ -63,8 +63,8 @@ class TextRecycler(
         val firstChar = title.getOrNull(0) ?: ' '
 
         val codeColorHighlight = when (firstChar) {
-            '+' -> ContextCompat.getColor(context, R.color.code_addition_diff)
-            '-' -> ContextCompat.getColor(context, R.color.code_deletion_diff)
+            '+' -> context.getColorFromAttr(R.attr.code_addition_diff)
+            '-' -> context.getColorFromAttr(R.attr.code_deletion_diff)
             else -> Color.TRANSPARENT
         }
 
@@ -77,8 +77,8 @@ class TextRecycler(
         }
 
         val codeColor = when (firstChar) {
-            '+' -> ContextCompat.getColor(context, R.color.code_addition)
-            '-' -> ContextCompat.getColor(context, R.color.code_deletion)
+            '+' -> context.getColorFromAttr(R.attr.code_addition)
+            '-' -> context.getColorFromAttr(R.attr.code_deletion)
             else -> Color.TRANSPARENT
         }
 
@@ -88,11 +88,11 @@ class TextRecycler(
             when (firstChar) {
                 '+' -> {
                     gravity = Gravity.CENTER or Gravity.RIGHT
-                    setBackgroundColor(ContextCompat.getColor(context, R.color.num_addition))
+                    setBackgroundColor(context.getColorFromAttr(R.attr.num_addition))
                 }
                 '-' -> {
                     gravity = Gravity.CENTER or Gravity.LEFT
-                    setBackgroundColor(ContextCompat.getColor(context, R.color.num_deletion))
+                    setBackgroundColor(context.getColorFromAttr(R.attr.num_deletion))
                 }
                 else -> {
                     gravity = Gravity.CENTER

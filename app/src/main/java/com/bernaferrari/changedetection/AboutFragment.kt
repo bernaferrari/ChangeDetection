@@ -17,17 +17,16 @@ import com.mikepenz.iconics.IconicsDrawable
 
 class AboutFragment : MaterialAboutFragment() {
 
-    override fun getMaterialAboutList(activityContext: Context): MaterialAboutList {
-        return createMaterialAboutList(activityContext) // This creates an empty screen, add cards with .addCard()
-    }
+    private val isDarkModeOn = Injector.get().sharedPrefs().getBoolean(MainActivity.DARKMODE, false)
 
-    var isNight = true
+    override fun getMaterialAboutList(activityContext: Context): MaterialAboutList =
+        createMaterialAboutList(activityContext)
 
-    override fun getTheme() = if (isNight) R.style.AboutDark else R.style.AboutLight
+    override fun getTheme() = if (isDarkModeOn) R.style.AboutDark else R.style.AboutLight
 
     private fun createMaterialAboutList(c: Context): MaterialAboutList {
-        val grey = if (isNight) R.color.md_grey_200 else R.color.md_grey_800
-        val iconsize = 18
+        val standardIconColor = if (isDarkModeOn) R.color.md_grey_200 else R.color.md_grey_800
+        val iconSize = 18
 
         val appCardBuilder = MaterialAboutCard.Builder()
 
@@ -44,8 +43,8 @@ class AboutFragment : MaterialAboutFragment() {
                 c,
                 IconicsDrawable(c)
                     .icon(GoogleMaterial.Icon.gmd_update)
-                    .colorRes(grey)
-                    .sizeDp(iconsize),
+                    .colorRes(standardIconColor)
+                    .sizeDp(iconSize),
                 c.getText(R.string.version),
                 false
             )
@@ -57,8 +56,8 @@ class AboutFragment : MaterialAboutFragment() {
                 .icon(
                     IconicsDrawable(c)
                         .icon(CommunityMaterial.Icon.cmd_github_circle)
-                        .colorRes(grey)
-                        .sizeDp(iconsize)
+                        .colorRes(standardIconColor)
+                        .sizeDp(iconSize)
                 )
                 .setOnClickAction {
                     view?.findNavController()
@@ -72,7 +71,7 @@ class AboutFragment : MaterialAboutFragment() {
                 IconicsDrawable(c)
                     .icon(CommunityMaterial.Icon.cmd_star)
                     .colorRes(R.color.md_yellow_700)
-                    .sizeDp(iconsize),
+                    .sizeDp(iconSize),
                 c.getString(R.string.rate),
                 null
             )
@@ -89,8 +88,8 @@ class AboutFragment : MaterialAboutFragment() {
                 .icon(
                     IconicsDrawable(c)
                         .icon(CommunityMaterial.Icon.cmd_reddit)
-                        .colorRes(grey)
-                        .sizeDp(iconsize)
+                        .colorRes(standardIconColor)
+                        .sizeDp(iconSize)
                 )
                 .setOnClickAction(
                     ConvenienceBuilder.createWebsiteOnClickAction(
@@ -107,8 +106,8 @@ class AboutFragment : MaterialAboutFragment() {
                 .icon(
                     IconicsDrawable(c)
                         .icon(CommunityMaterial.Icon.cmd_github_circle)
-                        .colorRes(grey)
-                        .sizeDp(iconsize)
+                        .colorRes(standardIconColor)
+                        .sizeDp(iconSize)
                 )
                 .setOnClickAction(
                     ConvenienceBuilder.createWebsiteOnClickAction(
@@ -128,8 +127,8 @@ class AboutFragment : MaterialAboutFragment() {
                 .icon(
                     IconicsDrawable(c)
                         .icon(CommunityMaterial.Icon.cmd_email)
-                        .colorRes(grey)
-                        .sizeDp(iconsize)
+                        .colorRes(standardIconColor)
+                        .sizeDp(iconSize)
                 )
                 .setOnClickAction(
                     ConvenienceBuilder.createEmailOnClickAction(
@@ -150,8 +149,8 @@ class AboutFragment : MaterialAboutFragment() {
                 c,
                 IconicsDrawable(c)
                     .icon(CommunityMaterial.Icon.cmd_github_circle)
-                    .colorRes(grey)
-                    .sizeDp(iconsize),
+                    .colorRes(standardIconColor)
+                    .sizeDp(iconSize),
                 "GitHub",
                 true,
                 Uri.parse("https://github.com/familqasimov")
@@ -168,8 +167,8 @@ class AboutFragment : MaterialAboutFragment() {
                 .icon(
                     IconicsDrawable(c)
                         .icon(CommunityMaterial.Icon.cmd_bug)
-                        .colorRes(grey)
-                        .sizeDp(iconsize)
+                        .colorRes(standardIconColor)
+                        .sizeDp(iconSize)
                 )
                 .setOnClickAction(
                     ConvenienceBuilder.createEmailOnClickAction(

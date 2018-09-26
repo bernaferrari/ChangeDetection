@@ -11,7 +11,7 @@
     android:layout_marginBottom="8dp"
     android:clickable="true"
     android:focusable="true"
-    app:cardBackgroundColor="@color/md_grey_100"
+    app:cardBackgroundColor="?standardCardColor"
     app:cardCornerRadius="8dp"
     app:cardElevation="0dp">
 
@@ -30,7 +30,7 @@
             android:fontFamily="@font/work_medium"
             android:includeFontPadding="false"
             android:textAlignment="center"
-            android:textColor="@color/FontStrong"
+            android:textColor="?strongColor"
             android:textSize="20dp"
             app:layout_constraintBottom_toTopOf="@+id/subtitleTextView"
             app:layout_constraintEnd_toEndOf="parent"

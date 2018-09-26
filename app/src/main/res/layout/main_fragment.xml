@@ -11,78 +11,33 @@
         android:id="@+id/title_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top"
-        android:baselineAligned="false"
-        android:elevation="1dp"
-        android:minHeight="?android:actionBarSize"
-        android:orientation="horizontal"
-        android:paddingLeft="16dp"
-        android:paddingTop="@dimen/spacing_micro"
-        android:paddingBottom="@dimen/spacing_micro"
         android:background="?toolbarColor"
+        android:orientation="vertical"
+        android:elevation="1dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/titlecontent"
-            style="@style/TextAppearance.AppCompat.Title"
-            android:layout_width="0dp"
+        <android.support.design.widget.AppBarLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="start|center_vertical"
-            android:layout_weight="1"
-            android:gravity="center_vertical|start"
-            android:ellipsize="end"
-            android:singleLine="true"
-            android:paddingRight="@dimen/padding_normal"
-            android:text="@string/app_name"
-            android:textColor="?attr/iconColor"
-            tools:text="Change Detection" />
+            android:background="?toolbarColor"
+            app:liftOnScroll="true">
 
-        <ImageView
-            android:id="@+id/filter"
-            android:src="@drawable/ic_filter"
-            android:layout_width="@dimen/avatar_bounds"
-            android:layout_height="@dimen/avatar_bounds"
-            android:layout_gravity="center"
-            android:layout_marginLeft="@dimen/avatar_margin"
-            android:background="?android:selectableItemBackgroundBorderless"
-            android:padding="@dimen/avatar_margin"
-            android:scaleType="center"
-            android:visibility="invisible" />
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:title="@string/app_name"
+                app:titleTextColor="?iconColor" />
 
-        <ImageView
-            android:id="@+id/info"
-            android:layout_width="@dimen/avatar_bounds"
-            android:layout_height="@dimen/avatar_bounds"
-            android:layout_gravity="center"
-            android:background="?android:selectableItemBackgroundBorderless"
-            android:padding="@dimen/avatar_margin"
-            android:scaleType="center"
-            android:src="@drawable/ic_info" />
-
-        <ImageView
-            android:id="@+id/settings"
-            android:layout_width="@dimen/avatar_bounds"
-            android:layout_height="@dimen/avatar_bounds"
-            android:layout_gravity="center"
-            android:layout_marginRight="@dimen/avatar_margin"
-            android:background="?android:selectableItemBackgroundBorderless"
-            android:padding="@dimen/avatar_margin"
-            android:scaleType="center"
-            android:src="@drawable/ic_settings" />
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/filterRecycler"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+        </android.support.design.widget.AppBarLayout>
     </LinearLayout>
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/filterRecycler"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/title_bar">
-
-    </android.support.v7.widget.RecyclerView>
 
     <android.support.v4.widget.SwipeRefreshLayout
         android:id="@+id/pullToRefresh"
@@ -91,7 +46,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/filterRecycler">
+        app:layout_constraintTop_toBottomOf="@+id/title_bar">
 
         <com.bernaferrari.changedetection.ui.RecyclerViewWithEmptyState
             android:id="@+id/defaultRecycler"
@@ -108,7 +63,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/filterRecycler" />
+        app:layout_constraintTop_toBottomOf="@+id/title_bar" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"

@@ -31,14 +31,29 @@
 
     <color name="icon_dark">#99000000</color> <!-- 60% black-->
 
-    <!-- COLORS FROM GITHUB -->
-    <color name="num_deletion">#ffeef0</color>
-    <color name="code_deletion">#ffdce0</color>
-    <color name="code_deletion_diff">#fdb8c0</color>
 
-    <color name="num_addition">#bef5cb</color>
-    <color name="code_addition">#e6ffed</color>
-    <color name="code_addition_diff">#acf2bd</color>
+    002800
+
+
+    <!-- COLORS FROM GITHUB -->
+
+    <color name="code_addition_light">#e6ffed</color>
+    <color name="code_addition_dark">#002800</color>
+
+    <color name="code_addition_diff_light">#acf2bd</color>
+    <color name="code_addition_diff_dark">#225522</color>
+
+    <color name="code_deletion_light">#ffdce0</color>
+    <color name="code_deletion_dark">#380000</color>
+
+    <color name="code_deletion_diff_light">#fdb8c0</color>
+    <color name="code_deletion_diff_dark">#660000</color>
+
+    <color name="num_addition_light">#bef5cb</color>
+    <color name="num_addition_dark">#bef5cb</color>
+
+    <color name="num_deletion_light">#ffeef0</color>
+    <color name="num_deletion_dark">#ffeef0</color>
 
     <!-- COLORS FROM PLAID -->
     <color name="FontStrong">@color/md_grey_900</color>
