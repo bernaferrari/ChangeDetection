@@ -25,6 +25,9 @@ class SyncWorker(
     workerParameters: WorkerParameters
 ) : Worker(context, workerParameters) {
 
+    private val debugLog = StringBuilder()
+    private val isDebugEnabled = Injector.get().sharedPrefs().getBoolean("debug", true)
+
     override fun doWork(): Worker.Result {
 
         if (inputData.getBoolean(WorkerHelper.WIFI, false) && !isWifiConnected()) {
@@ -41,13 +44,15 @@ class SyncWorker(
         val now = LocalTime.now()
         Logger.d("Doing background work! " + now.hour + ":" + now.minute)
 
+        debugLog.setLength(0)
+
         Injector.get().sitesRepository().getSites()
             .also { sites -> sites.forEach { it -> reload(it) } }
             .takeIf { sites -> sites.count { it.isSyncEnabled } > 0 }
             // if there is nothing to sync, auto-sync will be automatically disabled
             ?.also { WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs()) }
 
-        if (Injector.get().sharedPrefs().getBoolean("debug", true)) {
+        if (isDebugEnabled) {
             Notify
                 .with(applicationContext)
                 .meta {
@@ -56,9 +61,11 @@ class SyncWorker(
                         Intent(applicationContext, MainActivity::class.java), 0
                     )
                 }
-                .content {
-                    title = "A background sync just ocurred!"
-                    text = "Debug mode is enabled"
+                .asBigText {
+                    title = "[Debug] There has been a sync"
+                    text = "Expand to see the full log"
+                    expandedText = "..."
+                    bigText = debugLog
                 }
                 .show()
         }
@@ -67,8 +74,16 @@ class SyncWorker(
     private suspend fun reload(item: Site) {
         if (!item.isSyncEnabled) return
 
-        val serverResult = WorkerHelper.fetchFromServer(item)
-        processServerResult(serverResult.first, serverResult.second, item)
+        val (contentTypeAndCharset, bytes) = WorkerHelper.fetchFromServer(item)
+        if (isDebugEnabled) {
+            if (bytes.isEmpty()) {
+                debugLog.append("• $contentTypeAndCharset\n")
+            } else {
+                val title = item.title?.takeIf { it.isNotBlank() } ?: item.url
+                debugLog.append("• ${bytes.size.readableFileSize()} from $title\n")
+            }
+        }
+        processServerResult(contentTypeAndCharset, bytes, item)
     }
 
     private suspend fun processServerResult(

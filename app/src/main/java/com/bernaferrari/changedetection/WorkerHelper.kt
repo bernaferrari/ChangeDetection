@@ -63,18 +63,18 @@ object WorkerHelper {
         } catch (e: UnknownHostException) {
             // When internet connection is not available OR website doesn't exist
             Logger.e("UnknownHostException for ${item.url}")
-            Pair("", byteArrayOf())
+            Pair("UnknownHostException for ${item.url}", byteArrayOf())
         } catch (e: IllegalArgumentException) {
             // When input is "http://"
             Logger.e("IllegalArgumentException for ${item.url}")
-            Pair("", byteArrayOf())
+            Pair("IllegalArgumentException for ${item.url}", byteArrayOf())
         } catch (e: SocketTimeoutException) {
             // When site is not available
             Logger.e("SocketTimeoutException for ${item.url}")
-            Pair("", byteArrayOf())
+            Pair("SocketTimeoutException for ${item.url}", byteArrayOf())
         } catch (e: Exception) {
-            Logger.e("New Exception for ${item.url}")
-            Pair("", byteArrayOf())
+            Logger.e("${e.localizedMessage} for ${item.url}")
+            Pair("${e.localizedMessage} for ${item.url}", byteArrayOf())
         }
     }
 
