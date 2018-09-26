@@ -14,9 +14,8 @@ import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.orhanobut.logger.Logger
 import io.karn.notify.Notify
 import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.GlobalScope
 import kotlinx.coroutines.experimental.IO
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.runBlocking
 import org.threeten.bp.LocalTime
 import com.bernaferrari.changedetection.data.source.Result as DataResult
 
@@ -40,7 +39,7 @@ class SyncWorker(
         return Result.SUCCESS
     }
 
-    private fun heavyWork() = GlobalScope.launch(Dispatchers.IO) {
+    private fun heavyWork() = runBlocking(Dispatchers.IO) {
         val now = LocalTime.now()
         Logger.d("Doing background work! " + now.hour + ":" + now.minute)
 
@@ -53,8 +52,7 @@ class SyncWorker(
             ?.also { WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs()) }
 
         if (isDebugEnabled) {
-            Notify
-                .with(applicationContext)
+            Notify.with(applicationContext)
                 .meta {
                     this.clickIntent = PendingIntent.getActivity(
                         applicationContext, 0,
@@ -75,6 +73,7 @@ class SyncWorker(
         if (!item.isSyncEnabled) return
 
         val (contentTypeAndCharset, bytes) = WorkerHelper.fetchFromServer(item)
+
         if (isDebugEnabled) {
             if (bytes.isEmpty()) {
                 debugLog.append("• $contentTypeAndCharset\n")
@@ -83,6 +82,7 @@ class SyncWorker(
                 debugLog.append("• ${bytes.size.readableFileSize()} from $title\n")
             }
         }
+
         processServerResult(contentTypeAndCharset, bytes, item)
     }
 
