@@ -107,5 +107,7 @@
     <string name="change_detected_notification_without_title">Cambiamento rilevato! (%1s)</string>
 
     <string name="sort_by_name">Ordina per nome</string>
+    <string name="disable_dark_mode">Disattiva il tema escuro</string>
+    <string name="enable_dark_mode">Abilita il tema oscuro</string>
 
 </resources>

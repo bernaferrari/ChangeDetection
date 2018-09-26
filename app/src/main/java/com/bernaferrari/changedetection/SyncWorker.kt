@@ -46,12 +46,26 @@ class SyncWorker(
             .takeIf { sites -> sites.count { it.isSyncEnabled } > 0 }
             // if there is nothing to sync, auto-sync will be automatically disabled
             ?.also { WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs()) }
+
+        if (Injector.get().sharedPrefs().getBoolean("debug", true)) {
+            Notify
+                .with(applicationContext)
+                .meta {
+                    this.clickIntent = PendingIntent.getActivity(
+                        applicationContext, 0,
+                        Intent(applicationContext, MainActivity::class.java), 0
+                    )
+                }
+                .content {
+                    title = "A background sync just ocurred!"
+                    text = "Debug mode is enabled"
+                }
+                .show()
+        }
     }
 
     private suspend fun reload(item: Site) {
-        if (!item.isSyncEnabled) {
-            return
-        }
+        if (!item.isSyncEnabled) return
 
         val serverResult = WorkerHelper.fetchFromServer(item)
         processServerResult(serverResult.first, serverResult.second, item)
