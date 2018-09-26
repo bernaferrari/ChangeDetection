@@ -1,25 +1,35 @@
 <resources>
 
-    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="AppThemeLight" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/primary_light</item>
         <item name="colorPrimaryDark">@color/primary_dark_light</item>
         <item name="colorAccent">@color/md_indigo_A200</item>
 
-        <item name="cardColor">@color/md_grey_50</item>
+        <item name="mainCardColor">@color/md_grey_50</item>
+        <item name="weakColor">#67687c</item>
+        <item name="weakerColor">@color/md_grey_500</item>
         <item name="cardSeparatorColor">@color/md_grey_200</item>
 
         <item name="toolbarColor">@color/white</item>
         <item name="iconColor">@color/icon_dark</item>
         <item name="strongColor">@color/FontStrong</item>
-        <item name="weakColor">@color/white</item>
-        <item name="settingsCardColor">@color/md_grey_100</item>
+        <item name="standardCardColor">@color/md_grey_100</item>
 
         <item name="settingsBackground">@color/white</item>
 
         <item name="windowBackground">@color/window_background_light</item>
         <item name="android:windowBackground">?windowBackground</item>
 
+        <item name="diff_text_color">@color/FontLessStrong</item>
+        <item name="code_addition">@color/code_addition_light</item>
+        <item name="code_addition_diff">@color/code_addition_diff_light</item>
+        <item name="code_deletion">@color/code_deletion_light</item>
+        <item name="code_deletion_diff">@color/code_deletion_diff_light</item>
+        <item name="num_addition">@color/num_addition_light</item>
+        <item name="num_deletion">@color/num_deletion_light</item>
+
         <item name="inputTheme">@style/DialogLight</item>
+        <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
     </style>
 
     <style name="AppThemeDark" parent="Theme.MaterialComponents.NoActionBar">
@@ -27,14 +37,16 @@
         <item name="colorPrimaryDark">@color/primary_dark_dark</item>
         <item name="colorAccent">@color/md_indigo_A200</item>
 
-        <item name="cardColor">@color/primary_dark</item>
-        <item name="cardSeparatorColor">#22ffffff</item>
+        <item name="mainCardColor">@color/primary_dark</item>
+        <item name="cardSeparatorColor">#5D2F445E</item>
+        <item name="android:textColorSecondary">@color/white</item>
 
         <item name="toolbarColor">@color/primary_dark</item>
         <item name="iconColor">@color/white</item>
         <item name="strongColor">@color/white</item>
-        <item name="weakColor">@color/white</item>
-        <item name="settingsCardColor">@color/primary_dark</item>
+        <item name="weakColor">#CCFFFAFA</item> <!-- 80% white -->
+        <item name="weakerColor">#88FFFAFA</item>
+        <item name="standardCardColor">@color/primary_dark</item>
 
         <item name="settingsBackground">@color/window_background_dark</item>
 
@@ -42,7 +54,22 @@
         <item name="md_background_color">?windowBackground</item>
         <item name="android:windowBackground">?windowBackground</item>
 
+        <item name="diff_text_color">?weakColor</item>
+        <item name="code_addition">@color/code_addition_dark</item>
+        <item name="code_addition_diff">@color/code_addition_diff_dark</item>
+        <item name="code_deletion">@color/code_deletion_dark</item>
+        <item name="code_deletion_diff">@color/code_deletion_diff_dark</item>
+        <item name="num_addition">@color/num_addition_dark</item>
+        <item name="num_deletion">@color/num_deletion_dark</item>
+
         <item name="inputTheme">@style/DialogDark</item>
+        <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
+    </style>
+
+    <!-- This will set the fade in animation on all your activities by default -->
+    <style name="WindowAnimationTransition">
+        <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:windowExitAnimation">@android:anim/fade_out</item>
     </style>
 
     <!--https://gist.github.com/ArthurNagy/1c4a64e6c8a7ddfca58638a9453e4aed-->
@@ -62,19 +89,19 @@
     </style>
 
     <style name="AboutLight" parent="Theme.Mal.Light">
-        <item name="mal_card_background">?cardColor</item>
+        <item name="mal_card_background">?mainCardColor</item>
         <item name="android:windowBackground">?windowBackground</item>
 
         <item name="mal_color_primary">?strongColor</item>
-        <item name="mal_color_secondary">#772979FF</item>
+        <item name="mal_color_secondary">?weakColor</item>
     </style>
 
     <style name="AboutDark" parent="Theme.Mal.Dark">
-        <item name="mal_card_background">?cardColor</item>
+        <item name="mal_card_background">?mainCardColor</item>
         <item name="android:windowBackground">?windowBackground</item>
 
         <item name="mal_color_primary">?strongColor</item>
-        <item name="mal_color_secondary">@color/FontWeak</item>
+        <item name="mal_color_secondary">?weakColor</item>
     </style>
 
     <style name="ItemTitle">
@@ -91,7 +118,7 @@
     </style>
 
     <style name="DialogDark" parent="@style/Theme.MaterialComponents.Dialog">
-        <item name="colorAccent">@color/really_blue</item>
+        <item name="colorAccent">@color/md_blue_A200</item>
     </style>
 
     <style name="ClickableImageView">

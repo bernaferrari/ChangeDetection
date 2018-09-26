@@ -6,7 +6,6 @@ import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.Intent
 import android.content.res.Resources
-import android.graphics.drawable.ColorDrawable
 import android.support.annotation.AttrRes
 import android.support.annotation.StringRes
 import android.support.design.widget.BottomSheetDialog
@@ -17,6 +16,7 @@ import android.support.v7.widget.SimpleItemAnimator
 import android.util.TypedValue
 import android.view.View
 import android.widget.ImageView
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 import com.bernaferrari.changedetection.R
 import com.github.marlonlom.utilities.timeago.TimeAgo
@@ -105,7 +105,7 @@ internal fun Context.getColorFromAttr(
 
 internal fun View.generateBottomSheet() =
     BottomSheetDialog(this.context).also {
-        this.background = ColorDrawable(context.getColorFromAttr(R.attr.windowBackground))
+        this.background = context.getColorFromAttr(R.attr.windowBackground).toDrawable()
         it.setContentView(this)
         it.show()
     }

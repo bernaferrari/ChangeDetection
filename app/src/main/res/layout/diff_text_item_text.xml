@@ -19,7 +19,7 @@
         android:paddingTop="2dp"
         android:paddingEnd="16dp"
         android:paddingBottom="2dp"
-        android:textColor="@color/FontLessStrong"
+        android:textColor="?diff_text_color"
         android:textSize="16sp"
         tools:text="Núcleos"
         app:layout_constraintBottom_toBottomOf="parent"

@@ -39,10 +39,16 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
         val sharedPrefs = Injector.get().sharedPrefs()
 
         fun updateSharedPreferences(key: String, value: Boolean) {
-            sharedPrefs.edit {
-                putBoolean(key, value)
-            }
+            sharedPrefs.edit { putBoolean(key, value) }
             WorkerHelper.updateWorkerWithConstraints(sharedPrefs)
+        }
+
+        updating += DialogItemSwitch(
+            "Debug mode",
+            IconicsDrawable(context, CommunityMaterial.Icon.cmd_bug).color(color),
+            sharedPrefs.getBoolean("debug", true)
+        ) {
+            sharedPrefs.edit { putBoolean("debug", it.isSwitchOn) }
         }
 
         updating += DialogItemSwitch(
@@ -50,9 +56,7 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
             IconicsDrawable(context, GoogleMaterial.Icon.gmd_sync).color(color),
             sharedPrefs.getBoolean("backgroundSync", false)
         ) {
-            sharedPrefs.edit {
-                putBoolean("backgroundSync", it.isSwitchOn)
-            }
+            sharedPrefs.edit { putBoolean("backgroundSync", it.isSwitchOn) }
 
             if (it.isSwitchOn) {
                 syncSection.update(syncSettings)
@@ -67,9 +71,7 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
             getString(R.string.sync_interval),
             sharedPrefs.getLong(WorkerHelper.DELAY, 60).toInt()
         ) {
-            sharedPrefs.edit {
-                putLong(WorkerHelper.DELAY, it)
-            }
+            sharedPrefs.edit { putLong(WorkerHelper.DELAY, it) }
             WorkerHelper.updateWorkerWithConstraints(sharedPrefs)
             Logger.d("Reloaded! $it min")
         }

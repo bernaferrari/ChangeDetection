@@ -9,12 +9,11 @@ import android.support.design.widget.Snackbar
 import android.support.transition.AutoTransition
 import android.support.transition.TransitionManager
 import android.support.v4.content.ContextCompat
+import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.core.content.edit
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -53,8 +52,15 @@ class MainFragment : ScopedFragment() {
     private val sitesList = mutableListOf<MainCardItem>()
     private val sitesSection = Section(sitesList)
 
+    private val transitionDelay = 125L
+    private val transition = AutoTransition().apply { duration = transitionDelay }
+
+    private lateinit var filterItem: MenuItem
+    private val isDarkModeOn = Injector.get().sharedPrefs().getBoolean(MainActivity.DARKMODE, false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
         WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs())
     }
 
@@ -63,27 +69,54 @@ class MainFragment : ScopedFragment() {
         savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.main_fragment, container, false)
 
-    private val transitionDelay = 125L
-    private val transition = AutoTransition().apply { duration = transitionDelay }
+    override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.main, menu)
+
+        filterItem = menu.findItem(R.id.filter).also {
+            it.isVisible = sitesList.isNotEmpty()
+        }
+
+        menu.findItem(R.id.dark_mode).title = isDarkModeOn.takeIf { it == true }
+            ?.let { getString(R.string.disable_dark_mode) }
+                ?: getString(R.string.enable_dark_mode)
+
+        super.onCreateOptionsMenu(menu, menuInflater)
+    }
+
+    override fun onOptionsItemSelected(menuItem: MenuItem): Boolean {
+        when (menuItem.itemId) {
+            R.id.filter -> onFilterTapped()
+            R.id.settings -> {
+                requireActivity().supportFragmentManager.beginTransaction()
+                    .add(SettingsFragment(), "settings").commit()
+            }
+            R.id.about -> {
+                view?.findNavController()?.navigate(R.id.action_mainFragment_to_aboutFragment)
+            }
+            R.id.dark_mode -> {
+                Injector.get().sharedPrefs().also {
+                    val value = it.getBoolean(MainActivity.DARKMODE, false)
+                    it.edit(true) {
+                        putBoolean(MainActivity.DARKMODE, !value)
+                    }
+                }
+
+                requireActivity().recreate()
+            }
+        }
+        return true
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        (activity as AppCompatActivity?)?.setSupportActionBar(toolbar)
+
         mViewModel = viewModelProvider(ViewModelFactory.getInstance(requireActivity().application))
 
         mViewModel.sortAlphabetically = Injector.get().sharedPrefs().getBoolean("sortByName", false)
 
         stateLayout.showLoading()
-
-        settings.setOnClickListener {
-            requireActivity().supportFragmentManager.beginTransaction()
-                .add(SettingsFragment(), "settings").commit()
-        }
-
-        info.setOnClickListener {
-            view.findNavController().navigate(R.id.action_mainFragment_to_aboutFragment)
-        }
-
-        filter.setOnClickListener { _ -> onFilterTapped() }
 
         fab.setOnClickListener { showCreateEditDialog(false) }
 
@@ -136,8 +169,6 @@ class MainFragment : ScopedFragment() {
                 defaultRecycler.smoothScrollToPosition(0)
             }
 
-
-
             filterRecycler.adapter = GroupAdapter<ViewHolder>().apply {
                 add(
                     DialogItemSwitch(
@@ -169,21 +200,19 @@ class MainFragment : ScopedFragment() {
         defaultRecycler.stopScroll()
         TransitionManager.beginDelayedTransition(parentLayout, transition)
         filterRecycler.isVisible = !filterRecycler.isVisible
-        filter.setImageDrawable(
-            ContextCompat.getDrawable(
-                requireContext(),
-                if (!filterRecycler.isVisible) R.drawable.ic_filter else R.drawable.ic_check
-            )
+        filterItem.icon = ContextCompat.getDrawable(
+            requireContext(),
+            if (!filterRecycler.isVisible) R.drawable.ic_filter else R.drawable.ic_check
         )
 
         // need to do this on animation to avoid RecyclerView crashing when
         // “scrapped or attached views may not be recycled”
-        filter.isEnabled = false
+        filterItem.isEnabled = false
 
         launch {
             delay(transitionDelay)
             withContext(Dispatchers.Main) {
-                filter.isEnabled = true
+                filterItem.isEnabled = true
             }
         }
     }
@@ -438,7 +467,7 @@ class MainFragment : ScopedFragment() {
             mViewModel.shouldSyncWhenAppOpen = false
         }
 
-        if (sitesList.isNotEmpty()) filter.isVisible = true
+        activity?.invalidateOptionsMenu()
     }
 
     private fun reloadEach(item: MainCardItem?) {

@@ -2,7 +2,6 @@ package com.bernaferrari.changedetection.detailstext
 
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.TransitionDrawable
-import android.support.v4.content.ContextCompat
 import android.support.v7.widget.CardView
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -13,6 +12,7 @@ import com.bernaferrari.changedetection.RecyclerViewItemListener
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.consume
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
+import com.bernaferrari.changedetection.extensions.getColorFromAttr
 import com.bernaferrari.changedetection.extensions.readableFileSize
 import kotlinx.android.synthetic.main.item_text_selector.view.*
 
@@ -76,23 +76,18 @@ class TextViewHolder(
         when (colorSelected) {
             ItemSelected.REVISED -> setCardBackgroundAnimated(
                 itemView.container,
-                ContextCompat.getColor(context,
-                    R.color.code_addition_diff
-                ).toDrawable()
+                context.getColorFromAttr(R.attr.code_addition_diff).toDrawable()
             )
             ItemSelected.ORIGINAL -> setCardBackgroundAnimated(
                 itemView.container,
-                ContextCompat.getColor(context,
-                    R.color.code_deletion_diff
-                ).toDrawable()
+                context.getColorFromAttr(R.attr.code_deletion_diff).toDrawable()
             )
             else -> setCardBackgroundAnimated(
                 itemView.container,
-                ContextCompat.getColor(context, R.color.md_grey_100).toDrawable()
+                context.getColorFromAttr(R.attr.standardCardColor).toDrawable()
             )
         }
     }
-
 
     private fun setCardBackgroundAnimated(cardView: CardView, color: Drawable) {
         cardView.background = TransitionDrawable(arrayOf(cardView.background, color)).apply {

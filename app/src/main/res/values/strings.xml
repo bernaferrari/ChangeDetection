@@ -113,5 +113,7 @@
 
     <string name="sort_by_name">Sort by name</string>
     <string name="dot" translatable="false">•</string>
+    <string name="disable_dark_mode">Disable dark mode</string>
+    <string name="enable_dark_mode">Enable dark mode</string>
 
 </resources>

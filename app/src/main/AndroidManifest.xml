@@ -15,7 +15,7 @@
         android:supportsRtl="true"
         android:largeHeap="true"
         android:usesCleartextTraffic="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppThemeLight">
         <activity
             android:name="com.bernaferrari.changedetection.MainActivity"
             android:configChanges="orientation|keyboardHidden">

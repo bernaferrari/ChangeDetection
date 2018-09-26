@@ -17,6 +17,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_margin="32dp"
+        app:cardBackgroundColor="?mainCardColor"
         app:cardCornerRadius="8dp">
 
         <TextView
@@ -25,6 +26,7 @@
             android:layout_height="match_parent"
             android:layout_margin="16dp"
             android:fontFamily="@font/work_regular"
+            android:textColor="?weakColor"
             android:textSize="16sp"
             android:textAlignment="center"
             tools:text="Nothing found" />
