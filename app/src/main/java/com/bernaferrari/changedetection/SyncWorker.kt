@@ -20,18 +20,18 @@ import org.threeten.bp.LocalTime
 import com.bernaferrari.changedetection.data.source.Result as DataResult
 
 class SyncWorker(
-    context: Context,
+    val context: Context,
     workerParameters: WorkerParameters
 ) : Worker(context, workerParameters) {
 
     private val debugLog = StringBuilder()
-    private val isDebugEnabled = Injector.get().sharedPrefs().getBoolean("debug", true)
+    private val isDebugEnabled = false //Injector.get().sharedPrefs().getBoolean("debug", true)
 
     override fun doWork(): Worker.Result {
 
         if (inputData.getBoolean(WorkerHelper.WIFI, false) && !isWifiConnected()) {
             Logger.d("SyncWorker: wifi is not connected. Try again next time..")
-            WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs())
+            WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs(), false)
         } else {
             heavyWork()
         }
@@ -49,14 +49,14 @@ class SyncWorker(
             .also { sites -> sites.forEach { it -> reload(it) } }
             .takeIf { sites -> sites.count { it.isSyncEnabled } > 0 }
             // if there is nothing to sync, auto-sync will be automatically disabled
-            ?.also { WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs()) }
+            ?.also { WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs(), false) }
 
         if (isDebugEnabled) {
-            Notify.with(applicationContext)
+            Notify.with(context)
                 .meta {
                     this.clickIntent = PendingIntent.getActivity(
-                        applicationContext, 0,
-                        Intent(applicationContext, MainActivity::class.java), 0
+                        context, 0,
+                        Intent(context, MainActivity::class.java), 0
                     )
                 }
                 .asBigText {
@@ -117,25 +117,25 @@ class SyncWorker(
             }
 
             Notify
-                .with(applicationContext)
+                .with(context)
                 .header {
                     this.icon = R.drawable.ic_sync
                     this.color = item.colors.first
                 }
                 .meta {
                     this.clickIntent = PendingIntent.getActivity(
-                        applicationContext, 0,
-                        Intent(applicationContext, MainActivity::class.java), 0
+                        context, 0,
+                        Intent(context, MainActivity::class.java), 0
                     )
                 }
                 .content {
                     title = if (newSite.title.isNullOrBlank()) {
-                        applicationContext.getString(
+                        context.getString(
                             R.string.change_detected_notification_without_title,
                             snap.contentSize.readableFileSize()
                         )
                     } else {
-                        applicationContext.getString(
+                        context.getString(
                             R.string.change_detected_notification_with_title,
                             newSite.title,
                             snap.contentSize.readableFileSize()
@@ -151,7 +151,7 @@ class SyncWorker(
     private fun isWifiConnected(): Boolean {
         // From https://stackoverflow.com/a/34576776/4418073
         val connectivityManager =
-            applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetworks = connectivityManager.allNetworks
         for (network in activeNetworks) {
             if (connectivityManager.getNetworkInfo(network).isConnected) {

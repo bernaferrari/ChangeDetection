@@ -33,7 +33,7 @@ class MainViewModel(
     internal var sortAlphabetically = false
 
     internal val getOutputStatus: LiveData<List<WorkStatus>>
-        get() = WorkManager.getInstance().getStatusesForUniqueWork(WorkerHelper.UNIQUEWORK)
+        get() = WorkManager.getInstance().getStatusesByTag(WorkerHelper.UNIQUEWORK)
 
     internal fun removeSite(site: Site) = GlobalScope.launch {
         mSnapsRepository.deleteAllSnaps(site.id)

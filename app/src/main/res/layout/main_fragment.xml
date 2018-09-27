@@ -74,5 +74,14 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!--<android.support.design.widget.FloatingActionButton-->
+    <!--android:id="@+id/share"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_margin="@dimen/fab_margin"-->
+    <!--android:src="@drawable/ic_share"-->
+    <!--app:layout_constraintBottom_toTopOf="@+id/fab"-->
+    <!--app:layout_constraintEnd_toEndOf="parent" />-->
+
 </android.support.constraint.ConstraintLayout>
 

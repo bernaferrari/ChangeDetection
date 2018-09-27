@@ -8,6 +8,7 @@ import android.graphics.pdf.PdfRenderer
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.support.transition.AutoTransition
+import android.support.transition.ChangeBounds
 import android.support.transition.TransitionManager
 import android.support.v4.app.ShareCompat
 import android.support.v4.content.ContextCompat
@@ -15,7 +16,6 @@ import android.support.v4.content.FileProvider
 import android.support.v4.view.GravityCompat
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.RecyclerView
-import android.transition.ChangeBounds
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup

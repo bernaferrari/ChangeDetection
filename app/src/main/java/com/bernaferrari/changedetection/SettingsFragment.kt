@@ -43,13 +43,13 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
             WorkerHelper.updateWorkerWithConstraints(sharedPrefs)
         }
 
-        updating += DialogItemSwitch(
-            "Debug mode",
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_bug).color(color),
-            sharedPrefs.getBoolean("debug", true)
-        ) {
-            sharedPrefs.edit { putBoolean("debug", it.isSwitchOn) }
-        }
+//        updating += DialogItemSwitch(
+//            "Debug mode",
+//            IconicsDrawable(context, CommunityMaterial.Icon.cmd_bug).color(color),
+//            sharedPrefs.getBoolean("debug", true)
+//        ) {
+//            sharedPrefs.edit { putBoolean("debug", it.isSwitchOn) }
+//        }
 
         updating += DialogItemSwitch(
             getString(R.string.background_sync),

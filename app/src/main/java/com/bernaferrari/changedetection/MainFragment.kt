@@ -20,6 +20,7 @@ import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.work.State
+import androidx.work.WorkManager
 import androidx.work.WorkStatus
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
@@ -62,6 +63,7 @@ class MainFragment : ScopedFragment() {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
         WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs())
+        WorkManager.getInstance().pruneWork()
     }
 
     override fun onCreateView(
@@ -76,9 +78,9 @@ class MainFragment : ScopedFragment() {
             it.isVisible = sitesList.isNotEmpty()
         }
 
-        menu.findItem(R.id.dark_mode).title = isDarkModeOn.takeIf { it == true }
-            ?.let { getString(R.string.disable_dark_mode) }
-                ?: getString(R.string.enable_dark_mode)
+//        menu.findItem(R.id.dark_mode).title = isDarkModeOn.takeIf { it == true }
+//            ?.let { getString(R.string.disable_dark_mode) }
+//                ?: getString(R.string.enable_dark_mode)
 
         super.onCreateOptionsMenu(menu, menuInflater)
     }
@@ -93,16 +95,16 @@ class MainFragment : ScopedFragment() {
             R.id.about -> {
                 view?.findNavController()?.navigate(R.id.action_mainFragment_to_aboutFragment)
             }
-            R.id.dark_mode -> {
-                Injector.get().sharedPrefs().also {
-                    val value = it.getBoolean(MainActivity.DARKMODE, false)
-                    it.edit(true) {
-                        putBoolean(MainActivity.DARKMODE, !value)
-                    }
-                }
-
-                requireActivity().recreate()
-            }
+//            R.id.dark_mode -> {
+//                Injector.get().sharedPrefs().also {
+//                    val value = it.getBoolean(MainActivity.DARKMODE, false)
+//                    it.edit(true) {
+//                        putBoolean(MainActivity.DARKMODE, !value)
+//                    }
+//                }
+//
+//                requireActivity().recreate()
+//            }
         }
         return true
     }
@@ -150,6 +152,42 @@ class MainFragment : ScopedFragment() {
         groupAdapter.setOnItemLongClickListener { item, _ ->
             if (item is MainCardItem) consume { showDialogWithOptions(item) } else false
         }
+
+//        share.setOnClickListener {
+//
+//            val log = StringBuilder()
+//
+//            val process = Runtime.getRuntime().exec("logcat -d")
+//            val br = BufferedReader(InputStreamReader(process.inputStream))
+//
+//            var line: String? = br.readLine()
+//            while (line != null) {
+//                log.append(line + "\n")
+//                line = br.readLine()
+//            }
+//
+//            br.close()
+//
+//            val file = File(requireContext().cacheDir, "logs.txt")
+//
+//            file.createNewFile()
+//            file.writeBytes(log.toString().toByteArray())
+//
+//            val contentUri = FileProvider.getUriForFile(
+//                requireContext(),
+//                "com.bernaferrari.changedetection.files",
+//                file
+//            )
+//
+//            val shareIntent = ShareCompat.IntentBuilder.from(activity)
+//                .setStream(contentUri)
+//                .intent
+//
+//            shareIntent.data = contentUri
+//            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+//
+//            startActivity(shareIntent)
+//        }
 
         mViewModel.loadSites().observe(this, Observer(::updateList))
         mViewModel.getOutputStatus.observe(this, Observer(::workOutput))
@@ -415,7 +453,18 @@ class MainFragment : ScopedFragment() {
 
     private fun workOutput(it: List<WorkStatus>?) {
         val result = it ?: return
-        if (result.firstOrNull()?.state == State.SUCCEEDED) {
+
+//        if (Injector.get().sharedPrefs().getBoolean("debug", false)) {
+//            val sb = StringBuilder()
+//            result.forEach { sb.append("${it.state.name}\n") }
+//            if (sb.isNotEmpty()) {
+//                sb.setLength(sb.length - 1) // Remove the last \n from the string
+//            }
+//            Logger.d("workerLog: $sb")
+//            Snackbar.make(view!!, sb, Snackbar.LENGTH_SHORT).show()
+//        }
+
+        if (result.any { it.state == State.SUCCEEDED }) {
             mViewModel.updateItems()
             Logger.d("Just refreshed")
         }
