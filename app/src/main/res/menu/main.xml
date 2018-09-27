@@ -8,6 +8,7 @@
         android:id="@+id/filter"
         android:icon="@drawable/ic_filter"
         android:title="Filter"
+        android:visible="false"
         app:showAsAction="always" />
 
     <item
@@ -16,10 +17,10 @@
         android:title="Settings"
         app:showAsAction="ifRoom" />
 
-    <item
-        android:id="@+id/dark_mode"
-        android:title="Enable dark mode"
-        app:showAsAction="never" />
+    <!--<item-->
+    <!--android:id="@+id/dark_mode"-->
+    <!--android:title="Enable dark mode"-->
+    <!--app:showAsAction="never" />-->
 
     <item
         android:id="@+id/about"

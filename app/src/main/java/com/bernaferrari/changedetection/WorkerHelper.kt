@@ -11,6 +11,7 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
+
 /**
  * Helps to deal with Work Manager.
  */
@@ -78,7 +79,10 @@ object WorkerHelper {
         }
     }
 
-    fun updateWorkerWithConstraints(sharedPrefs: SharedPreferences) {
+    fun updateWorkerWithConstraints(
+        sharedPrefs: SharedPreferences,
+        cancelCurrentWork: Boolean = true
+    ) {
         val constraints = ConstraintsRequired(
             sharedPrefs.getBoolean(WorkerHelper.WIFI, false),
             sharedPrefs.getBoolean(WorkerHelper.CHARGING, false),
@@ -86,40 +90,40 @@ object WorkerHelper {
             sharedPrefs.getBoolean(WorkerHelper.IDLE, false)
         )
 
-        cancelWork()
+        if (cancelCurrentWork) {
+            cancelWork()
+        }
+        WorkManager.getInstance().pruneWork()
+
         if (sharedPrefs.getBoolean("backgroundSync", false)) {
             reloadWorkManager(sharedPrefs.getLong(WorkerHelper.DELAY, 30), constraints)
         }
     }
 
     private fun reloadWorkManager(delay: Long = 15, constraints: ConstraintsRequired) {
-        cancelWork()
 
-        val workerConstraints = Constraints.Builder()
-        workerConstraints.setRequiredNetworkType(NetworkType.CONNECTED)
+        val workerConstraints = Constraints.Builder().apply {
+            this.setRequiredNetworkType(NetworkType.CONNECTED)
+            if (constraints.batteryNotLow) this.setRequiresBatteryNotLow(true)
+            if (constraints.charging) this.setRequiresCharging(true)
+            if (Build.VERSION.SDK_INT >= 23 && constraints.deviceIdle) setRequiresDeviceIdle(true)
+        }
 
         val inputData = Data.Builder()
             .putBoolean(WIFI, constraints.wifi)
             .build()
 
-        if (constraints.batteryNotLow) workerConstraints.setRequiresBatteryNotLow(true)
-        if (constraints.charging) workerConstraints.setRequiresCharging(true)
-        if (Build.VERSION.SDK_INT >= 23 && constraints.deviceIdle) {
-            workerConstraints.setRequiresDeviceIdle(true)
-        }
-
         val syncWork = OneTimeWorkRequest.Builder(SyncWorker::class.java)
-            .setInitialDelay(delay, TimeUnit.MINUTES)
+            .addTag(UNIQUEWORK)
+            .setInitialDelay(10, TimeUnit.SECONDS)
             .setConstraints(workerConstraints.build())
             .setInputData(inputData)
             .build()
 
-        WorkManager.getInstance()
-            .beginUniqueWork(WorkerHelper.UNIQUEWORK, ExistingWorkPolicy.REPLACE, syncWork)
-            .enqueue()
+        WorkManager.getInstance().enqueue(syncWork)
     }
 
     fun cancelWork() {
-        WorkManager.getInstance().cancelUniqueWork(WorkerHelper.UNIQUEWORK)
+        WorkManager.getInstance().cancelAllWorkByTag(WorkerHelper.UNIQUEWORK)
     }
 }

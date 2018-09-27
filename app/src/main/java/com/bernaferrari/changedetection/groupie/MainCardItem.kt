@@ -16,7 +16,6 @@ import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.onAnimationEnd
 import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.bernaferrari.changedetection.util.GradientColors
-import com.orhanobut.logger.Logger
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import io.reactivex.Completable
@@ -289,7 +288,6 @@ class MainCardItem(
             holder.lastChangeText.text =
                     holder.lastChangeText.context.getString(R.string.nothing_yet)
         } else {
-            Logger.d("url: ${lastSnap?.snapId} ts: ${lastSnap?.timestamp}")
             holder.lastChangeText.text = lastSnap?.timestamp?.convertTimestampToDate()
             diffDisposable?.dispose()
             diffDisposable = generateTimerDisposable(lastSnap?.timestamp ?: 0).subscribe {

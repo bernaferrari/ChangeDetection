@@ -17,7 +17,8 @@ import com.mikepenz.iconics.IconicsDrawable
 
 class AboutFragment : MaterialAboutFragment() {
 
-    private val isDarkModeOn = Injector.get().sharedPrefs().getBoolean(MainActivity.DARKMODE, false)
+    private val isDarkModeOn =
+        false //Injector.get().sharedPrefs().getBoolean(MainActivity.DARKMODE, false)
 
     override fun getMaterialAboutList(activityContext: Context): MaterialAboutList =
         createMaterialAboutList(activityContext)
