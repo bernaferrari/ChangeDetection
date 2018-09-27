@@ -57,6 +57,7 @@
             app:enterAnim="@anim/slide_in_right"
             app:popExitAnim="@anim/slide_out_right" />
     </fragment>
+
     <fragment
         android:id="@+id/aboutLicenseFragment"
         android:name="com.bernaferrari.changedetection.AboutLicenseFragment"
@@ -65,6 +66,7 @@
     <fragment
         android:id="@+id/imagePdfFragment"
         android:name="com.bernaferrari.changedetection.detailsvisual.VisualFragment"
-        android:label="PdfFragment"></fragment>
+        android:label="PdfFragment"
+        tools:layout="@layout/diff_visual_fragment" />
 
 </navigation>

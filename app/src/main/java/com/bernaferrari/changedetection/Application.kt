@@ -1,6 +1,9 @@
 package com.bernaferrari.changedetection
 
 import android.support.multidex.MultiDexApplication
+import android.util.Log
+import androidx.work.Configuration
+import androidx.work.WorkManager
 import com.facebook.stetho.Stetho
 import com.jakewharton.threetenabp.AndroidThreeTen
 import com.orhanobut.logger.AndroidLogAdapter
@@ -26,9 +29,14 @@ class Application : MultiDexApplication() {
 
         Logger.addLogAdapter(object : AndroidLogAdapter() {
             override fun isLoggable(priority: Int, tag: String?): Boolean {
-                return BuildConfig.DEBUG
+                return true
             }
         })
+
+        WorkManager.initialize(
+            this,
+            Configuration.Builder().setMinimumLoggingLevel(Log.VERBOSE).build()
+        )
     }
 
     companion object {

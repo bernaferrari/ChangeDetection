@@ -22,7 +22,7 @@ android {
         applicationId "com.bernaferrari.changedetection"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 20
+        versionCode 28
         versionName "2.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -30,8 +30,8 @@ android {
     buildTypes {
         release {
             debuggable false
-            minifyEnabled true
-            shrinkResources true
+            minifyEnabled false
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
