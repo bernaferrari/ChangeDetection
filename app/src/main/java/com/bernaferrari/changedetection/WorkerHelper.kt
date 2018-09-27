@@ -115,7 +115,7 @@ object WorkerHelper {
 
         val syncWork = OneTimeWorkRequest.Builder(SyncWorker::class.java)
             .addTag(UNIQUEWORK)
-            .setInitialDelay(10, TimeUnit.SECONDS)
+            .setInitialDelay(delay, TimeUnit.MINUTES)
             .setConstraints(workerConstraints.build())
             .setInputData(inputData)
             .build()
