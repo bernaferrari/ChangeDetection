@@ -15,7 +15,7 @@
         android:includeFontPadding="false"
         android:text="@string/dot"
         android:textAlignment="center"
-        android:textColor="?strongColor"
+        android:textColor="@color/md_blue_A200"
         android:textSize="16dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
