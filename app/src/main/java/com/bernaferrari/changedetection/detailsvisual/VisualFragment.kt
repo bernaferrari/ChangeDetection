@@ -10,7 +10,6 @@ import android.os.ParcelFileDescriptor
 import android.support.transition.AutoTransition
 import android.support.transition.ChangeBounds
 import android.support.transition.TransitionManager
-import android.support.v4.app.ShareCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.FileProvider
 import android.support.v4.view.GravityCompat
@@ -166,12 +165,12 @@ class VisualFragment : ScopedFragment(),
 
         titlecontent.text = getStringFromArguments(MainActivity.LASTCHANGE)
         next_previous_bar.isVisible = false
+        showOriginalAndChanges.isVisible = false
 
         fileKind = if (arguments?.getString(MainActivity.TYPE) == "application/pdf") {
-            showOriginalAndChanges.isVisible = false
             FORMAT.PDF
         } else {
-            controlBar.isVisible = false
+            highQualityToggle.isVisible = false
             FORMAT.IMAGE
         }
 
@@ -203,7 +202,7 @@ class VisualFragment : ScopedFragment(),
         visibility.setOnClickListener {
             uiState.visibility++
             uiState.carousel = uiState.visibility
-            uiState.controlBar = uiState.visibility && fileKind == FORMAT.PDF
+            uiState.controlBar = uiState.visibility
 
             // set and run the correct animation
             visibility.setAndStartAnimation(
@@ -348,15 +347,11 @@ class VisualFragment : ScopedFragment(),
             file
         )
 
-        val shareIntent = ShareCompat.IntentBuilder.from(activity)
-            .setStream(contentUri)
-            .setType(item.contentType)
-            .intent
-
-        shareIntent.data = contentUri
-        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-
-        startActivity(shareIntent)
+        val emailIntent = Intent(Intent.ACTION_SEND)
+        emailIntent.type = item.contentType
+        emailIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
+        emailIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        startActivity(Intent.createChooser(emailIntent, getString(R.string.share)))
     }
 
     private fun removeItemDialog(snapId: String) {

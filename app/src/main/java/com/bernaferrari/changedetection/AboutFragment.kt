@@ -1,7 +1,9 @@
 package com.bernaferrari.changedetection
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import android.support.v4.content.FileProvider
 import androidx.core.net.toUri
 import androidx.navigation.findNavController
 import com.danielstone.materialaboutlibrary.ConvenienceBuilder
@@ -13,12 +15,17 @@ import com.danielstone.materialaboutlibrary.model.MaterialAboutList
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.google_material_typeface_library.GoogleMaterial
 import com.mikepenz.iconics.IconicsDrawable
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStreamReader
 
 
 class AboutFragment : MaterialAboutFragment() {
 
+    private val email = "bernaferrari2@gmail.com"
+
     private val isDarkModeOn =
-        false //Injector.get().sharedPrefs().getBoolean(MainActivity.DARKMODE, false)
+        Injector.get().sharedPrefs().getBoolean(MainActivity.DARKMODE, false)
 
     override fun getMaterialAboutList(activityContext: Context): MaterialAboutList =
         createMaterialAboutList(activityContext)
@@ -119,8 +126,6 @@ class AboutFragment : MaterialAboutFragment() {
                 .build()
         )
 
-        val email = "bernaferrari2@gmail.com"
-
         author.addItem(
             MaterialAboutActionItem.Builder()
                 .text(R.string.email)
@@ -171,13 +176,7 @@ class AboutFragment : MaterialAboutFragment() {
                         .colorRes(standardIconColor)
                         .sizeDp(iconSize)
                 )
-                .setOnClickAction(
-                    ConvenienceBuilder.createEmailOnClickAction(
-                        c,
-                        email,
-                        getString(R.string.email_subject)
-                    )
-                )
+                .setOnClickAction { sendEmailWithLogs() }
                 .build()
         )
 
@@ -187,5 +186,37 @@ class AboutFragment : MaterialAboutFragment() {
             iconDesigner.build(),
             otherCardBuilder.build()
         )
+    }
+
+    private fun sendEmailWithLogs() {
+        val log = StringBuilder()
+
+        val process = Runtime.getRuntime().exec("logcat -d")
+        val br = BufferedReader(InputStreamReader(process.inputStream))
+
+        var line: String? = br.readLine()
+        while (line != null) {
+            log.append(line + "\n")
+            line = br.readLine()
+        }
+        br.close()
+
+        val file = File(requireContext().cacheDir, "logs.txt")
+        file.createNewFile()
+        file.writeBytes(log.toString().toByteArray())
+
+        val contentUri = FileProvider.getUriForFile(
+            requireContext(),
+            "com.bernaferrari.changedetection.files",
+            file
+        )
+
+        val emailIntent = Intent(Intent.ACTION_SEND)
+        emailIntent.type = "message/rfc822"
+        emailIntent.putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
+        emailIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.email_subject))
+        emailIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        startActivity(Intent.createChooser(emailIntent, "Send email..."))
     }
 }
