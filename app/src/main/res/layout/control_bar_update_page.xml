@@ -15,7 +15,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="PREVIOUS" />
+            android:text="@string/previous" />
 
         <Button
             android:id="@+id/mButtonNext"
@@ -23,13 +23,13 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="NEXT" />
+            android:text="@string/next" />
     </LinearLayout>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="@dimen/lottie_divider_height"
         android:layout_gravity="bottom"
-        android:background="@color/lottie_divider" />
+        android:background="?lottieDivider" />
 
 </FrameLayout>

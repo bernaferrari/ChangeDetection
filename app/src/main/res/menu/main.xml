@@ -17,10 +17,10 @@
         android:title="Settings"
         app:showAsAction="ifRoom" />
 
-    <!--<item-->
-    <!--android:id="@+id/dark_mode"-->
-    <!--android:title="Enable dark mode"-->
-    <!--app:showAsAction="never" />-->
+    <item
+        android:id="@+id/dark_mode"
+        android:title="Enable dark mode"
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/about"

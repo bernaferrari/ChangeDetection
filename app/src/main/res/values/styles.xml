@@ -9,15 +9,17 @@
         <item name="weakColor">#67687c</item>
         <item name="weakerColor">@color/md_grey_500</item>
         <item name="cardSeparatorColor">@color/md_grey_200</item>
+        <item name="lottieDivider">@color/lottie_divider_light</item>
 
         <item name="toolbarColor">@color/white</item>
         <item name="iconColor">@color/icon_dark</item>
         <item name="strongColor">@color/FontStrong</item>
         <item name="standardCardColor">@color/md_grey_100</item>
 
-        <item name="settingsBackground">@color/white</item>
+        <item name="itemDeselected">@color/item_deselected_light</item>
 
         <item name="windowBackground">@color/window_background_light</item>
+        <item name="settingsBackground">@color/white</item>
         <item name="android:windowBackground">?windowBackground</item>
 
         <item name="diff_text_color">@color/FontLessStrong</item>
@@ -37,7 +39,9 @@
         <item name="colorAccent">@color/md_indigo_A200</item>
 
         <item name="mainCardColor">@color/primary_dark</item>
-        <item name="cardSeparatorColor">#5D2F445E</item>
+        <item name="cardSeparatorColor">#161F2B</item>
+        <item name="lottieDivider">@color/md_grey_transparent_500</item>
+
         <item name="android:textColorSecondary">@color/white</item>
 
         <item name="toolbarColor">@color/primary_dark</item>
@@ -47,11 +51,13 @@
         <item name="weakerColor">#88FFFAFA</item>
         <item name="standardCardColor">@color/primary_dark</item>
 
-        <item name="settingsBackground">@color/window_background_dark</item>
+        <item name="itemDeselected">@color/item_deselected_light</item>
 
         <item name="windowBackground">@color/window_background_dark</item>
+        <item name="settingsBackground">?windowBackground</item>
         <item name="md_background_color">?windowBackground</item>
         <item name="android:windowBackground">?windowBackground</item>
+        <item name="android:navigationBarColor">@color/window_background_dark</item>
 
         <item name="diff_text_color">?weakColor</item>
         <item name="code_addition">@color/code_addition_dark</item>

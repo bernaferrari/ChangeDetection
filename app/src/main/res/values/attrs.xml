@@ -11,6 +11,9 @@
     <attr name="mainCardColor" format="color" />
     <attr name="cardSeparatorColor" format="color" />
 
+    <attr name="lottieDivider" format="color" />
+    <attr name="itemDeselected" format="color" />
+
     <attr name="toolbarColor" format="color" />
     <attr name="strongColor" format="color" />
     <attr name="weakColor" format="color" />

@@ -22,17 +22,15 @@
     <color name="separator_color">#CCCCCC</color>
 
     <!--Lottie colors-->
-    <color name="item_deselected">#eaeaea</color>
     <color name="item_selected_teal">#009587</color>
     <color name="control_bar_content_unactivated">#444444</color>
 
-
-    <color name="lottie_divider">#CFCFCF</color>
+    <color name="item_deselected_light">#eaeaea</color>
+    <color name="lottie_divider_light">#CFCFCF</color>
 
     <color name="icon_dark">#99000000</color> <!-- 60% black-->
 
 
-    002800
 
 
     <!-- COLORS FROM GITHUB -->
