@@ -9,7 +9,7 @@
         <item name="weakColor">#67687c</item>
         <item name="weakerColor">@color/md_grey_500</item>
         <item name="cardSeparatorColor">@color/md_grey_200</item>
-        <item name="lottieDivider">@color/lottie_divider_light</item>
+        <item name="lottieDivider">@color/md_grey_300</item>
 
         <item name="toolbarColor">@color/white</item>
         <item name="iconColor">@color/icon_dark</item>
@@ -40,7 +40,7 @@
 
         <item name="mainCardColor">@color/primary_dark</item>
         <item name="cardSeparatorColor">#161F2B</item>
-        <item name="lottieDivider">@color/md_grey_transparent_500</item>
+        <item name="lottieDivider">?windowBackground</item>
 
         <item name="android:textColorSecondary">@color/white</item>
 
@@ -68,6 +68,13 @@
         <item name="num_deletion">@color/num_deletion_dark</item>
 
         <item name="inputTheme">@style/DialogDark</item>
+    </style>
+
+    <style name="SplashTheme" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="colorPrimaryDark">@color/window_background_dark</item>
     </style>
 
     <!--https://gist.github.com/ArthurNagy/1c4a64e6c8a7ddfca58638a9453e4aed-->
