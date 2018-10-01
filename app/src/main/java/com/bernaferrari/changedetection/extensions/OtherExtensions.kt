@@ -29,8 +29,8 @@ internal fun View.getText(@StringRes res: Int) = this.resources.getText(res)
 
 internal operator fun Boolean.inc() = !this
 
-internal fun ImageView.setAndStartAnimation(res: Int, context: Context) {
-    this.setImageDrawable(AnimatedVectorDrawableCompat.create(context, res))
+internal fun ImageView.setAndStartAnimation(res: Int) {
+    this.setImageDrawable(AnimatedVectorDrawableCompat.create(this.context, res))
     (this.drawable as AnimatedVectorDrawableCompat).start()
 }
 
@@ -84,6 +84,15 @@ internal fun Fragment.getStringFromArguments(key: String, default: String = ""):
 inline fun consume(f: () -> Unit): Boolean {
     f()
     return true
+}
+
+/** Convenience for try/catch where the exception is ignored. */
+inline fun trySilently(f: () -> Unit) {
+    try {
+        f()
+    } catch (e: Exception) {
+
+    }
 }
 
 internal fun RecyclerView.itemAnimatorWithoutChangeAnimations() =

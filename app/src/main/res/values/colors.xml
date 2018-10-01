@@ -30,22 +30,22 @@
     <!-- COLORS FROM GITHUB -->
 
     <color name="code_addition_light">#e6ffed</color>
-    <color name="code_addition_dark">#002800</color>
+    <color name="code_addition_dark">#163C24</color>
 
     <color name="code_addition_diff_light">#acf2bd</color>
     <color name="code_addition_diff_dark">#225522</color>
 
     <color name="code_deletion_light">#ffdce0</color>
-    <color name="code_deletion_dark">#380000</color>
+    <color name="code_deletion_dark">#42191A</color>
 
     <color name="code_deletion_diff_light">#fdb8c0</color>
     <color name="code_deletion_diff_dark">#660000</color>
 
     <color name="num_addition_light">#bef5cb</color>
-    <color name="num_addition_dark">#bef5cb</color>
+    <color name="num_addition_dark">#1e4839</color>
 
     <color name="num_deletion_light">#ffeef0</color>
-    <color name="num_deletion_dark">#ffeef0</color>
+    <color name="num_deletion_dark">#4c232d</color>
 
     <!-- COLORS FROM PLAID -->
     <color name="FontStrong">@color/md_grey_900</color>

@@ -7,25 +7,25 @@
     <item
         android:id="@+id/filter"
         android:icon="@drawable/ic_filter"
-        android:title="Filter"
+        android:title="@string/filter"
         android:visible="false"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/settings"
         android:icon="@drawable/ic_settings"
-        android:title="Settings"
+        android:title="@string/settings"
         app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/dark_mode"
-        android:title="Enable dark mode"
+        android:title="@string/enable_dark_mode"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/about"
         android:icon="@drawable/ic_info"
-        android:title="About"
+        android:title="@string/about"
         app:showAsAction="never" />
 
 </menu>

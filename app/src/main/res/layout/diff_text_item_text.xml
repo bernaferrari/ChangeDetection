@@ -31,17 +31,14 @@
         android:id="@+id/subtitle"
         android:layout_width="0dp"
         android:layout_height="0dp"
-
         android:background="@color/md_grey_200"
         android:ellipsize="end"
         android:fontFamily="@font/ibm_mono_medium"
-        android:gravity="center|right"
         android:includeFontPadding="false"
         android:paddingLeft="4dp"
         android:paddingRight="4dp"
-        android:textColor="@color/FontStrong"
+        android:textColor="?strongColor"
         android:textSize="16sp"
-
         app:layout_constraintBottom_toBottomOf="@+id/invisiblesubtitle"
         app:layout_constraintEnd_toEndOf="@+id/invisiblesubtitle"
         app:layout_constraintStart_toStartOf="@+id/invisiblesubtitle"
@@ -53,17 +50,12 @@
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:ellipsize="end"
-
         android:fontFamily="@font/ibm_mono_medium"
-        android:gravity="center"
         android:includeFontPadding="false"
         android:paddingLeft="12dp"
         android:text="9999"
-
-        android:textColor="@color/FontStrong"
         android:textSize="16sp"
         android:visibility="invisible"
-
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"

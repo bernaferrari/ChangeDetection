@@ -238,12 +238,7 @@ class VisualFragment : ScopedFragment(),
 
         drawerRecycler.apply {
             adapter = groupAdapter
-            addItemDecoration(
-                DividerItemDecoration(
-                    this.context,
-                    DividerItemDecoration.VERTICAL
-                )
-            )
+            addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
         }
 
         fetchData()
@@ -257,10 +252,7 @@ class VisualFragment : ScopedFragment(),
             }
         }
         groupAdapter.setOnItemLongClickListener { item, _ ->
-            if (item is RowItem) {
-                removeItemDialog(item.snap.snapId)
-            }
-            true
+            consume { if (item is RowItem) removeItemDialog(item.snap.snapId) }
         }
     }
 
@@ -269,10 +261,7 @@ class VisualFragment : ScopedFragment(),
         uiState.controlBar = uiState.visibility
 
         // set and run the correct animation
-        visibility.setAndStartAnimation(
-            VisibilityHelper.getAnimatedIcon(uiState.visibility),
-            requireContext()
-        )
+        visibility.setAndStartAnimation(VisibilityHelper.getAnimatedIcon(uiState.visibility))
     }
 
     // this is needed since getSnapsFiltered retrieves a liveData from Room to be observed
@@ -396,11 +385,7 @@ class VisualFragment : ScopedFragment(),
 
         // Make sure to close the current page before opening another one.
         // The exception catches "Already closed"
-        try {
-            mCurrentPage?.close()
-        } catch (e: IllegalStateException) {
-
-        }
+        trySilently { mCurrentPage?.close() }
 
         // Use `openPage` to open a specific page in PDF.
         mCurrentPage = mPdfRenderer!!.openPage(index).also { mCurrentPage ->
@@ -485,17 +470,8 @@ class VisualFragment : ScopedFragment(),
 
         if (fileKind == FORMAT.PDF) {
             // this is necessary to avoid java.lang.IllegalStateException: Already closed
-            try {
-                mCurrentPage?.close()
-            } catch (e: IllegalStateException) {
-
-            }
-
-            try {
-                mPdfRenderer?.close()
-            } catch (e: IllegalStateException) {
-
-            }
+            trySilently { mCurrentPage?.close() }
+            trySilently { mPdfRenderer?.close() }
         }
 
         super.onStop()
