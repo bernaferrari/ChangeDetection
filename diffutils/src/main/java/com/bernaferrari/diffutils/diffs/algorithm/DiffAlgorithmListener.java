@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 java-diff-utils.
+ * Copyright 2018 java-diff-utils.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bernaferrari.diffutils.diffs.patch;
+package com.bernaferrari.diffutils.diffs.algorithm;
 
 /**
- * Specifies the type of the delta.
- *
+ * @author Tobias Warneke (t.warneke@gmx.net)
  */
-public enum DeltaType {
+public interface DiffAlgorithmListener {
+    void diffStart();
+
     /**
-     * A change in the original.
+     * This is a step within the diff algorithm. Due to different implementations the value
+     * is not strict incrementing to the max and is not garantee to reach the max. It could
+     * stop before.
+     *
+     * @param value
+     * @param max
      */
-    CHANGE,
-    /**
-     * A delete from the original.
-     */
-    DELETE,
-    /**
-     * An insert into the original.
-     */
-    INSERT,
-    /**
-     * An do nothing.
-     */
-    EQUAL
+    void diffStep(int value, int max);
+
+    void diffEnd();
 }

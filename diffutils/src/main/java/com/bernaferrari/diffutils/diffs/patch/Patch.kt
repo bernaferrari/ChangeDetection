@@ -20,8 +20,6 @@ limitations under the License.
 package com.bernaferrari.diffutils.diffs.patch
 
 import com.bernaferrari.diffutils.diffs.algorithm.Change
-import com.bernaferrari.diffutils.diffs.patch.DeltaType.DELETE
-import com.bernaferrari.diffutils.diffs.patch.DeltaType.INSERT
 import java.util.*
 
 /**
@@ -29,13 +27,14 @@ import java.util.*
  *
  * @author [Dmitry Naumenko](dm.naumenko@gmail.com)
  * @param T The type of the compared elements in the 'lines'.
- *
- * Changes:
- * [May 2018] Converted to Kotlin
  */
 class Patch<T> @JvmOverloads constructor(estimatedPatchSize: Int = 10) {
 
-    private val deltas_internal: MutableList<Delta<T>> = ArrayList(estimatedPatchSize)
+    private val deltasInternal: MutableList<AbstractDelta<T>>
+
+    init {
+        deltasInternal = ArrayList(estimatedPatchSize)
+    }
 
     /**
      * Apply this patch to the given target
@@ -46,7 +45,7 @@ class Patch<T> @JvmOverloads constructor(estimatedPatchSize: Int = 10) {
     @Throws(PatchFailedException::class)
     fun applyTo(target: List<T>): List<T> {
         val result = ArrayList(target)
-        val it = getDeltas().listIterator(deltas_internal.size)
+        val it = getDeltas().listIterator(deltasInternal.size)
         while (it.hasPrevious()) {
             val delta = it.previous()
             delta.applyTo(result)
@@ -62,7 +61,7 @@ class Patch<T> @JvmOverloads constructor(estimatedPatchSize: Int = 10) {
      */
     fun restore(target: List<T>): List<T> {
         val result = ArrayList(target)
-        val it = getDeltas().listIterator(deltas_internal.size)
+        val it = getDeltas().listIterator(deltasInternal.size)
         while (it.hasPrevious()) {
             val delta = it.previous()
             delta.restore(result)
@@ -75,8 +74,8 @@ class Patch<T> @JvmOverloads constructor(estimatedPatchSize: Int = 10) {
      *
      * @param delta the given delta
      */
-    fun addDelta(delta: Delta<T>) {
-        deltas_internal.add(delta)
+    fun addDelta(delta: AbstractDelta<T>) {
+        deltasInternal.add(delta)
     }
 
     /**
@@ -84,12 +83,12 @@ class Patch<T> @JvmOverloads constructor(estimatedPatchSize: Int = 10) {
      *
      * @return the deltas
      */
-    fun getDeltas(): List<Delta<T>> {
-        return deltas_internal.sortedBy { it.original.position }
+    fun getDeltas(): List<AbstractDelta<T>> {
+        return deltasInternal.sortedBy { it.source.position }
     }
 
     override fun toString(): String {
-        return "Patch{" + "deltas=" + deltas_internal + '}'.toString()
+        return "Patch{" + "deltas=" + deltasInternal + '}'.toString()
     }
 
     companion object {
@@ -106,10 +105,9 @@ class Patch<T> @JvmOverloads constructor(estimatedPatchSize: Int = 10) {
                     ArrayList(revised.subList(change.startRevised, change.endRevised))
                 )
                 when (change.deltaType) {
-                    DELETE -> patch.addDelta(DeleteDelta(orgChunk, revChunk))
-                    INSERT -> patch.addDelta(InsertDelta(orgChunk, revChunk))
+                    DeltaType.DELETE -> patch.addDelta(DeleteDelta(orgChunk, revChunk))
+                    DeltaType.INSERT -> patch.addDelta(InsertDelta(orgChunk, revChunk))
                     DeltaType.CHANGE -> patch.addDelta(ChangeDelta(orgChunk, revChunk))
-                    else -> Unit
                 }
             }
             return patch

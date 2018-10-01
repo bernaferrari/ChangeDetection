@@ -19,13 +19,11 @@ limitations under the License.
  */
 package com.bernaferrari.diffutils.diffs.algorithm.myers
 
-import com.bernaferrari.diffutils.diffs.algorithm.Change
-import com.bernaferrari.diffutils.diffs.algorithm.DiffAlgorithm
-import com.bernaferrari.diffutils.diffs.algorithm.DiffException
-import com.bernaferrari.diffutils.diffs.algorithm.DifferentiationFailedException
+import com.bernaferrari.diffutils.diffs.algorithm.*
 import com.bernaferrari.diffutils.diffs.patch.DeltaType
 import com.bernaferrari.diffutils.diffs.patch.Patch
 import java.util.*
+
 
 /**
  * A clean-room implementation of Eugene Myers greedy differencing algorithm.
@@ -33,7 +31,7 @@ import java.util.*
  * Changes:
  * [May 2018] Converted to Kotlin
  */
-class MyersDiff<T> : DiffAlgorithm<T> {
+class MyersDiff<T> : DiffAlgorithmI<T> {
 
     private val equalizer: (T, T) -> Boolean
 
@@ -52,17 +50,24 @@ class MyersDiff<T> : DiffAlgorithm<T> {
      * Return empty diff if get the error while procession the difference.
      */
     @Throws(DiffException::class)
-    override fun diff(original: List<T>, revised: List<T>): List<Change> {
-        Objects.requireNonNull(original, "original list must not be null")
-        Objects.requireNonNull(revised, "revised list must not be null")
+    override fun computeDiff(
+        source: List<T>,
+        target: List<T>,
+        progress: DiffAlgorithmListener?
+    ): List<Change> {
+        Objects.requireNonNull(source, "source list must not be null")
+        Objects.requireNonNull(target, "target list must not be null")
 
-        val path = buildPath(original, revised)
-        return buildRevision(path, original, revised)
+        progress?.diffStart()
+        val path = buildPath(source, target, progress)
+        val result = buildRevision(path, source, target)
+        progress?.diffEnd()
+        return result
     }
 
     /**
-     * Computes the minimum diffpath that expresses de differences between the original and revised sequences, according
-     * to Gene Myers differencing algorithm.
+     * Computes the minimum diffpath that expresses de differences between the original and revised
+     * sequences, according to Gene Myers differencing algorithm.
      *
      * @param orig The original sequence.
      * @param rev The revised sequence.
@@ -70,7 +75,7 @@ class MyersDiff<T> : DiffAlgorithm<T> {
      * @throws DifferentiationFailedException if a diff path could not be found.
      */
     @Throws(DifferentiationFailedException::class)
-    private fun buildPath(orig: List<T>, rev: List<T>): PathNode {
+    private fun buildPath(orig: List<T>, rev: List<T>, progress: DiffAlgorithmListener?): PathNode {
         Objects.requireNonNull(orig, "original sequence is null")
         Objects.requireNonNull(rev, "revised sequence is null")
 
@@ -85,6 +90,9 @@ class MyersDiff<T> : DiffAlgorithm<T> {
 
         diagonal[middle + 1] = PathNode(0, -1, true, true, null)
         for (d in 0 until MAX) {
+
+            progress?.diffStep(d, MAX)
+
             var k = -d
             while (k <= d) {
                 val kmiddle = middle + k
@@ -136,7 +144,8 @@ class MyersDiff<T> : DiffAlgorithm<T> {
      * @param orig The original sequence.
      * @param rev The revised sequence.
      * @return A [Patch] script corresponding to the path.
-     * @throws DifferentiationFailedException if a [Patch] could not be built from the given path.
+     * @throws DifferentiationFailedException if a [Patch] could not be built from the given
+     * path.
      */
     private fun buildRevision(actualPath: PathNode, orig: List<T>, rev: List<T>): List<Change> {
         Objects.requireNonNull(actualPath, "path is null")
@@ -144,7 +153,7 @@ class MyersDiff<T> : DiffAlgorithm<T> {
         Objects.requireNonNull(rev, "revised sequence is null")
 
         var path: PathNode? = actualPath
-        val changes = ArrayList<Change>()
+        val changes = mutableListOf<Change>()
         if (path?.isSnake == true) {
             path = path.prev
         }
@@ -156,7 +165,7 @@ class MyersDiff<T> : DiffAlgorithm<T> {
             val j = path.j
 
             path = path.prev
-            val ianchor = path.i
+            val ianchor = path!!.i
             val janchor = path.j
 
             if (ianchor == i && janchor != j) {
@@ -166,18 +175,7 @@ class MyersDiff<T> : DiffAlgorithm<T> {
             } else {
                 changes.add(Change(DeltaType.CHANGE, ianchor, i, janchor, j))
             }
-            //            Chunk<T> original = new Chunk<>(ianchor, copyOfRange(orig, ianchor, i));
-            //            Chunk<T> revised = new Chunk<>(janchor, copyOfRange(rev, janchor, j));
-            //            Delta<T> delta = null;
-            //            if (original.size() == 0 && revised.size() != 0) {
-            //                delta = new InsertDelta<>(original, revised);
-            //            } else if (original.size() > 0 && revised.size() == 0) {
-            //                delta = new DeleteDelta<>(original, revised);
-            //            } else {
-            //                delta = new ChangeDelta<>(original, revised);
-            //            }
-            //
-            //            patch.addDelta(delta);
+
             if (path.isSnake) {
                 path = path.prev
             }
