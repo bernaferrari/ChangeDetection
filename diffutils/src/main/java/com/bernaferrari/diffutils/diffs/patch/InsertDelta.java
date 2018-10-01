@@ -24,16 +24,16 @@ import java.util.List;
 /**
  * Describes the add-delta between original and revised texts.
  *
- * @param T The type of the compared elements in the 'lines'.
  * @author <a href="dm.naumenko@gmail.com">Dmitry Naumenko</a>
+ * @param T The type of the compared elements in the 'lines'.
  */
-public final class InsertDelta<T> extends Delta<T> {
+public final class InsertDelta<T> extends AbstractDelta<T> {
 
     /**
      * Creates an insert delta with the two given chunks.
      *
      * @param original The original chunk. Must not be {@code null}.
-     * @param revised  The original chunk. Must not be {@code null}.
+     * @param revised The original chunk. Must not be {@code null}.
      */
     public InsertDelta(Chunk<T> original, Chunk<T> revised) {
         super(DeltaType.INSERT, original, revised);
@@ -41,9 +41,9 @@ public final class InsertDelta<T> extends Delta<T> {
 
     @Override
     public void applyTo(List<T> target) throws PatchFailedException {
-        verify(target);
-        int position = this.getOriginal().getPosition();
-        List<T> lines = this.getRevised().getLines();
+        verifyChunk(target);
+        int position = this.getSource().getPosition();
+        List<T> lines = this.getTarget().getLines();
         for (int i = 0; i < lines.size(); i++) {
             target.add(position + i, lines.get(i));
         }
@@ -51,8 +51,8 @@ public final class InsertDelta<T> extends Delta<T> {
 
     @Override
     public void restore(List<T> target) {
-        int position = getRevised().getPosition();
-        int size = getRevised().size();
+        int position = getTarget().getPosition();
+        int size = getTarget().size();
         for (int i = 0; i < size; i++) {
             target.remove(position);
         }
@@ -60,7 +60,7 @@ public final class InsertDelta<T> extends Delta<T> {
 
     @Override
     public String toString() {
-        return "[InsertDelta, position: " + getOriginal().getPosition()
-                + ", lines: " + getRevised().getLines() + "]";
+        return "[InsertDelta, position: " + getSource().getPosition()
+                + ", lines: " + getTarget().getLines() + "]";
     }
 }

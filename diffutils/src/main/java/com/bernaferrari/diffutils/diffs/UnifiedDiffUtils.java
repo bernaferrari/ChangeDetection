@@ -15,9 +15,9 @@
  */
 package com.bernaferrari.diffutils.diffs;
 
+import com.bernaferrari.diffutils.diffs.patch.AbstractDelta;
 import com.bernaferrari.diffutils.diffs.patch.ChangeDelta;
 import com.bernaferrari.diffutils.diffs.patch.Chunk;
-import com.bernaferrari.diffutils.diffs.patch.Delta;
 import com.bernaferrari.diffutils.diffs.patch.Patch;
 
 import java.util.ArrayList;
@@ -26,15 +26,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ *
  * @author toben
  */
 public final class UnifiedDiffUtils {
 
     private static final Pattern UNIFIED_DIFF_CHUNK_REGEXP = Pattern
             .compile("^@@\\s+-(?:(\\d+)(?:,(\\d+))?)\\s+\\+(?:(\\d+)(?:,(\\d+))?)\\s+@@$");
-
-    private UnifiedDiffUtils() {
-    }
 
     /**
      * Parse the given text in unified format and creates the list of deltas for it.
@@ -129,16 +127,19 @@ public final class UnifiedDiffUtils {
         return patch;
     }
 
+    private UnifiedDiffUtils() {
+    }
+
     /**
-     * generateUnifiedDiff takes a Patch and some other arguments, returning the Unified Snap format text representing
+     * generateUnifiedDiff takes a Patch and some other arguments, returning the Unified Diff format text representing
      * the Patch.
      *
      * @param originalFileName - Filename of the original (unrevised file)
-     * @param revisedFileName  - Filename of the revised file
-     * @param originalLines    - Lines of the original file
-     * @param patch            - Patch created by the diff() function
-     * @param contextSize      - number of lines of context output around each difference in the file.
-     * @return List of strings representing the Unified Snap representation of the Patch argument.
+     * @param revisedFileName - Filename of the revised file
+     * @param originalLines - Lines of the original file
+     * @param patch - Patch created by the diff() function
+     * @param contextSize - number of lines of context output around each difference in the file.
+     * @return List of strings representing the Unified Diff representation of the Patch argument.
      * @author Bill James (tankerbay@gmail.com)
      */
     public static List<String> generateUnifiedDiff(String originalFileName,
@@ -149,21 +150,20 @@ public final class UnifiedDiffUtils {
             ret.add("--- " + originalFileName);
             ret.add("+++ " + revisedFileName);
 
-            List<Delta<String>> patchDeltas = new ArrayList<>(
-                    patch.getDeltas());
+            List<AbstractDelta<String>> patchDeltas = new ArrayList<>(patch.getDeltas());
 
             // code outside the if block also works for single-delta issues.
-            List<Delta<String>> deltas = new ArrayList<>(); // current
+            List<AbstractDelta<String>> deltas = new ArrayList<>(); // current
             // list
             // of
             // Delta's to
             // process
-            Delta<String> delta = patchDeltas.get(0);
+            AbstractDelta<String> delta = patchDeltas.get(0);
             deltas.add(delta); // add the first Delta to the current set
             // if there's more than 1 Delta, we may need to output them together
             if (patchDeltas.size() > 1) {
                 for (int i = 1; i < patchDeltas.size(); i++) {
-                    int position = delta.getOriginal().getPosition(); // store
+                    int position = delta.getSource().getPosition(); // store
                     // the
                     // current
                     // position
@@ -173,9 +173,9 @@ public final class UnifiedDiffUtils {
                     // Check if the next Delta is too close to the current
                     // position.
                     // And if it is, add it to the current set
-                    Delta<String> nextDelta = patchDeltas.get(i);
-                    if ((position + delta.getOriginal().size() + contextSize) >= (nextDelta
-                            .getOriginal().getPosition() - contextSize)) {
+                    AbstractDelta<String> nextDelta = patchDeltas.get(i);
+                    if ((position + delta.getSource().size() + contextSize) >= (nextDelta
+                            .getSource().getPosition() - contextSize)) {
                         deltas.add(nextDelta);
                     } else {
                         // if it isn't, output the current set,
@@ -201,42 +201,42 @@ public final class UnifiedDiffUtils {
     }
 
     /**
-     * processDeltas takes a list of Deltas and outputs them together in a single block of Unified-Snap-format text.
+     * processDeltas takes a list of Deltas and outputs them together in a single block of Unified-Diff-format text.
      *
-     * @param origLines   - the lines of the original file
-     * @param deltas      - the Deltas to be output as a single block
+     * @param origLines - the lines of the original file
+     * @param deltas - the Deltas to be output as a single block
      * @param contextSize - the number of lines of context to place around block
      * @return
      * @author Bill James (tankerbay@gmail.com)
      */
     private static List<String> processDeltas(List<String> origLines,
-                                              List<Delta<String>> deltas, int contextSize) {
+                                              List<AbstractDelta<String>> deltas, int contextSize) {
         List<String> buffer = new ArrayList<>();
         int origTotal = 0; // counter for total lines output from Original
         int revTotal = 0; // counter for total lines output from Original
         int line;
 
-        Delta<String> curDelta = deltas.get(0);
+        AbstractDelta<String> curDelta = deltas.get(0);
 
         // NOTE: +1 to overcome the 0-offset Position
-        int origStart = curDelta.getOriginal().getPosition() + 1 - contextSize;
+        int origStart = curDelta.getSource().getPosition() + 1 - contextSize;
         if (origStart < 1) {
             origStart = 1;
         }
 
-        int revStart = curDelta.getRevised().getPosition() + 1 - contextSize;
+        int revStart = curDelta.getTarget().getPosition() + 1 - contextSize;
         if (revStart < 1) {
             revStart = 1;
         }
 
         // find the start of the wrapper context code
-        int contextStart = curDelta.getOriginal().getPosition() - contextSize;
+        int contextStart = curDelta.getSource().getPosition() - contextSize;
         if (contextStart < 0) {
             contextStart = 0; // clamp to the start of the file
         }
 
         // output the context before the first Delta
-        for (line = contextStart; line < curDelta.getOriginal().getPosition(); line++) { //
+        for (line = contextStart; line < curDelta.getSource().getPosition(); line++) { //
             buffer.add(" " + origLines.get(line));
             origTotal++;
             revTotal++;
@@ -244,15 +244,15 @@ public final class UnifiedDiffUtils {
 
         // output the first Delta
         buffer.addAll(getDeltaText(curDelta));
-        origTotal += curDelta.getOriginal().getLines().size();
-        revTotal += curDelta.getRevised().getLines().size();
+        origTotal += curDelta.getSource().getLines().size();
+        revTotal += curDelta.getTarget().getLines().size();
 
         int deltaIndex = 1;
         while (deltaIndex < deltas.size()) { // for each of the other Deltas
-            Delta<String> nextDelta = deltas.get(deltaIndex);
-            int intermediateStart = curDelta.getOriginal().getPosition()
-                    + curDelta.getOriginal().getLines().size();
-            for (line = intermediateStart; line < nextDelta.getOriginal()
+            AbstractDelta<String> nextDelta = deltas.get(deltaIndex);
+            int intermediateStart = curDelta.getSource().getPosition()
+                    + curDelta.getSource().getLines().size();
+            for (line = intermediateStart; line < nextDelta.getSource()
                     .getPosition(); line++) {
                 // output the code between the last Delta and this one
                 buffer.add(" " + origLines.get(line));
@@ -260,15 +260,15 @@ public final class UnifiedDiffUtils {
                 revTotal++;
             }
             buffer.addAll(getDeltaText(nextDelta)); // output the Delta
-            origTotal += nextDelta.getOriginal().getLines().size();
-            revTotal += nextDelta.getRevised().getLines().size();
+            origTotal += nextDelta.getSource().getLines().size();
+            revTotal += nextDelta.getTarget().getLines().size();
             curDelta = nextDelta;
             deltaIndex++;
         }
 
         // Now output the post-Delta context code, clamping the end of the file
-        contextStart = curDelta.getOriginal().getPosition()
-                + curDelta.getOriginal().getLines().size();
+        contextStart = curDelta.getSource().getPosition()
+                + curDelta.getSource().getLines().size();
         for (line = contextStart; (line < (contextStart + contextSize))
                 && (line < origLines.size()); line++) {
             buffer.add(" " + origLines.get(line));
@@ -276,9 +276,9 @@ public final class UnifiedDiffUtils {
             revTotal++;
         }
 
-        // Create and insert the block header, conforming to the Unified Snap
+        // Create and insert the block header, conforming to the Unified Diff
         // standard
-        StringBuffer header = new StringBuffer();
+        StringBuilder header = new StringBuilder();
         header.append("@@ -");
         header.append(origStart);
         header.append(",");
@@ -294,18 +294,18 @@ public final class UnifiedDiffUtils {
     }
 
     /**
-     * getDeltaText returns the lines to be added to the Unified Snap text from the Delta parameter
+     * getDeltaText returns the lines to be added to the Unified Diff text from the Delta parameter
      *
      * @param delta - the Delta to output
      * @return list of String lines of code.
      * @author Bill James (tankerbay@gmail.com)
      */
-    private static List<String> getDeltaText(Delta<String> delta) {
+    private static List<String> getDeltaText(AbstractDelta<String> delta) {
         List<String> buffer = new ArrayList<>();
-        for (String line : delta.getOriginal().getLines()) {
+        for (String line : delta.getSource().getLines()) {
             buffer.add("-" + line);
         }
-        for (String line : delta.getRevised().getLines()) {
+        for (String line : delta.getTarget().getLines()) {
             buffer.add("+" + line);
         }
         return buffer;

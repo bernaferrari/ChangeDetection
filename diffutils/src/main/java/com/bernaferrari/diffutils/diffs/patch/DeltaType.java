@@ -17,6 +17,7 @@ package com.bernaferrari.diffutils.diffs.patch;
 
 /**
  * Specifies the type of the delta.
+ *
  */
 public enum DeltaType {
     /**
