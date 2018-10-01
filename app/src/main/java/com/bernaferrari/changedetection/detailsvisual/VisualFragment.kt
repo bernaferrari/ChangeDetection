@@ -2,7 +2,10 @@ package com.bernaferrari.changedetection.detailsvisual
 
 import android.arch.lifecycle.Observer
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Point
 import android.graphics.pdf.PdfRenderer
 import android.os.Bundle
@@ -201,14 +204,7 @@ class VisualFragment : ScopedFragment(),
         // drawable will keep the drawable from last state (off) even thought it should be on.
         visibility.setOnClickListener {
             uiState.visibility++
-            uiState.carousel = uiState.visibility
-            uiState.controlBar = uiState.visibility
-
-            // set and run the correct animation
-            visibility.setAndStartAnimation(
-                VisibilityHelper.getAnimatedIcon(uiState.visibility),
-                requireContext()
-            )
+            updateVisibility()
         }
 
         val windowDimensions = Point()
@@ -266,6 +262,17 @@ class VisualFragment : ScopedFragment(),
             }
             true
         }
+    }
+
+    private fun updateVisibility() {
+        uiState.carousel = uiState.visibility
+        uiState.controlBar = uiState.visibility
+
+        // set and run the correct animation
+        visibility.setAndStartAnimation(
+            VisibilityHelper.getAnimatedIcon(uiState.visibility),
+            requireContext()
+        )
     }
 
     // this is needed since getSnapsFiltered retrieves a liveData from Room to be observed
@@ -358,10 +365,8 @@ class VisualFragment : ScopedFragment(),
         MaterialDialog(requireContext())
             .title(R.string.remove)
             .message(R.string.remove_content)
-            .positiveButton(R.string.yes) {
-                model.removeSnap(snapId)
-            }
-            .negativeButton(R.string.no)
+            .positiveButton(R.string.yes) { model.removeSnap(snapId) }
+            .negativeButton(R.string.cancel)
             .show()
     }
 
@@ -386,7 +391,6 @@ class VisualFragment : ScopedFragment(),
             if (mCurrentPage != null) {
                 updateUi()
             }
-
             return
         }
 
@@ -395,6 +399,7 @@ class VisualFragment : ScopedFragment(),
         try {
             mCurrentPage?.close()
         } catch (e: IllegalStateException) {
+
         }
 
         // Use `openPage` to open a specific page in PDF.
@@ -407,6 +412,12 @@ class VisualFragment : ScopedFragment(),
                 mCurrentPage.width * qualityMultiplier, mCurrentPage.height * qualityMultiplier,
                 Bitmap.Config.ARGB_8888
             )
+
+            Canvas(bitmap).apply {
+                drawColor(Color.WHITE)
+                drawBitmap(bitmap, 0f, 0f, null)
+            }
+
             // Here, we render the page onto the Bitmap.
             // To render a portion of the page, use the second and third parameter. Pass nulls to get
             // the default result.
@@ -422,6 +433,15 @@ class VisualFragment : ScopedFragment(),
         }
 
         updateUi()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+
+        if (newConfig?.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            uiState.visibility = false
+            updateVisibility()
+        }
     }
 
     private fun selectItem(adapterPosition: Int) {
@@ -468,10 +488,13 @@ class VisualFragment : ScopedFragment(),
             try {
                 mCurrentPage?.close()
             } catch (e: IllegalStateException) {
+
             }
+
             try {
                 mPdfRenderer?.close()
             } catch (e: IllegalStateException) {
+
             }
         }
 

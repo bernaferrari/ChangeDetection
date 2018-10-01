@@ -2,6 +2,8 @@ package com.bernaferrari.changedetection.detailsvisual
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import android.support.v7.widget.RecyclerView
@@ -95,6 +97,12 @@ class VisualViewHolder(
             mCurrentPage!!.width, mCurrentPage.height,
             Bitmap.Config.ARGB_8888
         )
+
+        Canvas(bitmap).apply {
+            drawColor(Color.WHITE)
+            drawBitmap(bitmap, 0f, 0f, null)
+        }
+
         // Here, we render the page onto the Bitmap.
         // To render a portion of the page, use the second and third parameter. Pass nulls to get
         // the default result.

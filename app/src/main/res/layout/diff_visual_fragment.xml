@@ -119,6 +119,7 @@
 
             <com.yarolegovich.discretescrollview.DiscreteScrollView
                 android:id="@+id/carouselRecycler"
+                android:background="?toolbarColor"
                 android:layout_width="match_parent"
                 android:layout_height="120dp" />
 

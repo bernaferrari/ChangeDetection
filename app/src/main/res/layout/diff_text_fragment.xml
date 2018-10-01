@@ -92,6 +92,7 @@
             android:id="@+id/bottomRecycler"
             android:layout_width="match_parent"
             android:layout_height="@dimen/item_selector_height"
+            android:background="?toolbarColor"
             tools:itemCount="6" />
 
     </LinearLayout>

@@ -14,7 +14,6 @@
     <color name="really_blue">#2a50cc</color>
     <color name="transparent_white">#ccFFFFFF</color>
 
-
     <color name="secondary">#2B3D50</color>
     <color name="divider">#1FFFFFFF</color>
     <color name="cardBackground">#1B2836</color>
@@ -26,12 +25,7 @@
     <color name="control_bar_content_unactivated">#444444</color>
 
     <color name="item_deselected_light">#eaeaea</color>
-    <color name="lottie_divider_light">#CFCFCF</color>
-
     <color name="icon_dark">#99000000</color> <!-- 60% black-->
-
-
-
 
     <!-- COLORS FROM GITHUB -->
 

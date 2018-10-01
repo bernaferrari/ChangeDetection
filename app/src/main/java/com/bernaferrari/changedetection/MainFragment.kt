@@ -5,7 +5,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
-import android.support.design.widget.Snackbar
 import android.support.transition.AutoTransition
 import android.support.transition.TransitionManager
 import android.support.v4.content.ContextCompat
@@ -14,6 +13,7 @@ import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.*
+import android.widget.Toast
 import androidx.core.content.edit
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -746,10 +746,7 @@ class MainFragment : ScopedFragment() {
             this.overScrollMode = View.OVER_SCROLL_NEVER
             this.layoutManager = LinearLayoutManager(this.context)
             this.addItemDecoration(
-                DividerItemDecoration(
-                    this.context,
-                    DividerItemDecoration.VERTICAL
-                )
+                DividerItemDecoration(this.context, DividerItemDecoration.VERTICAL)
             )
             this.adapter = GroupAdapter<ViewHolder>().apply {
                 add(dialogItemTitle)
@@ -764,8 +761,7 @@ class MainFragment : ScopedFragment() {
     private fun isUrlWrong(url: String, listOfItems: MutableList<FormInputText>): Boolean {
         if (!url.isValidUrl()) {
             listOfItems.first { it.kind == Forms.URL }.shakeIt()
-            Snackbar.make(parentLayout, getString(R.string.incorrect_url), Snackbar.LENGTH_LONG)
-                .show()
+            Toast.makeText(this.context, R.string.incorrect_url, Toast.LENGTH_SHORT).show()
             return true
         }
         return false
