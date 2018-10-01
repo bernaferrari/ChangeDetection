@@ -110,4 +110,8 @@
     <string name="disable_dark_mode">Disattiva il tema escuro</string>
     <string name="enable_dark_mode">Abilita il tema oscuro</string>
 
+    <string name="filter">Filtro</string>
+    <string name="settings">Impostazioni</string>
+    <string name="about">Su</string>
+
 </resources>
