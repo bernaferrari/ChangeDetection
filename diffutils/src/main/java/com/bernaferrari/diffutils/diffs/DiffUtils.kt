@@ -19,12 +19,15 @@ limitations under the License.
  */
 package com.bernaferrari.diffutils.diffs
 
-import com.bernaferrari.diffutils.diffs.algorithm.DiffAlgorithm
+import com.bernaferrari.diffutils.diffs.algorithm.DiffAlgorithmI
+import com.bernaferrari.diffutils.diffs.algorithm.DiffAlgorithmListener
 import com.bernaferrari.diffutils.diffs.algorithm.DiffException
 import com.bernaferrari.diffutils.diffs.algorithm.myers.MyersDiff
 import com.bernaferrari.diffutils.diffs.patch.Patch
 import com.bernaferrari.diffutils.diffs.patch.PatchFailedException
 import java.util.*
+import java.util.Collections.emptyList
+
 
 /**
  * Implements the difference and patching engine
@@ -42,21 +45,33 @@ object DiffUtils {
      *
      * @param original The original text. Must not be `null`.
      * @param revised The revised text. Must not be `null`.
+     * @param progress progress listener
      * @return The patch describing the difference between the original and revised sequences. Never `null`.
+     * @throws com.github.difflib.algorithm.DiffException
      */
     @Throws(DiffException::class)
+    fun <T> diff(original: List<T>, revised: List<T>, progress: DiffAlgorithmListener): Patch<T> {
+        return DiffUtils.diff(original, revised, MyersDiff<T>(), progress)
+    }
+
+    @Throws(DiffException::class)
     fun <T> diff(original: List<T>, revised: List<T>): Patch<T> {
-        return DiffUtils.diff(original, revised, MyersDiff())
+        return DiffUtils.diff(original, revised, MyersDiff(), null)
     }
 
     /**
      * Computes the difference between the original and revised text.
      */
     @Throws(DiffException::class)
-    fun diff(originalText: String, revisedText: String): Patch<String> {
+    fun diff(
+        originalText: String,
+        revisedText: String,
+        progress: DiffAlgorithmListener
+    ): Patch<String> {
         return DiffUtils.diff(
             originalText.split("\n"),
-            revisedText.split("\n")
+            revisedText.split("\n"),
+            progress
         )
     }
 
@@ -89,23 +104,41 @@ object DiffUtils {
      * @param original The original text. Must not be `null`.
      * @param revised The revised text. Must not be `null`.
      * @param algorithm The diff algorithm. Must not be `null`.
+     * @param progress The diff algorithm listener.
      * @return The patch describing the difference between the original and revised sequences. Never `null`.
      */
     @Throws(DiffException::class)
     fun <T> diff(
         original: List<T>, revised: List<T>,
-        algorithm: DiffAlgorithm<T>
+        algorithm: DiffAlgorithmI<T>, progress: DiffAlgorithmListener?
     ): Patch<T> {
         Objects.requireNonNull(original, "original must not be null")
         Objects.requireNonNull(revised, "revised must not be null")
         Objects.requireNonNull(algorithm, "algorithm must not be null")
 
-        return Patch.generate(original, revised, algorithm.diff(original, revised))
+        return Patch.generate(original, revised, algorithm.computeDiff(original, revised, progress))
     }
 
     /**
+     * Computes the difference between the original and revised list of elements with default diff algorithm
+     *
+     * @param original The original text. Must not be `null`.
+     * @param revised The revised text. Must not be `null`.
+     * @param algorithm The diff algorithm. Must not be `null`.
+     * @return The patch describing the difference between the original and revised sequences. Never `null`.
+     */
+    @Throws(DiffException::class)
+    fun <T> diff(
+        original: List<T>, revised: List<T>,
+        algorithm: DiffAlgorithmI<T>
+    ): Patch<T> {
+        return diff(original, revised, algorithm, null)
+    }
+
+
+    /**
      * Computes the difference between the given texts inline. This one uses the "trick" to make out of texts lists of
-     * characters, like DiffRowGenerator does and merges those changes at the end together again.
+     * characters, like DiffRowGenerator1 does and merges those changes at the end together again.
      *
      * @param original
      * @param revised
@@ -123,11 +156,12 @@ object DiffUtils {
         }
         val patch = DiffUtils.diff(origList, revList)
         for (delta in patch.getDeltas()) {
-            delta.original.lines = compressLines(delta.original.lines, "")
-            delta.revised.lines = compressLines(delta.revised.lines, "")
+            delta.source.lines = compressLines(delta.source.lines, "")
+            delta.target.lines = compressLines(delta.target.lines, "")
         }
         return patch
     }
+
 
     private fun compressLines(lines: List<String>, delimiter: String): List<String> {
         return if (lines.isEmpty()) {

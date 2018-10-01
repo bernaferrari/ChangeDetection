@@ -19,7 +19,6 @@ limitations under the License.
  */
 package com.bernaferrari.diffutils.diffs.patch;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -27,12 +26,12 @@ import java.util.List;
  *
  * <p>
  * Text is represented as <code>Object[]</code> because the diff engine is capable of handling more than plain ascci. In
- * fact, arrays or lists of any type that implements {@link java.lang.Object#hashCode hashCode()} and
- * {@link java.lang.Object#equals equals()} correctly can be subject to differencing using this library.
+ * fact, arrays or lists of any type that implements {@link Object#hashCode hashCode()} and
+ * {@link Object#equals equals()} correctly can be subject to differencing using this library.
  * </p>
  *
- * @param T The type of the compared elements in the 'lines'.
  * @author <a href="dm.naumenko@gmail.com>Dmitry Naumenko</a>
+ * @param T The type of the compared elements in the 'lines'.
  */
 public final class Chunk<T> {
 
@@ -43,28 +42,29 @@ public final class Chunk<T> {
      * Creates a chunk and saves a copy of affected lines
      *
      * @param position the start position
-     * @param lines    the affected lines
+     * @param lines the affected lines
      */
     public Chunk(int position, List<T> lines) {
         this.position = position;
         this.lines = lines;
     }
 
-    /**
-     * Creates a chunk and saves a copy of affected lines
-     *
-     * @param position the start position
-     * @param lines    the affected lines
-     */
-    public Chunk(int position, T[] lines) {
-        this.position = position;
-        this.lines = Arrays.asList(lines);
-    }
+//    /**
+//     * Creates a chunk and saves a copy of affected lines
+//     *
+//     * @param position the start position
+//     * @param lines the affected lines
+//     */
+//    public Chunk(int position, T[] lines) {
+//        this.position = position;
+//        this.lines = Arrays.asList(lines);
+//    }
 
     /**
      * Verifies that this chunk's saved text matches the corresponding text in the given sequence.
      *
      * @param target the sequence to verify against.
+     * @throws com.github.difflib.patch.PatchFailedException
      */
     public void verify(List<T> target) throws PatchFailedException {
         if (position > target.size() || last() > target.size()) {
@@ -85,15 +85,15 @@ public final class Chunk<T> {
         return position;
     }
 
+    public void setLines(List<T> lines) {
+        this.lines = lines;
+    }
+
     /**
      * @return the affected lines
      */
     public List<T> getLines() {
         return lines;
-    }
-
-    public void setLines(List<T> lines) {
-        this.lines = lines;
     }
 
     public int size() {
