@@ -98,6 +98,23 @@ class TextViewModel(
         }
     }
 
+
+    /**
+     * Called when we want to generate a diff between two items. Takes as input two ids and the top
+     * section and outputs the result to this top section.
+     *
+     * @param topSection    The section corresponding to the top recyclerview, which will
+     * be updated with the result from the diff.
+     * @param originalId    The snapId from the original item (which will be in red)
+     * @param revisedId     The snapId from the revised item (which will be in green)
+     * which will be updated by [generateDiff] with corresponding diff
+     */
+    suspend fun generateDiffVisual(originalId: String?, revisedId: String?): String {
+        if (originalId.isNullOrBlank() || revisedId.isNullOrBlank()) return ""
+        val (original, new) = getFromDb(originalId!!, revisedId!!)
+        return generateVisualDiffRows(original, new)
+    }
+
     /**
      * This will asynchronously fetch a pair of snaps from the database based on their ids
      *
@@ -109,10 +126,7 @@ class TextViewModel(
         originalId: String,
         newId: String
     ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>> =
-        mSnapsRepository.getSnapPair(
-            originalId,
-            newId
-        )
+        mSnapsRepository.getSnapPair(originalId, newId)
 
     /**
      * This will asynchronously fetch a pair of diffs from the database based on their ids
@@ -132,7 +146,7 @@ class TextViewModel(
      * @param topSection Pass the top part of the screen,
      * which will be updated by [generateDiff] with corresponding diff
      */
-    fun fsmSelectWithCorrectColor(item: TextViewHolder, topSection: Section) {
+    inline fun fsmSelectWithCorrectColor(item: TextViewHolder, f: (String?, String?) -> Unit) {
         when (item.colorSelected) {
             ItemSelected.NONE -> {
                 when (item.adapter.colorSelected.count { it.value != ItemSelected.NONE }) {
@@ -144,35 +158,32 @@ class TextViewModel(
                         // ONE THING IS SELECTED AND IT IS REVISED -> ORIGINAL
                         // ONE THING IS SELECTED AND IT IS ORIGINAL -> REVISED
                         for ((_, value) in item.adapter.colorSelected) {
-                            if (value != ItemSelected.NONE) {
-                                if (value == ItemSelected.ORIGINAL) {
-                                    item.adapter.colorSelected.getPositionForAdapter(ItemSelected.ORIGINAL)
-                                        ?.let { position ->
-                                            item.setColor(ItemSelected.REVISED)
+                            if (value == ItemSelected.NONE) continue
 
-                                            generateDiff(
-                                                topSection = topSection,
-                                                originalId = item.adapter.getItemFromAdapter(
-                                                    position
-                                                )?.snapId,
-                                                revisedId = item.snap?.snapId
-                                            )
-                                        }
+                            if (value == ItemSelected.ORIGINAL) {
+                                item.adapter.colorSelected.getPositionForAdapter(ItemSelected.ORIGINAL)
+                                    ?.let { position ->
+                                        item.setColor(ItemSelected.REVISED)
 
-                                } else {
-                                    item.adapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
-                                        ?.let { position ->
-                                            item.setColor(ItemSelected.ORIGINAL)
+                                        f(
+                                            item.adapter.getItemFromAdapter(position)?.snapId,
+                                            item.snap?.snapId
+                                        )
+                                    }
 
-                                            generateDiff(
-                                                topSection = topSection,
-                                                originalId = item.snap?.snapId,
-                                                revisedId = item.adapter.getItemFromAdapter(position)?.snapId
-                                            )
-                                        }
-                                }
-                                break
+                            } else {
+                                item.adapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
+                                    ?.let { position ->
+                                        item.setColor(ItemSelected.ORIGINAL)
+
+                                        f(
+                                            item.snap?.snapId,
+                                            item.adapter.getItemFromAdapter(position)?.snapId
+                                        )
+                                    }
                             }
+
+                            break
                         }
                     }
                     else -> {
@@ -185,12 +196,11 @@ class TextViewModel(
 
                         item.adapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
                             ?.let { position ->
-                            generateDiff(
-                                topSection = topSection,
-                                originalId = item.snap?.snapId,
-                                revisedId = item.adapter.getItemFromAdapter(position)?.snapId
-                            )
-                        }
+                                f(
+                                    item.snap?.snapId,
+                                    item.adapter.getItemFromAdapter(position)?.snapId
+                                )
+                            }
                     }
                 }
             }
@@ -198,8 +208,6 @@ class TextViewModel(
                 item.setColor(ItemSelected.NONE)
             }
         }
-
-        updateCanShowDiff(item.adapter, topSection)
     }
 
     /**
@@ -210,16 +218,71 @@ class TextViewModel(
      * @param topSection The top section, which will be cleared if there are
      * not enough gradientColor selected
      */
-    private fun updateCanShowDiff(adapter: TextAdapter, topSection: Section) {
+    inline fun updateCanShowDiff(adapter: TextAdapter, callback: () -> Unit) {
 
         adapter.colorSelected.count { it.value != ItemSelected.NONE }.let { numOfItemsNotNone ->
             if (numOfItemsNotNone < 2) {
                 // Empty when there is not enough selection
-                topSection.update(mutableListOf())
+                callback()
             }
 
             showNotEnoughInfoError.value = numOfItemsNotNone != 2
         }
+    }
+
+    private fun generateVisualDiffRows(
+        original: Pair<Snap, ByteArray>,
+        revised: Pair<Snap, ByteArray>
+    ): String {
+
+        val oldTag =
+            { f: Boolean -> if (f) "<span class=\"editOldInline\" style=\"background-color:#acf2bd\">" else "</span>" }
+        val newTag =
+            { f: Boolean -> if (f) "<span class=\"editNewInline\" style=\"background-color:#ffdce0\">" else "</span>" }
+
+        val generator = DiffRowGenerator.create()
+            .showInlineDiffs(true)
+            .mergeOriginalRevised(true)
+            .inlineDiffByWord(true)
+            .oldTag(oldTag)
+            .newTag(newTag)
+            .build()
+
+        fun findCorrectCharset(content: Snap): Charset =
+            content.contentCharset.takeUnless { it.isBlank() }
+                ?.let { Charset.forName(it) }
+                    ?: Charset.defaultCharset()
+
+        // find the correct charset
+        val newCharset = findCorrectCharset(revised.first)
+        val originalCharset = findCorrectCharset(original.first)
+
+        // compute the differences for two test texts.
+        // generateDiffRows will split the lines anyway, so there is no need for splitting again here.
+
+        val rows = generator.generateDiffRows(
+            original = mutableListOf(
+                original.second.toString(
+                    OkHttpCharset.bomAwareCharset(
+                        source = original.second,
+                        charset = originalCharset
+                    )
+                )
+            ),
+            revised = mutableListOf(
+                revised.second.toString(
+                    OkHttpCharset.bomAwareCharset(
+                        source = revised.second,
+                        charset = newCharset
+                    )
+                )
+            )
+        )
+
+        val mapping = StringBuilder()
+        rows.forEach { mapping.append(it.oldLine.unescapeHtml() + "\n") }
+        println("mapping: $mapping")
+        return mapping.toString()
     }
 
     private fun generateDiffRows(
@@ -273,7 +336,7 @@ class TextViewModel(
         rows.forEachIndexed { index, row ->
             if (row.oldLine == row.newLine) {
                 updatingNonDiff.add(TextRecycler(row.oldLine.unescapeHtml(), index))
-                println(row.oldLine)
+                println(row.oldLine.unescapeHtml())
             } else when {
                 row.newLine.isBlank() -> {
                     updatingOnlyDiff.add(TextRecycler("-" + row.oldLine.unescapeHtml(), index))

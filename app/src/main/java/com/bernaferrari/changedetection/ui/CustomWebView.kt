@@ -26,5 +26,8 @@ class CustomWebView @JvmOverloads constructor(
         settings.blockNetworkImage = false
         settings.builtInZoomControls = true
         settings.displayZoomControls = false
+
+        settings.useWideViewPort = true
+        settings.loadWithOverviewMode = true
     }
 }

@@ -45,7 +45,7 @@ class SnapsLocalDataSource constructor(
                             Logger.d("Remove " + it.contentSize)
                             deleteSnap(it.snapId)
                             snapsList.remove(it)
-                    }
+                        }
                 }
 
                 // then remove the all items except the first 5
@@ -100,7 +100,7 @@ class SnapsLocalDataSource constructor(
             // mSnapsDao.insertSnap(snap.copy(value = snap.value.plus(UUID.randomUUID().toString())))
 
             if (cleanUpIfNecessaryAndCompare(snap.contentType, content, lastSnapValue)) {
-                println(lastSnapValue)
+//                println(lastSnapValue)
                 Logger.d("Difference detected! Size went from ${lastSnapValue.size} to ${content.size}")
                 mSnapsDao.insertSnap(snap)
 
