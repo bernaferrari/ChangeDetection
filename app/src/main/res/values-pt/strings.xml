@@ -83,8 +83,10 @@
 
     <string name="original_plus_diffs">Original + Mudanças</string>
 
-    <string name="open_revised_in_browser">Abrir revisado no navegador</string>
-    <string name="open_original_in_browser">Abrir original in navegador</string>
+    <string name="revised">Revisado</string>
+    <string name="original">Original</string>
+    <string name="source">Fonte</string>
+    <string name="diff">Diferença</string>
 
     <string name="incorrect_url">Link errado</string>
     <string name="no_websites_being_monitored">Nenhum site está sendo monitorado</string>

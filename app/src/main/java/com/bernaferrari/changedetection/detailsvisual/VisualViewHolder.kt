@@ -7,7 +7,6 @@ import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import android.support.v7.widget.RecyclerView
-import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.updateLayoutParams
 import com.bernaferrari.changedetection.Injector
@@ -16,6 +15,7 @@ import com.bernaferrari.changedetection.RecyclerViewItemListener
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.consume
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
+import com.bernaferrari.changedetection.extensions.inflate
 import com.bernaferrari.changedetection.util.GlideRequests
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import kotlinx.android.synthetic.main.diff_visual_item_carousel.view.*
@@ -28,11 +28,7 @@ class VisualViewHolder(
     private val isPdf: Boolean,
     val callback: RecyclerViewItemListener
 ) : RecyclerView.ViewHolder(
-    LayoutInflater.from(parent.context).inflate(
-        R.layout.diff_visual_item_carousel,
-        parent,
-        false
-    ).apply {
+    parent.inflate(R.layout.diff_visual_item_carousel).apply {
         this.updateLayoutParams {
             width = itemWidth
             height = itemHeight

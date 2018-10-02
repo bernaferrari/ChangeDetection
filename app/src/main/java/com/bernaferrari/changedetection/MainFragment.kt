@@ -208,17 +208,20 @@ class MainFragment : ScopedFragment() {
         // need to do this on animation to avoid RecyclerView crashing when
         // “scrapped or attached views may not be recycled”
         filterItem.isEnabled = false
+        defaultRecycler.setOnTouchListener { _, _ -> true }
 
         launch {
-            delay(transitionDelay)
+            delay(transitionDelay + 50)
             withContext(Dispatchers.Main) {
                 filterItem.isEnabled = true
+                defaultRecycler.setOnTouchListener { _, _ -> false }
             }
         }
     }
 
+
     private fun openItem(item: MainCardItem) {
-        val customView = layoutInflater.inflate(R.layout.recyclerview, parentLayout, false)
+        val customView = parentLayout.inflate(R.layout.recyclerview)
 
         val bottomSheet = customView.generateBottomSheet()
 
@@ -312,8 +315,7 @@ class MainFragment : ScopedFragment() {
 
         val color = item.site.colors.second
 
-        val customView =
-            layoutInflater.inflate(R.layout.recyclerview, parentLayout, false)
+        val customView = parentLayout.inflate(R.layout.recyclerview)
 
         val bottomSheet = customView.generateBottomSheet()
 
@@ -365,7 +367,7 @@ class MainFragment : ScopedFragment() {
             "remove"
         )
 
-        customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.apply {
+        customView.findViewById<RecyclerView>(R.id.defaultRecycler)?.apply {
 
             this.addItemDecoration(
                 com.bernaferrari.changedetection.ui.InsetDecoration(
@@ -573,7 +575,7 @@ class MainFragment : ScopedFragment() {
 
     private fun removeDialog(item: MainCardItem) {
 
-        val customView = layoutInflater.inflate(R.layout.recyclerview, parentLayout, false)
+        val customView = parentLayout.inflate(R.layout.recyclerview)
         val bottomSheet = customView.generateBottomSheet()
 
         val updating = mutableListOf<DialogItemSimple>()
@@ -591,7 +593,7 @@ class MainFragment : ScopedFragment() {
             "all"
         )
 
-        customView?.findViewById<RecyclerView>(R.id.defaultRecycler)?.adapter =
+        customView.findViewById<RecyclerView>(R.id.defaultRecycler)?.adapter =
                 GroupAdapter<ViewHolder>().apply {
                     add(Section(updating))
 

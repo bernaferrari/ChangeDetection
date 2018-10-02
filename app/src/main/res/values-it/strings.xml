@@ -82,8 +82,10 @@
     <string name="hours">ore</string>
 
     <string name="original_plus_diffs">Originale + Cambiamenti</string>
-    <string name="open_revised_in_browser">Apri cambiamenti nel Browser</string>
-    <string name="open_original_in_browser">Apri originale nel Browser</string>
+    <string name="revised">Cambiamenti</string>
+    <string name="original">Originale</string>
+    <string name="source">Fonte</string>
+    <string name="diff">Differenza</string>
 
     <string name="incorrect_url">URL errato</string>
     <string name="no_websites_being_monitored">Nessun sito web monitorato</string>

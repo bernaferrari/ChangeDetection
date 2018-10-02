@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/controlBar"
+    android:id="@+id/controlBarDiff"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?toolbarColor">
@@ -14,6 +14,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:clipToPadding="false"
             android:orientation="horizontal"
             android:paddingLeft="4dp"
@@ -22,34 +23,19 @@
             android:paddingBottom="8dp">
 
             <com.bernaferrari.changedetection.ui.ControlBarItemToggleView
-                android:id="@+id/highQualityToggle"
+                android:id="@+id/diff"
                 style="@style/ControlBarItem"
-                app:src="@drawable/ic_expand"
-                app:text="@string/control_bar_quality" />
+                app:text="@string/diff" />
 
             <com.bernaferrari.changedetection.ui.ControlBarItemToggleView
-                android:id="@+id/sourceView"
+                android:id="@+id/revisedToggle"
                 style="@style/ControlBarItem"
-                app:src="@drawable/ic_code"
-                app:text="@string/source" />
+                app:text="@string/revised" />
 
             <com.bernaferrari.changedetection.ui.ControlBarItemToggleView
-                android:id="@+id/showOriginalAndChanges"
+                android:id="@+id/originalToggle"
                 style="@style/ControlBarItem"
-                app:src="@drawable/ic_vector_difference"
-                app:text="@string/original_plus_diffs" />
-
-            <com.bernaferrari.changedetection.ui.ControlBarItemToggleView
-                android:id="@+id/shareToggle"
-                style="@style/ControlBarItem"
-                app:src="@drawable/ic_share"
-                app:text="@string/share" />
-
-            <com.bernaferrari.changedetection.ui.ControlBarItemToggleView
-                android:id="@+id/openBrowserToggle"
-                style="@style/ControlBarItem"
-                app:src="@drawable/ic_open_browser"
-                app:text="@string/open_in_browser" />
+                app:text="@string/original" />
 
         </LinearLayout>
 

@@ -14,8 +14,11 @@ import android.support.v4.app.Fragment
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.SimpleItemAnimator
 import android.util.TypedValue
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.annotation.LayoutRes
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 import com.bernaferrari.changedetection.R
@@ -118,3 +121,13 @@ internal fun View.generateBottomSheet() =
         it.setContentView(this)
         it.show()
     }
+
+
+/**
+ * Allows calls like
+ *
+ * `viewGroup.inflate(R.layout.foo)`
+ */
+fun ViewGroup.inflate(@LayoutRes layout: Int, attachToRoot: Boolean = false): View {
+    return LayoutInflater.from(context).inflate(layout, this, attachToRoot)
+}
