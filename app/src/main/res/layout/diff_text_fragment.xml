@@ -47,20 +47,12 @@
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:singleLine="true"
+                android:layout_marginRight="@dimen/avatar_margin"
                 android:gravity="center_vertical|start"
                 android:paddingRight="@dimen/padding_normal"
                 android:textColor="?strongColor"
                 tools:text="Web Drivers" />
 
-            <ImageView
-                android:id="@+id/settings"
-                android:layout_width="@dimen/avatar_bounds"
-                android:layout_height="@dimen/avatar_bounds"
-                android:layout_gravity="center"
-                android:layout_marginRight="@dimen/avatar_margin"
-                android:background="?android:selectableItemBackgroundBorderless"
-                android:padding="@dimen/avatar_margin"
-                android:scaleType="center" />
         </LinearLayout>
 
         <FrameLayout
@@ -71,6 +63,12 @@
             <com.bernaferrari.changedetection.ui.RecyclerViewWithEmptyState
                 android:id="@+id/topRecycler"
                 android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layoutManager="android.support.v7.widget.LinearLayoutManager" />
+
+            <com.bernaferrari.changedetection.ui.CustomWebView
+                android:id="@+id/webview"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
             <include
@@ -80,6 +78,13 @@
                 android:layout_gravity="center" />
 
         </FrameLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/lottie_divider_height"
+            android:background="?lottieDivider" />
+
+        <include layout="@layout/control_bar_diff" />
 
         <View
             android:layout_width="match_parent"

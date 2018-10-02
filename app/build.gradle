@@ -22,8 +22,8 @@ android {
         applicationId "com.bernaferrari.changedetection"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 29
-        versionName "2.0"
+        versionCode 30
+        versionName "2.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 

@@ -12,6 +12,6 @@ fun <K, V> Map<out K, V>.firstKey(): K? {
     return null
 }
 
-internal fun <K, V> Map<out K, V>.getPositionForAdapter(color: ItemSelected): K? {
+fun <K, V> Map<out K, V>.getPositionForAdapter(color: ItemSelected): K? {
     return this.filter { it.value == color }.firstKey()
 }

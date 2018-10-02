@@ -169,6 +169,7 @@ class VisualFragment : ScopedFragment(),
         titlecontent.text = getStringFromArguments(MainActivity.LASTCHANGE)
         next_previous_bar.isVisible = false
         showOriginalAndChanges.isVisible = false
+        sourceView.isVisible = false
 
         fileKind = if (arguments?.getString(MainActivity.TYPE) == "application/pdf") {
             FORMAT.PDF

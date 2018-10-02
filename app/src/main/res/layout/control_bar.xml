@@ -28,6 +28,12 @@
                 app:text="@string/control_bar_quality" />
 
             <com.bernaferrari.changedetection.ui.ControlBarItemToggleView
+                android:id="@+id/sourceView"
+                style="@style/ControlBarItem"
+                app:src="@drawable/ic_code"
+                app:text="@string/source" />
+
+            <com.bernaferrari.changedetection.ui.ControlBarItemToggleView
                 android:id="@+id/showOriginalAndChanges"
                 style="@style/ControlBarItem"
                 app:src="@drawable/ic_vector_difference"

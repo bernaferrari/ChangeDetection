@@ -8,7 +8,9 @@ import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.Snackbar
+import android.support.transition.AutoTransition
 import android.support.transition.ChangeBounds
+import android.support.transition.TransitionManager
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -17,30 +19,23 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
 import androidx.core.view.isVisible
-import androidx.core.view.updateLayoutParams
 import androidx.navigation.findNavController
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.customview.customView
-import com.afollestad.materialdialogs.customview.getCustomView
 import com.bernaferrari.changedetection.*
 import com.bernaferrari.changedetection.extensions.*
-import com.bernaferrari.changedetection.groupie.DialogItemSimple
 import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.ui.CustomWebView
 import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
-import com.mikepenz.community_material_typeface_library.CommunityMaterial
-import com.mikepenz.iconics.IconicsDrawable
 import com.xwray.groupie.GroupAdapter
-import com.xwray.groupie.Item
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
-import kotlinx.android.synthetic.main.content_web.view.*
 import kotlinx.android.synthetic.main.control_bar.*
+import kotlinx.android.synthetic.main.control_bar_diff.*
 import kotlinx.android.synthetic.main.diff_text_fragment.*
-import kotlinx.android.synthetic.main.recyclerview.view.*
 import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.android.Main
+import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.withContext
 import kotlin.properties.ObservableProperty
@@ -55,12 +50,31 @@ class TextFragment : ScopedFragment() {
     private lateinit var bottomAdapter: TextAdapter
     private val topSection = Section()
 
+    private val fsmCallback: ((String?, String?) -> Unit) = { str1, str2 ->
+        model.generateDiff(topSection, str1, str2)
+
+        when {
+            uiState.diff -> launch(Dispatchers.Default) {
+                val result = model.generateDiffVisual(str1, str2)
+                withContext(Dispatchers.Main) { putDataOnWebView(webview, result) }
+            }
+            uiState.revised -> loadIntoWebView(true)
+            uiState.original -> loadIntoWebView(false)
+        }
+    }
+
+    private val canShowDiff: (() -> Unit) = {
+        topSection.update(mutableListOf())
+        webview.loadUrl("about:blank")
+    }
+
     private val recyclerListener = object :
         RecyclerViewItemListener {
         override fun onClickListener(item: RecyclerView.ViewHolder) {
             if (item !is TextViewHolder) return
             stateLayout.showLoading()
-            model.fsmSelectWithCorrectColor(item, topSection)
+            model.fsmSelectWithCorrectColor(item, fsmCallback)
+            model.updateCanShowDiff(item.adapter, canShowDiff)
         }
 
         override fun onLongClickListener(item: RecyclerView.ViewHolder) {
@@ -80,7 +94,8 @@ class TextFragment : ScopedFragment() {
                 .positiveButton(R.string.yes) { _ ->
                     if (item.colorSelected != ItemSelected.NONE) {
                         // If the item is selected, first deselect, then remove it.
-                        model.fsmSelectWithCorrectColor(item, topSection)
+                        model.fsmSelectWithCorrectColor(item, fsmCallback)
+                        model.updateCanShowDiff(item.adapter, canShowDiff)
                     }
 
                     model.removeSnap(item.snap?.snapId)
@@ -89,16 +104,35 @@ class TextFragment : ScopedFragment() {
         }
     }
 
-    private fun updateUiFromState() {
+    private val transitionDelay = 175L
+    private val transition = AutoTransition().apply { duration = transitionDelay }
+    private fun beginDelayedTransition() =
+        TransitionManager.beginDelayedTransition(elastic, transition)
 
+    private fun updateUiFromState() {
+        beginDelayedTransition()
         bottomRecycler.isVisible = uiState.visibility
+
+        topRecycler.isVisible = uiState.sourceView
+        sourceView.isActivated = uiState.sourceView
+        showOriginalAndChanges.isVisible = uiState.sourceView
+
+        webview.isVisible = !uiState.sourceView
+        controlBarDiff.isVisible = !uiState.sourceView
+
+        diff.isActivated = uiState.diff
+        originalToggle.isActivated = uiState.original
+        revisedToggle.isActivated = uiState.revised
 
         if (uiState.showOriginalAndChanges != showOriginalAndChanges.isActivated) {
             showOriginalAndChanges.isActivated = uiState.showOriginalAndChanges
 
             model.changePlusOriginal = !model.changePlusOriginal
 
-            try {
+            trySilently {
+                // Don't do anything. If this exception happened, is because there are not
+                // two items selected. So it won't change anything.
+
                 val posRevised =
                     bottomAdapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
                             ?: return
@@ -111,9 +145,6 @@ class TextFragment : ScopedFragment() {
                     originalId = bottomAdapter.getItemFromAdapter(posOriginal)?.snapId,
                     revisedId = bottomAdapter.getItemFromAdapter(posRevised)?.snapId
                 )
-            } catch (e: IllegalStateException) {
-                // Don't do anything. If this exception happened, is because there are not
-                // two items selected. So it won't change anything.
             }
         }
     }
@@ -162,6 +193,19 @@ class TextFragment : ScopedFragment() {
             stateLayout.showLoading()
         })
 
+        sourceView.setOnClickListener {
+            // disable touch on recyclerview to avoid crash when animation happens
+            topRecycler.stopScroll()
+            topRecycler.setOnTouchListener { _, _ -> true }
+            uiState.sourceView++
+            launch {
+                delay(transitionDelay + 50)
+                withContext(Dispatchers.Main) {
+                    topRecycler.setOnTouchListener { _, _ -> false }
+                }
+            }
+        }
+
         highQualityToggle.isVisible = false
         shareToggle.isVisible = false
 
@@ -175,11 +219,7 @@ class TextFragment : ScopedFragment() {
 
         closecontent.setOnClickListener { dismiss() }
 
-        settings.isVisible = getStringFromArguments(MainActivity.TYPE) == "text/html"
-
         topRecycler.apply {
-            layoutManager = LinearLayoutManager(context)
-
             setEmptyView(stateLayout)
 
             adapter = GroupAdapter<ViewHolder>().apply {
@@ -202,72 +242,45 @@ class TextFragment : ScopedFragment() {
         }
 
         fetchData()
-        configureSettingsButton()
+
+        revisedToggle.setOnClickListener {
+            uiState.revised = true
+            uiState.diff = false
+            uiState.original = false
+            loadIntoWebView(true)
+        }
+
+        originalToggle.setOnClickListener {
+            uiState.original = true
+            uiState.revised = false
+            uiState.diff = false
+            loadIntoWebView(false)
+        }
+
+        diff.setOnClickListener {
+            uiState.diff = true
+            uiState.original = false
+            uiState.revised = false
+            fetchAndShow()
+        }
     }
 
-    private fun configureSettingsButton() = settings.apply {
-        setImageDrawable(
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_dots_vertical)
-                .color(context.getColorFromAttr(R.attr.iconColor))
-                .sizeDp(18)
-        )
-
-        setOnClickListener { _ ->
-
-            val customView =
-                layoutInflater.inflate(R.layout.recyclerview, view as ViewGroup, false)
-
-            customView.generateBottomSheet()
-
-            val updating = mutableListOf<Item<out ViewHolder>>()
-
-            updating += DialogItemSimple(
-                getString(R.string.open_revised_in_browser),
-                IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference_ba)
-                    .colorRes(R.color.md_green_500),
-                "first"
+    private fun fetchAndShow() {
+        launch(Dispatchers.Default) {
+            val result = model.generateDiffVisual(
+                originalId = bottomAdapter.getItemFromAdapter(1)?.snapId,
+                revisedId = bottomAdapter.getItemFromAdapter(0)?.snapId
             )
-
-            updating += DialogItemSimple(
-                getString(R.string.open_original_in_browser),
-                IconicsDrawable(context, CommunityMaterial.Icon.cmd_vector_difference_ab)
-                    .colorRes(R.color.md_red_500),
-                "second"
-            )
-
-            val groupAdapter = GroupAdapter<ViewHolder>().apply {
-                add(Section(updating))
-            }
-
-            customView?.defaultRecycler?.run {
-                this.adapter = groupAdapter
-                this.layoutManager = LinearLayoutManager(requireContext())
-            }
-
-            groupAdapter.setOnItemClickListener { itemDialog, _ ->
-                if (itemDialog is DialogItemSimple) {
-                    MaterialDialog(context).show {
-                        customView(R.layout.content_web, noVerticalPadding = true)
-                        negativeButton(R.string.close)
-                    }.getCustomView()?.also { view ->
-                        view.webview.updateLayoutParams {
-                            this.height = resources.displayMetrics.heightPixels
-                            this.width = resources.displayMetrics.widthPixels
-                        }
-
-                        fetchAndOpenOnWebView(
-                            bottomAdapter,
-                            view.webview,
-                            if (itemDialog.kind == "first") {
-                                ItemSelected.REVISED
-                            } else {
-                                ItemSelected.ORIGINAL
-                            }
-                        )
-                    }
-                }
-            }
+            withContext(Dispatchers.Main) { putDataOnWebView(webview, result) }
         }
+    }
+
+    private fun loadIntoWebView(revised: Boolean) {
+        fetchAndOpenOnWebView(
+            bottomAdapter,
+            webview,
+            if (revised) ItemSelected.REVISED else ItemSelected.ORIGINAL
+        )
     }
 
     private fun fetchData() = launch(Dispatchers.Default) {
@@ -287,6 +300,8 @@ class TextFragment : ScopedFragment() {
                 if (!hasSetInitialColor) {
                     bottomAdapter.setColor(ItemSelected.REVISED, 0)
                     bottomAdapter.setColor(ItemSelected.ORIGINAL, 1)
+
+                    fetchAndShow()
 
                     try {
                         model.generateDiff(
@@ -321,9 +336,7 @@ class TextFragment : ScopedFragment() {
                 withContext(Dispatchers.Main) {
                     putDataOnWebView(
                         view,
-                        it.replaceRelativePathWithAbsolute(
-                            getStringFromArguments(MainActivity.URL)
-                        )
+                        it.replaceRelativePathWithAbsolute(getStringFromArguments(MainActivity.URL))
                     )
                 }
             }
@@ -358,5 +371,9 @@ class TextFragment : ScopedFragment() {
 
         var visibility by BooleanProperty(true)
         var showOriginalAndChanges by BooleanProperty(false)
+        var sourceView by BooleanProperty(false)
+        var diff by BooleanProperty(true)
+        var revised by BooleanProperty(false)
+        var original by BooleanProperty(false)
     }
 }

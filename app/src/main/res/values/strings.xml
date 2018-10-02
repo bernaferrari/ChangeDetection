@@ -80,8 +80,10 @@
     <string name="hours">hours</string>
 
     <string name="original_plus_diffs">Original + Changes</string>
-    <string name="open_revised_in_browser">Open revised in Browser</string>
-    <string name="open_original_in_browser">Open original in Browser</string>
+    <string name="revised">Revised</string>
+    <string name="original">Original</string>
+    <string name="source">Source</string>
+    <string name="diff">Diff</string>
 
     <string name="incorrect_url">Incorrect URL</string>
     <string name="no_websites_being_monitored">No websites are being monitored</string>
