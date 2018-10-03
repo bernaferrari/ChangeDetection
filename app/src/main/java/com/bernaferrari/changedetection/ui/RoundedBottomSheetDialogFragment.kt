@@ -4,6 +4,8 @@ import android.app.Dialog
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
 import android.support.design.widget.BottomSheetDialogFragment
+import com.bernaferrari.changedetection.Injector
+import com.bernaferrari.changedetection.MainActivity
 import com.bernaferrari.changedetection.R
 
 /**
@@ -13,7 +15,13 @@ import com.bernaferrari.changedetection.R
  */
 open class RoundedBottomSheetDialogFragment : BottomSheetDialogFragment() {
 
-    override fun getTheme(): Int = R.style.BottomSheetDialogTheme
+    private val isDarkMode = Injector.get().sharedPrefs().getBoolean(MainActivity.DARKMODE, false)
+
+    override fun getTheme(): Int = if (isDarkMode) {
+        R.style.BottomSheetDialogThemeDark
+    } else {
+        R.style.BottomSheetDialogThemeLight
+    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog =
         BottomSheetDialog(requireContext(), theme)

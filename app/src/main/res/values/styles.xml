@@ -78,18 +78,27 @@
     </style>
 
     <!--https://gist.github.com/ArthurNagy/1c4a64e6c8a7ddfca58638a9453e4aed-->
-    <style name="BottomSheetDialogTheme" parent="BaseBottomSheetDialog">
+    <style name="BottomSheetDialogThemeDark" parent="@style/Theme.MaterialComponents.BottomSheetDialog">
         <item name="colorAccent">@color/md_blue_A400</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">?settingsBackground</item>
+
+        <item name="android:windowIsFloating">false</item>
+        <item name="bottomSheetStyle">@style/BottomSheet</item>
+
     </style>
 
-    <style name="BaseBottomSheetDialog" parent="@style/Theme.Design.Light.BottomSheetDialog">
+    <style name="BottomSheetDialogThemeLight" parent="@style/Theme.MaterialComponents.Light.BottomSheetDialog">
+        <item name="colorAccent">@color/md_blue_A400</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">?settingsBackground</item>
+
         <item name="android:windowIsFloating">false</item>
         <item name="bottomSheetStyle">@style/BottomSheet</item>
     </style>
 
-    <style name="BottomSheet" parent="@style/Widget.Design.BottomSheet.Modal">
+
+    <style name="BottomSheet" parent="@style/Widget.MaterialComponents.BottomSheet.Modal">
         <item name="android:background">@drawable/bg_bottom_sheet_dialog_fragment</item>
     </style>
 
