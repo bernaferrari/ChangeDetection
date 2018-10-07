@@ -72,7 +72,7 @@
                     android:fontFamily="@font/work_regular"
                     android:includeFontPadding="false"
                     android:lines="1"
-                    android:textAppearance="@style/Base.TextAppearance.AppCompat.Caption"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
                     android:textColor="#90FFFFFF"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/reload"
