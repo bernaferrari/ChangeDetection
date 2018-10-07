@@ -109,7 +109,6 @@ class MainFragment : ScopedFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         (activity as AppCompatActivity?)?.setSupportActionBar(toolbar)
 
         mViewModel = viewModelProvider(ViewModelFactory.getInstance(requireActivity().application))

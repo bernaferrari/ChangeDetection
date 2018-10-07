@@ -1,6 +1,7 @@
 package com.bernaferrari.changedetection.util
 
 import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.IO
 import kotlinx.coroutines.experimental.android.Main
 import kotlin.coroutines.experimental.CoroutineContext
 
@@ -14,6 +15,6 @@ import kotlin.coroutines.experimental.CoroutineContext
  * Inspired from this: https://github.com/dmytrodanylyk/android-architecture
  */
 open class AppExecutors constructor(
-    val ioContext: CoroutineContext = Dispatchers.Default,
+    val ioContext: CoroutineContext = Dispatchers.IO,
     val uiContext: CoroutineContext = Dispatchers.Main
 )
