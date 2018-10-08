@@ -17,9 +17,7 @@ class ItemContentType(
     val onClick: ((String) -> (Unit))
 ) : Item() {
 
-    override fun getLayout(): Int {
-        return R.layout.item_content_type
-    }
+    override fun getLayout(): Int = R.layout.item_content_type
 
     override fun bind(viewHolder: ViewHolder, position: Int) {
         val context = viewHolder.containerView.context
