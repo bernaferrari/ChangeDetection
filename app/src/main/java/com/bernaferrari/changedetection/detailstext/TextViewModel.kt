@@ -14,11 +14,8 @@ import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.util.SingleLiveEvent
 import com.bernaferrari.diffutils.diffs.text.DiffRowGenerator
 import com.xwray.groupie.Section
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.GlobalScope
-import kotlinx.coroutines.experimental.Job
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.android.Main
-import kotlinx.coroutines.experimental.launch
 import java.nio.charset.Charset
 
 /**
@@ -71,30 +68,28 @@ class TextViewModel(
             return
         }
 
-        currentJob = GlobalScope.launch {
+        currentJob = GlobalScope.launch(Dispatchers.Main) {
 
             val (original, new) = getFromDb(originalId!!, revisedId!!)
             val (onlyDiff, nonDiff) = generateDiffRows(original, new)
 
-            mutableListOf<TextRecycler>().also { mutableList ->
-                if (changePlusOriginal) {
-                    mutableList.addAll(nonDiff)
-                }
-                mutableList.addAll(onlyDiff)
-                mutableList.sortBy { it.index }
-
-                GlobalScope.launch(Dispatchers.Main) {
-                    // this way it captures if showNotEnoughInfoError is null or false
-                    if (showNotEnoughInfoError.value != true && mutableList.isEmpty()) {
-                        showNoChangesDetectedError.call()
-                    }
-
-                    // There is a bug on Groupie 2.1.0 which is rendering the diff operation on UI thread.
-                    // remove + insert is cheaper than checking if there was a change on thousands of lines.
-                    topSection.update(mutableListOf())
-                    topSection.update(mutableList)
+            val mutableList = withContext(Dispatchers.IO) {
+                mutableListOf<TextRecycler>().also {
+                    if (changePlusOriginal) it.addAll(nonDiff)
+                    it.addAll(onlyDiff)
+                    it.sortBy { item -> item.index }
                 }
             }
+
+            // this way it captures if showNotEnoughInfoError is null or false
+            if (showNotEnoughInfoError.value != true && mutableList.isEmpty()) {
+                showNoChangesDetectedError.call()
+            }
+
+            // There is a bug on Groupie 2.1.0 which is rendering the diff operation on UI thread.
+            // remove + insert is cheaper than checking if there was a change on thousands of lines.
+            topSection.update(mutableListOf())
+            topSection.update(mutableList)
         }
     }
 
@@ -230,10 +225,10 @@ class TextViewModel(
         }
     }
 
-    private fun generateVisualDiffRows(
+    private suspend fun generateVisualDiffRows(
         original: Pair<Snap, ByteArray>,
         revised: Pair<Snap, ByteArray>
-    ): String {
+    ): String = withContext(Dispatchers.IO) {
 
         val oldTag =
             { f: Boolean -> if (f) "<span class=\"editOldInline\" style=\"background-color:#acf2bd\">" else "</span>" }
@@ -282,13 +277,13 @@ class TextViewModel(
         val mapping = StringBuilder()
         rows.forEach { mapping.append(it.oldLine.unescapeHtml() + "\n") }
         println("mapping: $mapping")
-        return mapping.toString()
+        mapping.toString()
     }
 
-    private fun generateDiffRows(
+    private suspend fun generateDiffRows(
         original: Pair<Snap, ByteArray>,
         revised: Pair<Snap, ByteArray>
-    ): Pair<MutableList<TextRecycler>, MutableList<TextRecycler>> {
+    ): Pair<MutableList<TextRecycler>, MutableList<TextRecycler>> = withContext(Dispatchers.IO) {
 
         val generator = DiffRowGenerator.create()
             .showInlineDiffs(true)
@@ -351,7 +346,7 @@ class TextViewModel(
             }
         }
 
-        return Pair(updatingOnlyDiff, updatingNonDiff)
+        Pair(updatingOnlyDiff, updatingNonDiff)
     }
 
     suspend fun getAllSnapsPagedForId(id: String, filter: String): LiveData<PagedList<Snap>> {

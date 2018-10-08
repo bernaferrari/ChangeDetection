@@ -45,7 +45,6 @@ import kotlinx.coroutines.experimental.Dispatchers
 import kotlinx.coroutines.experimental.android.Main
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
 import java.io.File
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
@@ -266,7 +265,7 @@ class VisualFragment : ScopedFragment(),
     }
 
     // this is needed since getSnapsFiltered retrieves a liveData from Room to be observed
-    private fun fetchData() = launch(Dispatchers.Default) {
+    private fun fetchData() = launch(Dispatchers.Main) {
         val siteId = getStringFromArguments(MainActivity.SITEID)
 
         val filtering = when (fileKind) {
@@ -282,7 +281,6 @@ class VisualFragment : ScopedFragment(),
         model.getAllSnapsPagedForId(siteId, filtering)
             .observe(requireActivity(), Observer(carouselAdapter::submitList))
 
-        withContext(Dispatchers.Main) {
             progressBar?.isVisible = false
 
             liveData.observe(requireActivity(), Observer { filtered ->
@@ -296,17 +294,12 @@ class VisualFragment : ScopedFragment(),
                     // Since selectItem is being set at onCurrentItemChanged, and this code is ran async,
                     // if it happens after onCurrentItemChanged is called, which usually happens, the
                     // first item won't be selected.
-                    if (isItemsEmpty) {
-                        selectItem(0)
-                    }
+                    if (isItemsEmpty) selectItem(0)
 
                     // If all items were removed, close this fragment
-                    if (items.isEmpty()) {
-                        view?.findNavController()?.navigateUp()
-                    }
+                    if (items.isEmpty()) view?.findNavController()?.navigateUp()
                 }
             })
-        }
     }
 
     private fun updateUiFromState() {

@@ -54,9 +54,9 @@ class TextFragment : ScopedFragment() {
         model.generateDiff(topSection, str1, str2)
 
         when {
-            uiState.diff -> launch(Dispatchers.Default) {
+            uiState.diff -> launch(Dispatchers.Main) {
                 val result = model.generateDiffVisual(str1, str2)
-                withContext(Dispatchers.Main) { putDataOnWebView(webview, result) }
+                putDataOnWebView(webview, result)
             }
             uiState.revised -> loadIntoWebView(true)
             uiState.original -> loadIntoWebView(false)
@@ -198,11 +198,9 @@ class TextFragment : ScopedFragment() {
             topRecycler.stopScroll()
             topRecycler.setOnTouchListener { _, _ -> true }
             uiState.sourceView++
-            launch {
+            launch(Dispatchers.Main) {
                 delay(transitionDelay + 50)
-                withContext(Dispatchers.Main) {
-                    topRecycler.setOnTouchListener { _, _ -> false }
-                }
+                topRecycler.setOnTouchListener { _, _ -> false }
             }
         }
 
@@ -265,14 +263,12 @@ class TextFragment : ScopedFragment() {
         }
     }
 
-    private fun fetchAndShow() {
-        launch(Dispatchers.Default) {
-            val result = model.generateDiffVisual(
-                originalId = bottomAdapter.getItemFromAdapter(1)?.snapId,
-                revisedId = bottomAdapter.getItemFromAdapter(0)?.snapId
-            )
-            withContext(Dispatchers.Main) { putDataOnWebView(webview, result) }
-        }
+    private fun fetchAndShow() = launch(Dispatchers.Main) {
+        val result = model.generateDiffVisual(
+            originalId = bottomAdapter.getItemFromAdapter(1)?.snapId,
+            revisedId = bottomAdapter.getItemFromAdapter(0)?.snapId
+        )
+        putDataOnWebView(webview, result)
     }
 
     private fun loadIntoWebView(revised: Boolean) {
@@ -283,7 +279,7 @@ class TextFragment : ScopedFragment() {
         )
     }
 
-    private fun fetchData() = launch(Dispatchers.Default) {
+    private fun fetchData() = launch(Dispatchers.Main) {
 
         // Subscribe the adapter to the ViewModel, so the items in the adapter are refreshed
         // when the list changes
@@ -294,34 +290,32 @@ class TextFragment : ScopedFragment() {
             getStringFromArguments(MainActivity.TYPE, "%")
         )
 
-        withContext(Dispatchers.Main) {
-            liveData.observe(this@TextFragment, Observer {
-                bottomAdapter.submitList(it)
-                if (!hasSetInitialColor) {
-                    bottomAdapter.setColor(ItemSelected.REVISED, 0)
-                    bottomAdapter.setColor(ItemSelected.ORIGINAL, 1)
+        liveData.observe(this@TextFragment, Observer {
+            bottomAdapter.submitList(it)
+            if (!hasSetInitialColor) {
+                bottomAdapter.setColor(ItemSelected.REVISED, 0)
+                bottomAdapter.setColor(ItemSelected.ORIGINAL, 1)
 
-                    fetchAndShow()
+                fetchAndShow()
 
-                    try {
-                        model.generateDiff(
-                            topSection = topSection,
-                            originalId = bottomAdapter.getItemFromAdapter(1)?.snapId,
-                            revisedId = bottomAdapter.getItemFromAdapter(0)?.snapId
-                        )
-                    } catch (e: Exception) {
-                        Snackbar.make(
-                            elastic,
-                            getString(R.string.less_than_two),
-                            Snackbar.LENGTH_LONG
-                        ).show()
-                        dismiss()
-                    }
-
-                    hasSetInitialColor = true
+                try {
+                    model.generateDiff(
+                        topSection = topSection,
+                        originalId = bottomAdapter.getItemFromAdapter(1)?.snapId,
+                        revisedId = bottomAdapter.getItemFromAdapter(0)?.snapId
+                    )
+                } catch (e: Exception) {
+                    Snackbar.make(
+                        elastic,
+                        getString(R.string.less_than_two),
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                    dismiss()
                 }
-            })
-        }
+
+                hasSetInitialColor = true
+            }
+        })
     }
 
     private fun fetchAndOpenOnWebView(

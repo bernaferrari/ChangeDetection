@@ -63,12 +63,9 @@ class MainViewModel(
 
         val didItWork = MutableLiveData<Boolean>()
 
-        GlobalScope.launch {
+        GlobalScope.launch(Dispatchers.Main) {
             val saveSnap = mSnapsRepository.saveSnap(snap, content)
-
-            withContext(Dispatchers.Main) {
-                didItWork.value = saveSnap is Result.Success
-            }
+            didItWork.value = saveSnap is Result.Success
         }
 
         return didItWork

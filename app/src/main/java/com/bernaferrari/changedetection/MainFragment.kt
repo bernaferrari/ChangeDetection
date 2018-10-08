@@ -5,6 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
+import android.support.design.widget.Snackbar
 import android.support.transition.AutoTransition
 import android.support.transition.TransitionManager
 import android.support.v4.content.ContextCompat
@@ -209,12 +210,10 @@ class MainFragment : ScopedFragment() {
         filterItem.isEnabled = false
         defaultRecycler.setOnTouchListener { _, _ -> true }
 
-        launch {
+        launch(Dispatchers.Main) {
             delay(transitionDelay + 50)
-            withContext(Dispatchers.Main) {
-                filterItem.isEnabled = true
-                defaultRecycler.setOnTouchListener { _, _ -> false }
-            }
+            filterItem.isEnabled = true
+            defaultRecycler.setOnTouchListener { _, _ -> false }
         }
     }
 
@@ -222,7 +221,7 @@ class MainFragment : ScopedFragment() {
     private fun openItem(item: MainCardItem) {
         val customView = parentLayout.inflate(R.layout.recyclerview)
 
-        val bottomSheet = customView.generateBottomSheet()
+        val bottomSheet = customView.createBottomSheet()
 
         val bottomSheetAdapter = GroupAdapter<ViewHolder>().apply {
             add(LoadingItem())
@@ -230,7 +229,7 @@ class MainFragment : ScopedFragment() {
 
         customView.findViewById<RecyclerView>(R.id.defaultRecycler).adapter = bottomSheetAdapter
 
-        launch(Dispatchers.Default) {
+        launch {
             updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
         }
     }
@@ -239,50 +238,56 @@ class MainFragment : ScopedFragment() {
         item: MainCardItem,
         bottomSheetAdapter: GroupAdapter<ViewHolder>,
         bottomSheet: BottomSheetDialog
-    ): Unit = withContext(Dispatchers.Default) {
+    ): Unit = withContext(Dispatchers.Main) {
 
         val contentTypes = mViewModel.getRecentContentTypes(item.site.id)
-
         val selectedType = item.lastSnap?.contentType
 
-        withContext(Dispatchers.Main) {
-            bottomSheetAdapter.clear()
+        bottomSheetAdapter.clear()
 
-            when {
-                contentTypes.size <= 1 && contentTypes.firstOrNull()?.count?.let { it > 1 } != true -> {
-                    bottomSheetAdapter.add(EmptyItem(item.site.colors.second))
+        when {
+            contentTypes.size <= 1 && contentTypes.firstOrNull()?.count?.let { it > 1 } != true -> {
+                bottomSheet.show()
+                bottomSheetAdapter.add(EmptyItem(item.site.colors.second))
+            }
+            contentTypes.size == 1 -> {
+                navigateTo(selectedType, item)
+            }
+            else -> {
+                bottomSheet.show()
+
+                val remove: ((String) -> (Unit)) = {
+                    MaterialDialog(requireContext())
+                        .title(R.string.remove)
+                        .message(R.string.remove_content)
+                        .positiveButton(R.string.yes) { _ ->
+                            GlobalScope.launch {
+                                mViewModel.removeSnapsByType(item.site.id, it)
+                                updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
+                            }
+                        }
+                        .negativeButton(R.string.no)
+                        .show()
                 }
-                contentTypes.size == 1 -> {
-                    bottomSheet.dismiss()
-                    navigateTo(selectedType, item)
-                }
-                else -> {
-                    val remove: ((String) -> (Unit)) = {
-                        MaterialDialog(requireContext())
-                            .title(R.string.remove)
-                            .message(R.string.remove_content)
-                            .positiveButton(R.string.yes) { _ ->
-                                GlobalScope.launch(Dispatchers.Default) {
-                                    mViewModel.removeSnapsByType(item.site.id, it)
-                                    updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
+
+                contentTypes.forEach {
+                    bottomSheetAdapter.add(
+                        ItemContentType(
+                            it.contentType,
+                            it.count,
+                            remove
+                        ) { selected ->
+                            bottomSheet.dismiss()
+                            if (it.count > 1) {
+                                navigateTo(selected, item)
+                            } else {
+                                view?.also { v ->
+                                    Snackbar.make(v, R.string.less_than_two, Snackbar.LENGTH_LONG)
+                                        .show()
                                 }
                             }
-                            .negativeButton(R.string.no)
-                            .show()
-                    }
-
-                    contentTypes.forEach {
-                        bottomSheetAdapter.add(
-                            ItemContentType(
-                                it.contentType,
-                                it.count,
-                                remove
-                            ) { selected ->
-                                bottomSheet.dismiss()
-                                navigateTo(selected, item)
-                            }
-                        )
-                    }
+                        }
+                    )
                 }
             }
         }
@@ -316,7 +321,7 @@ class MainFragment : ScopedFragment() {
 
         val customView = parentLayout.inflate(R.layout.recyclerview)
 
-        val bottomSheet = customView.generateBottomSheet()
+        val bottomSheet = customView.createAndShowBottomSheet()
 
         val dialogItems = mutableListOf<DialogItemSimple>()
 
@@ -487,20 +492,13 @@ class MainFragment : ScopedFragment() {
     }
 
     private fun reload(item: MainCardItem?, force: Boolean = false) {
-        if (item !is MainCardItem || (!item.site.isSyncEnabled && !force)) {
-            return
-        }
+        if (item !is MainCardItem || (!item.site.isSyncEnabled && !force)) return
 
         item.startSyncing()
-        launch(Dispatchers.IO) {
+
+        launch(Dispatchers.Main) {
             val (contentTypeCharset, content) = WorkerHelper.fetchFromServer(item.site)
-            withContext(Dispatchers.Main) {
-                updateSiteAndSnap(
-                    contentTypeCharset,
-                    content,
-                    item
-                )
-            }
+            updateSiteAndSnap(contentTypeCharset, content, item)
         }
     }
 
@@ -575,7 +573,7 @@ class MainFragment : ScopedFragment() {
     private fun removeDialog(item: MainCardItem) {
 
         val customView = parentLayout.inflate(R.layout.recyclerview)
-        val bottomSheet = customView.generateBottomSheet()
+        val bottomSheet = customView.createAndShowBottomSheet()
 
         val updating = mutableListOf<DialogItemSimple>()
         val color = requireContext().getColorFromAttr(R.attr.strongColor)

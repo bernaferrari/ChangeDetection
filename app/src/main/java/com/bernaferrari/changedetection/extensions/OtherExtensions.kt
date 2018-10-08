@@ -115,7 +115,13 @@ internal fun Context.getColorFromAttr(
     return typedValue.data
 }
 
-internal fun View.generateBottomSheet() =
+internal fun View.createBottomSheet() =
+    BottomSheetDialog(this.context).also {
+        this.background = context.getColorFromAttr(R.attr.windowBackground).toDrawable()
+        it.setContentView(this)
+    }
+
+internal fun View.createAndShowBottomSheet() =
     BottomSheetDialog(this.context).also {
         this.background = context.getColorFromAttr(R.attr.windowBackground).toDrawable()
         it.setContentView(this)

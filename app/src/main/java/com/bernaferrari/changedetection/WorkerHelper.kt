@@ -5,6 +5,9 @@ import android.os.Build
 import androidx.work.*
 import com.bernaferrari.changedetection.data.Site
 import com.orhanobut.logger.Logger
+import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.IO
+import kotlinx.coroutines.experimental.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.SocketTimeoutException
@@ -38,10 +41,10 @@ object WorkerHelper {
         )
     }
 
-    fun fetchFromServer(item: Site): Pair<String, ByteArray> {
+    suspend fun fetchFromServer(item: Site): Pair<String, ByteArray> = withContext(Dispatchers.IO) {
         val client = OkHttpClient()
 
-        return try {
+        try {
             val request = Request.Builder()
                 .url(item.url)
                 .build()
