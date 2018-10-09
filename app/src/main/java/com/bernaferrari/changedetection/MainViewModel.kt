@@ -13,11 +13,8 @@ import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.Result
 import com.bernaferrari.changedetection.data.source.SitesRepository
 import com.bernaferrari.changedetection.data.source.SnapsRepository
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.GlobalScope
-import kotlinx.coroutines.experimental.android.Main
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
+import kotlinx.coroutines.experimental.*
+import kotlin.coroutines.experimental.CoroutineContext
 
 /**
  * Exposes the data to be used in the site list screen.
@@ -27,13 +24,23 @@ class MainViewModel(
     context: Application,
     private val mSnapsRepository: SnapsRepository,
     private val mSitesRepository: SitesRepository
-) : AndroidViewModel(context) {
+) : AndroidViewModel(context), CoroutineScope {
 
     internal var shouldSyncWhenAppOpen = true
     internal var sortAlphabetically = false
 
     internal val getOutputStatus: LiveData<List<WorkStatus>>
         get() = WorkManager.getInstance().getStatusesByTag(WorkerHelper.UNIQUEWORK)
+
+    private var job: Job = Job()
+
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
+
+    override fun onCleared() {
+        job.cancel()
+        super.onCleared()
+    }
 
     internal fun removeSite(site: Site) = GlobalScope.launch {
         mSnapsRepository.deleteAllSnaps(site.id)
@@ -63,7 +70,7 @@ class MainViewModel(
 
         val didItWork = MutableLiveData<Boolean>()
 
-        GlobalScope.launch(Dispatchers.Main) {
+        launch(Dispatchers.Main) {
             val saveSnap = mSnapsRepository.saveSnap(snap, content)
             didItWork.value = saveSnap is Result.Success
         }
@@ -87,14 +94,12 @@ class MainViewModel(
         return items
     }
 
-    internal fun updateItems() = GlobalScope.launch {
-        mutableListOf<SiteAndLastSnap>().also { list ->
+    internal fun updateItems() = launch(Dispatchers.Main) {
+        val list = mutableListOf<SiteAndLastSnap>()
+        withContext(Dispatchers.IO) {
             mSitesRepository.getSites().mapTo(list) { SiteAndLastSnap(it, getLastSnap(it.id)) }
-
-            withContext(Dispatchers.Main) {
-                items.value = list
-            }
         }
+        items.value = list
     }
 
     private suspend fun getLastSnap(siteId: String): Snap? {

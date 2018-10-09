@@ -15,8 +15,8 @@ import com.bernaferrari.changedetection.util.SingleLiveEvent
 import com.bernaferrari.diffutils.diffs.text.DiffRowGenerator
 import com.xwray.groupie.Section
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.android.Main
 import java.nio.charset.Charset
+import kotlin.coroutines.experimental.CoroutineContext
 
 /**
  * Exposes the data to be used in the site diff screen.
@@ -24,11 +24,21 @@ import java.nio.charset.Charset
 class TextViewModel(
     context: Application,
     private val mSnapsRepository: SnapsRepository
-) : AndroidViewModel(context) {
+) : AndroidViewModel(context), CoroutineScope {
 
     val showNotEnoughInfoError = SingleLiveEvent<Boolean>()
     val showNoChangesDetectedError = SingleLiveEvent<Void>()
     val showProgress = SingleLiveEvent<Void>()
+
+    private var job: Job = Job()
+
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
+
+    override fun onCleared() {
+        job.cancel()
+        super.onCleared()
+    }
 
     /**
      * Called to remove a diff
@@ -68,7 +78,7 @@ class TextViewModel(
             return
         }
 
-        currentJob = GlobalScope.launch(Dispatchers.Main) {
+        currentJob = launch(Dispatchers.Main) {
 
             val (original, new) = getFromDb(originalId!!, revisedId!!)
             val (onlyDiff, nonDiff) = generateDiffRows(original, new)
