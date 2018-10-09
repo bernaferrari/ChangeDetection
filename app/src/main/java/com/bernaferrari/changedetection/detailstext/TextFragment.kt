@@ -24,7 +24,6 @@ import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.*
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.TextRecycler
-import com.bernaferrari.changedetection.ui.CustomWebView
 import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
@@ -34,10 +33,8 @@ import kotlinx.android.synthetic.main.control_bar_diff.*
 import kotlinx.android.synthetic.main.diff_text_fragment.*
 import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.android.Main
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.withContext
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
 
@@ -271,12 +268,19 @@ class TextFragment : ScopedFragment() {
         putDataOnWebView(webview, result)
     }
 
-    private fun loadIntoWebView(revised: Boolean) {
-        fetchAndOpenOnWebView(
-            bottomAdapter,
-            webview,
-            if (revised) ItemSelected.REVISED else ItemSelected.ORIGINAL
-        )
+    private fun loadIntoWebView(revised: Boolean) = launch(Dispatchers.Main) {
+
+        val color = if (revised) ItemSelected.REVISED else ItemSelected.ORIGINAL
+
+        bottomAdapter.colorSelected.getPositionForAdapter(color)
+            ?.let { bottomAdapter.getItemFromAdapter(it)?.snapId }
+            ?.let { model.getSnapValue(it) }
+            ?.also {
+                putDataOnWebView(
+                    webview,
+                    it.replaceRelativePathWithAbsolute(getStringFromArguments(MainActivity.URL))
+                )
+            }
     }
 
     private fun fetchData() = launch(Dispatchers.Main) {
@@ -316,24 +320,6 @@ class TextFragment : ScopedFragment() {
                 hasSetInitialColor = true
             }
         })
-    }
-
-    private fun fetchAndOpenOnWebView(
-        adapter: TextAdapter,
-        view: CustomWebView,
-        color: ItemSelected
-    ) = launch(Dispatchers.Default) {
-        adapter.colorSelected.getPositionForAdapter(color)
-            ?.let { adapter.getItemFromAdapter(it)?.snapId }
-            ?.let { model.getSnapValue(it) }
-            ?.also {
-                withContext(Dispatchers.Main) {
-                    putDataOnWebView(
-                        view,
-                        it.replaceRelativePathWithAbsolute(getStringFromArguments(MainActivity.URL))
-                    )
-                }
-            }
     }
 
     private fun copyToClipboard(context: Context, uri: String) {
