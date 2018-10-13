@@ -33,9 +33,11 @@ import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.forms.FormInputText
 import com.bernaferrari.changedetection.forms.Forms
 import com.bernaferrari.changedetection.groupie.*
+import com.bernaferrari.changedetection.ui.InsetDecoration
 import com.bernaferrari.changedetection.ui.ListPaddingDecoration
 import com.bernaferrari.changedetection.util.GradientColors
 import com.bernaferrari.changedetection.util.GradientColors.getGradientDrawable
+import com.bernaferrari.changedetection.util.LongPress
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
 import com.orhanobut.logger.Logger
@@ -88,18 +90,15 @@ class MainFragment : ScopedFragment() {
             pullToRefresh.isRefreshing = false
         }
 
-        val groupAdapter = GroupAdapter<ViewHolder>()
+        val groupAdapter = GroupAdapter<ViewHolder>().apply {
+            add(sitesSection)
+        }
 
         defaultRecycler.apply {
             layoutManager = LinearLayoutManager(context)
             itemAnimator = itemAnimatorWithoutChangeAnimations()
-            addItemDecoration(ListPaddingDecoration(this.context))
-
-            adapter = groupAdapter.apply {
-                // to be used when AndroidX becomes a reality and our top bar is replaced with a bottom bar.
-                // this.add(MarqueeItem("Change Detection"))
-                add(sitesSection)
-            }
+            addItemDecoration(ListPaddingDecoration(context))
+            adapter = groupAdapter
 
             setEmptyView(view.stateLayout.apply {
                 setEmptyText(getString(R.string.no_websites_being_monitored))
@@ -316,104 +315,55 @@ class MainFragment : ScopedFragment() {
 
     private fun showDialogWithOptions(item: MainCardItem) {
 
-        val color = item.site.colors.second
-
         val customView = parentLayout.inflate(R.layout.recyclerview)
 
         val bottomSheet = customView.createAndShowBottomSheet()
 
-        val dialogItems = mutableListOf<DialogItemSimple>()
+        val dialogItems = mViewModel.generateLongPressList(requireContext(), item)
 
-        dialogItems += DialogItemSimple(
-            getString(R.string.edit),
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_pencil).color(color),
-            "edit"
-        )
+        val recycler = customView.findViewById<RecyclerView>(R.id.defaultRecycler)
 
-        dialogItems += DialogItemSimple(
-            getString(R.string.open_in_browser),
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_google_chrome).color(color),
-            "openInBrowser"
-        )
-
-        // if item is disabled, makes no sense to enable/disable the notifications
-        if (item.site.isSyncEnabled) {
-            dialogItems += DialogItemSimple(
-                item.site.takeIf { it.isNotificationEnabled == true }
-                    ?.let { getString(R.string.notification_disable) }
-                        ?: getString(R.string.notification_enable),
-                IconicsDrawable(
-                    context,
-                    item.site.takeIf { it.isNotificationEnabled == true }
-                        ?.let { CommunityMaterial.Icon.cmd_bell_off }
-                            ?: CommunityMaterial.Icon.cmd_bell)
-                    .color(color),
-                "isNotificationEnabled"
-            )
-        }
-
-        dialogItems += DialogItemSimple(
-            item.site.takeIf { it.isSyncEnabled == true }
-                ?.let { getString(R.string.sync_disable) } ?: getString(R.string.sync_enable),
-            IconicsDrawable(
-                context,
-                item.site.takeIf { it.isSyncEnabled == true }
-                    ?.let { CommunityMaterial.Icon.cmd_sync_off }
-                        ?: CommunityMaterial.Icon.cmd_sync)
-                .color(color),
-            "isSyncEnabled"
-        )
-
-        dialogItems += DialogItemSimple(
-            getString(R.string.remove_more),
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_delete).color(color),
-            "remove"
-        )
-
-        customView.findViewById<RecyclerView>(R.id.defaultRecycler)?.apply {
-
-            this.addItemDecoration(
-                com.bernaferrari.changedetection.ui.InsetDecoration(
+        recycler?.addItemDecoration(
+            InsetDecoration(
                     resources.getDimensionPixelSize(R.dimen.divider_height),
                     resources.getDimensionPixelSize(R.dimen.long_press_separator_margin),
-                    ContextCompat.getColor(this.context, R.color.separator_color)
+                ContextCompat.getColor(requireContext(), R.color.separator_color)
                 )
             )
 
-            this.adapter = GroupAdapter<ViewHolder>().apply {
-                add(Section(dialogItems))
+        recycler?.adapter = GroupAdapter<ViewHolder>().apply {
+            add(Section(dialogItems))
 
-                setOnItemClickListener { dialogitem, _ ->
-                    if (dialogitem !is DialogItemSimple) return@setOnItemClickListener
+            setOnItemClickListener { dialogItem, _ ->
+                if (dialogItem !is DialogItemSimple) return@setOnItemClickListener
 
-                    when (dialogitem.kind) {
-                        "edit" -> showCreateEditDialog(
-                            true,
-                            item as? MainCardItem
-                        )
-                        "openInBrowser" -> {
-                            requireContext().openInBrowser(item.site.url)
+                when (dialogItem.kind) {
+                    LongPress.EDIT -> showCreateEditDialog(
+                        true,
+                        item as? MainCardItem
+                    )
+                    LongPress.OPEN_BROWSER -> {
+                        requireContext().openInBrowser(item.site.url)
+                    }
+                    LongPress.IS_SYNC_ENABLED -> {
+                        item.site.copy(isSyncEnabled = !item.site.isSyncEnabled).also {
+                            mViewModel.updateSite(it)
+                            item.update(it)
+                            sortList()
                         }
-                        "isSyncEnabled" -> {
-                            item.site.copy(isSyncEnabled = !item.site.isSyncEnabled).also {
+                    }
+                    LongPress.IS_NOTIFICATION_ENABLED -> {
+                        item.site.copy(isNotificationEnabled = !item.site.isNotificationEnabled)
+                            .also {
                                 mViewModel.updateSite(it)
                                 item.update(it)
                                 sortList()
                             }
-                        }
-                        "isNotificationEnabled" -> {
-                            item.site.copy(isNotificationEnabled = !item.site.isNotificationEnabled)
-                                .also {
-                                    mViewModel.updateSite(it)
-                                    item.update(it)
-                                    sortList()
-                                }
-                        }
-                        "fetchFromServer" -> reload(item, true)
-                        "remove" -> removeDialog(item)
                     }
-                    bottomSheet.dismiss()
+                    LongPress.REMOVE -> removeDialog(item)
+                    else -> Unit
                 }
+                bottomSheet.dismiss()
             }
         }
     }
@@ -574,30 +524,18 @@ class MainFragment : ScopedFragment() {
         val customView = parentLayout.inflate(R.layout.recyclerview)
         val bottomSheet = customView.createAndShowBottomSheet()
 
-        val updating = mutableListOf<DialogItemSimple>()
-        val color = requireContext().getColorFromAttr(R.attr.strongColor)
-
-        updating += DialogItemSimple(
-            getString(R.string.pruning),
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_content_cut).color(color),
-            "pruning"
-        )
-
-        updating += DialogItemSimple(
-            getString(R.string.remove_all),
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_delete).color(color),
-            "all"
-        )
+        val list = mViewModel.getPruningList(requireContext())
 
         customView.findViewById<RecyclerView>(R.id.defaultRecycler)?.adapter =
                 GroupAdapter<ViewHolder>().apply {
-                    add(Section(updating))
+                    add(Section(list))
 
                     setOnItemClickListener { dialogItem, _ ->
                         if (dialogItem is DialogItemSimple) {
                             when (dialogItem.kind) {
-                                "pruning" -> mViewModel.pruneSite(item.site.id)
-                                "all" -> removeItem(item)
+                                LongPress.PRUNING -> mViewModel.pruneSite(item.site.id)
+                                LongPress.ALL -> removeItem(item)
+                                else -> Unit
                             }
                             bottomSheet.dismiss()
                         }
@@ -650,7 +588,7 @@ class MainFragment : ScopedFragment() {
         }
 
         val dialogItemColorPicker =
-            ColorPickerRecyclerViewItem(selectedColor, GradientColors.gradients) {
+            ColorPickerRecyclerViewItem(selectedColor, colorsList) {
                 dialogItemTitle.gradientColors = it
                 dialogItemTitle.notifyChanged()
             }
@@ -672,31 +610,32 @@ class MainFragment : ScopedFragment() {
                         return@positiveButton
                     }
 
-                    item.site.url.also { previousUrl ->
+                    val previousUrl = item.site.url
 
-                        val updatedSite = item.site.copy(
-                            title = newTitle,
-                            url = potentialUrl,
-                            colors = dialogItemTitle.gradientColors
-                        )
+                    val updatedSite = item.site.copy(
+                        title = newTitle,
+                        url = potentialUrl,
+                        colors = dialogItemTitle.gradientColors
+                    )
 
-                        // Update internally, i.e. what the user doesn't see
-                        mViewModel.updateSite(updatedSite)
+                    // Update internally, i.e. what the user doesn't see
+                    mViewModel.updateSite(updatedSite)
 
-                        // Update visually, i.e. what the user see
-                        item.update(updatedSite)
+                    // Update visually, i.e. what the user see
+                    item.update(updatedSite)
 
-                        // Only reload if the url has changed.
-                        if (potentialUrl != previousUrl) {
-                            reload(item, true)
-                        }
+                    // Only reload if the url has changed.
+                    if (potentialUrl != previousUrl) {
+                        reload(item, true)
                     }
                 } else {
                     // Some people will forget to put the http:// on the url, so this is going to help them.
                     // This is going to be absolutely sure the current url is invalid, before adding http:// before it.
                     val url = if (!potentialUrl.isValidUrl()) {
                         "http://$potentialUrl"
-                    } else potentialUrl
+                    } else {
+                        potentialUrl
+                    }
 
                     // If even after this it is still invalid, we wiggle
                     if (isUrlWrong(url, listOfItems)) {

@@ -11,11 +11,11 @@ import android.view.ViewGroup
 import androidx.core.view.updateLayoutParams
 import com.bernaferrari.changedetection.Injector
 import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.RecyclerViewItemListener
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.consume
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.inflate
+import com.bernaferrari.changedetection.ui.RecyclerViewItemListener
 import com.bernaferrari.changedetection.util.GlideRequests
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import kotlinx.android.synthetic.main.diff_visual_item_carousel.view.*

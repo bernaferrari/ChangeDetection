@@ -29,6 +29,7 @@ import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.RowItem
 import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
+import com.bernaferrari.changedetection.ui.RecyclerViewItemListener
 import com.bernaferrari.changedetection.util.GlideApp
 import com.bernaferrari.changedetection.util.VisibilityHelper
 import com.davemorrissey.labs.subscaleview.ImageSource
@@ -42,7 +43,6 @@ import kotlinx.android.synthetic.main.control_bar_update_page.*
 import kotlinx.android.synthetic.main.diff_visual_fragment.*
 import kotlinx.android.synthetic.main.diff_visual_fragment.view.*
 import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.android.Main
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import java.io.File

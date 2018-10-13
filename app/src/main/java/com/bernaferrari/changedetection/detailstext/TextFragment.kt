@@ -21,10 +21,14 @@ import android.webkit.WebView
 import androidx.core.view.isVisible
 import androidx.navigation.findNavController
 import com.afollestad.materialdialogs.MaterialDialog
-import com.bernaferrari.changedetection.*
+import com.bernaferrari.changedetection.MainActivity
+import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.ScopedFragment
+import com.bernaferrari.changedetection.ViewModelFactory
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
+import com.bernaferrari.changedetection.ui.RecyclerViewItemListener
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
