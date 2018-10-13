@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection
+package com.bernaferrari.changedetection.ui
 
 import android.support.v7.widget.RecyclerView
 

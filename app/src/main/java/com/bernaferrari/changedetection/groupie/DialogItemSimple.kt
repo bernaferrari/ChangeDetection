@@ -2,6 +2,7 @@ package com.bernaferrari.changedetection.groupie
 
 import android.graphics.drawable.Drawable
 import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.util.LongPress
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.dialog_item_simple.*
@@ -12,7 +13,7 @@ import kotlinx.android.synthetic.main.dialog_item_simple.*
 class DialogItemSimple(
     val title: String,
     val drawable: Drawable,
-    val kind: String
+    val kind: LongPress
 ) : Item() {
 
     override fun getLayout(): Int = R.layout.dialog_item_simple

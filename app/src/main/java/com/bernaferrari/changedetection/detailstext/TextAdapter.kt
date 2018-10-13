@@ -3,8 +3,8 @@ package com.bernaferrari.changedetection.detailstext
 import android.arch.paging.PagedListAdapter
 import android.support.v7.util.DiffUtil
 import android.view.ViewGroup
-import com.bernaferrari.changedetection.RecyclerViewItemListener
 import com.bernaferrari.changedetection.data.Snap
+import com.bernaferrari.changedetection.ui.RecyclerViewItemListener
 
 /**
  * A simple PagedListAdapter that binds Snap items into CardViews.
