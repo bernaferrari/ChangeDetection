@@ -30,7 +30,7 @@ class MainViewModel(
     internal var sortAlphabetically = false
 
     internal val getOutputStatus: LiveData<List<WorkStatus>>
-        get() = WorkManager.getInstance().getStatusesByTag(WorkerHelper.UNIQUEWORK)
+        get() = WorkManager.getInstance().getStatusesForUniqueWorkLiveData(WorkerHelper.UNIQUEWORK)
 
     private var job: Job = Job()
 

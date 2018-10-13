@@ -14,7 +14,6 @@ import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.orhanobut.logger.Logger
 import io.karn.notify.Notify
 import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.IO
 import kotlinx.coroutines.experimental.runBlocking
 import org.threeten.bp.LocalTime
 import com.bernaferrari.changedetection.data.source.Result as DataResult
@@ -27,7 +26,7 @@ class SyncWorker(
     private val debugLog = StringBuilder()
     private val isDebugEnabled = false //Injector.get().sharedPrefs().getBoolean("debug", true)
 
-    override fun doWork(): Worker.Result {
+    override fun doWork(): Result {
 
         if (inputData.getBoolean(WorkerHelper.WIFI, false) && !isWifiConnected()) {
             Logger.d("SyncWorker: wifi is not connected. Try again next time..")

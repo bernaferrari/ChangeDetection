@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Resources
 import android.support.annotation.AttrRes
+import android.support.annotation.LayoutRes
 import android.support.annotation.StringRes
 import android.support.design.widget.BottomSheetDialog
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat
@@ -18,7 +19,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.annotation.LayoutRes
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 import com.bernaferrari.changedetection.R

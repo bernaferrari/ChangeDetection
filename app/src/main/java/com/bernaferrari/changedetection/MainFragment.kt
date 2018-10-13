@@ -47,7 +47,6 @@ import kotlinx.android.synthetic.main.main_fragment.*
 import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.android.synthetic.main.state_layout.view.*
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.android.Main
 
 class MainFragment : ScopedFragment() {
     private lateinit var mViewModel: MainViewModel
@@ -71,42 +70,6 @@ class MainFragment : ScopedFragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.main_fragment, container, false)
-
-    override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
-        menuInflater.inflate(R.menu.main, menu)
-
-        filterItem = menu.findItem(R.id.filter).also {
-            it.isVisible = sitesList.isNotEmpty()
-        }
-
-        menu.findItem(R.id.dark_mode).title = isDarkModeOn.takeIf { it == true }
-            ?.let { getString(R.string.disable_dark_mode) }
-                ?: getString(R.string.enable_dark_mode)
-
-        super.onCreateOptionsMenu(menu, menuInflater)
-    }
-
-    override fun onOptionsItemSelected(menuItem: MenuItem): Boolean {
-        when (menuItem.itemId) {
-            R.id.filter -> onFilterTapped()
-            R.id.settings -> {
-                requireActivity().supportFragmentManager.beginTransaction()
-                    .add(SettingsFragment(), "settings").commit()
-            }
-            R.id.about -> {
-                view?.findNavController()?.navigate(R.id.action_mainFragment_to_aboutFragment)
-            }
-            R.id.dark_mode -> {
-                Injector.get().sharedPrefs().also {
-                    val value = it.getBoolean(MainActivity.DARKMODE, false)
-                    it.edit(true) { putBoolean(MainActivity.DARKMODE, !value) }
-                }
-
-                requireActivity().recreate()
-            }
-        }
-        return true
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -153,6 +116,42 @@ class MainFragment : ScopedFragment() {
 
         mViewModel.loadSites().observe(this, Observer(::updateList))
         mViewModel.getOutputStatus.observe(this, Observer(::workOutput))
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.main, menu)
+
+        filterItem = menu.findItem(R.id.filter).also {
+            it.isVisible = sitesList.isNotEmpty()
+        }
+
+        menu.findItem(R.id.dark_mode).title = isDarkModeOn.takeIf { it == true }
+            ?.let { getString(R.string.disable_dark_mode) }
+                ?: getString(R.string.enable_dark_mode)
+
+        super.onCreateOptionsMenu(menu, menuInflater)
+    }
+
+    override fun onOptionsItemSelected(menuItem: MenuItem): Boolean {
+        when (menuItem.itemId) {
+            R.id.filter -> onFilterTapped()
+            R.id.settings -> {
+                requireActivity().supportFragmentManager.beginTransaction()
+                    .add(SettingsFragment(), "settings").commit()
+            }
+            R.id.about -> {
+                view?.findNavController()?.navigate(R.id.action_mainFragment_to_aboutFragment)
+            }
+            R.id.dark_mode -> {
+                Injector.get().sharedPrefs().also {
+                    val value = it.getBoolean(MainActivity.DARKMODE, false)
+                    it.edit(true) { putBoolean(MainActivity.DARKMODE, !value) }
+                }
+
+                requireActivity().recreate()
+            }
+        }
+        return true
     }
 
     private fun onFilterTapped() {

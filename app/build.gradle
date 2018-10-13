@@ -30,8 +30,8 @@ android {
     buildTypes {
         release {
             debuggable false
-            minifyEnabled false
-            shrinkResources false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
@@ -50,9 +50,6 @@ android {
     compileOptions {
         sourceCompatibility = '1.8'
         targetCompatibility = '1.8'
-    }
-    packagingOptions {
-        exclude 'META-INF/proguard/androidx-annotations.pro'
     }
 }
 
@@ -82,7 +79,7 @@ dependencies {
     kapt "android.arch.persistence.room:compiler:$room_version"
     implementation "android.arch.persistence.room:runtime:$room_version"
 
-    def work_version = "1.0.0-alpha09"
+    def work_version = "1.0.0-alpha10"
     implementation "android.arch.work:work-runtime:$work_version" // use -ktx for Kotlin
 
     def paging_version = "1.0.1"
