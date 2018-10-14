@@ -37,6 +37,7 @@ import kotlinx.android.synthetic.main.control_bar_diff.*
 import kotlinx.android.synthetic.main.diff_text_fragment.*
 import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.coroutines.experimental.Dispatchers
+import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import kotlin.properties.ObservableProperty
@@ -272,19 +273,23 @@ class TextFragment : ScopedFragment() {
         putDataOnWebView(webview, result)
     }
 
-    private fun loadIntoWebView(revised: Boolean) = launch(Dispatchers.Main) {
+    private var loadIntoWebViewJob: Job? = null
 
-        val color = if (revised) ItemSelected.REVISED else ItemSelected.ORIGINAL
+    private fun loadIntoWebView(revised: Boolean) {
+        loadIntoWebViewJob?.cancel()
+        loadIntoWebViewJob = launch(Dispatchers.Main) {
+            val color = if (revised) ItemSelected.REVISED else ItemSelected.ORIGINAL
 
-        bottomAdapter.colorSelected.getPositionForAdapter(color)
-            ?.let { bottomAdapter.getItemFromAdapter(it)?.snapId }
-            ?.let { model.getSnapValue(it) }
-            ?.also {
-                putDataOnWebView(
-                    webview,
-                    it.replaceRelativePathWithAbsolute(getStringFromArguments(MainActivity.URL))
-                )
-            }
+            bottomAdapter.colorSelected.getPositionForAdapter(color)
+                ?.let { bottomAdapter.getItemFromAdapter(it)?.snapId }
+                ?.let { model.getSnapValue(it) }
+                ?.also {
+                    putDataOnWebView(
+                        webview,
+                        it.replaceRelativePathWithAbsolute(getStringFromArguments(MainActivity.URL))
+                    )
+                }
+        }
     }
 
     private fun fetchData() = launch(Dispatchers.Main) {
