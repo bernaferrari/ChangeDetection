@@ -2,8 +2,6 @@ package com.bernaferrari.changedetection.detailstext
 
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.TransitionDrawable
-import android.support.v7.widget.CardView
-import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.graphics.drawable.toDrawable
@@ -24,7 +22,7 @@ class TextViewHolder(
     parent: ViewGroup,
     val adapter: TextAdapter,
     val callback: RecyclerViewItemListener
-) : RecyclerView.ViewHolder(
+) : androidx.recyclerview.widget.RecyclerView.ViewHolder(
     LayoutInflater.from(parent.context).inflate(R.layout.item_text_selector, parent, false)
 ) {
 
@@ -89,7 +87,10 @@ class TextViewHolder(
         }
     }
 
-    private fun setCardBackgroundAnimated(cardView: CardView, color: Drawable) {
+    private fun setCardBackgroundAnimated(
+        cardView: androidx.cardview.widget.CardView,
+        color: Drawable
+    ) {
         cardView.background = TransitionDrawable(arrayOf(cardView.background, color)).apply {
             startTransition(100)
         }

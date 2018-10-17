@@ -1,9 +1,9 @@
 package com.bernaferrari.changedetection.detailsvisual
 
-import android.arch.paging.PagedListAdapter
 import android.content.Context
-import android.support.v7.util.DiffUtil
 import android.view.ViewGroup
+import androidx.paging.PagedListAdapter
+import androidx.recyclerview.widget.DiffUtil
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.ui.RecyclerViewItemListener
 import com.bernaferrari.changedetection.util.GlideRequests

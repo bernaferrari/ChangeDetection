@@ -2,9 +2,9 @@ package com.bernaferrari.changedetection.ui
 
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.support.annotation.ColorInt
-import android.support.annotation.Dimension
-import android.support.v7.widget.RecyclerView
+import androidx.annotation.ColorInt
+import androidx.annotation.Dimension
+import androidx.recyclerview.widget.RecyclerView
 
 
 /**
@@ -16,7 +16,7 @@ class InsetDecoration(
     @param:Dimension private val height: Int,
     @param:Dimension private val inset: Int,
     @ColorInt dividerColor: Int
-) : RecyclerView.ItemDecoration() {
+) : androidx.recyclerview.widget.RecyclerView.ItemDecoration() {
 
     private val paint: Paint = Paint()
 
@@ -26,7 +26,11 @@ class InsetDecoration(
         paint.strokeWidth = height.toFloat()
     }
 
-    override fun onDrawOver(canvas: Canvas, parent: RecyclerView, state: RecyclerView.State) {
+    override fun onDrawOver(
+        canvas: Canvas,
+        parent: androidx.recyclerview.widget.RecyclerView,
+        state: androidx.recyclerview.widget.RecyclerView.State
+    ) {
         val childCount = parent.childCount
         if (childCount < 2) return
 

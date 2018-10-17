@@ -1,6 +1,6 @@
 package com.bernaferrari.changedetection.data
 
-import android.arch.persistence.room.*
+import androidx.room.*
 import com.bernaferrari.changedetection.WorkerHelper
 import java.util.*
 

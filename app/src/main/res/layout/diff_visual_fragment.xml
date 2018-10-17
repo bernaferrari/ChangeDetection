@@ -9,7 +9,7 @@
     android:transitionName="@string/shared_transition"
     app:dragDismissDistance="@dimen/drag_dismiss_distance">
 
-    <android.support.v4.widget.DrawerLayout
+    <androidx.drawerlayout.widget.DrawerLayout
         android:id="@+id/drawer"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -94,7 +94,7 @@
                     android:indeterminate="true"
                     android:indeterminateTint="@color/md_indigo_A200" />
 
-                <android.support.v4.widget.NestedScrollView
+                <androidx.core.widget.NestedScrollView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:fillViewport="true">
@@ -105,7 +105,7 @@
                         android:layout_height="0dp"
                         android:scaleType="fitCenter" />
 
-                </android.support.v4.widget.NestedScrollView>
+                </androidx.core.widget.NestedScrollView>
             </FrameLayout>
 
             <View
@@ -133,7 +133,7 @@
             android:elevation="6dp"
             android:orientation="vertical">
 
-            <android.support.v7.widget.RecyclerView
+            <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/drawerRecycler"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -142,7 +142,7 @@
                 android:paddingBottom="8dp"
                 android:scrollbarStyle="outsideOverlay"
                 android:scrollbars="vertical"
-                app:layoutManager="android.support.v7.widget.LinearLayoutManager" />
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
         </LinearLayout>
-    </android.support.v4.widget.DrawerLayout>
+    </androidx.drawerlayout.widget.DrawerLayout>
 </com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout>
