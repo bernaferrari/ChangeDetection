@@ -1,25 +1,23 @@
 package com.bernaferrari.changedetection
 
-import android.arch.lifecycle.Observer
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
-import android.support.design.widget.BottomSheetDialog
-import android.support.design.widget.Snackbar
-import android.support.transition.AutoTransition
-import android.support.transition.TransitionManager
-import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.view.*
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
+import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.FragmentNavigatorExtras
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
 import androidx.work.State
 import androidx.work.WorkManager
 import androidx.work.WorkStatus
@@ -225,7 +223,8 @@ class MainFragment : ScopedFragment() {
             add(LoadingItem())
         }
 
-        customView.findViewById<RecyclerView>(R.id.defaultRecycler).adapter = bottomSheetAdapter
+        customView.findViewById<RecyclerView>(R.id.defaultRecycler)
+            .adapter = bottomSheetAdapter
 
         launch {
             updateBottomSheet(item, bottomSheetAdapter, bottomSheet)
@@ -235,7 +234,7 @@ class MainFragment : ScopedFragment() {
     private suspend fun updateBottomSheet(
         item: MainCardItem,
         bottomSheetAdapter: GroupAdapter<ViewHolder>,
-        bottomSheet: BottomSheetDialog
+        bottomSheet: com.google.android.material.bottomsheet.BottomSheetDialog
     ): Unit = withContext(Dispatchers.Main) {
 
         val contentTypes = mViewModel.getRecentContentTypes(item.site.id)
@@ -280,7 +279,11 @@ class MainFragment : ScopedFragment() {
                                 navigateTo(selected, item)
                             } else {
                                 view?.also { v ->
-                                    Snackbar.make(v, R.string.less_than_two, Snackbar.LENGTH_LONG)
+                                    com.google.android.material.snackbar.Snackbar.make(
+                                        v,
+                                        R.string.less_than_two,
+                                        com.google.android.material.snackbar.Snackbar.LENGTH_LONG
+                                    )
                                         .show()
                                 }
                             }
@@ -321,7 +324,8 @@ class MainFragment : ScopedFragment() {
 
         val dialogItems = mViewModel.generateLongPressList(requireContext(), item)
 
-        val recycler = customView.findViewById<RecyclerView>(R.id.defaultRecycler)
+        val recycler =
+            customView.findViewById<RecyclerView>(R.id.defaultRecycler)
 
         recycler?.addItemDecoration(
             InsetDecoration(
@@ -526,7 +530,8 @@ class MainFragment : ScopedFragment() {
 
         val list = mViewModel.getPruningList(requireContext())
 
-        customView.findViewById<RecyclerView>(R.id.defaultRecycler)?.adapter =
+        customView.findViewById<RecyclerView>(R.id.defaultRecycler)
+            ?.adapter =
                 GroupAdapter<ViewHolder>().apply {
                     add(Section(list))
 
@@ -679,11 +684,15 @@ class MainFragment : ScopedFragment() {
                 }
             }
 
-        materialDialog.getCustomView()?.findViewById<RecyclerView>(R.id.defaultRecycler)?.apply {
+        materialDialog.getCustomView()
+            ?.findViewById<RecyclerView>(R.id.defaultRecycler)?.apply {
             this.overScrollMode = View.OVER_SCROLL_NEVER
             this.layoutManager = LinearLayoutManager(this.context)
             this.addItemDecoration(
-                DividerItemDecoration(this.context, DividerItemDecoration.VERTICAL)
+                DividerItemDecoration(
+                    this.context,
+                    DividerItemDecoration.VERTICAL
+                )
             )
             this.adapter = GroupAdapter<ViewHolder>().apply {
                 add(dialogItemTitle)

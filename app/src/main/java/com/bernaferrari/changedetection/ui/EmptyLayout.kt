@@ -1,10 +1,10 @@
 package com.bernaferrari.changedetection.ui
 
 import android.content.Context
-import android.support.annotation.StringRes
 import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
+import androidx.annotation.StringRes
 import com.bernaferrari.changedetection.R
 import kotlinx.android.synthetic.main.empty_layout.view.*
 

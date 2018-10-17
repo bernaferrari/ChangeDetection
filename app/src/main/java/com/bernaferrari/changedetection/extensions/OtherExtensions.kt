@@ -1,26 +1,25 @@
 package com.bernaferrari.changedetection.extensions
 
-import android.arch.lifecycle.ViewModel
-import android.arch.lifecycle.ViewModelProvider
-import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.Intent
 import android.content.res.Resources
-import android.support.annotation.AttrRes
-import android.support.annotation.LayoutRes
-import android.support.annotation.StringRes
-import android.support.design.widget.BottomSheetDialog
-import android.support.graphics.drawable.AnimatedVectorDrawableCompat
-import android.support.v4.app.Fragment
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.SimpleItemAnimator
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.annotation.AttrRes
+import androidx.annotation.LayoutRes
+import androidx.annotation.StringRes
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SimpleItemAnimator
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.bernaferrari.changedetection.R
 import com.github.marlonlom.utilities.timeago.TimeAgo
 
@@ -80,7 +79,10 @@ internal fun Context.openInBrowser(url: String?) {
     }
 }
 
-internal fun Fragment.getStringFromArguments(key: String, default: String = ""): String =
+internal fun Fragment.getStringFromArguments(
+    key: String,
+    default: String = ""
+): String =
     arguments?.getString(key) ?: default
 
 /** Convenience for callbacks/listeners whose return value indicates an event was consumed. */
@@ -116,13 +118,13 @@ internal fun Context.getColorFromAttr(
 }
 
 internal fun View.createBottomSheet() =
-    BottomSheetDialog(this.context).also {
+    com.google.android.material.bottomsheet.BottomSheetDialog(this.context).also {
         this.background = context.getColorFromAttr(R.attr.windowBackground).toDrawable()
         it.setContentView(this)
     }
 
 internal fun View.createAndShowBottomSheet() =
-    BottomSheetDialog(this.context).also {
+    com.google.android.material.bottomsheet.BottomSheetDialog(this.context).also {
         this.background = context.getColorFromAttr(R.attr.windowBackground).toDrawable()
         it.setContentView(this)
         it.show()

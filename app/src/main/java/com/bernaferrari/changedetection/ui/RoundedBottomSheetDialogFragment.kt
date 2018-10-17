@@ -2,8 +2,6 @@ package com.bernaferrari.changedetection.ui
 
 import android.app.Dialog
 import android.os.Bundle
-import android.support.design.widget.BottomSheetDialog
-import android.support.design.widget.BottomSheetDialogFragment
 import com.bernaferrari.changedetection.Injector
 import com.bernaferrari.changedetection.MainActivity
 import com.bernaferrari.changedetection.R
@@ -13,7 +11,8 @@ import com.bernaferrari.changedetection.R
  * theme which sets a rounded background to the dialog
  * and doesn't dim the navigation bar
  */
-open class RoundedBottomSheetDialogFragment : BottomSheetDialogFragment() {
+open class RoundedBottomSheetDialogFragment :
+    com.google.android.material.bottomsheet.BottomSheetDialogFragment() {
 
     private val isDarkMode = Injector.get().sharedPrefs().getBoolean(MainActivity.DARKMODE, false)
 
@@ -24,6 +23,6 @@ open class RoundedBottomSheetDialogFragment : BottomSheetDialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog =
-        BottomSheetDialog(requireContext(), theme)
+        com.google.android.material.bottomsheet.BottomSheetDialog(requireContext(), theme)
 
 }

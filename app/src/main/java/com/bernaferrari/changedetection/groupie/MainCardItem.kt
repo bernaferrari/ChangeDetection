@@ -3,12 +3,12 @@ package com.bernaferrari.changedetection.groupie
 import android.content.Context
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.GradientDrawable
-import android.support.graphics.drawable.Animatable2Compat
-import android.support.graphics.drawable.AnimatedVectorDrawableCompat
-import android.support.v4.content.ContextCompat
-import android.support.v4.view.ViewCompat
 import android.view.View
 import android.widget.ImageView
+import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.vectordrawable.graphics.drawable.Animatable2Compat
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.Snap

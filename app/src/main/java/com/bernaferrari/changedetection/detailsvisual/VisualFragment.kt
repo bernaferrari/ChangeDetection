@@ -1,6 +1,5 @@
 package com.bernaferrari.changedetection.detailsvisual
 
-import android.arch.lifecycle.Observer
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -10,19 +9,20 @@ import android.graphics.Point
 import android.graphics.pdf.PdfRenderer
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
-import android.support.transition.AutoTransition
-import android.support.transition.ChangeBounds
-import android.support.transition.TransitionManager
-import android.support.v4.content.ContextCompat
-import android.support.v4.content.FileProvider
-import android.support.v4.view.GravityCompat
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.AutoTransition
+import androidx.transition.ChangeBounds
+import androidx.transition.TransitionManager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.*
 import com.bernaferrari.changedetection.data.Snap
@@ -109,7 +109,10 @@ class VisualFragment : ScopedFragment(),
     private fun beginDelayedTransition() =
         TransitionManager.beginDelayedTransition(container, transition)
 
-    override fun onCurrentItemChanged(viewHolder: RecyclerView.ViewHolder?, adapterPosition: Int) {
+    override fun onCurrentItemChanged(
+        viewHolder: RecyclerView.ViewHolder?,
+        adapterPosition: Int
+    ) {
 
         // set the photo_view with current file
         val item = carouselAdapter.getItemFromAdapter(adapterPosition)

@@ -11,7 +11,7 @@
         android:layout_height="48dp"
         android:layout_gravity="center" />
 
-    <android.support.design.card.MaterialCardView
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -31,5 +31,5 @@
             android:textAlignment="center"
             tools:text="Nothing found" />
 
-    </android.support.design.card.MaterialCardView>
+    </com.google.android.material.card.MaterialCardView>
 </FrameLayout>

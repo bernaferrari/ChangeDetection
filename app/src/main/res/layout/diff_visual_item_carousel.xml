@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="280dp"
     android:layout_height="280dp"
     xmlns:tools="http://schemas.android.com/tools"
@@ -25,4 +25,4 @@
         android:textColor="@color/white"
         tools:text="3 days ago" />
 
-</android.support.design.card.MaterialCardView>
+</com.google.android.material.card.MaterialCardView>

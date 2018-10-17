@@ -2,15 +2,16 @@ package com.bernaferrari.changedetection.ui
 
 import android.content.Context
 import android.graphics.Rect
-import android.support.v7.widget.RecyclerView
 import android.util.TypedValue
 import android.view.View
+import androidx.recyclerview.widget.RecyclerView
 
 /**
  * Adds 8dp padding to the top of the first and the Listeners of the last item in the list,
  * as specified in https://www.google.com/design/spec/components/lists.html#lists-specs
  */
-class ListPaddingDecoration(context: Context) : RecyclerView.ItemDecoration() {
+class ListPaddingDecoration(context: Context) :
+    androidx.recyclerview.widget.RecyclerView.ItemDecoration() {
     private val mPadding: Int
     private val paddingInDips = 16
 
@@ -26,11 +27,11 @@ class ListPaddingDecoration(context: Context) : RecyclerView.ItemDecoration() {
     override fun getItemOffsets(
         outRect: Rect,
         view: View,
-        parent: RecyclerView,
-        state: RecyclerView.State
+        parent: androidx.recyclerview.widget.RecyclerView,
+        state: androidx.recyclerview.widget.RecyclerView.State
     ) {
         val itemPosition = parent.getChildAdapterPosition(view)
-        if (itemPosition == RecyclerView.NO_POSITION) {
+        if (itemPosition == androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
             return
         }
         if (itemPosition == 0) {

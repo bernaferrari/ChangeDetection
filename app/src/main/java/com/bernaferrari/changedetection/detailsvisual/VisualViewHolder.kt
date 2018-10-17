@@ -6,7 +6,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
-import android.support.v7.widget.RecyclerView
 import android.view.ViewGroup
 import androidx.core.view.updateLayoutParams
 import com.bernaferrari.changedetection.Injector
@@ -27,7 +26,7 @@ class VisualViewHolder(
     private val itemWidth: Int,
     private val isPdf: Boolean,
     val callback: RecyclerViewItemListener
-) : RecyclerView.ViewHolder(
+) : androidx.recyclerview.widget.RecyclerView.ViewHolder(
     parent.inflate(R.layout.diff_visual_item_carousel).apply {
         this.updateLayoutParams {
             width = itemWidth

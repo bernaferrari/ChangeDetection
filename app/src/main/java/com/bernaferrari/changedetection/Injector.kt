@@ -1,8 +1,8 @@
 package com.bernaferrari.changedetection
 
-import android.arch.persistence.room.Room
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.room.Room
 import com.bernaferrari.changedetection.data.source.SitesDataSource
 import com.bernaferrari.changedetection.data.source.SitesRepository
 import com.bernaferrari.changedetection.data.source.SnapsDataSource

@@ -3,12 +3,12 @@ package com.bernaferrari.changedetection.ui
 import android.app.Activity
 import android.content.Context
 import android.os.Build
-import android.support.annotation.RequiresApi
-import android.support.v7.app.AppCompatActivity
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.util.AnimUtils
 import java.util.*

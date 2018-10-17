@@ -1,25 +1,24 @@
 package com.bernaferrari.changedetection.detailstext
 
 import android.annotation.TargetApi
-import android.arch.lifecycle.Observer
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
-import android.support.design.widget.Snackbar
-import android.support.transition.AutoTransition
-import android.support.transition.ChangeBounds
-import android.support.transition.TransitionManager
-import android.support.v4.content.ContextCompat
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.AutoTransition
+import androidx.transition.ChangeBounds
+import androidx.transition.TransitionManager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.MainActivity
 import com.bernaferrari.changedetection.R
@@ -221,6 +220,7 @@ class TextFragment : ScopedFragment() {
 
         topRecycler.apply {
             setEmptyView(stateLayout)
+            layoutManager = LinearLayoutManager(context)
 
             adapter = GroupAdapter<ViewHolder>().apply {
                 add(topSection)
@@ -237,7 +237,11 @@ class TextFragment : ScopedFragment() {
 
         bottomRecycler.run {
             adapter = bottomAdapter
-            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            layoutManager = LinearLayoutManager(
+                context,
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
             itemAnimator = itemAnimatorWithoutChangeAnimations()
         }
 
@@ -318,10 +322,10 @@ class TextFragment : ScopedFragment() {
                         revisedId = bottomAdapter.getItemFromAdapter(0)?.snapId
                     )
                 } catch (e: Exception) {
-                    Snackbar.make(
+                    com.google.android.material.snackbar.Snackbar.make(
                         elastic,
                         getString(R.string.less_than_two),
-                        Snackbar.LENGTH_LONG
+                        com.google.android.material.snackbar.Snackbar.LENGTH_LONG
                     ).show()
                     dismiss()
                 }
@@ -336,7 +340,11 @@ class TextFragment : ScopedFragment() {
         val clip = ClipData.newPlainText(context.getString(R.string.app_name), uri)
 
         clipboard.primaryClip = clip
-        Snackbar.make(elastic, getString(R.string.success_copied), Snackbar.LENGTH_SHORT).show()
+        com.google.android.material.snackbar.Snackbar.make(
+            elastic,
+            getString(R.string.success_copied),
+            com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
+        ).show()
     }
 
     private fun putDataOnWebView(webView: WebView?, data: String) {

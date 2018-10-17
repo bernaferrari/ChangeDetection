@@ -1,7 +1,7 @@
 package com.bernaferrari.changedetection.data
 
-import android.arch.persistence.room.*
-import android.arch.persistence.room.ForeignKey.CASCADE
+import androidx.room.*
+import androidx.room.ForeignKey.CASCADE
 import java.util.*
 
 @Entity(

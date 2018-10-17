@@ -3,7 +3,7 @@ package com.bernaferrari.changedetection
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.support.v4.content.FileProvider
+import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import androidx.navigation.findNavController
 import com.danielstone.materialaboutlibrary.ConvenienceBuilder

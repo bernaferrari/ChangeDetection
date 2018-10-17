@@ -1,10 +1,10 @@
 package com.bernaferrari.changedetection.detailstext
 
 import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
-import android.arch.lifecycle.LiveData
-import android.arch.paging.LivePagedListBuilder
-import android.arch.paging.PagedList
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.paging.LivePagedListBuilder
+import androidx.paging.PagedList
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SnapsRepository
 import com.bernaferrari.changedetection.extensions.getPositionForAdapter
@@ -83,12 +83,11 @@ class TextViewModel(
             val (original, new) = getFromDb(originalId!!, revisedId!!)
             val (onlyDiff, nonDiff) = generateDiffRows(original, new)
 
-            val mutableList = withContext(Dispatchers.IO) {
-                mutableListOf<TextRecycler>().also {
-                    if (changePlusOriginal) it.addAll(nonDiff)
-                    it.addAll(onlyDiff)
-                    it.sortBy { item -> item.index }
-                }
+            val mutableList = mutableListOf<TextRecycler>()
+            withContext(Dispatchers.IO) {
+                if (changePlusOriginal) mutableList.addAll(nonDiff)
+                mutableList.addAll(onlyDiff)
+                mutableList.sortBy { item -> item.index }
             }
 
             // this way it captures if showNotEnoughInfoError is null or false

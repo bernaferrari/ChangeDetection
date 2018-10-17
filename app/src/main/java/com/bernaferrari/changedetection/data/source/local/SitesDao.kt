@@ -1,6 +1,6 @@
 package com.bernaferrari.changedetection.data.source.local
 
-import android.arch.persistence.room.*
+import androidx.room.*
 import com.bernaferrari.changedetection.data.Site
 
 /**

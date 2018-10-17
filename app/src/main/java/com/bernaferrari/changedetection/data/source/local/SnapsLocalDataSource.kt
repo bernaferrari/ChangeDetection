@@ -1,8 +1,8 @@
 package com.bernaferrari.changedetection.data.source.local
 
-import android.arch.lifecycle.LiveData
-import android.arch.paging.DataSource
 import android.content.Context
+import androidx.lifecycle.LiveData
+import androidx.paging.DataSource
 import com.bernaferrari.changedetection.data.ContentTypeInfo
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.Result

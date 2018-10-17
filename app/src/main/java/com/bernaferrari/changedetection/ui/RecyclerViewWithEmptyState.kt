@@ -1,10 +1,9 @@
 package com.bernaferrari.changedetection.ui
 
 import android.content.Context
-import android.support.v7.widget.RecyclerView
 import android.util.AttributeSet
 import androidx.core.view.isVisible
-
+import androidx.recyclerview.widget.RecyclerView
 
 class RecyclerViewWithEmptyState @JvmOverloads constructor(
     context: Context,
@@ -14,7 +13,8 @@ class RecyclerViewWithEmptyState @JvmOverloads constructor(
 
     private var emptyLayout: EmptyLayout? = null
 
-    private val observer = object : RecyclerView.AdapterDataObserver() {
+    private val observer =
+        object : RecyclerView.AdapterDataObserver() {
         override fun onChanged() {
             updateEmptyView()
         }

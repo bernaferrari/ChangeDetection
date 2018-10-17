@@ -1,8 +1,6 @@
 package com.bernaferrari.changedetection.ui
 
-import android.support.v7.widget.RecyclerView
-
 interface RecyclerViewItemListener {
-    fun onClickListener(item: RecyclerView.ViewHolder)
-    fun onLongClickListener(item: RecyclerView.ViewHolder)
+    fun onClickListener(item: androidx.recyclerview.widget.RecyclerView.ViewHolder)
+    fun onLongClickListener(item: androidx.recyclerview.widget.RecyclerView.ViewHolder)
 }

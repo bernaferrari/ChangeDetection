@@ -1,7 +1,7 @@
 package com.bernaferrari.changedetection.groupie
 
-import android.support.v4.content.ContextCompat
 import android.view.View
+import androidx.core.content.ContextCompat
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate

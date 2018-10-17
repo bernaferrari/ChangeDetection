@@ -1,7 +1,7 @@
 package com.bernaferrari.changedetection
 
-import android.support.multidex.MultiDexApplication
 import android.util.Log
+import androidx.multidex.MultiDexApplication
 import androidx.work.Configuration
 import androidx.work.WorkManager
 import com.facebook.stetho.Stetho

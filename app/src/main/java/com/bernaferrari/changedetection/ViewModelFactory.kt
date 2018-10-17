@@ -18,9 +18,9 @@ package com.bernaferrari.changedetection
 
 import android.annotation.SuppressLint
 import android.app.Application
-import android.arch.lifecycle.ViewModel
-import android.arch.lifecycle.ViewModelProvider
-import android.support.annotation.VisibleForTesting
+import androidx.annotation.VisibleForTesting
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.bernaferrari.changedetection.data.source.SitesRepository
 import com.bernaferrari.changedetection.data.source.SnapsRepository
 import com.bernaferrari.changedetection.detailstext.TextViewModel

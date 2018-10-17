@@ -63,8 +63,7 @@
             <com.bernaferrari.changedetection.ui.RecyclerViewWithEmptyState
                 android:id="@+id/topRecycler"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:layoutManager="android.support.v7.widget.LinearLayoutManager" />
+                android:layout_height="match_parent" />
 
             <com.bernaferrari.changedetection.ui.CustomWebView
                 android:id="@+id/webview"
@@ -93,7 +92,7 @@
 
         <include layout="@layout/control_bar" />
 
-        <android.support.v7.widget.RecyclerView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/bottomRecycler"
             android:layout_width="match_parent"
             android:layout_height="@dimen/item_selector_height"
