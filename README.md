@@ -57,7 +57,7 @@ There is a one to many relationshiop between them. The id from `Site` is a forei
 To let other components know when the data has finished populating, the `ViewModel` exposes a `LiveData` object via callbacks using interfaces (inspired from [this todo app](https://github.com/googlesamples/android-architecture/tree/dev-todo-mvvm-live)).
 This could be, eventually, easily extended to work with server and sync. The app also makes use of Kotlin's Coroutines to deal with some callbacks.
 
-#### Simple comparision process
+#### Simple comparison process
 The app works like this:
 
 1. Make http request and store the body response in a byteArray.

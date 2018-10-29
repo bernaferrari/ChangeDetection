@@ -35,10 +35,10 @@ import kotlinx.android.synthetic.main.control_bar.*
 import kotlinx.android.synthetic.main.control_bar_diff.*
 import kotlinx.android.synthetic.main.diff_text_fragment.*
 import kotlinx.android.synthetic.main.state_layout.*
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
 

@@ -36,12 +36,6 @@ android {
             signingConfig signingConfigs.release
         }
     }
-
-    kotlin {
-        experimental {
-            coroutines 'enable'
-        }
-    }
     android {
         lintOptions {
             abortOnError false
@@ -58,22 +52,22 @@ dependencies {
     implementation project(':diffutils')
 
     // RX
-    implementation 'io.reactivex.rxjava2:rxjava:2.2.2'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.3'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
 
+    
     // Coroutines
-    def coroutines_version = "0.30.2"
+    def coroutines_version = "1.0.0"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version"
 
 
     // Jetpack
-    def supportLibrary = '1.0.0'
-    implementation "com.google.android.material:material:${supportLibrary}"
-    implementation "androidx.appcompat:appcompat:${supportLibrary}"
-    implementation "androidx.core:core:${supportLibrary}"
-    implementation "androidx.recyclerview:recyclerview:${supportLibrary}"
-    implementation "androidx.annotation:annotation:${supportLibrary}"
+    implementation "com.google.android.material:material:1.0.0"
+    implementation "androidx.appcompat:appcompat:1.0.0"
+    implementation "androidx.core:core:1.0.0"
+    implementation "androidx.recyclerview:recyclerview:1.0.0"
+    implementation "androidx.annotation:annotation:1.0.0"
     implementation 'androidx.core:core-ktx:1.0.0'
 
     // Android Architecture Components
@@ -93,6 +87,7 @@ dependencies {
 
     def paging_version = '2.0.0'
     implementation "androidx.paging:paging-runtime:$paging_version"
+
 
     // Logging
     implementation 'com.orhanobut:logger:2.2.0'
@@ -141,7 +136,7 @@ dependencies {
 
 
     // Dagger
-    def dagger = "2.17"
+    def dagger = "2.18"
     implementation "com.google.dagger:dagger:$dagger"
     kapt "com.google.dagger:dagger-compiler:$dagger"
 

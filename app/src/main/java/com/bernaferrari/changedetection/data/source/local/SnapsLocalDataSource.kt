@@ -10,7 +10,7 @@ import com.bernaferrari.changedetection.data.source.SnapsDataSource
 import com.bernaferrari.changedetection.extensions.cleanUpHtml
 import com.bernaferrari.changedetection.util.AppExecutors
 import com.orhanobut.logger.Logger
-import kotlinx.coroutines.experimental.withContext
+import kotlinx.coroutines.withContext
 import java.nio.charset.Charset
 
 /**

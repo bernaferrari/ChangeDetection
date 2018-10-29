@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.SimpleItemAnimator
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.bernaferrari.changedetection.R
 import com.github.marlonlom.utilities.timeago.TimeAgo
+import com.google.android.material.bottomsheet.BottomSheetDialog
 
 internal typealias ColorGroup = Pair<Int, Int>
 
@@ -118,13 +119,13 @@ internal fun Context.getColorFromAttr(
 }
 
 internal fun View.createBottomSheet() =
-    com.google.android.material.bottomsheet.BottomSheetDialog(this.context).also {
+    BottomSheetDialog(this.context).also {
         this.background = context.getColorFromAttr(R.attr.windowBackground).toDrawable()
         it.setContentView(this)
     }
 
 internal fun View.createAndShowBottomSheet() =
-    com.google.android.material.bottomsheet.BottomSheetDialog(this.context).also {
+    BottomSheetDialog(this.context).also {
         this.background = context.getColorFromAttr(R.attr.windowBackground).toDrawable()
         it.setContentView(this)
         it.show()
