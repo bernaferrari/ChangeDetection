@@ -97,7 +97,6 @@
         <item name="bottomSheetStyle">@style/BottomSheet</item>
     </style>
 
-
     <style name="BottomSheet" parent="@style/Widget.MaterialComponents.BottomSheet.Modal">
         <item name="android:background">@drawable/bg_bottom_sheet_dialog_fragment</item>
     </style>

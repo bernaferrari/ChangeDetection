@@ -7,8 +7,8 @@ import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.data.source.SnapsRepository
-import kotlinx.coroutines.experimental.GlobalScope
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
  * Exposes the data to be used in the site diff screen.

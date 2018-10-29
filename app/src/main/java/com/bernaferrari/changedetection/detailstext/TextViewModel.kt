@@ -14,9 +14,9 @@ import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.util.SingleLiveEvent
 import com.bernaferrari.diffutils.diffs.text.DiffRowGenerator
 import com.xwray.groupie.Section
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import java.nio.charset.Charset
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Exposes the data to be used in the site diff screen.
@@ -80,7 +80,7 @@ class TextViewModel(
 
         currentJob = launch(Dispatchers.Main) {
 
-            val (original, new) = getFromDb(originalId!!, revisedId!!)
+            val (original, new) = getFromDb(originalId, revisedId)
             val (onlyDiff, nonDiff) = generateDiffRows(original, new)
 
             val mutableList = mutableListOf<TextRecycler>()
@@ -115,7 +115,7 @@ class TextViewModel(
      */
     suspend fun generateDiffVisual(originalId: String?, revisedId: String?): String {
         if (originalId.isNullOrBlank() || revisedId.isNullOrBlank()) return ""
-        val (original, new) = getFromDb(originalId!!, revisedId!!)
+        val (original, new) = getFromDb(originalId, revisedId)
         return generateVisualDiffRows(original, new)
     }
 

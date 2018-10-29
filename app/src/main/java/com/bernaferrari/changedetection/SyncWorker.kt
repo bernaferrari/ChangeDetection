@@ -13,8 +13,8 @@ import com.bernaferrari.changedetection.extensions.findCharset
 import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.orhanobut.logger.Logger
 import io.karn.notify.Notify
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import org.threeten.bp.LocalTime
 import com.bernaferrari.changedetection.data.source.Result as DataResult
 

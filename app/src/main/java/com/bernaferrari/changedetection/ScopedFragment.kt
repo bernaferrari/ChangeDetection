@@ -2,10 +2,10 @@ package com.bernaferrari.changedetection
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
-import kotlinx.coroutines.experimental.CoroutineScope
-import kotlinx.coroutines.experimental.Dispatchers
-import kotlinx.coroutines.experimental.Job
-import kotlin.coroutines.experimental.CoroutineContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlin.coroutines.CoroutineContext
 
 open class ScopedFragment : Fragment(), CoroutineScope {
     lateinit var job: Job

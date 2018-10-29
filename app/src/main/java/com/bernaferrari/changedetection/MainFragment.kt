@@ -46,7 +46,7 @@ import com.xwray.groupie.ViewHolder
 import kotlinx.android.synthetic.main.main_fragment.*
 import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.android.synthetic.main.state_layout.view.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 
 class MainFragment : ScopedFragment() {
     private lateinit var mViewModel: MainViewModel
