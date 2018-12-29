@@ -2,6 +2,7 @@ package com.bernaferrari.changedetection
 
 import android.content.ClipboardManager
 import android.content.Context
+import android.graphics.drawable.TransitionDrawable
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
@@ -13,14 +14,12 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.FragmentNavigatorExtras
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
-import androidx.work.State
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import androidx.work.WorkStatus
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
@@ -372,7 +371,7 @@ class MainFragment : ScopedFragment() {
         }
     }
 
-    private fun workOutput(it: List<WorkStatus>?) {
+    private fun workOutput(it: List<WorkInfo>?) {
         val result = it ?: return
 
 //        if (Injector.get().sharedPrefs().getBoolean("debug", false)) {
@@ -385,7 +384,7 @@ class MainFragment : ScopedFragment() {
 //            Snackbar.make(view!!, sb, Snackbar.LENGTH_SHORT).show()
 //        }
 
-        if (result.any { it.state == State.SUCCEEDED }) {
+        if (result.any { it.state == WorkInfo.State.SUCCEEDED }) {
             mViewModel.updateItems()
             Logger.d("Just refreshed")
         }
@@ -496,7 +495,7 @@ class MainFragment : ScopedFragment() {
                         )
                     )
                     .setBackgroundDrawable(
-                        getGradientDrawable(newSite.colors.first, newSite.colors.second)
+                        getGradientDrawable(newSite.colors)
                     )
                     .setIcon(R.drawable.ic_notification)
                     .show()
@@ -576,133 +575,140 @@ class MainFragment : ScopedFragment() {
 
         val colorsList = GradientColors.gradients
 
-        val selectedColor = item?.site?.colors ?: colorsList.first()
+        var selectedColors = item?.site?.colors ?: colorsList.first()
 
         val dialogItemTitle = when (isInEditingMode) {
             true -> DialogItemTitle(
                 getString(R.string.edittitle),
-                getString(R.string.editsubtitle),
-                selectedColor
+                getString(R.string.editsubtitle)
             )
             false ->
                 DialogItemTitle(
                     getString(R.string.addtitle),
-                    getString(R.string.addsubtitle),
-                    selectedColor
+                    getString(R.string.addsubtitle)
                 )
         }
 
-        val dialogItemColorPicker =
-            ColorPickerRecyclerViewItem(selectedColor, colorsList) {
-                dialogItemTitle.gradientColors = it
-                dialogItemTitle.notifyChanged()
-            }
-
         val materialDialog = MaterialDialog(requireContext())
             .customView(R.layout.recyclerview, noVerticalPadding = true)
-            .noAutoDismiss() // we need this for wiggle/shake effect, else it would dismiss
-            .negativeButton(R.string.cancel) { it.dismiss() }
-            .positiveButton(R.string.save) { dialog ->
-                // This was adapted from an app which was using NoSql. Not the best syntax, but
-                // can be adapted for any scenario, kind of a
-                // Eureka (https://github.com/xmartlabs/Eureka) for Android.
-                val fromForm = Forms.saveData(listOfItems)
-                val newTitle = fromForm[Forms.NAME] as? String ?: ""
-                val potentialUrl = fromForm[Forms.URL] as? String ?: ""
 
-                if (isInEditingMode && item != null) {
-                    if (isUrlWrong(potentialUrl, listOfItems)) {
-                        return@positiveButton
-                    }
+        val negativeButton = { materialDialog.dismiss() }
 
-                    val previousUrl = item.site.url
-
-                    val updatedSite = item.site.copy(
-                        title = newTitle,
-                        url = potentialUrl,
-                        colors = dialogItemTitle.gradientColors
-                    )
-
-                    // Update internally, i.e. what the user doesn't see
-                    mViewModel.updateSite(updatedSite)
-
-                    // Update visually, i.e. what the user see
-                    item.update(updatedSite)
-
-                    // Only reload if the url has changed.
-                    if (potentialUrl != previousUrl) {
-                        reload(item, true)
-                    }
-                } else {
-                    // Some people will forget to put the http:// on the url, so this is going to help them.
-                    // This is going to be absolutely sure the current url is invalid, before adding http:// before it.
-                    val url = if (!potentialUrl.isValidUrl()) {
-                        "http://$potentialUrl"
-                    } else {
-                        potentialUrl
-                    }
-
-                    // If even after this it is still invalid, we wiggle
-                    if (isUrlWrong(url, listOfItems)) {
-                        return@positiveButton
-                    }
-
-                    val site = Site(
-                        newTitle,
-                        url,
-                        System.currentTimeMillis(),
-                        dialogItemTitle.gradientColors
-                    )
-
-                    mViewModel.saveSite(site)
-                    // add and sortByStatus the card
-                    val newItem = MainCardItem(site, null, reloadCallback)
-                    sitesList += newItem
-                    sitesSection.update(sitesList)
-                    // Scroll down, so user can see there is a new item.
-                    defaultRecycler.smoothScrollToPosition(sitesList.size - 1)
-                    reload(newItem, true)
-                }
-                dialog.dismiss()
-
-                val sharedPrefs = Injector.get().sharedPrefs()
-                // when list size is 1 or 2, warn the user that background sync is off
-                if (!isInEditingMode && sitesList.size < 3 && !sharedPrefs.getBoolean(
-                        "backgroundSync",
-                        false
-                    )
-                ) {
-                    MaterialDialog(requireContext())
-                        .title(R.string.turn_on_background_sync_title)
-                        .message(R.string.turn_on_background_sync_content)
-                        .negativeButton(R.string.no)
-                        .positiveButton(R.string.yes) {
-                            sharedPrefs.edit { putBoolean("backgroundSync", true) }
-                            WorkerHelper.updateWorkerWithConstraints(sharedPrefs)
-                        }
-                        .show()
-                }
-            }
+        val positiveButton = {
+            positiveButton(materialDialog, listOfItems, isInEditingMode, item, selectedColors)
+        }
 
         materialDialog.getCustomView()
             ?.findViewById<RecyclerView>(R.id.defaultRecycler)?.apply {
-            this.overScrollMode = View.OVER_SCROLL_NEVER
-            this.layoutManager = LinearLayoutManager(this.context)
-            this.addItemDecoration(
-                DividerItemDecoration(
-                    this.context,
-                    DividerItemDecoration.VERTICAL
-                )
-            )
-            this.adapter = GroupAdapter<ViewHolder>().apply {
-                add(dialogItemTitle)
-                add(Section(listOfItems))
-                add(dialogItemColorPicker)
-            }
+                this.overScrollMode = View.OVER_SCROLL_NEVER
+                this.layoutManager = LinearLayoutManager(this.context)
+
+                val dialogItemColorPicker =
+                    ColorPickerRecyclerViewItem(selectedColors, colorsList) { newSelectedColors ->
+
+                        selectedColors = newSelectedColors
+
+                        // select a new color with animated transition
+                        val newDrawable = GradientColors.getGradientDrawable(selectedColors)
+                        TransitionDrawable(arrayOf(this.background, newDrawable)).also {
+                            this.background = it
+                            it.startTransition(250)
+                        }
+                    }
+
+                this.adapter = GroupAdapter<ViewHolder>().apply {
+                    add(dialogItemTitle)
+                    add(Section(listOfItems))
+                    add(dialogItemColorPicker)
+                    add(DialogItemSaveCancel(negativeButton, positiveButton))
+                }
+
+                this.background = GradientColors.getGradientDrawable(selectedColors)
         }
 
         materialDialog.show()
     }
+
+    private fun positiveButton(
+        materialDialog: MaterialDialog,
+        listOfItems: MutableList<FormInputText>,
+        isInEditingMode: Boolean, item: MainCardItem?,
+        selectedColors: ColorGroup
+    ) {
+
+        // This was adapted from an app which was using NoSql. Not the best syntax, but
+        // can be adapted for any scenario, kind of a
+        // Eureka (https://github.com/xmartlabs/Eureka) for Android.
+        val fromForm = Forms.saveData(listOfItems)
+        val newTitle = fromForm[Forms.NAME] as? String ?: ""
+        val potentialUrl = fromForm[Forms.URL] as? String ?: ""
+
+        if (isInEditingMode && item != null) {
+            if (isUrlWrong(potentialUrl, listOfItems)) return
+
+            val previousUrl = item.site.url
+
+            val updatedSite = item.site.copy(
+                title = newTitle,
+                url = potentialUrl,
+                colors = selectedColors
+            )
+
+            // Update internally, i.e. what the user doesn't see
+            mViewModel.updateSite(updatedSite)
+
+            // Update visually, i.e. what the user see
+            item.update(updatedSite)
+
+            // Only reload if the url has changed.
+            if (potentialUrl != previousUrl) {
+                reload(item, true)
+            }
+        } else {
+            // Some people will forget to put the http:// on the url, so this is going to help them.
+            // This is going to be absolutely sure the current url is invalid, before adding http:// before it.
+            val url = if (!potentialUrl.isValidUrl()) "http://$potentialUrl" else potentialUrl
+
+            // If even after this it is still invalid, we wiggle
+            if (isUrlWrong(url, listOfItems)) return
+
+            val site = Site(
+                newTitle,
+                url,
+                System.currentTimeMillis(),
+                selectedColors
+            )
+
+            mViewModel.saveSite(site)
+            // add and sortByStatus the card
+            val newItem = MainCardItem(site, null, reloadCallback)
+            sitesList += newItem
+            sitesSection.update(sitesList)
+            // Scroll down, so user can see there is a new item.
+            defaultRecycler.smoothScrollToPosition(sitesList.size - 1)
+            reload(newItem, true)
+        }
+        materialDialog.dismiss()
+
+        val sharedPrefs = Injector.get().sharedPrefs()
+        // when list size is 1 or 2, warn the user that background sync is off
+        if (!isInEditingMode && sitesList.size < 3 && !sharedPrefs.getBoolean(
+                "backgroundSync",
+                false
+            )
+        ) {
+            MaterialDialog(requireContext())
+                .title(R.string.turn_on_background_sync_title)
+                .message(R.string.turn_on_background_sync_content)
+                .negativeButton(R.string.no)
+                .positiveButton(R.string.yes) {
+                    sharedPrefs.edit { putBoolean("backgroundSync", true) }
+                    WorkerHelper.updateWorkerWithConstraints(sharedPrefs)
+                }
+                .show()
+        }
+    }
+
 
     private fun isUrlWrong(url: String, listOfItems: MutableList<FormInputText>): Boolean {
         if (!url.isValidUrl()) {

@@ -56,7 +56,7 @@ object Forms {
             IconicsDrawable(
                 image.context,
                 icon
-            ).colorRes(R.color.FontWeaker)
+            ).colorRes(R.color.transparent_white)
                 .sizeDp(20)
         )
     }

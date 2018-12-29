@@ -1,9 +1,12 @@
 package com.bernaferrari.changedetection.groupie
 
-import androidx.recyclerview.widget.LinearLayoutManager
+import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import androidx.core.view.updateLayoutParams
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.extensions.ColorGroup
 import com.bernaferrari.changedetection.extensions.itemAnimatorWithoutChangeAnimations
+import com.bernaferrari.changedetection.extensions.toDp
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.kotlinandroidextensions.Item
@@ -22,9 +25,21 @@ class ColorPickerRecyclerViewItem(
     private val gradientList: List<ColorGroup>,
     private val listener: (ColorGroup) -> (Unit)
 ) : Item() {
+
     override fun getLayout(): Int = R.layout.colorpicker_recyclerview
 
     override fun bind(viewHolder: ViewHolder, position: Int) {
+
+        viewHolder.containerView.background = ContextCompat.getDrawable(
+            viewHolder.containerView.context,
+            R.drawable.darker_transparent_background
+        )
+        viewHolder.containerView.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            val dp2 = 2.toDp(viewHolder.containerView.resources)
+            val dp8 = 8.toDp(viewHolder.containerView.resources)
+            this.setMargins(dp8, dp2, dp8, dp2)
+        }
+
         val selectorList = mutableListOf<ColorPickerItem>()
 
         // Create each color picker item, checking for the first (because it needs extra margin)
@@ -54,7 +69,6 @@ class ColorPickerRecyclerViewItem(
                 add(Section(selectorList))
             }
             this.itemAnimator = itemAnimatorWithoutChangeAnimations()
-
         }
     }
 }
