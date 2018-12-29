@@ -7,9 +7,9 @@ import androidx.core.view.isVisible
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.extensions.onTextChanged
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
-import kotlinx.android.synthetic.main.item_input_text.*
+import kotlinx.android.synthetic.main.dialog_input_text.*
 
-internal class FormInputText(
+class FormInputText(
     var textInput: String,
     val title: String,
     val kind: String
@@ -17,7 +17,7 @@ internal class FormInputText(
     com.xwray.groupie.kotlinandroidextensions.Item() {
     private var visibleHolder: ViewHolder? = null
 
-    override fun getLayout(): Int = R.layout.item_input_text
+    override fun getLayout(): Int = R.layout.dialog_input_text
 
     override fun bind(holder: ViewHolder, position: Int) {
         visibleHolder = holder
@@ -30,10 +30,6 @@ internal class FormInputText(
 //        TooltipCompat.setTooltipText(queryClear, queryClear.contentDescription)
         queryClear.setOnClickListener {
             holder.text_input.setText("")
-        }
-
-        holder.clear_input.apply {
-            holder.text_input
         }
 
         holder.text_input.apply {

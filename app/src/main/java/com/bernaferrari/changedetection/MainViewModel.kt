@@ -5,8 +5,8 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import androidx.work.WorkStatus
 import com.bernaferrari.changedetection.data.ContentTypeInfo
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.SiteAndLastSnap
@@ -36,8 +36,8 @@ class MainViewModel(
     internal var shouldSyncWhenAppOpen = true
     internal var sortAlphabetically = false
 
-    internal val getOutputStatus: LiveData<List<WorkStatus>>
-        get() = WorkManager.getInstance().getStatusesForUniqueWorkLiveData(WorkerHelper.UNIQUEWORK)
+    internal val getOutputStatus: LiveData<List<WorkInfo>>
+        get() = WorkManager.getInstance().getWorkInfosForUniqueWorkLiveData(WorkerHelper.UNIQUEWORK)
 
     private var job: Job = Job()
 

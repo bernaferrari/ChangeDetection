@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/gradient_light_blue"
+    tools:background="@drawable/gradient_light_blue"
     android:paddingLeft="24dp"
     android:paddingTop="20dp"
     android:paddingRight="24dp"
@@ -19,7 +19,6 @@
         android:maxLines="2"
         android:textColor="@color/white"
         android:textSize="22sp"
-
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -27,7 +26,6 @@
 
     <TextView
         android:id="@+id/subtitle"
-
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:ellipsize="end"

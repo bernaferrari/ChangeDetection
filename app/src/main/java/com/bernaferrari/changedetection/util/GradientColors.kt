@@ -42,9 +42,9 @@ object GradientColors {
         )
     }
 
-    fun getGradientDrawable(firstColor: Int, secondColor: Int): GradientDrawable = GradientDrawable(
+    fun getGradientDrawable(color: ColorGroup): GradientDrawable = GradientDrawable(
         GradientDrawable.Orientation.TR_BL, intArrayOf(
-            firstColor, secondColor
+            color.first, color.second
         )
     )
 }

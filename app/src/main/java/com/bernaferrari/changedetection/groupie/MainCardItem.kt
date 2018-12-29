@@ -193,7 +193,7 @@ class MainCardItem(
             holder = holder
         )
 
-        val shape = GradientColors.getGradientDrawable(site.colors.first, site.colors.second)
+        val shape = GradientColors.getGradientDrawable(site.colors)
 
         // radius should be 8dp
         shape.cornerRadius = 8 * context.resources.displayMetrics.density

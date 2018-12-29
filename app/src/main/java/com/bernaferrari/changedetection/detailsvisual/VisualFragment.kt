@@ -16,6 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -30,6 +31,7 @@ import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.RowItem
 import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
 import com.bernaferrari.changedetection.ui.RecyclerViewItemListener
+import com.bernaferrari.changedetection.util.GlideApp
 import com.bernaferrari.changedetection.util.VisibilityHelper
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.orhanobut.logger.Logger
@@ -243,7 +245,7 @@ class VisualFragment : ScopedFragment(),
             addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
         }
 
-        fetchData()
+        fetchData(this)
 
         groupAdapter.add(section)
         groupAdapter.setOnItemClickListener { item, _ ->
@@ -267,7 +269,7 @@ class VisualFragment : ScopedFragment(),
     }
 
     // this is needed since getSnapsFiltered retrieves a liveData from Room to be observed
-    private fun fetchData() = launch(Dispatchers.Main) {
+    private fun fetchData(lifecycleOwner: LifecycleOwner) = launch(Dispatchers.Main) {
         val siteId = getStringFromArguments(MainActivity.SITEID)
 
         val filtering = when (fileKind) {
@@ -281,11 +283,11 @@ class VisualFragment : ScopedFragment(),
         delay(MainActivity.TRANSITION + 25 + 15)
 
         model.getAllSnapsPagedForId(siteId, filtering)
-            .observe(requireActivity(), Observer(carouselAdapter::submitList))
+            .observe(lifecycleOwner, Observer(carouselAdapter::submitList))
 
             progressBar?.isVisible = false
 
-            liveData.observe(requireActivity(), Observer { filtered ->
+        liveData.observe(lifecycleOwner, Observer { filtered ->
                 val isItemsEmpty = items.isEmpty()
                 items.clear()
 

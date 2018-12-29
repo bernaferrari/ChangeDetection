@@ -35,7 +35,7 @@ class SyncWorker(
             heavyWork()
         }
 
-        return Result.SUCCESS
+        return Result.success()
     }
 
     private fun heavyWork() = runBlocking(Dispatchers.IO) {

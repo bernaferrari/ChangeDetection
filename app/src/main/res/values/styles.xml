@@ -31,6 +31,8 @@
         <item name="num_deletion">@color/num_deletion_light</item>
 
         <item name="inputTheme">@style/DialogLight</item>
+
+        <item name="md_corner_radius">16dp</item>
     </style>
 
     <style name="AppThemeDark" parent="Theme.MaterialComponents.NoActionBar">
@@ -68,6 +70,8 @@
         <item name="num_deletion">@color/num_deletion_dark</item>
 
         <item name="inputTheme">@style/DialogDark</item>
+
+        <item name="md_corner_radius">16dp</item>
     </style>
 
     <style name="SplashTheme" parent="Theme.MaterialComponents.NoActionBar">
@@ -126,7 +130,11 @@
         <item name="android:textSize">18sp</item>
     </style>
 
-    <style name="DialogLight" parent="@style/Theme.MaterialComponents.Light.Dialog">
+    <style name="TextButtonDialogWhite" parent="@style/Widget.MaterialComponents.Button.TextButton.Dialog">
+        <item name="rippleColor">#50ffffff</item>
+    </style>
+
+    <style name="DialogLight" parent="@style/Theme.MaterialComponents.Dialog">
         <item name="colorAccent">@color/really_blue</item>
     </style>
 
