@@ -113,6 +113,11 @@ class MainViewModel(
         return mSnapsRepository.getMostRecentSnap(siteId)
     }
 
+    suspend fun getAllSites(): List<Site> = mSitesRepository.getSites()
+
+    suspend fun isAlreadyMonitoringSite(id: String, url: String): Boolean =
+        mSitesRepository.getSiteByUrl(url) != null || mSitesRepository.getSiteById(id) != null
+
     internal fun getPruningList(context: Context): MutableList<DialogItemSimple> {
 
         val color = context.getColorFromAttr(R.attr.strongColor)
@@ -153,12 +158,12 @@ class MainViewModel(
         // if item is disabled, makes no sense to enable/disable the notifications
         if (item.site.isSyncEnabled) {
             dialogItems += DialogItemSimple(
-                item.site.takeIf { it.isNotificationEnabled == true }
+                item.site.takeIf { it.isNotificationEnabled }
                     ?.let { context.getString(R.string.notification_disable) }
                         ?: context.getString(R.string.notification_enable),
                 IconicsDrawable(
                     context,
-                    item.site.takeIf { it.isNotificationEnabled == true }
+                    item.site.takeIf { it.isNotificationEnabled }
                         ?.let { CommunityMaterial.Icon.cmd_bell_off }
                             ?: CommunityMaterial.Icon.cmd_bell)
                     .color(color),
@@ -167,12 +172,12 @@ class MainViewModel(
         }
 
         dialogItems += DialogItemSimple(
-            item.site.takeIf { it.isSyncEnabled == true }
+            item.site.takeIf { it.isSyncEnabled }
                 ?.let { context.getString(R.string.sync_disable) }
                     ?: context.getString(R.string.sync_enable),
             IconicsDrawable(
                 context,
-                item.site.takeIf { it.isSyncEnabled == true }
+                item.site.takeIf { it.isSyncEnabled }
                     ?.let { CommunityMaterial.Icon.cmd_sync_off }
                         ?: CommunityMaterial.Icon.cmd_sync)
                 .color(color),

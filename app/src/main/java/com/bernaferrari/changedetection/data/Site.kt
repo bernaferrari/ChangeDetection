@@ -51,6 +51,29 @@ data class Site(
     )
 
     @Ignore
+    constructor(
+        title: String?,
+        url: String,
+        timestamp: Long,
+        id: String,
+        colors: Pair<Int, Int>,
+        isSyncEnabled: Boolean,
+        isNotificationEnabled: Boolean
+    ) : this(
+        title,
+        url,
+        timestamp,
+        id,
+        true,
+        false,
+        isSyncEnabled,
+        isNotificationEnabled,
+        "",
+        colors,
+        WorkerHelper.ConstraintsRequired(false, false, false, false)
+    )
+
+    @Ignore
     constructor(title: String?, url: String, timestamp: Long, colors: Pair<Int, Int>) : this(
         title,
         url,

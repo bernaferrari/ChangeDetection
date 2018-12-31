@@ -30,7 +30,7 @@ object Forms {
         }
     }
 
-    internal fun getIcon(kind: String): IIcon {
+    private fun getIcon(kind: String): IIcon {
         return when (kind) {
             Forms.URL -> CommunityMaterial.Icon.cmd_web
             Forms.NAME -> GoogleMaterial.Icon.gmd_edit

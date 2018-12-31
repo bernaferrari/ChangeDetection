@@ -23,6 +23,11 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/backup"
+        android:title="@string/backup"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/about"
         android:icon="@drawable/ic_info"
         android:title="@string/about"

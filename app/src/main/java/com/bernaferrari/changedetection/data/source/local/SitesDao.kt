@@ -19,13 +19,23 @@ interface SitesDao {
     val sites: List<Site>
 
     /**
+     * Select a site by id.
+     *
+     * @param siteId the site id.
+     * @return the site with siteId.
+     */
+    @Query("SELECT * FROM sites WHERE siteId = :siteId")
+    fun getSiteById(siteId: String): Site?
+
+    /**
      * Select a site by url.
      *
      * @param siteId the site url.
      * @return the site with siteId.
      */
-    @Query("SELECT * FROM sites WHERE siteId = :siteId")
-    fun getSiteById(siteId: String): Site?
+    @Query("SELECT * FROM sites WHERE siteId = :siteUrl")
+    fun getSiteByUrl(siteUrl: String): Site?
+
 
     /**
      * Insert a site in the database. If the site already exists, replace it.

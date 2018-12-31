@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="backup">
+        <item>@string/bkp_import</item>
+        <item>@string/export</item>
+    </string-array>
+
+</resources>
