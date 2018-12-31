@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
     android:theme="?inputTheme"
     android:layout_marginStart="8dp"
     android:layout_marginTop="2dp"
@@ -19,6 +20,8 @@
         android:id="@+id/kind_input"
         android:layout_width="40dp"
         android:layout_height="40dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         android:importantForAccessibility="no"
         android:paddingStart="@dimen/horizontal_spacing"
         android:paddingEnd="@dimen/horizontal_spacing"
@@ -49,6 +52,8 @@
         style="@style/ClickableImageView"
         android:layout_width="40dp"
         android:layout_height="40dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         android:paddingStart="@dimen/horizontal_spacing"
         android:paddingEnd="@dimen/horizontal_spacing"
         android:scaleType="center"
@@ -57,5 +62,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_close_weak" />
-</androidx.constraintlayout.widget.ConstraintLayout>
 
+</androidx.constraintlayout.widget.ConstraintLayout>

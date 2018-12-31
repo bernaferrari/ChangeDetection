@@ -1,7 +1,9 @@
 package com.bernaferrari.changedetection
 
+import android.app.Activity
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.graphics.drawable.TransitionDrawable
 import android.os.Bundle
 import android.view.*
@@ -23,6 +25,7 @@ import androidx.work.WorkManager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
+import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.SiteAndLastSnap
 import com.bernaferrari.changedetection.data.Snap
@@ -46,6 +49,10 @@ import kotlinx.android.synthetic.main.main_fragment.*
 import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.android.synthetic.main.state_layout.view.*
 import kotlinx.coroutines.*
+import org.threeten.bp.LocalDateTime
+import org.threeten.bp.format.DateTimeFormatter
+import java.io.InputStream
+import java.nio.charset.Charset
 
 class MainFragment : ScopedFragment() {
     private lateinit var mViewModel: MainViewModel
@@ -128,6 +135,88 @@ class MainFragment : ScopedFragment() {
         super.onCreateOptionsMenu(menu, menuInflater)
     }
 
+    private val READ_REQUEST_CODE = 42
+    private val WRITE_REQUEST_CODE = 43
+
+    fun InputStream.readTextAndClose(charset: Charset = Charsets.UTF_8): String {
+        return this.bufferedReader(charset).use { it.readText() }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
+
+        // The ACTION_OPEN_DOCUMENT intent was sent with the request code
+        // READ_REQUEST_CODE. If the request code seen here doesn't match, it's the
+        // response to some other intent, and the code below shouldn't run at all.
+
+        if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            // The document selected by the user won't be returned in the intent.
+            // Instead, a URI to that document will be contained in the return intent
+            // provided to this method as a parameter.
+            // Pull that URI using resultData.getData().
+
+            val uri = resultData?.data ?: return
+
+            context?.contentResolver?.openInputStream(uri)?.use { inputstream ->
+
+                val buff = inputstream.readTextAndClose()
+                buff.split("\n").forEach { line ->
+                    val list = line.split("|")
+
+                    val idd = list[0]
+                    val title = list[1]
+                    val url = list[2]
+                    val colors = Pair(list[3].toInt(), list[4].toInt())
+                    val isSyncEnabled = list[5].toBoolean()
+                    val isNotificationEnabled = list[6].toBoolean()
+
+                    val site = Site(
+                        title,
+                        url,
+                        System.currentTimeMillis(),
+                        idd,
+                        colors,
+                        isSyncEnabled,
+                        isNotificationEnabled
+                    )
+
+                    runBlocking {
+                        if (mViewModel.isAlreadyMonitoringSite(url, idd)) {
+                            mViewModel.saveSite(site)
+                        }
+                    }
+                }
+            }
+        }
+
+        if (requestCode == WRITE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            // The document selected by the user won't be returned in the intent.
+            // Instead, a URI to that document will be contained in the return intent
+            // provided to this method as a parameter.
+            // Pull that URI using resultData.getData().
+            resultData?.data?.also { uri ->
+                context?.contentResolver?.openOutputStream(uri)?.use { os ->
+                    runBlocking {
+
+                        mViewModel.getAllSites().forEach {
+
+                            val newStr = (
+                                    it.id + "|" + (it.title ?: "").replace("|", "")
+                                            + "|" + it.url
+                                            + "|" + it.colors.first
+                                            + "|" + it.colors.second
+                                            + "|" + it.isSyncEnabled
+                                            + "|" + it.isNotificationEnabled
+                                            + "\n")
+
+                            os.write(newStr.toByteArray())
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
     override fun onOptionsItemSelected(menuItem: MenuItem): Boolean {
         when (menuItem.itemId) {
             R.id.filter -> onFilterTapped()
@@ -145,6 +234,50 @@ class MainFragment : ScopedFragment() {
                 }
 
                 requireActivity().recreate()
+            }
+            R.id.backup -> {
+                MaterialDialog(requireContext()).show {
+                    title(text = "Backup")
+                    message(text = "aaaaa", html = true, lineHeightMultiplier = 1.4f)
+                    listItemsSingleChoice(R.array.backup) { _, index, _ ->
+
+                        if (index == 0) {
+                            // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
+                            // browser.
+                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                                // Filter to only show results that can be "opened", such as a
+                                // file (as opposed to a list of contacts or timezones)
+                                addCategory(Intent.CATEGORY_OPENABLE)
+
+                                // Filter to show only images, using the image MIME data type.
+                                // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
+                                // To search for all documents available via installed storage providers,
+                                // it would be "*/*".
+                                type = "text/plain"
+                            }
+
+                            startActivityForResult(intent, READ_REQUEST_CODE)
+                        } else {
+
+                            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                                // Filter to only show results that can be "opened", such as
+                                // a file (as opposed to a list of contacts or timezones).
+                                addCategory(Intent.CATEGORY_OPENABLE)
+
+                                // Create a file with the requested MIME type.
+                                type = "text/plain"
+                                putExtra(
+                                    Intent.EXTRA_TITLE,
+                                    "change-detection-backup-${LocalDateTime.now().format(
+                                        DateTimeFormatter.ISO_DATE
+                                    )}.txt"
+                                )
+                            }
+
+                            startActivityForResult(intent, WRITE_REQUEST_CODE)
+                        }
+                    }
+                }
             }
         }
         return true
@@ -575,7 +708,7 @@ class MainFragment : ScopedFragment() {
 
         val colorsList = GradientColors.gradients
 
-        var selectedColors = item?.site?.colors ?: colorsList.first()
+        var selectedColors = item?.site?.colors ?: colorsList.shuffled().first()
 
         val dialogItemTitle = when (isInEditingMode) {
             true -> DialogItemTitle(

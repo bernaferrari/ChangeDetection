@@ -117,6 +117,9 @@
     <string name="dot" translatable="false">•</string>
     <string name="disable_dark_mode">Disable dark mode</string>
     <string name="enable_dark_mode">Enable dark mode</string>
+    <string name="backup">Backup</string>
+    <string name="export">Export</string>
+    <string name="bkp_import">Import</string>
 
     <string name="filter">Filter</string>
     <string name="settings">Settings</string>

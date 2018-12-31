@@ -25,23 +25,24 @@ class SitesRepository @Inject constructor(
         return mSitesLocalDataSource.getSites()
     }
 
-    override suspend fun getSite(siteId: String): Site? {
-        return mSitesLocalDataSource.getSite(siteId)
+    override suspend fun getSiteById(siteId: String): Site? {
+        return mSitesLocalDataSource.getSiteById(siteId)
+    }
+
+    override suspend fun getSiteByUrl(siteUrl: String): Site? {
+        return mSitesLocalDataSource.getSiteByUrl(siteUrl)
     }
 
     private val mSitesLocalDataSource: SitesDataSource = checkNotNull(sitesLocalDataSource)
 
 
     override suspend fun saveSite(site: Site) {
-        checkNotNull(site)
         mSitesLocalDataSource.saveSite(site)
     }
 
     override suspend fun updateSite(site: Site) {
-        checkNotNull(site)
         mSitesLocalDataSource.updateSite(site)
     }
-
 
     override suspend fun deleteAllSites() {
         mSitesLocalDataSource.deleteAllSites()

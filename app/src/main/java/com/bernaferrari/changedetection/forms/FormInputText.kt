@@ -1,7 +1,6 @@
 package com.bernaferrari.changedetection.forms
 
 import android.text.Editable
-import android.view.View
 import android.view.animation.AnimationUtils
 import androidx.core.view.isVisible
 import com.bernaferrari.changedetection.R
@@ -24,12 +23,17 @@ class FormInputText(
 
         Forms.setImage(holder.kind_input, kind)
 
-        val queryClear: View = holder.clear_input
+        val queryClear = holder.clear_input
         queryClear.isVisible = textInput.isNotEmpty()
 
 //        TooltipCompat.setTooltipText(queryClear, queryClear.contentDescription)
         queryClear.setOnClickListener {
             holder.text_input.setText("")
+        }
+
+        holder.kind_input.setOnClickListener {
+            // request focus on input when icon is tapped
+            holder.text_input.requestFocus()
         }
 
         holder.text_input.apply {

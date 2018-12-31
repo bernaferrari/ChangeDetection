@@ -112,6 +112,9 @@
     <string name="sort_by_name">Ordenar por nome</string>
     <string name="disable_dark_mode">Desativar tema escuro</string>
     <string name="enable_dark_mode">Ativar tema escuro</string>
+    <string name="backup">Backup</string>
+    <string name="export">Exportar</string>
+    <string name="bkp_import">Importar</string>
 
     <string name="filter">Filtro</string>
     <string name="settings">Configurações</string>

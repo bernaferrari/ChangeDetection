@@ -30,7 +30,7 @@
         <item name="num_addition">@color/num_addition_light</item>
         <item name="num_deletion">@color/num_deletion_light</item>
 
-        <item name="inputTheme">@style/DialogLight</item>
+        <item name="inputTheme">@style/InputDialog</item>
 
         <item name="md_corner_radius">16dp</item>
     </style>
@@ -69,7 +69,7 @@
         <item name="num_addition">@color/num_addition_dark</item>
         <item name="num_deletion">@color/num_deletion_dark</item>
 
-        <item name="inputTheme">@style/DialogDark</item>
+        <item name="inputTheme">@style/InputDialog</item>
 
         <item name="md_corner_radius">16dp</item>
     </style>
@@ -131,15 +131,11 @@
     </style>
 
     <style name="TextButtonDialogWhite" parent="@style/Widget.MaterialComponents.Button.TextButton.Dialog">
-        <item name="rippleColor">#50ffffff</item>
+        <item name="rippleColor">#30ffffff</item>
     </style>
 
-    <style name="DialogLight" parent="@style/Theme.MaterialComponents.Dialog">
-        <item name="colorAccent">@color/really_blue</item>
-    </style>
-
-    <style name="DialogDark" parent="@style/Theme.MaterialComponents.Dialog">
-        <item name="colorAccent">@color/md_blue_A200</item>
+    <style name="InputDialog" parent="@style/Theme.MaterialComponents.Dialog">
+        <item name="colorAccent">@color/white</item>
     </style>
 
     <style name="ClickableImageView">

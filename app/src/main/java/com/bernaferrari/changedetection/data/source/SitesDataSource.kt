@@ -10,7 +10,9 @@ interface SitesDataSource {
 
     suspend fun getSites(): List<Site>
 
-    suspend fun getSite(siteId: String): Site?
+    suspend fun getSiteById(siteId: String): Site?
+
+    suspend fun getSiteByUrl(siteUrl: String): Site?
 
     suspend fun saveSite(site: Site)
 
