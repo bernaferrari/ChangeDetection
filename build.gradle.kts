@@ -21,7 +21,7 @@ allprojects {
     repositories {
         google()
         jcenter()
-        maven { setUrl("https://jitpack.io") }
+        maven("https://jitpack.io")
     }
 }
 
@@ -70,5 +70,5 @@ tasks.named<Delete>("clean").configure {
 
 
 subprojects {
-    tasks.withType(Javadoc::class.java).all { enabled = false }
+    tasks.withType<Javadoc>().configure { isEnabled = false }
 }
