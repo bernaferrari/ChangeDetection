@@ -112,8 +112,9 @@
     <string name="disable_dark_mode">Disattiva il tema escuro</string>
     <string name="enable_dark_mode">Abilita il tema oscuro</string>
     <string name="backup">Backup</string>
-    <string name="export">Esportare</string>
+    <string name="bkp_export">Esportare</string>
     <string name="bkp_import">Importare</string>
+    <string name="bkp_description"></string>
 
     <string name="filter">Filtro</string>
     <string name="settings">Impostazioni</string>

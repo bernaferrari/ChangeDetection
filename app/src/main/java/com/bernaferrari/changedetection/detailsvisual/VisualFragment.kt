@@ -341,11 +341,11 @@ class VisualFragment : ScopedFragment(),
             file
         )
 
-        val emailIntent = Intent(Intent.ACTION_SEND)
-        emailIntent.type = item.contentType
-        emailIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
-        emailIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        startActivity(Intent.createChooser(emailIntent, getString(R.string.share)))
+        val shareIntent = Intent(Intent.ACTION_SEND)
+        shareIntent.type = item.contentType
+        shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        startActivity(Intent.createChooser(shareIntent, getString(R.string.share)))
     }
 
     private fun removeItemDialog(snapId: String) {

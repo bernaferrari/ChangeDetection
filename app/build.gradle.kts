@@ -25,7 +25,7 @@ android {
         minSdkVersion(21)
         targetSdkVersion(28)
         versionCode = 32
-        versionName = "2.3"
+        versionName = "2.2"
     }
 
     signingConfigs {
@@ -83,9 +83,9 @@ dependencies {
 
     
     // Coroutines
-    val coroutines_version = "1.1.0"
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version")
+    val coroutinesVersion = "1.1.0"
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
 
 
     // Jetpack

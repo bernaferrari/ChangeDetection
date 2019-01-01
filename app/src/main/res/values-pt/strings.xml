@@ -113,8 +113,9 @@
     <string name="disable_dark_mode">Desativar tema escuro</string>
     <string name="enable_dark_mode">Ativar tema escuro</string>
     <string name="backup">Backup</string>
-    <string name="export">Exportar</string>
+    <string name="bkp_export">Exportar</string>
     <string name="bkp_import">Importar</string>
+    <string name="bkp_description">Você pode salvar uma cópia dos sites que você está rastreando, ou restaurar de um backup existente. Somente informações, como título, url, cor e preferências são mantidos. Você pode exportar/importar por vários locais, incluindo Google Drive e armazenamento interno do Android.</string>
 
     <string name="filter">Filtro</string>
     <string name="settings">Configurações</string>
