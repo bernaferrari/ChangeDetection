@@ -9,7 +9,6 @@ buildscript {
     val kotlinVersion = "1.3.11"
 
     dependencies {
-        classpath("gradle.plugin.com.boxfuse.client:gradle-plugin-publishing:5.0.3")
         classpath("com.android.tools.build:gradle:3.4.0-alpha09")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
         classpath("android.arch.navigation:navigation-safe-args-gradle-plugin:1.0.0-alpha09")
