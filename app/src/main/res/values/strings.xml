@@ -118,8 +118,9 @@
     <string name="disable_dark_mode">Disable dark mode</string>
     <string name="enable_dark_mode">Enable dark mode</string>
     <string name="backup">Backup</string>
-    <string name="export">Export</string>
+    <string name="bkp_export">Export</string>
     <string name="bkp_import">Import</string>
+    <string name="bkp_description">You can save a copy of the sites you are currently tracking, or restore from an existing backup. Only data, such as title, url, color and preferences are kept. You may save/restore from a range of options, including Google Drive and Android\'s internal storage. </string>
 
     <string name="filter">Filter</string>
     <string name="settings">Settings</string>

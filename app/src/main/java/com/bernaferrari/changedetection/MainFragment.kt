@@ -10,6 +10,7 @@ import android.view.*
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.content.edit
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -25,7 +26,6 @@ import androidx.work.WorkManager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
-import com.afollestad.materialdialogs.list.listItemsSingleChoice
 import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.SiteAndLastSnap
 import com.bernaferrari.changedetection.data.Snap
@@ -51,6 +51,7 @@ import kotlinx.android.synthetic.main.state_layout.view.*
 import kotlinx.coroutines.*
 import org.threeten.bp.LocalDateTime
 import org.threeten.bp.format.DateTimeFormatter
+import java.io.File
 import java.io.InputStream
 import java.nio.charset.Charset
 
@@ -157,65 +158,15 @@ class MainFragment : ScopedFragment() {
             val uri = resultData?.data ?: return
 
             context?.contentResolver?.openInputStream(uri)?.use { inputstream ->
-
-                val buff = inputstream.readTextAndClose()
-                buff.split("\n").forEach { line ->
-                    val list = line.split("|")
-
-                    val idd = list[0]
-                    val title = list[1]
-                    val url = list[2]
-                    val colors = Pair(list[3].toInt(), list[4].toInt())
-                    val isSyncEnabled = list[5].toBoolean()
-                    val isNotificationEnabled = list[6].toBoolean()
-
-                    val site = Site(
-                        title,
-                        url,
-                        System.currentTimeMillis(),
-                        idd,
-                        colors,
-                        isSyncEnabled,
-                        isNotificationEnabled
-                    )
-
-                    runBlocking {
-                        if (mViewModel.isAlreadyMonitoringSite(url, idd)) {
-                            mViewModel.saveSite(site)
-                        }
-                    }
-                }
+                inputstream.readTextAndClose()
+                    .split("\n")
+                    .forEach { line -> importBackup(line) }
             }
-        }
-
-        if (requestCode == WRITE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            // The document selected by the user won't be returned in the intent.
-            // Instead, a URI to that document will be contained in the return intent
-            // provided to this method as a parameter.
-            // Pull that URI using resultData.getData().
-            resultData?.data?.also { uri ->
-                context?.contentResolver?.openOutputStream(uri)?.use { os ->
-                    runBlocking {
-
-                        mViewModel.getAllSites().forEach {
-
-                            val newStr = (
-                                    it.id + "|" + (it.title ?: "").replace("|", "")
-                                            + "|" + it.url
-                                            + "|" + it.colors.first
-                                            + "|" + it.colors.second
-                                            + "|" + it.isSyncEnabled
-                                            + "|" + it.isNotificationEnabled
-                                            + "\n")
-
-                            os.write(newStr.toByteArray())
-                        }
-                    }
-                }
-            }
+            mViewModel.updateItems()
+            // this forces a reload, but user might have limited data.
+            // sitesList.forEach { item -> reload(item, true) }
         }
     }
-
 
     override fun onOptionsItemSelected(menuItem: MenuItem): Boolean {
         when (menuItem.itemId) {
@@ -236,51 +187,98 @@ class MainFragment : ScopedFragment() {
                 requireActivity().recreate()
             }
             R.id.backup -> {
-                MaterialDialog(requireContext()).show {
-                    title(text = "Backup")
-                    message(text = "aaaaa", html = true, lineHeightMultiplier = 1.4f)
-                    listItemsSingleChoice(R.array.backup) { _, index, _ ->
+                MaterialDialog(requireContext())
+                    .negativeButton(R.string.bkp_import) {
+                        // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
+                        // browser.
+                        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                            // Filter to only show results that can be "opened", such as a
+                            // file (as opposed to a list of contacts or timezones)
+                            addCategory(Intent.CATEGORY_OPENABLE)
+                            type = "text/plain"
+                        }
 
-                        if (index == 0) {
-                            // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
-                            // browser.
-                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                                // Filter to only show results that can be "opened", such as a
-                                // file (as opposed to a list of contacts or timezones)
-                                addCategory(Intent.CATEGORY_OPENABLE)
+                        startActivityForResult(intent, READ_REQUEST_CODE)
+                    }
+                    .show {
+                        title(R.string.backup)
+                        message(R.string.bkp_description)
 
-                                // Filter to show only images, using the image MIME data type.
-                                // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
-                                // To search for all documents available via installed storage providers,
-                                // it would be "*/*".
-                                type = "text/plain"
-                            }
-
-                            startActivityForResult(intent, READ_REQUEST_CODE)
-                        } else {
-
-                            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-                                // Filter to only show results that can be "opened", such as
-                                // a file (as opposed to a list of contacts or timezones).
-                                addCategory(Intent.CATEGORY_OPENABLE)
-
-                                // Create a file with the requested MIME type.
-                                type = "text/plain"
-                                putExtra(
-                                    Intent.EXTRA_TITLE,
-                                    "change-detection-backup-${LocalDateTime.now().format(
-                                        DateTimeFormatter.ISO_DATE
-                                    )}.txt"
-                                )
-                            }
-
-                            startActivityForResult(intent, WRITE_REQUEST_CODE)
+                        if (sitesList.size != 0) {
+                            // don't show the export button when there are no items
+                            positiveButton(R.string.bkp_export) { exportBackup() }
                         }
                     }
-                }
             }
         }
         return true
+    }
+
+    private fun exportBackup() {
+        var newStr = ""
+        runBlocking {
+            mViewModel.getAllSites().forEach {
+                newStr += (it.id
+                        + "|" + (it.title ?: "").replace("|", "")
+                        + "|" + it.url
+                        + "|" + it.timestamp
+                        + "|" + it.colors.first
+                        + "|" + it.colors.second
+                        + "|" + it.isSyncEnabled
+                        + "|" + it.isNotificationEnabled
+                        + "\n")
+            }
+        }
+
+        val file = File(
+            requireContext().cacheDir,
+            "change-detection-bkp-${
+            LocalDateTime.now().format(DateTimeFormatter.ISO_DATE)}.txt"
+        )
+
+        file.createNewFile()
+        file.writeBytes(newStr.toByteArray())
+
+        val contentUri = FileProvider.getUriForFile(
+            requireContext(),
+            "com.bernaferrari.changedetection.files",
+            file
+        )
+
+        val sharingIntent = Intent(Intent.ACTION_SEND)
+        sharingIntent.type = "text/*"
+        sharingIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
+        startActivity(Intent.createChooser(sharingIntent, "share file with"))
+    }
+
+    private fun importBackup(line: String) {
+        val list = line.split("|")
+
+        if (list.size < 8) return
+
+        val idd = list[0]
+        val title = list[1]
+        val url = list[2]
+        val timestamp = list[3].toLong()
+        val colors = Pair(list[4].toInt(), list[5].toInt())
+        val isSyncEnabled = list[6].toBoolean()
+        val isNotificationEnabled = list[7].toBoolean()
+
+        val site = Site(
+            title,
+            url,
+            timestamp,
+            idd,
+            colors,
+            isSyncEnabled,
+            isNotificationEnabled
+        )
+
+        runBlocking {
+            if (!mViewModel.isAlreadyMonitoringSite(url, idd)) {
+                mViewModel.saveSite(site)
+            }
+        }
     }
 
     private fun onFilterTapped() {
