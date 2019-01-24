@@ -4,12 +4,14 @@ import com.bernaferrari.changedetection.data.Site
 import com.bernaferrari.changedetection.data.source.SitesDataSource
 import com.bernaferrari.changedetection.util.AppExecutors
 import kotlinx.coroutines.withContext
+import javax.inject.Singleton
 
 
 /**
  * Concrete implementation of a data source as a db.
  * Inspired from Architecture Components MVVM sample app
  */
+@Singleton
 class SitesLocalDataSource constructor(
     private val mAppExecutors: AppExecutors,
     private val mSitesDao: SitesDao

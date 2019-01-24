@@ -1,8 +1,6 @@
-import org.gradle.internal.impldep.com.amazonaws.PredefinedClientConfigurations.defaultConfig
-import org.jetbrains.kotlin.config.AnalysisFlag.Flags.experimental
-import org.jetbrains.kotlin.kapt3.base.Kapt.kapt
+import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import java.io.FileInputStream
-import java.util.Properties
+import java.util.*
 
 plugins {
     id("com.android.application")
@@ -97,7 +95,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.0.1")
 
     // Android Architecture Components
-    val navigationVersion = "1.0.0-alpha09"
+    val navigationVersion = "1.0.0-alpha11"
     implementation("android.arch.navigation:navigation-ui-ktx:$navigationVersion")
     implementation("android.arch.navigation:navigation-fragment-ktx:$navigationVersion")
 
@@ -119,8 +117,8 @@ dependencies {
 
     // UI
     implementation("io.karn:notify:1.1.0")
-    implementation("com.tapadoo.android:alerter:3.0.1")
-    implementation("com.afollestad.material-dialogs:core:2.0.0-rc5")
+    implementation("com.tapadoo.android:alerter:4.0.0")
+    implementation("com.afollestad.material-dialogs:core:2.0.0-rc7")
     implementation("com.davemorrissey.labs:subsampling-scale-image-view:3.10.0")
 
 
@@ -152,13 +150,11 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:1.1.3")
 
 
-    val kotlin_version = "1.3.11"
-
     // Internal
     implementation("org.jsoup:jsoup:1.11.3")
     implementation("com.facebook.stetho:stetho:1.5.0")
     implementation("com.squareup.okhttp3:okhttp:3.12.1")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version")
+    kotlin("stdlib", KotlinCompilerVersion.VERSION)
 
 
     // Dagger

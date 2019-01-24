@@ -633,7 +633,7 @@ class MainFragment : ScopedFragment() {
                     .also { alert ->
                         alert?.setOnClickListener {
                             openItem(item)
-                            alert.hide()
+                            Alerter.hide()
                         }
                     }
             }
