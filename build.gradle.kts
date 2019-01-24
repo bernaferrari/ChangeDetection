@@ -1,17 +1,13 @@
-import org.gradle.internal.impldep.org.testng.reporters.XMLUtils.xml
-
 buildscript {
     repositories {
         google()
         jcenter()
     }
 
-    val kotlinVersion = "1.3.11"
-
     dependencies {
-        classpath("com.android.tools.build:gradle:3.4.0-alpha09")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-        classpath("android.arch.navigation:navigation-safe-args-gradle-plugin:1.0.0-alpha09")
+        classpath("com.android.tools.build:gradle:3.4.0-beta01")
+        classpath(kotlin("gradle-plugin", version = "1.3.20"))
+        classpath("android.arch.navigation:navigation-safe-args-gradle-plugin:1.0.0-alpha11")
         classpath("com.github.ben-manes:gradle-versions-plugin:0.20.0")
     }
 }
