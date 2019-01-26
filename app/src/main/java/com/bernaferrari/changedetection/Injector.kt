@@ -93,6 +93,6 @@ interface SingletonComponent {
 
 class Injector private constructor() {
     companion object {
-        fun get(): SingletonComponent = Application.get().component
+        fun get(): SingletonComponent = App.get().component
     }
 }

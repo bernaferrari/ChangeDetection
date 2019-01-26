@@ -1,12 +1,12 @@
 package com.bernaferrari.changedetection
 
-import androidx.multidex.MultiDexApplication
+import android.app.Application
 import com.facebook.stetho.Stetho
 import com.jakewharton.threetenabp.AndroidThreeTen
 import com.orhanobut.logger.AndroidLogAdapter
 import com.orhanobut.logger.Logger
 
-class Application : MultiDexApplication() {
+class App : Application() {
 
     lateinit var component: SingletonComponent
 
@@ -32,10 +32,10 @@ class Application : MultiDexApplication() {
     }
 
     companion object {
-        private var INSTANCE: Application? = null
+        private var INSTANCE: App? = null
 
         @JvmStatic
-        fun get(): Application =
-            INSTANCE ?: throw NullPointerException("Application INSTANCE must not be null")
+        fun get(): App =
+            INSTANCE ?: throw NullPointerException("App INSTANCE must not be null")
     }
 }

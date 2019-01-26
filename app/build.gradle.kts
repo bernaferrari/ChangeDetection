@@ -1,4 +1,7 @@
+import com.android.build.gradle.ProguardFiles.getDefaultProguardFile
+import org.gradle.internal.impldep.com.amazonaws.PredefinedClientConfigurations.defaultConfig
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
+import org.jetbrains.kotlin.kapt3.base.Kapt.kapt
 import java.io.FileInputStream
 import java.util.*
 
@@ -24,6 +27,7 @@ android {
         targetSdkVersion(28)
         versionCode = 32
         versionName = "2.2"
+        multiDexEnabled = true
     }
 
     signingConfigs {
@@ -79,7 +83,7 @@ dependencies {
     implementation("io.reactivex.rxjava2:rxjava:2.2.5")
     implementation("io.reactivex.rxjava2:rxandroid:2.1.0")
 
-    
+
     // Coroutines
     val coroutinesVersion = "1.1.0"
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
@@ -136,7 +140,7 @@ dependencies {
 
 
     // About
-    implementation ("com.github.daniel-stoneuk:material-about-library:2.4.2")
+    implementation("com.github.daniel-stoneuk:material-about-library:2.4.2")
 
 
     // RecyclerView
@@ -145,8 +149,6 @@ dependencies {
     implementation("com.yarolegovich:discrete-scrollview:1.4.9")
     implementation("com.xwray:groupie-kotlin-android-extensions:$groupie")
 
-
-    implementation("androidx.multidex:multidex:2.0.1")
     implementation("androidx.constraintlayout:constraintlayout:1.1.3")
 
 
@@ -154,7 +156,7 @@ dependencies {
     implementation("org.jsoup:jsoup:1.11.3")
     implementation("com.facebook.stetho:stetho:1.5.0")
     implementation("com.squareup.okhttp3:okhttp:3.12.1")
-    kotlin("stdlib", KotlinCompilerVersion.VERSION)
+    implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
 
 
     // Dagger
