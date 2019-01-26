@@ -1,3 +1,5 @@
+import com.android.build.gradle.ProguardFiles.getDefaultProguardFile
+import org.gradle.internal.impldep.com.amazonaws.PredefinedClientConfigurations.defaultConfig
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
 
 plugins {
@@ -34,5 +36,5 @@ android {
 }
 
 dependencies {
-    kotlin("stdlib", KotlinCompilerVersion.VERSION)
+    implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
 }
