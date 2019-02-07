@@ -12,11 +12,14 @@ Use cases:
 
 This app also showcases **all** the Android Architecture Components working together: [Room](https://developer.android.com/topic/libraries/architecture/room.html), [ViewModels](https://developer.android.com/reference/android/arch/lifecycle/ViewModel.html), [LiveData](https://developer.android.com/reference/android/arch/lifecycle/LiveData.html), [Paging](https://developer.android.com/topic/libraries/architecture/paging/), [WorkManager](https://developer.android.com/topic/libraries/architecture/workmanager) and [Navigation](https://developer.android.com/topic/libraries/architecture/navigation/).
 
-[<img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png"
-      alt="Download from Google Play"
-      height="80">](https://play.google.com/store/apps/details?id=com.bernaferrari.changedetection)
+[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
+     alt="Get it on Google Play"
+     height="80">](https://play.google.com/store/apps/details?id=com.bernaferrari.changedetection)
+[<img src="https://f-droid.org/badge/get-it-on.png"
+     alt="Get it on F-Droid"
+     height="80">](https://f-droid.org/packages/com.bernaferrari.changedetection/)
 
- ![GIF](/.github/assets/card_gif.gif?raw=true)
+![GIF](/.github/assets/card_gif.gif?raw=true)
 
 ## Screenshots
 
