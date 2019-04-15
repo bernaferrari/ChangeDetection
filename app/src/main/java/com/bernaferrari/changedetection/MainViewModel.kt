@@ -7,16 +7,16 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.bernaferrari.changedetection.data.ContentTypeInfo
-import com.bernaferrari.changedetection.data.Site
-import com.bernaferrari.changedetection.data.SiteAndLastSnap
-import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.data.source.Result
-import com.bernaferrari.changedetection.data.source.SitesRepository
-import com.bernaferrari.changedetection.data.source.SnapsRepository
 import com.bernaferrari.changedetection.extensions.getColorFromAttr
 import com.bernaferrari.changedetection.groupie.DialogItemSimple
 import com.bernaferrari.changedetection.groupie.MainCardItem
+import com.bernaferrari.changedetection.repo.ContentTypeInfo
+import com.bernaferrari.changedetection.repo.Site
+import com.bernaferrari.changedetection.repo.SiteAndLastSnap
+import com.bernaferrari.changedetection.repo.Snap
+import com.bernaferrari.changedetection.repo.source.Result
+import com.bernaferrari.changedetection.repo.source.SitesRepository
+import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.util.LongPress
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
@@ -104,7 +104,8 @@ class MainViewModel(
     internal fun updateItems() = launch(Dispatchers.Main) {
         val list = mutableListOf<SiteAndLastSnap>()
         withContext(Dispatchers.IO) {
-            mSitesRepository.getSites().mapTo(list) { SiteAndLastSnap(it, getLastSnap(it.id)) }
+            mSitesRepository.getSites()
+                .mapTo(list) { SiteAndLastSnap(it, getLastSnap(it.id), false) }
         }
         items.value = list
     }

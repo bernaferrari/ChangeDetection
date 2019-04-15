@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="content_inset_double">48dp</dimen>
+    <dimen name="content_inset_more">24dp</dimen>
+    <dimen name="content_inset">16dp</dimen>
+    <dimen name="content_inset_less">12dp</dimen>
+    <dimen name="content_inset_half">8dp</dimen>
+    <dimen name="content_inset_quarter">4dp</dimen>
+
+    <dimen name="content_inset_prefs">18dp</dimen>
+
+    <dimen name="drag_dismiss_distance">104dp</dimen> <!-- 5 * ?android:actionBarSize -->
+    <dimen name="z_fab">6dp</dimen>
+    <dimen name="z_drawer">16dp</dimen>
+    <dimen name="z_app_bar">4dp</dimen>
+
+    <integer name="rapid_animation">120</integer>
+
+
+</resources>

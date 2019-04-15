@@ -248,7 +248,7 @@ class ElasticDragDismissFrameLayout @JvmOverloads constructor(
     }
 
     /**
-     * An [ElasticDragDismissCallback] which fades system chrome (i.e. status bar and
+     * An [ElasticDragDismissCallback] which fades system chrome (i.e. syncingNow bar and
      * navigation bar) whilst elastic drags are performed and
      * [finishes][Activity.finishAfterTransition] the activity when drag dismissed.
      */
@@ -266,7 +266,7 @@ class ElasticDragDismissFrameLayout @JvmOverloads constructor(
         //        public void onDrag(float elasticOffset, float elasticOffsetPixels,
         //                           float rawOffset, float rawOffsetPixels) {
         //            if (elasticOffsetPixels > 0) {
-        //                // dragging downward, fade the status bar in proportion
+        //                // dragging downward, fade the syncingNow bar in proportion
         //                activity.getWindow().setStatusBarColor(ColorUtils.modifyAlpha(activity.getWindow()
         //                        .getStatusBarColor(), (int) ((1f - rawOffset) * statusBarAlpha)));
         //            } else if (elasticOffsetPixels == 0) {

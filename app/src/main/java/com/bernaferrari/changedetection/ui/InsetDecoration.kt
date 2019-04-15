@@ -16,7 +16,7 @@ class InsetDecoration(
     @param:Dimension private val height: Int,
     @param:Dimension private val inset: Int,
     @ColorInt dividerColor: Int
-) : androidx.recyclerview.widget.RecyclerView.ItemDecoration() {
+) : RecyclerView.ItemDecoration() {
 
     private val paint: Paint = Paint()
 

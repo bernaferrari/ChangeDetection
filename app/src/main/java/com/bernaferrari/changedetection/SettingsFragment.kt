@@ -10,7 +10,6 @@ import com.bernaferrari.changedetection.extensions.getColorFromAttr
 import com.bernaferrari.changedetection.groupie.DialogItemInterval
 import com.bernaferrari.changedetection.groupie.DialogItemSeparator
 import com.bernaferrari.changedetection.groupie.DialogItemSwitch
-import com.bernaferrari.changedetection.ui.RoundedBottomSheetDialogFragment
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.google_material_typeface_library.GoogleMaterial
 import com.mikepenz.iconics.IconicsDrawable
@@ -21,7 +20,7 @@ import com.xwray.groupie.ViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
 import kotlinx.android.synthetic.main.recyclerview.*
 
-class SettingsFragment : RoundedBottomSheetDialogFragment() {
+class SettingsFragment : ScopedFragment() {
     val color: Int by lazy { requireContext().getColorFromAttr(R.attr.strongColor) }
 
     override fun onCreateView(
@@ -48,7 +47,7 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
 //            IconicsDrawable(context, CommunityMaterial.Icon.cmd_bug).color(color),
 //            sharedPrefs.getBoolean("debug", true)
 //        ) {
-//            sharedPrefs.edit { putBoolean("debug", it.isSwitchOn) }
+//            sharedPrefs.edit { putBoolean("debug", it.switchIsOn) }
 //        }
 
         updating += DialogItemSwitch(
@@ -117,7 +116,7 @@ class SettingsFragment : RoundedBottomSheetDialogFragment() {
             syncSection.update(syncSettings)
         }
 
-        defaultRecycler.apply {
+        recycler.apply {
             adapter = groupAdapter.apply {
                 if (this.itemCount == 0) {
                     this.add(Section(updating))

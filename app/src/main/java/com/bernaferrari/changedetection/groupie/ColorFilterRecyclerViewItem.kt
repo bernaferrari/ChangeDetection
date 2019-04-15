@@ -2,8 +2,8 @@ package com.bernaferrari.changedetection.groupie
 
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.extensions.ColorGroup
 import com.bernaferrari.changedetection.extensions.itemAnimatorWithoutChangeAnimations
+import com.bernaferrari.changedetection.repo.ColorGroup
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.kotlinandroidextensions.Item
@@ -43,7 +43,7 @@ class ColorFilterRecyclerViewItem(
             }
         }
 
-        viewHolder.defaultRecycler.apply {
+        viewHolder.recycler.apply {
             this.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(
                 context,
                 androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL,

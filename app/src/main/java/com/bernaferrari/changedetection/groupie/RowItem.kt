@@ -3,10 +3,10 @@ package com.bernaferrari.changedetection.groupie
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.getColorFromAttr
 import com.bernaferrari.changedetection.extensions.readableFileSize
+import com.bernaferrari.changedetection.repo.Snap
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.item_row.*

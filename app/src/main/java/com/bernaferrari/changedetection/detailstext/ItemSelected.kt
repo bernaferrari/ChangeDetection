@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.detailstext
+package com.bernaferrari.changedetection.detailsText
 
 /**
  * Enum to be used for the diff process of texts.

@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.detailstext
+package com.bernaferrari.changedetection.detailsText
 
 import android.annotation.TargetApi
 import android.content.ClipData
@@ -286,11 +286,10 @@ class TextFragment : ScopedFragment() {
 
             bottomAdapter.colorSelected.getPositionForAdapter(color)
                 ?.let { bottomAdapter.getItemFromAdapter(it)?.snapId }
-                ?.let { model.getSnapValue(it) }
-                ?.also {
+                ?.let { model.getSnapValue(it) }.also {
                     putDataOnWebView(
                         webview,
-                        it.replaceRelativePathWithAbsolute(getStringFromArguments(MainActivity.URL))
+                        it!!.replaceRelativePathWithAbsolute(getStringFromArguments(MainActivity.URL))
                     )
                 }
         }

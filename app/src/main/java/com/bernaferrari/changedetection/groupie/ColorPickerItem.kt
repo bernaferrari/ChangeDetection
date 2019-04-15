@@ -3,8 +3,8 @@ package com.bernaferrari.changedetection.groupie
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.core.view.updateLayoutParams
 import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.extensions.ColorGroup
 import com.bernaferrari.changedetection.extensions.toDp
+import com.bernaferrari.changedetection.repo.ColorGroup
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.colorpicker_item.*

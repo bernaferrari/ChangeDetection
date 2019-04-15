@@ -1,9 +1,9 @@
-package com.bernaferrari.changedetection.detailstext
+package com.bernaferrari.changedetection.detailsText
 
 import android.view.ViewGroup
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
-import com.bernaferrari.changedetection.data.Snap
+import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.ui.RecyclerViewItemListener
 
 /**

@@ -3,7 +3,8 @@ package com.bernaferrari.changedetection
 import android.content.SharedPreferences
 import android.os.Build
 import androidx.work.*
-import com.bernaferrari.changedetection.data.Site
+import com.bernaferrari.changedetection.mainnew.OneTimeSync
+import com.bernaferrari.changedetection.repo.Site
 import com.orhanobut.logger.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -40,12 +41,25 @@ object WorkerHelper {
         )
     }
 
-    suspend fun fetchFromServer(item: Site): Pair<String, ByteArray> = withContext(Dispatchers.IO) {
+    fun reloadSite(site: Site) {
+        val work = OneTimeWorkRequestBuilder<OneTimeSync>()
+            .setInputData(workDataOf("id" to site.id))
+            .addTag("output")
+            .addTag(site.id)
+            .build()
+
+        WorkManager.getInstance()
+            .beginUniqueWork(site.id, ExistingWorkPolicy.REPLACE, work)
+            .enqueue()
+    }
+
+    suspend fun fetchFromServer(url: String): Pair<String, ByteArray> =
+        withContext(Dispatchers.IO) {
         val client = OkHttpClient()
 
         try {
             val request = Request.Builder()
-                .url(item.url)
+                .url(url)
                 .build()
 
             val response = client.newCall(request).execute()
@@ -65,19 +79,19 @@ object WorkerHelper {
             Pair(contentTypeAndCharset, bytes)
         } catch (e: UnknownHostException) {
             // When internet connection is not available OR website doesn't exist
-            Logger.e("UnknownHostException for ${item.url}")
-            Pair("UnknownHostException for ${item.url}", byteArrayOf())
+            Logger.e("UnknownHostException for ${url}")
+            Pair("UnknownHostException for ${url}", byteArrayOf())
         } catch (e: IllegalArgumentException) {
             // When input is "http://"
-            Logger.e("IllegalArgumentException for ${item.url}")
-            Pair("IllegalArgumentException for ${item.url}", byteArrayOf())
+            Logger.e("IllegalArgumentException for ${url}")
+            Pair("IllegalArgumentException for ${url}", byteArrayOf())
         } catch (e: SocketTimeoutException) {
             // When site is not available
-            Logger.e("SocketTimeoutException for ${item.url}")
-            Pair("SocketTimeoutException for ${item.url}", byteArrayOf())
+            Logger.e("SocketTimeoutException for ${url}")
+            Pair("SocketTimeoutException for ${url}", byteArrayOf())
         } catch (e: Exception) {
-            Logger.e("${e.localizedMessage} for ${item.url}")
-            Pair("${e.localizedMessage} for ${item.url}", byteArrayOf())
+            Logger.e("${e.localizedMessage} for ${url}")
+            Pair("${e.localizedMessage} for ${url}", byteArrayOf())
         }
     }
 

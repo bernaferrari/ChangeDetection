@@ -1,7 +1,4 @@
-import com.android.build.gradle.ProguardFiles.getDefaultProguardFile
-import org.gradle.internal.impldep.com.amazonaws.PredefinedClientConfigurations.defaultConfig
-import org.jetbrains.kotlin.config.KotlinCompilerVersion
-import org.jetbrains.kotlin.kapt3.base.Kapt.kapt
+import com.bernaferrari.buildsrc.Libs
 import java.io.FileInputStream
 import java.util.*
 
@@ -77,67 +74,91 @@ android {
 
 dependencies {
 
+    implementation(project(":base"))
+    implementation(project(":base-android"))
+
     implementation(project(":diffutils"))
+    implementation(project(":repo"))
 
-    // RX
-    implementation("io.reactivex.rxjava2:rxjava:2.2.5")
-    implementation("io.reactivex.rxjava2:rxandroid:2.1.0")
+    // Kotlin
+    implementation(Libs.Kotlin.stdlib)
+    implementation(Libs.Coroutines.core)
+    implementation(Libs.Coroutines.android)
 
+    // Epoxy
+    implementation(Libs.Epoxy.epoxy)
+    implementation(Libs.Epoxy.dataBinding)
+    implementation(Libs.Epoxy.paging)
+    kapt(Libs.Epoxy.processor)
 
-    // Coroutines
-    val coroutinesVersion = "1.1.0"
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
-
-
-    // Jetpack
-    implementation("com.google.android.material:material:1.0.0")
-    implementation("androidx.appcompat:appcompat:1.0.2")
-    implementation("androidx.core:core:1.0.1")
-    implementation("androidx.recyclerview:recyclerview:1.0.0")
-    implementation("androidx.annotation:annotation:1.0.1")
-    implementation("androidx.core:core-ktx:1.0.1")
-
-    // Android Architecture Components
-    val navigationVersion = "1.0.0-alpha11"
-    implementation("android.arch.navigation:navigation-ui-ktx:$navigationVersion")
-    implementation("android.arch.navigation:navigation-fragment-ktx:$navigationVersion")
-
-    val lifecycleVersion = "2.0.0"
-    implementation("androidx.lifecycle:lifecycle-extensions:$lifecycleVersion")
-
-    val roomVersion = "2.0.0"
-    kapt("androidx.room:room-compiler:$roomVersion")
-    implementation("androidx.room:room-runtime:$roomVersion")
-
-    val workVersion = "1.0.0-alpha13"
-    implementation("android.arch.work:work-runtime-ktx:$workVersion")
-
-    val pagingVersion = "2.0.0"
-    implementation("androidx.paging:paging-runtime:$pagingVersion")
-
-    // Logging
-    implementation("com.orhanobut:logger:2.2.0")
-
-    // UI
-    implementation("io.karn:notify:1.1.0")
-    implementation("com.tapadoo.android:alerter:4.0.0")
-    implementation("com.afollestad.material-dialogs:core:2.0.0-rc7")
-    implementation("com.davemorrissey.labs:subsampling-scale-image-view:3.10.0")
-
+    // MvRx
+    implementation(Libs.MvRx.main)
 
     // Glide
-    val glide = "4.8.0"
-    implementation("com.github.bumptech.glide:glide:$glide")
-    implementation("com.github.bumptech.glide:recyclerview-integration:$glide")
-    kapt("com.github.bumptech.glide:compiler:$glide")
+    implementation(Libs.Glide.glide)
 
+    // Dagger
+    implementation(Libs.Dagger.dagger)
+    kapt(Libs.Dagger.compiler)
+
+    implementation(Libs.Dagger.androidSupport)
+    kapt(Libs.Dagger.androidProcessor)
+
+    compileOnly(Libs.AssistedInject.annotationDagger2)
+    kapt(Libs.AssistedInject.processorDagger2)
+
+
+    // AndroidX
+    implementation(Libs.Google.material)
+    implementation(Libs.AndroidX.coreKtx)
+    implementation(Libs.AndroidX.constraintlayout)
+    implementation(Libs.AndroidX.appcompat)
+    implementation(Libs.AndroidX.recyclerview)
+
+    implementation(Libs.AndroidX.Lifecycle.extensions)
+    implementation(Libs.AndroidX.Navigation.navigationUi)
+    implementation(Libs.AndroidX.Navigation.navigationFragment)
+
+    kapt(Libs.AndroidX.Room.compiler)
+    implementation(Libs.AndroidX.Room.runtime)
+    implementation(Libs.AndroidX.Room.roomktx)
+    implementation(Libs.AndroidX.Work.runtimeKtx)
+    implementation(Libs.AndroidX.Work.rxJava)
+    implementation(Libs.AndroidX.Paging.runtimeKtx)
+    implementation(Libs.AndroidX.browser)
+
+    // Logging
+    implementation(Libs.logger)
+
+    // RX
+    implementation(Libs.RxJava.rxJava)
+    implementation(Libs.RxJava.rxAndroid)
+    implementation(Libs.RxJava.rxKotlin)
+    implementation(Libs.RxJava.rxRelay)
+    implementation(Libs.RxJava.rxkPrefs)
+
+    // Glide
+    implementation(Libs.Glide.glide)
+    kapt(Libs.Glide.compiler)
+
+    // Others
+    implementation(Libs.jsoup)
+    implementation(Libs.materialDialogs)
+    implementation(Libs.notify)
+
+    // UI
+    implementation(Libs.alerter)
+
+    debugImplementation(Libs.LeakCanary.main)
+    debugImplementation(Libs.LeakCanary.support)
+    releaseImplementation(Libs.LeakCanary.no_op)
+
+    implementation("com.davemorrissey.labs:subsampling-scale-image-view:3.10.0")
 
     // Iconics
     implementation("com.mikepenz:iconics-core:3.1.0@aar")
     implementation("com.mikepenz:community-material-typeface:2.0.46.1@aar")
     implementation("com.mikepenz:google-material-typeface:3.0.1.2.original@aar")
-
 
     // About
     implementation("com.github.daniel-stoneuk:material-about-library:2.4.2")
@@ -149,24 +170,12 @@ dependencies {
     implementation("com.yarolegovich:discrete-scrollview:1.4.9")
     implementation("com.xwray:groupie-kotlin-android-extensions:$groupie")
 
-    implementation("androidx.constraintlayout:constraintlayout:1.1.3")
-
-
     // Internal
-    implementation("org.jsoup:jsoup:1.11.3")
-    implementation("com.facebook.stetho:stetho:1.5.0")
-    implementation("com.squareup.okhttp3:okhttp:3.12.1")
-    implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
-
-
-    // Dagger
-    val dagger = "2.20"
-    implementation("com.google.dagger:dagger:$dagger")
-    kapt("com.google.dagger:dagger-compiler:$dagger")
-
+    implementation(Libs.stetho)
+    implementation(Libs.okHttp)
 
     // Others
-    implementation("com.jakewharton.threetenabp:threetenabp:1.1.1")
-    implementation("com.github.marlonlom:timeago:4.0.1")
-    testImplementation("junit:junit:4.12")
+    implementation(Libs.threeTenAndroid)
+    implementation(Libs.timeAgo)
+    testImplementation(Libs.junit)
 }

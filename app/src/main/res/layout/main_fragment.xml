@@ -7,37 +7,31 @@
     android:layout_height="match_parent">
 
     <!--Inspired from Plaid-->
-    <LinearLayout
-        android:id="@+id/title_bar"
+
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?toolbarColor"
+        app:liftOnScroll="true"
         android:orientation="vertical"
         android:elevation="1dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <com.google.android.material.appbar.AppBarLayout
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?toolbarColor"
-            app:liftOnScroll="true">
+            app:title="@string/app_name"
+            app:titleTextColor="?iconColor" />
 
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:title="@string/app_name"
-                app:titleTextColor="?iconColor" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/filterRecycler"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
-        </com.google.android.material.appbar.AppBarLayout>
-    </LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/filterRecycler"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+    </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/pullToRefresh"

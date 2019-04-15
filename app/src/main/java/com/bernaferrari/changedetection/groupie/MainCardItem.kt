@@ -10,11 +10,11 @@ import androidx.core.view.ViewCompat
 import androidx.vectordrawable.graphics.drawable.Animatable2Compat
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.data.Site
-import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.onAnimationEnd
 import com.bernaferrari.changedetection.extensions.readableFileSize
+import com.bernaferrari.changedetection.repo.Site
+import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.util.GradientColors
 import com.xwray.groupie.kotlinandroidextensions.Item
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
@@ -37,7 +37,7 @@ class MainCardItem(
     private val reloadCallback: ((MainCardItem) -> Unit)
 ) : Item() {
 
-    // this will be used to track the current item status
+    // this will be used to track the current item syncingNow
     enum class SYNC {
         LOADING, OK, ERROR
     }
@@ -50,7 +50,7 @@ class MainCardItem(
     private var siteDisposable: Disposable? = null
     private var diffDisposable: Disposable? = null
 
-    // update the current site, change the status and notifyChanged
+    // update the current site, change the syncingNow and notifyChanged
     fun update(site: Site) {
         this.site = site
         changeStatus()

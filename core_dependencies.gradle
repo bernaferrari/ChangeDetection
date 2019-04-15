@@ -1,0 +1,46 @@
+import com.bernaferrari.buildsrc.Libs
+import com.bernaferrari.buildsrc.Android
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdkVersion Android.compileSdk
+
+    defaultConfig {
+        minSdkVersion Android.minSdk
+        targetSdkVersion Android.targetSdk
+    }
+
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
+}
+
+dependencies {
+
+    // Kotlin
+    implementation Libs.Kotlin.stdlib
+    implementation Libs.Coroutines.core
+    implementation Libs.Coroutines.android
+
+    // Epoxy
+    implementation Libs.Epoxy.epoxy
+    implementation Libs.Epoxy.dataBinding
+
+    // MvRx
+    implementation Libs.MvRx.main
+
+    // Glide
+    implementation Libs.Glide.glide
+
+    // Dagger
+    implementation Libs.Dagger.dagger
+    implementation Libs.Dagger.androidSupport
+
+    // AndroidX
+    implementation Libs.Google.material
+    implementation Libs.AndroidX.coreKtx
+    implementation Libs.AndroidX.constraintlayout
+}

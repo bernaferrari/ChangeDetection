@@ -26,13 +26,14 @@ import androidx.work.WorkManager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
-import com.bernaferrari.changedetection.data.Site
-import com.bernaferrari.changedetection.data.SiteAndLastSnap
-import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.forms.FormInputText
 import com.bernaferrari.changedetection.forms.Forms
 import com.bernaferrari.changedetection.groupie.*
+import com.bernaferrari.changedetection.repo.ColorGroup
+import com.bernaferrari.changedetection.repo.Site
+import com.bernaferrari.changedetection.repo.SiteAndLastSnap
+import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.ui.InsetDecoration
 import com.bernaferrari.changedetection.ui.ListPaddingDecoration
 import com.bernaferrari.changedetection.util.GradientColors
@@ -353,7 +354,7 @@ class MainFragment : ScopedFragment() {
             add(LoadingItem())
         }
 
-        customView.findViewById<RecyclerView>(R.id.defaultRecycler)
+        customView.findViewById<RecyclerView>(R.id.recycler)
             .adapter = bottomSheetAdapter
 
         launch {
@@ -580,7 +581,7 @@ class MainFragment : ScopedFragment() {
         item.startSyncing()
 
         launch(Dispatchers.Main) {
-            val (contentTypeCharset, content) = WorkerHelper.fetchFromServer(item.site)
+            val (contentTypeCharset, content) = WorkerHelper.fetchFromServer(item.site.url)
             updateSiteAndSnap(contentTypeCharset, content, item)
         }
     }
@@ -729,8 +730,7 @@ class MainFragment : ScopedFragment() {
             positiveButton(materialDialog, listOfItems, isInEditingMode, item, selectedColors)
         }
 
-        materialDialog.getCustomView()
-            ?.findViewById<RecyclerView>(R.id.defaultRecycler)?.apply {
+        materialDialog.getCustomView().findViewById<RecyclerView>(R.id.defaultRecycler)?.apply {
                 this.overScrollMode = View.OVER_SCROLL_NEVER
                 this.layoutManager = LinearLayoutManager(this.context)
 
@@ -798,7 +798,7 @@ class MainFragment : ScopedFragment() {
         } else {
             // Some people will forget to put the http:// on the url, so this is going to help them.
             // This is going to be absolutely sure the current url is invalid, before adding http:// before it.
-            val url = if (!potentialUrl.isValidUrl()) "http://$potentialUrl" else potentialUrl
+            val url = potentialUrl.fixUrlIfNecessary()
 
             // If even after this it is still invalid, we wiggle
             if (isUrlWrong(url, listOfItems)) return

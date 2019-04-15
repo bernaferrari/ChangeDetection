@@ -26,9 +26,9 @@ import androidx.transition.ChangeBounds
 import androidx.transition.TransitionManager
 import com.afollestad.materialdialogs.MaterialDialog
 import com.bernaferrari.changedetection.*
-import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.RowItem
+import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
 import com.bernaferrari.changedetection.ui.RecyclerViewItemListener
 import com.bernaferrari.changedetection.util.GlideApp
@@ -418,10 +418,10 @@ class VisualFragment : ScopedFragment(),
         updateUi()
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration?) {
+    override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
 
-        if (newConfig?.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             uiState.visibility = false
             updateVisibility()
         }

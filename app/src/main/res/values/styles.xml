@@ -46,6 +46,8 @@
 
         <item name="android:textColorSecondary">@color/white</item>
 
+        <item name="colorOnPrimary">@color/white</item>
+
         <item name="toolbarColor">@color/primary_dark</item>
         <item name="iconColor">@color/white</item>
         <item name="strongColor">@color/white</item>
@@ -91,6 +93,21 @@
         <item name="bottomSheetStyle">@style/BottomSheet</item>
 
     </style>
+
+    <style name="FormInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="android:layout_margin">8dp</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="BottomNavActive">
+        <item name="android:fontFamily">@font/lato_bold</item>
+    </style>
+
+    <style name="BottomNavInactive">
+        <item name="android:fontFamily">@font/lato_bold</item>
+    </style>
+
 
     <style name="BottomSheetDialogThemeLight" parent="@style/Theme.MaterialComponents.Light.BottomSheetDialog">
         <item name="colorAccent">@color/md_blue_A400</item>

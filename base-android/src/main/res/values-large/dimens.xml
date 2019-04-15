@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="content_inset_double">64dp</dimen>
+    <dimen name="content_inset_more">40dp</dimen>
+    <dimen name="content_inset">32dp</dimen>
+    <dimen name="content_inset_less">24dp</dimen>
+    <dimen name="content_inset_half">16dp</dimen>
+    <dimen name="content_inset_quarter">8dp</dimen>
+
+    <dimen name="content_inset_prefs">34dp</dimen>
+</resources>
