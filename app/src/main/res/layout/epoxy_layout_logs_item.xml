@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="@{onClick}"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/dateDay"
+            style="@style/TextAppearance.MaterialComponents.Headline6"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:alpha="0.95"
+            android:includeFontPadding="false"
+            android:lines="1"
+            android:paddingTop="4dp"
+            android:text="@{dateDayStr}"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            app:fontFamily="@font/lato_bold"
+            app:layout_constraintBottom_toTopOf="@+id/dateMonth"
+            app:layout_constraintEnd_toEndOf="@+id/icon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed"
+            tools:text="16" />
+
+        <TextView
+            android:id="@+id/dateMonth"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:alpha="0.95"
+            android:includeFontPadding="false"
+            android:lines="1"
+            android:paddingBottom="4dp"
+            android:text="@{dateMonthStr}"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            app:fontFamily="@font/lato_bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/icon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/dateDay"
+            tools:text="Mar" />
+
+        <TextView
+            android:id="@+id/titleStr"
+            style="@style/TextAppearance.MaterialComponents.Headline6"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:ellipsize="end"
+            android:includeFontPadding="false"
+            android:lines="1"
+            android:text="@{title}"
+            app:fontFamily="@font/work_regular"
+            app:layout_constraintBottom_toTopOf="@+id/versionNameStr"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/icon"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed"
+            tools:text="WhatsApp" />
+
+        <TextView
+            android:id="@+id/versionNameStr"
+            style="@style/TextAppearance.MaterialComponents.Caption"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:lines="1"
+            android:text="@{subtitle}"
+            app:fontFamily="monospace"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/icon"
+            app:layout_constraintTop_toBottomOf="@+id/titleStr"
+            tools:text="3 weeks ago" />
+
+        <View
+            android:id="@+id/icon"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:colorFirst="@{colorFirst}"
+            app:colorSecond="@{colorSecond}"
+            app:layout_constraintBottom_toBottomOf="@id/dateMonth"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintStart_toStartOf="@id/dateMonth"
+            app:layout_constraintTop_toTopOf="@+id/dateDay"
+            tools:background="@color/md_red_500"
+            tools:src="@mipmap/ic_launcher" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <data>
+
+        <variable
+            name="title"
+            type="String" />
+
+        <variable
+            name="shortTitle"
+            type="String" />
+
+        <variable
+            name="subtitle"
+            type="String" />
+
+        <variable
+            name="size"
+            type="String" />
+
+        <variable
+            name="dateDayStr"
+            type="String" />
+
+        <variable
+            name="dateMonthStr"
+            type="String" />
+
+        <variable
+            name="colorFirst"
+            type="Integer" />
+
+        <variable
+            name="colorSecond"
+            type="Integer" />
+
+        <variable
+            name="onClick"
+            type="android.view.View.OnClickListener" />
+
+    </data>
+
+</layout>

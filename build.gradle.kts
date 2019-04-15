@@ -1,3 +1,5 @@
+import io.gitlab.arturbosch.detekt.detekt
+
 buildscript {
     repositories {
         google()
@@ -5,10 +7,10 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:3.4.0-beta02")
-        classpath(kotlin("gradle-plugin", version = "1.3.20"))
-        classpath("android.arch.navigation:navigation-safe-args-gradle-plugin:1.0.0-alpha11")
-        classpath("com.github.ben-manes:gradle-versions-plugin:0.20.0")
+        classpath("com.android.tools.build:gradle:3.5.0-alpha10")
+        classpath(kotlin("gradle-plugin", version = "1.3.30"))
+        classpath("android.arch.navigation:navigation-safe-args-gradle-plugin:1.0.0")
+        classpath("com.github.ben-manes:gradle-versions-plugin:0.21.0")
     }
 }
 
@@ -17,11 +19,12 @@ allprojects {
         google()
         jcenter()
         maven("https://jitpack.io")
+        maven("https://kotlin.bintray.com/kotlinx/")
     }
 }
 
 plugins {
-    id("io.gitlab.arturbosch.detekt") version "1.0.0-RC12"
+    id("io.gitlab.arturbosch.detekt") version "1.0.0-RC14"
 }
 
 tasks.register<Delete>("clean").configure {

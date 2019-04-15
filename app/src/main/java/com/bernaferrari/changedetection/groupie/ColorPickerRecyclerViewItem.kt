@@ -3,10 +3,11 @@ package com.bernaferrari.changedetection.groupie
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.view.updateLayoutParams
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.extensions.ColorGroup
 import com.bernaferrari.changedetection.extensions.itemAnimatorWithoutChangeAnimations
 import com.bernaferrari.changedetection.extensions.toDp
+import com.bernaferrari.changedetection.repo.ColorGroup
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.kotlinandroidextensions.Item
@@ -59,12 +60,8 @@ class ColorPickerRecyclerViewItem(
             }
         }
 
-        viewHolder.defaultRecycler.apply {
-            this.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(
-                context,
-                androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL,
-                false
-            )
+        viewHolder.recycler.apply {
+            this.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
             this.adapter = GroupAdapter<ViewHolder>().apply {
                 add(Section(selectorList))
             }

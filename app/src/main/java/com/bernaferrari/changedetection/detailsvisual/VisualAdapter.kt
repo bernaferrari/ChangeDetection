@@ -4,9 +4,10 @@ import android.content.Context
 import android.view.ViewGroup
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
-import com.bernaferrari.changedetection.data.Snap
+import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.ui.RecyclerViewItemListener
-import com.bernaferrari.changedetection.util.GlideRequests
+
+//import com.bernaferrari.changedetection.util.GlideRequests
 
 class VisualAdapter(
     val callback: RecyclerViewItemListener,
@@ -14,7 +15,7 @@ class VisualAdapter(
     private val itemWidth: Int,
     private val context: Context,
     private val isPdf: Boolean,
-    private val glide: GlideRequests
+    private val glide: Any
 ) :
     PagedListAdapter<Snap, VisualViewHolder>(
         diffCallback

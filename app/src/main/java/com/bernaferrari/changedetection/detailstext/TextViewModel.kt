@@ -1,16 +1,16 @@
-package com.bernaferrari.changedetection.detailstext
+package com.bernaferrari.changedetection.detailsText
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
-import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.data.source.SnapsRepository
 import com.bernaferrari.changedetection.extensions.getPositionForAdapter
 import com.bernaferrari.changedetection.extensions.removeClutterAndBeautifyHtmlIfNecessary
 import com.bernaferrari.changedetection.extensions.unescapeHtml
 import com.bernaferrari.changedetection.groupie.TextRecycler
+import com.bernaferrari.changedetection.repo.Snap
+import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.util.SingleLiveEvent
 import com.bernaferrari.diffutils.diffs.text.DiffRowGenerator
 import com.xwray.groupie.Section

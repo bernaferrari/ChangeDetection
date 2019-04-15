@@ -1,1 +1,1 @@
-include(":app", ":diffutils")
+include(":app", ":base", ":base-android", ":diffutils", ":repo")

@@ -24,8 +24,6 @@ import com.bernaferrari.changedetection.R
 import com.github.marlonlom.utilities.timeago.TimeAgo
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
-internal typealias ColorGroup = Pair<Int, Int>
-
 internal fun Long.convertTimestampToDate(): String = TimeAgo.using(this)
 
 internal fun View.getText(@StringRes res: Int) = this.resources.getText(res)

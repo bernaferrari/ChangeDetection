@@ -1,0 +1,50 @@
+import com.bernaferrari.buildsrc.Libs
+import com.bernaferrari.buildsrc.Android
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-android-extensions'
+
+androidExtensions {
+    experimental = true
+}
+
+android {
+    compileSdkVersion Android.compileSdk
+
+    defaultConfig {
+        minSdkVersion Android.minSdk
+        targetSdkVersion Android.targetSdk
+    }
+}
+
+dependencies {
+
+    // Kotlin
+    implementation Libs.Kotlin.stdlib
+    implementation Libs.Coroutines.core
+    implementation Libs.Coroutines.android
+
+    // Dagger
+    implementation Libs.Dagger.dagger
+    kapt Libs.Dagger.compiler
+
+    // Room
+    implementation Libs.AndroidX.Room.common
+    implementation Libs.AndroidX.Room.rxjava2
+    kapt Libs.AndroidX.Room.compiler
+
+    // Paging
+    implementation Libs.AndroidX.Paging.common
+    implementation Libs.AndroidX.Paging.rxjava2
+
+    // LiveData
+    implementation Libs.AndroidX.Lifecycle.extensions
+
+    // Logs
+    implementation Libs.logger
+
+    // Parsing
+    implementation Libs.jsoup
+}

@@ -7,16 +7,16 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.bernaferrari.changedetection.data.Site
-import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.findCharset
 import com.bernaferrari.changedetection.extensions.readableFileSize
+import com.bernaferrari.changedetection.repo.Site
+import com.bernaferrari.changedetection.repo.Snap
 import com.orhanobut.logger.Logger
 import io.karn.notify.Notify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.threeten.bp.LocalTime
-import com.bernaferrari.changedetection.data.source.Result as DataResult
+import com.bernaferrari.changedetection.repo.source.Result as DataResult
 
 class SyncWorker(
     val context: Context,
@@ -71,7 +71,7 @@ class SyncWorker(
     private suspend fun reload(item: Site) {
         if (!item.isSyncEnabled) return
 
-        val (contentTypeAndCharset, bytes) = WorkerHelper.fetchFromServer(item)
+        val (contentTypeAndCharset, bytes) = WorkerHelper.fetchFromServer(item.url)
 
         if (isDebugEnabled) {
             if (bytes.isEmpty()) {

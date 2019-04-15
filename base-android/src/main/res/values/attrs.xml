@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <attr name="toolbarColor" format="color" />
+    <attr name="standardCardColor" format="color" />
+
+    <attr name="mainCardColor" format="color" />
+    <attr name="cardSeparatorColor" format="color" />
+
+    <attr name="strongColor" format="color" />
+    <attr name="searchBoxColor" format="color" />
+    <attr name="searchIconColor" format="color" />
+
+</resources>

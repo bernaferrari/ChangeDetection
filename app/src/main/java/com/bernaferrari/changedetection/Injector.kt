@@ -3,31 +3,40 @@ package com.bernaferrari.changedetection
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.room.Room
-import com.bernaferrari.changedetection.data.source.SitesDataSource
-import com.bernaferrari.changedetection.data.source.SitesRepository
-import com.bernaferrari.changedetection.data.source.SnapsDataSource
-import com.bernaferrari.changedetection.data.source.SnapsRepository
-import com.bernaferrari.changedetection.data.source.local.*
-import com.bernaferrari.changedetection.util.AppExecutors
+import com.afollestad.rxkprefs.Pref
+import com.afollestad.rxkprefs.RxkPrefs
+import com.afollestad.rxkprefs.rxkPrefs
+import com.bernaferrari.changedetection.mainnew.AppModule
+import com.bernaferrari.changedetection.mainnew.BibleAndroidInjectorsModule
+import com.bernaferrari.changedetection.repo.AppExecutors
+import com.bernaferrari.changedetection.repo.source.SitesDataSource
+import com.bernaferrari.changedetection.repo.source.SitesRepository
+import com.bernaferrari.changedetection.repo.source.SnapsDataSource
+import com.bernaferrari.changedetection.repo.source.SnapsRepository
+import com.bernaferrari.changedetection.repo.source.local.*
+import dagger.BindsInstance
 import dagger.Component
 import dagger.Module
 import dagger.Provides
+import dagger.android.support.AndroidSupportInjectionModule
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
-class ContextModule(private val appContext: Context) {
+class AppModuleAR {
 
     @Provides
-    fun appContext(): Context = appContext
-}
+    fun provideContext(application: App): Context = application.applicationContext
 
-@Module
-class AppModule(private val appContext: Context) {
+    @Provides
+    fun sharedPrefs(application: App): SharedPreferences {
+        return application.getSharedPreferences("workerPreferences", Context.MODE_PRIVATE)
+    }
 
     @Provides
     @Singleton
-    fun sharedPrefs(): SharedPreferences {
-        return appContext.getSharedPreferences("workerPreferences", Context.MODE_PRIVATE)
+    fun rxPrefs(application: App): RxkPrefs {
+        return rxkPrefs(sharedPrefs(application))
     }
 }
 
@@ -45,6 +54,47 @@ class SitesRepositoryModule {
     @Provides
     internal fun provideSitesDao(db: ChangeDatabase): SitesDao = db.siteDao()
 }
+
+@Module
+class RxPrefsModule {
+
+    @Provides
+    @Named("lightMode")
+    fun isLightTheme(rxPrefs: RxkPrefs): Pref<Boolean> {
+        return rxPrefs.boolean("lightMode", true)
+    }
+
+    @Provides
+    @Named("colorBySdk")
+    fun isColorBySdk(rxPrefs: RxkPrefs): Pref<Boolean> {
+        return rxPrefs.boolean("colorBySdk", true)
+    }
+
+    @Provides
+    @Named("showSystemApps")
+    fun showSystemApps(rxPrefs: RxkPrefs): Pref<Boolean> {
+        return rxPrefs.boolean("showSystemApps", false)
+    }
+
+    @Provides
+    @Named("backgroundSync")
+    fun backgroundSync(rxPrefs: RxkPrefs): Pref<Boolean> {
+        return rxPrefs.boolean("backgroundSync", false)
+    }
+
+    @Provides
+    @Named("syncInterval")
+    fun syncInterval(rxPrefs: RxkPrefs): Pref<String> {
+        return rxPrefs.string("syncInterval", "301")
+    }
+
+    @Provides
+    @Named("orderBySdk")
+    fun orderBySdk(rxPrefs: RxkPrefs): Pref<Boolean> {
+        return rxPrefs.boolean("orderBySdk", false)
+    }
+}
+
 
 @Module
 class SnapsRepositoryModule {
@@ -81,14 +131,52 @@ class RepositoriesMutualDependenciesModule {
     internal fun provideAppExecutors(): AppExecutors = AppExecutors()
 }
 
-@Component(modules = [ContextModule::class, AppModule::class, SitesRepositoryModule::class, SnapsRepositoryModule::class, RepositoriesMutualDependenciesModule::class])
+@Component(
+    modules = [
+        AndroidSupportInjectionModule::class,
+        BibleAndroidInjectorsModule::class,
+        AppModule::class,
+        AppModuleAR::class,
+        RxPrefsModule::class,
+        SitesRepositoryModule::class,
+        SnapsRepositoryModule::class,
+        RepositoriesMutualDependenciesModule::class]
+)
 @Singleton
 interface SingletonComponent {
+
+    @Component.Builder
+    interface Builder {
+        @BindsInstance
+        fun application(app: App): Builder
+
+        fun build(): SingletonComponent
+    }
+
+    fun inject(app: App)
 
     fun appContext(): Context
     fun sharedPrefs(): SharedPreferences
     fun sitesRepository(): SitesRepository
     fun snapsRepository(): SnapsRepository
+
+    @Named("lightMode")
+    fun isLightTheme(): Pref<Boolean>
+
+    @Named("colorBySdk")
+    fun isColorBySdk(): Pref<Boolean>
+
+    @Named("showSystemApps")
+    fun showSystemApps(): Pref<Boolean>
+
+    @Named("backgroundSync")
+    fun backgroundSync(): Pref<Boolean>
+
+    @Named("syncInterval")
+    fun syncInterval(): Pref<String>
+
+    @Named("orderBySdk")
+    fun orderBySdk(): Pref<Boolean>
 }
 
 class Injector private constructor() {

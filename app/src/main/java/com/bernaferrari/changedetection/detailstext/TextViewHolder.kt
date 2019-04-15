@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.detailstext
+package com.bernaferrari.changedetection.detailsText
 
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.TransitionDrawable
@@ -6,11 +6,11 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.graphics.drawable.toDrawable
 import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.consume
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.getColorFromAttr
 import com.bernaferrari.changedetection.extensions.readableFileSize
+import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.ui.RecyclerViewItemListener
 import kotlinx.android.synthetic.main.item_text_selector.view.*
 

@@ -126,4 +126,23 @@
     <string name="settings">Settings</string>
     <string name="about">About</string>
 
+    <string name="sync_every">Sync every %d %s</string>
+
+    <string name="sync_disabled">Sync is disabled</string>
+
+    <string name="background_sync_description">Periodically check if targetSDK changed, since apps are always being updated.</string>
+    <string name="home">Home</string>
+
+    <string name="logs">Logs</string>
+    <string-array name="pluralTime">
+        <item>minutes</item>
+        <item>hours</item>
+        <item>days</item>
+    </string-array>
+    <string-array name="singularTime">
+        <item>minute</item>
+        <item>hour</item>
+        <item>day</item>
+    </string-array>
+
 </resources>

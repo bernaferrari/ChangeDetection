@@ -5,8 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
-import com.bernaferrari.changedetection.data.Snap
-import com.bernaferrari.changedetection.data.source.SnapsRepository
+import com.bernaferrari.changedetection.repo.Snap
+import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 

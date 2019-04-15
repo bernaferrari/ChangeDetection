@@ -1,0 +1,27 @@
+import com.bernaferrari.buildsrc.Libs
+import com.bernaferrari.buildsrc.Android
+
+apply from: '../core_dependencies.gradle'
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-android-extensions'
+
+android {
+    compileSdkVersion Android.compileSdk
+
+    defaultConfig {
+        minSdkVersion Android.minSdk
+        targetSdkVersion Android.targetSdk
+    }
+}
+
+dependencies {
+
+    implementation project(':base')
+
+    // Google
+    implementation Libs.AndroidX.Lifecycle.extensions
+
+    implementation Libs.RxJava.rxRelay
+}

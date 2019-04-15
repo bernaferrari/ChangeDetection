@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.util
+package com.bernaferrari.changedetection.repo
 
 import kotlinx.coroutines.Dispatchers
 import kotlin.coroutines.CoroutineContext

@@ -2,7 +2,7 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination="@id/mainFragment">
+    app:startDestination="@id/mainFragmentNEW">
 
     <fragment
         android:id="@+id/mainFragment"
@@ -41,7 +41,7 @@
 
     <fragment
         android:id="@+id/textFragment"
-        android:name="com.bernaferrari.changedetection.detailstext.TextFragment"
+        android:name="com.bernaferrari.changedetection.detailsText.TextFragment"
         android:label="OpenFragment"
         tools:layout="@layout/diff_text_fragment" />
 
@@ -68,5 +68,57 @@
         android:name="com.bernaferrari.changedetection.detailsvisual.VisualFragment"
         android:label="PdfFragment"
         tools:layout="@layout/diff_visual_fragment" />
+
+    <fragment
+        android:id="@+id/webviewFragment"
+        android:name="com.bernaferrari.changedetection.addedit.WebViewFragment"
+        android:label="WebViewFrag" />
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.bernaferrari.changedetection.SettingsFragment"
+        android:label="SettingsFragment" />
+
+    <fragment
+        android:id="@+id/mainFragmentNEW"
+        android:name="com.bernaferrari.changedetection.mainnew.MainFragmentNEW"
+        android:label="MainFragmentNEW">
+        <action
+            android:id="@+id/action_mainFragmentNEW_to_addNew"
+            app:destination="@id/addNew"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
+            tools:layout="@layout/addnewfragment" />
+        <action
+            android:id="@+id/action_mainFragmentNEW_to_aboutFragment"
+            app:destination="@id/aboutFragment" />
+        <action
+            android:id="@+id/action_mainFragmentNEW_to_textFragment"
+            app:destination="@id/textFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/logsFragment"
+        android:name="com.bernaferrari.changedetection.logs.LogsFragment"
+        android:label="LogsFragment">
+        <action
+            android:id="@+id/action_logsFragment_to_textFragment"
+            app:destination="@id/textFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addNew"
+        android:name="com.bernaferrari.changedetection.addedit.AddEditFragment"
+        android:label="LogsFragment">
+        <action
+            android:id="@+id/action_addNew_to_webviewFragment"
+            app:destination="@id/webviewFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+    </fragment>
 
 </navigation>

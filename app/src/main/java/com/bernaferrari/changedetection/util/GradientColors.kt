@@ -1,7 +1,7 @@
 package com.bernaferrari.changedetection.util
 
 import android.graphics.drawable.GradientDrawable
-import com.bernaferrari.changedetection.extensions.ColorGroup
+import com.bernaferrari.changedetection.repo.ColorGroup
 
 /**
  * Some gradient gradientColor are inspired from uiGradients:

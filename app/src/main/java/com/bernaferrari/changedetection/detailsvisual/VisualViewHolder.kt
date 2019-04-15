@@ -1,5 +1,6 @@
 package com.bernaferrari.changedetection.detailsvisual
 
+//import com.bernaferrari.changedetection.util.GlideRequests
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -8,15 +9,12 @@ import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import android.view.ViewGroup
 import androidx.core.view.updateLayoutParams
-import com.bernaferrari.changedetection.Injector
 import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.data.Snap
 import com.bernaferrari.changedetection.extensions.consume
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.inflate
+import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.ui.RecyclerViewItemListener
-import com.bernaferrari.changedetection.util.GlideRequests
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import kotlinx.android.synthetic.main.diff_visual_item_carousel.view.*
 import java.io.File
 
@@ -51,7 +49,7 @@ class VisualViewHolder(
         snap: Snap?,
         position: Int,
         context: Context,
-        glide: GlideRequests
+        glide: Any
     ) {
         currentSnap = snap
         itemPosition = position
@@ -63,15 +61,15 @@ class VisualViewHolder(
         }
     }
 
-    private fun renderImage(snap: Snap?, glide: GlideRequests) {
+    private fun renderImage(snap: Snap?, glide: Any) {
         if (snap != null) {
             this.itemView.subtitle.text = snap.timestamp.convertTimestampToDate()
 
-            glide.load(Injector.get().appContext().openFileInput(snap.snapId).readBytes())
-                .transition(DrawableTransitionOptions.withCrossFade())
-                .into(this.itemView.imageView)
+//            glide.load(Injector.get().appContext().openFileInput(snap.snapId).readBytes())
+//                .transition(DrawableTransitionOptions.withCrossFade())
+//                .into(this.itemView.imageView)
         } else {
-            glide.clear(this.itemView.imageView)
+//            glide.clear(this.itemView.imageView)
         }
     }
 
