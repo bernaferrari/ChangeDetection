@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.airbnb.epoxy.EpoxyRecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clipToPadding="false"
+    android:paddingBottom="@dimen/content_inset_half"
+    android:paddingEnd="@dimen/content_inset"
+    android:paddingStart="@dimen/content_inset"
+    android:paddingTop="@dimen/content_inset_half"
+    android:scrollbars="none"
+    android:visibility="gone" />

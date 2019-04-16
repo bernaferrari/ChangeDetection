@@ -20,6 +20,11 @@
 
     <color name="separator_color">#CCCCCC</color>
 
+    <color name="colorAccent">#FF6E40</color>
+    <color name="colorAccent_pressed">#E44615</color>
+    <color name="colorAccent_translucent">#40FF6E40</color>
+
+
     <!--Lottie colors-->
     <color name="item_selected_teal">#009587</color>
     <color name="control_bar_content_unactivated">#444444</color>

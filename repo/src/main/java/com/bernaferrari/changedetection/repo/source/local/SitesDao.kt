@@ -2,7 +2,7 @@ package com.bernaferrari.changedetection.repo.source.local
 
 import androidx.room.*
 import com.bernaferrari.changedetection.repo.Site
-import io.reactivex.Flowable
+import io.reactivex.Observable
 
 /**
  * Data Access Object for the sites table.
@@ -21,7 +21,7 @@ interface SitesDao {
 
 
     @Query("SELECT * FROM sites")
-    fun getExperimental(): Flowable<List<Site>>
+    fun getDataWithChanges(): Observable<List<Site>>
 
     /**
      * Select a site by id.

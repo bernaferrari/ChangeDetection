@@ -1,7 +1,7 @@
 package com.bernaferrari.changedetection.repo.source
 
 import com.bernaferrari.changedetection.repo.Site
-import io.reactivex.Flowable
+import io.reactivex.Observable
 
 /**
  * Main entry point for accessing sites data.
@@ -11,7 +11,7 @@ interface SitesDataSource {
 
     suspend fun getSites(): List<Site>
 
-    fun getExperimental(): Flowable<List<Site>>
+    fun getDataWithChanges(): Observable<List<Site>>
 
     suspend fun getSiteById(siteId: String): Site?
 

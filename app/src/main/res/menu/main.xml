@@ -1,36 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="AppCompatResource">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/filter"
+        android:id="@+id/colorFilter"
         android:icon="@drawable/ic_filter"
         android:title="@string/filter"
-        android:visible="false"
-        app:showAsAction="always" />
-
-    <item
-        android:id="@+id/settings"
-        android:icon="@drawable/ic_settings"
-        android:title="@string/settings"
         app:showAsAction="ifRoom" />
 
     <item
-        android:id="@+id/dark_mode"
-        android:title="@string/enable_dark_mode"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/backup"
-        android:title="@string/backup"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/about"
-        android:icon="@drawable/ic_info"
-        android:title="@string/about"
-        app:showAsAction="never" />
+        android:id="@+id/tagFilter"
+        android:icon="@drawable/ic_code"
+        android:title="@string/filter"
+        app:showAsAction="ifRoom" />
 
 </menu>

@@ -126,13 +126,13 @@ class MainFragment : ScopedFragment() {
     override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
         menuInflater.inflate(R.menu.main, menu)
 
-        filterItem = menu.findItem(R.id.filter).also {
-            it.isVisible = sitesList.isNotEmpty()
-        }
-
-        menu.findItem(R.id.dark_mode).title = isDarkModeOn.takeIf { it == true }
-            ?.let { getString(R.string.disable_dark_mode) }
-                ?: getString(R.string.enable_dark_mode)
+//        filterItem = menu.findItem(R.id.filter).also {
+//            it.isVisible = sitesList.isNotEmpty()
+//        }
+//
+//        menu.findItem(R.id.dark_mode).title = isDarkModeOn.takeIf { it == true }
+//            ?.let { getString(R.string.disable_dark_mode) }
+//                ?: getString(R.string.enable_dark_mode)
 
         super.onCreateOptionsMenu(menu, menuInflater)
     }
@@ -169,51 +169,51 @@ class MainFragment : ScopedFragment() {
         }
     }
 
-    override fun onOptionsItemSelected(menuItem: MenuItem): Boolean {
-        when (menuItem.itemId) {
-            R.id.filter -> onFilterTapped()
-            R.id.settings -> {
-                requireActivity().supportFragmentManager.beginTransaction()
-                    .add(SettingsFragment(), "settings").commit()
-            }
-            R.id.about -> {
-                view?.findNavController()?.navigate(R.id.action_mainFragment_to_aboutFragment)
-            }
-            R.id.dark_mode -> {
-                Injector.get().sharedPrefs().also {
-                    val value = it.getBoolean(MainActivity.DARKMODE, false)
-                    it.edit(true) { putBoolean(MainActivity.DARKMODE, !value) }
-                }
-
-                requireActivity().recreate()
-            }
-            R.id.backup -> {
-                MaterialDialog(requireContext())
-                    .negativeButton(R.string.bkp_import) {
-                        // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
-                        // browser.
-                        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                            // Filter to only show results that can be "opened", such as a
-                            // file (as opposed to a list of contacts or timezones)
-                            addCategory(Intent.CATEGORY_OPENABLE)
-                            type = "text/plain"
-                        }
-
-                        startActivityForResult(intent, READ_REQUEST_CODE)
-                    }
-                    .show {
-                        title(R.string.backup)
-                        message(R.string.bkp_description)
-
-                        if (sitesList.size != 0) {
-                            // don't show the export button when there are no items
-                            positiveButton(R.string.bkp_export) { exportBackup() }
-                        }
-                    }
-            }
-        }
-        return true
-    }
+//    override fun onOptionsItemSelected(menuItem: MenuItem): Boolean {
+//        when (menuItem.itemId) {
+//            R.id.filter -> onFilterTapped()
+//            R.id.settings -> {
+//                requireActivity().supportFragmentManager.beginTransaction()
+//                    .add(SettingsFragment(), "settings").commit()
+//            }
+//            R.id.about -> {
+//                view?.findNavController()?.navigate(R.id.action_mainFragment_to_aboutFragment)
+//            }
+//            R.id.dark_mode -> {
+//                Injector.get().sharedPrefs().also {
+//                    val value = it.getBoolean(MainActivity.DARKMODE, false)
+//                    it.edit(true) { putBoolean(MainActivity.DARKMODE, !value) }
+//                }
+//
+//                requireActivity().recreate()
+//            }
+//            R.id.backup -> {
+//                MaterialDialog(requireContext())
+//                    .negativeButton(R.string.bkp_import) {
+//                        // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
+//                        // browser.
+//                        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+//                            // Filter to only show results that can be "opened", such as a
+//                            // file (as opposed to a list of contacts or timezones)
+//                            addCategory(Intent.CATEGORY_OPENABLE)
+//                            type = "text/plain"
+//                        }
+//
+//                        startActivityForResult(intent, READ_REQUEST_CODE)
+//                    }
+//                    .show {
+//                        title(R.string.backup)
+//                        message(R.string.bkp_description)
+//
+//                        if (sitesList.size != 0) {
+//                            // don't show the export button when there are no items
+//                            positiveButton(R.string.bkp_export) { exportBackup() }
+//                        }
+//                    }
+//            }
+//        }
+//        return true
+//    }
 
     private fun exportBackup() {
         var newStr = ""
