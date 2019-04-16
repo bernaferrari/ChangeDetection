@@ -17,17 +17,11 @@ suspend fun fetchFromWebView(
 
     wv.webViewClient = object : WebViewClient() {
 
-        override fun onLoadResource(view: WebView?, url: String?) {
-            println("RAWR onLoadResource")
-            super.onLoadResource(view, url)
-        }
-
         override fun onReceivedError(
             view: WebView?,
             request: WebResourceRequest?,
             error: WebResourceError?
         ) {
-            println("rawr ERROR GLOBO")
             val errorMessage = if (Build.VERSION.SDK_INT >= 23) {
                 error?.description
             } else {
@@ -39,7 +33,6 @@ suspend fun fetchFromWebView(
         }
 
         override fun onPageFinished(view: WebView?, url: String?) {
-            println("rawr onPageFinished GLOBO")
 
             val js =
                 "(function() { return ('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>'); })();"
@@ -55,5 +48,4 @@ suspend fun fetchFromWebView(
     }
 
     wv.loadUrl(url)
-    println("RAWR loaded url: ${url}")
 }

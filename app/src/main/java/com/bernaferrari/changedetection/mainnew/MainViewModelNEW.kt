@@ -64,6 +64,10 @@ class MainViewModelNEW @AssistedInject constructor(
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
+    init {
+        fetchData()
+    }
+
     override fun onCleared() {
         job.cancel()
         super.onCleared()

@@ -2,26 +2,22 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <data>
+
+        <variable
+            name="title"
+            type="String" />
+
+        <variable
+            name="subtitle"
+            type="String" />
+
+    </data>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
-
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="24dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:alpha="0.75"
-            android:paddingLeft="16dp"
-            android:paddingTop="4dp"
-            android:paddingRight="16dp"
-            android:text="@{subtitle}"
-            android:textColor="?strongColor"
-            android:textSize="16sp"
-            tools:text="Subtitle goes here" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -35,17 +31,21 @@
             android:textStyle="bold"
             tools:text="Marquee" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:alpha="0.75"
+            android:paddingLeft="16dp"
+            android:paddingTop="4dp"
+            android:paddingRight="16dp"
+            android:text="@{subtitle}"
+            android:textColor="?strongColor"
+            android:textSize="16sp"
+            tools:text="Subtitle goes here" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="24dp" />
+
     </LinearLayout>
-
-    <data>
-
-        <variable
-            name="title"
-            type="String" />
-
-        <variable
-            name="subtitle"
-            type="String" />
-
-    </data>
 </layout>

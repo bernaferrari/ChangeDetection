@@ -3,6 +3,36 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="title"
+            type="String" />
+
+        <variable
+            name="subtitle"
+            type="String" />
+
+        <variable
+            name="icon"
+            type="int" />
+
+        <variable
+            name="switchIsVisible"
+            type="boolean" />
+
+        <variable
+            name="switchIsOn"
+            type="boolean" />
+
+        <variable
+            name="clickListener"
+            type="android.view.View.OnClickListener" />
+
+    </data>
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -58,8 +88,8 @@
                 android:alpha="0.75"
                 android:ellipsize="end"
                 android:text="@{subtitle}"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
                 android:visibility='@{subtitle == null ? View.GONE : View.VISIBLE}'
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/item_switch"
                 app:layout_constraintStart_toEndOf="@+id/image"
@@ -81,34 +111,4 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </FrameLayout>
-
-    <data>
-
-        <import type="android.view.View" />
-
-        <variable
-            name="title"
-            type="String" />
-
-        <variable
-            name="subtitle"
-            type="String" />
-
-        <variable
-            name="icon"
-            type="int" />
-
-        <variable
-            name="switchIsVisible"
-            type="boolean" />
-
-        <variable
-            name="switchIsOn"
-            type="boolean" />
-
-        <variable
-            name="clickListener"
-            type="android.view.View.OnClickListener" />
-
-    </data>
 </layout>

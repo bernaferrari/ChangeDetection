@@ -32,19 +32,6 @@
             android:src="@drawable/ic_close"
             android:tint="@color/md_grey_600" />
 
-        <ImageView
-            android:id="@+id/back"
-            style="@style/ClickableImageView"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_gravity="center_vertical"
-            android:layout_marginEnd="8dp"
-            android:importantForAccessibility="no"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:src="@drawable/ic_arrow_back"
-            android:tint="@color/md_grey_600" />
-
         <com.google.android.material.card.MaterialCardView
             android:layout_width="0dp"
             android:layout_height="36dp"
@@ -73,27 +60,20 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <ImageView
+            android:id="@+id/back"
+            style="@style/ClickableImageView"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical"
+            android:importantForAccessibility="no"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_arrow_back"
+            android:tint="@color/md_grey_600" />
+
     </LinearLayout>
-
-    <ProgressBar
-        android:id="@+id/progress"
-        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-        android:layout_width="0dp"
-        android:layout_height="2dp"
-        android:indeterminate="true"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title_bar" />
-
-    <com.bernaferrari.changedetection.ui.CustomWebView
-        android:id="@+id/webview"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/title_bar" />
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/materialButton"
@@ -104,6 +84,26 @@
         android:text="Done"
         app:icon="@drawable/ic_check"
         app:layout_constraintBottom_toBottomOf="@+id/webview"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.bernaferrari.changedetection.ui.CustomWebView
+        android:id="@+id/webview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title_bar" />
+
+    <ProgressBar
+        android:id="@+id/progress"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:indeterminate="true"
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/title_bar"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

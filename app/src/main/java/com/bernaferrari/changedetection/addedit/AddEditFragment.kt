@@ -4,9 +4,12 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.findNavController
+import com.bernaferrari.base.misc.onTextChanged
 import com.bernaferrari.changedetection.Injector
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.WorkerHelper
@@ -75,11 +78,13 @@ class AddEditFragment : AddEditBaseFragment() {
             }
         })
 
-//        urlInputLayout.editText?.onTextChanged {
-//            if (urlInputLayout.error != null) {
-//                urlInputLayout.error = null
-//            }
-//        }
+        urlInputLayout.editText?.onTextChanged {
+            if (urlInputLayout.error != null) {
+                urlInputLayout.error = null
+            }
+        }
+
+        urlInputLayout.editText?.text = "www.inf.ufpr.br".toEditText()
 
         // Click listeners
         saveButton.setOnClickListener {
@@ -88,17 +93,8 @@ class AddEditFragment : AddEditBaseFragment() {
 
         openBrowser.setOnClickListener {
             if (!isUrlWrong(urlInputLayout)) {
-                requireActivity().supportFragmentManager
-                    .beginTransaction()
-                    .setCustomAnimations(
-                        R.anim.slide_in_right,
-                        R.anim.slide_in_right,
-                        R.anim.slide_in_left,
-                        R.anim.slide_in_left
-                    )
-                    .replace(R.id.parentLayout, WebViewFragment.newInstance(url.text.toString()))
-                    .addToBackStack(null)
-                    .commitAllowingStateLoss()
+                val bundle = bundleOf("url" to url.text.toString())
+                it.findNavController().navigate(R.id.action_addNew_to_webviewFragment, bundle)
             }
         }
 
@@ -120,7 +116,6 @@ class AddEditFragment : AddEditBaseFragment() {
         toolbar.title = getString(R.string.edittitle)
 
         currentSite?.also {
-            println("RAWR CURRENTSITE ${it} || ${it.url}")
             title.text = it.title?.toEditText()
             url.text = it.url.toEditText()
             tags.text = it.notes.toEditText()
@@ -195,7 +190,6 @@ class AddEditFragment : AddEditBaseFragment() {
             }
         }
 
-        println("RAWR MODEL SELECT NULL BACK PRESSED")
         model.select(null)
         activity?.onBackPressed()
 

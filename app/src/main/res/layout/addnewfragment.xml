@@ -6,203 +6,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:paddingStart="24dp"
-        android:paddingEnd="24dp"
-        android:scrollbars="none"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/appBarLayout">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:orientation="vertical"
-            android:paddingBottom="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/appBarLayout">
-
-            <HorizontalScrollView
-                android:id="@+id/browserScrollView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
-                android:overScrollMode="never"
-                android:scrollbars="none"
-                android:visibility="gone"
-                tools:visibility="visible">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:clipToPadding="false"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/openBrowser"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:text="open browser" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/testBoth"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="test both" />
-
-                </LinearLayout>
-
-            </HorizontalScrollView>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_margin="8dp"
-                android:background="?colorPrimary" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_margin="8dp"
-                android:background="?colorPrimary" />
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/constraintCheck"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                android:clickable="true"
-                android:focusable="true">
-
-                <TextView
-                    android:id="@+id/requestSubtitle"
-                    style="@style/TextAppearance.MaterialComponents.Subtitle2"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:text="Want to login? Having sync issues? Use the browser."
-                    app:fontFamily="@font/work_regular"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toStartOf="@id/checkbox"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/requestTitle" />
-
-                <androidx.appcompat.widget.AppCompatTextView
-                    android:id="@+id/requestTitle"
-                    style="@style/TextAppearance.MaterialComponents.Headline6"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:text="Use browser"
-                    app:fontFamily="@font/work_regular"
-                    app:layout_constraintEnd_toStartOf="@id/checkbox"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/checkbox"
-                    android:layout_width="wrap_content"
-                    android:layout_height="0dp"
-                    android:clickable="false"
-                    android:focusable="false"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <com.airbnb.epoxy.EpoxyRecyclerView
-                android:id="@+id/colorSelector"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/saveButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginBottom="8dp"
-                android:text="Save" />
-
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/FormInputLayout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Title"
-                app:helperText="Choose an optional title"
-                app:startIconDrawable="@drawable/ic_edit">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="text"
-                    android:lines="1" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/urlInputLayout"
-                style="@style/FormInputLayout"
-                android:hint="Url"
-                app:endIconMode="clear_text"
-                app:helperText="https://example.com/"
-                app:startIconDrawable="@drawable/ic_chrome">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/url"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textUri"
-                    android:lines="1"
-                    android:selectAllOnFocus="true" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/FormInputLayout"
-                android:hint="Tags"
-                app:helperText="E.g. one, two, three.."
-                app:startIconDrawable="@drawable/ic_tag">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/tags"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:imeOptions="actionDone"
-                    android:inputType="textCapWords"
-                    android:lines="1" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
-        </LinearLayout>
-
-    </ScrollView>
-
     <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?toolbarColor"
-        android:elevation="1dp"
+        app:liftOnScroll="true"
         android:orientation="vertical"
+        android:elevation="1dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:liftOnScroll="true">
+        android:id="@+id/appBarLayout">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -217,5 +31,191 @@
             android:layout_height="wrap_content"
             android:visibility="gone" />
     </com.google.android.material.appbar.AppBarLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@id/appBarLayout"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:paddingBottom="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/appBarLayout"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/FormInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Title"
+                app:helperText="Choose an optional title"
+                app:startIconDrawable="@drawable/ic_edit">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/title"
+                    android:lines="1"
+                    android:inputType="text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/urlInputLayout"
+                style="@style/FormInputLayout"
+                app:startIconDrawable="@drawable/ic_chrome"
+                android:hint="Url"
+                app:endIconMode="clear_text"
+                app:helperText="https://example.com/">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/url"
+                    android:lines="1"
+                    android:inputType="textUri"
+                    android:selectAllOnFocus="true"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/FormInputLayout"
+                app:startIconDrawable="@drawable/ic_tag"
+                android:hint="Tags"
+                app:helperText="E.g. one, two, three..">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/tags"
+                    android:lines="1"
+                    android:imeOptions="actionDone"
+                    android:inputType="textCapWords"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.airbnb.epoxy.EpoxyRecyclerView
+                android:id="@+id/colorSelector"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_margin="8dp"
+                android:background="?colorPrimary" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/constraintCheck"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:clickable="true"
+                android:layout_margin="8dp">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/requestTitle"
+                    style="@style/TextAppearance.MaterialComponents.Headline6"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:text="Use browser"
+                    app:fontFamily="@font/work_regular"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/checkbox" />
+
+                <TextView
+                    android:id="@+id/requestSubtitle"
+                    style="@style/TextAppearance.MaterialComponents.Subtitle2"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="Want to login? Having sync issues? Use the browser."
+                    app:fontFamily="@font/work_regular"
+                    app:layout_constraintTop_toBottomOf="@id/requestTitle"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/checkbox" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/checkbox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="0dp"
+                    android:focusable="false"
+                    android:clickable="false"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <HorizontalScrollView
+                android:id="@+id/browserScrollView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:overScrollMode="never"
+                android:visibility="gone"
+                android:scrollbars="none"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/openBrowser"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:text="open browser"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/testBoth"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:text="test both"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp" />
+
+                </LinearLayout>
+
+            </HorizontalScrollView>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_margin="8dp"
+                android:background="?colorPrimary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/saveButton"
+                android:text="Save"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp" />
+
+        </LinearLayout>
+
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
