@@ -1,9 +1,7 @@
 package com.bernaferrari.ui.standard
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import com.bernaferrari.ui.R
 import com.bernaferrari.ui.widgets.ElasticDragDismissFrameLayout
@@ -14,13 +12,7 @@ import kotlinx.android.synthetic.main.frag_elastic_search.*
  */
 abstract class BaseElasticToolbarFragment : BaseToolbarFragment() {
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View = inflater.inflate(R.layout.frag_elastic_standard, container, false).apply {
-        recyclerView = findViewById(R.id.recycler)
-    }
+    override val inflateRes: Int = R.layout.frag_elastic_standard
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

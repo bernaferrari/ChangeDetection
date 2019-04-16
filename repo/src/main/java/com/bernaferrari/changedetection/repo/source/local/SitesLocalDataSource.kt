@@ -3,7 +3,7 @@ package com.bernaferrari.changedetection.repo.source.local
 import com.bernaferrari.changedetection.repo.AppExecutors
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.source.SitesDataSource
-import io.reactivex.Flowable
+import io.reactivex.Observable
 import kotlinx.coroutines.withContext
 import javax.inject.Singleton
 
@@ -18,8 +18,8 @@ class SitesLocalDataSource constructor(
     private val mSitesDao: SitesDao
 ) : SitesDataSource {
 
-    override fun getExperimental(): Flowable<List<Site>> {
-        return mSitesDao.getExperimental()
+    override fun getDataWithChanges(): Observable<List<Site>> {
+        return mSitesDao.getDataWithChanges()
     }
 
     override suspend fun getSites(): List<Site> = withContext(mAppExecutors.ioContext) {

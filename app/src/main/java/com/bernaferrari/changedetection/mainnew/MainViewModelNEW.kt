@@ -12,26 +12,24 @@ import com.airbnb.mvrx.ViewModelContext
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.WorkerHelper
 import com.bernaferrari.changedetection.core.MvRxViewModel
-import com.bernaferrari.changedetection.extensions.doSwitchMap
 import com.bernaferrari.changedetection.extensions.getColorFromAttr
 import com.bernaferrari.changedetection.groupie.DialogItemSimple
 import com.bernaferrari.changedetection.groupie.MainCardItem
-import com.bernaferrari.changedetection.repo.ContentTypeInfo
-import com.bernaferrari.changedetection.repo.Site
-import com.bernaferrari.changedetection.repo.SiteAndLastSnap
-import com.bernaferrari.changedetection.repo.Snap
+import com.bernaferrari.changedetection.repo.*
 import com.bernaferrari.changedetection.repo.source.Result
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.util.LongPress
-import com.jakewharton.rxrelay2.PublishRelay
+import com.jakewharton.rxrelay2.BehaviorRelay
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
+import com.pacoworks.komprehensions.rx2.doSwitchMap
 import com.squareup.inject.assisted.Assisted
 import com.squareup.inject.assisted.AssistedInject
 import com.squareup.inject.assisted.dagger2.AssistedModule
 import dagger.Module
 import io.reactivex.Observable
+import io.reactivex.rxkotlin.Observables
 import kotlinx.coroutines.*
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
@@ -43,6 +41,8 @@ import kotlin.coroutines.CoroutineContext
 
 data class MainState(
     val listOfItems: List<SiteAndLastSnap> = emptyList(),
+    val listOfColors: List<ColorGroup> = emptyList(),
+    val listOfTags: List<String> = emptyList(),
     val isLoading: Boolean = true,
     val interval: Long = 0
 ) : MvRxState
@@ -63,6 +63,15 @@ class MainViewModelNEW @AssistedInject constructor(
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
+
+    val outputStatus: LiveData<List<WorkInfo>>
+        get() = WorkManager.getInstance().getWorkInfosByTagLiveData("output")
+
+    val workManagerObserver: BehaviorRelay<List<WorkInfo>> = BehaviorRelay.create()
+
+    val selectedColors: BehaviorRelay<List<ColorGroup>> = BehaviorRelay.createDefault(emptyList())
+
+    val selectedTags: BehaviorRelay<List<String>> = BehaviorRelay.createDefault(emptyList())
 
     init {
         fetchData()
@@ -118,12 +127,6 @@ class MainViewModelNEW @AssistedInject constructor(
     }
 
     private var items = MutableLiveData<MutableList<SiteAndLastSnap>>()
-
-    internal fun loadSites(): MutableLiveData<MutableList<SiteAndLastSnap>> {
-        items = MutableLiveData()
-        updateItems()
-        return items
-    }
 
     internal fun updateItems() = launch(Dispatchers.Main) {
         val list = mutableListOf<SiteAndLastSnap>()
@@ -218,15 +221,38 @@ class MainViewModelNEW @AssistedInject constructor(
         return dialogItems
     }
 
-    val outputStatus: LiveData<List<WorkInfo>>
-        get() = WorkManager.getInstance().getWorkInfosByTagLiveData("output")
-
-    val live: PublishRelay<List<WorkInfo>> = PublishRelay.create()
+    private fun updateListOfFilters(items: List<Site>) {
+        setState {
+            copy(
+                listOfTags = pullOutTags(items),
+                listOfColors = items.groupBy { it.colors }.keys.toList()
+            )
+        }
+    }
 
     fun fetchData() = withState {
+
+        val sites = Observables.combineLatest(
+            mSitesRepository.getDataWithChanges().doOnNext { updateListOfFilters(it) },
+            selectedColors,
+            selectedTags
+        ) { items, selectedColors, selectedTags ->
+
+            val colorItems = items.takeIf { selectedColors.isNotEmpty() }
+                ?.filter { it.colors in selectedColors } ?: items
+
+            val tagColoredItems = colorItems.takeIf { selectedTags.isNotEmpty() }
+                ?.filter { site ->
+                    val itemTags = site.notes.toLowerCase().split(",")
+                    itemTags.any { tag -> tag in selectedTags }
+                } ?: colorItems
+
+            tagColoredItems
+        }
+
         doSwitchMap(
-            { mSitesRepository.getExperimental().toObservable() },
-            { live },
+            { sites },
+            { workManagerObserver },
             { _, _ -> Observable.interval(0, 60, TimeUnit.SECONDS) }
         ) { list, workinfo, interval ->
 
@@ -235,6 +261,7 @@ class MainViewModelNEW @AssistedInject constructor(
                     SiteAndLastSnap(site, getLastSnap(site.id), workinfo.any { site.id in it.tags })
                 }
             }
+
             Observable.just(Pair(ls, interval))
         }
             .doOnSubscribe { setState { copy(isLoading = true) } }
@@ -247,6 +274,22 @@ class MainViewModelNEW @AssistedInject constructor(
             }
     }
 
+    private fun pullOutTags(sites: List<Site>): List<String> {
+        return mutableListOf<String>().apply {
+            for (site in sites) {
+                val splitTags = site.notes.toLowerCase()
+                    .split(',')
+                splitTags
+                    .filter { it.isNotEmpty() }
+                    .forEach { tag ->
+                        if (!this.contains(tag)) {
+                            this.add(tag)
+                        }
+                    }
+            }
+            sort()
+        }
+    }
 
     @AssistedInject.Factory
     interface Factory {

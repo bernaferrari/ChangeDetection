@@ -5,19 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?android:windowBackground"
+    android:focusable="true"
     android:clickable="true"
     android:elevation="@dimen/z_drawer"
-    android:focusable="true"
     android:orientation="vertical">
-
-    <FrameLayout
-        android:id="@+id/baseContainer"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/title_bar" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/title_bar"
@@ -74,6 +65,17 @@
                 android:layout_height="match_parent"
                 android:orientation="horizontal">
 
+                <ImageView
+                    android:id="@+id/searchIcon"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_vertical"
+                    android:importantForAccessibility="no"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:src="@drawable/ic_search"
+                    android:tint="?colorOnPrimary" />
+
                 <EditText
                     android:id="@+id/queryInput"
                     android:layout_width="0dp"
@@ -88,17 +90,6 @@
                     android:selectAllOnFocus="true"
                     android:textColor="?colorOnPrimary"
                     tools:hint="Search for books, verses, etc" />
-
-                <ImageView
-                    android:id="@+id/searchIcon"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_gravity="center_vertical"
-                    android:importantForAccessibility="no"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="8dp"
-                    android:src="@drawable/ic_search"
-                    android:tint="?colorOnPrimary" />
 
                 <ImageView
                     android:id="@+id/queryClear"
@@ -123,6 +114,15 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title_bar" />
+
+    <FrameLayout
+        android:id="@+id/baseContainer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

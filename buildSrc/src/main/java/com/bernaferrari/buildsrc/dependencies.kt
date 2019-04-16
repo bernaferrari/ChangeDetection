@@ -146,7 +146,7 @@ object Libs {
     }
 
     object Komprehensions {
-        private const val version = "1.3.0"
+        private const val version = "1.3.1"
         val stdLib = "com.github.pakoito.Komprehensions:komprehensions:$version"
         val rxJava = "com.github.pakoito.Komprehensions:komprehensions-rx2:$version"
     }

@@ -1,34 +1,43 @@
 package com.bernaferrari.changedetection.mainnew
 
 import android.os.Bundle
-import android.view.MenuItem
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
+import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.core.view.setPadding
+import androidx.core.view.updatePadding
 import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
 import androidx.work.WorkInfo
 import com.afollestad.materialdialogs.MaterialDialog
+import com.airbnb.epoxy.EpoxyRecyclerView
 import com.airbnb.mvrx.fragmentViewModel
+import com.bernaferrari.base.misc.toDp
 import com.bernaferrari.changedetection.*
+import com.bernaferrari.changedetection.addedit.ColorPickerItemEpoxy_
 import com.bernaferrari.changedetection.core.simpleController
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.EmptyItem
 import com.bernaferrari.changedetection.groupie.ItemContentType
 import com.bernaferrari.changedetection.groupie.LoadingItem
 import com.bernaferrari.changedetection.groupie.MainCardItem
+import com.bernaferrari.changedetection.repo.ColorGroup
 import com.bernaferrari.changedetection.repo.Snap
+import com.bernaferrari.changedetection.util.GradientColors
 import com.bernaferrari.changedetection.util.GradientColors.getGradientDrawable
 import com.bernaferrari.ui.dagger.DaggerBaseToolbarFragment
 import com.orhanobut.logger.Logger
 import com.tapadoo.alerter.Alerter
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.ViewHolder
-import kotlinx.android.synthetic.main.main_fragment.*
+import kotlinx.android.synthetic.main.addnewfragment.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -43,6 +52,9 @@ class MainFragmentNEW : DaggerBaseToolbarFragment() {
 
     @Inject
     lateinit var mainViewModelFactory: MainViewModelNEW.Factory
+
+    private val transitionDelay = 175L
+    private val transition = AutoTransition().apply { duration = transitionDelay }
 
     override fun epoxyController() = simpleController(mViewModel) { state ->
 
@@ -79,7 +91,6 @@ class MainFragmentNEW : DaggerBaseToolbarFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        (activity as AppCompatActivity?)?.setSupportActionBar(toolbar)
 
         mViewModel.sortAlphabetically = Injector.get().sharedPrefs().getBoolean("sortByName", false)
 
@@ -89,22 +100,133 @@ class MainFragmentNEW : DaggerBaseToolbarFragment() {
         }
 
         mViewModel.outputStatus.observe(this, Observer { list ->
-            mViewModel.live.accept(list.filter { it.state != WorkInfo.State.SUCCEEDED })
+            mViewModel.workManagerObserver.accept(list.filter { it.state != WorkInfo.State.SUCCEEDED })
         })
-//        mViewModel.loadSites().observe(this, Observer(::updateList))
-//        mViewModel.getOutputStatus.observe(this, Observer(::workOutput))
 
         viewContainer.inflateAddButton().setOnClickListener {
             it.findNavController().navigate(R.id.action_mainFragmentNEW_to_addNew)
+        }
+
+        val colorRecycler = requireNotNull(titleBar.inflateFilter())
+        colorRecycler.apply { itemAnimator = itemAnimatorWithoutChangeAnimations() }
+
+        val tagRecycler = requireNotNull(titleBar.inflateFilter())
+
+        mViewModel.selectSubscribe(MainState::listOfColors) {
+            configureColorAdapter(colorRecycler, it)
+        }
+
+        toolbar.inflateMenu(R.menu.main)
+        toolbar.updatePadding(left = 8.toDp(resources), right = 8.toDp(resources))
+        toolbar.setOnMenuItemClickListener {
+
+            TransitionManager.beginDelayedTransition(titleBar.rootView as ViewGroup, transition)
+
+            when (it.itemId) {
+                R.id.colorFilter -> {
+                    colorRecycler.isVisible = !colorRecycler.isVisible
+
+                    val icon = if (!colorRecycler.isVisible) {
+                        R.drawable.ic_filter
+                    } else {
+                        R.drawable.ic_check
+                    }
+
+                    toolbar.menu.findItem(R.id.colorFilter).icon =
+                        ContextCompat.getDrawable(requireContext(), icon)
+                }
+                R.id.tagFilter -> {
+
+
+                }
+            }
+            true
+        }
+    }
+
+
+    private fun configureColorAdapter(
+        colorSelector: EpoxyRecyclerView,
+        colorsList: List<ColorGroup>
+    ) {
+
+        val listOfSelectedItems = (mViewModel.selectedColors.value ?: emptyList()).toMutableList()
+
+        val controller = simpleController {
+
+            // Create each color picker item, checking for the first (because it needs extra margin)
+            // and checking for the one which is selected (so it becomes selected)
+            colorsList.forEachIndexed { index, it ->
+
+                ColorPickerItemEpoxy_()
+                    .id("picker $index")
+                    .allowDeselection(true)
+                    .switchIsOn(it in listOfSelectedItems)
+                    .gradientColor(it)
+                    .onClick { v ->
+
+                        val elementIndex = listOfSelectedItems.indexOf(v)
+                        if (elementIndex != -1) {
+                            listOfSelectedItems.removeAt(elementIndex)
+                        } else {
+                            listOfSelectedItems += v
+                        }
+
+                        mViewModel.selectedColors.accept(listOfSelectedItems)
+
+                        this.requestModelBuild()
+                    }
+                    .addTo(this)
+            }
+        }
+
+        colorSelector.setController(controller)
+        controller.requestModelBuild()
+    }
+
+
+    private fun configureTagsChooserRecycler(tagSelector: EpoxyRecyclerView?) {
+
+        val colorsList = GradientColors.gradients
+
+        val listOfSelectedItems = mutableListOf<ColorGroup>()
+
+        val controller = simpleController {
+
+            // Create each color picker item, checking for the first (because it needs extra margin)
+            // and checking for the one which is selected (so it becomes selected)
+            colorsList.forEachIndexed { index, it ->
+
+                ColorPickerItemEpoxy_()
+                    .id("picker $index")
+                    .allowDeselection(true)
+                    .switchIsOn(it in listOfSelectedItems)
+                    .gradientColor(it)
+                    .onClick { v ->
+
+                        val elementIndex = listOfSelectedItems.indexOf(v)
+                        if (elementIndex != -1) {
+                            listOfSelectedItems.removeAt(elementIndex)
+                        } else {
+                            listOfSelectedItems += v
+                        }
+
+                        this.requestModelBuild()
+                    }
+                    .addTo(this)
+            }
+        }
+
+        tagSelector?.apply {
+            this.itemAnimator = itemAnimatorWithoutChangeAnimations()
+            this.overScrollMode = View.OVER_SCROLL_NEVER
+            this.setController(controller)
+            this.requestModelBuild()
         }
     }
 
     override fun layoutManager(): RecyclerView.LayoutManager = LinearLayoutManager(context).apply {
         this.initialPrefetchItemCount = 5
-    }
-
-    override fun onOptionsItemSelected(menuItem: MenuItem): Boolean {
-        return true
     }
 
     private fun openItem(item: MainCardItem) {
@@ -207,46 +329,6 @@ class MainFragmentNEW : DaggerBaseToolbarFragment() {
         }
 
         view?.findNavController()?.navigate(destination, bundle, null, extras)
-    }
-
-    private fun workOutput(it: List<WorkInfo>?) {
-        val result = it ?: return
-
-//        if (Injector.get().sharedPrefs().getBoolean("debug", false)) {
-//            val sb = StringBuilder()
-//            result.forEach { sb.append("${it.state.name}\n") }
-//            if (sb.isNotEmpty()) {
-//                sb.setLength(sb.length - 1) // Remove the last \n from the string
-//            }
-//            Logger.d("workerLog: $sb")
-//            Snackbar.make(view!!, sb, Snackbar.LENGTH_SHORT).show()
-//        }
-
-        if (result.any { it.state == WorkInfo.State.SUCCEEDED }) {
-            mViewModel.updateItems()
-            Logger.d("Just refreshed")
-        }
-    }
-
-    private val reloadCallback = { item: MainCardItem ->
-        reload(item, true)
-    }
-
-    private fun reloadEach(item: MainCardItem?) {
-        reload(item, false)
-    }
-
-    private fun reload(item: MainCardItem?, force: Boolean = false) {
-        if (item !is MainCardItem || (!item.site.isSyncEnabled && !force)) return
-
-        item.startSyncing()
-
-        launch(Dispatchers.Main) {
-            val (contentTypeCharset, content) = WorkerHelper.fetchFromServer(
-                item.site.url
-            )
-            updateSiteAndSnap(contentTypeCharset, content, item)
-        }
     }
 
     private fun updateSiteAndSnap(

@@ -149,6 +149,8 @@ dependencies {
     // UI
     implementation(Libs.alerter)
 
+    implementation(Libs.Komprehensions.rxJava)
+
     debugImplementation(Libs.LeakCanary.main)
     debugImplementation(Libs.LeakCanary.support)
     releaseImplementation(Libs.LeakCanary.no_op)

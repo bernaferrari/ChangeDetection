@@ -25,11 +25,6 @@
             app:title="Add website"
             app:titleTextColor="?iconColor" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/filterRecycler"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <ScrollView

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.AppCompatTextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/chip"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="@dimen/content_inset_half"
+    android:background="@drawable/unchecked_chip_selector"
+    android:textColor="?colorAccent"
+    app:textAllCaps="true"
+    app:fontFamily="@font/work_regular"
+    android:textSize="14sp"
+    tools:text="Testing" />

@@ -6,41 +6,22 @@
     android:clickable="true"
     android:focusable="true">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/title_bar"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="wrap_content"
         android:background="?toolbarColor"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
         android:stateListAnimator="@animator/active_raise"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageView
-            android:id="@+id/close"
-            style="@style/ClickableImageView"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_gravity="center"
-            android:layout_marginStart="8dp"
-            android:padding="12dp"
-            android:tint="?colorOnPrimary"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbarMenu"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/close"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_goneMarginStart="8dp" />
+            android:layout_width="match_parent"
+            android:layout_height="56dp" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <com.airbnb.epoxy.EpoxyRecyclerView
         android:id="@+id/recycler"
@@ -61,4 +42,3 @@
         app:layout_constraintTop_toBottomOf="@+id/title_bar" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-
