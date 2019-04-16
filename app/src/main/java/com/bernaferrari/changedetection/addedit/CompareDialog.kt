@@ -66,7 +66,6 @@ class CompareDialog : DialogFragment(), CoroutineScope by MainScope() {
             directProgressBar.visibility = View.GONE
             directRequestResult.visibility = View.VISIBLE
 
-            println("rawr directLoaded -- result ${result.second.size.readableFileSize()}")
             directRequestResult.text = when {
                 result.second.isNotEmpty() -> result.second.size.readableFileSize()
                 else -> result.first

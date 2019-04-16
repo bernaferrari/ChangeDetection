@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:layout_marginStart="16dp"
     android:layout_marginEnd="16dp">
 
@@ -15,61 +15,65 @@
         android:layout_marginEnd="16dp"
         android:orientation="vertical">
 
-        <ProgressBar
-            android:id="@+id/directProgressBar"
-            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:indeterminate="true" />
-
-        <ProgressBar
-            android:id="@+id/browserProgressBar"
-            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:indeterminate="true" />
-
         <TextView
             style="@style/TextAppearance.MaterialComponents.Headline6"
+            android:text="Direct request"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="Browser request" />
+            android:layout_marginBottom="8dp" />
 
-        <TextView
-            android:id="@+id/browserRequestResult"
+        <androidx.appcompat.widget.AppCompatTextView
             style="@style/TextAppearance.MaterialComponents.Headline5"
+            android:id="@+id/directRequestResult"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            tools:text="32.5 Mb"
-            tools:visibility="visible" />
+            android:maxLines="2"
+            app:autoSizeTextType="uniform"
+            app:autoSizeMaxTextSize="24sp"
+            app:autoSizeMinTextSize="12sp"
+            tools:visibility="visible"
+            tools:text="22.8 Kb" />
 
-        <TextView
-            style="@style/TextAppearance.MaterialComponents.Headline6"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="Direct request" />
+        <ProgressBar
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:id="@+id/directProgressBar"
+            android:indeterminate="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
         <View
             android:layout_width="wrap_content"
             android:layout_height="2dp"
+            android:background="?iconColor"
             android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
-            android:background="?iconColor" />
+            android:layout_marginBottom="16dp" />
 
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/directRequestResult"
-            style="@style/TextAppearance.MaterialComponents.Headline5"
+        <TextView
+            style="@style/TextAppearance.MaterialComponents.Headline6"
+            android:text="Browser request"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:maxLines="2"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            style="@style/TextAppearance.MaterialComponents.Headline5"
+            android:id="@+id/browserRequestResult"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:visibility="gone"
+            app:autoSizeTextType="uniform"
             app:autoSizeMaxTextSize="24sp"
-            app:autoSizeMinTextSize="14sp"
-            tools:text="22.8 Kb"
-            tools:visibility="visible" />
+            app:autoSizeMinTextSize="12sp"
+            tools:visibility="visible"
+            tools:text="32.5 Mb" />
+
+        <ProgressBar
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:id="@+id/browserProgressBar"
+            android:indeterminate="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
     </LinearLayout>
 

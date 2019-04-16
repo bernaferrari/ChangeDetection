@@ -26,14 +26,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <Switch
-            android:id="@+id/item_switch"
-            android:layout_width="@dimen/avatar_bounds"
-            android:layout_height="@dimen/avatar_bounds"
-            android:layout_gravity="center"
-            android:clickable="false"
-            android:focusable="false" />
-
         <TextView
             android:id="@+id/titlecontent"
             style="@style/TextAppearance.AppCompat.Title"
@@ -50,7 +42,29 @@
             android:textColor="?strongColor"
             tools:text="Background Sync" />
 
+        <Switch
+            android:id="@+id/item_switch"
+            android:layout_width="@dimen/avatar_bounds"
+            android:layout_height="@dimen/avatar_bounds"
+            android:layout_gravity="center"
+            android:clickable="false"
+            android:focusable="false" />
+
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/descriptionText"
+        style="@style/TextAppearance.MaterialComponents.Subtitle2"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginTop="8dp"
+        android:paddingBottom="16dp"
+        android:text="@string/background_sync_description"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/title_bar" />
 
     <NumberPicker
         android:id="@+id/numberPicker"
@@ -75,20 +89,6 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/numberPicker"
         app:layout_constraintTop_toBottomOf="@+id/descriptionText" />
-
-    <TextView
-        android:id="@+id/descriptionText"
-        style="@style/TextAppearance.MaterialComponents.Subtitle2"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:layout_marginTop="8dp"
-        android:paddingBottom="16dp"
-        android:text="@string/background_sync_description"
-        android:textAlignment="center"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/title_bar" />
 
     <TextView
         android:id="@+id/nextSync"

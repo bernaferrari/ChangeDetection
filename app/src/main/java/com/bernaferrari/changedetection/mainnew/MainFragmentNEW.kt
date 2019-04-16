@@ -94,8 +94,6 @@ class MainFragmentNEW : DaggerBaseToolbarFragment() {
 //        mViewModel.loadSites().observe(this, Observer(::updateList))
 //        mViewModel.getOutputStatus.observe(this, Observer(::workOutput))
 
-        mViewModel.fetchData()
-
         viewContainer.inflateAddButton().setOnClickListener {
             it.findNavController().navigate(R.id.action_mainFragmentNEW_to_addNew)
         }

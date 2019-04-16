@@ -100,8 +100,6 @@ fun Long.generateRemainingTimer(): Long {
     // If timeAgo is 7 years ago, we want to refresh when it is 8 years ago, so we wait 1 year.
     // If timeAgo is 1 min ago, we want to refresh when it is 2 min ago.
 
-    println("rawr next sync will be in ${finalTimeToWait / 1000} seconds")
-
     return finalTimeToWait
 }
 

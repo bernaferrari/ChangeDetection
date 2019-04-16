@@ -72,7 +72,13 @@
     <fragment
         android:id="@+id/webviewFragment"
         android:name="com.bernaferrari.changedetection.addedit.WebViewFragment"
-        android:label="WebViewFrag" />
+        android:label="WebViewFrag">
+        <action
+            android:id="@+id/action_webviewFragment_to_mainFragmentNEW"
+            app:destination="@id/mainFragmentNEW"
+            app:popUpTo="@id/mainFragmentNEW"
+            app:popUpToInclusive="true" />
+    </fragment>
 
     <fragment
         android:id="@+id/settingsFragment"

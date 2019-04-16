@@ -2,6 +2,7 @@ package com.bernaferrari.changedetection.addedit
 
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.text.Editable
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -10,12 +11,12 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.findNavController
 import com.bernaferrari.base.misc.hideKeyboard
 import com.bernaferrari.base.view.onKey
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ScopedFragment
 import com.bernaferrari.changedetection.extensions.fixUrlIfNecessary
-import com.bernaferrari.changedetection.extensions.toEditText
 import kotlinx.android.synthetic.main.webview_frag.*
 
 class WebViewFragment : ScopedFragment() {
@@ -35,7 +36,6 @@ class WebViewFragment : ScopedFragment() {
         } ?: throw Exception("Invalid Activity")
 
         fun goPreviousFragment() {
-            println("rawr goPreviousFrag")
             webview.destroy()
             activity?.supportFragmentManager?.popBackStack()
         }
@@ -81,11 +81,12 @@ class WebViewFragment : ScopedFragment() {
         }
 
         if (savedInstanceState != null) {
-            goPreviousFragment()
+            webview.destroy()
+            view.findNavController().navigate(R.id.action_webviewFragment_to_mainFragmentNEW)
             return
         }
 
-        val url = arguments?.getString("url") ?: ""
+        val url = arguments?.getString("url")
         updateUrl(url)
         webview.loadUrl(url)
         refreshBack(webview)
@@ -98,6 +99,8 @@ class WebViewFragment : ScopedFragment() {
     fun updateUrl(url: String?) {
         queryInput?.text = url?.toEditText()
     }
+
+    fun String.toEditText(): Editable = Editable.Factory.getInstance().newEditable(this)
 
     companion object {
 

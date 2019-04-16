@@ -3,8 +3,8 @@ package com.bernaferrari.changedetection.forms
 import android.text.Editable
 import android.view.animation.AnimationUtils
 import androidx.core.view.isVisible
+import com.bernaferrari.base.misc.onTextChanged
 import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.extensions.onTextChanged
 import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.dialog_input_text.*
 
