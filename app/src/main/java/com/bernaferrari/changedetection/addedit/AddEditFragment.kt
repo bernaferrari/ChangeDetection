@@ -14,6 +14,7 @@ import com.bernaferrari.changedetection.Injector
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.WorkerHelper
 import com.bernaferrari.changedetection.core.simpleController
+import com.bernaferrari.changedetection.epoxy.ColorPickerItemEpoxy_
 import com.bernaferrari.changedetection.extensions.fixUrlIfNecessary
 import com.bernaferrari.changedetection.extensions.isValidUrl
 import com.bernaferrari.changedetection.extensions.itemAnimatorWithoutChangeAnimations
@@ -26,6 +27,7 @@ import com.google.android.material.textfield.TextInputLayout
 import kotlinx.android.synthetic.main.addnewfragment.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class AddEditFragment : AddEditBaseFragment() {
@@ -84,8 +86,6 @@ class AddEditFragment : AddEditBaseFragment() {
             }
         }
 
-        urlInputLayout.editText?.text = "www.inf.ufpr.br".toEditText()
-
         // Click listeners
         saveButton.setOnClickListener {
             onSavePressed(currentSite, selectedColors)
@@ -130,15 +130,15 @@ class AddEditFragment : AddEditBaseFragment() {
 
                 // Create each color picker item, checking for the first (because it needs extra margin)
                 // and checking for the one which is selected (so it becomes selected)
-                colorsList.forEachIndexed { index, it ->
+                colorsList.forEachIndexed { index, color ->
 
                     ColorPickerItemEpoxy_()
                         .id("picker $index")
                         .allowDeselection(false)
-                        .switchIsOn(selectedColors == it)
-                        .gradientColor(it)
+                        .switchIsOn(selectedColors == color)
+                        .gradientColor(color)
                         .onClick { v ->
-                            selectedColors = v
+                            selectedColors = color
                             colorSelector.requestModelBuild()
                         }
                         .addTo(this)
@@ -155,6 +155,11 @@ class AddEditFragment : AddEditBaseFragment() {
 
     private fun onSavePressed(item: Site?, selectedColors: ColorGroup) {
 
+        fun goBack() {
+            model.select(null)
+            activity?.onBackPressed()
+        }
+
         if (isUrlWrong(urlInputLayout)) return
 
         if (item != null) {
@@ -165,33 +170,36 @@ class AddEditFragment : AddEditBaseFragment() {
             val updatedSite = item.copy(
                 title = title.text.toString(),
                 url = currentUrl,
+                notes = tags.text.toString(),
                 colors = selectedColors
             )
 
-            scope.launch(Dispatchers.IO) {
-                sitesDao.updateSite(updatedSite)
+            scope.launch {
+                withContext(Dispatchers.IO) { sitesDao.updateSite(updatedSite) }
 
                 // Only reload if the url has changed.
                 if (currentUrl != previousUrl) {
                     WorkerHelper.reloadSite(updatedSite)
                 }
+
+                goBack()
             }
         } else {
             val site = Site(
                 title = title.text.toString(),
                 url = url.text.toString(),
+                tags = tags.text.toString(),
                 timestamp = System.currentTimeMillis(),
                 colors = selectedColors
             )
 
-            scope.launch(Dispatchers.IO) {
-                sitesDao.insertSite(site)
+            scope.launch {
+                withContext(Dispatchers.IO) { sitesDao.insertSite(site) }
                 WorkerHelper.reloadSite(site)
+                goBack()
             }
         }
 
-        model.select(null)
-        activity?.onBackPressed()
 
         val sharedPrefs = Injector.get().sharedPrefs()
         // when list size is 1 or 2, warn the user that background sync is off

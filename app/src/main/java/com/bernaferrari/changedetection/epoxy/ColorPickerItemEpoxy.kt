@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.addedit
+package com.bernaferrari.changedetection.epoxy
 
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass

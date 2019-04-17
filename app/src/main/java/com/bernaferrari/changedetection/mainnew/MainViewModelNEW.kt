@@ -235,8 +235,9 @@ class MainViewModelNEW @AssistedInject constructor(
         val sites = Observables.combineLatest(
             mSitesRepository.getDataWithChanges().doOnNext { updateListOfFilters(it) },
             selectedColors,
-            selectedTags
-        ) { items, selectedColors, selectedTags ->
+            selectedTags,
+            workManagerObserver
+        ) { items, selectedColors, selectedTags, workInfo ->
 
             val colorItems = items.takeIf { selectedColors.isNotEmpty() }
                 ?.filter { it.colors in selectedColors } ?: items
@@ -247,22 +248,18 @@ class MainViewModelNEW @AssistedInject constructor(
                     itemTags.any { tag -> tag in selectedTags }
                 } ?: colorItems
 
-            tagColoredItems
+            runBlocking {
+                tagColoredItems.map { site ->
+                    SiteAndLastSnap(site, getLastSnap(site.id), workInfo.any { site.id in it.tags })
+                }
+            }
         }
 
         doSwitchMap(
             { sites },
-            { workManagerObserver },
-            { _, _ -> Observable.interval(0, 60, TimeUnit.SECONDS) }
-        ) { list, workinfo, interval ->
-
-            val ls = runBlocking {
-                list.map { site ->
-                    SiteAndLastSnap(site, getLastSnap(site.id), workinfo.any { site.id in it.tags })
-                }
-            }
-
-            Observable.just(Pair(ls, interval))
+            { Observable.interval(0, 60, TimeUnit.SECONDS) }
+        ) { list, interval ->
+            Observable.just(Pair(list, interval))
         }
             .doOnSubscribe { setState { copy(isLoading = true) } }
             .execute {

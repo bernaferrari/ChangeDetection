@@ -56,7 +56,7 @@ interface SitesDao {
      * @param site site to be updated
      */
     @Update
-    fun updateSite(site: Site)
+    suspend fun updateSite(site: Site)
 
     /**
      * Update the complete status of a site

@@ -21,8 +21,9 @@ import com.airbnb.epoxy.EpoxyRecyclerView
 import com.airbnb.mvrx.fragmentViewModel
 import com.bernaferrari.base.misc.toDp
 import com.bernaferrari.changedetection.*
-import com.bernaferrari.changedetection.addedit.ColorPickerItemEpoxy_
 import com.bernaferrari.changedetection.core.simpleController
+import com.bernaferrari.changedetection.epoxy.ColorPickerItemEpoxy_
+import com.bernaferrari.changedetection.epoxy.TagPickerItemEpoxy_
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.EmptyItem
 import com.bernaferrari.changedetection.groupie.ItemContentType
@@ -30,7 +31,6 @@ import com.bernaferrari.changedetection.groupie.LoadingItem
 import com.bernaferrari.changedetection.groupie.MainCardItem
 import com.bernaferrari.changedetection.repo.ColorGroup
 import com.bernaferrari.changedetection.repo.Snap
-import com.bernaferrari.changedetection.util.GradientColors
 import com.bernaferrari.changedetection.util.GradientColors.getGradientDrawable
 import com.bernaferrari.ui.dagger.DaggerBaseToolbarFragment
 import com.orhanobut.logger.Logger
@@ -110,10 +110,20 @@ class MainFragmentNEW : DaggerBaseToolbarFragment() {
         val colorRecycler = requireNotNull(titleBar.inflateFilter())
         colorRecycler.apply { itemAnimator = itemAnimatorWithoutChangeAnimations() }
 
-        val tagRecycler = requireNotNull(titleBar.inflateFilter())
-
         mViewModel.selectSubscribe(MainState::listOfColors) {
             configureColorAdapter(colorRecycler, it)
+        }
+
+        val tagRecycler = requireNotNull(titleBar.inflateFilter())
+        tagRecycler.apply { itemAnimator = itemAnimatorWithoutChangeAnimations() }
+        tagRecycler.updatePadding(
+            left = 24.toDp(resources),
+            right = 24.toDp(resources),
+            bottom = 16.toDp(resources)
+        )
+
+        mViewModel.selectSubscribe(MainState::listOfTags) {
+            configureTagAdapter(tagRecycler, it)
         }
 
         toolbar.inflateMenu(R.menu.main)
@@ -123,8 +133,10 @@ class MainFragmentNEW : DaggerBaseToolbarFragment() {
             TransitionManager.beginDelayedTransition(titleBar.rootView as ViewGroup, transition)
 
             when (it.itemId) {
-                R.id.colorFilter -> {
+                R.id.filter -> {
                     colorRecycler.isVisible = !colorRecycler.isVisible
+                    tagRecycler.isVisible =
+                        !tagRecycler.isVisible && (tagRecycler.adapter?.itemCount != 0)
 
                     val icon = if (!colorRecycler.isVisible) {
                         R.drawable.ic_filter
@@ -132,12 +144,8 @@ class MainFragmentNEW : DaggerBaseToolbarFragment() {
                         R.drawable.ic_check
                     }
 
-                    toolbar.menu.findItem(R.id.colorFilter).icon =
+                    toolbar.menu.findItem(R.id.filter).icon =
                         ContextCompat.getDrawable(requireContext(), icon)
-                }
-                R.id.tagFilter -> {
-
-
                 }
             }
             true
@@ -156,20 +164,20 @@ class MainFragmentNEW : DaggerBaseToolbarFragment() {
 
             // Create each color picker item, checking for the first (because it needs extra margin)
             // and checking for the one which is selected (so it becomes selected)
-            colorsList.forEachIndexed { index, it ->
+            colorsList.forEachIndexed { index, color ->
 
                 ColorPickerItemEpoxy_()
                     .id("picker $index")
                     .allowDeselection(true)
-                    .switchIsOn(it in listOfSelectedItems)
-                    .gradientColor(it)
-                    .onClick { v ->
+                    .switchIsOn(color in listOfSelectedItems)
+                    .gradientColor(color)
+                    .onClick { _ ->
 
-                        val elementIndex = listOfSelectedItems.indexOf(v)
+                        val elementIndex = listOfSelectedItems.indexOf(color)
                         if (elementIndex != -1) {
                             listOfSelectedItems.removeAt(elementIndex)
                         } else {
-                            listOfSelectedItems += v
+                            listOfSelectedItems += color
                         }
 
                         mViewModel.selectedColors.accept(listOfSelectedItems)
@@ -185,31 +193,30 @@ class MainFragmentNEW : DaggerBaseToolbarFragment() {
     }
 
 
-    private fun configureTagsChooserRecycler(tagSelector: EpoxyRecyclerView?) {
+    private fun configureTagAdapter(tagSelector: EpoxyRecyclerView, tagsList: List<String>) {
 
-        val colorsList = GradientColors.gradients
-
-        val listOfSelectedItems = mutableListOf<ColorGroup>()
+        val listOfSelectedTags = (mViewModel.selectedTags.value ?: emptyList()).toMutableList()
 
         val controller = simpleController {
 
             // Create each color picker item, checking for the first (because it needs extra margin)
             // and checking for the one which is selected (so it becomes selected)
-            colorsList.forEachIndexed { index, it ->
+            tagsList.forEachIndexed { index, tag ->
 
-                ColorPickerItemEpoxy_()
-                    .id("picker $index")
-                    .allowDeselection(true)
-                    .switchIsOn(it in listOfSelectedItems)
-                    .gradientColor(it)
-                    .onClick { v ->
+                TagPickerItemEpoxy_()
+                    .id("tag $index")
+                    .checked(tag in listOfSelectedTags)
+                    .name(tag)
+                    .onClick { _ ->
 
-                        val elementIndex = listOfSelectedItems.indexOf(v)
+                        val elementIndex = listOfSelectedTags.indexOf(tag)
                         if (elementIndex != -1) {
-                            listOfSelectedItems.removeAt(elementIndex)
+                            listOfSelectedTags.removeAt(elementIndex)
                         } else {
-                            listOfSelectedItems += v
+                            listOfSelectedTags += tag
                         }
+
+                        mViewModel.selectedTags.accept(listOfSelectedTags)
 
                         this.requestModelBuild()
                     }
@@ -217,12 +224,8 @@ class MainFragmentNEW : DaggerBaseToolbarFragment() {
             }
         }
 
-        tagSelector?.apply {
-            this.itemAnimator = itemAnimatorWithoutChangeAnimations()
-            this.overScrollMode = View.OVER_SCROLL_NEVER
-            this.setController(controller)
-            this.requestModelBuild()
-        }
+        tagSelector.setController(controller)
+        controller.requestModelBuild()
     }
 
     override fun layoutManager(): RecyclerView.LayoutManager = LinearLayoutManager(context).apply {
