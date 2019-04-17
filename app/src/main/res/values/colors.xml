@@ -20,9 +20,8 @@
 
     <color name="separator_color">#CCCCCC</color>
 
-    <color name="colorAccent">#FF6E40</color>
-    <color name="colorAccent_pressed">#E44615</color>
-    <color name="colorAccent_translucent">#40FF6E40</color>
+    <color name="colorAccent_pressed">#4615e4</color>
+    <color name="colorAccent_translucent">#404072ff</color>
 
 
     <!--Lottie colors-->

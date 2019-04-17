@@ -807,6 +807,7 @@ class MainFragment : ScopedFragment() {
                 newTitle,
                 url,
                 System.currentTimeMillis(),
+                "",
                 selectedColors
             )
 

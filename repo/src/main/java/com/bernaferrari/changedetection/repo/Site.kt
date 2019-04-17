@@ -36,6 +36,7 @@ data class Site(
         title: String?,
         url: String,
         timestamp: Long,
+        tags: String,
         id: String,
         colors: Pair<Int, Int>
     ) : this(
@@ -47,7 +48,7 @@ data class Site(
         false,
         true,
         true,
-        "",
+        tags,
         colors,
         ConstraintsRequired(false, false, false, false)
     )
@@ -76,7 +77,13 @@ data class Site(
     )
 
     @Ignore
-    constructor(title: String?, url: String, timestamp: Long, colors: ColorGroup) : this(
+    constructor(
+        title: String?,
+        url: String,
+        timestamp: Long,
+        tags: String,
+        colors: ColorGroup
+    ) : this(
         title,
         url,
         timestamp,
@@ -85,25 +92,13 @@ data class Site(
         false,
         true,
         true,
-        "",
+        tags,
         colors,
         ConstraintsRequired(false, false, false, false)
     )
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || javaClass != other.javaClass) return false
-        val site = other as? Site
-
-        return id == site?.id && title == site.title && url == site.url
-    }
-
-    override fun hashCode(): Int {
-        return id.hashCode() + (title?.hashCode() ?: 0) + (url.hashCode())
-    }
-
     override fun toString(): String {
-        return "Site with title $title"
+        return "Site: $title | url: $url | tags: $notes | timestamp: $timestamp"
     }
 
     internal class ConstraintsConverter {
