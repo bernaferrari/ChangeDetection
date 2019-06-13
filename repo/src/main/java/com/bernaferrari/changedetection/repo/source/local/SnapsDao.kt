@@ -7,6 +7,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.bernaferrari.changedetection.repo.Snap
+import io.reactivex.Observable
 
 /**
  * Data Access Object for the sites table.
@@ -160,5 +161,31 @@ interface SnapsDao {
 
     @Query("SELECT t2.* FROM ( SELECT * FROM snaps GROUP BY siteId HAVING COUNT(*) > 1 ) T1 JOIN snaps T2 ON T1.siteId = T2.siteId ORDER BY timestamp DESC")
     fun getSnapsPaged(): DataSource.Factory<Int, Snap>
+
+
+    /**
+     * Select all snap by siteId.
+     * This is going to be used by the Paging Library.
+     *
+     * @param siteId the site url to be filtered.
+     * @return all snaps for the siteId.
+     */
+    @Query("SELECT * FROM snaps WHERE siteId = :siteId AND contentType LIKE :filter ORDER BY timestamp DESC")
+    fun getSnapsWithChange(siteId: String, filter: String): Observable<List<Snap>>
+
+
+    /**
+     * Select all snap by siteId.
+     * This is going to be used by the Paging Library.
+     *
+     * @param siteId the site url to be filtered.
+     * @return all snaps for the siteId.
+     */
+    @Query("SELECT * FROM snaps ORDER BY timestamp DESC")
+    fun getSnapsWithChange2(): List<Snap>
+
+
+    @Query("SELECT count(*) FROM snaps WHERE siteId = :siteId AND contentType LIKE :filter ORDER BY timestamp DESC")
+    fun countSnapsWithChange(siteId: String, filter: String): Observable<Int>
 
 }

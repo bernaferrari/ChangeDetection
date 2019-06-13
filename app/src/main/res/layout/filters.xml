@@ -3,9 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:clipToPadding="false"
-    android:paddingBottom="@dimen/content_inset_half"
     android:paddingEnd="@dimen/content_inset"
     android:paddingStart="@dimen/content_inset"
-    android:paddingTop="@dimen/content_inset_half"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
     android:scrollbars="none"
     android:visibility="gone" />

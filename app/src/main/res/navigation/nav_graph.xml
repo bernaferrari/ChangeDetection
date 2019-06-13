@@ -2,13 +2,22 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination="@id/mainFragmentNEW">
+    app:startDestination="@id/mainFragment">
 
     <fragment
         android:id="@+id/mainFragment"
-        android:name="com.bernaferrari.changedetection.MainFragment"
-        android:label="MainFragment"
-        tools:layout="@layout/main_fragment">
+        android:name="com.bernaferrari.changedetection.mainnew.MainFragment"
+        android:label="MainFragmentNEW">
+
+        <action
+            android:id="@+id/action_mainFragment_to_addNew"
+            app:destination="@id/addNew"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
+            tools:layout="@layout/addnewfragment" />
+
         <action
             android:id="@+id/action_mainFragment_to_textFragment"
             app:destination="@id/textFragment"
@@ -16,6 +25,7 @@
             app:exitAnim="@anim/slide_out"
             app:popEnterAnim="@anim/pop_enter"
             app:popExitAnim="@anim/slide_out" />
+
         <action
             android:id="@+id/action_mainFragment_to_aboutFragment"
             app:destination="@id/aboutFragment"
@@ -23,6 +33,7 @@
             app:popEnterAnim="@anim/slide_in_left"
             app:enterAnim="@anim/slide_in_right"
             app:popExitAnim="@anim/slide_out_right" />
+
         <action
             android:id="@+id/action_mainFragment_to_imageCarouselFragment"
             app:destination="@id/imagePdfFragment"
@@ -30,6 +41,7 @@
             app:exitAnim="@anim/slide_out"
             app:popEnterAnim="@anim/pop_enter"
             app:popExitAnim="@anim/slide_out" />
+
         <action
             android:id="@+id/action_mainFragment_to_pdfFragment"
             app:destination="@id/imagePdfFragment"
@@ -43,7 +55,11 @@
         android:id="@+id/textFragment"
         android:name="com.bernaferrari.changedetection.detailsText.TextFragment"
         android:label="OpenFragment"
-        tools:layout="@layout/diff_text_fragment" />
+        tools:layout="@layout/diff_text_fragment">
+        <deepLink
+            android:id="@+id/deepLink"
+            app:uri="textfrag" />
+    </fragment>
 
     <fragment
         android:id="@+id/aboutFragment"
@@ -75,8 +91,8 @@
         android:label="WebViewFrag">
         <action
             android:id="@+id/action_webviewFragment_to_mainFragmentNEW"
-            app:destination="@id/mainFragmentNEW"
-            app:popUpTo="@id/mainFragmentNEW"
+            app:destination="@id/mainFragment"
+            app:popUpTo="@id/mainFragment"
             app:popUpToInclusive="true" />
     </fragment>
 
@@ -84,26 +100,6 @@
         android:id="@+id/settingsFragment"
         android:name="com.bernaferrari.changedetection.SettingsFragment"
         android:label="SettingsFragment" />
-
-    <fragment
-        android:id="@+id/mainFragmentNEW"
-        android:name="com.bernaferrari.changedetection.mainnew.MainFragmentNEW"
-        android:label="MainFragmentNEW">
-        <action
-            android:id="@+id/action_mainFragmentNEW_to_addNew"
-            app:destination="@id/addNew"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right"
-            tools:layout="@layout/addnewfragment" />
-        <action
-            android:id="@+id/action_mainFragmentNEW_to_aboutFragment"
-            app:destination="@id/aboutFragment" />
-        <action
-            android:id="@+id/action_mainFragmentNEW_to_textFragment"
-            app:destination="@id/textFragment" />
-    </fragment>
 
     <fragment
         android:id="@+id/logsFragment"
@@ -126,5 +122,9 @@
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
     </fragment>
+    <fragment
+        android:id="@+id/textBottomFragment"
+        android:name="com.bernaferrari.changedetection.detailsText.SelectorFragment"
+        android:label="TextBottomFragment" />
 
 </navigation>

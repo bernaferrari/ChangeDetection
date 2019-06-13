@@ -38,4 +38,5 @@ interface SnapsDataSource {
 
     suspend fun pruneSnaps(siteId: String)
 
+    fun getSingleSnapPair(id: String): ByteArray
 }

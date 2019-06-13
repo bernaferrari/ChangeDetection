@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:id="@+id/container"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?android:attr/selectableItemBackground">
@@ -39,14 +40,14 @@
         android:paddingRight="4dp"
         android:textColor="?strongColor"
         android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@+id/invisiblesubtitle"
-        app:layout_constraintEnd_toEndOf="@+id/invisiblesubtitle"
-        app:layout_constraintStart_toStartOf="@+id/invisiblesubtitle"
-        app:layout_constraintTop_toTopOf="@+id/invisiblesubtitle"
+        app:layout_constraintBottom_toBottomOf="@+id/invisibleSubtitle"
+        app:layout_constraintEnd_toEndOf="@+id/invisibleSubtitle"
+        app:layout_constraintStart_toStartOf="@+id/invisibleSubtitle"
+        app:layout_constraintTop_toTopOf="@+id/invisibleSubtitle"
         tools:text="25" />
 
     <TextView
-        android:id="@+id/invisiblesubtitle"
+        android:id="@+id/invisibleSubtitle"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:ellipsize="end"

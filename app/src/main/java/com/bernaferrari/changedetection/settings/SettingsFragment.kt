@@ -5,12 +5,11 @@ import android.view.View
 import com.airbnb.epoxy.EpoxyController
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.activityViewModel
+import com.bernaferrari.base.mvrx.simpleController
 import com.bernaferrari.changedetection.*
-import com.bernaferrari.changedetection.core.RecyclerBaseFragment
-import com.bernaferrari.changedetection.core.simpleController
-import kotlinx.android.synthetic.main.recyclerview.*
+import com.bernaferrari.ui.extras.BaseRecyclerFragment
 
-class SettingsFragment : RecyclerBaseFragment() {
+class SettingsFragment : BaseRecyclerFragment() {
 
     private val viewModel: SettingsViewModel by activityViewModel()
 
@@ -108,6 +107,6 @@ class SettingsFragment : RecyclerBaseFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val decoration = InsetDecoration(1, 0, 0x40FFFFFF)
-        recycler.addItemDecoration(decoration)
+//        recycler.addItemDecoration(decoration)
     }
 }

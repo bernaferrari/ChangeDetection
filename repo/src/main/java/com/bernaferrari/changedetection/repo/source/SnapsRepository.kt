@@ -20,6 +20,10 @@ class SnapsRepository @Inject constructor(
     private val mSnapsLocalDataSource: SnapsDataSource
 ) : SnapsDataSource {
 
+    override fun getSingleSnapPair(id: String): ByteArray {
+        return mSnapsLocalDataSource.getSingleSnapPair(id)
+    }
+
     override suspend fun getSnapForPaging(
         siteId: String,
         filter: String
