@@ -1,12 +1,12 @@
 package com.bernaferrari.changedetection
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.NavigationUI
+import com.airbnb.mvrx.BaseMvRxActivity
 import kotlinx.android.synthetic.main.nav_frag.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseMvRxActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         if (Injector.get().sharedPrefs().getBoolean(MainActivity.DARKMODE, false)) {

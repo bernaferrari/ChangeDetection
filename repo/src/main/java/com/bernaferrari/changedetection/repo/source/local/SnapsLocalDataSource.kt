@@ -167,20 +167,23 @@ class SnapsLocalDataSource constructor(
     override suspend fun getSnapPair(
         originalId: String,
         newId: String
-    ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>> =
-        withContext(mAppExecutors.ioContext) {
+    ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>> {
 
-            val originalSnap = mSnapsDao.getSnapById(originalId)!!
-            val newSnap = mSnapsDao.getSnapById(newId)!!
+        val originalSnap = mSnapsDao.getSnapById(originalId)!!
+        val newSnap = mSnapsDao.getSnapById(newId)!!
 
-            val originalContent = appContext.openFileInput(originalId).readBytes()
-            val newContent = appContext.openFileInput(newId).readBytes()
+        val originalContent = appContext.openFileInput(originalId).readBytes()
+        val newContent = appContext.openFileInput(newId).readBytes()
 
-            Pair(
-                Pair(originalSnap, originalContent),
-                Pair(newSnap, newContent)
-            )
-        }
+        return Pair(
+            Pair(originalSnap, originalContent),
+            Pair(newSnap, newContent)
+        )
+    }
+
+    override fun getSingleSnapPair(id: String): ByteArray {
+        return appContext.openFileInput(id).readBytes()
+    }
 
 //    private fun imageCompressor(snap: Snap): Snap {
 //

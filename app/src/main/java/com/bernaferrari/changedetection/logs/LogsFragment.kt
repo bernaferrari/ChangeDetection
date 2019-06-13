@@ -62,8 +62,11 @@ class LogsFragment : DaggerBaseRecyclerFragment() {
                 return LogsItemBindingModel_().id("error")
             }
 
-            val site = siteMap.getValue(item.siteId)
+            if (!siteMap.containsKey(item.siteId)) {
+                return LogsItemBindingModel_().id("error")
+            }
 
+            val site = siteMap.getValue(item.siteId)
 
             val dateTime = LocalDateTime.ofInstant(
                 Instant.ofEpochMilli(item.timestamp),

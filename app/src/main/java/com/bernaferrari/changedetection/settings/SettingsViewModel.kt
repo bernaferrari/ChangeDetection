@@ -1,8 +1,8 @@
 package com.bernaferrari.changedetection.settings
 
 import com.airbnb.mvrx.*
+import com.bernaferrari.base.mvrx.MvRxViewModel
 import com.bernaferrari.changedetection.Injector
-import com.bernaferrari.changedetection.core.MvRxViewModel
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.Observables
 

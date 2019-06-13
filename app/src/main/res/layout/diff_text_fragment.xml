@@ -40,17 +40,16 @@
 
             <TextView
                 android:id="@+id/titlecontent"
-                style="@style/TextAppearance.AppCompat.Title"
+                style="@style/TextAppearance.MaterialComponents.Headline6"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start|center_vertical"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:singleLine="true"
-                android:layout_marginRight="@dimen/avatar_margin"
+                android:layout_marginEnd="@dimen/avatar_margin"
                 android:gravity="center_vertical|start"
-                android:paddingRight="@dimen/padding_normal"
-                android:textColor="?strongColor"
+                android:paddingEnd="@dimen/padding_normal"
                 tools:text="Web Drivers" />
 
         </LinearLayout>
@@ -60,13 +59,19 @@
             android:layout_height="0dp"
             android:layout_weight="1">
 
-            <com.bernaferrari.changedetection.ui.RecyclerViewWithEmptyState
+            <com.airbnb.epoxy.EpoxyRecyclerView
                 android:id="@+id/topRecycler"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
             <com.bernaferrari.changedetection.ui.CustomWebView
                 android:id="@+id/webview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <fragment
+                android:id="@+id/source"
+                android:name="com.bernaferrari.changedetection.detailsText.SourceViewFragment"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
@@ -92,12 +97,11 @@
 
         <include layout="@layout/control_bar" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/bottomRecycler"
+        <fragment
+            android:id="@+id/bottomFragment"
+            android:name="com.bernaferrari.changedetection.detailsText.SelectorFragment"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/item_selector_height"
-            android:background="?toolbarColor"
-            tools:itemCount="6" />
+            android:layout_height="98dp" />
 
     </LinearLayout>
 

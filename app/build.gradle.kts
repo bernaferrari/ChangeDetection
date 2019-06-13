@@ -83,6 +83,7 @@ dependencies {
     // Kotlin
     implementation(Libs.Kotlin.stdlib)
     implementation(Libs.Coroutines.core)
+    implementation(Libs.Coroutines.rx2)
     implementation(Libs.Coroutines.android)
 
     // Epoxy
@@ -143,7 +144,8 @@ dependencies {
 
     // Others
     implementation(Libs.jsoup)
-    implementation(Libs.materialDialogs)
+    implementation(Libs.MaterialDialogs.core)
+    implementation(Libs.MaterialDialogs.bottomsheets)
     implementation(Libs.notify)
 
     // UI

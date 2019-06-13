@@ -5,7 +5,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
-import com.bernaferrari.changedetection.extensions.getPositionForAdapter
 import com.bernaferrari.changedetection.extensions.removeClutterAndBeautifyHtmlIfNecessary
 import com.bernaferrari.changedetection.extensions.unescapeHtml
 import com.bernaferrari.changedetection.groupie.TextRecycler
@@ -150,89 +149,89 @@ class TextViewModel(
      * @param topSection Pass the top part of the screen,
      * which will be updated by [generateDiff] with corresponding diff
      */
-    inline fun fsmSelectWithCorrectColor(item: TextViewHolder, f: (String?, String?) -> Unit) {
-        when (item.colorSelected) {
-            ItemSelected.NONE -> {
-                when (item.adapter.colorSelected.count { it.value != ItemSelected.NONE }) {
-                    0 -> {
-                        // NOTHING IS SELECTED -> SELECT REVISED
-                        item.setColor(ItemSelected.REVISED)
-                    }
-                    1 -> {
-                        // ONE THING IS SELECTED AND IT IS REVISED -> ORIGINAL
-                        // ONE THING IS SELECTED AND IT IS ORIGINAL -> REVISED
-                        for ((_, value) in item.adapter.colorSelected) {
-                            if (value == ItemSelected.NONE) continue
+//    inline fun fsmSelectWithCorrectColor(item: TextViewHolder, f: (String?, String?) -> Unit) {
+//        when (item.colorSelected) {
+//            ItemSelected.NONE -> {
+//                when (item.adapter.colorSelected.count { it.value != ItemSelected.NONE }) {
+//                    0 -> {
+//                        // NOTHING IS SELECTED -> SELECT REVISED
+//                        item.setColor(ItemSelected.REVISED)
+//                    }
+//                    1 -> {
+//                        // ONE THING IS SELECTED AND IT IS REVISED -> ORIGINAL
+//                        // ONE THING IS SELECTED AND IT IS ORIGINAL -> REVISED
+//                        for ((_, value) in item.adapter.colorSelected) {
+//                            if (value == ItemSelected.NONE) continue
+//
+//                            if (value == ItemSelected.ORIGINAL) {
+//                                item.adapter.colorSelected.getPositionForAdapter(ItemSelected.ORIGINAL)
+//                                    ?.let { position ->
+//                                        item.setColor(ItemSelected.REVISED)
+//
+//                                        f(
+//                                            item.adapter.getItemFromAdapter(position)?.snapId,
+//                                            item.snap?.snapId
+//                                        )
+//                                    }
+//
+//                            } else {
+//                                item.adapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
+//                                    ?.let { position ->
+//                                        item.setColor(ItemSelected.ORIGINAL)
+//
+//                                        f(
+//                                            item.snap?.snapId,
+//                                            item.adapter.getItemFromAdapter(position)?.snapId
+//                                        )
+//                                    }
+//                            }
+//
+//                            break
+//                        }
+//                    }
+//                    else -> {
+//                        // TWO ARE SELECTED. UNSELECT THE ORIGINAL, SELECT ANOTHER THING.
+//                        for ((position, _) in item.adapter.colorSelected.filter { it.value == ItemSelected.ORIGINAL }) {
+//                            item.adapter.setColor(ItemSelected.NONE, position)
+//                        }
+//
+//                        item.setColor(ItemSelected.ORIGINAL)
+//
+//                        item.adapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
+//                            ?.let { position ->
+//                                f(
+//                                    item.snap?.snapId,
+//                                    item.adapter.getItemFromAdapter(position)?.snapId
+//                                )
+//                            }
+//                    }
+//                }
+//            }
+//            else -> {
+//                item.setColor(ItemSelected.NONE)
+//            }
+//        }
+//    }
 
-                            if (value == ItemSelected.ORIGINAL) {
-                                item.adapter.colorSelected.getPositionForAdapter(ItemSelected.ORIGINAL)
-                                    ?.let { position ->
-                                        item.setColor(ItemSelected.REVISED)
-
-                                        f(
-                                            item.adapter.getItemFromAdapter(position)?.snapId,
-                                            item.snap?.snapId
-                                        )
-                                    }
-
-                            } else {
-                                item.adapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
-                                    ?.let { position ->
-                                        item.setColor(ItemSelected.ORIGINAL)
-
-                                        f(
-                                            item.snap?.snapId,
-                                            item.adapter.getItemFromAdapter(position)?.snapId
-                                        )
-                                    }
-                            }
-
-                            break
-                        }
-                    }
-                    else -> {
-                        // TWO ARE SELECTED. UNSELECT THE ORIGINAL, SELECT ANOTHER THING.
-                        for ((position, _) in item.adapter.colorSelected.filter { it.value == ItemSelected.ORIGINAL }) {
-                            item.adapter.setColor(ItemSelected.NONE, position)
-                        }
-
-                        item.setColor(ItemSelected.ORIGINAL)
-
-                        item.adapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
-                            ?.let { position ->
-                                f(
-                                    item.snap?.snapId,
-                                    item.adapter.getItemFromAdapter(position)?.snapId
-                                )
-                            }
-                    }
-                }
-            }
-            else -> {
-                item.setColor(ItemSelected.NONE)
-            }
-        }
-    }
-
-    /**
-     * When there is only one item selected, we want to show an error message
-     * and clear the RecyclerView
-     *
-     * @param adapter    The adapter with a map of selected gradientColor
-     * @param topSection The top section, which will be cleared if there are
-     * not enough gradientColor selected
-     */
-    inline fun updateCanShowDiff(adapter: TextAdapter, callback: () -> Unit) {
-
-        adapter.colorSelected.count { it.value != ItemSelected.NONE }.let { numOfItemsNotNone ->
-            if (numOfItemsNotNone < 2) {
-                // Empty when there is not enough selection
-                callback()
-            }
-
-            showNotEnoughInfoError.value = numOfItemsNotNone != 2
-        }
-    }
+//    /**
+//     * When there is only one item selected, we want to show an error message
+//     * and clear the RecyclerView
+//     *
+//     * @param adapter    The adapter with a map of selected gradientColor
+//     * @param topSection The top section, which will be cleared if there are
+//     * not enough gradientColor selected
+//     */
+//    inline fun updateCanShowDiff(adapter: TextAdapter, callback: () -> Unit) {
+//
+//        adapter.colorSelected.count { it.value != ItemSelected.NONE }.let { numOfItemsNotNone ->
+//            if (numOfItemsNotNone < 2) {
+//                // Empty when there is not enough selection
+//                callback()
+//            }
+//
+//            showNotEnoughInfoError.value = numOfItemsNotNone != 2
+//        }
+//    }
 
     private suspend fun generateVisualDiffRows(
         original: Pair<Snap, ByteArray>,

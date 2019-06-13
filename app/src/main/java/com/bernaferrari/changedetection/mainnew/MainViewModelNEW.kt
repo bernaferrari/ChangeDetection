@@ -9,9 +9,9 @@ import com.airbnb.mvrx.FragmentViewModelContext
 import com.airbnb.mvrx.MvRxState
 import com.airbnb.mvrx.MvRxViewModelFactory
 import com.airbnb.mvrx.ViewModelContext
+import com.bernaferrari.base.mvrx.MvRxViewModel
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.WorkerHelper
-import com.bernaferrari.changedetection.core.MvRxViewModel
 import com.bernaferrari.changedetection.extensions.getColorFromAttr
 import com.bernaferrari.changedetection.groupie.DialogItemSimple
 import com.bernaferrari.changedetection.groupie.MainCardItem
@@ -299,7 +299,7 @@ class MainViewModelNEW @AssistedInject constructor(
             viewModelContext: ViewModelContext,
             state: MainState
         ): MainViewModelNEW? {
-            val fragment: MainFragmentNEW =
+            val fragment: MainFragment =
                 (viewModelContext as FragmentViewModelContext).fragment()
             return fragment.mainViewModelFactory.create(state)
         }

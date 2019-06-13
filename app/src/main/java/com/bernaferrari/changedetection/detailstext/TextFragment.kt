@@ -1,10 +1,8 @@
 package com.bernaferrari.changedetection.detailsText
 
-import android.annotation.TargetApi
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,11 +13,10 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Observer
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.AutoTransition
 import androidx.transition.ChangeBounds
 import androidx.transition.TransitionManager
-import com.afollestad.materialdialogs.MaterialDialog
+import com.airbnb.mvrx.activityViewModel
 import com.bernaferrari.changedetection.MainActivity
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ScopedFragment
@@ -27,7 +24,7 @@ import com.bernaferrari.changedetection.ViewModelFactory
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
-import com.bernaferrari.changedetection.ui.RecyclerViewItemListener
+import com.google.android.material.snackbar.Snackbar
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
@@ -37,19 +34,19 @@ import kotlinx.android.synthetic.main.diff_text_fragment.*
 import kotlinx.android.synthetic.main.state_layout.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
 
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 class TextFragment : ScopedFragment() {
     lateinit var model: TextViewModel
     val color: Int by lazy { ContextCompat.getColor(requireContext(), R.color.FontStrong) }
 
     private val uiState = UiState { updateUiFromState() }
-    private lateinit var bottomAdapter: TextAdapter
     private val topSection = Section()
+
+    private val globalModel: TextGlobalViewModel by activityViewModel()
+
 
     private val fsmCallback: ((String?, String?) -> Unit) = { str1, str2 ->
         model.generateDiff(topSection, str1, str2)
@@ -69,41 +66,41 @@ class TextFragment : ScopedFragment() {
         webview.loadUrl("about:blank")
     }
 
-    private val recyclerListener = object :
-        RecyclerViewItemListener {
-        override fun onClickListener(item: RecyclerView.ViewHolder) {
-            if (item !is TextViewHolder) return
-            stateLayout.showLoading()
-            model.fsmSelectWithCorrectColor(item, fsmCallback)
-            model.updateCanShowDiff(item.adapter, canShowDiff)
-        }
-
-        override fun onLongClickListener(item: RecyclerView.ViewHolder) {
-            if (item !is TextViewHolder) return
-
-            MaterialDialog(requireContext())
-                .title(text = getString(R.string.remove_this, item.readableFileSize))
-                .message(
-                    text =
-                    getString(
-                        R.string.are_you_sure,
-                        item.readableFileSize,
-                        item.stringFromTimeAgo
-                    )
-                )
-                .negativeButton(R.string.cancel)
-                .positiveButton(R.string.yes) { _ ->
-                    if (item.colorSelected != ItemSelected.NONE) {
-                        // If the item is selected, first deselect, then remove it.
-                        model.fsmSelectWithCorrectColor(item, fsmCallback)
-                        model.updateCanShowDiff(item.adapter, canShowDiff)
-                    }
-
-                    model.removeSnap(item.snap?.snapId)
-                }
-                .show()
-        }
-    }
+//    private val recyclerListener = object :
+//        RecyclerViewItemListener {
+//        override fun onClickListener(item: RecyclerView.ViewHolder) {
+//            if (item !is TextViewHolder) return
+//            stateLayout.showLoading()
+//            model.fsmSelectWithCorrectColor(item, fsmCallback)
+//            model.updateCanShowDiff(item.adapter, canShowDiff)
+//        }
+//
+//        override fun onLongClickListener(item: RecyclerView.ViewHolder) {
+//            if (item !is TextViewHolder) return
+//
+//            MaterialDialog(requireContext())
+//                .content(text = getString(R.string.remove_this, item.readableFileSize))
+//                .message(
+//                    text =
+//                    getString(
+//                        R.string.are_you_sure,
+//                        item.readableFileSize,
+//                        item.stringFromTimeAgo
+//                    )
+//                )
+//                .negativeButton(R.string.cancel)
+//                .positiveButton(R.string.yes) { _ ->
+//                    if (item.colorSelected != ItemSelected.NONE) {
+//                        // If the item is selected, first deselect, then remove it.
+//                        model.fsmSelectWithCorrectColor(item, fsmCallback)
+//                        model.updateCanShowDiff(item.adapter, canShowDiff)
+//                    }
+//
+//                    model.removeSnap(item.snap?.snapId)
+//                }
+//                .show()
+//        }
+//    }
 
     private val transitionDelay = 175L
     private val transition = AutoTransition().apply { duration = transitionDelay }
@@ -112,7 +109,7 @@ class TextFragment : ScopedFragment() {
 
     private fun updateUiFromState() {
         beginDelayedTransition()
-        bottomRecycler.isVisible = uiState.visibility
+//        bottomRecycler.isVisible = uiState.visibility
 
         topRecycler.isVisible = uiState.sourceView
         sourceView.isActivated = uiState.sourceView
@@ -134,18 +131,18 @@ class TextFragment : ScopedFragment() {
                 // Don't do anything. If this exception happened, is because there are not
                 // two items selected. So it won't change anything.
 
-                val posRevised =
-                    bottomAdapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
-                            ?: return
-                val posOriginal =
-                    bottomAdapter.colorSelected.getPositionForAdapter(ItemSelected.ORIGINAL)
-                            ?: return
-
-                model.generateDiff(
-                    topSection = topSection,
-                    originalId = bottomAdapter.getItemFromAdapter(posOriginal)?.snapId,
-                    revisedId = bottomAdapter.getItemFromAdapter(posRevised)?.snapId
-                )
+//                val posRevised =
+//                    bottomAdapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
+//                            ?: return
+//                val posOriginal =
+//                    bottomAdapter.colorSelected.getPositionForAdapter(ItemSelected.ORIGINAL)
+//                            ?: return
+//
+//                model.generateDiff(
+//                    topSection = topSection,
+//                    originalId = bottomAdapter.getItemFromAdapter(posOriginal)?.snapId,
+//                    revisedId = bottomAdapter.getItemFromAdapter(posRevised)?.snapId
+//                )
             }
         }
     }
@@ -180,29 +177,22 @@ class TextFragment : ScopedFragment() {
 
         model.showNotEnoughInfoError.observe(this, Observer {
             if (it == true) {
-                stateLayout.setEmptyText(R.string.empty_please_select_two)
-                stateLayout.showEmptyState()
+//                stateLayout.setEmptyText(R.string.empty_please_select_two)
+//                stateLayout.showEmptyState()
             }
         })
 
         model.showNoChangesDetectedError.observe(this, Observer {
-            stateLayout.setEmptyText(R.string.empty_no_change_detected)
-            stateLayout.showEmptyState()
+            //            stateLayout.setEmptyText(R.string.empty_no_change_detected)
+//            stateLayout.showEmptyState()
         })
 
         model.showProgress.observe(this, Observer {
-            stateLayout.showLoading()
+            //            stateLayout.showLoading()
         })
 
         sourceView.setOnClickListener {
-            // disable touch on recyclerview to avoid crash when animation happens
-            topRecycler.stopScroll()
-            topRecycler.setOnTouchListener { _, _ -> true }
             uiState.sourceView++
-            launch(Dispatchers.Main) {
-                delay(transitionDelay + 50)
-                topRecycler.setOnTouchListener { _, _ -> false }
-            }
         }
 
         highQualityToggle.isVisible = false
@@ -219,7 +209,7 @@ class TextFragment : ScopedFragment() {
         closecontent.setOnClickListener { dismiss() }
 
         topRecycler.apply {
-            setEmptyView(stateLayout)
+            //            setEmptyView(stateLayout)
             layoutManager = LinearLayoutManager(context)
 
             adapter = GroupAdapter<ViewHolder>().apply {
@@ -233,17 +223,7 @@ class TextFragment : ScopedFragment() {
         }
 
         // Create adapter for the RecyclerView
-        bottomAdapter = TextAdapter(recyclerListener)
-
-        bottomRecycler.run {
-            adapter = bottomAdapter
-            layoutManager = LinearLayoutManager(
-                context,
-                LinearLayoutManager.HORIZONTAL,
-                false
-            )
-            itemAnimator = itemAnimatorWithoutChangeAnimations()
-        }
+//        bottomAdapter = TextAdapter(recyclerListener)
 
         fetchData()
 
@@ -267,14 +247,16 @@ class TextFragment : ScopedFragment() {
             uiState.revised = false
             fetchAndShow()
         }
+
+        globalModel.selectedId.value = getStringFromArguments(MainActivity.SITEID)
     }
 
     private fun fetchAndShow() = launch(Dispatchers.Main) {
-        val result = model.generateDiffVisual(
-            originalId = bottomAdapter.getItemFromAdapter(1)?.snapId,
-            revisedId = bottomAdapter.getItemFromAdapter(0)?.snapId
-        )
-        putDataOnWebView(webview, result)
+        //        val result = model.generateDiffVisual(
+//            originalId = bottomAdapter.getItemFromAdapter(1)?.snapId,
+//            revisedId = bottomAdapter.getItemFromAdapter(0)?.snapId
+//        )
+//        putDataOnWebView(webview, result)
     }
 
     private var loadIntoWebViewJob: Job? = null
@@ -284,14 +266,14 @@ class TextFragment : ScopedFragment() {
         loadIntoWebViewJob = launch(Dispatchers.Main) {
             val color = if (revised) ItemSelected.REVISED else ItemSelected.ORIGINAL
 
-            bottomAdapter.colorSelected.getPositionForAdapter(color)
-                ?.let { bottomAdapter.getItemFromAdapter(it)?.snapId }
-                ?.let { model.getSnapValue(it) }.also {
-                    putDataOnWebView(
-                        webview,
-                        it!!.replaceRelativePathWithAbsolute(getStringFromArguments(MainActivity.URL))
-                    )
-                }
+//            bottomAdapter.colorSelected.getPositionForAdapter(color)
+//                ?.let { bottomAdapter.getItemFromAdapter(it)?.snapId }
+//                ?.let { model.getSnapValue(it) }.also {
+//                    putDataOnWebView(
+//                        webview,
+//                        it!!.replaceRelativePathWithAbsolute(getStringFromArguments(MainActivity.URL))
+//                    )
+//                }
         }
     }
 
@@ -307,27 +289,27 @@ class TextFragment : ScopedFragment() {
         )
 
         liveData.observe(this@TextFragment, Observer {
-            bottomAdapter.submitList(it)
+            //            bottomAdapter.submitList(it)
             if (!hasSetInitialColor) {
-                bottomAdapter.setColor(ItemSelected.REVISED, 0)
-                bottomAdapter.setColor(ItemSelected.ORIGINAL, 1)
+//                bottomAdapter.setColor(ItemSelected.REVISED, 0)
+//                bottomAdapter.setColor(ItemSelected.ORIGINAL, 1)
 
                 fetchAndShow()
-
-                try {
-                    model.generateDiff(
-                        topSection = topSection,
-                        originalId = bottomAdapter.getItemFromAdapter(1)?.snapId,
-                        revisedId = bottomAdapter.getItemFromAdapter(0)?.snapId
-                    )
-                } catch (e: Exception) {
-                    com.google.android.material.snackbar.Snackbar.make(
-                        elastic,
-                        getString(R.string.less_than_two),
-                        com.google.android.material.snackbar.Snackbar.LENGTH_LONG
-                    ).show()
-                    dismiss()
-                }
+//
+//                try {
+//                    model.generateDiff(
+//                        topSection = topSection,
+//                        originalId = bottomAdapter.getItemFromAdapter(1)?.snapId,
+//                        revisedId = bottomAdapter.getItemFromAdapter(0)?.snapId
+//                    )
+//                } catch (e: Exception) {
+//                    Snackbar.make(
+//                        elastic,
+//                        getString(R.string.less_than_two),
+//                        Snackbar.LENGTH_LONG
+//                    ).show()
+//                    dismiss()
+//                }
 
                 hasSetInitialColor = true
             }
@@ -339,11 +321,7 @@ class TextFragment : ScopedFragment() {
         val clip = ClipData.newPlainText(context.getString(R.string.app_name), uri)
 
         clipboard.primaryClip = clip
-        com.google.android.material.snackbar.Snackbar.make(
-            elastic,
-            getString(R.string.success_copied),
-            com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
-        ).show()
+        Snackbar.make(elastic, getString(R.string.success_copied), Snackbar.LENGTH_SHORT).show()
     }
 
     private fun putDataOnWebView(webView: WebView?, data: String) {

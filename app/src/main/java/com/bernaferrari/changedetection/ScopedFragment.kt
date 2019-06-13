@@ -1,13 +1,14 @@
 package com.bernaferrari.changedetection
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import com.airbnb.mvrx.BaseMvRxFragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlin.coroutines.CoroutineContext
 
-open class ScopedFragment : Fragment(), CoroutineScope {
+open abstract class ScopedFragment : BaseMvRxFragment(), CoroutineScope {
+
     lateinit var job: Job
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
