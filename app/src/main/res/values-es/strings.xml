@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Detector de Mudanças</string>
+
+    <string name="save">Guardar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="close">Cerrar</string>
+
+    <string name="yes">Sí</string>
+    <string name="no">No</string>
+
+    <string name="inputName">Escribe el título</string>
+    <string name="inputUrl">>Escribe la url</string>
+    <string name="syncing">Sincronizando…</string>
+    <string name="success_copied">Copiado</string>
+    <string name="nothing_yet">aún no</string>
+
+    <string name="version">Versión</string>
+    <string name="licenses">Licencias</string>
+    <string name="rate">Califique la app</string>
+
+    <string name="email">Envíe un email</string>
+    <string name="help">Ayuda</string>
+    <string name="email_subject">Comentario de Change Detection</string>
+    <string name="github">Ver proyecto en GitHub</string>
+    <string name="bugs">¿Problemas? ¿Inquietudes? ¿Sugerencias?</string>
+
+    <string name="remove">Remover</string>
+    <string name="remove_more">Remover…</string>
+
+    <string name="remove_all">Remover todo</string>
+    <string name="pruning">Conservar los últimos 5 elementos</string>
+
+    <string name="edittitle">Editar Rastreamiento</string>
+    <string name="editsubtitle">Editar un sitio que está siendo rastreado</string>
+
+    <string name="addtitle">Nuevo Rastreamento</string>
+    <string name="addsubtitle">Añada un sitio para ser rastreado</string>
+
+    <string name="edit">Editar</string>
+    <string name="open_in_browser">Abrir en navegador</string>
+    <string name="sync_disable">Desactivar sincronización</string>
+    <string name="sync_enable">Activar sincronización</string>
+
+    <string name="notification_disable">Desactivar notificaciones</string>
+    <string name="notification_enable">Activar notificaciones</string>
+
+    <string name="reload">Recargar</string>
+
+    <string name="error">ERROR</string>
+    <string name="author">Autor</string>
+    <string name="icon_designer">Diseñador del Ícono (Famil Qasimov)</string>
+
+    <string name="less_than_two">Error! No se puede mostrar la diferencia con menos de dos elementos.</string>
+    <string name="empty_please_select_two">Seleccione dos elementos abajo\npara comparar las diferencias</string>
+    <string name="empty_no_change_detected">No se encontraron cambios entre dos elementos</string>
+
+    <string name="remove_this">Remover %1s</string>
+    <string name="remove_content">¿Está seguro que desea remover esto?</string>
+
+    <string name="are_you_sure">¿Está seguro que desea remover %1s de %2s?</string>
+    <string name="missing_internet">¡Error! Sin conexión a internet</string>
+    <string name="was_updated">¡%1s fue actualizado!</string>
+
+    <string name="url">Enlace del Sitio</string>
+    <string name="title">Título</string>
+
+    <string name="turn_on_background_sync_title">Ativar sincronización automática</string>
+    <string name="turn_on_background_sync_content">Sincronización automática desactivada. ¿Desea acivarla? Puedes modificarla desde los Ajustes</string>
+
+    <string name="background_sync">Sincronización automática</string>
+    <string name="sync_interval">Intervalo de Sincronización</string>
+
+    <string name="wifi_on">Wifi Activado</string>
+    <string name="constraints">Condiciones</string>
+    <string name="device_idle">Celular en reposo</string>
+    <string name="charging">Carga</string>
+    <string name="batter_not_low">Batería sin agotarse</string>
+
+    <string name="min">min</string>
+    <string name="hour">1 hora</string>
+    <string name="hours">horas</string>
+
+    <string name="original_plus_diffs">Original + Cambios</string>
+
+    <string name="revised">Revisado</string>
+    <string name="original">Original</string>
+    <string name="source">Fuente</string>
+    <string name="diff">Diferencia</string>
+
+    <string name="incorrect_url">Enlace incorrecto</string>
+    <string name="no_websites_being_monitored">Ningún sitio está siendo monitoreado</string>
+
+    <string name="control_bar_quality">Alta Calidad</string>
+    <string name="share">Compartir</string>
+    <string name="no_changes_detected">Ningún cambio detectado</string>
+
+    <string name="next">SIGUIENTE</string>
+    <string name="previous">ANTERIOR</string>
+
+    <string name="last_change">Último cambio</string>
+    <string name="last_sync">Última Sincronización</string>
+
+    <plurals name="items">
+        <item quantity="one">%d elemento</item>
+        <item quantity="other">%d elementos</item>
+    </plurals>
+
+    <string name="change_detected_notification_with_title">¡%1s (%2s) fue actualizado!</string>
+    <string name="change_detected_notification_without_title">¡Cambio detectado! (%1s)</string>
+
+    <string name="sort_by_name">Ordenar por nombrer</string>
+    <string name="disable_dark_mode">Desactivar tema oscuro</string>
+    <string name="enable_dark_mode">Activar tema oscuro</string>
+    <string name="backup">Respaldo</string>
+    <string name="bkp_export">Exportar</string>
+    <string name="bkp_import">Importar</string>
+    <string name="bkp_description">Puedes guardar una copia de los sitios que está rastreando, o recuperar de un respaldo existente. Solo se mantienen detalles como título, url, color y preferencias. Puedes exportar/importar por vários medios, incluído Google Drive y el almacenamiento interno de Android.</string>
+
+    <string name="filter">Filtro</string>
+    <string name="settings">Ajustes</string>
+    <string name="about">Acerca de</string>
+
+</resources>
