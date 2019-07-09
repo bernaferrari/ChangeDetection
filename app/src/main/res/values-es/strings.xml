@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Detector de Mudanças</string>
+    <string name="app_name">Detector de Cambio</string>
 
     <string name="save">Guardar</string>
     <string name="cancel">Cancelar</string>
@@ -53,7 +53,7 @@
 
     <string name="less_than_two">Error! No se puede mostrar la diferencia con menos de dos elementos.</string>
     <string name="empty_please_select_two">Seleccione dos elementos abajo\npara comparar las diferencias</string>
-    <string name="empty_no_change_detected">No se encontraron cambios entre dos elementos</string>
+    <string name="empty_no_change_detected">No se detectaron cambios entre dos elementos</string>
 
     <string name="remove_this">Remover %1s</string>
     <string name="remove_content">¿Está seguro que desea remover esto?</string>
