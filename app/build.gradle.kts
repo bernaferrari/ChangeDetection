@@ -1,4 +1,5 @@
 import com.bernaferrari.buildsrc.Libs
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
 import java.io.FileInputStream
 import java.util.*
 
@@ -66,6 +67,11 @@ android {
         }
     }
 
+    kotlinOptions {
+        val options = this as KotlinJvmOptions
+        options.jvmTarget = "1.8"
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -117,6 +123,7 @@ dependencies {
     implementation(Libs.AndroidX.recyclerview)
 
     implementation(Libs.AndroidX.Lifecycle.extensions)
+    implementation(Libs.AndroidX.Lifecycle.liveDataKtx)
     implementation(Libs.AndroidX.Navigation.navigationUi)
     implementation(Libs.AndroidX.Navigation.navigationFragment)
 
@@ -169,7 +176,7 @@ dependencies {
 
 
     // RecyclerView
-    val groupie = "2.3.0"
+    val groupie = "2.4.0"
     implementation("com.xwray:groupie:$groupie")
     implementation("com.yarolegovich:discrete-scrollview:1.4.9")
     implementation("com.xwray:groupie-kotlin-android-extensions:$groupie")

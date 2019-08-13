@@ -61,6 +61,10 @@ import kotlin.reflect.KProperty
 class VisualFragment : ScopedFragment(),
     DiscreteScrollView.OnItemChangedListener<RecyclerView.ViewHolder> {
 
+    override fun invalidate() {
+
+    }
+
     private lateinit var model: VisualViewModel
     private lateinit var carouselAdapter: VisualAdapter
     private lateinit var fileKind: FORMAT

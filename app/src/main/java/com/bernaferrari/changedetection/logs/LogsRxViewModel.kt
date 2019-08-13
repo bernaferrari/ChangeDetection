@@ -32,9 +32,7 @@ class LogsRxViewModel @AssistedInject constructor(
         }
     }
 
-    suspend fun getVersionCount(): Int = withContext(Dispatchers.IO) {
-        mSnapsDao.countNumberOfChanges()
-    }
+    fun getVersionCount(): LiveData<Int> = mSnapsDao.countNumberOfChanges()
 
     fun pagedVersion(): LiveData<PagedList<Snap>> {
 

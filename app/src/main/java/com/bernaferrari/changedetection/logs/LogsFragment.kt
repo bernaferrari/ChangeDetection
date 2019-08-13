@@ -2,17 +2,15 @@ package com.bernaferrari.changedetection.logs
 
 import android.os.Bundle
 import android.view.View
-import androidx.lifecycle.Observer
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.observe
 import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.epoxy.paging.PagedListEpoxyController
 import com.airbnb.mvrx.fragmentViewModel
-import com.bernaferrari.changedetection.BuildConfig
-import com.bernaferrari.changedetection.LogsItemBindingModel_
+import com.bernaferrari.changedetection.*
 import com.bernaferrari.changedetection.extensions.readableFileSize
-import com.bernaferrari.changedetection.loadingRow
 import com.bernaferrari.changedetection.mainnew.getLogsSubtitle
 import com.bernaferrari.changedetection.mainnew.getTitle
-import com.bernaferrari.changedetection.marquee
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.ui.dagger.DaggerBaseRecyclerFragment
@@ -36,33 +34,42 @@ class LogsFragment : DaggerBaseRecyclerFragment() {
     override fun epoxyController() = pagingController
 
     var siteMap = mapOf<String, Site>()
-    var versionsCount = 0
+    var versionsCount: LiveData<Int>? = null
     var hasLoaded = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        versionsCount = viewModel.getVersionCount()
+
+        versionsCount?.observe(this) {
+            if (it == 0) {
+                recyclerView.withModels {
+                    logsEmptyItem {
+                        id("empty")
+                    }
+                }
+            } else {
+                recyclerView.setController(pagingController)
+            }
+        }
+
         launch(Dispatchers.Main) {
             siteMap = viewModel.getSiteList()
-            versionsCount = viewModel.getVersionCount()
             hasLoaded = true
 
             viewModel.pagedVersion()
-                .observe(requireActivity(), Observer {
+                .observe(requireActivity()) {
                     pagingController.submitList(it)
-                })
+                }
         }
     }
 
     inner class TestController : PagedListEpoxyController<Snap>() {
         override fun buildItemModel(currentPosition: Int, item: Snap?): EpoxyModel<*> {
 
-            if (item == null) {
-                // this should never happen since placeholders are disabled.
-                return LogsItemBindingModel_().id("error")
-            }
-
-            if (!siteMap.containsKey(item.siteId)) {
+            if (item == null || !siteMap.containsKey(item.siteId)) {
+                // item should never be null since placeholders are disabled.
                 return LogsItemBindingModel_().id("error")
             }
 
@@ -97,9 +104,9 @@ class LogsFragment : DaggerBaseRecyclerFragment() {
                 models.isNotEmpty() -> marquee {
                     id("header")
                     title("Last Changes")
-                    subtitle("$versionsCount changes detected")
+                    subtitle("${versionsCount?.value} changes detected")
                 }
-                versionsCount == 0 && hasLoaded -> marquee { id("empty") }
+                versionsCount?.value == 0 && hasLoaded -> marquee { id("empty") }
                 else -> loadingRow { id("loading") }
             }
 

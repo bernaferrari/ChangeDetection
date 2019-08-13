@@ -19,25 +19,27 @@ limitations under the License.
  */
 package com.bernaferrari.diffutils.diffs.patch;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Holds the information about the part of text involved in the diff process
  *
  * <p>
- * Text is represented as <code>Object[]</code> because the diff engine is capable of handling more than plain ascci. In
- * fact, arrays or lists of any type that implements {@link Object#hashCode hashCode()} and
- * {@link Object#equals equals()} correctly can be subject to differencing using this library.
+ * Text is represented as <code>Object[]</code> because the diff engine is capable of handling more
+ * than plain ascci. In fact, arrays or lists of any type that implements
+ * {@link java.lang.Object#hashCode hashCode()} and {@link java.lang.Object#equals equals()}
+ * correctly can be subject to differencing using this library.
  * </p>
  *
  * @author <a href="dm.naumenko@gmail.com>Dmitry Naumenko</a>
- * @param T The type of the compared elements in the 'lines'.
+ * @param <T> The type of the compared elements in the 'lines'.
  */
 public final class Chunk<T> {
-
     private final int position;
     private List<T> lines;
-
     /**
      * Creates a chunk and saves a copy of affected lines
      *
@@ -46,20 +48,19 @@ public final class Chunk<T> {
      */
     public Chunk(int position, List<T> lines) {
         this.position = position;
-        this.lines = lines;
+        this.lines = new ArrayList<>(lines);
     }
 
-//    /**
-//     * Creates a chunk and saves a copy of affected lines
-//     *
-//     * @param position the start position
-//     * @param lines the affected lines
-//     */
-//    public Chunk(int position, T[] lines) {
-//        this.position = position;
-//        this.lines = Arrays.asList(lines);
-//    }
-
+    /**
+     * Creates a chunk and saves a copy of affected lines
+     *
+     * @param position the start position
+     * @param lines    the affected lines
+     */
+    public Chunk(int position, T[] lines) {
+        this.position = position;
+        this.lines = Arrays.asList(lines);
+    }
     /**
      * Verifies that this chunk's saved text matches the corresponding text in the given sequence.
      *
@@ -77,7 +78,6 @@ public final class Chunk<T> {
             }
         }
     }
-
     /**
      * @return the start position of chunk in the text
      */
@@ -107,26 +107,11 @@ public final class Chunk<T> {
         return getPosition() + size() - 1;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#hashCode()
-     */
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((lines == null) ? 0 : lines.hashCode());
-        result = prime * result + position;
-        result = prime * result + size();
-        return result;
+        return Objects.hash(lines, position, size());
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {

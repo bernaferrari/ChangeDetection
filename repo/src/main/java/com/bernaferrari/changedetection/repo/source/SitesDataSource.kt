@@ -13,7 +13,7 @@ interface SitesDataSource {
 
     fun getDataWithChanges(): Observable<List<Site>>
 
-    suspend fun getSiteById(siteId: String): Site?
+    fun getSiteById(siteId: String): Site?
 
     suspend fun getSiteByUrl(siteUrl: String): Site?
 

@@ -157,7 +157,7 @@ interface SnapsDao {
 
 
     @Query("SELECT COUNT(*) FROM ( SELECT * FROM snaps GROUP BY siteId HAVING COUNT(*) > 1 ) T1 JOIN snaps T2 ON T1.siteId = T2.siteId")
-    fun countNumberOfChanges(): Int
+    fun countNumberOfChanges(): LiveData<Int>
 
     @Query("SELECT t2.* FROM ( SELECT * FROM snaps GROUP BY siteId HAVING COUNT(*) > 1 ) T1 JOIN snaps T2 ON T1.siteId = T2.siteId ORDER BY timestamp DESC")
     fun getSnapsPaged(): DataSource.Factory<Int, Snap>

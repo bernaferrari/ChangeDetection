@@ -84,10 +84,10 @@ public final class UnifiedDiffUtils {
                 new_ln = m.group(3) == null ? 1 : Integer.parseInt(m.group(3));
 
                 if (old_ln == 0) {
-                    old_ln += 1;
+                    old_ln = 1;
                 }
                 if (new_ln == 0) {
-                    new_ln += 1;
+                    new_ln = 1;
                 }
             } else {
                 if (line.length() > 0) {
@@ -127,9 +127,6 @@ public final class UnifiedDiffUtils {
         return patch;
     }
 
-    private UnifiedDiffUtils() {
-    }
-
     /**
      * generateUnifiedDiff takes a Patch and some other arguments, returning the Unified Diff format text representing
      * the Patch.
@@ -150,7 +147,8 @@ public final class UnifiedDiffUtils {
             ret.add("--- " + originalFileName);
             ret.add("+++ " + revisedFileName);
 
-            List<AbstractDelta<String>> patchDeltas = new ArrayList<>(patch.getDeltas());
+            List<AbstractDelta<String>> patchDeltas = new ArrayList<>(
+                    patch.getDeltas());
 
             // code outside the if block also works for single-delta issues.
             List<AbstractDelta<String>> deltas = new ArrayList<>(); // current
@@ -309,5 +307,8 @@ public final class UnifiedDiffUtils {
             buffer.add("+" + line);
         }
         return buffer;
+    }
+
+    private UnifiedDiffUtils() {
     }
 }

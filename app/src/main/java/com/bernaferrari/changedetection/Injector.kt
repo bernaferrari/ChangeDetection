@@ -6,7 +6,6 @@ import androidx.room.Room
 import com.afollestad.rxkprefs.Pref
 import com.afollestad.rxkprefs.RxkPrefs
 import com.afollestad.rxkprefs.rxkPrefs
-import com.bernaferrari.changedetection.detailsText.TextBottomDataSource
 import com.bernaferrari.changedetection.mainnew.AppModule
 import com.bernaferrari.changedetection.mainnew.ChangeDetectionInjectorsModule
 import com.bernaferrari.changedetection.repo.AppExecutors
@@ -112,9 +111,9 @@ class SnapsRepositoryModule {
     @Provides
     internal fun provideSnapsDao(db: ChangeDatabase): SnapsDao = db.snapsDao()
 
-    @Provides
-    @Singleton
-    internal fun provideTextBottomDataSource(dao: SnapsDao) = TextBottomDataSource(dao)
+//    @Provides
+//    @Singleton
+//    internal fun provideTextBottomDataSource(dao: SnapsDao) = TextBottomDataSource(dao)
 }
 
 @Module

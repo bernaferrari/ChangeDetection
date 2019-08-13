@@ -9,12 +9,17 @@ import com.bernaferrari.changedetection.Injector
 import com.bernaferrari.changedetection.MainActivity
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.WorkerHelper
+import com.bernaferrari.changedetection.addedit.fetchFromWebView
 import com.bernaferrari.changedetection.extensions.findCharset
 import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
+import com.bernaferrari.changedetection.repo.source.WebResult
+import com.bernaferrari.changedetection.ui.CustomWebView
 import com.orhanobut.logger.Logger
 import io.karn.notify.Notify
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.threeten.bp.LocalTime
 import com.bernaferrari.changedetection.repo.source.Result as DataResult
 
@@ -43,18 +48,38 @@ class OneTimeSync(
 
     private suspend fun reload(item: Site) {
 
-        val (contentTypeAndCharset, bytes) = WorkerHelper.fetchFromServer(item.url)
+        if (item.isBrowser) {
+            withContext(Dispatchers.Main) {
 
-        if (isDebugEnabled) {
-            if (bytes.isEmpty()) {
-                debugLog.append("• $contentTypeAndCharset\n")
-            } else {
-                val title = item.title?.takeIf { it.isNotBlank() } ?: item.url
-                debugLog.append("• ${bytes.size.readableFileSize()} from $title\n")
+                val webView = CustomWebView(context)
+                val result: WebResult<ByteArray> = fetchFromWebView(
+                    item.url,
+                    context,
+                    webView
+                )
+
+                webView.destroy()
+
+                when (result) {
+                    is WebResult.Success -> {
+                        processServerResult("text/html;charset=UTF-8", result.data, item)
+                    }
+                }
             }
-        }
+        } else {
+            val (contentTypeAndCharset, bytes) = WorkerHelper.fetchFromServer(item.url)
 
-        processServerResult(contentTypeAndCharset, bytes, item)
+            if (isDebugEnabled) {
+                if (bytes.isEmpty()) {
+                    debugLog.append("• $contentTypeAndCharset\n")
+                } else {
+                    val title = item.title?.takeIf { it.isNotBlank() } ?: item.url
+                    debugLog.append("• ${bytes.size.readableFileSize()} from $title\n")
+                }
+            }
+
+            processServerResult(contentTypeAndCharset, bytes, item)
+        }
     }
 
     private suspend fun processServerResult(

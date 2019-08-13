@@ -21,7 +21,7 @@ import android.app.Application
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.bernaferrari.changedetection.detailsText.TextViewModel
+import com.bernaferrari.changedetection.detailstext.TextViewModel
 import com.bernaferrari.changedetection.detailsvisual.VisualViewModel
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository

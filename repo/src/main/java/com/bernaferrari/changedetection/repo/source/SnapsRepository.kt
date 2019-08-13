@@ -59,7 +59,7 @@ class SnapsRepository @Inject constructor(
         return mSnapsLocalDataSource.getSnapContent(snapId)
     }
 
-    override suspend fun getSnapPair(
+    override fun getSnapPair(
         originalId: String,
         newId: String
     ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>> {
