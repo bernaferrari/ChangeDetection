@@ -23,7 +23,7 @@ interface SnapsDataSource {
 
     suspend fun getSnapContent(snapId: String): ByteArray
 
-    suspend fun getSnapPair(
+    fun getSnapPair(
         originalId: String,
         newId: String
     ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>>

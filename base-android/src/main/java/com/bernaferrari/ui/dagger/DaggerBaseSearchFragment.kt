@@ -1,21 +1,20 @@
 package com.bernaferrari.ui.dagger
 
 import android.content.Context
-import androidx.fragment.app.Fragment
 import com.bernaferrari.ui.search.BaseSearchFragment
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
+import dagger.android.HasAndroidInjector
 import dagger.android.support.AndroidSupportInjection
-import dagger.android.support.HasSupportFragmentInjector
 import javax.inject.Inject
 
 
-abstract class DaggerBaseSearchFragment : BaseSearchFragment(), HasSupportFragmentInjector {
+abstract class DaggerBaseSearchFragment : BaseSearchFragment(), HasAndroidInjector {
 
     open val shouldInject: Boolean = true
 
     @Inject
-    lateinit var childFragmentInjector: DispatchingAndroidInjector<Fragment>
+    lateinit var androidInjector: DispatchingAndroidInjector<Any>
 
     override fun onAttach(context: Context) {
         if (shouldInject) {
@@ -24,8 +23,7 @@ abstract class DaggerBaseSearchFragment : BaseSearchFragment(), HasSupportFragme
         super.onAttach(context)
     }
 
-    override fun supportFragmentInjector(): AndroidInjector<Fragment> {
-        return childFragmentInjector
+    override fun androidInjector(): AndroidInjector<Any>? {
+        return androidInjector
     }
-
 }

@@ -1,7 +1,7 @@
 package com.bernaferrari.ui.dagger
 
 import android.content.Context
-import com.bernaferrari.ui.extras.BaseRecyclerFragment
+import com.airbnb.mvrx.BaseMvRxFragment
 import dagger.android.AndroidInjector
 import dagger.android.DispatchingAndroidInjector
 import dagger.android.HasAndroidInjector
@@ -9,7 +9,7 @@ import dagger.android.support.AndroidSupportInjection
 import javax.inject.Inject
 
 
-abstract class DaggerBaseRecyclerFragment : BaseRecyclerFragment(), HasAndroidInjector {
+abstract class DaggerMvRxFragment : BaseMvRxFragment(), HasAndroidInjector {
 
     open val shouldInject: Boolean = true
 

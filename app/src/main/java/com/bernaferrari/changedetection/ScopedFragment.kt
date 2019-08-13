@@ -7,7 +7,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlin.coroutines.CoroutineContext
 
-open abstract class ScopedFragment : BaseMvRxFragment(), CoroutineScope {
+open class ScopedFragment : BaseMvRxFragment(), CoroutineScope {
+
+    override fun invalidate() {
+
+    }
 
     lateinit var job: Job
     override val coroutineContext: CoroutineContext

@@ -7,8 +7,8 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:3.5.0-beta04")
-        classpath(kotlin("gradle-plugin", version = "1.3.31"))
+        classpath("com.android.tools.build:gradle:3.6.0-alpha05")
+        classpath(kotlin("gradle-plugin", version = "1.3.41"))
         classpath("android.arch.navigation:navigation-safe-args-gradle-plugin:1.0.0")
         classpath("com.github.ben-manes:gradle-versions-plugin:0.21.0")
     }
@@ -32,7 +32,7 @@ tasks.register<Delete>("clean").configure {
 }
 
 detekt {
-    version = "1.0.0.RC8"
+    version = "1.0.0.RC15"
     input = files("app/")
     filters = ".*/resources/.*,.*/build/.*"
     config = files("default-detekt-config.yml")

@@ -6,14 +6,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.observe
 import androidx.navigation.findNavController
 import com.bernaferrari.base.misc.onTextChanged
+import com.bernaferrari.base.mvrx.simpleController
 import com.bernaferrari.changedetection.Injector
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.WorkerHelper
-import com.bernaferrari.changedetection.core.simpleController
 import com.bernaferrari.changedetection.epoxy.ColorPickerItemEpoxy_
 import com.bernaferrari.changedetection.extensions.fixUrlIfNecessary
 import com.bernaferrari.changedetection.extensions.isValidUrl
@@ -74,11 +74,11 @@ class AddEditFragment : AddEditBaseFragment() {
 
         // Url box methods
 
-        model.selected.observe(this, Observer { item ->
+        model.selected.observe(this) { item ->
             if (item != null) {
                 url.text = item.toEditText()
             }
-        })
+        }
 
         urlInputLayout.editText?.onTextChanged {
             if (urlInputLayout.error != null) {
@@ -119,7 +119,8 @@ class AddEditFragment : AddEditBaseFragment() {
             title.text = it.title?.toEditText()
             url.text = it.url.toEditText()
             tags.text = it.notes.toEditText()
-//            checkbox.isChecked = it.isChecked // TODO
+            checkbox.isChecked = it.isBrowser
+            browserScrollView.isVisible = checkbox.isChecked
             selectedColors = it.colors
         }
     }
@@ -171,6 +172,7 @@ class AddEditFragment : AddEditBaseFragment() {
                 title = title.text.toString(),
                 url = currentUrl,
                 notes = tags.text.toString(),
+                isBrowser = checkbox.isChecked,
                 colors = selectedColors
             )
 
@@ -189,6 +191,7 @@ class AddEditFragment : AddEditBaseFragment() {
                 title = title.text.toString(),
                 url = url.text.toString(),
                 tags = tags.text.toString(),
+                isBrowser = checkbox.isChecked,
                 timestamp = System.currentTimeMillis(),
                 colors = selectedColors
             )

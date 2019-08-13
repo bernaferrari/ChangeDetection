@@ -51,12 +51,12 @@ object DiffUtils {
      */
     @Throws(DiffException::class)
     fun <T> diff(original: List<T>, revised: List<T>, progress: DiffAlgorithmListener): Patch<T> {
-        return DiffUtils.diff(original, revised, MyersDiff<T>(), progress)
+        return diff(original, revised, MyersDiff<T>(), progress)
     }
 
     @Throws(DiffException::class)
     fun <T> diff(original: List<T>, revised: List<T>): Patch<T> {
-        return DiffUtils.diff(original, revised, MyersDiff(), null)
+        return diff(original, revised, MyersDiff(), null)
     }
 
     /**
@@ -68,7 +68,7 @@ object DiffUtils {
         revisedText: String,
         progress: DiffAlgorithmListener
     ): Patch<String> {
-        return DiffUtils.diff(
+        return diff(
             originalText.split("\n"),
             revisedText.split("\n"),
             progress
@@ -91,11 +91,11 @@ object DiffUtils {
         equalizer: ((T, T) -> Boolean)?
     ): Patch<T> {
         return if (equalizer != null) {
-            DiffUtils.diff(
+            diff(
                 original, revised,
                 MyersDiff(equalizer)
             )
-        } else DiffUtils.diff(original, revised, MyersDiff())
+        } else diff(original, revised, MyersDiff())
     }
 
     /**
@@ -154,7 +154,7 @@ object DiffUtils {
         for (character in revised.toCharArray()) {
             revList.add(character.toString())
         }
-        val patch = DiffUtils.diff(origList, revList)
+        val patch = diff(origList, revList)
         for (delta in patch.getDeltas()) {
             delta.source.lines = compressLines(delta.source.lines, "")
             delta.target.lines = compressLines(delta.target.lines, "")

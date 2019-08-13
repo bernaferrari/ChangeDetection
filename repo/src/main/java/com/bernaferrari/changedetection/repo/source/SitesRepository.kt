@@ -29,7 +29,7 @@ class SitesRepository @Inject constructor(
         return mSitesLocalDataSource.getSites()
     }
 
-    override suspend fun getSiteById(siteId: String): Site? {
+    override fun getSiteById(siteId: String): Site? {
         return mSitesLocalDataSource.getSiteById(siteId)
     }
 

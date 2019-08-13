@@ -164,7 +164,7 @@ class SnapsLocalDataSource constructor(
         mSnapsDao.getSnapsForSiteIdForPaging(siteId, filter)
     }
 
-    override suspend fun getSnapPair(
+    override fun getSnapPair(
         originalId: String,
         newId: String
     ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>> {

@@ -132,17 +132,20 @@
 
     <string name="background_sync_description">Periodically check if targetSDK changed, since apps are always being updated.</string>
     <string name="home">Home</string>
-
     <string name="logs">Logs</string>
+
     <string-array name="pluralTime">
         <item>minutes</item>
         <item>hours</item>
         <item>days</item>
     </string-array>
+
     <string-array name="singularTime">
         <item>minute</item>
         <item>hour</item>
         <item>day</item>
     </string-array>
+
+    <string name="empty_logs">No changes detected</string>
 
 </resources>

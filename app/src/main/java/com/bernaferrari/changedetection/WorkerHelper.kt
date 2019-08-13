@@ -64,16 +64,16 @@ object WorkerHelper {
 
             val response = client.newCall(request).execute()
             Logger.d("isSuccessful -> ${response.isSuccessful}")
-            Logger.d("header -> ${response.headers()}")
+            Logger.d("header -> ${response.headers}")
 
-            val contentTypeAndCharset = response.headers().get("content-type") ?: ""
+            val contentTypeAndCharset = response.headers.get("content-type") ?: ""
 
             val bytes = if (contentTypeAndCharset.contains("text")) {
-                response.body()?.string()?.toByteArray() ?: throw NullPointerException()
+                response.body?.string()?.toByteArray() ?: throw NullPointerException()
                 // VERY inefficient solution for this problem:
                 // https://stackoverflow.com/questions/50788229/how-to-convert-response-body-from-bytearray-to-string-without-using-okhttp-owns
             } else {
-                response.body()?.bytes() ?: throw NullPointerException()
+                response.body?.bytes() ?: throw NullPointerException()
             }
 
             Pair(contentTypeAndCharset, bytes)

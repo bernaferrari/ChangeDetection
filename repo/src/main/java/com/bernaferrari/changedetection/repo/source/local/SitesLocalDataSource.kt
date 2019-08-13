@@ -26,9 +26,7 @@ class SitesLocalDataSource constructor(
         mSitesDao.sites
     }
 
-    override suspend fun getSiteById(siteId: String): Site? = withContext(mAppExecutors.ioContext) {
-        mSitesDao.getSiteById(siteId)
-    }
+    override fun getSiteById(siteId: String): Site? = mSitesDao.getSiteById(siteId)
 
     override suspend fun getSiteByUrl(siteUrl: String): Site? =
         withContext(mAppExecutors.ioContext) {

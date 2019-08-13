@@ -8,7 +8,7 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.view.setPadding
 import androidx.core.view.updatePadding
-import androidx.lifecycle.Observer
+import androidx.lifecycle.observe
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -29,6 +29,7 @@ import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.itemAnimatorWithoutChangeAnimations
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.ui.dagger.DaggerBaseToolbarFragment
+import com.orhanobut.logger.Logger
 import javax.inject.Inject
 
 class MainFragment : DaggerBaseToolbarFragment() {
@@ -50,11 +51,11 @@ class MainFragment : DaggerBaseToolbarFragment() {
         } else if (state.listOfItems.isEmpty()) {
             marquee {
                 id("empty")
-                title("Empty")
+                title("Nothing is currently tracked")
             }
         }
 
-        state.listOfItems.forEachIndexed { index, it ->
+        state.listOfItems.forEachIndexed { _, it ->
 
             MainCardItem_()
                 .id(it.site.id)
@@ -89,9 +90,14 @@ class MainFragment : DaggerBaseToolbarFragment() {
             setPadding(16.toDp(resources))
         }
 
-        mViewModel.outputStatus.observe(this, Observer { list ->
-            mViewModel.workManagerObserver.accept(list.filter { it.state != WorkInfo.State.SUCCEEDED })
-        })
+        mViewModel.outputStatus.observe(this) { list ->
+            Logger.d("aaaa -> ${list}")
+            mViewModel.workManagerObserver.accept(
+                list.filter {
+                    it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED
+                }
+            )
+        }
 
         viewContainer.inflateAddButton().setOnClickListener {
             it.findNavController().navigate(R.id.action_mainFragment_to_addNew)
@@ -110,24 +116,24 @@ class MainFragment : DaggerBaseToolbarFragment() {
             configureColorAdapter(colorRecycler, it, mViewModel)
         }
 
-        val tagRecycler = requireNotNull(titleBar.inflateFilter()).apply {
-            itemAnimator = itemAnimatorWithoutChangeAnimations()
-            updatePadding(
-                left = 24.toDp(resources),
-                right = 24.toDp(resources),
-                bottom = 8.toDp(resources)
-            )
-        }
-
-        mViewModel.selectSubscribe(MainState::listOfTags) {
-            configureTagAdapter(tagRecycler, it, mViewModel)
-        }
+//        val tagRecycler = requireNotNull(titleBar.inflateFilter()).apply {
+//            itemAnimator = itemAnimatorWithoutChangeAnimations()
+//            updatePadding(
+//                left = 24.toDp(resources),
+//                right = 24.toDp(resources),
+//                bottom = 8.toDp(resources)
+//            )
+//        }
+//
+//        mViewModel.selectSubscribe(MainState::listOfTags) {
+//            configureTagAdapter(tagRecycler, it, mViewModel)
+//        }
 
         val onFilterListener = {
             TransitionManager.beginDelayedTransition(titleBar.rootView as ViewGroup, transition)
 
             colorRecycler.isVisible = !colorRecycler.isVisible
-            tagRecycler.isVisible = !tagRecycler.isVisible && (tagRecycler.adapter?.itemCount != 0)
+//            tagRecycler.isVisible = !tagRecycler.isVisible && (tagRecycler.adapter?.itemCount != 0)
 
             val icon = if (!colorRecycler.isVisible) {
                 R.drawable.ic_filter

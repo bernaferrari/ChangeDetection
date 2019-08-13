@@ -23,6 +23,7 @@ data class Site(
     @field:ColumnInfo(name = "siteId")
     val id: String,
     val isSuccessful: Boolean,
+    val isBrowser: Boolean,
     val isRead: Boolean, // reserved for future use
     val isSyncEnabled: Boolean, // enable/disable sync
     val isNotificationEnabled: Boolean,
@@ -45,6 +46,7 @@ data class Site(
         timestamp,
         id,
         true,
+        false,
         false,
         true,
         true,
@@ -69,6 +71,7 @@ data class Site(
         id,
         true,
         false,
+        false,
         isSyncEnabled,
         isNotificationEnabled,
         "",
@@ -82,13 +85,15 @@ data class Site(
         url: String,
         timestamp: Long,
         tags: String,
-        colors: ColorGroup
+        colors: ColorGroup,
+        isBrowser: Boolean
     ) : this(
         title,
         url,
         timestamp,
         UUID.randomUUID().toString(),
         true,
+        isBrowser,
         false,
         true,
         true,

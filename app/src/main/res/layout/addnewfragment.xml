@@ -86,6 +86,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/FormInputLayout"
                 app:startIconDrawable="@drawable/ic_tag"
+                android:visibility="gone"
                 android:hint="Tags"
                 app:helperText="E.g. one, two, three..">
 
