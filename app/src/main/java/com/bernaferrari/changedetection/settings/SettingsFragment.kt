@@ -15,7 +15,6 @@ class SettingsFragment : BaseRecyclerFragment() {
 
     override fun epoxyController(): EpoxyController = simpleController(viewModel) { state ->
 
-        println("state is: ${state.data}")
         if (state.data is Loading) {
             loadingRow { id("loading") }
         }

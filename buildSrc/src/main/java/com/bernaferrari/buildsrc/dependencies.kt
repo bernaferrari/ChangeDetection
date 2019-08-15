@@ -63,6 +63,7 @@ object Libs {
     object MaterialDialogs {
         private const val version = "3.1.0"
         val core = "com.afollestad.material-dialogs:core:$version"
+        val input = "com.afollestad.material-dialogs:input:$version"
         val bottomsheets = "com.afollestad.material-dialogs:bottomsheets:$version"
     }
 

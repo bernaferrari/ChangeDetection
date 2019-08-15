@@ -147,5 +147,6 @@
     </string-array>
 
     <string name="empty_logs">No changes detected</string>
+    <string name="update_threshold">Update threshold</string>
 
 </resources>

@@ -104,6 +104,8 @@ interface SnapsDao {
     @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 1")
     fun getLastSnapForSiteId(siteId: String): Snap?
 
+    @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT :limit")
+    fun getLastNSnapsForSiteId(siteId: String, limit: Int): List<Snap>?
 
     /**
      * Select the most recent snap metadata (which is everything except for its value) by siteId

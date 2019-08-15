@@ -29,7 +29,6 @@ import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.itemAnimatorWithoutChangeAnimations
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.ui.dagger.DaggerBaseToolbarFragment
-import com.orhanobut.logger.Logger
 import javax.inject.Inject
 
 class MainFragment : DaggerBaseToolbarFragment() {
@@ -66,7 +65,7 @@ class MainFragment : DaggerBaseToolbarFragment() {
                 .lastDiffStr(getLastDiff(requireContext(), it.snap))
                 .syncingNow(it.isSyncing)
                 .onReload { _ ->
-                    WorkerHelper.reloadSite(it.site)
+                    WorkerHelper.reloadSite(it.site, requireContext().applicationContext)
                 }
                 .onClick { v ->
                     openItem(v, it)
@@ -91,7 +90,6 @@ class MainFragment : DaggerBaseToolbarFragment() {
         }
 
         mViewModel.outputStatus.observe(this) { list ->
-            Logger.d("aaaa -> ${list}")
             mViewModel.workManagerObserver.accept(
                 list.filter {
                     it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED

@@ -24,6 +24,7 @@ data class Site(
     val id: String,
     val isSuccessful: Boolean,
     val isBrowser: Boolean,
+    val threshold: Int,
     val isRead: Boolean, // reserved for future use
     val isSyncEnabled: Boolean, // enable/disable sync
     val isNotificationEnabled: Boolean,
@@ -39,7 +40,8 @@ data class Site(
         timestamp: Long,
         tags: String,
         id: String,
-        colors: Pair<Int, Int>
+        colors: Pair<Int, Int>,
+        threshold: Int = 0
     ) : this(
         title,
         url,
@@ -47,6 +49,7 @@ data class Site(
         id,
         true,
         false,
+        threshold,
         false,
         true,
         true,
@@ -63,7 +66,8 @@ data class Site(
         id: String,
         colors: ColorGroup,
         isSyncEnabled: Boolean,
-        isNotificationEnabled: Boolean
+        isNotificationEnabled: Boolean,
+        threshold: Int = 0
     ) : this(
         title,
         url,
@@ -71,6 +75,7 @@ data class Site(
         id,
         true,
         false,
+        threshold,
         false,
         isSyncEnabled,
         isNotificationEnabled,
@@ -86,7 +91,8 @@ data class Site(
         timestamp: Long,
         tags: String,
         colors: ColorGroup,
-        isBrowser: Boolean
+        isBrowser: Boolean,
+        threshold: Int = 0
     ) : this(
         title,
         url,
@@ -94,6 +100,7 @@ data class Site(
         UUID.randomUUID().toString(),
         true,
         isBrowser,
+        threshold,
         false,
         true,
         true,

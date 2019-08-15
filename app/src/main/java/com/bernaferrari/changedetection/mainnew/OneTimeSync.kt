@@ -3,6 +3,8 @@ package com.bernaferrari.changedetection.mainnew
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.bernaferrari.changedetection.Injector
@@ -35,13 +37,17 @@ class OneTimeSync(
 
         val now = LocalTime.now()
         Logger.d("Doing background work! " + now.hour + ":" + now.minute)
-
         debugLog.setLength(0)
 
-        val item = inputData.getString("id") ?: ""
-        val site = Injector.get().sitesRepository().getSiteById(item)
-        reload(site!!)
-        debugMode()
+        if (inputData.getBoolean(WorkerHelper.WIFI, false) && !isWifiConnected()) {
+            Logger.d("SyncWorker: wifi is not connected. Try again next time..")
+            WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs(), context, false)
+        } else {
+            val item = inputData.getString("id") ?: ""
+            val site = Injector.get().sitesRepository().getSiteById(item)
+            reload(site!!)
+            debugMode()
+        }
 
         return Result.success()
     }
@@ -109,7 +115,8 @@ class OneTimeSync(
         // We don't want to show notification if user just added a website to be tracked.
         val lastSnap = Injector.get().snapsRepository().getMostRecentSnap(item.id)
 
-        val snapSavedResult = Injector.get().snapsRepository().saveSnap(snap, content)
+        val snapSavedResult =
+            Injector.get().snapsRepository().saveSnap(snap, content, newSite.threshold)
 
         if (snapSavedResult is DataResult.Success && lastSnap != null) {
             notifyUser(item, snap, newSite)
@@ -164,5 +171,21 @@ class OneTimeSync(
                 }
                 .show()
         }
+    }
+
+    private fun isWifiConnected(): Boolean {
+        // From https://stackoverflow.com/a/34576776/4418073
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetworks = connectivityManager.allNetworks
+        for (network in activeNetworks) {
+            if (connectivityManager.getNetworkInfo(network).isConnected) {
+                val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
+                if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                    return true
+                }
+            }
+        }
+        return false
     }
 }

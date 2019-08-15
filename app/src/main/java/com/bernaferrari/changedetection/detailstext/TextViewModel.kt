@@ -134,13 +134,6 @@ class TextViewModel(
     ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>> =
         mSnapsRepository.getSnapPair(originalId, newId)
 
-    /**
-     * This will asynchronously fetch a pair of diffs from the database based on their ids
-     *
-     * @param originalId The original diff url to be fetched.
-     * @param newId The newest url to be fetched.
-     * @return a pair of diffs
-     */
     suspend fun getSnapValue(snapId: String): String =
         mSnapsRepository.getSnapContent(snapId).toString(Charset.defaultCharset())
 

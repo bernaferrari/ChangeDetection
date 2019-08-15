@@ -1,5 +1,6 @@
 package com.bernaferrari.changedetection
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import androidx.work.*
@@ -41,14 +42,14 @@ object WorkerHelper {
         )
     }
 
-    fun reloadSite(site: Site) {
+    fun reloadSite(site: Site, context: Context) {
         val work = OneTimeWorkRequestBuilder<OneTimeSync>()
             .setInputData(workDataOf("id" to site.id))
             .addTag("output")
             .addTag(site.id)
             .build()
 
-        WorkManager.getInstance()
+        WorkManager.getInstance(context)
             .beginUniqueWork(site.id, ExistingWorkPolicy.REPLACE, work)
             .enqueue()
     }
@@ -97,6 +98,7 @@ object WorkerHelper {
 
     fun updateWorkerWithConstraints(
         sharedPrefs: SharedPreferences,
+        context: Context,
         cancelCurrentWork: Boolean = true
     ) {
         val constraints = ConstraintsRequired(
@@ -107,16 +109,20 @@ object WorkerHelper {
         )
 
         if (cancelCurrentWork) {
-            cancelWork()
+            cancelWork(context)
         }
-        WorkManager.getInstance().pruneWork()
+        WorkManager.getInstance(context).pruneWork()
 
         if (sharedPrefs.getBoolean("backgroundSync", false)) {
-            reloadWorkManager(sharedPrefs.getLong(WorkerHelper.DELAY, 30), constraints)
+            reloadWorkManager(sharedPrefs.getLong(WorkerHelper.DELAY, 30), constraints, context)
         }
     }
 
-    private fun reloadWorkManager(delay: Long = 15, constraints: ConstraintsRequired) {
+    private fun reloadWorkManager(
+        delay: Long = 15,
+        constraints: ConstraintsRequired,
+        context: Context
+    ) {
 
         val workerConstraints = Constraints.Builder().apply {
             this.setRequiredNetworkType(NetworkType.CONNECTED)
@@ -129,17 +135,17 @@ object WorkerHelper {
             .putBoolean(WIFI, constraints.wifi)
             .build()
 
-        val syncWork = OneTimeWorkRequest.Builder(SyncWorker::class.java)
+        val syncWork = OneTimeWorkRequest.Builder(OneTimeSync::class.java)
             .addTag(UNIQUEWORK)
             .setInitialDelay(delay, TimeUnit.MINUTES)
             .setConstraints(workerConstraints.build())
             .setInputData(inputData)
             .build()
 
-        WorkManager.getInstance().enqueue(syncWork)
+        WorkManager.getInstance(context).enqueue(syncWork)
     }
 
-    fun cancelWork() {
-        WorkManager.getInstance().cancelAllWorkByTag(WorkerHelper.UNIQUEWORK)
+    fun cancelWork(context: Context) {
+        WorkManager.getInstance(context).cancelAllWorkByTag(WorkerHelper.UNIQUEWORK)
     }
 }

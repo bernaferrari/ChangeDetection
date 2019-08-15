@@ -14,7 +14,6 @@ import com.bernaferrari.changedetection.repo.ContentTypeInfo
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.changedetection.repo.Snap
-import com.bernaferrari.changedetection.repo.source.Result
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.util.LongPress
@@ -70,20 +69,20 @@ class MainViewModel(
     }
 
     // Called when clicking on fab.
-    internal fun saveWebsite(
-        snap: Snap,
-        content: ByteArray
-    ): MutableLiveData<Boolean> {
-
-        val didItWork = MutableLiveData<Boolean>()
-
-        launch(Dispatchers.Main) {
-            val saveSnap = mSnapsRepository.saveSnap(snap, content)
-            didItWork.value = saveSnap is Result.Success
-        }
-
-        return didItWork
-    }
+//    internal fun saveWebsite(
+//        snap: Snap,
+//        content: ByteArray
+//    ): MutableLiveData<Boolean> {
+//
+//        val didItWork = MutableLiveData<Boolean>()
+//
+//        launch(Dispatchers.Main) {
+//            val saveSnap = mSnapsRepository.saveSnap(snap, content)
+//            didItWork.value = saveSnap is Result.Success
+//        }
+//
+//        return didItWork
+//    }
 
     suspend fun getRecentContentTypes(siteId: String): List<ContentTypeInfo> {
         return mSnapsRepository.getContentTypeInfo(siteId)
