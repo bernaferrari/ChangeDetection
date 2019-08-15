@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import androidx.work.WorkInfo
+import com.afollestad.materialdialogs.LayoutMode
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.bottomsheets.BottomSheet
 import com.afollestad.materialdialogs.customview.customView
@@ -29,6 +30,7 @@ import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.itemAnimatorWithoutChangeAnimations
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.ui.dagger.DaggerBaseToolbarFragment
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class MainFragment : DaggerBaseToolbarFragment() {
@@ -71,8 +73,10 @@ class MainFragment : DaggerBaseToolbarFragment() {
                     openItem(v, it)
                 }
                 .onLongClick { v ->
-                    val bundle = bundleOf("site" to it.site)
-                    v.findNavController().navigate(R.id.action_mainFragment_to_addNew, bundle)
+                    v.findNavController().navigate(
+                        R.id.action_mainFragment_to_mainLongPressSheet,
+                        bundleOf("site" to it.site)
+                    )
                     true
                 }
                 .addTo(this)
@@ -157,9 +161,11 @@ class MainFragment : DaggerBaseToolbarFragment() {
         this.initialPrefetchItemCount = 5
     }
 
-    private fun openItem(view: View, item: SiteAndLastSnap) {
-        if (item.snap == null) {
-            MaterialDialog(view.context, BottomSheet())
+    private fun openItem(view: View, item: SiteAndLastSnap) = launch {
+        val contentTypes = mViewModel.getRecentContentTypes(item.site.id)
+
+        if (item.snap == null || contentTypes.firstOrNull()?.count?.let { it > 1 } != true) {
+            MaterialDialog(view.context, BottomSheet(LayoutMode.WRAP_CONTENT))
                 .customView(R.layout.epoxyrecyclerview)
                 .show {
                     (this.getCustomView() as? EpoxyRecyclerView)?.withModels {

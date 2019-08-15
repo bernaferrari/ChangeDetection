@@ -25,6 +25,7 @@ import androidx.transition.AutoTransition
 import androidx.transition.ChangeBounds
 import androidx.transition.TransitionManager
 import com.afollestad.materialdialogs.MaterialDialog
+import com.bernaferrari.base.misc.openInBrowser
 import com.bernaferrari.changedetection.*
 import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.RowItem
