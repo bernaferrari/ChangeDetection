@@ -20,6 +20,7 @@ import androidx.transition.AutoTransition
 import androidx.transition.ChangeBounds
 import androidx.transition.TransitionManager
 import com.afollestad.materialdialogs.MaterialDialog
+import com.bernaferrari.base.misc.openInBrowser
 import com.bernaferrari.changedetection.MainActivity
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.ScopedFragment

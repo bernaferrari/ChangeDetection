@@ -17,4 +17,7 @@ abstract class ChangeDetectionInjectorsModule {
     @ContributesAndroidInjector
     abstract fun addNewFragment(): AddEditFragment
 
+    @ContributesAndroidInjector
+    abstract fun mainLongPressFragment(): LongPressOptionsDialog
+
 }

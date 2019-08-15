@@ -49,6 +49,14 @@
             app:exitAnim="@anim/slide_out"
             app:popEnterAnim="@anim/pop_enter"
             app:popExitAnim="@anim/slide_out" />
+
+        <action
+            android:id="@+id/action_mainFragment_to_mainLongPressSheet"
+            app:destination="@id/mainLongPressSheet"
+            app:enterAnim="@anim/enter"
+            app:exitAnim="@anim/slide_out"
+            app:popEnterAnim="@anim/pop_enter"
+            app:popExitAnim="@anim/slide_out" />
     </fragment>
 
     <fragment
@@ -122,9 +130,18 @@
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
     </fragment>
-    <fragment
-        android:id="@+id/textBottomFragment"
-        android:name="com.bernaferrari.changedetection.detailsText.bottomselector.SelectorFragment"
-        android:label="TextBottomFragment" />
+
+    <dialog
+        android:id="@+id/mainLongPressSheet"
+        android:name="com.bernaferrari.changedetection.mainnew.LongPressOptionsDialog"
+        android:label="MainLongPressSheet">
+        <action
+            android:id="@+id/action_mainLongPressSheet_to_addNew"
+            app:destination="@id/addNew"
+            app:enterAnim="@anim/enter"
+            app:exitAnim="@anim/slide_out"
+            app:popEnterAnim="@anim/pop_enter"
+            app:popExitAnim="@anim/slide_out" />
+    </dialog>
 
 </navigation>

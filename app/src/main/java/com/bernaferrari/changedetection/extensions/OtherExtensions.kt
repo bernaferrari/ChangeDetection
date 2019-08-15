@@ -1,7 +1,6 @@
 package com.bernaferrari.changedetection.extensions
 
 import android.content.Context
-import android.content.Intent
 import android.content.res.Resources
 import android.util.TypedValue
 import android.view.LayoutInflater
@@ -12,7 +11,6 @@ import androidx.annotation.AttrRes
 import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import androidx.core.graphics.drawable.toDrawable
-import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -71,12 +69,6 @@ internal fun Int.toDp(resources: Resources): Int {
 inline fun <reified VM : ViewModel> Fragment.viewModelProvider(
     provider: ViewModelProvider.Factory
 ) = ViewModelProviders.of(this, provider).get(VM::class.java)
-
-internal fun Context.openInBrowser(url: String?) {
-    if (url != null) {
-        this.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
-    }
-}
 
 internal fun Fragment.getStringFromArguments(
     key: String,
