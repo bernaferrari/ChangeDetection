@@ -1,6 +1,7 @@
 package com.bernaferrari.changedetection.addedit
 
 import android.os.Bundle
+import android.text.InputType
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -9,6 +10,8 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.observe
 import androidx.navigation.findNavController
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.input.input
 import com.bernaferrari.base.misc.onTextChanged
 import com.bernaferrari.base.mvrx.simpleController
 import com.bernaferrari.changedetection.Injector
@@ -22,6 +25,7 @@ import com.bernaferrari.changedetection.extensions.shakeIt
 import com.bernaferrari.changedetection.repo.ColorGroup
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.source.local.SitesDao
+import com.bernaferrari.changedetection.repo.source.local.SnapsDao
 import com.bernaferrari.changedetection.util.GradientColors
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.android.synthetic.main.addnewfragment.*
@@ -29,12 +33,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import kotlin.math.abs
 
 class AddEditFragment : AddEditBaseFragment() {
 
     private lateinit var model: SharedViewModel
+
     @Inject
     lateinit var sitesDao: SitesDao
+
+    @Inject
+    lateinit var snapsDao: SnapsDao
 
     private val colorsList = GradientColors.gradients
 
@@ -57,6 +66,7 @@ class AddEditFragment : AddEditBaseFragment() {
         }
 
         if (currentSite == null) {
+            threshold.isVisible = false
             configureAdd()
         } else {
             configureEdit()
@@ -123,6 +133,32 @@ class AddEditFragment : AddEditBaseFragment() {
             browserScrollView.isVisible = checkbox.isChecked
             selectedColors = it.colors
         }
+
+        threshold.setOnClickListener {
+            MaterialDialog(it.context)
+                .title(text = "Diff Threshold")
+                .input(
+                    hint = "Example: 200 (bytes)",
+                    prefill = currentSite?.threshold?.toString(),
+                    inputType = InputType.TYPE_CLASS_NUMBER
+                ) { _, char ->
+                    currentSite = currentSite?.copy(threshold = Integer.parseInt(char.toString()))
+                }
+                .positiveButton(text = "Confirm")
+                .show {
+                    launch(Dispatchers.IO) {
+                        val id = currentSite!!.id
+                        val items = snapsDao.getLastNSnapsForSiteId(id, 2)
+
+                        if (items != null && items.size >= 2) {
+                            val diff = abs(items[0].contentSize - items[1].contentSize)
+                            withContext(Dispatchers.Main) {
+                                message(text = "The difference between last two items was $diff bytes. Put a value above this to ignore similar changes. Use 0 to allow all changes.")
+                            }
+                        }
+                    }
+                }
+        }
     }
 
     private fun configureColorPickerRecycler() {
@@ -181,7 +217,7 @@ class AddEditFragment : AddEditBaseFragment() {
 
                 // Only reload if the url has changed.
                 if (currentUrl != previousUrl) {
-                    WorkerHelper.reloadSite(updatedSite)
+                    WorkerHelper.reloadSite(updatedSite, requireContext().applicationContext)
                 }
 
                 goBack()
@@ -198,7 +234,7 @@ class AddEditFragment : AddEditBaseFragment() {
 
             scope.launch {
                 withContext(Dispatchers.IO) { sitesDao.insertSite(site) }
-                WorkerHelper.reloadSite(site)
+                WorkerHelper.reloadSite(site, requireContext().applicationContext)
                 goBack()
             }
         }

@@ -12,6 +12,7 @@ import com.bernaferrari.changedetection.repo.source.SnapsDataSource
 import com.orhanobut.logger.Logger
 import kotlinx.coroutines.withContext
 import java.nio.charset.Charset
+import kotlin.math.abs
 
 /**
  * Concrete implementation of a data source as a db.
@@ -84,7 +85,7 @@ class SnapsLocalDataSource constructor(
             appContext.openFileInput(snapId).readBytes()
         }
 
-    override suspend fun saveSnap(snap: Snap, content: ByteArray): Result<Snap> =
+    override suspend fun saveSnap(snap: Snap, content: ByteArray, threshold: Int): Result<Snap> =
         withContext(mAppExecutors.ioContext) {
 
             val lastSnapValue = mSnapsDao.getLastSnapForSiteId(snap.siteId).let { previousValue ->
@@ -99,8 +100,18 @@ class SnapsLocalDataSource constructor(
             // val lastSnapValue = ByteArray(0)
             // mSnapsDao.insertSnap(snap.copy(value = snap.value.plus(UUID.randomUUID().toString())))
 
-            if (cleanUpIfNecessaryAndCompare(snap.contentType, content, lastSnapValue)) {
-//                println(lastSnapValue)
+            // 1, thresh 10, ok 10 >= 1 -> ok
+            // 15, thresh 16, not ok -> 15 >= 16 not ok
+            // 0, thresh 0, ok
+            val belowThresh = threshold <= abs(lastSnapValue.size - content.size)
+
+            if (belowThresh && cleanUpIfNecessaryAndCompare(
+                    snap.contentType,
+                    content,
+                    lastSnapValue
+                )
+            ) {
+
                 Logger.d("Difference detected! Size went from ${lastSnapValue.size} to ${content.size}")
                 mSnapsDao.insertSnap(snap)
 
@@ -155,6 +166,11 @@ class SnapsLocalDataSource constructor(
     override suspend fun getMostRecentSnap(siteId: String): Snap? =
         withContext(mAppExecutors.ioContext) {
             mSnapsDao.getLastSnapForSiteId(siteId)
+        }
+
+    override suspend fun getLastNSnapsForSiteId(siteId: String, limit: Int): List<Snap>? =
+        withContext(mAppExecutors.ioContext) {
+            mSnapsDao.getLastNSnapsForSiteId(siteId, limit)
         }
 
     override suspend fun getSnapForPaging(

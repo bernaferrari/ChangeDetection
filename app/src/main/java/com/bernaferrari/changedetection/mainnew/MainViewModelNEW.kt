@@ -16,7 +16,6 @@ import com.bernaferrari.changedetection.extensions.getColorFromAttr
 import com.bernaferrari.changedetection.groupie.DialogItemSimple
 import com.bernaferrari.changedetection.groupie.MainCardItem
 import com.bernaferrari.changedetection.repo.*
-import com.bernaferrari.changedetection.repo.source.Result
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.util.LongPress
@@ -103,20 +102,20 @@ class MainViewModelNEW @AssistedInject constructor(
     }
 
     // Called when clicking on fab.
-    internal fun saveWebsite(
-        snap: Snap,
-        content: ByteArray
-    ): MutableLiveData<Boolean> {
-
-        val didItWork = MutableLiveData<Boolean>()
-
-        launch(Dispatchers.Main) {
-            val saveSnap = mSnapsRepository.saveSnap(snap, content)
-            didItWork.value = saveSnap is Result.Success
-        }
-
-        return didItWork
-    }
+//    internal fun saveWebsite(
+//        snap: Snap,
+//        content: ByteArray
+//    ): MutableLiveData<Boolean> {
+//
+//        val didItWork = MutableLiveData<Boolean>()
+//
+//        launch(Dispatchers.Main) {
+//            val saveSnap = mSnapsRepository.saveSnap(snap, content)
+//            didItWork.value = saveSnap is Result.Success
+//        }
+//
+//        return didItWork
+//    }
 
     suspend fun getRecentContentTypes(siteId: String): List<ContentTypeInfo> {
         return mSnapsRepository.getContentTypeInfo(siteId)

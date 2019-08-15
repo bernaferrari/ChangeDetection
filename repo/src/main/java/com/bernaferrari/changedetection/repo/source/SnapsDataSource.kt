@@ -23,12 +23,14 @@ interface SnapsDataSource {
 
     suspend fun getSnapContent(snapId: String): ByteArray
 
+    suspend fun getLastNSnapsForSiteId(siteId: String, limit: Int): List<Snap>?
+
     fun getSnapPair(
         originalId: String,
         newId: String
     ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>>
 
-    suspend fun saveSnap(snap: Snap, content: ByteArray): Result<Snap>
+    suspend fun saveSnap(snap: Snap, content: ByteArray, threshold: Int): Result<Snap>
 
     suspend fun deleteAllSnaps(siteId: String)
 

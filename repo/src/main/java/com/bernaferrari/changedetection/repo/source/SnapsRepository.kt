@@ -66,8 +66,12 @@ class SnapsRepository @Inject constructor(
         return mSnapsLocalDataSource.getSnapPair(originalId, newId)
     }
 
-    override suspend fun saveSnap(snap: Snap, content: ByteArray): Result<Snap> {
-        return mSnapsLocalDataSource.saveSnap(snap, content)
+    override suspend fun getLastNSnapsForSiteId(siteId: String, limit: Int): List<Snap>? {
+        return mSnapsLocalDataSource.getLastNSnapsForSiteId(siteId, limit)
+    }
+
+    override suspend fun saveSnap(snap: Snap, content: ByteArray, threshold: Int): Result<Snap> {
+        return mSnapsLocalDataSource.saveSnap(snap, content, threshold)
     }
 
     override suspend fun deleteSnap(snapId: String) {

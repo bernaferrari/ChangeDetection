@@ -23,8 +23,8 @@ android {
         applicationId = "com.bernaferrari.changedetection"
         minSdkVersion(21)
         targetSdkVersion(28)
-        versionCode = 32
-        versionName = "2.2"
+        versionCode = 33
+        versionName = "2.3"
         multiDexEnabled = true
     }
 
@@ -152,6 +152,7 @@ dependencies {
     // Others
     implementation(Libs.jsoup)
     implementation(Libs.MaterialDialogs.core)
+    implementation(Libs.MaterialDialogs.input)
     implementation(Libs.MaterialDialogs.bottomsheets)
     implementation(Libs.notify)
 

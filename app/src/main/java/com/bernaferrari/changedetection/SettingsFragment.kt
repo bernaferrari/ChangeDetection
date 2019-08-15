@@ -39,7 +39,10 @@ class SettingsFragment : ScopedFragment() {
 
         fun updateSharedPreferences(key: String, value: Boolean) {
             sharedPrefs.edit { putBoolean(key, value) }
-            WorkerHelper.updateWorkerWithConstraints(sharedPrefs)
+            WorkerHelper.updateWorkerWithConstraints(
+                sharedPrefs,
+                requireContext().applicationContext
+            )
         }
 
 //        updating += DialogItemSwitch(
@@ -59,10 +62,13 @@ class SettingsFragment : ScopedFragment() {
 
             if (it.isSwitchOn) {
                 syncSection.update(syncSettings)
-                WorkerHelper.updateWorkerWithConstraints(sharedPrefs)
+                WorkerHelper.updateWorkerWithConstraints(
+                    sharedPrefs,
+                    requireContext().applicationContext
+                )
             } else {
                 syncSection.update(mutableListOf())
-                WorkerHelper.cancelWork()
+                WorkerHelper.cancelWork(requireContext().applicationContext)
             }
         }
 
@@ -71,7 +77,10 @@ class SettingsFragment : ScopedFragment() {
             sharedPrefs.getLong(WorkerHelper.DELAY, 60).toInt()
         ) {
             sharedPrefs.edit { putLong(WorkerHelper.DELAY, it) }
-            WorkerHelper.updateWorkerWithConstraints(sharedPrefs)
+            WorkerHelper.updateWorkerWithConstraints(
+                sharedPrefs,
+                requireContext().applicationContext
+            )
             Logger.d("Reloaded! $it min")
         }
 

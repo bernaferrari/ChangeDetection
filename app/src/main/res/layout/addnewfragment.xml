@@ -202,6 +202,16 @@
                 android:background="?colorPrimary" />
 
             <com.google.android.material.button.MaterialButton
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:id="@+id/threshold"
+                android:text="Threshold"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/saveButton"
                 android:text="Save"
                 android:layout_width="match_parent"
