@@ -134,8 +134,9 @@ class TextViewModel(
     ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>> =
         mSnapsRepository.getSnapPair(originalId, newId)
 
-    suspend fun getSnapValue(snapId: String): String =
+    suspend fun getSnapValue(snapId: String): String = withContext(Dispatchers.IO) {
         mSnapsRepository.getSnapContent(snapId).toString(Charset.defaultCharset())
+    }
 
     /**
      * Called when there is a selection. This is a simple Finite State Machine, where

@@ -185,6 +185,9 @@ dependencies {
     // Internal
     implementation(Libs.stetho)
     implementation(Libs.okHttp)
+    implementation(Libs.okio)
+    implementation("org.apache.commons:commons-text:1.7")
+
 
     // Others
     implementation(Libs.threeTenAndroid)

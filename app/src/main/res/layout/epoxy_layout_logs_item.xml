@@ -47,6 +47,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="@{onClick}"
+        android:focusable="true"
+        android:clickable="true"
+        android:foreground="?android:attr/selectableItemBackground"
         android:paddingTop="8dp"
         android:paddingBottom="8dp">
 

@@ -21,7 +21,7 @@ interface SnapsDataSource {
 
     suspend fun getSnapForPaging(siteId: String, filter: String): DataSource.Factory<Int, Snap>
 
-    suspend fun getSnapContent(snapId: String): ByteArray
+    fun getSnapContent(snapId: String): ByteArray
 
     suspend fun getLastNSnapsForSiteId(siteId: String, limit: Int): List<Snap>?
 

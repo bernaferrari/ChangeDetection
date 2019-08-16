@@ -28,6 +28,7 @@ class MainActivity : BaseMvRxActivity() {
         const val DARKMODE = "dark mode"
         const val LASTCHANGE = "LASTCHANGE"
         const val SITEID = "SITEID"
+        const val SNAPID = "SNAPID"
         const val TITLE = "TITLE"
         const val TYPE = "TYPE"
         const val URL = "URL"

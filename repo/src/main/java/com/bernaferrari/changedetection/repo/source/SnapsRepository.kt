@@ -55,7 +55,7 @@ class SnapsRepository @Inject constructor(
         return mSnapsLocalDataSource.getSnapsFiltered(siteId, filter)
     }
 
-    override suspend fun getSnapContent(snapId: String): ByteArray {
+    override fun getSnapContent(snapId: String): ByteArray {
         return mSnapsLocalDataSource.getSnapContent(snapId)
     }
 

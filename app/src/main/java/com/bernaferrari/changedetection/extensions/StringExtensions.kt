@@ -35,6 +35,8 @@ internal fun String.findCharset(): String =
 internal fun String.replaceRelativePathWithAbsolute(absolute: String): String =
     this.replace("=\\s*['\"][^'\"\\s]+\\.\\w{3,4}['\"]".toRegex()) {
 
+        if (absolute.isBlank()) return@replace absolute
+
         val valueWithoutWhitespace = it.value.replace(" ", "")
         val cleanValue = valueWithoutWhitespace.substring(2, valueWithoutWhitespace.length - 1)
 

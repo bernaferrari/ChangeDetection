@@ -2,8 +2,10 @@ package com.bernaferrari.changedetection.logs
 
 import android.os.Bundle
 import android.view.View
+import androidx.core.os.bundleOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.observe
+import androidx.navigation.findNavController
 import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.epoxy.paging.PagedListEpoxyController
 import com.airbnb.mvrx.fragmentViewModel
@@ -90,7 +92,10 @@ class LogsFragment : DaggerBaseRecyclerFragment() {
                 .colorFirst(site.colors.first)
                 .colorSecond(site.colors.second)
                 .onClick { v ->
-
+                    v.findNavController().navigate(
+                        R.id.action_logsFragment_to_localBrowserFragment,
+                        bundleOf(MainActivity.SNAPID to item.snapId, MainActivity.URL to site.url)
+                    )
                 }
         }
 

@@ -67,7 +67,7 @@ object WorkerHelper {
             Logger.d("isSuccessful -> ${response.isSuccessful}")
             Logger.d("header -> ${response.headers}")
 
-            val contentTypeAndCharset = response.headers.get("content-type") ?: ""
+            val contentTypeAndCharset = response.headers["content-type"] ?: ""
 
             val bytes = if (contentTypeAndCharset.contains("text")) {
                 response.body?.string()?.toByteArray() ?: throw NullPointerException()
@@ -80,19 +80,19 @@ object WorkerHelper {
             Pair(contentTypeAndCharset, bytes)
         } catch (e: UnknownHostException) {
             // When internet connection is not available OR website doesn't exist
-            Logger.e("UnknownHostException for ${url}")
-            Pair("UnknownHostException for ${url}", byteArrayOf())
+            Logger.e("UnknownHostException for $url")
+            Pair("UnknownHostException for $url", byteArrayOf())
         } catch (e: IllegalArgumentException) {
             // When input is "http://"
-            Logger.e("IllegalArgumentException for ${url}")
-            Pair("IllegalArgumentException for ${url}", byteArrayOf())
+            Logger.e("IllegalArgumentException for $url")
+            Pair("IllegalArgumentException for $url", byteArrayOf())
         } catch (e: SocketTimeoutException) {
             // When site is not available
-            Logger.e("SocketTimeoutException for ${url}")
-            Pair("SocketTimeoutException for ${url}", byteArrayOf())
+            Logger.e("SocketTimeoutException for $url")
+            Pair("SocketTimeoutException for $url", byteArrayOf())
         } catch (e: Exception) {
-            Logger.e("${e.localizedMessage} for ${url}")
-            Pair("${e.localizedMessage} for ${url}", byteArrayOf())
+            Logger.e("${e.localizedMessage} for $url")
+            Pair("${e.localizedMessage} for $url", byteArrayOf())
         }
     }
 

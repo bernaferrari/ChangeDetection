@@ -1,6 +1,7 @@
 package com.bernaferrari.changedetection.mainnew
 
 import com.bernaferrari.changedetection.addedit.AddEditFragment
+import com.bernaferrari.changedetection.localBrowser.LocalBrowserFragment
 import com.bernaferrari.changedetection.logs.LogsFragment
 import dagger.Module
 import dagger.android.ContributesAndroidInjector
@@ -19,5 +20,8 @@ abstract class ChangeDetectionInjectorsModule {
 
     @ContributesAndroidInjector
     abstract fun mainLongPressFragment(): LongPressOptionsDialog
+
+    @ContributesAndroidInjector
+    abstract fun localBrowserFragment(): LocalBrowserFragment
 
 }
