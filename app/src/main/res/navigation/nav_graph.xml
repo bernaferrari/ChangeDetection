@@ -114,8 +114,9 @@
         android:name="com.bernaferrari.changedetection.logs.LogsFragment"
         android:label="LogsFragment">
         <action
-            android:id="@+id/action_logsFragment_to_textFragment"
-            app:destination="@id/textFragment" />
+            android:id="@+id/action_logsFragment_to_localBrowserFragment"
+            app:destination="@id/localBrowserFragment" />
+
     </fragment>
 
     <fragment
@@ -143,5 +144,9 @@
             app:popEnterAnim="@anim/pop_enter"
             app:popExitAnim="@anim/slide_out" />
     </dialog>
+    <dialog
+        android:id="@+id/localBrowserFragment"
+        android:name="com.bernaferrari.changedetection.localBrowser.LocalBrowserFragment"
+        android:label="LocalBrowserFragment" />
 
 </navigation>

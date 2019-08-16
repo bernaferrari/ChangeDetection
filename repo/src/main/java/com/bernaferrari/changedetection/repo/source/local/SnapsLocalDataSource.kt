@@ -80,10 +80,9 @@ class SnapsLocalDataSource constructor(
             mSnapsDao.getAllSnapsForSiteIdFilteredWithLiveData(siteId, filter)
         }
 
-    override suspend fun getSnapContent(snapId: String): ByteArray =
-        withContext(mAppExecutors.ioContext) {
-            appContext.openFileInput(snapId).readBytes()
-        }
+    override fun getSnapContent(snapId: String): ByteArray {
+        return appContext.openFileInput(snapId).readBytes()
+    }
 
     override suspend fun saveSnap(snap: Snap, content: ByteArray, threshold: Int): Result<Snap> =
         withContext(mAppExecutors.ioContext) {
@@ -132,9 +131,8 @@ class SnapsLocalDataSource constructor(
         lastSnapValue: ByteArray
     ): Boolean =
         if (type == "text/html") {
-            content.isNotEmpty() && lastSnapValue.toString(Charset.defaultCharset()).cleanUpHtml() != content.toString(
-                Charset.defaultCharset()
-            ).cleanUpHtml()
+            content.isNotEmpty() && lastSnapValue.toString(Charset.defaultCharset()).cleanUpHtml() !=
+                    content.toString(Charset.defaultCharset()).cleanUpHtml()
         } else {
             content.isNotEmpty() && !lastSnapValue.contentEquals(content)
         }

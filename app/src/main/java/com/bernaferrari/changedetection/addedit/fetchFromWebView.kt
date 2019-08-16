@@ -6,6 +6,7 @@ import android.webkit.*
 import com.bernaferrari.changedetection.repo.source.WebResult
 import com.bernaferrari.changedetection.ui.CustomWebView
 import kotlinx.coroutines.suspendCancellableCoroutine
+import org.apache.commons.text.StringEscapeUtils
 import kotlin.coroutines.resume
 
 @JavascriptInterface
@@ -38,8 +39,16 @@ suspend fun fetchFromWebView(
                 "(function() { return ('<html>'+document.getElementsByTagName('html')[0].innerHTML+'</html>'); })();"
 
             wv.evaluateJavascript(js) { value ->
-                // no charset
-                it.resume(WebResult.Success(value.toByteArray()))
+
+                val trimmedValue = value.substring(1, value.count() - 1)
+
+                val unescapedValue = try {
+                    StringEscapeUtils.unescapeEcmaScript(trimmedValue)
+                } catch (e: IllegalArgumentException) {
+                    trimmedValue
+                }
+
+                it.resume(WebResult.Success(unescapedValue.toByteArray()))
                 view?.destroy()
             }
 

@@ -29,6 +29,7 @@ import com.bernaferrari.changedetection.extensions.*
 import com.bernaferrari.changedetection.groupie.TextRecycler
 import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
 import com.bernaferrari.changedetection.ui.RecyclerViewItemListener
+import com.google.android.material.snackbar.Snackbar
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
 import com.xwray.groupie.ViewHolder
@@ -237,6 +238,7 @@ class TextFragment : ScopedFragment() {
         bottomAdapter = TextAdapter(recyclerListener)
 
         bottomRecycler.run {
+            this.recycledViewPool
             adapter = bottomAdapter
             layoutManager = LinearLayoutManager(
                 context,
@@ -325,7 +327,7 @@ class TextFragment : ScopedFragment() {
                     com.google.android.material.snackbar.Snackbar.make(
                         elastic,
                         getString(R.string.less_than_two),
-                        com.google.android.material.snackbar.Snackbar.LENGTH_LONG
+                        Snackbar.LENGTH_LONG
                     ).show()
                     dismiss()
                 }
@@ -340,10 +342,11 @@ class TextFragment : ScopedFragment() {
         val clip = ClipData.newPlainText(context.getString(R.string.app_name), uri)
 
         clipboard.primaryClip = clip
-        com.google.android.material.snackbar.Snackbar.make(
+
+        Snackbar.make(
             elastic,
             getString(R.string.success_copied),
-            com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
+            Snackbar.LENGTH_SHORT
         ).show()
     }
 
