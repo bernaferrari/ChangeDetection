@@ -9,7 +9,7 @@ import kotlinx.android.synthetic.main.nav_frag.*
 class MainActivity : BaseMvRxActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        if (Injector.get().sharedPrefs().getBoolean(MainActivity.DARKMODE, false)) {
+        if (!Injector.get().isLightTheme().get()) {
             setTheme(R.style.AppThemeDark)
         } else {
             setTheme(R.style.AppThemeLight)

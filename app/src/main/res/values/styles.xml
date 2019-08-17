@@ -19,7 +19,6 @@
         <item name="itemDeselected">@color/item_deselected_light</item>
 
         <item name="windowBackground">@color/window_background_light</item>
-        <item name="settingsBackground">@color/white</item>
         <item name="android:windowBackground">?windowBackground</item>
 
         <item name="diff_text_color">@color/FontLessStrong</item>
@@ -36,7 +35,7 @@
     </style>
 
     <style name="AppThemeDark" parent="Theme.MaterialComponents.NoActionBar">
-        <item name="colorPrimary">@color/primary_dark</item>
+        <item name="colorPrimary">@color/white</item>
         <item name="colorPrimaryDark">@color/primary_dark_dark</item>
         <item name="colorAccent">@color/md_indigo_A200</item>
 
@@ -44,9 +43,11 @@
         <item name="cardSeparatorColor">#161F2B</item>
         <item name="lottieDivider">?windowBackground</item>
 
-        <item name="android:textColorSecondary">@color/white</item>
-
+        <item name="colorSurface">#1C1D25</item>
         <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/md_indigo_A200</item>
+
+        <item name="android:textColorSecondary">@color/white</item>
 
         <item name="toolbarColor">@color/primary_dark</item>
         <item name="iconColor">@color/white</item>
@@ -58,10 +59,7 @@
         <item name="itemDeselected">@color/item_deselected_light</item>
 
         <item name="windowBackground">@color/window_background_dark</item>
-        <item name="settingsBackground">?windowBackground</item>
         <item name="md_background_color">?windowBackground</item>
-        <item name="android:windowBackground">?windowBackground</item>
-        <item name="android:navigationBarColor">@color/window_background_dark</item>
 
         <item name="diff_text_color">?weakColor</item>
         <item name="code_addition">@color/code_addition_dark</item>
@@ -83,17 +81,6 @@
         <item name="colorPrimaryDark">@color/window_background_dark</item>
     </style>
 
-    <!--https://gist.github.com/ArthurNagy/1c4a64e6c8a7ddfca58638a9453e4aed-->
-    <style name="BottomSheetDialogThemeDark" parent="@style/Theme.MaterialComponents.BottomSheetDialog">
-        <item name="colorAccent">@color/md_blue_A400</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">?settingsBackground</item>
-
-        <item name="android:windowIsFloating">false</item>
-        <item name="bottomSheetStyle">@style/BottomSheet</item>
-
-    </style>
-
     <style name="FormInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <item name="android:layout_margin">8dp</item>
         <item name="android:layout_width">match_parent</item>
@@ -106,20 +93,6 @@
 
     <style name="BottomNavInactive">
         <item name="android:fontFamily">@font/lato_bold</item>
-    </style>
-
-
-    <style name="BottomSheetDialogThemeLight" parent="@style/Theme.MaterialComponents.Light.BottomSheetDialog">
-        <item name="colorAccent">@color/md_blue_A400</item>
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">?settingsBackground</item>
-
-        <item name="android:windowIsFloating">false</item>
-        <item name="bottomSheetStyle">@style/BottomSheet</item>
-    </style>
-
-    <style name="BottomSheet" parent="@style/Widget.MaterialComponents.BottomSheet.Modal">
-        <item name="android:background">@drawable/bg_bottom_sheet_dialog_fragment</item>
     </style>
 
     <style name="AboutLight" parent="Theme.Mal.Light">
