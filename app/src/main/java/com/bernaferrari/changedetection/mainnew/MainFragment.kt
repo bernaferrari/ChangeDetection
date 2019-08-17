@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.afollestad.materialdialogs.LayoutMode
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.bottomsheets.BottomSheet
@@ -93,13 +94,15 @@ class MainFragment : DaggerBaseToolbarFragment() {
             setPadding(16.toDp(resources))
         }
 
-        mViewModel.outputStatus.observe(this) { list ->
-            mViewModel.workManagerObserver.accept(
-                list.filter {
-                    it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED
-                }
-            )
-        }
+        WorkManager.getInstance(requireContext().applicationContext)
+            .getWorkInfosByTagLiveData("singleEvent")
+            .observe(this) { list ->
+                mViewModel.workManagerObserver.accept(
+                    list.filter {
+                        it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED
+                    }
+                )
+            }
 
         viewContainer.inflateAddButton().setOnClickListener {
             it.findNavController().navigate(R.id.action_mainFragment_to_addNew)

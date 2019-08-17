@@ -44,8 +44,8 @@ object WorkerHelper {
 
     fun reloadSite(site: Site, context: Context) {
         val work = OneTimeWorkRequestBuilder<OneTimeSync>()
-            .setInputData(workDataOf("id" to site.id))
-            .addTag("output")
+            .setInputData(workDataOf("id" to site.id, "isSingle" to true))
+            .addTag("singleEvent")
             .addTag(site.id)
             .build()
 
@@ -102,19 +102,18 @@ object WorkerHelper {
         cancelCurrentWork: Boolean = true
     ) {
         val constraints = ConstraintsRequired(
-            sharedPrefs.getBoolean(WorkerHelper.WIFI, false),
-            sharedPrefs.getBoolean(WorkerHelper.CHARGING, false),
-            sharedPrefs.getBoolean(WorkerHelper.BATTERYNOTLOW, false),
-            sharedPrefs.getBoolean(WorkerHelper.IDLE, false)
+            sharedPrefs.getBoolean(WIFI, false),
+            sharedPrefs.getBoolean(CHARGING, false),
+            sharedPrefs.getBoolean(BATTERYNOTLOW, false),
+            sharedPrefs.getBoolean(IDLE, false)
         )
 
         if (cancelCurrentWork) {
             cancelWork(context)
         }
-        WorkManager.getInstance(context).pruneWork()
 
         if (sharedPrefs.getBoolean("backgroundSync", false)) {
-            reloadWorkManager(sharedPrefs.getLong(WorkerHelper.DELAY, 30), constraints, context)
+            reloadWorkManager(sharedPrefs.getLong(DELAY, 30), constraints, context)
         }
     }
 
@@ -146,6 +145,6 @@ object WorkerHelper {
     }
 
     fun cancelWork(context: Context) {
-        WorkManager.getInstance(context).cancelAllWorkByTag(WorkerHelper.UNIQUEWORK)
+        WorkManager.getInstance(context).cancelAllWorkByTag(UNIQUEWORK)
     }
 }

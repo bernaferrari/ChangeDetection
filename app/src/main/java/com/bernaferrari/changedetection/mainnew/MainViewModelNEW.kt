@@ -1,9 +1,7 @@
 package com.bernaferrari.changedetection.mainnew
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.work.WorkInfo
-import androidx.work.WorkManager
 import com.airbnb.mvrx.FragmentViewModelContext
 import com.airbnb.mvrx.MvRxState
 import com.airbnb.mvrx.MvRxViewModelFactory
@@ -50,9 +48,6 @@ class MainViewModelNEW @AssistedInject constructor(
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
-
-    val outputStatus: LiveData<List<WorkInfo>>
-        get() = WorkManager.getInstance().getWorkInfosByTagLiveData("output")
 
     val workManagerObserver: BehaviorRelay<List<WorkInfo>> = BehaviorRelay.create()
 

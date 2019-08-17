@@ -49,7 +49,6 @@ class LocalBrowserFragment : BaseDaggerMvRxDialogFragment() {
     }
 
     private fun putDataOnWebView(data: String) {
-        println("rawr! ${data}")
 //        val encodedHtml = Base64.encodeToString(data.toByteArray(), Base64.DEFAULT)
 //        webView.loadData(encodedHtml, "text/html", "base64")
 
