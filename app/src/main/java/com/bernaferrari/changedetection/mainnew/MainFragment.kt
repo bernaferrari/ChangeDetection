@@ -202,4 +202,3 @@ class MainFragment : DaggerBaseToolbarFragment() {
         view?.findNavController()?.navigate(destination, bundle, null, extras)
     }
 }
-

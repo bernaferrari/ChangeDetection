@@ -15,6 +15,8 @@ import com.bernaferrari.changedetection.repo.source.local.SnapsDao
 import com.squareup.inject.assisted.Assisted
 import com.squareup.inject.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
@@ -30,6 +32,10 @@ class LogsRxViewModel @AssistedInject constructor(
         mutableMapOf<String, Site>().apply {
             mAppsDao.sites.forEach { this[it.id] = it }
         }
+    }
+
+    fun removeSnap(snapId: String) = GlobalScope.launch(Dispatchers.IO) {
+        mSnapsDao.deleteSnapById(snapId)
     }
 
     fun getVersionCount(): LiveData<Int> = mSnapsDao.countNumberOfChanges()

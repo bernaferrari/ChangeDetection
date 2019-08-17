@@ -6,6 +6,7 @@ import androidx.core.os.bundleOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.observe
 import androidx.navigation.findNavController
+import com.afollestad.materialdialogs.MaterialDialog
 import com.airbnb.epoxy.EpoxyModel
 import com.airbnb.epoxy.paging.PagedListEpoxyController
 import com.airbnb.mvrx.fragmentViewModel
@@ -91,11 +92,18 @@ class LogsFragment : DaggerBaseRecyclerFragment() {
                 .size(item.contentSize.readableFileSize())
                 .colorFirst(site.colors.first)
                 .colorSecond(site.colors.second)
-                .onClick { v ->
+                .onClickListener { v ->
                     v.findNavController().navigate(
                         R.id.action_logsFragment_to_localBrowserFragment,
                         bundleOf(MainActivity.SNAPID to item.snapId, MainActivity.URL to site.url)
                     )
+                }
+                .longClickListener { v ->
+                    MaterialDialog(requireContext())
+                        .title(text = "Remove it?")
+                        .message(text = "${item.contentSize.readableFileSize()} | ${dateTime.dayOfMonth}")
+                        .positiveButton { viewModel.removeSnap(item.snapId) }
+                    true
                 }
         }
 

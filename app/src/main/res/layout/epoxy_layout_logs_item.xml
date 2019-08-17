@@ -38,15 +38,19 @@
             type="Integer" />
 
         <variable
-            name="onClick"
+            name="onClickListener"
             type="android.view.View.OnClickListener" />
+
+        <variable
+            name="longClickListener"
+            type="android.view.View.OnLongClickListener" />
 
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="@{onClick}"
+        android:onClick="@{onClickListener}"
         android:focusable="true"
         android:clickable="true"
         android:foreground="?android:attr/selectableItemBackground"
