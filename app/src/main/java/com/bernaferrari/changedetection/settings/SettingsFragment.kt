@@ -2,6 +2,7 @@ package com.bernaferrari.changedetection.settings
 
 import android.os.Bundle
 import android.view.View
+import androidx.navigation.findNavController
 import com.airbnb.epoxy.EpoxyController
 import com.airbnb.mvrx.Loading
 import com.airbnb.mvrx.activityViewModel
@@ -54,7 +55,7 @@ class SettingsFragment : BaseRecyclerFragment() {
             }
             .addTo(this)
 
-        val vibrateWhenSync = state.data()?.showSystemApps ?: true
+        val vibrateWhenSync = state.data()?.vibration ?: true
 
         SettingsSwitchBindingModel_()
             .id("vibrate on sync")
@@ -71,9 +72,9 @@ class SettingsFragment : BaseRecyclerFragment() {
         SettingsSwitchBindingModel_()
             .id("about")
             .title("About")
-            .icon(R.drawable.ic_info)
+            .icon(R.drawable.ic_twotone_info)
             .clickListener { v ->
-
+                v.findNavController().navigate(R.id.action_settingsFragment_to_aboutDialog)
             }
             .addTo(this)
     }

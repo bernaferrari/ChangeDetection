@@ -7,7 +7,8 @@
     <fragment
         android:id="@+id/mainFragment"
         android:name="com.bernaferrari.changedetection.mainnew.MainFragment"
-        android:label="MainFragmentNEW">
+        android:label="MainFragmentNEW"
+        tools:layout="@layout/main_fragment_new">
 
         <action
             android:id="@+id/action_mainFragment_to_addNew"
@@ -25,14 +26,6 @@
             app:exitAnim="@anim/slide_out"
             app:popEnterAnim="@anim/pop_enter"
             app:popExitAnim="@anim/slide_out" />
-
-        <action
-            android:id="@+id/action_mainFragment_to_aboutFragment"
-            app:destination="@id/aboutFragment"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:enterAnim="@anim/slide_in_right"
-            app:popExitAnim="@anim/slide_out_right" />
 
         <action
             android:id="@+id/action_mainFragment_to_imageCarouselFragment"
@@ -70,24 +63,6 @@
     </fragment>
 
     <fragment
-        android:id="@+id/aboutFragment"
-        android:name="com.bernaferrari.changedetection.AboutFragment"
-        android:label="AboutFragment">
-        <action
-            android:id="@+id/action_aboutFragment_to_aboutLicenseFragment"
-            app:destination="@id/aboutLicenseFragment"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:enterAnim="@anim/slide_in_right"
-            app:popExitAnim="@anim/slide_out_right" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/aboutLicenseFragment"
-        android:name="com.bernaferrari.changedetection.AboutLicenseFragment"
-        android:label="AboutLicenseFragment" />
-
-    <fragment
         android:id="@+id/imagePdfFragment"
         android:name="com.bernaferrari.changedetection.detailsvisual.VisualFragment"
         android:label="PdfFragment"
@@ -96,7 +71,8 @@
     <fragment
         android:id="@+id/webviewFragment"
         android:name="com.bernaferrari.changedetection.addedit.WebViewFragment"
-        android:label="WebViewFrag">
+        android:label="WebViewFrag"
+        tools:layout="@layout/webview_frag">
         <action
             android:id="@+id/action_webviewFragment_to_mainFragmentNEW"
             app:destination="@id/mainFragment"
@@ -106,13 +82,19 @@
 
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="com.bernaferrari.changedetection.SettingsFragment"
-        android:label="SettingsFragment" />
+        android:name="com.bernaferrari.changedetection.settings.SettingsFragment"
+        android:label="SettingsFragment"
+        tools:layout="@layout/recyclerview">
+        <action
+            android:id="@+id/action_settingsFragment_to_aboutDialog"
+            app:destination="@id/aboutDialog" />
+    </fragment>
 
     <fragment
         android:id="@+id/logsFragment"
         android:name="com.bernaferrari.changedetection.logs.LogsFragment"
-        android:label="LogsFragment">
+        android:label="LogsFragment"
+        tools:layout="@layout/recyclerview">
         <action
             android:id="@+id/action_logsFragment_to_localBrowserFragment"
             app:destination="@id/localBrowserFragment" />
@@ -122,7 +104,8 @@
     <fragment
         android:id="@+id/addNew"
         android:name="com.bernaferrari.changedetection.addedit.AddEditFragment"
-        android:label="LogsFragment">
+        android:label="LogsFragment"
+        tools:layout="@layout/addnewfragment">
         <action
             android:id="@+id/action_addNew_to_webviewFragment"
             app:destination="@id/webviewFragment"
@@ -135,7 +118,8 @@
     <dialog
         android:id="@+id/mainLongPressSheet"
         android:name="com.bernaferrari.changedetection.mainnew.LongPressOptionsDialog"
-        android:label="MainLongPressSheet">
+        android:label="MainLongPressSheet"
+        tools:layout="@layout/recyclerview">
         <action
             android:id="@+id/action_mainLongPressSheet_to_addNew"
             app:destination="@id/addNew"
@@ -147,6 +131,12 @@
     <dialog
         android:id="@+id/localBrowserFragment"
         android:name="com.bernaferrari.changedetection.localBrowser.LocalBrowserFragment"
-        android:label="LocalBrowserFragment" />
+        android:label="LocalBrowserFragment"
+        tools:layout="@layout/content_web" />
+
+    <dialog
+        android:id="@+id/aboutDialog"
+        android:name="com.bernaferrari.changedetection.settings.AboutDialog"
+        android:label="AboutDialog" />
 
 </navigation>

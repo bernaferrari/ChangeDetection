@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import androidx.navigation.findNavController
 import com.danielstone.materialaboutlibrary.ConvenienceBuilder
 import com.danielstone.materialaboutlibrary.MaterialAboutFragment
 import com.danielstone.materialaboutlibrary.items.MaterialAboutActionItem
@@ -57,21 +56,6 @@ class AboutFragment : MaterialAboutFragment() {
                 false
             )
         )
-
-        appCardBuilder.addItem(
-            MaterialAboutActionItem.Builder()
-                .text(R.string.licenses)
-                .icon(
-                    IconicsDrawable(c)
-                        .icon(CommunityMaterial.Icon.cmd_github_circle)
-                        .colorRes(standardIconColor)
-                        .sizeDp(iconSize)
-                )
-                .setOnClickAction {
-                    view?.findNavController()
-                        ?.navigate(R.id.action_aboutFragment_to_aboutLicenseFragment)
-                }
-                .build())
 
         appCardBuilder.addItem(
             ConvenienceBuilder.createRateActionItem(

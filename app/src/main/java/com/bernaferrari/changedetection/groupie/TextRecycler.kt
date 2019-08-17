@@ -87,11 +87,11 @@ class TextRecycler(
         viewHolder.subtitle.run {
             when (firstChar) {
                 '+' -> {
-                    gravity = Gravity.CENTER or Gravity.RIGHT
+                    gravity = Gravity.CENTER or Gravity.END
                     setBackgroundColor(context.getColorFromAttr(R.attr.num_addition))
                 }
                 '-' -> {
-                    gravity = Gravity.CENTER or Gravity.LEFT
+                    gravity = Gravity.CENTER or Gravity.START
                     setBackgroundColor(context.getColorFromAttr(R.attr.num_deletion))
                 }
                 else -> {

@@ -23,6 +23,7 @@
     <color name="colorAccent_pressed">#4615e4</color>
     <color name="colorAccent_translucent">#404072ff</color>
 
+    <color name="surfaceDark">#1C1D25</color>
 
     <!--Lottie colors-->
     <color name="item_selected_teal">#009587</color>

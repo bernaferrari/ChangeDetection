@@ -158,7 +158,7 @@ class LongPressOptionsDialog : DaggerDialogFragment(), CoroutineScope by MainSco
         var tmpSite = site
 
         MaterialDialog(requireContext())
-            .title(text = "Diff Threshold")
+            .title(text = "Threshold")
             .input(
                 hint = "Example: 200 (bytes)",
                 prefill = tmpSite.threshold.toString(),
@@ -186,6 +186,6 @@ class LongPressOptionsDialog : DaggerDialogFragment(), CoroutineScope by MainSco
 
     // using standard dismiss causes a crash if you re-open the fragment
     private fun navDismiss() {
-        NavHostFragment.findNavController(this).popBackStack()
+        NavHostFragment.findNavController(this).navigateUp()
     }
 }

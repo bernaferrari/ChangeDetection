@@ -10,7 +10,6 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.observe
 import androidx.navigation.findNavController
 import com.bernaferrari.base.misc.onTextChanged
-import com.bernaferrari.base.mvrx.simpleController
 import com.bernaferrari.changedetection.Injector
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.WorkerHelper
@@ -78,7 +77,6 @@ class AddEditFragment : AddEditBaseFragment() {
         }
 
         // Url box methods
-
         model.selected.observe(this) { item ->
             if (item != null) {
                 url.text = item.toEditText()
@@ -131,26 +129,24 @@ class AddEditFragment : AddEditBaseFragment() {
     }
 
     private fun configureColorPickerRecycler() {
-        colorSelector.setController(
-            simpleController {
 
-                // Create each color picker item, checking for the first (because it needs extra margin)
-                // and checking for the one which is selected (so it becomes selected)
-                colorsList.forEachIndexed { index, color ->
+        colorSelector.withModels {
+            // Create each color picker item, checking for the first (because it needs extra margin)
+            // and checking for the one which is selected (so it becomes selected)
+            colorsList.forEachIndexed { index, color ->
 
-                    ColorPickerItemEpoxy_()
-                        .id("picker $index")
-                        .allowDeselection(false)
-                        .switchIsOn(selectedColors == color)
-                        .gradientColor(color)
-                        .onClick { v ->
-                            selectedColors = color
-                            colorSelector.requestModelBuild()
-                        }
-                        .addTo(this)
-                }
+                ColorPickerItemEpoxy_()
+                    .id("picker $index")
+                    .allowDeselection(false)
+                    .switchIsOn(selectedColors == color)
+                    .gradientColor(color)
+                    .onClick { v ->
+                        selectedColors = color
+                        colorSelector.requestModelBuild()
+                    }
+                    .addTo(this)
             }
-        )
+        }
 
         colorSelector.apply {
             this.itemAnimator = itemAnimatorWithoutChangeAnimations()
@@ -163,7 +159,7 @@ class AddEditFragment : AddEditBaseFragment() {
 
         fun goBack() {
             model.select(null)
-            activity?.onBackPressed()
+            view?.findNavController()?.navigateUp()
         }
 
         if (isUrlWrong(urlInputLayout)) return

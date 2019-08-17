@@ -148,5 +148,16 @@
 
     <string name="empty_logs">No changes detected</string>
     <string name="update_threshold">Update threshold</string>
+    <string name="about_title" translatable="false">Change Detection v%1$s</string>
+    <string name="about_body"><![CDATA[
+        Designed &amp; developed by <b>Bernardo Ferrari</b>.<br/>
+        <a href=\'https://github.com/bernaferrari\'>GitHub</a>&nbsp;&nbsp;
+        <a href=\'https://www.reddit.com/user/bernaferrari\'>Reddit</a>&nbsp;&nbsp;
+        <a href=\'https://www.linkedin.com/in/bernaferrari\'>LinkedIn</a><br/><br/>
+        This project is <a href=\'https://github.com/bernaferrari/ChangeDetection\'>open source</a>, and is
+        licensed under Apache 2.0.</a>
+  ]]></string>
+    <string name="contact">Contact</string>
+    <string name="dismiss">Dismiss</string>
 
 </resources>

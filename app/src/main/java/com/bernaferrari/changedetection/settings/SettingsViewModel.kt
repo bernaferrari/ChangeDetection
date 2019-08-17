@@ -9,7 +9,7 @@ import io.reactivex.rxkotlin.Observables
 data class SettingsData(
     val lightMode: Boolean,
     val colorBySdk: Boolean,
-    val showSystemApps: Boolean,
+    val vibration: Boolean,
     val backgroundSync: Boolean,
     val orderBySdk: Boolean
 ) : MvRxState

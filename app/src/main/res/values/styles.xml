@@ -1,9 +1,11 @@
 <resources>
 
     <style name="AppThemeLight" parent="Theme.MaterialComponents.Light.NoActionBar">
-        <item name="colorPrimary">@color/primary_light</item>
         <item name="colorPrimaryDark">@color/primary_dark_light</item>
-        <item name="colorAccent">@color/md_indigo_A200</item>
+
+        <item name="colorPrimary">@color/primary_light</item>
+        <item name="colorSecondary">#0d58fb</item>
+        <item name="colorOnSecondary">@color/white</item>
 
         <item name="mainCardColor">@color/md_grey_50</item>
         <item name="weakColor">#67687c</item>
@@ -19,7 +21,9 @@
         <item name="itemDeselected">@color/item_deselected_light</item>
 
         <item name="windowBackground">@color/window_background_light</item>
-        <item name="android:windowBackground">?windowBackground</item>
+        <item name="android:colorBackground">?windowBackground</item>
+        <item name="android:windowBackground">?android:colorBackground</item>
+        <item name="md_background_color">?windowBackground</item>
 
         <item name="diff_text_color">@color/FontLessStrong</item>
         <item name="code_addition">@color/code_addition_light</item>
@@ -35,17 +39,17 @@
     </style>
 
     <style name="AppThemeDark" parent="Theme.MaterialComponents.NoActionBar">
-        <item name="colorPrimary">@color/white</item>
         <item name="colorPrimaryDark">@color/primary_dark_dark</item>
-        <item name="colorAccent">@color/md_indigo_A200</item>
 
         <item name="mainCardColor">@color/primary_dark</item>
         <item name="cardSeparatorColor">#161F2B</item>
         <item name="lottieDivider">?windowBackground</item>
 
-        <item name="colorSurface">#1C1D25</item>
+        <item name="colorPrimary">@color/white</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="colorSecondary">@color/md_indigo_A200</item>
+        <item name="colorSecondary">#0d58fb</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSurface">#1C1D25</item>
 
         <item name="android:textColorSecondary">@color/white</item>
 
@@ -58,7 +62,9 @@
 
         <item name="itemDeselected">@color/item_deselected_light</item>
 
-        <item name="windowBackground">@color/window_background_dark</item>
+        <item name="windowBackground">@color/surfaceDark</item>
+        <item name="android:colorBackground">?windowBackground</item>
+        <item name="android:windowBackground">?android:colorBackground</item>
         <item name="md_background_color">?windowBackground</item>
 
         <item name="diff_text_color">?weakColor</item>
