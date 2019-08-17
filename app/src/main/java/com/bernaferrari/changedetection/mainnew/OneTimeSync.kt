@@ -52,24 +52,21 @@ class OneTimeSync(
         return Result.success()
     }
 
-    private suspend fun reload(item: Site) {
+    private suspend fun reload(item: Site) = withContext(Dispatchers.Main) {
 
         if (item.isBrowser) {
-            withContext(Dispatchers.Main) {
+            val webView = CustomWebView(context)
+            val result: WebResult<ByteArray> = fetchFromWebView(
+                item.url,
+                context,
+                webView
+            )
 
-                val webView = CustomWebView(context)
-                val result: WebResult<ByteArray> = fetchFromWebView(
-                    item.url,
-                    context,
-                    webView
-                )
+            webView.destroy()
 
-                webView.destroy()
-
-                when (result) {
-                    is WebResult.Success -> {
-                        processServerResult("text/html;charset=UTF-8", result.data, item)
-                    }
+            when (result) {
+                is WebResult.Success -> {
+                    processServerResult("text/html;charset=UTF-8", result.data, item)
                 }
             }
         } else {
@@ -92,7 +89,7 @@ class OneTimeSync(
         contentTypeCharset: String,
         content: ByteArray,
         item: Site
-    ) {
+    ) = withContext(Dispatchers.IO) {
         Logger.d("count size -> ${content.size}")
 
         val newSite = item.copy(
@@ -123,15 +120,28 @@ class OneTimeSync(
         }
     }
 
-    private fun notifyUser(item: Site, snap: Snap, newSite: Site) {
+    private suspend fun notifyUser(item: Site, snap: Snap, newSite: Site) =
+        withContext(Dispatchers.Main) {
         Notify
             .with(context)
             .header {
                 this.icon = R.drawable.ic_sync
                 this.color = item.colors.first
             }
+            .alerting(item.url) {
+                this.channelName = item.title ?: item.url
+                this.channelImportance = Notify.IMPORTANCE_HIGH
+                this.vibrationPattern = listOf(500, 200, 800, 200, 500, 200)
+                this.lightColor = item.colors.second
+
+//                val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+//                val mp = MediaPlayer.create(applicationContext, notification)
+//                mp.start()
+
+//                this.sound = notificationSound
+            }
             .meta {
-                this.clickIntent = PendingIntent.getActivity(
+                clickIntent = PendingIntent.getActivity(
                     context, 0,
                     Intent(context, MainActivity::class.java), 0
                 )
@@ -150,8 +160,7 @@ class OneTimeSync(
                     )
                 }
                 text = newSite.url
-            }
-            .show()
+            }.show()
     }
 
     fun debugMode() {
