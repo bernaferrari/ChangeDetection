@@ -42,13 +42,25 @@ class OneTimeSync(
         if (inputData.getBoolean(WorkerHelper.WIFI, false) && !isWifiConnected()) {
             Logger.d("SyncWorker: wifi is not connected. Try again next time..")
             WorkerHelper.updateWorkerWithConstraints(Injector.get().sharedPrefs(), context, false)
-        } else {
+        } else if (inputData.getBoolean("isSingle", false)) {
             val item = inputData.getString("id") ?: ""
             val site = Injector.get().sitesRepository().getSiteById(item)
             reload(site!!)
-            debugMode()
+        } else {
+            Injector.get().sitesRepository().getSites()
+                .also { sites -> sites.forEach { reload(it) } }
+                .takeIf { sites -> sites.count { it.isSyncEnabled } > 0 }
+                // if there is nothing to sync, auto-sync will be automatically disabled
+                ?.also {
+                    WorkerHelper.updateWorkerWithConstraints(
+                        Injector.get().sharedPrefs(),
+                        context,
+                        false
+                    )
+                }
         }
 
+        debugMode()
         return Result.success()
     }
 
