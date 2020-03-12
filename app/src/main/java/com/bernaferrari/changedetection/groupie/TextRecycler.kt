@@ -1,6 +1,5 @@
 package com.bernaferrari.changedetection.groupie
 
-
 import android.graphics.Color
 import android.text.Spannable
 import android.text.SpannableString
@@ -10,8 +9,8 @@ import android.view.Gravity
 import android.widget.TextView
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.extensions.getColorFromAttr
+import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
-import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.diff_text_item_text.*
 
 class TextRecycler(
@@ -51,7 +50,7 @@ class TextRecycler(
         textView.text = SpannableStringBuilder(spannableDiff2)
     }
 
-    override fun bind(viewHolder: ViewHolder, position: Int) {
+    override fun bind(viewHolder: GroupieViewHolder, position: Int) {
         viewHolder.subtitle.text = index.toString()
         viewHolder.title.text = title
 

@@ -7,7 +7,6 @@ import io.reactivex.Observable
 import io.reactivex.rxkotlin.Observables
 
 data class SettingsData(
-    val lightMode: Boolean,
     val colorBySdk: Boolean,
     val vibration: Boolean,
     val backgroundSync: Boolean,
@@ -39,13 +38,12 @@ class SettingsViewModel(
         ): SettingsViewModel {
 
             val source = Observables.combineLatest(
-                Injector.get().isLightTheme().observe(),
-                Injector.get().isColorBySdk().observe(),
-                Injector.get().showSystemApps().observe(),
-                Injector.get().backgroundSync().observe(),
-                Injector.get().orderBySdk().observe()
-            ) { dark, color, system, backgroundSync, orderBySdk ->
-                SettingsData(dark, color, system, backgroundSync, orderBySdk)
+                    Injector.get().isColorBySdk().observe(),
+                    Injector.get().showSystemApps().observe(),
+                    Injector.get().backgroundSync().observe(),
+                    Injector.get().orderBySdk().observe()
+            ) { color, system, backgroundSync, orderBySdk ->
+                SettingsData(color, system, backgroundSync, orderBySdk)
             }
 
             return SettingsViewModel(state, source)

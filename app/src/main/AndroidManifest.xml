@@ -18,6 +18,7 @@
         android:theme="@style/SplashTheme">
         <activity
             android:name="com.bernaferrari.changedetection.MainActivity"
+            android:theme="@style/MainTheme"
             android:configChanges="orientation|keyboardHidden">
 
             <nav-graph android:value="@navigation/nav_graph" />

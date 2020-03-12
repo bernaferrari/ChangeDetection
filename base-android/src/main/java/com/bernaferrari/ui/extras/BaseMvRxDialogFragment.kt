@@ -2,10 +2,9 @@ package com.bernaferrari.ui.extras
 
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.LifecycleOwner
 import com.airbnb.mvrx.MvRxView
-import com.airbnb.mvrx.MvRxViewModelStore
-import com.bernaferrari.ui.base.PERSISTED_VIEW_ID_KEY
-import java.util.*
+import com.airbnb.mvrx.MvRxViewId
 
 /**
  * Make your base Fragment class extend this to get MvRx functionality.
@@ -14,24 +13,24 @@ import java.util.*
  */
 abstract class BaseMvRxDialogFragment : DialogFragment(), MvRxView {
 
-    override val mvrxViewModelStore by lazy { MvRxViewModelStore(viewModelStore) }
-
-    final override val mvrxViewId: String by lazy { mvrxPersistedViewId }
-
-    private lateinit var mvrxPersistedViewId: String
+    private val mvrxViewIdProperty = MvRxViewId()
+    final override val mvrxViewId: String by mvrxViewIdProperty
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        mvrxViewModelStore.restoreViewModels(this, savedInstanceState)
-        mvrxPersistedViewId =
-            savedInstanceState?.getString(PERSISTED_VIEW_ID_KEY)
-                    ?: "${this::class.java.simpleName}_${UUID.randomUUID()}"
+        mvrxViewIdProperty.restoreFrom(savedInstanceState)
         super.onCreate(savedInstanceState)
     }
 
+    /**
+     * Fragments should override the subscriptionLifecycle owner so that subscriptions made after onCreate
+     * are properly disposed as fragments are moved from/to the backstack.
+     */
+    override val subscriptionLifecycleOwner: LifecycleOwner
+        get() = this.viewLifecycleOwnerLiveData.value ?: this
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        mvrxViewModelStore.saveViewModels(outState)
-        outState.putString(PERSISTED_VIEW_ID_KEY, mvrxViewId)
+        mvrxViewIdProperty.saveTo(outState)
     }
 
     override fun onStart() {

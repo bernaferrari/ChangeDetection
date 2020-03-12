@@ -147,7 +147,7 @@ interface SnapsDao {
      *
      * @param snap the snap to be inserted.
      */
-    @Insert(onConflict = OnConflictStrategy.FAIL)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertSnap(snap: Snap)
 
 

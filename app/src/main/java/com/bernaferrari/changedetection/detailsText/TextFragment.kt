@@ -31,8 +31,8 @@ import com.bernaferrari.changedetection.ui.ElasticDragDismissFrameLayout
 import com.bernaferrari.changedetection.ui.RecyclerViewItemListener
 import com.google.android.material.snackbar.Snackbar
 import com.xwray.groupie.GroupAdapter
+import com.xwray.groupie.GroupieViewHolder
 import com.xwray.groupie.Section
-import com.xwray.groupie.ViewHolder
 import kotlinx.android.synthetic.main.control_bar.*
 import kotlinx.android.synthetic.main.control_bar_diff.*
 import kotlinx.android.synthetic.main.diff_text_fragment.*
@@ -224,7 +224,7 @@ class TextFragment : ScopedFragment() {
             setEmptyView(stateLayout)
             layoutManager = LinearLayoutManager(context)
 
-            adapter = GroupAdapter<ViewHolder>().apply {
+            adapter = GroupAdapter<GroupieViewHolder>().apply {
                 add(topSection)
                 setOnItemClickListener { item, _ ->
                     if (item is TextRecycler) {
@@ -324,10 +324,10 @@ class TextFragment : ScopedFragment() {
                         revisedId = bottomAdapter.getItemFromAdapter(0)?.snapId
                     )
                 } catch (e: Exception) {
-                    com.google.android.material.snackbar.Snackbar.make(
-                        elastic,
-                        getString(R.string.less_than_two),
-                        Snackbar.LENGTH_LONG
+                    Snackbar.make(
+                            elastic,
+                            getString(R.string.less_than_two),
+                            Snackbar.LENGTH_LONG
                     ).show()
                     dismiss()
                 }
@@ -341,7 +341,7 @@ class TextFragment : ScopedFragment() {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText(context.getString(R.string.app_name), uri)
 
-        clipboard.primaryClip = clip
+        clipboard.setPrimaryClip(clip)
 
         Snackbar.make(
             elastic,

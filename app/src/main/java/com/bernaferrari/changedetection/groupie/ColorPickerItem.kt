@@ -5,8 +5,8 @@ import androidx.core.view.updateLayoutParams
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.extensions.toDp
 import com.bernaferrari.changedetection.repo.ColorGroup
+import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
-import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.colorpicker_item.*
 
 /**
@@ -26,7 +26,7 @@ class ColorPickerItem(
 
     override fun getLayout(): Int = R.layout.colorpicker_item
 
-    override fun bind(viewHolder: ViewHolder, position: Int) {
+    override fun bind(viewHolder: GroupieViewHolder, position: Int) {
 
         viewHolder.containerView.setOnClickListener {
             // We don't want to allow deselection

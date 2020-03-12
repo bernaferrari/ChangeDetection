@@ -1,5 +1,7 @@
 <resources>
 
+    <style name="MainTheme" parent="AppThemeLight" />
+
     <style name="AppThemeLight" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimaryDark">@color/primary_dark_light</item>
 
@@ -39,21 +41,20 @@
     </style>
 
     <style name="AppThemeDark" parent="Theme.MaterialComponents.NoActionBar">
-        <item name="colorPrimaryDark">@color/primary_dark_dark</item>
 
         <item name="mainCardColor">@color/primary_dark</item>
         <item name="cardSeparatorColor">#161F2B</item>
         <item name="lottieDivider">?windowBackground</item>
 
         <item name="colorPrimary">@color/white</item>
-        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnPrimary">?windowBackground</item>
         <item name="colorSecondary">#0d58fb</item>
         <item name="colorOnSecondary">@color/white</item>
-        <item name="colorSurface">#1C1D25</item>
+        <item name="colorSurface">#111724</item>
 
         <item name="android:textColorSecondary">@color/white</item>
 
-        <item name="toolbarColor">@color/primary_dark</item>
+        <item name="toolbarColor">#2d333e</item> <!-- same as bottom bar -->
         <item name="iconColor">@color/white</item>
         <item name="strongColor">@color/white</item>
         <item name="weakColor">#CCFFFAFA</item> <!-- 80% white -->
@@ -62,7 +63,8 @@
 
         <item name="itemDeselected">@color/item_deselected_light</item>
 
-        <item name="windowBackground">@color/surfaceDark</item>
+        <item name="windowBackground">?colorSurface</item>
+        <item name="colorPrimaryDark">?windowBackground</item>
         <item name="android:colorBackground">?windowBackground</item>
         <item name="android:windowBackground">?android:colorBackground</item>
         <item name="md_background_color">?windowBackground</item>
@@ -84,7 +86,7 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowBackground">@drawable/splash_background</item>
-        <item name="colorPrimaryDark">@color/window_background_dark</item>
+        <item name="colorPrimaryDark">@color/surfaceDark</item>
     </style>
 
     <style name="FormInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">

@@ -3,8 +3,8 @@ package com.bernaferrari.changedetection.groupie
 import android.content.Context
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.extensions.doOnChanged
+import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
-import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.settings_item_interval.*
 
 /**
@@ -24,7 +24,7 @@ class DialogItemInterval(
 
     override fun getLayout() = R.layout.settings_item_interval
 
-    override fun bind(viewHolder: ViewHolder, position: Int) {
+    override fun bind(viewHolder: GroupieViewHolder, position: Int) {
         viewHolder.seekBar.progress = progress
 
         viewHolder.seekBar.doOnChanged { _, seekbar_progress, _ ->

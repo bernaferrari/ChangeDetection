@@ -3,8 +3,8 @@ package com.bernaferrari.changedetection.groupie
 import com.bernaferrari.changedetection.R
 import com.mikepenz.community_material_typeface_library.CommunityMaterial
 import com.mikepenz.iconics.IconicsDrawable
+import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
-import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.item_content_type.*
 
 /**
@@ -19,13 +19,13 @@ class ItemContentType(
 
     override fun getLayout(): Int = R.layout.item_content_type
 
-    override fun bind(viewHolder: ViewHolder, position: Int) {
+    override fun bind(viewHolder: GroupieViewHolder, position: Int) {
         val context = viewHolder.containerView.context
 
         viewHolder.remove.setImageDrawable(
-            IconicsDrawable(context, CommunityMaterial.Icon.cmd_delete)
-                .colorRes(R.color.FontWeak)
-                .sizeDp(20)
+                IconicsDrawable(context, CommunityMaterial.Icon.cmd_delete)
+                        .colorRes(R.color.FontWeak)
+                        .sizeDp(20)
         )
 
         viewHolder.subtitle.text =

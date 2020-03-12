@@ -10,8 +10,8 @@ import com.bernaferrari.changedetection.extensions.toDp
 import com.bernaferrari.changedetection.repo.ColorGroup
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
+import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
-import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.recyclerview.*
 
 /**
@@ -29,11 +29,11 @@ class ColorPickerRecyclerViewItem(
 
     override fun getLayout(): Int = R.layout.colorpicker_recyclerview
 
-    override fun bind(viewHolder: ViewHolder, position: Int) {
+    override fun bind(viewHolder: GroupieViewHolder, position: Int) {
 
         viewHolder.containerView.background = ContextCompat.getDrawable(
-            viewHolder.containerView.context,
-            R.drawable.darker_transparent_background
+                viewHolder.containerView.context,
+                R.drawable.darker_transparent_background
         )
         viewHolder.containerView.updateLayoutParams<ViewGroup.MarginLayoutParams> {
             val dp2 = 2.toDp(viewHolder.containerView.resources)
@@ -62,7 +62,7 @@ class ColorPickerRecyclerViewItem(
 
         viewHolder.recycler.apply {
             this.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-            this.adapter = GroupAdapter<ViewHolder>().apply {
+            this.adapter = GroupAdapter<GroupieViewHolder>().apply {
                 add(Section(selectorList))
             }
             this.itemAnimator = itemAnimatorWithoutChangeAnimations()

@@ -2,8 +2,8 @@ package com.bernaferrari.changedetection.groupie
 
 import android.graphics.drawable.Drawable
 import com.bernaferrari.changedetection.R
+import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
-import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.item_switch.*
 
 /**
@@ -23,7 +23,7 @@ class DialogItemSwitch(
 
     override fun getLayout() = R.layout.item_switch
 
-    override fun bind(viewHolder: ViewHolder, position: Int) {
+    override fun bind(viewHolder: GroupieViewHolder, position: Int) {
 
         viewHolder.containerView.setOnClickListener {
             viewHolder.item_switch.isChecked = !viewHolder.item_switch.isChecked

@@ -59,12 +59,6 @@ class SitesRepositoryModule {
 class RxPrefsModule {
 
     @Provides
-    @Named("lightMode")
-    fun isLightTheme(rxPrefs: RxkPrefs): Pref<Boolean> {
-        return rxPrefs.boolean("lightMode", true)
-    }
-
-    @Provides
     @Named("colorBySdk")
     fun isColorBySdk(rxPrefs: RxkPrefs): Pref<Boolean> {
         return rxPrefs.boolean("colorBySdk", true)
@@ -163,9 +157,6 @@ interface SingletonComponent {
     fun sharedPrefs(): SharedPreferences
     fun sitesRepository(): SitesRepository
     fun snapsRepository(): SnapsRepository
-
-    @Named("lightMode")
-    fun isLightTheme(): Pref<Boolean>
 
     @Named("colorBySdk")
     fun isColorBySdk(): Pref<Boolean>

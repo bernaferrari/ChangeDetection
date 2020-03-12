@@ -7,8 +7,8 @@ import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.getColorFromAttr
 import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.bernaferrari.changedetection.repo.Snap
+import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
-import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import kotlinx.android.synthetic.main.item_row.*
 
 class RowItem(
@@ -18,12 +18,12 @@ class RowItem(
 
     override fun getLayout() = R.layout.item_row
 
-    override fun unbind(holder: ViewHolder) {
+    override fun unbind(holder: GroupieViewHolder) {
         holder.counter.visibility = View.GONE
         super.unbind(holder)
     }
 
-    override fun bind(viewHolder: ViewHolder, position: Int) {
+    override fun bind(viewHolder: GroupieViewHolder, position: Int) {
 
         viewHolder.apply {
             title.text = snap.timestamp.convertTimestampToDate()
@@ -31,9 +31,9 @@ class RowItem(
 
             if (isSelected) {
                 subtitle.setTextColor(
-                    ContextCompat.getColor(
-                        viewHolder.containerView.context,
-                        R.color.md_blue_A200
+                        ContextCompat.getColor(
+                                viewHolder.containerView.context,
+                                R.color.md_blue_A200
                     )
                 )
 

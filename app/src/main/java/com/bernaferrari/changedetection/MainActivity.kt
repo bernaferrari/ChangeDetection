@@ -1,26 +1,20 @@
 package com.bernaferrari.changedetection
 
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.NavigationUI
-import com.airbnb.mvrx.BaseMvRxActivity
 import kotlinx.android.synthetic.main.nav_frag.*
 
-class MainActivity : BaseMvRxActivity() {
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        if (!Injector.get().isLightTheme().get()) {
-            setTheme(R.style.AppThemeDark)
-        } else {
-            setTheme(R.style.AppThemeLight)
-        }
-
         super.onCreate(savedInstanceState)
         setContentView(R.layout.nav_frag)
 
         NavigationUI.setupWithNavController(
-            bottom_nav,
-            nav_host_fragment.findNavController()
+                bottom_nav,
+                nav_host_fragment.findNavController()
         )
     }
 

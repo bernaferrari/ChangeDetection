@@ -29,20 +29,6 @@ class SettingsFragment : BaseRecyclerFragment() {
             return@simpleController
         }
 
-        val lightMode = state.data()?.lightMode ?: true
-
-        SettingsSwitchBindingModel_()
-            .id("light mode")
-            .title("Light mode")
-            .icon(R.drawable.ic_sunny)
-            .switchIsVisible(true)
-            .switchIsOn(lightMode)
-            .clickListener { v ->
-                Injector.get().isLightTheme().set(!lightMode)
-                activity?.recreate()
-            }
-            .addTo(this)
-
         val backgroundSync = state.data()?.backgroundSync ?: false
 
         SettingsSwitchBindingModel_()

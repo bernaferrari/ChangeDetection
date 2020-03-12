@@ -38,6 +38,7 @@ import com.davemorrissey.labs.subscaleview.ImageSource
 import com.orhanobut.logger.Logger
 import com.xwray.groupie.GroupAdapter
 import com.xwray.groupie.Section
+import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.yarolegovich.discretescrollview.DiscreteScrollView
 import com.yarolegovich.discretescrollview.transform.ScaleTransformer
 import kotlinx.android.synthetic.main.control_bar.*
@@ -99,7 +100,7 @@ class VisualFragment : ScopedFragment(),
         PDF, IMAGE
     }
 
-    private val groupAdapter = GroupAdapter<com.xwray.groupie.ViewHolder>()
+    private val groupAdapter = GroupAdapter<GroupieViewHolder>()
 
     private val recyclerListener = object :
         RecyclerViewItemListener {

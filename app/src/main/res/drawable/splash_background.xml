@@ -2,7 +2,7 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item>
-        <color android:color="@color/window_background_dark" />
+        <color android:color="@color/surfaceDark" />
     </item>
 
     <item>

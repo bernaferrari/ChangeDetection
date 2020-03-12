@@ -1,5 +1,4 @@
 import com.bernaferrari.buildsrc.Libs
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
 import java.io.FileInputStream
 import java.util.*
 
@@ -17,12 +16,12 @@ androidExtensions {
 
 android {
 
-    compileSdkVersion(28)
+    compileSdkVersion(29)
 
     defaultConfig {
         applicationId = "com.bernaferrari.changedetection"
         minSdkVersion(21)
-        targetSdkVersion(28)
+        targetSdkVersion(29)
         versionCode = 33
         versionName = "2.3"
         multiDexEnabled = true
@@ -48,7 +47,7 @@ android {
     }
 
     lintOptions.isAbortOnError = false
-    dataBinding.isEnabled = true
+    buildFeatures.dataBinding = true
     kapt.correctErrorTypes = true
 
     buildTypes {
@@ -67,10 +66,7 @@ android {
         }
     }
 
-    kotlinOptions {
-        val options = this as KotlinJvmOptions
-        options.jvmTarget = "1.8"
-    }
+    kotlinOptions.jvmTarget = "1.8"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -177,7 +173,7 @@ dependencies {
 
 
     // RecyclerView
-    val groupie = "2.4.0"
+    val groupie = "2.7.2"
     implementation("com.xwray:groupie:$groupie")
     implementation("com.yarolegovich:discrete-scrollview:1.4.9")
     implementation("com.xwray:groupie-kotlin-android-extensions:$groupie")
@@ -186,7 +182,7 @@ dependencies {
     implementation(Libs.stetho)
     implementation(Libs.okHttp)
     implementation(Libs.okio)
-    implementation("org.apache.commons:commons-text:1.7")
+    implementation("org.apache.commons:commons-text:1.8")
 
 
     // Others

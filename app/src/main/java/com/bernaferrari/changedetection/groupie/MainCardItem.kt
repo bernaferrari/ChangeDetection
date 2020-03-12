@@ -16,8 +16,8 @@ import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.util.GradientColors
+import com.xwray.groupie.kotlinandroidextensions.GroupieViewHolder
 import com.xwray.groupie.kotlinandroidextensions.Item
-import com.xwray.groupie.kotlinandroidextensions.ViewHolder
 import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -88,7 +88,7 @@ class MainCardItem(
 
     override fun getLayout() = R.layout.main_item_card
 
-    override fun bind(holder: ViewHolder, position: Int, payloads: List<Any>) {
+    override fun bind(holder: GroupieViewHolder, position: Int, payloads: List<Any>) {
         if (status != SYNC.LOADING) {
             changeStatus()
         }
@@ -125,7 +125,7 @@ class MainCardItem(
         }
     }
 
-    override fun bind(holder: ViewHolder, position: Int) {
+    override fun bind(holder: GroupieViewHolder, position: Int) {
         val title = if (site.title.isNullOrBlank()) {
             site.url.replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)".toRegex(), "")
         } else {
@@ -148,7 +148,7 @@ class MainCardItem(
         }
     }
 
-    private fun bindMutable(holder: ViewHolder, context: Context) {
+    private fun bindMutable(holder: GroupieViewHolder, context: Context) {
         when (status) {
             SYNC.LOADING -> {
                 if (currentColor.isBlank()) {
@@ -180,17 +180,17 @@ class MainCardItem(
         }
     }
 
-    private fun stopSyncing(holder: ViewHolder) {
+    private fun stopSyncing(holder: GroupieViewHolder) {
         stopProgress(holder)
         setLastSync(holder)
     }
 
-    private fun changeCardToStandardColor(holder: ViewHolder, context: Context) {
+    private fun changeCardToStandardColor(holder: GroupieViewHolder, context: Context) {
         currentColor = "standard"
 
         updateRoundBackgrounds(
-            color = site.colors.second,
-            holder = holder
+                color = site.colors.second,
+                holder = holder
         )
 
         val shape = GradientColors.getGradientDrawable(site.colors)
@@ -202,15 +202,15 @@ class MainCardItem(
         holder.reload.drawable.setTint(site.colors.first)
     }
 
-    private fun changeCardToGrey(holder: ViewHolder, context: Context) {
+    private fun changeCardToGrey(holder: GroupieViewHolder, context: Context) {
         currentColor = "grey"
 
         updateRoundBackgrounds(
-            color = ContextCompat.getColor(
-                context,
-                R.color.md_grey_500
-            ),
-            holder = holder
+                color = ContextCompat.getColor(
+                        context,
+                        R.color.md_grey_500
+                ),
+                holder = holder
         )
 
         // This needed since setCardBackgroundColor stops working when we change the background
@@ -218,15 +218,15 @@ class MainCardItem(
         // drawable, it will be changed elsewhere, so we need to allow mutation first.
         holder.cardView.background =
                 ContextCompat.getDrawable(holder.cardView.context, R.drawable.full_round_corner)
-                    ?.mutate()
-                    ?.also {
-                        it.setTint(
-                            ContextCompat.getColor(
-                                context,
-                                R.color.md_grey_700
+                        ?.mutate()
+                        ?.also {
+                            it.setTint(
+                                    ContextCompat.getColor(
+                                            context,
+                                            R.color.md_grey_700
+                                    )
                             )
-                        )
-                    }
+                        }
 
         holder.reload.drawable.setTint(
             ContextCompat.getColor(
@@ -236,15 +236,15 @@ class MainCardItem(
         )
     }
 
-    private fun changeCardToRed(holder: ViewHolder, context: Context) {
+    private fun changeCardToRed(holder: GroupieViewHolder, context: Context) {
         currentColor = "red"
 
         updateRoundBackgrounds(
-            color = ContextCompat.getColor(
-                context,
-                R.color.md_red_400
-            ),
-            holder = holder
+                color = ContextCompat.getColor(
+                        context,
+                        R.color.md_red_400
+                ),
+                holder = holder
         )
 
         holder.reload.drawable.setTint(0xfff04a43.toInt())
@@ -254,23 +254,23 @@ class MainCardItem(
         // drawable, it will be changed elsewhere, so we need to allow mutation first.
         holder.cardView.background =
                 ContextCompat.getDrawable(holder.cardView.context, R.drawable.full_round_corner)
-                    ?.mutate()
-                    ?.also {
-                        it.setTint(0xfff04a43.toInt())
-                    }
+                        ?.mutate()
+                        ?.also {
+                            it.setTint(0xfff04a43.toInt())
+                        }
     }
 
-    override fun unbind(holder: ViewHolder) {
+    override fun unbind(holder: GroupieViewHolder) {
         isReloading = false
         siteDisposable?.dispose()
         diffDisposable?.dispose()
         super.unbind(holder)
     }
 
-    private fun setLastSync(holder: ViewHolder) {
+    private fun setLastSync(holder: GroupieViewHolder) {
         holder.lastSyncText.text = if (status == SYNC.ERROR) {
             site.timestamp.convertTimestampToDate() + " – " + holder.lastSyncText.context.getString(
-                R.string.error
+                    R.string.error
             )
         } else {
             site.timestamp.convertTimestampToDate() + " – ${lastSnap?.contentSize?.readableFileSize()}"
@@ -282,7 +282,7 @@ class MainCardItem(
         }
     }
 
-    private fun setLastDiff(holder: ViewHolder) {
+    private fun setLastDiff(holder: GroupieViewHolder) {
         if (lastSnap == null) {
             // if "last" snapshot was null, there is not a single snapshot for this site
             holder.lastChangeText.text =
@@ -296,12 +296,12 @@ class MainCardItem(
         }
     }
 
-    private fun updateRoundBackgrounds(color: Int, holder: ViewHolder) {
+    private fun updateRoundBackgrounds(color: Int, holder: GroupieViewHolder) {
         (holder.lastSyncImage.background as? GradientDrawable)?.setColor(color)
         (holder.lastChangeImage.background as? GradientDrawable)?.setColor(color)
     }
 
-    private fun startProgress(holder: ViewHolder) {
+    private fun startProgress(holder: GroupieViewHolder) {
         isReloading = true
 
         holder.reload.apply {
@@ -319,16 +319,16 @@ class MainCardItem(
         }
     }
 
-    private fun stopProgress(holder: ViewHolder) {
+    private fun stopProgress(holder: GroupieViewHolder) {
         isReloading = false
 
         holder.reload
-            .animate()
-            .setDuration(150)
-            .scaleX(1f)
-            .scaleY(1f)
-            .alpha(1f)
-            .setListener(null)
+                .animate()
+                .setDuration(150)
+                .scaleX(1f)
+                .scaleY(1f)
+                .alpha(1f)
+                .setListener(null)
 
         holder.reload.visibility = View.VISIBLE
     }

@@ -7,10 +7,10 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:3.6.0-alpha06")
-        classpath(kotlin("gradle-plugin", version = "1.3.41"))
-        classpath("android.arch.navigation:navigation-safe-args-gradle-plugin:1.0.0")
-        classpath("com.github.ben-manes:gradle-versions-plugin:0.21.0")
+        classpath("com.android.tools.build:gradle:4.1.0-alpha02")
+        classpath(kotlin("gradle-plugin", version = "1.3.70"))
+        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.2.1")
+        classpath("com.github.ben-manes:gradle-versions-plugin:0.28.0")
     }
 }
 
@@ -24,7 +24,7 @@ allprojects {
 }
 
 plugins {
-    id("io.gitlab.arturbosch.detekt") version "1.0.0-RC14"
+    id("io.gitlab.arturbosch.detekt") version "1.6.0"
 }
 
 tasks.register<Delete>("clean").configure {
@@ -32,9 +32,8 @@ tasks.register<Delete>("clean").configure {
 }
 
 detekt {
-    version = "1.0.0.RC15"
+    version = "1.6.0"
     input = files("app/")
-    filters = ".*/resources/.*,.*/build/.*"
     config = files("default-detekt-config.yml")
 }
 
