@@ -92,7 +92,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:indeterminate="true"
-                    android:indeterminateTint="@color/md_indigo_A200" />
+                    android:indeterminateTint="@color/md_indigo_A200"
+                    android:indeterminateTintMode="src_in"/>
 
                 <androidx.core.widget.NestedScrollView
                     android:layout_width="match_parent"
