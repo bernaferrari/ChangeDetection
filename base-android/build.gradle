@@ -1,4 +1,4 @@
-import com.bernaferrari.buildsrc.Libs
+import com.bernaferrari.buildsrc.Libs2
 import com.bernaferrari.buildsrc.Android
 
 apply from: '../core_dependencies.gradle'
@@ -14,6 +14,10 @@ android {
         minSdkVersion Android.minSdk
         targetSdkVersion Android.targetSdk
     }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
 
 dependencies {
@@ -21,7 +25,8 @@ dependencies {
     implementation project(':base')
 
     // Google
-    implementation Libs.AndroidX.Lifecycle.extensions
+    implementation Libs2.AndroidX.Lifecycle.liveDataKtx
+    implementation Libs2.AndroidX.Lifecycle.viewModel
 
-    implementation Libs.RxJava.rxRelay
+    implementation Libs2.RxJava.rxRelay
 }

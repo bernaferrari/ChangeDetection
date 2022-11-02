@@ -56,45 +56,45 @@ object WorkerHelper {
 
     suspend fun fetchFromServer(url: String): Pair<String, ByteArray> =
         withContext(Dispatchers.IO) {
-        val client = OkHttpClient()
+            val client = OkHttpClient()
 
-        try {
-            val request = Request.Builder()
-                .url(url)
-                .build()
+            try {
+                val request = Request.Builder()
+                    .url(url)
+                    .build()
 
-            val response = client.newCall(request).execute()
-            Logger.d("isSuccessful -> ${response.isSuccessful}")
-            Logger.d("header -> ${response.headers}")
+                val response = client.newCall(request).execute()
+                Logger.d("isSuccessful -> ${response.isSuccessful}")
+                Logger.d("header -> ${response.headers}")
 
-            val contentTypeAndCharset = response.headers["content-type"] ?: ""
+                val contentTypeAndCharset = response.headers["content-type"] ?: ""
 
-            val bytes = if (contentTypeAndCharset.contains("text")) {
-                response.body?.string()?.toByteArray() ?: throw NullPointerException()
-                // VERY inefficient solution for this problem:
-                // https://stackoverflow.com/questions/50788229/how-to-convert-response-body-from-bytearray-to-string-without-using-okhttp-owns
-            } else {
-                response.body?.bytes() ?: throw NullPointerException()
+                val bytes = if (contentTypeAndCharset.contains("text")) {
+                    response.body?.string()?.toByteArray() ?: throw NullPointerException()
+                    // VERY inefficient solution for this problem:
+                    // https://stackoverflow.com/questions/50788229/how-to-convert-response-body-from-bytearray-to-string-without-using-okhttp-owns
+                } else {
+                    response.body?.bytes() ?: throw NullPointerException()
+                }
+
+                Pair(contentTypeAndCharset, bytes)
+            } catch (e: UnknownHostException) {
+                // When internet connection is not available OR website doesn't exist
+                Logger.e("UnknownHostException for $url")
+                Pair("UnknownHostException for $url", byteArrayOf())
+            } catch (e: IllegalArgumentException) {
+                // When input is "http://"
+                Logger.e("IllegalArgumentException for $url")
+                Pair("IllegalArgumentException for $url", byteArrayOf())
+            } catch (e: SocketTimeoutException) {
+                // When site is not available
+                Logger.e("SocketTimeoutException for $url")
+                Pair("SocketTimeoutException for $url", byteArrayOf())
+            } catch (e: Exception) {
+                Logger.e("${e.localizedMessage} for $url")
+                Pair("${e.localizedMessage} for $url", byteArrayOf())
             }
-
-            Pair(contentTypeAndCharset, bytes)
-        } catch (e: UnknownHostException) {
-            // When internet connection is not available OR website doesn't exist
-            Logger.e("UnknownHostException for $url")
-            Pair("UnknownHostException for $url", byteArrayOf())
-        } catch (e: IllegalArgumentException) {
-            // When input is "http://"
-            Logger.e("IllegalArgumentException for $url")
-            Pair("IllegalArgumentException for $url", byteArrayOf())
-        } catch (e: SocketTimeoutException) {
-            // When site is not available
-            Logger.e("SocketTimeoutException for $url")
-            Pair("SocketTimeoutException for $url", byteArrayOf())
-        } catch (e: Exception) {
-            Logger.e("${e.localizedMessage} for $url")
-            Pair("${e.localizedMessage} for $url", byteArrayOf())
         }
-    }
 
     fun updateWorkerWithConstraints(
         sharedPrefs: SharedPreferences,

@@ -1,5 +1,3 @@
-import com.android.build.gradle.ProguardFiles.getDefaultProguardFile
-import org.gradle.internal.impldep.com.amazonaws.PredefinedClientConfigurations.defaultConfig
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
 
 plugins {
@@ -8,13 +6,11 @@ plugins {
 }
 
 android {
-    compileSdkVersion(28)
+    compileSdk = 33
 
     defaultConfig {
-        minSdkVersion(21)
-        targetSdkVersion(28)
-        versionCode = 1
-        versionName = "1.0"
+        minSdk = 21
+        targetSdk = 33
     }
 
     buildTypes {

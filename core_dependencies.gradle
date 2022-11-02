@@ -1,4 +1,4 @@
-import com.bernaferrari.buildsrc.Libs
+import com.bernaferrari.buildsrc.Libs2
 import com.bernaferrari.buildsrc.Android
 
 apply plugin: 'com.android.library'
@@ -21,26 +21,26 @@ android {
 dependencies {
 
     // Kotlin
-    implementation Libs.Kotlin.stdlib
-    implementation Libs.Coroutines.core
-    implementation Libs.Coroutines.android
+    implementation Libs2.Kotlin.stdlib
+    implementation Libs2.Coroutines.core
+    implementation Libs2.Coroutines.android
 
     // Epoxy
-    implementation Libs.Epoxy.epoxy
-    implementation Libs.Epoxy.dataBinding
+    implementation Libs2.Epoxy.epoxy
+    implementation Libs2.Epoxy.dataBinding
 
     // MvRx
-    implementation Libs.MvRx.main
+    implementation Libs2.MvRx.main
 
     // Glide
-    implementation Libs.Glide.glide
+    implementation Libs2.Glide.glide
 
     // Dagger
-    implementation Libs.Dagger.dagger
-    implementation Libs.Dagger.androidSupport
+    implementation Libs2.Dagger.dagger
+    implementation Libs2.Dagger.androidSupport
 
     // AndroidX
-    implementation Libs.Google.material
-    implementation Libs.AndroidX.coreKtx
-    implementation Libs.AndroidX.constraintlayout
+    implementation Libs2.Google.material
+    implementation Libs2.AndroidX.coreKtx
+    implementation Libs2.AndroidX.constraintlayout
 }
