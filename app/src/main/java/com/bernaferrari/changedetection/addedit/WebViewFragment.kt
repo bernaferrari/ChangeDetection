@@ -86,7 +86,7 @@ class WebViewFragment : ScopedFragment() {
             return
         }
 
-        val url = arguments?.getString("url")
+        val url = arguments?.getString("url") ?: "https://google.com"
         updateUrl(url)
         webview.loadUrl(url)
         refreshBack(webview)

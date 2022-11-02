@@ -88,7 +88,7 @@ class Patch<T> @JvmOverloads constructor(estimatedPatchSize: Int = 10) {
     }
 
     override fun toString(): String {
-        return "Patch{" + "deltas=" + deltasInternal + '}'.toString()
+        return "Patch{deltas=$deltasInternal}"
     }
 
     companion object {
@@ -108,6 +108,7 @@ class Patch<T> @JvmOverloads constructor(estimatedPatchSize: Int = 10) {
                     DeltaType.DELETE -> patch.addDelta(DeleteDelta(orgChunk, revChunk))
                     DeltaType.INSERT -> patch.addDelta(InsertDelta(orgChunk, revChunk))
                     DeltaType.CHANGE -> patch.addDelta(ChangeDelta(orgChunk, revChunk))
+                    else -> {}
                 }
             }
             return patch

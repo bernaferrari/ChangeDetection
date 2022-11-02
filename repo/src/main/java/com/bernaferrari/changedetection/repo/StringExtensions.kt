@@ -12,7 +12,7 @@ internal fun String.cleanUpHtml(): String =
 // verify if a url is valid
 internal fun String.isValidUrl(): Boolean {
     // first one will not catch links without http:// before them.
-    return Patterns.WEB_URL.matcher(this).matches() && this.toLowerCase().matches(
+    return Patterns.WEB_URL.matcher(this).matches() && this.lowercase().matches(
         "^\\w+://.*".toRegex()
     )
 }

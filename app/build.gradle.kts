@@ -1,5 +1,4 @@
-import com.bernaferrari.buildsrc.Libs
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
+import com.bernaferrari.buildsrc.Libs2
 import java.io.FileInputStream
 import java.util.*
 
@@ -16,15 +15,14 @@ androidExtensions {
 }
 
 android {
-
-    compileSdkVersion(28)
+    compileSdkVersion(33)
 
     defaultConfig {
         applicationId = "com.bernaferrari.changedetection"
         minSdkVersion(21)
-        targetSdkVersion(28)
-        versionCode = 33
-        versionName = "2.3"
+        targetSdkVersion(33)
+        versionCode = 34
+        versionName = "2.31"
         multiDexEnabled = true
     }
 
@@ -48,7 +46,7 @@ android {
     }
 
     lintOptions.isAbortOnError = false
-    dataBinding.isEnabled = true
+    buildFeatures.dataBinding = true
     kapt.correctErrorTypes = true
 
     buildTypes {
@@ -67,10 +65,7 @@ android {
         }
     }
 
-    kotlinOptions {
-        val options = this as KotlinJvmOptions
-        options.jvmTarget = "1.8"
-    }
+    kotlinOptions.jvmTarget = "1.8"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -87,83 +82,85 @@ dependencies {
     implementation(project(":repo"))
 
     // Kotlin
-    implementation(Libs.Kotlin.stdlib)
-    implementation(Libs.Coroutines.core)
-    implementation(Libs.Coroutines.rx2)
-    implementation(Libs.Coroutines.android)
+    implementation(Libs2.Kotlin.stdlib)
+    implementation(Libs2.Coroutines.core)
+    implementation(Libs2.Coroutines.rx2)
+    implementation(Libs2.Coroutines.android)
 
     // Epoxy
-    implementation(Libs.Epoxy.epoxy)
-    implementation(Libs.Epoxy.dataBinding)
-    implementation(Libs.Epoxy.paging)
-    kapt(Libs.Epoxy.processor)
+    implementation(Libs2.Epoxy.epoxy)
+    implementation(Libs2.Epoxy.dataBinding)
+    implementation(Libs2.Epoxy.paging)
+    kapt(Libs2.Epoxy.processor)
 
     // MvRx
-    implementation(Libs.MvRx.main)
+    implementation(Libs2.MvRx.main)
 
     // Glide
-    implementation(Libs.Glide.glide)
+    implementation(Libs2.Glide.glide)
 
     // Dagger
-    implementation(Libs.Dagger.dagger)
-    kapt(Libs.Dagger.compiler)
+    implementation(Libs2.Dagger.dagger)
+    kapt(Libs2.Dagger.compiler)
 
-    implementation(Libs.Dagger.androidSupport)
-    kapt(Libs.Dagger.androidProcessor)
+    implementation(Libs2.Dagger.androidSupport)
+    kapt(Libs2.Dagger.androidProcessor)
 
-    compileOnly(Libs.AssistedInject.annotationDagger2)
-    kapt(Libs.AssistedInject.processorDagger2)
+    compileOnly(Libs2.AssistedInject.annotationDagger2)
+    kapt(Libs2.AssistedInject.processorDagger2)
 
 
     // AndroidX
-    implementation(Libs.Google.material)
-    implementation(Libs.AndroidX.coreKtx)
-    implementation(Libs.AndroidX.constraintlayout)
-    implementation(Libs.AndroidX.appcompat)
-    implementation(Libs.AndroidX.recyclerview)
+    implementation(Libs2.Google.material)
+    implementation(Libs2.AndroidX.coreKtx)
+    implementation(Libs2.AndroidX.constraintlayout)
+    implementation(Libs2.AndroidX.appcompat)
+    implementation(Libs2.AndroidX.recyclerview)
 
-    implementation(Libs.AndroidX.Lifecycle.extensions)
-    implementation(Libs.AndroidX.Lifecycle.liveDataKtx)
-    implementation(Libs.AndroidX.Navigation.navigationUi)
-    implementation(Libs.AndroidX.Navigation.navigationFragment)
+    implementation(Libs2.AndroidX.Lifecycle.liveDataKtx)
+    implementation(Libs2.AndroidX.Lifecycle.viewModel)
 
-    kapt(Libs.AndroidX.Room.compiler)
-    implementation(Libs.AndroidX.Room.runtime)
-    implementation(Libs.AndroidX.Room.roomktx)
-    implementation(Libs.AndroidX.Work.runtimeKtx)
-    implementation(Libs.AndroidX.Work.rxJava)
-    implementation(Libs.AndroidX.Paging.runtimeKtx)
-    implementation(Libs.AndroidX.browser)
+    implementation(Libs2.AndroidX.Navigation.navigationUi)
+    implementation(Libs2.AndroidX.Navigation.navigationFragment)
+
+    annotationProcessor(Libs2.AndroidX.Room.compiler)
+    kapt(Libs2.AndroidX.Room.compiler)
+    implementation(Libs2.AndroidX.Room.runtime)
+    implementation(Libs2.AndroidX.Room.roomktx)
+    implementation(Libs2.AndroidX.Work.runtimeKtx)
+    implementation(Libs2.AndroidX.Work.rxJava)
+    implementation(Libs2.AndroidX.Paging.runtimeKtx)
+    implementation(Libs2.AndroidX.browser)
 
     // Logging
-    implementation(Libs.logger)
+    implementation(Libs2.logger)
 
     // RX
-    implementation(Libs.RxJava.rxJava)
-    implementation(Libs.RxJava.rxAndroid)
-    implementation(Libs.RxJava.rxKotlin)
-    implementation(Libs.RxJava.rxRelay)
-    implementation(Libs.RxJava.rxkPrefs)
+    implementation(Libs2.RxJava.rxJava)
+    implementation(Libs2.RxJava.rxAndroid)
+    implementation(Libs2.RxJava.rxKotlin)
+    implementation(Libs2.RxJava.rxRelay)
+    implementation(Libs2.RxJava.rxkPrefs)
 
     // Glide
-    implementation(Libs.Glide.glide)
-    kapt(Libs.Glide.compiler)
+    implementation(Libs2.Glide.glide)
+    kapt(Libs2.Glide.compiler)
 
     // Others
-    implementation(Libs.jsoup)
-    implementation(Libs.MaterialDialogs.core)
-    implementation(Libs.MaterialDialogs.input)
-    implementation(Libs.MaterialDialogs.bottomsheets)
-    implementation(Libs.notify)
+    implementation(Libs2.jsoup)
+    implementation(Libs2.MaterialDialogs.core)
+    implementation(Libs2.MaterialDialogs.input)
+    implementation(Libs2.MaterialDialogs.bottomsheets)
+    implementation(Libs2.notify)
 
     // UI
-    implementation(Libs.alerter)
+    implementation(Libs2.alerter)
 
-    implementation(Libs.Komprehensions.rxJava)
+    implementation(Libs2.Komprehensions.rxJava)
 
-    debugImplementation(Libs.LeakCanary.main)
-    debugImplementation(Libs.LeakCanary.support)
-    releaseImplementation(Libs.LeakCanary.no_op)
+    debugImplementation(Libs2.LeakCanary.no_op)
+    debugImplementation(Libs2.LeakCanary.no_op)
+    releaseImplementation(Libs2.LeakCanary.no_op)
 
     implementation("com.davemorrissey.labs:subsampling-scale-image-view:3.10.0")
 
@@ -183,14 +180,14 @@ dependencies {
     implementation("com.xwray:groupie-kotlin-android-extensions:$groupie")
 
     // Internal
-    implementation(Libs.stetho)
-    implementation(Libs.okHttp)
-    implementation(Libs.okio)
-    implementation("org.apache.commons:commons-text:1.7")
+    implementation(Libs2.stetho)
+    implementation(Libs2.okHttp)
+    implementation(Libs2.okio)
+    implementation("org.apache.commons:commons-text:1.8")
 
 
     // Others
-    implementation(Libs.threeTenAndroid)
-    implementation(Libs.timeAgo)
-    testImplementation(Libs.junit)
+    implementation(Libs2.threeTenAndroid)
+    implementation(Libs2.timeAgo)
+    testImplementation(Libs2.junit)
 }

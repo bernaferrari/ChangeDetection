@@ -1,5 +1,5 @@
-import com.bernaferrari.buildsrc.Libs
 import com.bernaferrari.buildsrc.Android
+import com.bernaferrari.buildsrc.Libs2
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
@@ -22,30 +22,32 @@ android {
 dependencies {
 
     // Kotlin
-    implementation Libs.Kotlin.stdlib
-    implementation Libs.Coroutines.core
-    implementation Libs.Coroutines.android
+    implementation Libs2.Kotlin.stdlib
+    implementation Libs2.Coroutines.core
+    implementation Libs2.Coroutines.android
 
     // Dagger
-    implementation Libs.Dagger.dagger
-    kapt Libs.Dagger.compiler
+    implementation Libs2.Dagger.dagger
+    kapt Libs2.Dagger.compiler
 
     // Room
-    implementation Libs.AndroidX.Room.common
-    implementation Libs.AndroidX.Room.roomktx
-    implementation Libs.AndroidX.Room.rxjava2
-    kapt Libs.AndroidX.Room.compiler
+    implementation Libs2.AndroidX.Room.runtime
+    implementation Libs2.AndroidX.Room.roomktx
+    implementation Libs2.AndroidX.Room.rxjava2
+    kapt Libs2.AndroidX.Room.compiler
+    annotationProcessor Libs2.AndroidX.Room.compiler
 
     // Paging
-    implementation Libs.AndroidX.Paging.common
-    implementation Libs.AndroidX.Paging.rxjava2
+    implementation Libs2.AndroidX.Paging.common
+    implementation Libs2.AndroidX.Paging.rxjava2
 
     // LiveData
-    implementation Libs.AndroidX.Lifecycle.extensions
+    implementation Libs2.AndroidX.Lifecycle.liveDataKtx
+    implementation Libs2.AndroidX.Lifecycle.viewModel
 
     // Logs
-    implementation Libs.logger
+    implementation Libs2.logger
 
     // Parsing
-    implementation Libs.jsoup
+    implementation Libs2.jsoup
 }

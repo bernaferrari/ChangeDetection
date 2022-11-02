@@ -13,5 +13,5 @@ fun String.toUri() = Uri.parse(this)!!
  */
 fun String.normalizeString() =
     Normalizer.normalize(this, Normalizer.Form.NFD)
-        .toLowerCase()
+        .lowercase()
         .replace("\\p{InCombiningDiacriticalMarks}+".toRegex(), "")

@@ -80,6 +80,7 @@ class OneTimeSync(
                 is WebResult.Success -> {
                     processServerResult("text/html;charset=UTF-8", result.data, item)
                 }
+                else -> {}
             }
         } else {
             val (contentTypeAndCharset, bytes) = WorkerHelper.fetchFromServer(item.url)
@@ -200,9 +201,9 @@ class OneTimeSync(
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetworks = connectivityManager.allNetworks
         for (network in activeNetworks) {
-            if (connectivityManager.getNetworkInfo(network).isConnected) {
+            if (connectivityManager.getNetworkInfo(network)?.isConnected == true) {
                 val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
-                if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                if (networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true) {
                     return true
                 }
             }
