@@ -2,6 +2,7 @@ package test
 
 import com.bernaferrari.changedetection.extensions.readableFileSize
 import org.junit.Assert
+import org.junit.Assert.fail
 import org.junit.Test
 
 internal class ReadableFileSizeTest {
@@ -46,6 +47,8 @@ internal class ReadableFileSizeTest {
         // val expected = "2 GB"
         // val output = fileSize.readableFileSize()
         // assertEquals(expected, output)
+
+        fail("This test should fail because the file size for gigabytes conversion is larger than Int.MAX_VALUE.")
     }
 
     @Test
@@ -57,5 +60,7 @@ internal class ReadableFileSizeTest {
         // val expected = "2 TB"
         // val output = fileSize.readableFileSize()
         // assertEquals(expected, output)
+
+        fail("This test should fail because the file size for terabytes conversion is larger than Int.MAX_VALUE.")
     }
 }
