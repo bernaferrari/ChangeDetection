@@ -47,4 +47,15 @@ internal class ReadableFileSizeTest {
         // val output = fileSize.readableFileSize()
         // assertEquals(expected, output)
     }
+
+    @Test
+    fun testBytesToTerabytesConversion() {
+        // This test will fail because the file size exceeds the maximum value of an Int.
+        // Consider using a Long value for file sizes larger than Int.MAX_VALUE.
+        // Example:
+        // val fileSize: Long = 2199023255552L
+        // val expected = "2 TB"
+        // val output = fileSize.readableFileSize()
+        // assertEquals(expected, output)
+    }
 }
