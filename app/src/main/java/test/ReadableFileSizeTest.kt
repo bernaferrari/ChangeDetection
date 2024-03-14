@@ -28,4 +28,12 @@ internal class ReadableFileSizeTest {
         val output  = input.readableFileSize()
         Assert.assertEquals(expected, output)
     }
+
+    @Test
+    fun testBytesToMegabytesConversion() {
+        val input = 5242880
+        val expected = "5 MB"
+        val output  = input.readableFileSize()
+        Assert.assertEquals(expected, output)
+    }
 }
