@@ -12,4 +12,12 @@ internal class ReadableFileSizeTest {
         val output  = input.readableFileSize()
         Assert.assertEquals(expected, output)
     }
+
+    @Test
+    fun testNegativeFileSizeReturnsEmpty() {
+        val input = -1
+        val expected = "EMPTY"
+        val output  = input.readableFileSize()
+        Assert.assertEquals(expected, output)
+    }
 }
