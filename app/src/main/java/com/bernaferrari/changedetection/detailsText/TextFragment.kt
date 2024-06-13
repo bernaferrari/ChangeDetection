@@ -341,7 +341,7 @@ class TextFragment : ScopedFragment() {
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText(context.getString(R.string.app_name), uri)
 
-        clipboard.primaryClip = clip
+        //clipboard.primaryClip = clip
 
         Snackbar.make(
             elastic,

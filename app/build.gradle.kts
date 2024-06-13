@@ -91,6 +91,8 @@ dependencies {
     implementation(Libs2.Epoxy.epoxy)
     implementation(Libs2.Epoxy.dataBinding)
     implementation(Libs2.Epoxy.paging)
+    implementation("junit:junit:4.12")
+    implementation("org.junit.jupiter:junit-jupiter:5.8.1")
     kapt(Libs2.Epoxy.processor)
 
     // MvRx
