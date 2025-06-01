@@ -1,69 +1,47 @@
 package com.bernaferrari.changedetection.ui.about
 
-import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
+import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.bernaferrari.changedetection.BuildConfig
 import com.bernaferrari.changedetection.R
-import java.io.BufferedReader
-import java.io.File
-import java.io.InputStreamReader
-
-data class AboutItem(
-    val title: String,
-    val subtitle: String? = null,
-    val icon: ImageVector,
-    val onClick: () -> Unit
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
     navController: NavController
 ) {
-    AboutScreenContent(
-        onNavigateBack = { navController.popBackStack() },
-        onLicensesClick = { navController.navigate("about_licenses") }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AboutScreenContent(
-    onNavigateBack: () -> Unit,
-    onLicensesClick: () -> Unit
-) {
+    var showLicensesDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val email = "bernaferrari2@gmail.com"
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("About") },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -72,262 +50,227 @@ fun AboutScreenContent(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(paddingValues)
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // App Info Card
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+
+            // App Info Section
             item {
                 Card(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(28.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
-                        Image(
-                            painter = painterResource(id = R.mipmap.ic_launcher),
-                            contentDescription = "App Icon",
+                        Text(
+                            text = "Change Detection",
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 28.sp
+                            ),
+                            color = MaterialTheme.colorScheme.primary,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Text(
+                            text = buildAnnotatedString {
+                                append("Designed & developed by\n")
+                                pushStyle(
+                                    SpanStyle(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 20.sp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                )
+                                append("Bernardo Ferrari")
+                                pop()
+                            },
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+
+                        // Social Links
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier
-                                .size(64.dp)
-                                .clip(CircleShape)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
+                                .background(
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                                    RoundedCornerShape(16.dp)
+                                )
+                                .padding(16.dp)
+                        ) {
+                            SocialLink("GitHub", R.drawable.github_logo) {
+                                context.startActivity(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        "https://github.com/bernaferrari".toUri()
+                                    )
+                                )
+                            }
+                            SocialLink("X", R.drawable.x_logo) {
+                                context.startActivity(
+                                    Intent(Intent.ACTION_VIEW, "https://x.com/bernaferrari".toUri())
+                                )
+                            }
+                            SocialLink("Reddit", R.drawable.reddit_logo) {
+                                context.startActivity(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        "https://www.reddit.com/user/bernaferrari".toUri()
+                                    )
+                                )
+                            }
+                            SocialLink("LinkedIn", R.drawable.linkedin_logo) {
+                                context.startActivity(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        "https://www.linkedin.com/in/bernaferrari".toUri()
+                                    )
+                                )
+                            }
+                        }
+
                         Text(
-                            text = stringResource(R.string.app_name),
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "© 2018 Bernardo Ferrari",
+                            text = buildAnnotatedString {
+                                append("This project is ")
+                                pushStyle(
+                                    SpanStyle(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                )
+                                append("open source")
+                                pop()
+                                append(" and is licensed under Apache 2.0.")
+                            },
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Version ${BuildConfig.VERSION_NAME}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            }
-
-            // App Actions
-            item {
-                AboutCard(title = "App") {
-                    val appItems = listOf(
-                        AboutItem(
-                            title = stringResource(R.string.licenses),
-                            icon = Icons.Default.Description,
-                            onClick = { navController.navigate("about_licenses") }
-                        ),
-                        AboutItem(
-                            title = stringResource(R.string.rate),
-                            icon = Icons.Default.Star,
-                            onClick = {
-                                val intent = Intent(Intent.ACTION_VIEW).apply {
-                                    data = Uri.parse("market://details?id=${context.packageName}")
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .clickable {
+                                    context.startActivity(
+                                        Intent(
+                                            Intent.ACTION_VIEW,
+                                            "https://github.com/bernaferrari/ChangeDetection".toUri()
+                                        )
+                                    )
                                 }
-                                context.startActivity(intent)
-                            }
+                                .alpha(0.9f)
                         )
-                    )
-                    
-                    appItems.forEach { item ->
-                        AboutListItem(item = item)
                     }
                 }
-            }
-
-            // Author Card
-            item {
-                AboutCard(title = stringResource(R.string.author)) {
-                    val authorItems = listOf(
-                        AboutItem(
-                            title = "Bernardo Ferrari",
-                            subtitle = "bernaferrari",
-                            icon = Icons.Default.Person,
-                            onClick = {
-                                val intent = Intent(Intent.ACTION_VIEW).apply {
-                                    data = Uri.parse("https://www.reddit.com/user/bernaferrari")
-                            }
-                            context.startActivity(intent)
-                        }
-                        ),
-                        AboutItem(
-                            title = stringResource(R.string.github),
-                            icon = Icons.Default.Code,
-                            onClick = {
-                                val intent = Intent(Intent.ACTION_VIEW).apply {
-                                    data = Uri.parse("https://github.com/bernaferrari/ChangeDetection")
-                            }
-                            context.startActivity(intent)
-                        }
-                        ),
-                        AboutItem(
-                            title = stringResource(R.string.email),
-                            subtitle = email,
-                            icon = Icons.Default.Email,
-                            onClick = {
-                                val intent = Intent(Intent.ACTION_SENDTO).apply {
-                                    data = Uri.parse("mailto:$email")
-                                    putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.email_subject))
-                            }
-                            context.startActivity(intent)
-                        }
+                AssistChip(
+                    onClick = {
+                        context.startActivity(
+                            Intent(
+                                Intent.ACTION_VIEW,
+                                "https://github.com/bernaferrari/ChangeDetection".toUri()
+                            )
                         )
-                    )
-                    
-                    authorItems.forEach { item ->
-                        AboutListItem(item = item)
+                    },
+                    label = { Text("View on GitHub") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.OpenInNew,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
-                }
-            }
-
-            // Icon Designer Card
-            item {
-                AboutCard(title = stringResource(R.string.icon_designer)) {
-                    AboutListItem(
-                        item = AboutItem(
-                            title = "GitHub",
-                            icon = Icons.Default.Code,
-                            onClick = {
-                                val intent = Intent(Intent.ACTION_VIEW).apply {
-                                    data = Uri.parse("https://github.com/familqasimov")
-                            }
-                            context.startActivity(intent)
-                        }
-                    )
-                }
-            }
-
-            // Help Card
-            item {
-                AboutCard(title = stringResource(R.string.help)) {
-                    AboutListItem(
-                        item = AboutItem(
-                            title = stringResource(R.string.bugs),
-                            subtitle = email,
-                            icon = Icons.Default.BugReport,
-                            onClick = { sendEmailWithLogs(context, email) }
-                        )
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AboutCard(
-    title: String,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-            content()
-        }
-    }
-}
-
-@Composable
-private fun AboutListItem(
-    item: AboutItem
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        onClick = item.onClick,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = item.icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
                 )
-                item.subtitle?.let { subtitle ->
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+            }
+
+            // Action Buttons
+            item {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(
+                        onClick = {
+                            val email = "bernaferrari2+changedetection@gmail.com"
+                            val emailIntent =
+                                Intent(Intent.ACTION_SENDTO, "mailto:$email".toUri()).apply {
+                                    putExtra(Intent.EXTRA_SUBJECT, "Change Detection - Support")
+                                }
+                            context.startActivity(Intent.createChooser(emailIntent, "Contact"))
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(
+                            text = "Contact Developer",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = { showLicensesDialog = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Code,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "View Open Source Licenses",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
                 }
             }
-            Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+
+            item { Spacer(modifier = Modifier.height(16.dp)) }
         }
+    }
+
+    if (showLicensesDialog) {
+        AboutLicensesDialog(
+            onDismiss = { showLicensesDialog = false }
+        )
     }
 }
 
-private fun sendEmailWithLogs(context: Context, email: String) {
-    try {
-        val log = StringBuilder()
-        val process = Runtime.getRuntime().exec("logcat -d")
-        val br = BufferedReader(InputStreamReader(process.inputStream))
-
-        var line: String? = br.readLine()
-        while (line != null) {
-            log.append(line + "\n")
-            line = br.readLine()
-        }
-        br.close()
-
-        val file = File(context.cacheDir, "logs.txt")
-        file.createNewFile()
-        file.writeBytes(log.toString().toByteArray())
-
-        val contentUri = FileProvider.getUriForFile(
-            context,
-            "com.bernaferrari.changedetection.files",
-            file
+@Composable
+private fun SocialLink(
+    text: String,
+    iconRes: Int,
+    onClick: () -> Unit
+) {
+    FilledIconButton(
+        onClick = onClick,
+        modifier = Modifier.size(48.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = IconButtonColors(
+            containerColor = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.primary,
+            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+            disabledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.12f),
         )
-
-        val emailIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "message/rfc822"
-            putExtra(Intent.EXTRA_EMAIL, arrayOf(email))
-            putExtra(Intent.EXTRA_STREAM, contentUri)
-            putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.email_subject))
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        
-        context.startActivity(Intent.createChooser(emailIntent, "Send email..."))
-    } catch (e: Exception) {
-        // Fallback to simple email intent without logs
-        val intent = Intent(Intent.ACTION_SENDTO).apply {
-            data = Uri.parse("mailto:$email")
-            putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.email_subject))
-        }
-        context.startActivity(intent)
+    ) {
+        Icon(
+            painter = painterResource(id = iconRes),
+            contentDescription = text,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }

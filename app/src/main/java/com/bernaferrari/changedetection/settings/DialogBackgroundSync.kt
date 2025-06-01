@@ -10,7 +10,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bernaferrari.changedetection.settings.SettingsViewModel
@@ -22,15 +21,15 @@ fun BackgroundSyncDialog(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    
+
     var syncEnabled by remember { mutableStateOf(uiState.backgroundSync) }
     var intervalValue by remember { mutableLongStateOf(uiState.syncInterval) }
-    
+
     LaunchedEffect(uiState) {
         syncEnabled = uiState.backgroundSync
         intervalValue = uiState.syncInterval
     }
-    
+
     Dialog(onDismissRequest = onDismiss) {
         Card(
             modifier = Modifier.padding(16.dp),
@@ -45,7 +44,7 @@ fun BackgroundSyncDialog(
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -54,56 +53,56 @@ fun BackgroundSyncDialog(
                     Text("Enable background sync")
                     Switch(
                         checked = syncEnabled,
-                        onCheckedChange = { 
+                        onCheckedChange = {
                             syncEnabled = it
-                            viewModel.updateBackgroundSync(it, context)
+                            viewModel.updateBackgroundSync(it)
                         }
                     )
                 }
-                
+
                 if (syncEnabled) {
                     IntervalPicker(
                         currentInterval = intervalValue,
                         onIntervalChanged = { newInterval ->
                             intervalValue = newInterval
-                            viewModel.updateSyncInterval(newInterval, context)
+                            viewModel.updateSyncInterval(newInterval)
                         }
                     )
-                    
+
                     SyncDescription(intervalValue)
-                    
+
                     // Sync constraints
                     Text(
                         text = "Sync Constraints",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium
                     )
-                    
+
                     ConstraintRow(
                         title = "Require Wi-Fi",
                         checked = uiState.requireWifi,
-                        onCheckedChange = { viewModel.updateWifiConstraint(it, context) }
+                        onCheckedChange = { viewModel.updateWifiConstraint(it) }
                     )
-                    
+
                     ConstraintRow(
                         title = "Require charging",
                         checked = uiState.requireCharging,
-                        onCheckedChange = { viewModel.updateChargingConstraint(it, context) }
+                        onCheckedChange = { viewModel.updateChargingConstraint(it) }
                     )
-                    
+
                     ConstraintRow(
                         title = "Require battery not low",
                         checked = uiState.requireBatteryNotLow,
-                        onCheckedChange = { viewModel.updateBatteryNotLowConstraint(it, context) }
+                        onCheckedChange = { viewModel.updateBatteryNotLowConstraint(it) }
                     )
-                    
+
                     ConstraintRow(
                         title = "Require device idle",
                         checked = uiState.requireDeviceIdle,
-                        onCheckedChange = { viewModel.updateDeviceIdleConstraint(it, context) }
+                        onCheckedChange = { viewModel.updateDeviceIdleConstraint(it) }
                     )
                 }
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
@@ -129,20 +128,20 @@ private fun IntervalPicker(
         currentInterval >= 60 -> Triple(currentInterval / 60, "hours", 60L)
         else -> Triple(currentInterval, "minutes", 1L)
     }
-    
+
     val timeUnits = arrayOf("minutes", "hours", "days")
     val multipliers = arrayOf(1L, 60L, 1440L)
-    
-    var selectedUnitIndex by remember { 
+
+    var selectedUnitIndex by remember {
         mutableIntStateOf(multipliers.indexOf(multiplier))
     }
-    var inputValue by remember { 
+    var inputValue by remember {
         mutableStateOf(displayValue.toString())
     }
-    
+
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Sync every:")
-        
+
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -162,7 +161,7 @@ private fun IntervalPicker(
                 singleLine = true,
                 label = { Text("Value") }
             )
-            
+
             var expanded by remember { mutableStateOf(false) }
             ExposedDropdownMenuBox(
                 expanded = expanded,
@@ -175,7 +174,7 @@ private fun IntervalPicker(
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     modifier = Modifier.menuAnchor()
                 )
-                
+
                 ExposedDropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
@@ -186,7 +185,7 @@ private fun IntervalPicker(
                             onClick = {
                                 selectedUnitIndex = index
                                 expanded = false
-                                
+
                                 inputValue.toLongOrNull()?.let { value ->
                                     if (value > 0) {
                                         val newInterval = value * multipliers[index]
@@ -228,13 +227,15 @@ private fun SyncDescription(intervalMinutes: Long) {
             val days = intervalMinutes / 1440
             "Sync every $days day${if (days != 1L) "s" else ""}"
         }
+
         intervalMinutes >= 60 -> {
             val hours = intervalMinutes / 60
             "Sync every $hours hour${if (hours != 1L) "s" else ""}"
         }
+
         else -> "Sync every $intervalMinutes minute${if (intervalMinutes != 1L) "s" else ""}"
     }
-    
+
     Text(
         text = description,
         style = MaterialTheme.typography.bodyMedium,
@@ -242,9 +243,3 @@ private fun SyncDescription(intervalMinutes: Long) {
     )
 }
 
-object DialogBackgroundSync {
-    fun show(activity: FragmentActivity) {
-        // In Compose world, this would be handled by state management
-        // For now, keeping the same interface for compatibility
-    }
-}

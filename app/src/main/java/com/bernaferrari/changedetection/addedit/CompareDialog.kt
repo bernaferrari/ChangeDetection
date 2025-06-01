@@ -1,106 +1,263 @@
 package com.bernaferrari.changedetection.addedit
 
-import android.app.Dialog
-import android.content.DialogInterface
-import android.os.Bundle
-import android.view.View
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.FragmentActivity
-import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.customview.customView
-import com.afollestad.materialdialogs.customview.getCustomView
-import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.WorkerHelper.fetchFromServer
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.bernaferrari.changedetection.repo.source.WebResult
-import com.bernaferrari.changedetection.ui.CustomWebView
-import kotlinx.android.synthetic.main.compare_dialog.view.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
-class CompareDialog : DialogFragment(), CoroutineScope by MainScope() {
+@Composable
+fun CompareDialog(
+    url: String,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    private val scope = MainScope()
-    lateinit var webView: CustomWebView
+    var directResult by remember { mutableStateOf<String?>(null) }
+    var directLoading by remember { mutableStateOf(true) }
 
-    companion object {
-        private const val TAG = "[DetailsDialog]"
-        private const val KEY_URL = "url"
+    var browserResult by remember { mutableStateOf<String?>(null) }
+    var browserLoading by remember { mutableStateOf(true) }
 
-        fun <T> show(
-            fragment: T,
-            url: String
-        ) where T : FragmentActivity {
-            val dialog = CompareDialog().apply {
-                arguments = Bundle().apply {
-                    putString(KEY_URL, url)
-                }
-            }
+    var webView by remember { mutableStateOf<CustomWebView?>(null) }
 
-            val ft = fragment.supportFragmentManager
-                .beginTransaction()
-                .addToBackStack(TAG)
-
-            dialog.show(ft, TAG)
-        }
-    }
-
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val context = requireActivity()
-
-        val url = requireNotNull(arguments?.getString(KEY_URL))
-
-        return MaterialDialog(context)
-            .customView(R.layout.compare_dialog)
-            .show { getCustomView().setUpViews(url) }
-    }
-
-    private fun View.setUpViews(url: String) {
-
+    LaunchedEffect(url) {
+        // Direct request
         scope.launch {
-
-            val result = fetchFromServer(url)
-
-            directProgressBar.visibility = View.GONE
-            directRequestResult.visibility = View.VISIBLE
-
-            directRequestResult.text = when {
-                result.second.isNotEmpty() -> result.second.size.readableFileSize()
-                else -> result.first
-            }
+//            val result = fetchFromServer(url)
+//            directResult = when {
+//                result.second.isNotEmpty() -> result.second.size.readableFileSize()
+//                else -> result.first
+//            }
+            directLoading = false
         }
 
+        // WebView request
         scope.launch {
-            // for some reason, Android WebView gets buggy when it is interrupted while loading,
-            // so this is needed. WebView *NEEDS* to be destroyed before scope is cleared.
             webView = CustomWebView(context)
-            val result = fetchFromWebView(
-                url,
-                requireContext(),
-                webView
-            )
-
-            findViewById<View>(R.id.browserProgressBar).visibility = View.GONE
-            findViewById<View>(R.id.browserRequestResult).visibility = View.VISIBLE
-
-            browserRequestResult.text = when (result) {
+            val result = fetchFromWebView(url, context, webView!!)
+            browserResult = when (result) {
                 is WebResult.Success -> result.data.size.readableFileSize()
                 is WebResult.Error -> result.description
             }
+            browserLoading = false
         }
     }
 
-    override fun onDismiss(dialog: DialogInterface) {
-        // be absolutely sure that WebView will be destroyed.
-        webView.destroy()
-        super.onDismiss(dialog)
+    DisposableEffect(Unit) {
+        onDispose {
+            webView?.destroy()
+        }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        webView.destroy()
-        scope.cancel()
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "Compare Results",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+
+                // Direct request section
+                Column {
+                    Text(
+                        text = "Direct Request",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    if (directLoading) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp))
+                            Text("Loading...")
+                        }
+                    } else {
+                        Text(
+                            text = directResult ?: "No result",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+
+                // Browser request section
+                Column {
+                    Text(
+                        text = "Browser Request",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    if (browserLoading) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp))
+                            Text("Loading...")
+                        }
+                    } else {
+                        Text(
+                            text = browserResult ?: "No result",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+
+                // Close button
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Close")
+                    }
+                }
+            }
+        }
+    }
+}
+
+object CompareDialogHelper {
+    @Composable
+    fun ShowCompareDialog(
+        url: String?,
+        onDismiss: () -> Unit
+    ) {
+        url?.let {
+            CompareDialog(
+                url = it,
+                onDismiss = onDismiss
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun CompareDialogPreview() {
+    MaterialTheme {
+        CompareDialogContent(
+            directResult = "1.2 MB",
+            directLoading = false,
+            browserResult = "1.5 MB",
+            browserLoading = false,
+            onDismiss = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun CompareDialogLoadingPreview() {
+    MaterialTheme {
+        CompareDialogContent(
+            directResult = null,
+            directLoading = true,
+            browserResult = "Error: Network timeout",
+            browserLoading = false,
+            onDismiss = {}
+        )
+    }
+}
+
+@Composable
+private fun CompareDialogContent(
+    directResult: String?,
+    directLoading: Boolean,
+    browserResult: String?,
+    browserLoading: Boolean,
+    onDismiss: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Compare Results",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+
+            // Direct request section
+            Column {
+                Text(
+                    text = "Direct Request",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium
+                )
+                if (directLoading) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp))
+                        Text("Loading...")
+                    }
+                } else {
+                    Text(
+                        text = directResult ?: "No result",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
+            // Browser request section
+            Column {
+                Text(
+                    text = "Browser Request",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium
+                )
+                if (browserLoading) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp))
+                        Text("Loading...")
+                    }
+                } else {
+                    Text(
+                        text = browserResult ?: "No result",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
+            // Close button
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = onDismiss) {
+                    Text("Close")
+                }
+            }
+        }
     }
 }

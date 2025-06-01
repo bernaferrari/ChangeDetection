@@ -2,6 +2,7 @@ package com.bernaferrari.changedetection.repo.source
 
 import androidx.lifecycle.LiveData
 import androidx.paging.DataSource
+import androidx.paging.PagingSource
 import com.bernaferrari.changedetection.repo.ContentTypeInfo
 import com.bernaferrari.changedetection.repo.Snap
 
@@ -19,7 +20,9 @@ interface SnapsDataSource {
 
     suspend fun getSnapsFiltered(siteId: String, filter: String): LiveData<List<Snap>>
 
-    suspend fun getSnapForPaging(siteId: String, filter: String): DataSource.Factory<Int, Snap>
+    suspend fun getAllSnapsFromSite(siteId: String): List<Snap>
+
+    fun getSnapForPaging(siteId: String, filter: String): PagingSource<Int, Snap>
 
     fun getSnapContent(snapId: String): ByteArray
 

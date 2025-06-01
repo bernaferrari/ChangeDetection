@@ -26,7 +26,8 @@ data class AddEditUiState(
 @HiltViewModel
 class AddEditViewModel @Inject constructor(
     private val sitesDao: SitesDao,
-    private val dataStore: DataStore<Preferences>
+    private val dataStore: DataStore<Preferences>,
+    private val workerHelper: WorkerHelper
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddEditUiState())
@@ -42,27 +43,28 @@ class AddEditViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-            
+
             try {
                 val site = Site(
                     title = title.takeIf { it.isNotBlank() },
                     url = url,
-                    notes = tags.takeIf { it.isNotBlank() } ?: "",
-                    isBrowser = useBrowser,
                     timestamp = System.currentTimeMillis(),
+                    tags = tags.takeIf { it.isNotBlank() } ?: "",
                     colors = colors,
+                    isBrowser = useBrowser,
                     threshold = threshold
                 )
-                
+
+
                 withContext(Dispatchers.IO) {
                     sitesDao.insertSite(site)
                 }
-                
+
                 // Trigger initial sync using DataStore-based WorkerHelper
-                WorkerHelper.reloadSite(site, dataStore)
-                
+                workerHelper.reloadSite(site)
+
                 _uiState.value = AddEditUiState(isSuccess = true)
-                
+
             } catch (e: Exception) {
                 _uiState.value = AddEditUiState(error = e.message)
             }
@@ -80,7 +82,7 @@ class AddEditViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-            
+
             try {
                 val updatedSite = site.copy(
                     title = title.takeIf { it.isNotBlank() },
@@ -90,18 +92,18 @@ class AddEditViewModel @Inject constructor(
                     colors = colors,
                     threshold = threshold
                 )
-                
+
                 withContext(Dispatchers.IO) {
                     sitesDao.updateSite(updatedSite)
                 }
-                
+
                 // Reload if URL changed
                 if (site.url != url) {
-                    WorkerHelper.reloadSite(updatedSite, dataStore)
+                    workerHelper.reloadSite(updatedSite)
                 }
-                
+
                 _uiState.value = AddEditUiState(isSuccess = true)
-                
+
             } catch (e: Exception) {
                 _uiState.value = AddEditUiState(error = e.message)
             }

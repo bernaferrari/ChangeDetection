@@ -1,13 +1,16 @@
 package com.bernaferrari.changedetection.addedit
 
 import androidx.lifecycle.ViewModel
-import com.bernaferrari.changedetection.util.SingleLiveEvent
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class SharedViewModel : ViewModel() {
 
-    val selected = SingleLiveEvent<String?>()
+    private val _selected = MutableStateFlow<String?>(null)
+    val selected: StateFlow<String?> = _selected.asStateFlow()
 
     fun select(item: String?) {
-        selected.value = item
+        _selected.value = item
     }
 }

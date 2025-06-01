@@ -1,4 +1,4 @@
-package com.bernaferrari.sdkmonitor.domain.model
+package com.bernaferrari.changedetection.model
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode

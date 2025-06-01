@@ -81,7 +81,7 @@ class ForegroundService : Service() {
 
     private fun scheduleWork() {
         WorkManager.getInstance(this)
-            .beginUniqueWork(WorkerHelper.UNIQUEWORK, ExistingWorkPolicy.REPLACE, syncWork)
+            .beginUniqueWork(workerHelper.UNIQUEWORK, ExistingWorkPolicy.REPLACE, syncWork)
             .enqueue()
     }
 

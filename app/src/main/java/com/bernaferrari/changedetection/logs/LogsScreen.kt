@@ -1,26 +1,45 @@
 package com.bernaferrari.changedetection.logs
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
+import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.readableFileSize
-import com.bernaferrari.changedetection.mainnew.getLogsSubtitle
-import com.bernaferrari.changedetection.mainnew.getTitle
+import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
-import com.bernaferrari.changedetection.ui.compose.LoadingIndicator
 import com.bernaferrari.changedetection.ui.compose.SectionHeader
 import org.threeten.bp.Instant
 import org.threeten.bp.LocalDateTime
@@ -36,14 +55,34 @@ fun LogsScreen(
     val siteMap by viewModel.siteMap.collectAsStateWithLifecycle()
     val snapsPagingData = viewModel.pagedSnaps.collectAsLazyPagingItems()
     var showDeleteDialog by remember { mutableStateOf<Snap?>(null) }
-    
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
         when {
-            versionsCount == 0 && snapsPagingData.loadState.refresh !is LoadState.Loading -> {
-                EmptyLogsContent()
+            snapsPagingData.loadState.refresh is LoadState.Loading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+
+                }
             }
+
+            snapsPagingData.loadState.refresh is LoadState.Error -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Error loading data")
+                }
+            }
+
+            snapsPagingData.itemCount == 0 -> {
+                EmptyLogsComponent()
+            }
+
             else -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -56,28 +95,32 @@ fun LogsScreen(
                             subtitle = "$versionsCount changes detected"
                         )
                     }
-                    
-                    items(snapsPagingData) { snap ->
-                        if (snap != null) {
-                            val site = siteMap[snap.siteId]
+
+                    items(
+                        count = snapsPagingData.itemCount,
+                        key = snapsPagingData.itemKey { it.snapId }
+                    ) { index ->
+                        val snap = snapsPagingData[index]
+                        snap?.let {
+                            val site = siteMap[it.siteId]
                             if (site != null) {
                                 LogItem(
-                                    snap = snap,
+                                    snap = it,
                                     site = site,
-                                    onClick = { onSnapClick(snap.snapId, site.url) },
-                                    onLongClick = { showDeleteDialog = snap }
+                                    onClick = { onSnapClick(it.snapId, site.url) },
+                                    onLongClick = { showDeleteDialog = it }
                                 )
                             }
                         }
                     }
-                    
-                    snapsPagingData.apply {
-                        when {
-                            loadState.refresh is LoadState.Loading -> {
-                                item { LoadingIndicator() }
-                            }
-                            loadState.append is LoadState.Loading -> {
-                                item { LoadingIndicator() }
+
+                    if (snapsPagingData.loadState.append is LoadState.Loading) {
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
                             }
                         }
                     }
@@ -85,18 +128,18 @@ fun LogsScreen(
             }
         }
     }
-    
+
     // Delete confirmation dialog
     showDeleteDialog?.let { snap ->
         val dateTime = LocalDateTime.ofInstant(
             Instant.ofEpochMilli(snap.timestamp),
             ZoneId.systemDefault()
         )
-        
+
         AlertDialog(
             onDismissRequest = { showDeleteDialog = null },
             title = { Text("Remove snapshot?") },
-            text = { 
+            text = {
                 Text("${snap.contentSize.readableFileSize()} | ${dateTime.dayOfMonth}")
             },
             confirmButton = {
@@ -129,7 +172,7 @@ private fun LogItem(
         Instant.ofEpochMilli(snap.timestamp),
         ZoneId.systemDefault()
     )
-    
+
     Card(
         modifier = Modifier
             .fillMaxWidth(),
@@ -151,7 +194,7 @@ private fun LogItem(
                         shape = RoundedCornerShape(8.dp)
                     )
             )
-            
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -175,9 +218,9 @@ private fun LogItem(
                         color = Color.White.copy(alpha = 0.8f)
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.width(16.dp))
-                
+
                 // Content
                 Column(
                     modifier = Modifier.weight(1f)
@@ -188,14 +231,14 @@ private fun LogItem(
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
-                    
+
                     Text(
                         text = getLogsSubtitle(snap),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White.copy(alpha = 0.8f)
                     )
                 }
-                
+
                 // Size indicator
                 Text(
                     text = snap.contentSize.readableFileSize(),
@@ -230,3 +273,16 @@ private fun EmptyLogsContent() {
         }
     }
 }
+
+internal fun getTitle(site: Site?): String {
+    if (site == null) return ""
+
+    return if (site.title.isNullOrBlank()) {
+        site.url.replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)".toRegex(), "")
+    } else {
+        site.title ?: ""
+    }
+}
+
+internal fun getLogsSubtitle(lastSnap: Snap): String =
+    "${lastSnap.contentSize.readableFileSize()} • ${lastSnap.timestamp.convertTimestampToDate()}"

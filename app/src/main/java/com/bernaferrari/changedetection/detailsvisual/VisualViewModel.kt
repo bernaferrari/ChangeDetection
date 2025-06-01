@@ -58,7 +58,13 @@ class VisualViewModel @Inject constructor(
         }
 
         val snaps = withContext(Dispatchers.IO) {
-            snapsRepository.getSnapsFilteredFlow(siteId, filter).first()
+            snapsRepository.getAllSnapsFromSite(siteId).filter { snap ->
+                when {
+                    contentType == "application/pdf" -> snap.contentType?.contains("pdf") == true
+                    contentType.startsWith("image/") -> snap.contentType?.startsWith("image/") == true
+                    else -> true
+                }
+            }
         }
         emit(snaps)
     }

@@ -7,20 +7,17 @@
     <application
         android:name="com.bernaferrari.changedetection.App"
         android:allowBackup="true"
-        android:fullBackupContent="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ChangeDetection">
+        android:theme="@style/Theme.ChangeDetection"
         android:usesCleartextTraffic="true">
         <activity
             android:name="com.bernaferrari.changedetection.MainActivity"
             android:configChanges="orientation|keyboardHidden"
             android:exported="true">
-
-            <nav-graph android:value="@navigation/nav_graph" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

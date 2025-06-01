@@ -45,7 +45,7 @@ fun TagChip(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    
+
     FilterChip(
         selected = isSelected,
         onClick = onClick,
@@ -55,13 +55,12 @@ fun TagChip(
             selectedContainerColor = MaterialTheme.colorScheme.primary,
             selectedLabelColor = Color.White,
             containerColor = Color.Transparent,
-            labelColor = Color(ContextCompat.getColor(context, R.color.unchecked_chip_text))
         ),
         border = FilterChipDefaults.filterChipBorder(
             enabled = true,
             selected = isSelected,
-            borderColor = if (isSelected) MaterialTheme.colorScheme.primary 
-                         else Color(ContextCompat.getColor(context, R.color.unchecked_chip_text)),
+            borderColor = if (isSelected) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.outline,
             selectedBorderColor = MaterialTheme.colorScheme.primary
         )
     )

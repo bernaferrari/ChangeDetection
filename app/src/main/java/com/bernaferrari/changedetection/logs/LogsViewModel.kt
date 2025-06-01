@@ -13,9 +13,10 @@ import com.bernaferrari.changedetection.repo.source.local.SnapsDao
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -26,44 +27,31 @@ class LogsViewModel @Inject constructor(
     private val snapsDao: SnapsDao
 ) : ViewModel() {
 
-    private val _siteMap = MutableStateFlow<Map<String, Site>>(emptyMap())
-    val siteMap: StateFlow<Map<String, Site>> = _siteMap.asStateFlow()
+    val siteMap: StateFlow<Map<String, Site>> = flow {
+        emit(withContext(Dispatchers.IO) {
+            sitesDao.sites.associateBy { it.id }
+        })
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyMap()
+    )
 
-    private val _versionsCount = MutableStateFlow(0)
-    val versionsCount: StateFlow<Int> = _versionsCount.asStateFlow()
+    val versionsCount: StateFlow<Int> = snapsDao.countNumberOfChanges()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0
+        )
 
     val pagedSnaps: Flow<PagingData<Snap>> = Pager(
         config = PagingConfig(
             pageSize = 20,
-            prefetchDistance = 60,
-            enablePlaceholders = true
+            prefetchDistance = 10,
+            enablePlaceholders = false
         ),
-        pagingSourceFactory = { snapsDao.getSnapsPaged() }
+        pagingSourceFactory = { snapsDao.getSnapsPagedSource() }
     ).flow.cachedIn(viewModelScope)
-
-    init {
-        loadSiteMap()
-        loadVersionsCount()
-    }
-
-    private fun loadSiteMap() {
-        viewModelScope.launch {
-            val sites = withContext(Dispatchers.IO) {
-                sitesDao.sites.associateBy { it.id }
-            }
-            _siteMap.value = sites
-        }
-    }
-
-    private fun loadVersionsCount() {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                snapsDao.countNumberOfChanges()
-            }.observeForever { count ->
-                _versionsCount.value = count ?: 0
-            }
-        }
-    }
 
     fun removeSnap(snapId: String) {
         viewModelScope.launch(Dispatchers.IO) {

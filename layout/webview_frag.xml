@@ -86,7 +86,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/webview"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <com.bernaferrari.changedetection.ui.CustomWebView
+    <com.bernaferrari.changedetection.addedit.CustomWebView
         android:id="@+id/webview"
         android:layout_width="match_parent"
         android:layout_height="0dp"

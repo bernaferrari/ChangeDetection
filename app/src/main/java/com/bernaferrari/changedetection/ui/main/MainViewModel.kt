@@ -1,11 +1,13 @@
-package com.bernaferrari.changedetection
+package com.bernaferrari.changedetection.ui.main
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.bernaferrari.changedetection.WorkerHelper
 import com.bernaferrari.changedetection.repo.ContentTypeInfo
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
@@ -14,6 +16,9 @@ import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
@@ -29,7 +34,6 @@ class MainViewModel @Inject constructor(
 ) : AndroidViewModel(context), CoroutineScope {
 
     internal var shouldSyncWhenAppOpen = true
-    internal var sortAlphabetically = false
 
     internal val getOutputStatus: LiveData<List<WorkInfo>>
         get() = WorkManager.getInstance().getWorkInfosForUniqueWorkLiveData(WorkerHelper.UNIQUEWORK)
@@ -89,6 +93,10 @@ class MainViewModel @Inject constructor(
     }
 
     private var items = MutableLiveData<MutableList<SiteAndLastSnap>>()
+    
+    // Add StateFlow for Compose compatibility
+    private val _sitesFlow = MutableStateFlow<List<SiteAndLastSnap>>(emptyList())
+    val sitesFlow: StateFlow<List<SiteAndLastSnap>> = _sitesFlow.asStateFlow()
 
     internal fun loadSites(): MutableLiveData<MutableList<SiteAndLastSnap>> {
         items = MutableLiveData()
@@ -103,6 +111,7 @@ class MainViewModel @Inject constructor(
                 .mapTo(list) { SiteAndLastSnap(it, getLastSnap(it.id), false) }
         }
         items.value = list
+        _sitesFlow.value = list
     }
 
     private suspend fun getLastSnap(siteId: String): Snap? {

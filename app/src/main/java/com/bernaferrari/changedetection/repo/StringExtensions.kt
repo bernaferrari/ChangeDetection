@@ -4,10 +4,10 @@ import android.util.Patterns
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.parser.Parser
-import org.jsoup.safety.Whitelist
+import org.jsoup.safety.Safelist
 
 internal fun String.cleanUpHtml(): String =
-    Jsoup.clean(this, "", Whitelist.relaxed(), Document.OutputSettings().prettyPrint(false))
+    Jsoup.clean(this, "", Safelist.relaxed(), Document.OutputSettings().prettyPrint(false))
 
 // verify if a url is valid
 internal fun String.isValidUrl(): Boolean {
@@ -18,7 +18,7 @@ internal fun String.isValidUrl(): Boolean {
 }
 
 internal fun String.removeClutterAndBeautifyHtmlIfNecessary(type: String): String =
-    if (type == "text/html") Jsoup.clean(this, Whitelist.relaxed()) else this
+    if (type == "text/html") Jsoup.clean(this, Safelist.relaxed()) else this
 
 internal fun String.unescapeHtml(): String = Parser.unescapeEntities(this, true)
 
