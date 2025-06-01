@@ -1,64 +1,107 @@
 package com.bernaferrari.changedetection.detailsvisual
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.paging.LivePagedListBuilder
-import androidx.paging.PagedList
+import android.content.Context
+import android.content.Intent
+import androidx.core.content.FileProvider
+import androidx.core.net.toUri
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
-import kotlinx.coroutines.GlobalScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
+import javax.inject.Inject
 
-/**
- * Exposes the data to be used in the site diff screen.
- */
-class VisualViewModel(
-    context: Application,
-    private val mSnapsRepository: SnapsRepository
-) : AndroidViewModel(context) {
+@HiltViewModel
+class VisualViewModel @Inject constructor(
+    private val snapsRepository: SnapsRepository
+) : ViewModel() {
 
-    /**
-     * Called to remove a diff
-     *
-     * @param id The diff url to be removed.
-     */
-    fun removeSnap(id: String) = GlobalScope.launch {
-        mSnapsRepository.deleteSnap(id)
+    fun removeSnap(snapId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            snapsRepository.deleteSnap(snapId)
+        }
     }
 
-    suspend fun getAllSnapsPagedForId(id: String, filter: String): LiveData<PagedList<Snap>> {
-        return LivePagedListBuilder(
-            mSnapsRepository.getSnapForPaging(id, filter), PagedList.Config.Builder()
-                .setPageSize(PAGE_SIZE)
-                .setEnablePlaceholders(ENABLE_PLACEHOLDERS)
-                .build()
-        ).build()
+    fun getSnapsPaged(siteId: String, contentType: String): Flow<PagingData<Snap>> {
+        val filter = when {
+            contentType == "application/pdf" -> "%pdf"
+            contentType.startsWith("image/") -> "image%"
+            else -> "%"
+        }
+
+        return Pager(
+            config = PagingConfig(
+                pageSize = PAGE_SIZE,
+                enablePlaceholders = ENABLE_PLACEHOLDERS
+            ),
+            pagingSourceFactory = { snapsRepository.getSnapForPaging(siteId, filter) }
+        ).flow.cachedIn(viewModelScope)
     }
 
-    suspend fun getSnapsFiltered(id: String, filter: String): LiveData<List<Snap>> =
-        mSnapsRepository.getSnapsFiltered(id, filter)
+    fun getSnapsFiltered(siteId: String, contentType: String): Flow<List<Snap>> = flow {
+        val filter = when {
+            contentType == "application/pdf" -> "%pdf"
+            contentType.startsWith("image/") -> "image%"
+            else -> "%"
+        }
+
+        val snaps = withContext(Dispatchers.IO) {
+            snapsRepository.getSnapsFilteredFlow(siteId, filter).first()
+        }
+        emit(snaps)
+    }
+
+    fun shareSnap(snap: Snap, context: Context) {
+        try {
+            val file = File(context.filesDir, snap.snapId)
+            if (file.exists()) {
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    file
+                )
+
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = snap.contentType ?: "application/octet-stream"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+
+                context.startActivity(Intent.createChooser(shareIntent, "Share snapshot"))
+            }
+        } catch (e: Exception) {
+            // Handle error
+        }
+    }
+
+    fun openInBrowser(url: String, context: Context) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            // Handle error
+        }
+    }
 
     companion object {
-        /**
-         * A good page size is a value that fills at least a screen worth of content on a large
-         * device so the User is unlikely to see a null item.
-         * You can play with this constant to observe the paging behavior.
-         * <p>
-         * It's possible to vary this with list device size, but often unnecessary, unless a user
-         * scrolling on a large device is expected to scroll through items more quickly than a small
-         * device, such as when the large device uses a grid layout of items.
-         */
-        private const val PAGE_SIZE = 3
-
-        /**
-         * If placeholders are enabled, PagedList will report the full size but some items might
-         * be null in onBind method (PagedListAdapter triggers a rebind when data is loaded).
-         * <p>
-         * If placeholders are disabled, onBind will never receive null but as more pages are
-         * loaded, the scrollbars will jitter as new pages are loaded. You should probably disable
-         * scrollbars if you disable placeholders.
-         */
+        private const val PAGE_SIZE = 10
         private const val ENABLE_PLACEHOLDERS = true
+
+        fun formatTimestamp(timestamp: Long): String {
+            val formatter = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+            return formatter.format(Date(timestamp))
+        }
     }
 }

@@ -1,26 +1,23 @@
-import com.bernaferrari.buildsrc.Libs2
 import java.io.FileInputStream
 import java.util.*
 
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("kotlin-android-extensions")
-    id("kotlin-kapt")
-    id("com.github.ben-manes.versions")
-}
-
-androidExtensions {
-    isExperimental = true
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.compose)
+    alias(libs.plugins.hilt)
 }
 
 android {
-    compileSdkVersion(33)
+
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.bernaferrari.changedetection"
-        minSdkVersion(21)
-        targetSdkVersion(33)
+        minSdk = 21
+        targetSdk = 36
         versionCode = 34
         versionName = "2.31"
         multiDexEnabled = true
@@ -45,9 +42,28 @@ android {
         }
     }
 
-    lintOptions.isAbortOnError = false
-    buildFeatures.dataBinding = true
-    kapt.correctErrorTypes = true
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    buildFeatures {
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.versions.compose.get()
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
 
     buildTypes {
         named("release") {
@@ -65,129 +81,100 @@ android {
         }
     }
 
-    kotlinOptions.jvmTarget = "1.8"
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+    namespace = "com.bernaferrari.changedetection"
+    lint {
+        abortOnError = false
     }
 }
 
 dependencies {
 
-    implementation(project(":base"))
-    implementation(project(":base-android"))
-
     implementation(project(":diffutils"))
-    implementation(project(":repo"))
 
     // Kotlin
-    implementation(Libs2.Kotlin.stdlib)
-    implementation(Libs2.Coroutines.core)
-    implementation(Libs2.Coroutines.rx2)
-    implementation(Libs2.Coroutines.android)
+    implementation(libs.kotlin.stdlib)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
 
-    // Epoxy
-    implementation(Libs2.Epoxy.epoxy)
-    implementation(Libs2.Epoxy.dataBinding)
-    implementation(Libs2.Epoxy.paging)
-    kapt(Libs2.Epoxy.processor)
+    // Android Core
+    implementation(libs.androidx.core.ktx)
 
-    // MvRx
-    implementation(Libs2.MvRx.main)
+    // Compose BOM - manages all compose library versions
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material3.window.size)
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.navigation.compose)
 
-    // Glide
-    implementation(Libs2.Glide.glide)
+    // Fragment support for viewModels()
+    implementation(libs.androidx.fragment.ktx)
 
-    // Dagger
-    implementation(Libs2.Dagger.dagger)
-    kapt(Libs2.Dagger.compiler)
+    // Coil for image loading
+    implementation(libs.coil.compose)
+    implementation(libs.coil.core)
 
-    implementation(Libs2.Dagger.androidSupport)
-    kapt(Libs2.Dagger.androidProcessor)
+    // Hilt for Dependency Injection
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.hilt.navigation.compose)
+    implementation(libs.hilt.work)
 
-    compileOnly(Libs2.AssistedInject.annotationDagger2)
-    kapt(Libs2.AssistedInject.processorDagger2)
+    // Room Database
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.paging)
 
+    // Paging
+    implementation(libs.androidx.paging.runtime.ktx)
+    implementation(libs.androidx.paging.compose)
 
-    // AndroidX
-    implementation(Libs2.Google.material)
-    implementation(Libs2.AndroidX.coreKtx)
-    implementation(Libs2.AndroidX.constraintlayout)
-    implementation(Libs2.AndroidX.appcompat)
-    implementation(Libs2.AndroidX.recyclerview)
+    // DataStore for Preferences
+    implementation(libs.androidx.datastore.preferences)
 
-    implementation(Libs2.AndroidX.Lifecycle.liveDataKtx)
-    implementation(Libs2.AndroidX.Lifecycle.viewModel)
-
-    implementation(Libs2.AndroidX.Navigation.navigationUi)
-    implementation(Libs2.AndroidX.Navigation.navigationFragment)
-
-    annotationProcessor(Libs2.AndroidX.Room.compiler)
-    kapt(Libs2.AndroidX.Room.compiler)
-    implementation(Libs2.AndroidX.Room.runtime)
-    implementation(Libs2.AndroidX.Room.roomktx)
-    implementation(Libs2.AndroidX.Work.runtimeKtx)
-    implementation(Libs2.AndroidX.Work.rxJava)
-    implementation(Libs2.AndroidX.Paging.runtimeKtx)
-    implementation(Libs2.AndroidX.browser)
+    // Work Manager
+    implementation(libs.androidx.work.runtime.ktx)
 
     // Logging
-    implementation(Libs2.logger)
+    implementation(libs.logger)
 
-    // RX
-    implementation(Libs2.RxJava.rxJava)
-    implementation(Libs2.RxJava.rxAndroid)
-    implementation(Libs2.RxJava.rxKotlin)
-    implementation(Libs2.RxJava.rxRelay)
-    implementation(Libs2.RxJava.rxkPrefs)
+    // UI Utils
+    implementation(libs.androidx.palette.ktx)
 
-    // Glide
-    implementation(Libs2.Glide.glide)
-    kapt(Libs2.Glide.compiler)
+    // Legacy UI components (minimal set for backward compatibility)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.browser)
 
-    // Others
-    implementation(Libs2.jsoup)
-    implementation(Libs2.MaterialDialogs.core)
-    implementation(Libs2.MaterialDialogs.input)
-    implementation(Libs2.MaterialDialogs.bottomsheets)
-    implementation(Libs2.notify)
+    // Web scraping and networking
+    implementation(libs.jsoup)
+    implementation(libs.okhttp)
+    implementation(libs.okio)
 
-    // UI
-    implementation(Libs2.alerter)
+    // Date/Time utilities
+    implementation(libs.threeten.android)
+    implementation(libs.timeago)
 
-    implementation(Libs2.Komprehensions.rxJava)
+    // Text processing
+    implementation(libs.commons.text)
 
-    debugImplementation(Libs2.LeakCanary.no_op)
-    debugImplementation(Libs2.LeakCanary.no_op)
-    releaseImplementation(Libs2.LeakCanary.no_op)
+    // Image handling
+    implementation(libs.subsampling.scale.imageview)
 
-    implementation("com.davemorrissey.labs:subsampling-scale-image-view:3.10.0")
+    // Development tools
+    implementation(libs.stetho)
 
-    // Iconics
-    implementation("com.mikepenz:iconics-core:3.1.0@aar")
-    implementation("com.mikepenz:community-material-typeface:2.0.46.1@aar")
-    implementation("com.mikepenz:google-material-typeface:3.0.1.2.original@aar")
+    // Debugging
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.leakcanary)
 
-    // About
-    implementation("com.github.daniel-stoneuk:material-about-library:2.4.2")
-
-
-    // RecyclerView
-    val groupie = "2.4.0"
-    implementation("com.xwray:groupie:$groupie")
-    implementation("com.yarolegovich:discrete-scrollview:1.4.9")
-    implementation("com.xwray:groupie-kotlin-android-extensions:$groupie")
-
-    // Internal
-    implementation(Libs2.stetho)
-    implementation(Libs2.okHttp)
-    implementation(Libs2.okio)
-    implementation("org.apache.commons:commons-text:1.8")
-
-
-    // Others
-    implementation(Libs2.threeTenAndroid)
-    implementation(Libs2.timeAgo)
-    testImplementation(Libs2.junit)
+    // Testing
+    testImplementation(libs.junit)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 }

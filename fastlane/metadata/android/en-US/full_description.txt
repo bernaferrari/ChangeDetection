@@ -1,0 +1,12 @@
+This app works natively, no servers behind, only Android. 
+
+This app tracks changes on websites you otherwise would visit frequently to see if there is something new. Use cases:
+
+- Teacher says grades will be published "soon", but no one knows what "soon" means and you are tired of reloading.
+- You are working with a server and wants to know the result from a request, periodically.
+- You are waiting for updates on an Exam, like if something was postponed or updated.
+
+It also also showcases all the Android Architecture Components working together: Room, ViewModels, LiveData, Paging, WorkManager and Navigation.
+
+Source code is available here:
+https://github.com/bernaferrari/ChangeDetection

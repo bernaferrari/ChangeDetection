@@ -1,0 +1,2 @@
+json_key_file("/Users/bernardoferrari/Documents/ChangeDetection/api-7311974537967832535-794465-f7b9f2d592ec.json") # Path to the json secret file - Follow https://docs.fastlane.tools/actions/supply/#setup to get one
+package_name("com.bernaferrari.changedetection") # e.g. com.krausefx.app

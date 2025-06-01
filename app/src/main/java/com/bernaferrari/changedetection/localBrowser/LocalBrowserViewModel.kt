@@ -1,56 +1,50 @@
 package com.bernaferrari.changedetection.localBrowser
 
-import com.airbnb.mvrx.FragmentViewModelContext
-import com.airbnb.mvrx.MvRxState
-import com.airbnb.mvrx.MvRxViewModelFactory
-import com.airbnb.mvrx.ViewModelContext
-import com.bernaferrari.base.mvrx.MvRxViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
-import com.squareup.inject.assisted.Assisted
-import com.squareup.inject.assisted.AssistedInject
-import io.reactivex.Observable
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.nio.charset.Charset
+import javax.inject.Inject
 
 data class BrowserState(
     val content: String = "",
     val isLoading: Boolean = true
-) : MvRxState
+)
 
-/**
- * initialState *must* be implemented as a constructor parameter.
- */
-class LocalBrowserViewModel @AssistedInject constructor(
-    @Assisted initialState: BrowserState,
-    private val mSnapsRepository: SnapsRepository
-) : MvRxViewModel<BrowserState>(initialState), CoroutineScope by MainScope() {
+@HiltViewModel
+class LocalBrowserViewModel @Inject constructor(
+    private val snapsRepository: SnapsRepository
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(BrowserState())
+    val state: StateFlow<BrowserState> = _state.asStateFlow()
 
     fun fetchData(snapId: String) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
 
-        Observable.just(mSnapsRepository.getSnapContent(snapId).toString(Charset.defaultCharset()))
-            .execute {
-                copy(
-                    content = it() ?: "",
-                    isLoading = it() == null
+            try {
+                val content = withContext(Dispatchers.IO) {
+                    snapsRepository.getSnapContent(snapId).toString(Charset.defaultCharset())
+                }
+
+                _state.value = BrowserState(
+                    content = content,
+                    isLoading = false
+                )
+            } catch (e: Exception) {
+                _state.value = BrowserState(
+                    content = "",
+                    isLoading = false
                 )
             }
-    }
-
-    @AssistedInject.Factory
-    interface Factory {
-        fun create(initialState: BrowserState): LocalBrowserViewModel
-    }
-
-    companion object : MvRxViewModelFactory<LocalBrowserViewModel, BrowserState> {
-
-        override fun create(
-            viewModelContext: ViewModelContext,
-            state: BrowserState
-        ): LocalBrowserViewModel? {
-            val fragment: LocalBrowserFragment =
-                (viewModelContext as FragmentViewModelContext).fragment()
-            return fragment.textTopViewModelFactoryLocal.create(state)
         }
     }
 }
