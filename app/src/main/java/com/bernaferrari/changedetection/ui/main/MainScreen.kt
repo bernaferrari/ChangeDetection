@@ -20,6 +20,8 @@ import com.bernaferrari.changedetection.MainViewModel
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.changedetection.repo.Snap
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -29,17 +31,19 @@ fun MainScreen(
     navController: NavController,
     viewModel: MainViewModel = hiltViewModel()
 ) {
-    val sites by remember { viewModel.loadSites() }.collectAsState(initial = emptyList())
+    val uiState by viewModel.uiState.collectAsState()
 
     MainScreenContent(
-        sites = sites,
+        sites = uiState.listOfItems,
         onAddSite = { navController.navigate("add_edit") },
         onSiteClick = { siteAndSnap ->
             val contentType = siteAndSnap.snap?.contentType ?: "text/html"
+            val encodedUrl = URLEncoder.encode(siteAndSnap.site.url, StandardCharsets.UTF_8.toString())
+
             if (contentType.startsWith("image/") || contentType == "application/pdf") {
-                navController.navigate("visual/${siteAndSnap.site.id}/$contentType/${siteAndSnap.site.url}")
+                navController.navigate("visual/${siteAndSnap.site.id}/$contentType/$encodedUrl")
             } else {
-                navController.navigate("text/${siteAndSnap.site.id}/${siteAndSnap.site.url}")
+                navController.navigate("text/${siteAndSnap.site.id}/$encodedUrl")
             }
         },
         onEditSite = { site ->
