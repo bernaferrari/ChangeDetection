@@ -1,10 +1,11 @@
-package com.bernaferrari.changedetection.ui.main
+package com.bernaferrari.changedetection
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.bernaferrari.changedetection.repo.ColorGroup
 import com.bernaferrari.changedetection.repo.ContentTypeInfo
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
@@ -12,194 +13,124 @@ import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import javax.inject.Inject
+import kotlin.coroutines.CoroutineContext
 
-data class MainUiState(
-    val listOfItems: List<SiteAndLastSnap> = emptyList(),
-    val listOfColors: List<ColorGroup> = emptyList(),
-    val listOfTags: List<String> = emptyList(),
-    val isLoading: Boolean = true,
-    val workInfoList: List<WorkInfo> = emptyList(),
-    val selectedColors: List<ColorGroup> = emptyList(),
-    val selectedTags: List<String> = emptyList(),
-    val interval: Long = 0
-)
-
+/**
+ * Exposes the data to be used in the site list screen.
+ * Inspired from Architecture Components MVVM sample app
+ */
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val snapsRepository: SnapsRepository,
-    private val sitesRepository: SitesRepository,
-    private val workManager: WorkManager
-) : ViewModel() {
+    context: Application,
+    private val mSnapsRepository: SnapsRepository,
+    private val mSitesRepository: SitesRepository
+) : AndroidViewModel(context), CoroutineScope {
 
-    private val _uiState = MutableStateFlow(MainUiState())
-    val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
+    internal var shouldSyncWhenAppOpen = true
+    internal var sortAlphabetically = false
 
-    private val _selectedColors = MutableStateFlow<List<ColorGroup>>(emptyList())
-    private val _selectedTags = MutableStateFlow<List<String>>(emptyList())
+    internal val getOutputStatus: LiveData<List<WorkInfo>>
+        get() = WorkManager.getInstance().getWorkInfosForUniqueWorkLiveData(WorkerHelper.UNIQUEWORK)
 
-    var shouldSyncWhenAppOpen = true
-    var sortAlphabetically = false
+    private var job: Job = Job()
 
-    init {
-        fetchData()
-        observeWorkManager()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
+
+    override fun onCleared() {
+        job.cancel()
+        super.onCleared()
     }
 
-    private fun observeWorkManager() {
-        viewModelScope.launch {
-            // Observe work manager status
-            // Note: This might need to be adapted based on your specific WorkManager setup
-        }
+    internal fun removeSite(site: Site) = GlobalScope.launch {
+        mSnapsRepository.deleteAllSnaps(site.id)
+        mSitesRepository.deleteSite(site.id)
     }
 
-    private fun fetchData() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-            
-            try {
-                val sites = withContext(Dispatchers.IO) {
-                    sitesRepository.getSites()
-                }
-                
-                val sitesWithLastSnap = withContext(Dispatchers.IO) {
-                    sites.map { site ->
-                        val lastSnap = snapsRepository.getMostRecentSnap(site.id)
-                        SiteAndLastSnap(site, lastSnap, false)
-                    }
-                }
-
-                val tags = pullOutTags(sites)
-                val colors = sites.groupBy { it.colors }.keys.toList()
-
-                _uiState.value = _uiState.value.copy(
-                    listOfItems = sitesWithLastSnap,
-                    listOfTags = tags,
-                    listOfColors = colors,
-                    isLoading = false
-                )
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false)
-            }
-        }
-    }
-
-    fun refreshData() {
-        fetchData()
-    }
-
-    fun removeSite(site: Site) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                snapsRepository.deleteAllSnaps(site.id)
-                sitesRepository.deleteSite(site.id)
-            }
-            fetchData() // Refresh the list
-        }
-    }
-
-    fun pruneSite(siteId: String) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                snapsRepository.pruneSnaps(siteId)
-            }
-            fetchData()
-        }
+    internal fun pruneSite(siteId: String) = GlobalScope.launch {
+        mSnapsRepository.pruneSnaps(siteId)
     }
 
     suspend fun removeSnapsByType(siteId: String, contentType: String) {
-        withContext(Dispatchers.IO) {
-            snapsRepository.deleteSnapsForSiteIdAndContentType(siteId, contentType)
-        }
-        fetchData()
+        mSnapsRepository.deleteSnapsForSiteIdAndContentType(siteId, contentType)
     }
 
-    fun saveSite(site: Site) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                sitesRepository.saveSite(site)
-            }
-            fetchData()
-        }
+    // Called when clicking on fab.
+    internal fun saveSite(
+        site: Site
+    ) = GlobalScope.launch {
+        mSitesRepository.saveSite(site)
     }
 
-    fun updateSite(site: Site) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                sitesRepository.updateSite(site)
-            }
-            fetchData()
-        }
-    }
+    // Called when clicking on fab.
+//    internal fun saveWebsite(
+//        snap: Snap,
+//        content: ByteArray
+//    ): MutableLiveData<Boolean> {
+//
+//        val didItWork = MutableLiveData<Boolean>()
+//
+//        launch(Dispatchers.Main) {
+//            val saveSnap = mSnapsRepository.saveSnap(snap, content)
+//            didItWork.value = saveSnap is Result.Success
+//        }
+//
+//        return didItWork
+//    }
 
     suspend fun getRecentContentTypes(siteId: String): List<ContentTypeInfo> {
-        return withContext(Dispatchers.IO) {
-            snapsRepository.getContentTypeInfo(siteId)
+        return mSnapsRepository.getContentTypeInfo(siteId)
+    }
+
+    internal fun updateSite(site: Site) = GlobalScope.launch {
+        mSitesRepository.updateSite(site)
+    }
+
+    private var items = MutableLiveData<MutableList<SiteAndLastSnap>>()
+
+    internal fun loadSites(): MutableLiveData<MutableList<SiteAndLastSnap>> {
+        items = MutableLiveData()
+        updateItems()
+        return items
+    }
+
+    internal fun updateItems() = launch(Dispatchers.Main) {
+        val list = mutableListOf<SiteAndLastSnap>()
+        withContext(Dispatchers.IO) {
+            mSitesRepository.getSites()
+                .mapTo(list) { SiteAndLastSnap(it, getLastSnap(it.id), false) }
         }
+        items.value = list
     }
 
-    suspend fun getAllSites(): List<Site> {
-        return withContext(Dispatchers.IO) {
-            sitesRepository.getSites()
-        }
+    private suspend fun getLastSnap(siteId: String): Snap? {
+        return mSnapsRepository.getMostRecentSnap(siteId)
     }
 
-    suspend fun isAlreadyMonitoringSite(id: String, url: String): Boolean {
-        return withContext(Dispatchers.IO) {
-            sitesRepository.getSiteByUrl(url) != null || sitesRepository.getSiteById(id) != null
-        }
-    }
+    suspend fun getAllSites(): List<Site> = mSitesRepository.getSites()
 
-    fun updateSelectedColors(colors: List<ColorGroup>) {
-        _selectedColors.value = colors
-        _uiState.value = _uiState.value.copy(selectedColors = colors)
-        applyFilters()
-    }
+    suspend fun isAlreadyMonitoringSite(id: String, url: String): Boolean =
+        mSitesRepository.getSiteByUrl(url) != null || mSitesRepository.getSiteById(id) != null
 
-    fun updateSelectedTags(tags: List<String>) {
-        _selectedTags.value = tags
-        _uiState.value = _uiState.value.copy(selectedTags = tags)
-        applyFilters()
-    }
-
-    private fun applyFilters() {
-        viewModelScope.launch {
-            val currentItems = _uiState.value.listOfItems
-            val selectedColors = _uiState.value.selectedColors
-            val selectedTags = _uiState.value.selectedTags
-
-            val filteredItems = currentItems.filter { item ->
-                val colorMatch = selectedColors.isEmpty() || item.site.colors in selectedColors
-                val tagMatch = selectedTags.isEmpty() || selectedTags.any { tag ->
-                    item.site.notes.lowercase().contains(tag.lowercase())
-                }
-                colorMatch && tagMatch
-            }
-
-            _uiState.value = _uiState.value.copy(listOfItems = filteredItems)
-        }
-    }
-
-    private fun pullOutTags(sites: List<Site>): List<String> {
-        return mutableListOf<String>().apply {
-            for (site in sites) {
-                val splitTags = site.notes.lowercase().split(',')
-                splitTags
-                    .filter { it.isNotEmpty() }
-                    .forEach { tag ->
-                        if (!this.contains(tag.trim())) {
-                            this.add(tag.trim())
-                        }
-                    }
-            }
-            sort()
-        }
-    }
+//    internal fun getPruningList(context: Context): MutableList<DialogItemSimple> {
+//
+//        val color = context.getColorFromAttr(R.attr.strongColor)
+//        val items = mutableListOf<DialogItemSimple>()
+//
+//        items += DialogItemSimple(
+//            context.getString(R.string.pruning),
+//            IconicsDrawable(context, CommunityMaterial.Icon.cmd_content_cut).color(color),
+//            LongPress.PRUNING
+//        )
+//
+//        items += DialogItemSimple(
+//            context.getString(R.string.remove_all),
+//            IconicsDrawable(context, CommunityMaterial.Icon.cmd_delete).color(color),
+//            LongPress.ALL
+//        )
+//
+//        return items
+//    }
 }
