@@ -3,6 +3,7 @@ package com.bernaferrari.changedetection.repo.source.local
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.paging.DataSource
+import androidx.paging.PagingSource
 import com.bernaferrari.changedetection.repo.AppExecutors
 import com.bernaferrari.changedetection.repo.ContentTypeInfo
 import com.bernaferrari.changedetection.repo.Snap
@@ -80,6 +81,12 @@ class SnapsLocalDataSource constructor(
             mSnapsDao.getAllSnapsForSiteIdFilteredWithLiveData(siteId, filter)
         }
 
+    override suspend fun getAllSnapsFromSite(siteId: String): List<Snap> {
+        return withContext(mAppExecutors.ioContext) {
+            mSnapsDao.getAllSnapsForSiteId(siteId)
+        }
+    }
+
     override fun getSnapContent(snapId: String): ByteArray {
         return appContext.openFileInput(snapId).readBytes()
     }
@@ -131,7 +138,8 @@ class SnapsLocalDataSource constructor(
         lastSnapValue: ByteArray
     ): Boolean =
         if (type == "text/html") {
-            content.isNotEmpty() && lastSnapValue.toString(Charset.defaultCharset()).cleanUpHtml() !=
+            content.isNotEmpty() && lastSnapValue.toString(Charset.defaultCharset())
+                .cleanUpHtml() !=
                     content.toString(Charset.defaultCharset()).cleanUpHtml()
         } else {
             content.isNotEmpty() && !lastSnapValue.contentEquals(content)
@@ -166,17 +174,16 @@ class SnapsLocalDataSource constructor(
             mSnapsDao.getLastSnapForSiteId(siteId)
         }
 
-    override suspend fun getLastNSnapsForSiteId(siteId: String, limit: Int): List<Snap>? =
+    override suspend fun getLastNSnapsForSiteId(siteId: String, limit: Int): List<Snap> =
         withContext(mAppExecutors.ioContext) {
             mSnapsDao.getLastNSnapsForSiteId(siteId, limit)
         }
 
-    override suspend fun getSnapForPaging(
+    override fun getSnapForPaging(
         siteId: String,
         filter: String
-    ): DataSource.Factory<Int, Snap> = withContext(mAppExecutors.ioContext) {
+    ): PagingSource<Int, Snap> =
         mSnapsDao.getSnapsForSiteIdForPaging(siteId, filter)
-    }
 
     override fun getSnapPair(
         originalId: String,

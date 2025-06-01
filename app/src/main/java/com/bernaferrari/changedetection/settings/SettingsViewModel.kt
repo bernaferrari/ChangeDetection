@@ -1,11 +1,11 @@
 package com.bernaferrari.changedetection.settings
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.WorkerHelper
@@ -24,12 +24,14 @@ data class SettingsUiState(
     val requireWifi: Boolean = false,
     val requireCharging: Boolean = false,
     val requireBatteryNotLow: Boolean = false,
-    val requireDeviceIdle: Boolean = false
+    val requireDeviceIdle: Boolean = false,
+    val themeMode: String = "MATERIAL_YOU"
 )
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val dataStore: DataStore<Preferences>
+    private val dataStore: DataStore<Preferences>,
+    private val workerHelper: WorkerHelper
 ) : ViewModel() {
 
     companion object {
@@ -43,6 +45,7 @@ class SettingsViewModel @Inject constructor(
         val REQUIRE_CHARGING_KEY = booleanPreferencesKey("require_charging")
         val REQUIRE_BATTERY_NOT_LOW_KEY = booleanPreferencesKey("require_battery_not_low")
         val REQUIRE_DEVICE_IDLE_KEY = booleanPreferencesKey("require_device_idle")
+        val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
     }
 
     val uiState: StateFlow<SettingsUiState> = dataStore.data.map { preferences ->
@@ -56,7 +59,8 @@ class SettingsViewModel @Inject constructor(
             requireWifi = preferences[REQUIRE_WIFI_KEY] ?: false,
             requireCharging = preferences[REQUIRE_CHARGING_KEY] ?: false,
             requireBatteryNotLow = preferences[REQUIRE_BATTERY_NOT_LOW_KEY] ?: false,
-            requireDeviceIdle = preferences[REQUIRE_DEVICE_IDLE_KEY] ?: false
+            requireDeviceIdle = preferences[REQUIRE_DEVICE_IDLE_KEY] ?: false,
+            themeMode = preferences[THEME_MODE_KEY] ?: "MATERIAL_YOU"
         )
     }.stateIn(
         scope = viewModelScope,
@@ -88,51 +92,51 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun updateBackgroundSync(enabled: Boolean, context: Context) {
+    fun updateBackgroundSync(enabled: Boolean) {
         viewModelScope.launch {
             dataStore.edit { preferences ->
                 preferences[BACKGROUND_SYNC_KEY] = enabled
             }
             
             if (enabled) {
-                WorkerHelper.updateWorkerWithConstraints(dataStore, context.applicationContext)
+                workerHelper.updateWorkerWithConstraints(dataStore)
             } else {
-                WorkerHelper.cancelWork(context.applicationContext)
+                workerHelper.cancelWork()
             }
         }
     }
 
-    fun updateSyncInterval(interval: Long, context: Context) {
+    fun updateSyncInterval(interval: Long) {
         viewModelScope.launch {
             dataStore.edit { preferences ->
                 preferences[SYNC_INTERVAL_KEY] = interval
             }
-            WorkerHelper.updateWorkerWithConstraints(dataStore, context.applicationContext)
+            workerHelper.updateWorkerWithConstraints(dataStore)
         }
     }
 
-    fun updateWifiConstraint(enabled: Boolean, context: Context) {
-        updateConstraint(REQUIRE_WIFI_KEY, enabled, context)
+    fun updateWifiConstraint(enabled: Boolean) {
+        updateConstraint(REQUIRE_WIFI_KEY, enabled)
     }
 
-    fun updateChargingConstraint(enabled: Boolean, context: Context) {
-        updateConstraint(REQUIRE_CHARGING_KEY, enabled, context)
+    fun updateChargingConstraint(enabled: Boolean) {
+        updateConstraint(REQUIRE_CHARGING_KEY, enabled)
     }
 
-    fun updateBatteryNotLowConstraint(enabled: Boolean, context: Context) {
-        updateConstraint(REQUIRE_BATTERY_NOT_LOW_KEY, enabled, context)
+    fun updateBatteryNotLowConstraint(enabled: Boolean) {
+        updateConstraint(REQUIRE_BATTERY_NOT_LOW_KEY, enabled)
     }
 
-    fun updateDeviceIdleConstraint(enabled: Boolean, context: Context) {
-        updateConstraint(REQUIRE_DEVICE_IDLE_KEY, enabled, context)
+    fun updateDeviceIdleConstraint(enabled: Boolean) {
+        updateConstraint(REQUIRE_DEVICE_IDLE_KEY, enabled)
     }
 
-    private fun updateConstraint(key: Preferences.Key<Boolean>, enabled: Boolean, context: Context) {
+    private fun updateConstraint(key: Preferences.Key<Boolean>, enabled: Boolean) {
         viewModelScope.launch {
             dataStore.edit { preferences ->
                 preferences[key] = enabled
             }
-            WorkerHelper.updateWorkerWithConstraints(dataStore, context.applicationContext)
+            workerHelper.updateWorkerWithConstraints(dataStore)
         }
     }
 
@@ -140,6 +144,14 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             dataStore.edit { preferences ->
                 preferences[ORDER_BY_SDK_KEY] = orderBySdk
+            }
+        }
+    }
+
+    fun updateThemeMode(themeMode: String) {
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[THEME_MODE_KEY] = themeMode
             }
         }
     }

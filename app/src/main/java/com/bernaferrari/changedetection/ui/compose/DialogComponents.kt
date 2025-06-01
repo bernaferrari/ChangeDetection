@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import com.bernaferrari.changedetection.R
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun DialogHeader(
@@ -33,9 +34,9 @@ fun DialogHeader(
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         Text(
             text = subtitle,
             style = MaterialTheme.typography.bodyMedium,
@@ -63,16 +64,16 @@ fun DialogSwitchItem(
             contentDescription = null,
             modifier = Modifier.size(24.dp)
         )
-        
+
         Spacer(modifier = Modifier.width(16.dp))
-        
+
         Text(
             text = title,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
         )
-        
+
         Switch(
             checked = isChecked,
             onCheckedChange = onCheckedChange
@@ -115,9 +116,9 @@ fun DialogActions(
         TextButton(onClick = onCancel) {
             Text(stringResource(android.R.string.cancel))
         }
-        
+
         Spacer(modifier = Modifier.width(8.dp))
-        
+
         TextButton(onClick = onConfirm) {
             Text(stringResource(android.R.string.ok))
         }
@@ -133,10 +134,10 @@ fun DialogIntervalItem(
 ) {
     val context = LocalContext.current
     val minutes = arrayOf(15, 30, 45, 60, 120, 240, 360, 720, 1440, 2880)
-    var sliderValue by remember { 
-        mutableFloatStateOf(minutes.indexOfFirst { it == initialDelay }.toFloat()) 
+    var sliderValue by remember {
+        mutableFloatStateOf(minutes.indexOfFirst { it == initialDelay }.toFloat())
     }
-    
+
     val getTimeString = { value: Int ->
         when {
             value < 60 -> "$value ${context.getString(R.string.min)}"
@@ -144,7 +145,7 @@ fun DialogIntervalItem(
             else -> "${value / 60} ${context.getString(R.string.hours)}"
         }
     }
-    
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -160,16 +161,16 @@ fun DialogIntervalItem(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            
+
             Text(
                 text = getTimeString(minutes[sliderValue.toInt()]),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         Slider(
             value = sliderValue,
             onValueChange = { newValue ->
@@ -182,8 +183,6 @@ fun DialogIntervalItem(
     }
 }
 
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.res.painterResource
 
 @Preview(showBackground = true)
 @Composable

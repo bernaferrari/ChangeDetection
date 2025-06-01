@@ -1,5 +1,6 @@
 package com.bernaferrari.changedetection.detailsvisual
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -9,6 +10,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -16,6 +18,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,22 +29,22 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.items
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.repo.Snap
-import com.bernaferrari.changedetection.ui.compose.LoadingIndicator
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import androidx.core.graphics.createBitmap
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -55,37 +58,38 @@ fun VisualScreen(
 ) {
     val context = LocalContext.current
     val snapsPagingData = viewModel.getSnapsPaged(siteId, contentType).collectAsLazyPagingItems()
-    val snapsFiltered by viewModel.getSnapsFiltered(siteId, contentType).collectAsStateWithLifecycle(emptyList())
-    
+    val snapsFiltered by viewModel.getSnapsFiltered(siteId, contentType)
+        .collectAsStateWithLifecycle(emptyList())
+
     val isPdf = contentType == "application/pdf"
     val pagerState = rememberPagerState(pageCount = { snapsPagingData.itemCount })
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    
+
     var showBottomSheet by remember { mutableStateOf(false) }
     var selectedSnapIndex by remember { mutableStateOf(0) }
     var showControls by remember { mutableStateOf(true) }
     var isHighQuality by remember { mutableStateOf(false) }
-    
+
     LaunchedEffect(selectedSnapIndex) {
         if (snapsFiltered.isNotEmpty()) {
             listState.animateScrollToItem(selectedSnapIndex)
         }
     }
-    
+
     LaunchedEffect(pagerState.currentPage) {
         selectedSnapIndex = pagerState.currentPage
     }
-    
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
         // Top bar
         TopAppBar(
-            title = { 
+            title = {
                 Text(
-                    text = snapsPagingData[pagerState.currentPage]?.let { 
-                        viewModel.formatTimestamp(it.timestamp) 
+                    text = snapsPagingData[pagerState.currentPage]?.let {
+                        VisualViewModel.formatTimestamp(it.timestamp)
                     } ?: "Visual Changes"
                 )
             },
@@ -101,11 +105,11 @@ fun VisualScreen(
                         contentDescription = if (showControls) "Hide controls" else "Show controls"
                     )
                 }
-                
+
                 IconButton(onClick = { showBottomSheet = true }) {
-                    Icon(Icons.Default.List, contentDescription = "Show list")
+                    Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Show list")
                 }
-                
+
                 if (isPdf) {
                     IconButton(onClick = { isHighQuality = !isHighQuality }) {
                         Icon(
@@ -119,7 +123,7 @@ fun VisualScreen(
                         )
                     }
                 }
-                
+
                 IconButton(
                     onClick = {
                         snapsPagingData[selectedSnapIndex]?.let { snap ->
@@ -129,13 +133,13 @@ fun VisualScreen(
                 ) {
                     Icon(Icons.Default.Share, contentDescription = "Share")
                 }
-                
+
                 IconButton(onClick = { viewModel.openInBrowser(url, context) }) {
                     Icon(Icons.Default.OpenInBrowser, contentDescription = "Open in browser")
                 }
             }
         )
-        
+
         // Main content pager
         Box(
             modifier = Modifier.weight(1f)
@@ -159,10 +163,10 @@ fun VisualScreen(
                         )
                     }
                 } else {
-                    LoadingIndicator()
+                    CircularProgressIndicator()
                 }
             }
-            
+
             // Control bar at bottom
             if (showControls && snapsPagingData.itemCount > 0) {
                 Card(
@@ -191,13 +195,13 @@ fun VisualScreen(
                         ) {
                             Icon(Icons.Default.ArrowBackIos, contentDescription = "Previous")
                         }
-                        
+
                         // Page indicator
                         Text(
                             text = "${pagerState.currentPage + 1} / ${snapsPagingData.itemCount}",
                             style = MaterialTheme.typography.bodyMedium
                         )
-                        
+
                         // Next button
                         IconButton(
                             onClick = {
@@ -211,9 +215,9 @@ fun VisualScreen(
                         ) {
                             Icon(Icons.Default.ArrowForwardIos, contentDescription = "Next")
                         }
-                        
+
                         Spacer(modifier = Modifier.weight(1f))
-                        
+
                         // Delete button
                         IconButton(
                             onClick = {
@@ -232,7 +236,7 @@ fun VisualScreen(
                 }
             }
         }
-        
+
         // Bottom thumbnail strip
         if (showControls) {
             LazyRow(
@@ -259,7 +263,7 @@ fun VisualScreen(
             }
         }
     }
-    
+
     // Bottom sheet with full list
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -298,7 +302,7 @@ private fun ThumbnailItem(
     onClick: () -> Unit
 ) {
     val context = LocalContext.current
-    
+
     Card(
         modifier = Modifier
             .size(64.dp)
@@ -325,7 +329,7 @@ private fun ThumbnailItem(
                 "com.bernaferrari.changedetection.files",
                 file
             )
-            
+
             AsyncImage(
                 model = contentUri,
                 contentDescription = "Thumbnail",
@@ -346,7 +350,7 @@ private fun PdfViewer(
     var bitmap by remember(snap.snapId, isHighQuality) { mutableStateOf<Bitmap?>(null) }
     var isLoading by remember(snap.snapId, isHighQuality) { mutableStateOf(true) }
     var error by remember(snap.snapId, isHighQuality) { mutableStateOf<String?>(null) }
-    
+
     LaunchedEffect(snap.snapId, isHighQuality) {
         isLoading = true
         error = null
@@ -361,7 +365,7 @@ private fun PdfViewer(
             isLoading = false
         }
     }
-    
+
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
@@ -372,6 +376,7 @@ private fun PdfViewer(
                 text = error!!,
                 color = MaterialTheme.colorScheme.error
             )
+
             bitmap != null -> {
                 AndroidView(
                     factory = { context ->
@@ -394,20 +399,17 @@ private suspend fun renderPdfPage(
     val file = File(context.filesDir, snapId)
     val fileDescriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
     val pdfRenderer = PdfRenderer(fileDescriptor)
-    
+
     return try {
         val page = pdfRenderer.openPage(0)
         val qualityMultiplier = if (isHighQuality) 6 else 4
-        val renderedBitmap = Bitmap.createBitmap(
-            page.width * qualityMultiplier,
-            page.height * qualityMultiplier,
-            Bitmap.Config.ARGB_8888
-        )
-        
+        val renderedBitmap =
+            createBitmap(page.width * qualityMultiplier, page.height * qualityMultiplier)
+
         Canvas(renderedBitmap).apply {
-            drawColor(Color.WHITE.toArgb())
+            drawColor(androidx.compose.ui.graphics.Color.White.toArgb())
         }
-        
+
         page.render(renderedBitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
         page.close()
         renderedBitmap
@@ -429,7 +431,7 @@ private fun ImageViewer(
         "com.bernaferrari.changedetection.files",
         file
     )
-    
+
     AndroidView(
         factory = { context ->
             SubsamplingScaleImageView(context).apply {
@@ -447,7 +449,7 @@ private fun SnapListItem(
     onDelete: () -> Unit
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
-    
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -470,13 +472,13 @@ private fun SnapListItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            
+
             IconButton(onClick = { showDeleteDialog = true }) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete")
             }
         }
     }
-    
+
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },

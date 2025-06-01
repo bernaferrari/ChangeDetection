@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Build
 import android.webkit.*
 import com.bernaferrari.changedetection.repo.source.WebResult
-import com.bernaferrari.changedetection.ui.CustomWebView
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.apache.commons.text.StringEscapeUtils
 import kotlin.coroutines.resume

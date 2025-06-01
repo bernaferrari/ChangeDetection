@@ -62,6 +62,9 @@ open class WorkerHelper @Inject constructor(
         const val BACKGROUND_SYNC = "backgroundSync"
     }
 
+    // Add instance property for easier access
+    val UNIQUEWORK = Companion.UNIQUEWORK
+
     suspend fun updateWorkerWithConstraints(
         dataStore: DataStore<Preferences>,
         cancelCurrentWork: Boolean = true
@@ -141,9 +144,9 @@ open class WorkerHelper @Inject constructor(
                 Logger.d("Response successful: ${response.isSuccessful} for $url")
                 Logger.d("Response headers: ${response.headers}")
 
-                val contentType = response.header("content-type", "")
+                val contentType = response.header("content-type", "") ?: ""
                 val bytes = response.body?.use { body ->
-                    if (contentType?.contains("text", ignoreCase = true) == true) {
+                    if (contentType.contains("text", ignoreCase = true)) {
                         body.string().toByteArray()
                     } else {
                         body.bytes()

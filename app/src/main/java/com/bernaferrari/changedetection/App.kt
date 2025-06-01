@@ -13,11 +13,7 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         INSTANCE = this
-
         AndroidThreeTen.init(this)
-        if (BuildConfig.DEBUG) {
-            Stetho.initializeWithDefaults(this)
-        }
 
         Logger.addLogAdapter(object : AndroidLogAdapter() {
             override fun isLoggable(priority: Int, tag: String?): Boolean {

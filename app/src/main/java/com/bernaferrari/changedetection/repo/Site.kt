@@ -1,20 +1,26 @@
 package com.bernaferrari.changedetection.repo
 
 import android.os.Parcelable
-import androidx.room.*
-import kotlinx.android.parcel.Parcelize
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import androidx.room.TypeConverter
+import androidx.room.TypeConverters
+import kotlinx.parcelize.Parcelize
 import java.util.*
 
 /**
  * Immutable model class for a Site.
  * Inspired from Architecture Components MVVM sample app
  */
+@Parcelize
 @Entity(
     tableName = "sites",
     indices = [(Index(value = ["siteId"], unique = true))]
 )
 @TypeConverters(Site.ConstraintsConverter::class, Site.PairConverter::class)
-@Parcelize
 data class Site(
     val title: String?,
     val url: String,

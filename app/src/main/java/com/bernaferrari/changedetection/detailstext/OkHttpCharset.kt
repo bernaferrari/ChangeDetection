@@ -1,4 +1,4 @@
-package com.bernaferrari.changedetection.detailstext
+package com.bernaferrari.changedetection.detailsText
 
 import java.nio.charset.Charset
 

@@ -35,7 +35,7 @@ interface SnapsDao {
      * @return all snaps for the siteId.
      */
     @Query("SELECT * FROM snaps WHERE siteId = :siteId AND contentType LIKE :filter ORDER BY timestamp DESC")
-    fun getSnapsForSiteIdForPaging(siteId: String, filter: String): DataSource.Factory<Int, Snap>
+    fun getSnapsForSiteIdForPaging(siteId: String, filter: String): PagingSource<Int, Snap>
 
 
     /**
@@ -106,7 +106,7 @@ interface SnapsDao {
     fun getLastSnapForSiteId(siteId: String): Snap?
 
     @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT :limit")
-    fun getLastNSnapsForSiteId(siteId: String, limit: Int): List<Snap>?
+    fun getLastNSnapsForSiteId(siteId: String, limit: Int): List<Snap>
 
     /**
      * Select the most recent snap metadata (which is everything except for its value) by siteId
@@ -115,7 +115,7 @@ interface SnapsDao {
      * @return a list with the last 100 sizes.
      */
     @Query("SELECT contentSize FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 100")
-    fun getLastSnapsSize(siteId: String): List<Int>?
+    fun getLastSnapsSize(siteId: String): List<Int>
 
 
     /**
@@ -160,13 +160,10 @@ interface SnapsDao {
 
 
     @Query("SELECT COUNT(*) FROM ( SELECT * FROM snaps GROUP BY siteId HAVING COUNT(*) > 1 ) T1 JOIN snaps T2 ON T1.siteId = T2.siteId")
-    fun countNumberOfChanges(): LiveData<Int>
-
-    @Query("SELECT COUNT(*) FROM ( SELECT * FROM snaps GROUP BY siteId HAVING COUNT(*) > 1 ) T1 JOIN snaps T2 ON T1.siteId = T2.siteId")
-    fun countNumberOfChangesFlow(): Flow<Int>
+    fun countNumberOfChanges(): Flow<Int>
 
     @Query("SELECT t2.* FROM ( SELECT * FROM snaps GROUP BY siteId HAVING COUNT(*) > 1 ) T1 JOIN snaps T2 ON T1.siteId = T2.siteId ORDER BY timestamp DESC")
-    fun getSnapsPaged(): DataSource.Factory<Int, Snap>
+    fun getSnapsPaged(): PagingSource<Int, Snap>
 
     @Query("SELECT t2.* FROM ( SELECT * FROM snaps GROUP BY siteId HAVING COUNT(*) > 1 ) T1 JOIN snaps T2 ON T1.siteId = T2.siteId ORDER BY timestamp DESC")
     fun getSnapsPagedSource(): PagingSource<Int, Snap>

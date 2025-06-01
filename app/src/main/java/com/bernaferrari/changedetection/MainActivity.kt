@@ -4,6 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -11,47 +15,47 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.core.view.WindowCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.bernaferrari.changedetection.addedit.AddEditScreen
+import com.bernaferrari.changedetection.addedit.WebViewScreen
+import com.bernaferrari.changedetection.detailsText.TextScreen
+import com.bernaferrari.changedetection.detailsvisual.VisualScreen
 import com.bernaferrari.changedetection.di.PreferencesModule
+import com.bernaferrari.changedetection.localBrowser.LocalBrowserScreen
+import com.bernaferrari.changedetection.logs.LogsScreen
 import com.bernaferrari.changedetection.ui.main.MainScreen
 import com.bernaferrari.changedetection.ui.navigation.ChangeDetectionBottomNavigation
 import com.bernaferrari.changedetection.ui.theme.ChangeDetectionTheme
-import com.bernaferrari.changedetection.ui.settings.SettingsScreen
-import com.bernaferrari.changedetection.ui.logs.LogsScreen
 import com.bernaferrari.changedetection.ui.about.AboutScreen
-import com.bernaferrari.changedetection.ui.about.AboutLicensesScreen
-import com.bernaferrari.changedetection.ui.addedit.AddEditScreen
-import com.bernaferrari.changedetection.ui.localbrowser.LocalBrowserScreen
-import com.bernaferrari.changedetection.ui.webview.WebViewScreen
-import com.bernaferrari.changedetection.ui.visual.VisualScreen
-import com.bernaferrari.changedetection.ui.text.TextScreen
+import com.bernaferrari.changedetection.ui.about.HowItWorksScreen
+import com.bernaferrari.changedetection.settings.SettingsScreen
+import com.bernaferrari.changedetection.ui.theme.ThemeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject
-    lateinit var dataStore: DataStore<Preferences>
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
-            val isDarkMode by dataStore.data
-                .map { preferences -> !preferences[PreferencesModule.PreferenceKeys.LIGHT_MODE]!! ?: false }
-                .collectAsState(initial = false)
+            val themeViewModel: ThemeViewModel = hiltViewModel()
 
-            ChangeDetectionTheme(darkTheme = isDarkMode) {
+            ChangeDetectionTheme(themeViewModel = themeViewModel) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -60,17 +64,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
-
-    companion object {
-        const val DARKMODE = "dark mode"
-        const val LASTCHANGE = "LASTCHANGE"
-        const val SITEID = "SITEID"
-        const val SNAPID = "SNAPID"
-        const val TITLE = "TITLE"
-        const val TYPE = "TYPE"
-        const val URL = "URL"
-        const val TRANSITION = 175L
     }
 }
 
@@ -84,91 +77,159 @@ fun ChangeDetectionApp() {
             startDestination = "main"
         ) {
             composable("main") {
-                MainScreen(
-                    navController = navController,
-                    viewModel = hiltViewModel()
-                )
+                MainScreen(navController = navController)
             }
+
             composable("logs") {
                 LogsScreen(
-                    navController = navController,
-                    viewModel = hiltViewModel()
+                    onSnapClick = { snapId, url ->
+                        val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
+                        navController.navigate("local_browser/$snapId/$encodedUrl")
+                    }
                 )
             }
+
             composable("settings") {
                 SettingsScreen(
-                    viewModel = hiltViewModel()
+                    onAboutClick = { navController.navigate("about") }
                 )
             }
+
             composable("about") {
-                AboutScreen(navController = navController)
+                AboutScreen(navController)
             }
-            composable("about_licenses") {
-                AboutLicensesScreen(navController = navController)
+
+            composable("how_it_works") {
+                HowItWorksScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
             }
-            composable("local_browser/{snapId}/{url}") { backStackEntry ->
+
+            composable(
+                "local_browser/{snapId}/{url}",
+                arguments = listOf(
+                    navArgument("snapId") { type = NavType.StringType },
+                    navArgument("url") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
                 val snapId = backStackEntry.arguments?.getString("snapId") ?: ""
-                val url = backStackEntry.arguments?.getString("url") ?: ""
+                val encodedUrl = backStackEntry.arguments?.getString("url") ?: ""
+                val url = URLDecoder.decode(encodedUrl, StandardCharsets.UTF_8.toString())
+
                 LocalBrowserScreen(
                     snapId = snapId,
                     url = url,
-                    onNavigateBack = { navController.popBackStack() }
+                    onDismiss = { navController.popBackStack() }
                 )
             }
-            composable("add_edit") {
+
+            composable(
+                "add_edit",
+                enterTransition = { slideInVertically(initialOffsetY = { it }) },
+                exitTransition = { slideOutVertically(targetOffsetY = { it }) }
+            ) {
+                val selectedUrl = navController.currentBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<String>("selected_url")
+
                 AddEditScreen(
-                    onNavigateBack = { navController.popBackStack() },
+                    selectedUrl = selectedUrl,
+                    onNavigateUp = { navController.popBackStack() },
                     onNavigateToWebView = { url ->
-                        navController.navigate("webview/$url")
+                        val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
+                        navController.navigate("webview/$encodedUrl")
                     },
-                    onNavigateToCompare = { url ->
-                        // TODO: Implement compare dialog
+                    onShowCompareDialog = { url ->
+                        // TODO: Implement compare dialog or navigate to compare screen
                     }
                 )
             }
-            composable("add_edit/{siteId}") { backStackEntry ->
+
+            composable(
+                "add_edit/{siteId}",
+                arguments = listOf(navArgument("siteId") { type = NavType.StringType }),
+                enterTransition = { slideInHorizontally(initialOffsetX = { it }) },
+                exitTransition = { slideOutHorizontally(targetOffsetX = { it }) }
+            ) { backStackEntry ->
                 val siteId = backStackEntry.arguments?.getString("siteId")
+                val selectedUrl = navController.currentBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<String>("selected_url")
+
                 AddEditScreen(
-                    siteId = siteId,
-                    onNavigateBack = { navController.popBackStack() },
+                    selectedUrl = selectedUrl,
+                    onNavigateUp = { navController.popBackStack() },
                     onNavigateToWebView = { url ->
-                        navController.navigate("webview/$url")
+                        val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
+                        navController.navigate("webview/$encodedUrl")
                     },
-                    onNavigateToCompare = { url ->
+                    onShowCompareDialog = { url ->
                         // TODO: Implement compare dialog
                     }
                 )
             }
-            composable("webview/{url}") { backStackEntry ->
-                val url = backStackEntry.arguments?.getString("url") ?: "https://google.com"
+
+            composable(
+                "webview/{url}",
+                arguments = listOf(navArgument("url") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val encodedUrl = backStackEntry.arguments?.getString("url") ?: ""
+                val url = if (encodedUrl.isNotEmpty()) {
+                    URLDecoder.decode(encodedUrl, StandardCharsets.UTF_8.toString())
+                } else {
+                    "https://google.com"
+                }
+
                 WebViewScreen(
                     initialUrl = url,
-                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateUp = { navController.popBackStack() },
                     onUrlSelected = { selectedUrl ->
-                        // Return the selected URL to the previous screen
-                        navController.previousBackStackEntry?.savedStateHandle?.set("selected_url", selectedUrl)
+                        navController.previousBackStackEntry?.savedStateHandle?.set(
+                            "selected_url",
+                            selectedUrl
+                        )
                         navController.popBackStack()
                     }
                 )
             }
-            composable("visual/{siteId}/{contentType}/{url}") { backStackEntry ->
+
+            composable(
+                "visual/{siteId}/{contentType}/{url}",
+                arguments = listOf(
+                    navArgument("siteId") { type = NavType.StringType },
+                    navArgument("contentType") { type = NavType.StringType },
+                    navArgument("url") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
                 val siteId = backStackEntry.arguments?.getString("siteId") ?: ""
                 val contentType = backStackEntry.arguments?.getString("contentType") ?: "image"
-                val url = backStackEntry.arguments?.getString("url") ?: ""
+                val encodedUrl = backStackEntry.arguments?.getString("url") ?: ""
+                val url = URLDecoder.decode(encodedUrl, StandardCharsets.UTF_8.toString())
+
                 VisualScreen(
                     siteId = siteId,
                     contentType = contentType,
                     url = url,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateUp = { navController.popBackStack() }
                 )
             }
-            composable("text/{siteId}/{url}") { backStackEntry ->
+
+            composable(
+                "text/{siteId}/{url}",
+                arguments = listOf(
+                    navArgument("siteId") { type = NavType.StringType },
+                    navArgument("url") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
                 val siteId = backStackEntry.arguments?.getString("siteId") ?: ""
-                val url = backStackEntry.arguments?.getString("url") ?: ""
+                val encodedUrl = backStackEntry.arguments?.getString("url") ?: ""
+                val url = URLDecoder.decode(encodedUrl, StandardCharsets.UTF_8.toString())
+
                 TextScreen(
                     siteId = siteId,
                     url = url,
-                    onNavigateBack = { navController.popBackStack() }
+                    contentType = "text/html", // Default content type for text screen
+                    onNavigateUp = { navController.popBackStack() }
                 )
             }
         }

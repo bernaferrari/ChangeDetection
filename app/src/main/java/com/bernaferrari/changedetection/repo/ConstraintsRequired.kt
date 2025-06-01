@@ -1,7 +1,7 @@
 package com.bernaferrari.changedetection.repo
 
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 class ConstraintsRequired(

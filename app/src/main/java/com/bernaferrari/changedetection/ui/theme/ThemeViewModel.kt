@@ -1,43 +1,34 @@
-package com.bernaferrari.sdkmonitor.ui.theme
+package com.bernaferrari.changedetection.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bernaferrari.sdkmonitor.domain.model.ThemeMode
-import com.bernaferrari.sdkmonitor.domain.repository.PreferencesRepository
+import com.bernaferrari.changedetection.settings.SettingsViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
 class ThemeViewModel @Inject constructor(
-    private val preferencesRepository: PreferencesRepository
+    dataStore: DataStore<Preferences>
 ) : ViewModel() {
 
-    private val _themeMode = MutableStateFlow(ThemeMode.MATERIAL_YOU)
-    private val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
-
-    init {
-        observeThemePreferences()
-    }
-
-    private fun observeThemePreferences() {
-        viewModelScope.launch {
-            preferencesRepository.getUserPreferences()
-                .catch { /* Handle error silently, use default */ }
-                .collect { preferences ->
-                    _themeMode.value = preferences.themeMode
-                }
-        }
-    }
+    private val themeMode: StateFlow<String> = dataStore.data.map { preferences ->
+        preferences[SettingsViewModel.THEME_MODE_KEY] ?: "MATERIAL_YOU"
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = "MATERIAL_YOU"
+    )
 
     @Composable
     fun shouldUseDarkTheme(): Boolean {
@@ -45,16 +36,17 @@ class ThemeViewModel @Inject constructor(
         val systemInDarkTheme = isSystemInDarkTheme()
 
         return when (currentTheme) {
-            ThemeMode.LIGHT -> false
-            ThemeMode.DARK -> true
-            ThemeMode.SYSTEM -> systemInDarkTheme
-            ThemeMode.MATERIAL_YOU -> systemInDarkTheme
+            "LIGHT" -> false
+            "DARK" -> true
+            "SYSTEM" -> systemInDarkTheme
+            "MATERIAL_YOU" -> systemInDarkTheme
+            else -> systemInDarkTheme
         }
     }
 
     @Composable
     fun shouldUseDynamicColor(): Boolean {
         val currentTheme by themeMode.collectAsState()
-        return currentTheme == ThemeMode.MATERIAL_YOU && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        return currentTheme == "MATERIAL_YOU" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     }
 }

@@ -1,5 +1,6 @@
 package com.bernaferrari.changedetection.ui.main
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,15 +16,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.bernaferrari.changedetection.MainViewModel
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.changedetection.repo.Snap
+import com.bernaferrari.changedetection.repo.ConstraintsRequired
+import com.bernaferrari.changedetection.ui.compose.MainCard
+import com.bernaferrari.changedetection.ui.compose.SyncStatus
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,14 +35,31 @@ fun MainScreen(
     navController: NavController,
     viewModel: MainViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val sites by viewModel.sitesFlow.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    // Initialize the sites loading
+    LaunchedEffect(Unit) {
+        viewModel.loadSites()
+    }
 
     MainScreenContent(
-        sites = uiState.listOfItems,
+        sites = sites,
+        isRefreshing = isRefreshing,
+        onRefresh = {
+            isRefreshing = true
+            viewModel.loadSites()
+            viewModel.updateItems()
+            isRefreshing = false
+        },
         onAddSite = { navController.navigate("add_edit") },
+        onHowItWorks = {
+            navController.navigate("how_it_works")
+        },
         onSiteClick = { siteAndSnap ->
             val contentType = siteAndSnap.snap?.contentType ?: "text/html"
-            val encodedUrl = URLEncoder.encode(siteAndSnap.site.url, StandardCharsets.UTF_8.toString())
+            val encodedUrl =
+                URLEncoder.encode(siteAndSnap.site.url, StandardCharsets.UTF_8.toString())
 
             if (contentType.startsWith("image/") || contentType == "application/pdf") {
                 navController.navigate("visual/${siteAndSnap.site.id}/$contentType/$encodedUrl")
@@ -51,6 +72,7 @@ fun MainScreen(
         },
         onDeleteSite = { site ->
             viewModel.removeSite(site)
+            viewModel.updateItems() // Refresh the list
         }
     )
 }
@@ -59,50 +81,72 @@ fun MainScreen(
 @Composable
 fun MainScreenContent(
     sites: List<SiteAndLastSnap>,
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
     onAddSite: () -> Unit,
+    onHowItWorks: () -> Unit = {},
     onSiteClick: (SiteAndLastSnap) -> Unit,
     onEditSite: (Site) -> Unit,
-    onDeleteSite: (Site) -> Unit
+    onDeleteSite: (Site) -> Unit,
+    onLearnMore: () -> Unit = {}
 ) {
+    val pullToRefreshState = rememberPullToRefreshState()
+
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
                 title = { Text("Change Detection") }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddSite
+            LargeFloatingActionButton(
+                onClick = onAddSite,
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Site")
             }
         }
     ) { paddingValues ->
-        if (sites.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("No sites added yet. Tap + to add one.")
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(sites) { siteAndSnap ->
-                    SiteCard(
-                        site = siteAndSnap.site,
-                        lastSnap = siteAndSnap.snap,
-                        onClick = { onSiteClick(siteAndSnap) },
-                        onEdit = { onEditSite(siteAndSnap.site) },
-                        onDelete = { onDeleteSite(siteAndSnap.site) }
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            state = pullToRefreshState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            if (sites.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    EmptyStateComponent(
+                        modifier = Modifier.padding(16.dp),
+                        onAddSite = onAddSite,
+                        onLearnMore = { onHowItWorks() }
                     )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(sites) { siteAndSnap ->
+                        MainCard(
+                            site = siteAndSnap.site,
+                            lastSnap = siteAndSnap.snap,
+                            syncStatus = when {
+                                siteAndSnap.isSyncing -> SyncStatus.LOADING
+                                !siteAndSnap.site.isSuccessful -> SyncStatus.ERROR
+                                else -> SyncStatus.OK
+                            },
+                            onClick = { onSiteClick(siteAndSnap) },
+                            onReloadClick = { 
+                                // TODO: Add reload functionality
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -142,7 +186,12 @@ fun SiteCard(
                     )
                     lastSnap?.let { snap ->
                         Text(
-                            text = "Last check: ${SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()).format(Date(snap.timestamp))}",
+                            text = "Last check: ${
+                                SimpleDateFormat(
+                                    "MMM dd, HH:mm",
+                                    Locale.getDefault()
+                                ).format(Date(snap.timestamp))
+                            }",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -169,7 +218,8 @@ fun MainScreenEmptyPreview() {
         onAddSite = {},
         onSiteClick = {},
         onEditSite = {},
-        onDeleteSite = {}
+        onDeleteSite = {},
+        onLearnMore = {}
     )
 }
 
@@ -179,29 +229,48 @@ fun MainScreenWithSitesPreview() {
     val mockSites = listOf(
         SiteAndLastSnap(
             site = Site(
-                id = "1",
-                url = "https://example.com",
                 title = "Example Site",
-                isSuccessful = true
+                url = "https://example.com",
+                timestamp = System.currentTimeMillis(),
+                id = "1",
+                isSuccessful = true,
+                isBrowser = false,
+                threshold = 0,
+                isRead = false,
+                isSyncEnabled = true,
+                isNotificationEnabled = true,
+                notes = "",
+                colors = Pair(0xFF2196F3.toInt(), 0xFF1976D2.toInt()),
+                constraints = ConstraintsRequired(false, false, false, false)
             ),
             snap = Snap(
                 snapId = "snap1",
                 siteId = "1",
                 timestamp = System.currentTimeMillis(),
                 contentType = "text/html",
+                contentCharset = "UTF-8",
                 contentSize = 1024
             ),
-            isExpanded = false
+            isSyncing = false
         ),
         SiteAndLastSnap(
             site = Site(
-                id = "2",
-                url = "https://another-example.com",
                 title = "Another Example",
-                isSuccessful = false
+                url = "https://another-example.com",
+                timestamp = System.currentTimeMillis(),
+                id = "2",
+                isSuccessful = false,
+                isBrowser = false,
+                threshold = 0,
+                isRead = false,
+                isSyncEnabled = true,
+                isNotificationEnabled = true,
+                notes = "",
+                colors = Pair(0xFF4CAF50.toInt(), 0xFF388E3C.toInt()),
+                constraints = ConstraintsRequired(false, false, false, false)
             ),
             snap = null,
-            isExpanded = false
+            isSyncing = false
         )
     )
 
@@ -211,28 +280,5 @@ fun MainScreenWithSitesPreview() {
         onSiteClick = {},
         onEditSite = {},
         onDeleteSite = {}
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SiteCardPreview() {
-    SiteCard(
-        site = Site(
-            id = "1",
-            url = "https://example.com",
-            title = "Example Site",
-            isSuccessful = true
-        ),
-        lastSnap = Snap(
-            snapId = "snap1",
-            siteId = "1",
-            timestamp = System.currentTimeMillis(),
-            contentType = "text/html",
-            contentSize = 1024
-        ),
-        onClick = {},
-        onEdit = {},
-        onDelete = {}
     )
 }

@@ -13,12 +13,12 @@ import com.bernaferrari.changedetection.repo.ColorGroup
 
 @Composable
 fun ColorFilterList(
+    modifier: Modifier = Modifier,
     gradientList: List<ColorGroup>,
     onSelectionChanged: (List<ColorGroup>) -> Unit,
-    modifier: Modifier = Modifier
 ) {
     var selectedColors by remember { mutableStateOf(setOf<ColorGroup>()) }
-    
+
     LazyRow(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),

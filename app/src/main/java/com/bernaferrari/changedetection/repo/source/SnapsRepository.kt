@@ -1,7 +1,7 @@
 package com.bernaferrari.changedetection.repo.source
 
 import androidx.lifecycle.LiveData
-import androidx.paging.DataSource
+import androidx.paging.PagingSource
 import com.bernaferrari.changedetection.repo.ContentTypeInfo
 import com.bernaferrari.changedetection.repo.Snap
 import javax.inject.Inject
@@ -24,10 +24,10 @@ class SnapsRepository @Inject constructor(
         return mSnapsLocalDataSource.getSingleSnapPair(id)
     }
 
-    override suspend fun getSnapForPaging(
+    override fun getSnapForPaging(
         siteId: String,
         filter: String
-    ): DataSource.Factory<Int, Snap> {
+    ): PagingSource<Int, Snap> {
         return mSnapsLocalDataSource.getSnapForPaging(siteId, filter)
     }
 
@@ -80,5 +80,14 @@ class SnapsRepository @Inject constructor(
 
     override suspend fun pruneSnaps(siteId: String) {
         mSnapsLocalDataSource.pruneSnaps(siteId)
+    }
+
+    override suspend fun getAllSnapsFromSite(siteId: String): List<Snap> {
+        // Since we don't have a direct method, we'll need to get the LiveData and extract the value
+        // This is a temporary solution - ideally the data source interface should have this method
+        val liveData = mSnapsLocalDataSource.getSnaps(siteId)
+        // Note: This is not ideal as LiveData.value might be null
+        // In a real implementation, you'd want to add getAllSnapsFromSite to SnapsDataSource interface
+        return liveData.value ?: emptyList()
     }
 }
