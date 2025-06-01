@@ -17,37 +17,10 @@ android {
         minSdkVersion Android.minSdk
         targetSdkVersion Android.targetSdk
     }
+    namespace 'com.bernaferrari.changedetection.repo'
 }
 
 dependencies {
 
-    // Kotlin
-    implementation Libs2.Kotlin.stdlib
-    implementation Libs2.Coroutines.core
-    implementation Libs2.Coroutines.android
 
-    // Dagger
-    implementation Libs2.Dagger.dagger
-    kapt Libs2.Dagger.compiler
-
-    // Room
-    implementation Libs2.AndroidX.Room.runtime
-    implementation Libs2.AndroidX.Room.roomktx
-    implementation Libs2.AndroidX.Room.rxjava2
-    kapt Libs2.AndroidX.Room.compiler
-    annotationProcessor Libs2.AndroidX.Room.compiler
-
-    // Paging
-    implementation Libs2.AndroidX.Paging.common
-    implementation Libs2.AndroidX.Paging.rxjava2
-
-    // LiveData
-    implementation Libs2.AndroidX.Lifecycle.liveDataKtx
-    implementation Libs2.AndroidX.Lifecycle.viewModel
-
-    // Logs
-    implementation Libs2.logger
-
-    // Parsing
-    implementation Libs2.jsoup
 }

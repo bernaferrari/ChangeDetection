@@ -12,14 +12,17 @@ import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
+import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
 /**
  * Exposes the data to be used in the site list screen.
  * Inspired from Architecture Components MVVM sample app
  */
-class MainViewModel(
+@HiltViewModel
+class MainViewModel @Inject constructor(
     context: Application,
     private val mSnapsRepository: SnapsRepository,
     private val mSitesRepository: SitesRepository

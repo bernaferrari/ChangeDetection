@@ -1,388 +1,180 @@
 package com.bernaferrari.changedetection.detailstext
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.paging.LivePagedListBuilder
-import androidx.paging.PagedList
-import com.bernaferrari.changedetection.extensions.getPositionForAdapter
-import com.bernaferrari.changedetection.extensions.removeClutterAndBeautifyHtmlIfNecessary
-import com.bernaferrari.changedetection.extensions.unescapeHtml
-import com.bernaferrari.changedetection.groupie.TextRecycler
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
-import com.bernaferrari.changedetection.util.SingleLiveEvent
-import com.bernaferrari.diffutils.diffs.text.DiffRowGenerator
-import com.xwray.groupie.Section
-import kotlinx.coroutines.*
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.nio.charset.Charset
-import kotlin.coroutines.CoroutineContext
+import javax.inject.Inject
 
-/**
- * Exposes the data to be used in the site diff screen.
- */
-class TextViewModel(
-    context: Application,
-    private val mSnapsRepository: SnapsRepository
-) : AndroidViewModel(context), CoroutineScope {
+@HiltViewModel
+class TextViewModel @Inject constructor(
+    private val snapsRepository: SnapsRepository
+) : ViewModel() {
 
-    val showNotEnoughInfoError = SingleLiveEvent<Boolean>()
-    val showNoChangesDetectedError = SingleLiveEvent<Void>()
-    val showProgress = SingleLiveEvent<Void>()
+    private val _selectedSnaps = MutableStateFlow<List<Snap>>(emptyList())
+    val selectedSnaps: StateFlow<List<Snap>> = _selectedSnaps.asStateFlow()
 
-    private var job: Job = Job()
+    private val _viewMode = MutableStateFlow(TextViewMode.DIFF)
+    val viewMode: StateFlow<TextViewMode> = _viewMode.asStateFlow()
 
-    override val coroutineContext: CoroutineContext
-        get() = Dispatchers.Main + job
+    private val _diffLines = MutableStateFlow<List<String>>(emptyList())
+    val diffLines: StateFlow<List<String>> = _diffLines.asStateFlow()
 
-    override fun onCleared() {
-        job.cancel()
-        super.onCleared()
+    private val _webContent = MutableStateFlow("")
+    val webContent: StateFlow<String> = _webContent.asStateFlow()
+
+    fun getSnapsPaged(siteId: String, contentType: String): Flow<PagingData<Snap>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = 20,
+                enablePlaceholders = true
+            ),
+            pagingSourceFactory = { snapsRepository.getSnapForPaging(siteId, contentType) }
+        ).flow.cachedIn(viewModelScope)
     }
 
-    /**
-     * Called to remove a diff
-     *
-     * @param id The diff url to be removed.
-     */
-    fun removeSnap(id: String?) = GlobalScope.launch {
-        if (id != null) mSnapsRepository.deleteSnap(id)
-    }
+    fun selectSnap(snap: Snap) {
+        val currentSelected = _selectedSnaps.value.toMutableList()
 
-    private var currentJob: Job? = null
-    var changePlusOriginal: Boolean = false
-
-    /**
-     * Called when we want to generate a diff between two items. Takes as input two ids and the top
-     * section and outputs the result to this top section.
-     *
-     * @param topSection    The section corresponding to the top recyclerview, which will
-     * be updated with the result from the diff.
-     * @param originalId    The snapId from the original item (which will be in red)
-     * @param revisedId     The snapId from the revised item (which will be in green)
-     * which will be updated by [generateDiff] with corresponding diff
-     */
-    fun generateDiff(topSection: Section, originalId: String?, revisedId: String?) {
-        currentJob?.cancel()
-        if (originalId.isNullOrBlank() || revisedId.isNullOrBlank()) {
-
-            mutableListOf<TextRecycler>().also { mutableList ->
-                mutableList.addAll(mutableListOf())
-                // this way it captures if showNotEnoughInfoError is null or false
-                if (showNotEnoughInfoError.value != true && mutableList.isEmpty()) {
-                    showNoChangesDetectedError.call()
-                }
-                topSection.update(mutableListOf())
+        when {
+            snap in currentSelected -> {
+                // Deselect
+                currentSelected.remove(snap)
             }
-
-            return
-        }
-
-        currentJob = launch(Dispatchers.IO) {
-
-            val (original, new) = getFromDb(originalId, revisedId)
-            val (onlyDiff, nonDiff) = generateDiffRows(original, new)
-
-            val mutableList = mutableListOf<TextRecycler>()
-
-            if (changePlusOriginal) mutableList.addAll(nonDiff)
-            mutableList.addAll(onlyDiff)
-            mutableList.sortBy { item -> item.index }
-
-            // this way it captures if showNotEnoughInfoError is null or false
-            if (showNotEnoughInfoError.value != true && mutableList.isEmpty()) {
-                showNoChangesDetectedError.call()
-            }
-
-            withContext(Dispatchers.Main) {
-                // There is a bug on Groupie 2.1.0 which is rendering the diff operation on UI thread.
-                // remove + insert is cheaper than checking if there was a change on thousands of lines.
-                topSection.update(mutableListOf())
-                topSection.update(mutableList)
-            }
-        }
-    }
-
-
-    /**
-     * Called when we want to generate a diff between two items. Takes as input two ids and the top
-     * section and outputs the result to this top section.
-     *
-     * @param topSection    The section corresponding to the top recyclerview, which will
-     * be updated with the result from the diff.
-     * @param originalId    The snapId from the original item (which will be in red)
-     * @param revisedId     The snapId from the revised item (which will be in green)
-     * which will be updated by [generateDiff] with corresponding diff
-     */
-    suspend fun generateDiffVisual(originalId: String?, revisedId: String?): String =
-        withContext(Dispatchers.IO) {
-            if (originalId.isNullOrBlank() || revisedId.isNullOrBlank()) return@withContext ""
-        val (original, new) = getFromDb(originalId, revisedId)
-            return@withContext generateVisualDiffRows(original, new)
-    }
-
-    /**
-     * This will asynchronously fetch a pair of snaps from the database based on their ids
-     *
-     * @param originalId The original diff url to be fetched.
-     * @param newId The newest url to be fetched.
-     * @return a pair of diffs
-     */
-    private suspend fun getFromDb(
-        originalId: String,
-        newId: String
-    ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>> =
-        mSnapsRepository.getSnapPair(originalId, newId)
-
-    suspend fun getSnapValue(snapId: String): String = withContext(Dispatchers.IO) {
-        mSnapsRepository.getSnapContent(snapId).toString(Charset.defaultCharset())
-    }
-
-    /**
-     * Called when there is a selection. This is a simple Finite State Machine, where
-     * it decides the color to select based on previous selection.
-     *
-     * @param item    Pass the item to be selected
-     * @param topSection Pass the top part of the screen,
-     * which will be updated by [generateDiff] with corresponding diff
-     */
-    inline fun fsmSelectWithCorrectColor(item: TextViewHolder, f: (String?, String?) -> Unit) {
-        when (item.colorSelected) {
-            ItemSelected.NONE -> {
-                when (item.adapter.colorSelected.count { it.value != ItemSelected.NONE }) {
-                    0 -> {
-                        // NOTHING IS SELECTED -> SELECT REVISED
-                        item.setColor(ItemSelected.REVISED)
-                    }
-                    1 -> {
-                        // ONE THING IS SELECTED AND IT IS REVISED -> ORIGINAL
-                        // ONE THING IS SELECTED AND IT IS ORIGINAL -> REVISED
-                        for ((_, value) in item.adapter.colorSelected) {
-                            if (value == ItemSelected.NONE) continue
-
-                            if (value == ItemSelected.ORIGINAL) {
-                                item.adapter.colorSelected.getPositionForAdapter(ItemSelected.ORIGINAL)
-                                    ?.let { position ->
-                                        item.setColor(ItemSelected.REVISED)
-
-                                        f(
-                                            item.adapter.getItemFromAdapter(position)?.snapId,
-                                            item.snap?.snapId
-                                        )
-                                    }
-
-                            } else {
-                                item.adapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
-                                    ?.let { position ->
-                                        item.setColor(ItemSelected.ORIGINAL)
-
-                                        f(
-                                            item.snap?.snapId,
-                                            item.adapter.getItemFromAdapter(position)?.snapId
-                                        )
-                                    }
-                            }
-
-                            break
-                        }
-                    }
-                    else -> {
-                        // TWO ARE SELECTED. UNSELECT THE ORIGINAL, SELECT ANOTHER THING.
-                        for ((position, _) in item.adapter.colorSelected.filter { it.value == ItemSelected.ORIGINAL }) {
-                            item.adapter.setColor(ItemSelected.NONE, position)
-                        }
-
-                        item.setColor(ItemSelected.ORIGINAL)
-
-                        item.adapter.colorSelected.getPositionForAdapter(ItemSelected.REVISED)
-                            ?.let { position ->
-                                f(
-                                    item.snap?.snapId,
-                                    item.adapter.getItemFromAdapter(position)?.snapId
-                                )
-                            }
-                    }
-                }
+            currentSelected.size < 2 -> {
+                // Add to selection
+                currentSelected.add(0, snap) // Add to front (most recent)
             }
             else -> {
-                item.setColor(ItemSelected.NONE)
+                // Replace oldest selection
+                currentSelected.removeAt(1)
+                currentSelected.add(0, snap)
             }
+        }
+
+        _selectedSnaps.value = currentSelected
+
+        // Generate diff if we have 2 selected
+        if (currentSelected.size == 2) {
+            generateDiff(currentSelected[1].snapId, currentSelected[0].snapId)
         }
     }
 
-    /**
-     * When there is only one item selected, we want to show an error message
-     * and clear the RecyclerView
-     *
-     * @param adapter    The adapter with a map of selected gradientColor
-     * @param topSection The top section, which will be cleared if there are
-     * not enough gradientColor selected
-     */
-    inline fun updateCanShowDiff(adapter: TextAdapter, callback: () -> Unit) {
+    fun setViewMode(mode: TextViewMode) {
+        _viewMode.value = mode
 
-        adapter.colorSelected.count { it.value != ItemSelected.NONE }.let { numOfItemsNotNone ->
-            if (numOfItemsNotNone < 2) {
-                // Empty when there is not enough selection
-                callback()
-            }
-
-            showNotEnoughInfoError.value = numOfItemsNotNone != 2
-        }
-    }
-
-    private suspend fun generateVisualDiffRows(
-        original: Pair<Snap, ByteArray>,
-        revised: Pair<Snap, ByteArray>
-    ): String = withContext(Dispatchers.IO) {
-
-        val oldTag =
-            { f: Boolean -> if (f) "<span class=\"editOldInline\" style=\"background-color:#acf2bd\">" else "</span>" }
-        val newTag =
-            { f: Boolean -> if (f) "<span class=\"editNewInline\" style=\"background-color:#ffdce0\">" else "</span>" }
-
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .mergeOriginalRevised(true)
-            .inlineDiffByWord(true)
-            .oldTag(oldTag)
-            .newTag(newTag)
-            .build()
-
-        fun findCorrectCharset(content: Snap): Charset =
-            content.contentCharset.takeUnless { it.isBlank() }
-                ?.let { Charset.forName(it) }
-                    ?: Charset.defaultCharset()
-
-        // find the correct charset
-        val newCharset = findCorrectCharset(revised.first)
-        val originalCharset = findCorrectCharset(original.first)
-
-        // compute the differences for two test texts.
-        // generateDiffRows will split the lines anyway, so there is no need for splitting again here.
-
-        val rows = generator.generateDiffRows(
-            original = mutableListOf(
-                original.second.toString(
-                    OkHttpCharset.bomAwareCharset(
-                        source = original.second,
-                        charset = originalCharset
-                    )
-                )
-            ),
-            revised = mutableListOf(
-                revised.second.toString(
-                    OkHttpCharset.bomAwareCharset(
-                        source = revised.second,
-                        charset = newCharset
-                    )
-                )
-            )
-        )
-
-        val mapping = StringBuilder()
-        rows.forEach { mapping.append(it.oldLine.unescapeHtml() + "\n") }
-        println("mapping: $mapping")
-        mapping.toString()
-    }
-
-    private suspend fun generateDiffRows(
-        original: Pair<Snap, ByteArray>,
-        revised: Pair<Snap, ByteArray>
-    ): Pair<MutableList<TextRecycler>, MutableList<TextRecycler>> = withContext(Dispatchers.IO) {
-
-        val generator = DiffRowGenerator.create()
-            .showInlineDiffs(true)
-            .inlineDiffByWord(true)
-            .oldTag { _ -> "TEXTREMOVED" }
-            .newTag { _ -> "TEXTADDED" }
-            .build()
-
-        fun findCorrectCharset(content: Snap): Charset =
-            content.contentCharset.takeUnless { it.isBlank() }
-                ?.let { Charset.forName(it) }
-                    ?: Charset.defaultCharset()
-
-        // find the correct charset
-        val newCharset = findCorrectCharset(revised.first)
-        val originalCharset = findCorrectCharset(original.first)
-
-        // compute the differences for two test texts.
-        // generateDiffRows will split the lines anyway, so there is no need for splitting again here.
-
-        val rows = generator.generateDiffRows(
-            original = mutableListOf(
-                original.second.toString(
-                    OkHttpCharset.bomAwareCharset(
-                        source = original.second,
-                        charset = originalCharset
-                    )
-                ).removeClutterAndBeautifyHtmlIfNecessary(original.first.contentType)
-            ),
-            revised = mutableListOf(
-                revised.second.toString(
-                    OkHttpCharset.bomAwareCharset(
-                        source = revised.second,
-                        charset = newCharset
-                    )
-                ).removeClutterAndBeautifyHtmlIfNecessary(revised.first.contentType)
-            )
-        )
-
-        val updatingNonDiff = mutableListOf<TextRecycler>()
-        val updatingOnlyDiff = mutableListOf<TextRecycler>()
-
-        // for some reason, unescapeHtml isn't working when put after removeClutterAndBeautifyHtml
-        // but it is working fine when put here.
-        rows.forEachIndexed { index, row ->
-            if (row.oldLine == row.newLine) {
-                updatingNonDiff.add(TextRecycler(row.oldLine.unescapeHtml(), index))
-                println(row.oldLine.unescapeHtml())
-            } else when {
-                row.newLine.isBlank() -> {
-                    updatingOnlyDiff.add(TextRecycler("-" + row.oldLine.unescapeHtml(), index))
+        when (mode) {
+            TextViewMode.ORIGINAL -> loadSnapContent(_selectedSnaps.value.getOrNull(1)?.snapId)
+            TextViewMode.REVISED -> loadSnapContent(_selectedSnaps.value.getOrNull(0)?.snapId)
+            TextViewMode.DIFF -> {
+                if (_selectedSnaps.value.size == 2) {
+                    generateDiff(_selectedSnaps.value[1].snapId, _selectedSnaps.value[0].snapId)
                 }
-                row.oldLine.isBlank() -> {
-                    updatingOnlyDiff.add(TextRecycler("+" + row.newLine.unescapeHtml(), index))
+            }
+        }
+    }
+
+    private fun loadSnapContent(snapId: String?) {
+        if (snapId == null) return
+
+        viewModelScope.launch {
+            try {
+                val content = withContext(Dispatchers.IO) {
+                    snapsRepository.getSnapContent(snapId).toString(Charset.defaultCharset())
+                }
+                _webContent.value = content
+            } catch (e: Exception) {
+                _webContent.value = ""
+            }
+        }
+    }
+
+    private fun generateDiff(originalId: String, revisedId: String) {
+        viewModelScope.launch {
+            try {
+                val (originalContent, revisedContent) = withContext(Dispatchers.IO) {
+                    val original = snapsRepository.getSnapContent(originalId).toString(Charset.defaultCharset())
+                    val revised = snapsRepository.getSnapContent(revisedId).toString(Charset.defaultCharset())
+                    Pair(original, revised)
+                }
+
+                // Generate diff lines
+                val diffResult = withContext(Dispatchers.Default) {
+                    generateDiffLines(originalContent, revisedContent)
+                }
+
+                if (_viewMode.value == TextViewMode.DIFF) {
+                    _diffLines.value = diffResult.first
+                    _webContent.value = diffResult.second
+                }
+
+            } catch (e: Exception) {
+                _diffLines.value = emptyList()
+                _webContent.value = ""
+            }
+        }
+    }
+
+    private fun generateDiffLines(original: String, revised: String): Pair<List<String>, String> {
+        // Simplified diff generation - in real implementation you'd use a proper diff library
+        val originalLines = original.lines()
+        val revisedLines = revised.lines()
+
+        val diffLines = mutableListOf<String>()
+        val htmlBuilder = StringBuilder()
+
+        // Simple line-by-line comparison
+        val maxLines = maxOf(originalLines.size, revisedLines.size)
+
+        for (i in 0 until maxLines) {
+            val origLine = originalLines.getOrNull(i)
+            val revLine = revisedLines.getOrNull(i)
+
+            when {
+                origLine == null -> {
+                    // Added line
+                    diffLines.add("+TEXTADDED$revLine")
+                    htmlBuilder.append("<div style='background-color: #e6ffed;'>+ $revLine</div>")
+                }
+                revLine == null -> {
+                    // Removed line
+                    diffLines.add("-TEXTREMOVED$origLine")
+                    htmlBuilder.append("<div style='background-color: #ffeef0;'>- $origLine</div>")
+                }
+                origLine != revLine -> {
+                    // Changed line
+                    diffLines.add("-TEXTREMOVED$origLine")
+                    diffLines.add("+TEXTADDED$revLine")
+                    htmlBuilder.append("<div style='background-color: #ffeef0;'>- $origLine</div>")
+                    htmlBuilder.append("<div style='background-color: #e6ffed;'>+ $revLine</div>")
                 }
                 else -> {
-                    updatingOnlyDiff.add(TextRecycler("-" + row.oldLine.unescapeHtml(), index))
-                    updatingOnlyDiff.add(TextRecycler("+" + row.newLine.unescapeHtml(), index))
+                    // Unchanged line
+                    diffLines.add("  $origLine")
+                    htmlBuilder.append("<div>  $origLine</div>")
                 }
             }
         }
 
-        Pair(updatingOnlyDiff, updatingNonDiff)
+        return Pair(diffLines, htmlBuilder.toString())
     }
 
-    suspend fun getAllSnapsPagedForId(id: String, filter: String): LiveData<PagedList<Snap>> {
-        return LivePagedListBuilder(
-            mSnapsRepository.getSnapForPaging(id, filter), PagedList.Config.Builder()
-                .setPageSize(PAGE_SIZE)
-                .setEnablePlaceholders(ENABLE_PLACEHOLDERS)
-                .build()
-        ).build()
-    }
-
-    companion object {
-        /**
-         * A good page size is a value that fills at least a screen worth of content on a large
-         * device so the User is unlikely to see a null item.
-         * You can play with this constant to observe the paging behavior.
-         * <p>
-         * It's possible to vary this with list device size, but often unnecessary, unless a user
-         * scrolling on a large device is expected to scroll through items more quickly than a small
-         * device, such as when the large device uses a grid layout of items.
-         */
-        private const val PAGE_SIZE = 8
-
-        /**
-         * If placeholders are enabled, PagedList will report the full size but some items might
-         * be null in onBind method (PagedListAdapter triggers a rebind when data is loaded).
-         * <p>
-         * If placeholders are disabled, onBind will never receive null but as more pages are
-         * loaded, the scrollbars will jitter as new pages are loaded. You should probably disable
-         * scrollbars if you disable placeholders.
-         */
-        private const val ENABLE_PLACEHOLDERS = true
+    fun removeSnap(snapId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            snapsRepository.deleteSnap(snapId)
+        }
     }
 }

@@ -5,32 +5,14 @@ import com.facebook.stetho.Stetho
 import com.jakewharton.threetenabp.AndroidThreeTen
 import com.orhanobut.logger.AndroidLogAdapter
 import com.orhanobut.logger.Logger
-import dagger.android.AndroidInjector
-import dagger.android.DispatchingAndroidInjector
-import dagger.android.HasAndroidInjector
-import javax.inject.Inject
+import dagger.hilt.android.HiltAndroidApp
 
-class App : Application(), HasAndroidInjector {
-
-    @Inject
-    lateinit var fragmentDispatchingAndroidInjector: DispatchingAndroidInjector<Any>
-
-    override fun androidInjector(): AndroidInjector<Any>? {
-        return fragmentDispatchingAndroidInjector
-    }
-
-    lateinit var component: SingletonComponent
+@HiltAndroidApp
+class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
         INSTANCE = this
-
-        component = DaggerSingletonComponent.builder()
-            .application(this)
-            .build()
-            .also {
-                it.inject(this)
-            }
 
         AndroidThreeTen.init(this)
         if (BuildConfig.DEBUG) {

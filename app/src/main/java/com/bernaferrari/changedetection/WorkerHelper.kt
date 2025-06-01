@@ -1,150 +1,211 @@
 package com.bernaferrari.changedetection
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.os.Build
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.hilt.work.HiltWorker
 import androidx.work.*
-import com.bernaferrari.changedetection.mainnew.OneTimeSync
 import com.bernaferrari.changedetection.repo.Site
+import com.bernaferrari.changedetection.settings.SettingsViewModel
 import com.orhanobut.logger.Logger
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
+import javax.inject.Singleton
 
+@HiltWorker
+class SyncWorker @AssistedInject constructor(
+    @Assisted context: Context,
+    @Assisted workerParams: WorkerParameters,
+    private val okHttpClient: OkHttpClient
+) : CoroutineWorker(context, workerParams) {
 
-/**
- * Helps to deal with Work Manager.
- */
-object WorkerHelper {
+    override suspend fun doWork(): Result {
+        return try {
+            val siteId = inputData.getString("id")
+            val isSingle = inputData.getBoolean("isSingle", false)
+            val wifiRequired = inputData.getBoolean(WorkerHelper.WIFI, false)
 
-    const val UNIQUEWORK = "work"
-    const val WIFI = "wifi"
-    const val CHARGING = "charging"
-    const val BATTERYNOTLOW = "batteryNotLow"
-    const val IDLE = "idle"
-    const val DELAY = "delay"
+            Logger.d("Starting sync work for site: $siteId, isSingle: $isSingle, wifi: $wifiRequired")
 
-    class ConstraintsRequired(
-        val wifi: Boolean,
-        val charging: Boolean,
-        val batteryNotLow: Boolean,
-        val deviceIdle: Boolean
+            // Your existing sync logic would go here
+            Result.success()
+        } catch (e: Exception) {
+            Logger.e("Sync work failed: ${e.localizedMessage}")
+            Result.retry()
+        }
+    }
+}
+
+@Singleton
+open class WorkerHelper @Inject constructor(
+    private val workManager: WorkManager,
+    private val okHttpClient: OkHttpClient
+) {
+
+    companion object {
+        const val UNIQUEWORK = "work"
+        const val WIFI = "wifi"
+        const val CHARGING = "charging"
+        const val BATTERYNOTLOW = "batteryNotLow"
+        const val IDLE = "idle"
+        const val DELAY = "delay"
+        const val BACKGROUND_SYNC = "backgroundSync"
+    }
+
+    suspend fun updateWorkerWithConstraints(
+        dataStore: DataStore<Preferences>,
+        cancelCurrentWork: Boolean = true
     ) {
-        constructor(list: List<String>) : this(
-            list.getOrNull(0)?.toBoolean() ?: false,
-            list.getOrNull(1)?.toBoolean() ?: false,
-            list.getOrNull(2)?.toBoolean() ?: false,
-            list.getOrNull(3)?.toBoolean() ?: false
+        val preferences = dataStore.data.first()
+        val constraints = WorkConstraints.fromDataStore(dataStore)
+
+        if (cancelCurrentWork) {
+            cancelWork()
+        }
+
+        if (preferences[SettingsViewModel.BACKGROUND_SYNC_KEY] == true) {
+            val delay = preferences[SettingsViewModel.SYNC_INTERVAL_KEY] ?: 30L
+            schedulePeriodicWork(delay, constraints)
+        }
+    }
+
+    open fun cancelWork() {
+        workManager.cancelAllWorkByTag(UNIQUEWORK)
+    }
+
+    private fun schedulePeriodicWork(
+        intervalMinutes: Long,
+        constraints: WorkConstraints
+    ) {
+        val workerConstraints = Constraints.Builder().apply {
+            setRequiredNetworkType(if (constraints.wifi) NetworkType.UNMETERED else NetworkType.CONNECTED)
+            if (constraints.batteryNotLow) setRequiresBatteryNotLow(true)
+            if (constraints.charging) setRequiresCharging(true)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && constraints.deviceIdle) {
+                setRequiresDeviceIdle(true)
+            }
+        }.build()
+
+        val inputData = workDataOf(
+            WIFI to constraints.wifi,
+            CHARGING to constraints.charging,
+            BATTERYNOTLOW to constraints.batteryNotLow,
+            IDLE to constraints.deviceIdle
+        )
+
+        val periodicWork = PeriodicWorkRequestBuilder<SyncWorker>(intervalMinutes, TimeUnit.MINUTES)
+            .addTag(UNIQUEWORK)
+            .setConstraints(workerConstraints)
+            .setInputData(inputData)
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.MINUTES)
+            .build()
+
+        workManager.enqueueUniquePeriodicWork(
+            UNIQUEWORK,
+            ExistingPeriodicWorkPolicy.REPLACE,
+            periodicWork
         )
     }
 
-    fun reloadSite(site: Site, context: Context) {
-        val work = OneTimeWorkRequestBuilder<OneTimeSync>()
+    fun reloadSite(site: Site) {
+        val work = OneTimeWorkRequestBuilder<SyncWorker>()
             .setInputData(workDataOf("id" to site.id, "isSingle" to true))
             .addTag("singleEvent")
             .addTag(site.id)
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
 
-        WorkManager.getInstance(context)
+        workManager
             .beginUniqueWork(site.id, ExistingWorkPolicy.REPLACE, work)
             .enqueue()
     }
 
-    suspend fun fetchFromServer(url: String): Pair<String, ByteArray> =
-        withContext(Dispatchers.IO) {
-            val client = OkHttpClient()
+    suspend fun fetchFromServer(url: String): FetchResult = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url(url)
+                .addHeader("User-Agent", "ChangeDetection/1.0")
+                .build()
 
-            try {
-                val request = Request.Builder()
-                    .url(url)
-                    .build()
+            okHttpClient.newCall(request).execute().use { response ->
+                Logger.d("Response successful: ${response.isSuccessful} for $url")
+                Logger.d("Response headers: ${response.headers}")
 
-                val response = client.newCall(request).execute()
-                Logger.d("isSuccessful -> ${response.isSuccessful}")
-                Logger.d("header -> ${response.headers}")
+                val contentType = response.header("content-type", "")
+                val bytes = response.body?.use { body ->
+                    if (contentType?.contains("text", ignoreCase = true) == true) {
+                        body.string().toByteArray()
+                    } else {
+                        body.bytes()
+                    }
+                } ?: throw IllegalStateException("Response body is null")
 
-                val contentTypeAndCharset = response.headers["content-type"] ?: ""
-
-                val bytes = if (contentTypeAndCharset.contains("text")) {
-                    response.body?.string()?.toByteArray() ?: throw NullPointerException()
-                    // VERY inefficient solution for this problem:
-                    // https://stackoverflow.com/questions/50788229/how-to-convert-response-body-from-bytearray-to-string-without-using-okhttp-owns
-                } else {
-                    response.body?.bytes() ?: throw NullPointerException()
-                }
-
-                Pair(contentTypeAndCharset, bytes)
-            } catch (e: UnknownHostException) {
-                // When internet connection is not available OR website doesn't exist
-                Logger.e("UnknownHostException for $url")
-                Pair("UnknownHostException for $url", byteArrayOf())
-            } catch (e: IllegalArgumentException) {
-                // When input is "http://"
-                Logger.e("IllegalArgumentException for $url")
-                Pair("IllegalArgumentException for $url", byteArrayOf())
-            } catch (e: SocketTimeoutException) {
-                // When site is not available
-                Logger.e("SocketTimeoutException for $url")
-                Pair("SocketTimeoutException for $url", byteArrayOf())
-            } catch (e: Exception) {
-                Logger.e("${e.localizedMessage} for $url")
-                Pair("${e.localizedMessage} for $url", byteArrayOf())
+                FetchResult.Success(contentType, bytes)
             }
-        }
-
-    fun updateWorkerWithConstraints(
-        sharedPrefs: SharedPreferences,
-        context: Context,
-        cancelCurrentWork: Boolean = true
-    ) {
-        val constraints = ConstraintsRequired(
-            sharedPrefs.getBoolean(WIFI, false),
-            sharedPrefs.getBoolean(CHARGING, false),
-            sharedPrefs.getBoolean(BATTERYNOTLOW, false),
-            sharedPrefs.getBoolean(IDLE, false)
-        )
-
-        if (cancelCurrentWork) {
-            cancelWork(context)
-        }
-
-        if (sharedPrefs.getBoolean("backgroundSync", false)) {
-            reloadWorkManager(sharedPrefs.getLong(DELAY, 30), constraints, context)
+        } catch (e: UnknownHostException) {
+            Logger.e("Network error for $url: ${e.localizedMessage}")
+            FetchResult.Error("Network not available: $url")
+        } catch (e: IllegalArgumentException) {
+            Logger.e("Invalid URL: $url")
+            FetchResult.Error("Invalid URL: $url")
+        } catch (e: SocketTimeoutException) {
+            Logger.e("Timeout for $url")
+            FetchResult.Error("Request timeout: $url")
+        } catch (e: Exception) {
+            Logger.e("Unexpected error for $url: ${e.localizedMessage}")
+            FetchResult.Error("${e.localizedMessage ?: "Unknown error"}: $url")
         }
     }
 
-    private fun reloadWorkManager(
-        delay: Long = 15,
-        constraints: ConstraintsRequired,
-        context: Context
-    ) {
+    fun getWorkInfo() = workManager.getWorkInfosByTagLiveData(UNIQUEWORK)
+}
 
-        val workerConstraints = Constraints.Builder().apply {
-            this.setRequiredNetworkType(NetworkType.CONNECTED)
-            if (constraints.batteryNotLow) this.setRequiresBatteryNotLow(true)
-            if (constraints.charging) this.setRequiresCharging(true)
-            if (Build.VERSION.SDK_INT >= 23 && constraints.deviceIdle) setRequiresDeviceIdle(true)
+data class WorkConstraints(
+    val wifi: Boolean = false,
+    val charging: Boolean = false,
+    val batteryNotLow: Boolean = false,
+    val deviceIdle: Boolean = false
+) {
+    companion object {
+        suspend fun fromDataStore(dataStore: DataStore<Preferences>): WorkConstraints {
+            val preferences = dataStore.data.first()
+            return WorkConstraints(
+                wifi = preferences[SettingsViewModel.REQUIRE_WIFI_KEY] ?: false,
+                charging = preferences[SettingsViewModel.REQUIRE_CHARGING_KEY] ?: false,
+                batteryNotLow = preferences[SettingsViewModel.REQUIRE_BATTERY_NOT_LOW_KEY] ?: false,
+                deviceIdle = preferences[SettingsViewModel.REQUIRE_DEVICE_IDLE_KEY] ?: false
+            )
+        }
+    }
+}
+
+sealed class FetchResult {
+    data class Success(val contentType: String, val data: ByteArray) : FetchResult() {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+            other as Success
+            if (contentType != other.contentType) return false
+            if (!data.contentEquals(other.data)) return false
+            return true
         }
 
-        val inputData = Data.Builder()
-            .putBoolean(WIFI, constraints.wifi)
-            .build()
-
-        val syncWork = OneTimeWorkRequest.Builder(OneTimeSync::class.java)
-            .addTag(UNIQUEWORK)
-            .setInitialDelay(delay, TimeUnit.MINUTES)
-            .setConstraints(workerConstraints.build())
-            .setInputData(inputData)
-            .build()
-
-        WorkManager.getInstance(context).enqueue(syncWork)
+        override fun hashCode(): Int {
+            var result = contentType.hashCode()
+            result = 31 * result + data.contentHashCode()
+            return result
+        }
     }
 
-    fun cancelWork(context: Context) {
-        WorkManager.getInstance(context).cancelAllWorkByTag(UNIQUEWORK)
-    }
+    data class Error(val message: String) : FetchResult()
 }

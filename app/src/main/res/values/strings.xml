@@ -88,12 +88,12 @@
     <string name="incorrect_url">Incorrect URL</string>
     <string name="no_websites_being_monitored">No websites are being monitored</string>
 
-    <string name="one_x" translatable="false">1x</string>
-    <string name="two_x" translatable="false">2x</string>
-    <string name="three_x" translatable="false">3x</string>
-    <string name="four_x" translatable="false">4x</string>
-    <string name="five_x" translatable="false">5x</string>
-    <string name="shared_transition" translatable="false">shared_transition</string>
+    <string name="one_x" formatted="false">1x</string>
+    <string name="two_x" formatted="false">2x</string>
+    <string name="three_x" formatted="false">3x</string>
+    <string name="four_x" formatted="false">4x</string>
+    <string name="five_x" formatted="false">5x</string>
+    <string name="shared_transition" formatted="false">shared_transition</string>
 
     <string name="control_bar_quality">High Quality</string>
     <string name="share">Share</string>

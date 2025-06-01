@@ -1,42 +1,32 @@
-import io.gitlab.arturbosch.detekt.detekt
-
-buildscript {
-    repositories {
-        google()
-        jcenter()
-    }
-
-    dependencies {
-        classpath("com.android.tools.build:gradle:7.3.1")
-        classpath(kotlin("gradle-plugin", version = "1.7.20"))
-        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.2.1")
-        classpath("com.github.ben-manes:gradle-versions-plugin:0.43.0")
-    }
-}
-
-allprojects {
-    repositories {
-        google()
-        jcenter()
-        maven("https://jitpack.io")
-        maven("https://kotlin.bintray.com/kotlinx/")
-    }
-}
-
 plugins {
-    id("io.gitlab.arturbosch.detekt") version "1.6.0"
-}
-
-tasks.register<Delete>("clean").configure {
-    delete(rootProject.buildDir)
-}
-
-detekt {
-    version = "1.6.0"
-    input = files("app/")
-    config = files("default-detekt-config.yml")
+    alias(libs.plugins.gradle.versions)
+    alias(libs.plugins.version.catalog.update)
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.kotlin.android) apply false
+    alias(libs.plugins.kotlin.parcelize) apply false
+    alias(libs.plugins.hilt) apply false
+    alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.compose) apply false
+    alias(libs.plugins.spotless) apply false
 }
 
 subprojects {
-    tasks.withType<Javadoc>().configureEach { isEnabled = false }
+    apply(plugin = "com.diffplug.spotless")
+    configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        kotlin {
+            target("**/*.kt")
+            targetExclude("${layout.buildDirectory}/**/*.kt")
+            ktlint()
+            licenseHeaderFile(rootProject.file("spotless/copyright.kt"))
+        }
+        kotlinGradle {
+            target("*.gradle.kts")
+            targetExclude("${layout.buildDirectory}/**/*.kt")
+            ktlint()
+            // Look for the first line that doesn't have a block comment (assumed to be the license)
+            licenseHeaderFile(rootProject.file("spotless/copyright.kt"), "(^(?![\\/ ]\\*).*$)")
+        }
+    }
 }
+
