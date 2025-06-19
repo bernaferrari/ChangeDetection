@@ -7,7 +7,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -15,9 +14,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import com.bernaferrari.changedetection.R
-import com.bernaferrari.changedetection.extensions.getColorFromAttr
 
 @Composable
 fun TextDiffItem(
@@ -25,23 +21,21 @@ fun TextDiffItem(
     index: Int,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-    
     // Parse the diff format: +TEXTADDED this text was added TEXTADDED
     val tokens = title.split("TEXTADDED|TEXTREMOVED".toRegex())
     val firstChar = title.firstOrNull() ?: ' '
     
     val (backgroundColor, highlightColor, numberBackgroundColor, textAlign) = when (firstChar) {
         '+' -> {
-            val bgColor = Color(context.getColorFromAttr(R.attr.code_addition))
-            val highlightColor = Color(context.getColorFromAttr(R.attr.code_addition_diff))
-            val numBg = Color(context.getColorFromAttr(R.attr.num_addition))
+            val bgColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            val highlightColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+            val numBg = MaterialTheme.colorScheme.primaryContainer
             Quadruple(bgColor, highlightColor, numBg, TextAlign.End)
         }
         '-' -> {
-            val bgColor = Color(context.getColorFromAttr(R.attr.code_deletion))
-            val highlightColor = Color(context.getColorFromAttr(R.attr.code_deletion_diff))
-            val numBg = Color(context.getColorFromAttr(R.attr.num_deletion))
+            val bgColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+            val highlightColor = MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
+            val numBg = MaterialTheme.colorScheme.errorContainer
             Quadruple(bgColor, highlightColor, numBg, TextAlign.Start)
         }
         else -> {

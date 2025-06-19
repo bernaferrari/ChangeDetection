@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Allow all domains for HTTP/HTTPS flexibility -->
+        <domain includeSubdomains="true">*</domain>
+    </domain-config>
+
+    <!-- Base config allowing cleartext for all domains -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <!-- Trust system certificates -->
+            <certificates src="system" />
+            <!-- Trust user-added CA certificates -->
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

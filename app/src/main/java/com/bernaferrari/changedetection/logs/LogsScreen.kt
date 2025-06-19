@@ -41,10 +41,10 @@ import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.ui.compose.SectionHeader
-import org.threeten.bp.Instant
-import org.threeten.bp.LocalDateTime
-import org.threeten.bp.ZoneId
-import org.threeten.bp.format.DateTimeFormatter
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun LogsScreen(
@@ -164,7 +164,7 @@ fun LogsScreen(
 @Composable
 private fun LogItem(
     snap: Snap,
-    site: com.bernaferrari.changedetection.repo.Site,
+    site: Site,
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
@@ -280,7 +280,7 @@ internal fun getTitle(site: Site?): String {
     return if (site.title.isNullOrBlank()) {
         site.url.replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)".toRegex(), "")
     } else {
-        site.title ?: ""
+        site.title
     }
 }
 

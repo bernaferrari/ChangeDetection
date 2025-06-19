@@ -112,7 +112,6 @@ Wifi is currently not a constraint from WorkManager, so I implemented it myself 
   * [Notify][8] create notifications without effort.
   * [ok-http][9] fetch the webpages.
   * [Stetho][10] debug the database easily.
-  * [ThreeTenABP][11] for dealing with time in a Java 8 way.
   * [timeago][12] makes it easy display relative dates (i.e. 1 day ago).
   * [RxJava][13] responsible for coordinating the reload button animation and updating the text on main screen cards periodically.
   * [jsoup][14] cleaning up html files.

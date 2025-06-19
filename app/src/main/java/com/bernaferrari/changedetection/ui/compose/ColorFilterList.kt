@@ -28,7 +28,6 @@ fun ColorFilterList(
             ColorPickerButton(
                 colorGroup = colorGroup,
                 isSelected = colorGroup in selectedColors,
-                isFirst = index == 0,
                 allowReselection = true,
                 onClick = { selected ->
                     selectedColors = if (selected) {

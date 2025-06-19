@@ -6,16 +6,20 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.CompareArrows
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -37,21 +41,22 @@ data class FormData(
 
 @Composable
 fun AddEditForm(
+    modifier: Modifier = Modifier, // This modifier will include paddingValues from Scaffold
     formData: FormData,
     isEditing: Boolean = false,
     onFormDataChange: (FormData) -> Unit,
     onNavigateToWebView: (String) -> Unit = {},
     onShowCompareDialog: (String) -> Unit = {},
+    onShowComparison: (String) -> Unit = {},
     onShowThresholdDialog: () -> Unit = {},
-    modifier: Modifier = Modifier
 ) {
     var showThresholdDialog by remember { mutableStateOf(false) }
 
     Column(
-        modifier = modifier
+        modifier = modifier // This modifier from AddEditScreen already has paddingValues applied
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(16.dp), // This is for inner content padding
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // URL Section
@@ -90,23 +95,36 @@ fun AddEditForm(
                     isError = formData.urlError != null,
                     supportingText = formData.urlError?.let { { Text(it) } },
                     modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Uri,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+//                            LocalFocusManager.current.clearFocus()
+                        }
+                    ),
                     trailingIcon = if (formData.url.isValidUrl()) {
                         {
                             Row {
+                                // Only show comparison for editing existing sites
+                                if (isEditing) {
+                                    IconButton(
+                                        onClick = { onShowComparison(formData.url) }
+                                    ) {
+                                        Icon(
+                                            Icons.AutoMirrored.Outlined.CompareArrows,
+                                            contentDescription = "Compare versions"
+                                        )
+                                    }
+                                }
                                 IconButton(
                                     onClick = { onNavigateToWebView(formData.url) }
                                 ) {
                                     Icon(
-                                        Icons.Outlined.OpenInBrowser,
-                                        contentDescription = "Preview"
-                                    )
-                                }
-                                IconButton(
-                                    onClick = { onShowCompareDialog(formData.url) }
-                                ) {
-                                    Icon(
-                                        Icons.Outlined.Compare,
-                                        contentDescription = "Compare"
+                                        Icons.AutoMirrored.Outlined.OpenInNew,
+                                        contentDescription = "Test webpage"
                                     )
                                 }
                             }
@@ -149,14 +167,15 @@ fun AddEditForm(
                     label = { Text("Site title (optional)") },
                     placeholder = { Text("My Website") },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    singleLine = true
                 )
 
                 OutlinedTextField(
                     value = formData.tags,
                     onValueChange = { onFormDataChange(formData.copy(tags = it)) },
                     label = { Text("Tags or notes (optional)") },
-                    placeholder = { Text("Add tags or notes...") },
+                    placeholder = { Text("work, important") },
                     modifier = Modifier.fillMaxWidth(),
                     maxLines = 2,
                     shape = RoundedCornerShape(8.dp)
@@ -222,7 +241,10 @@ fun AddEditForm(
                 // Threshold setting (only for editing)
                 if (isEditing) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { showThresholdDialog = true },
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -238,11 +260,11 @@ fun AddEditForm(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        TextButton(
-                            onClick = { showThresholdDialog = true }
-                        ) {
-                            Text("${formData.threshold} bytes")
-                        }
+                        Text(
+                            text = "${formData.threshold} bytes",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }

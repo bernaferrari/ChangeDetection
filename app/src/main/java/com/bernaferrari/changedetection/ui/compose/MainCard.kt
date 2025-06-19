@@ -1,46 +1,71 @@
 package com.bernaferrari.changedetection.ui.compose
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import androidx.compose.animation.core.*
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Sync
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.bernaferrari.changedetection.repo.ColorGroup
+import com.bernaferrari.changedetection.repo.ConstraintsRequired
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
+import com.bernaferrari.changedetection.ui.theme.ChangeDetectionTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlin.math.abs
-import androidx.compose.ui.tooling.preview.Preview
-import com.bernaferrari.changedetection.repo.ConstraintsRequired
-import com.bernaferrari.changedetection.ui.theme.ChangeDetectionTheme
 
 enum class SyncStatus {
     LOADING, OK, ERROR
@@ -55,6 +80,7 @@ fun MainCard(
     syncStatus: SyncStatus = SyncStatus.OK,
     onReloadClick: () -> Unit,
     onClick: () -> Unit = {},
+    onLongClick: () -> Unit = {},
 ) {
     val context = LocalContext.current
 
@@ -62,11 +88,7 @@ fun MainCard(
     var lastSyncText by remember { mutableStateOf("") }
     var lastChangeText by remember { mutableStateOf("") }
 
-    // State for controlling animations
-    var isSyncSpinning by remember { mutableStateOf(false) }
-    var isPressed by remember { mutableStateOf(false) }
-
-    // Enhanced animations
+    // Enhanced animations - keep spinning while loading
     val infiniteTransition = rememberInfiniteTransition(label = "sync_animation")
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -78,19 +100,8 @@ fun MainCard(
         label = "rotation"
     )
 
-    val cardScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-        label = "scale"
-    )
-
-    // Stop spinning after animation
-    LaunchedEffect(isSyncSpinning) {
-        if (isSyncSpinning) {
-            delay(1200)
-            isSyncSpinning = false
-        }
-    }
+    // Determine if should be spinning based on sync status
+    val isSpinning = syncStatus == SyncStatus.LOADING
 
     // Get string resources
     val syncingText = stringResource(R.string.syncing)
@@ -154,22 +165,21 @@ fun MainCard(
     }
 
     ElevatedCard(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable {
-                isPressed = true
-                onClick()
-            }
-            .clip(
-                RoundedCornerShape(24.dp)
-            ),
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
         ),
         shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
     ) {
-        Column {
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(24.dp))
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick
+                )
+        ) {
             // Gradient header section matching original design
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -229,7 +239,6 @@ fun MainCard(
                                 .size(36.dp)
                                 .clickable {
                                     onReloadClick()
-                                    isSyncSpinning = true
                                 },
                             shape = CircleShape,
                             color = Color.White,
@@ -245,9 +254,7 @@ fun MainCard(
                                     modifier = Modifier
                                         .size(20.dp)
                                         .let {
-                                            if (syncStatus == SyncStatus.LOADING || isSyncSpinning)
-                                                it.rotate(rotation)
-                                            else it
+                                            if (isSpinning) it.rotate(rotation) else it
                                         }
                                 )
                             }
@@ -282,9 +289,7 @@ fun MainCard(
                                 modifier = Modifier
                                     .size(20.dp)
                                     .let {
-                                        if (syncStatus == SyncStatus.LOADING || isSyncSpinning)
-                                            it.rotate(rotation)
-                                        else it
+                                        if (isSpinning) it.rotate(rotation) else it
                                     }
                             )
                         }
@@ -325,7 +330,7 @@ fun MainCard(
                     Surface(
                         modifier = Modifier.size(36.dp),
                         shape = CircleShape,
-                        color = MaterialTheme.colorScheme.secondaryContainer
+                        color = MaterialTheme.colorScheme.primaryContainer
                     ) {
                         Box(
                             contentAlignment = Alignment.Center
@@ -360,13 +365,6 @@ fun MainCard(
         }
     }
 
-    // Reset pressed state
-    LaunchedEffect(isPressed) {
-        if (isPressed) {
-            delay(150)
-            isPressed = false
-        }
-    }
 }
 
 // Helper data class for multiple return values

@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.config.KotlinCompilerVersion
-
 plugins {
     id("com.android.library")
     id("kotlin-android")
@@ -10,7 +8,6 @@ android {
 
     defaultConfig {
         minSdk = 21
-        targetSdk = 36
     }
 
     buildTypes {

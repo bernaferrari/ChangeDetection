@@ -25,7 +25,10 @@ data class SettingsUiState(
     val requireCharging: Boolean = false,
     val requireBatteryNotLow: Boolean = false,
     val requireDeviceIdle: Boolean = false,
-    val themeMode: String = "MATERIAL_YOU"
+    val themeMode: String = "MATERIAL_YOU",
+    val turboMode: Boolean = false,
+    val turboSiteIds: List<String> = emptyList(),
+    val turboStartTime: Long = 0L
 )
 
 @HiltViewModel
@@ -46,9 +49,19 @@ class SettingsViewModel @Inject constructor(
         val REQUIRE_BATTERY_NOT_LOW_KEY = booleanPreferencesKey("require_battery_not_low")
         val REQUIRE_DEVICE_IDLE_KEY = booleanPreferencesKey("require_device_idle")
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
+        val TURBO_MODE_KEY = booleanPreferencesKey("turbo_mode")
+        val TURBO_SITE_IDS_KEY = stringPreferencesKey("turbo_site_ids")
+        val TURBO_START_TIME_KEY = longPreferencesKey("turbo_start_time")
     }
 
     val uiState: StateFlow<SettingsUiState> = dataStore.data.map { preferences ->
+        val turboSiteIdsString = preferences[TURBO_SITE_IDS_KEY] ?: ""
+        val turboSiteIds = if (turboSiteIdsString.isBlank()) {
+            emptyList()
+        } else {
+            turboSiteIdsString.split(",").filter { it.isNotBlank() }
+        }
+        
         SettingsUiState(
             lightMode = preferences[LIGHT_MODE_KEY] ?: true,
             colorBySdk = preferences[COLOR_BY_SDK_KEY] ?: true,
@@ -60,7 +73,10 @@ class SettingsViewModel @Inject constructor(
             requireCharging = preferences[REQUIRE_CHARGING_KEY] ?: false,
             requireBatteryNotLow = preferences[REQUIRE_BATTERY_NOT_LOW_KEY] ?: false,
             requireDeviceIdle = preferences[REQUIRE_DEVICE_IDLE_KEY] ?: false,
-            themeMode = preferences[THEME_MODE_KEY] ?: "MATERIAL_YOU"
+            themeMode = preferences[THEME_MODE_KEY] ?: "MATERIAL_YOU",
+            turboMode = preferences[TURBO_MODE_KEY] ?: false,
+            turboSiteIds = turboSiteIds,
+            turboStartTime = preferences[TURBO_START_TIME_KEY] ?: 0L
         )
     }.stateIn(
         scope = viewModelScope,
@@ -153,6 +169,28 @@ class SettingsViewModel @Inject constructor(
             dataStore.edit { preferences ->
                 preferences[THEME_MODE_KEY] = themeMode
             }
+        }
+    }
+
+    fun enableTurboMode(siteIds: List<String>) {
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[TURBO_MODE_KEY] = true
+                preferences[TURBO_SITE_IDS_KEY] = siteIds.joinToString(",")
+                preferences[TURBO_START_TIME_KEY] = System.currentTimeMillis()
+            }
+            workerHelper.startTurboMode(siteIds)
+        }
+    }
+
+    fun disableTurboMode() {
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[TURBO_MODE_KEY] = false
+                preferences[TURBO_SITE_IDS_KEY] = ""
+                preferences[TURBO_START_TIME_KEY] = 0L
+            }
+            workerHelper.stopTurboMode()
         }
     }
 }

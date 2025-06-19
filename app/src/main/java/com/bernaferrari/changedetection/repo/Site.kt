@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import kotlinx.parcelize.Parcelize
-import java.util.*
+import java.util.UUID
 
 /**
  * Immutable model class for a Site.
@@ -36,7 +36,13 @@ data class Site(
     val isNotificationEnabled: Boolean,
     val notes: String,
     val colors: ColorGroup,
-    val constraints: ConstraintsRequired // reserved for future use
+    val constraints: ConstraintsRequired, // reserved for future use
+    val browserMode: Boolean = false,
+    val cookieData: String = "", // JSON string of cookies
+    val userAgent: String = "",
+    val cssSelector: String = "", // For selective monitoring
+    val elementXPath: String = "", // XPath for more precise element selection
+    val elementMonitoring: Boolean = false // Whether to monitor specific element only
 ) : Parcelable {
 
     @Ignore
@@ -61,7 +67,13 @@ data class Site(
         true,
         tags,
         colors,
-        ConstraintsRequired(false, false, false, false)
+        ConstraintsRequired(false, false, false, false),
+        false,
+        "",
+        "",
+        "",
+        "",
+        false
     )
 
     @Ignore
@@ -87,7 +99,13 @@ data class Site(
         isNotificationEnabled,
         "",
         colors,
-        ConstraintsRequired(false, false, false, false)
+        ConstraintsRequired(false, false, false, false),
+        false,
+        "",
+        "",
+        "",
+        "",
+        false
     )
 
     @Ignore
@@ -112,7 +130,13 @@ data class Site(
         true,
         tags,
         colors,
-        ConstraintsRequired(false, false, false, false)
+        ConstraintsRequired(false, false, false, false),
+        false,
+        "",
+        "",
+        "",
+        "",
+        false
     )
 
     override fun toString(): String {

@@ -25,6 +25,8 @@ import java.nio.charset.Charset
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 
 data class TextUiState(
     val snaps: List<Snap> = emptyList(),
@@ -40,57 +42,52 @@ class TextViewModel @Inject constructor(
     private val snapsRepository: SnapsRepository
 ) : ViewModel() {
 
-    private val _selectedSnaps = MutableStateFlow<List<Snap>>(emptyList())
-    val selectedSnaps: StateFlow<List<Snap>> = _selectedSnaps.asStateFlow()
-
-    private val _viewMode = MutableStateFlow(TextViewMode.DIFF)
-    val viewMode: StateFlow<TextViewMode> = _viewMode.asStateFlow()
-
     private val _uiState = MutableStateFlow(TextUiState())
     val uiState: StateFlow<TextUiState> = _uiState.asStateFlow()
 
-    private val _webContent = MutableStateFlow("")
-    val webContent: StateFlow<String> = _webContent.asStateFlow()
+    private val _diffViewMode = MutableStateFlow(DiffViewMode.VISUAL)
+    val diffViewMode: StateFlow<DiffViewMode> = _diffViewMode.asStateFlow()
 
-    fun getSnapsPaged(siteId: String, contentType: String): Flow<PagingData<Snap>> {
-        return Pager(
-            config = PagingConfig(
-                pageSize = 20,
-                enablePlaceholders = true
-            ),
-            pagingSourceFactory = { snapsRepository.getSnapForPaging(siteId, contentType) }
-        ).flow.cachedIn(viewModelScope)
-    }
+    private val _visualViewMode = MutableStateFlow(VisualViewMode.OVERLAY)
+    val visualViewMode: StateFlow<VisualViewMode> = _visualViewMode.asStateFlow()
 
+    private val _webViewContent = MutableStateFlow(WebViewContent("", ""))
+    val webViewContent: StateFlow<WebViewContent> = _webViewContent.asStateFlow()
+
+    // Remove showComparisonDialog, hideComparisonDialog, compareWithSnap functions
+
+    // Update loadSnaps to not auto-load diff
     fun loadSnaps(siteId: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                // Use getSnapsFiltered with broad filter to get all snaps
                 val snapsLiveData = snapsRepository.getSnapsFiltered(siteId, "%")
                 snapsLiveData.observeForever { snapsList ->
                     val filteredSnaps = snapsList?.filter { snap ->
-                        // Filter for text-based content types
-                        snap.contentType?.let { contentType ->
+                        snap.contentType.let { contentType ->
                             contentType.startsWith("text/") ||
-                            contentType == "application/json" ||
-                            contentType == "application/xml" ||
-                            contentType.contains("html") ||
-                            contentType.contains("xml") ||
-                            contentType.contains("json")
-                        } ?: false
+                                    contentType == "application/json" ||
+                                    contentType == "application/xml" ||
+                                    contentType.contains("html") ||
+                                    contentType.contains("xml") ||
+                                    contentType.contains("json")
+                        }
                     }?.sortedByDescending { it.timestamp } ?: emptyList()
 
                     _uiState.value = _uiState.value.copy(
                         snaps = filteredSnaps,
-                        currentSnap = filteredSnaps.firstOrNull(),
                         isLoading = false
                     )
+
+                    // Auto-load diff only if we have exactly 2 snaps
+                    if (filteredSnaps.size == 2) {
+                        loadDiff(filteredSnaps[0], filteredSnaps[1])
+                    }
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = e.message ?: "Failed to load text snapshots"
+                    error = e.message ?: "Failed to load content history"
                 )
             }
         }
@@ -106,9 +103,37 @@ class TextViewModel @Inject constructor(
             )
             
             try {
-                val diffHtml = withContext(Dispatchers.IO) {
-                    generateDiffHtml(currentSnap, previousSnap)
+                val (diffHtml, currentContent, previousContent) = withContext(Dispatchers.IO) {
+                    // Load and optimize HTML content for visual comparison
+                    val currentContent = optimizeContentForWebView(
+                        snapsRepository.getSnapContent(currentSnap.snapId).toString(Charsets.UTF_8)
+                    )
+                    val previousContent = previousSnap?.let {
+                        optimizeContentForWebView(
+                            snapsRepository.getSnapContent(it.snapId).toString(Charsets.UTF_8)
+                        )
+                    } ?: ""
+
+                    // Generate traditional diff for the diff view mode
+                    val diffHtml = if (previousSnap == null) {
+                        generateSingleContentHtml(currentContent, currentSnap)
+                    } else {
+                        generateDiffHtmlContent(
+                            previousContent,
+                            currentContent,
+                            previousSnap,
+                            currentSnap
+                        )
+                    }
+
+                    Triple(diffHtml, currentContent, previousContent)
                 }
+
+                // Store the optimized HTML content for visual comparison first
+                _webViewContent.value = WebViewContent(
+                    previousContent = previousContent,
+                    currentContent = currentContent
+                )
                 
                 _uiState.value = _uiState.value.copy(
                     diffHtml = diffHtml,
@@ -123,75 +148,96 @@ class TextViewModel @Inject constructor(
         }
     }
 
-    fun selectSnap(snap: Snap) {
-        val currentSelected = _selectedSnaps.value.toMutableList()
-
-        when {
-            snap in currentSelected -> {
-                // Deselect
-                currentSelected.remove(snap)
-            }
-            currentSelected.size < 2 -> {
-                // Add to selection
-                currentSelected.add(0, snap) // Add to front (most recent)
-            }
-            else -> {
-                // Replace oldest selection
-                currentSelected.removeAt(1)
-                currentSelected.add(0, snap)
-            }
-        }
-
-        _selectedSnaps.value = currentSelected
-
-        // Generate diff if we have 2 selected
-        if (currentSelected.size == 2) {
-            loadDiff(currentSelected[0], currentSelected[1])
-        }
-    }
-
-    fun setViewMode(mode: TextViewMode) {
-        _viewMode.value = mode
-
-        when (mode) {
-            TextViewMode.ORIGINAL -> loadSnapContent(_selectedSnaps.value.getOrNull(1)?.snapId)
-            TextViewMode.REVISED -> loadSnapContent(_selectedSnaps.value.getOrNull(0)?.snapId)
-            TextViewMode.DIFF -> {
-                if (_selectedSnaps.value.size == 2) {
-                    loadDiff(_selectedSnaps.value[0], _selectedSnaps.value[1])
-                }
-            }
-        }
-    }
-
-    private fun loadSnapContent(snapId: String?) {
-        if (snapId == null) return
-
-        viewModelScope.launch {
-            try {
-                val content = withContext(Dispatchers.IO) {
-                    snapsRepository.getSnapContent(snapId).toString(Charset.defaultCharset())
-                }
-                _webContent.value = content
-            } catch (e: Exception) {
-                _webContent.value = ""
-            }
-        }
-    }
-
-    private suspend fun generateDiffHtml(currentSnap: Snap, previousSnap: Snap?): String {
-        val currentContent = snapsRepository.getSnapContent(currentSnap.snapId).toString(Charsets.UTF_8)
-        val previousContent = previousSnap?.let { 
-            snapsRepository.getSnapContent(it.snapId).toString(Charsets.UTF_8) 
-        } ?: ""
-
-        return if (previousSnap == null) {
-            // No previous content, show current content
-            generateSingleContentHtml(currentContent, currentSnap)
+    private fun optimizeContentForWebView(content: String): String {
+        return if (content.trim().startsWith("<!DOCTYPE html") || content.trim()
+                .startsWith("<html")
+        ) {
+            // Add mobile optimizations to existing HTML
+            content.replace(
+                "<head>",
+                """<head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+                <style>
+                    body { 
+                        font-size: 16px; 
+                        line-height: 1.6; 
+                        -webkit-text-size-adjust: 100%;
+                        -webkit-font-smoothing: antialiased;
+                    }
+                    img { max-width: 100%; height: auto; }
+                    table { width: 100%; overflow-x: auto; display: block; white-space: nowrap; }
+                    pre, code { overflow-x: auto; }
+                </style>"""
+            )
         } else {
-            // Generate diff HTML
-            generateDiffHtmlContent(previousContent, currentContent, previousSnap, currentSnap)
+            // Wrap plain text in optimized HTML
+            generateOptimizedWebViewHtml(content)
         }
+    }
+
+    private fun generateOptimizedWebViewHtml(content: String): String {
+        return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+            background: #ffffff;
+            color: #1d1d1f;
+            line-height: 1.7;
+            padding: 24px;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -webkit-text-size-adjust: 100%;
+        }
+        .content {
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            max-width: 100%;
+            font-family: 'SF Mono', Monaco, Consolas, 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+            min-height: 200px;
+        }
+        .content:empty::after {
+            content: "No content available";
+            color: #8e8e93;
+            font-style: italic;
+        }
+        @media (prefers-color-scheme: dark) {
+            body { 
+                background: #1c1c1e; 
+                color: #ffffff; 
+            }
+            .content { 
+                background: #2c2c2e; 
+                border-color: #48484a; 
+                color: #ffffff; 
+            }
+        }
+        /* Smooth transitions for overlay mode */
+        body {
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">${escapeHtml(content)}</div>
+</body>
+</html>
+        """.trimIndent()
     }
 
     private fun generateSingleContentHtml(content: String, snap: Snap): String {
@@ -201,46 +247,32 @@ class TextViewModel @Inject constructor(
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Content View</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        * {
             margin: 0;
-            padding: 16px;
-            background-color: #f5f5f5;
-            line-height: 1.6;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .header {
-            background: white;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+            background: #fafbfc;
+            color: #1d1d1f;
+            line-height: 1.7;
+            padding: 20px;
+            font-size: 15px;
         }
         .content {
-            background: white;
-            padding: 16px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             white-space: pre-wrap;
             overflow-wrap: break-word;
-        }
-        .timestamp {
-            color: #666;
-            font-size: 14px;
-        }
-        .size {
-            color: #888;
-            font-size: 12px;
-            margin-top: 4px;
+            max-width: 100%;
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="timestamp">${formatTimestamp(snap.timestamp)}</div>
-        <div class="size">Size: ${formatFileSize(snap.contentSize.toLong())}</div>
-    </div>
     <div class="content">${escapeHtml(content)}</div>
 </body>
 </html>
@@ -253,7 +285,7 @@ class TextViewModel @Inject constructor(
         oldSnap: Snap, 
         newSnap: Snap
     ): String {
-        val diff = generateSimpleDiff(oldContent, newContent)
+        val diff = generateVisualDiff(oldContent, newContent)
         
         return """
 <!DOCTYPE html>
@@ -261,161 +293,229 @@ class TextViewModel @Inject constructor(
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text Diff</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        * {
             margin: 0;
-            padding: 16px;
-            background-color: #f5f5f5;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+            background: #fafbfc;
+            color: #1d1d1f;
             line-height: 1.6;
-        }
-        .header {
-            background: white;
             padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 14px;
         }
-        .comparison {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-        .snap-info {
+        .diff-container {
             background: white;
-            padding: 12px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .snap-info.old {
-            border-left: 4px solid #ff6b6b;
-        }
-        .snap-info.new {
-            border-left: 4px solid #4ecdc4;
-        }
-        .timestamp {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        .size {
-            color: #666;
-            font-size: 12px;
-        }
-        .diff-content {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 12px;
             overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .diff-header {
+            background: #f8f9fa;
+            padding: 16px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .diff-stats {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        .added-count { color: #28a745; font-weight: 600; }
+        .removed-count { color: #dc3545; font-weight: 600; }
+        .diff-content {
+            padding: 12px 0;
         }
         .diff-line {
-            padding: 4px 16px;
-            border-left: 4px solid transparent;
-            font-family: 'Monaco', 'Consolas', monospace;
+            padding: 6px 16px;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
             font-size: 13px;
-            white-space: pre-wrap;
-            overflow-wrap: break-word;
-        }
-        .diff-line.removed {
-            background-color: #ffe6e6;
-            border-left-color: #ff6b6b;
+            position: relative;
+            margin: 1px 0;
         }
         .diff-line.added {
-            background-color: #e6fff6;
-            border-left-color: #4ecdc4;
+            background: rgba(40, 167, 69, 0.1);
+            border-left: 3px solid #28a745;
+        }
+        .diff-line.removed {
+            background: rgba(220, 53, 69, 0.1);
+            border-left: 3px solid #dc3545;
         }
         .diff-line.unchanged {
-            background-color: #f8f9fa;
-            color: #666;
+            background: transparent;
+            opacity: 0.6;
         }
-        .legend {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 16px;
-            font-size: 12px;
+        .diff-line:hover {
+            opacity: 1;
         }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .line-prefix {
+            display: inline-block;
+            width: 20px;
+            font-weight: bold;
+            user-select: none;
         }
-        .legend-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 2px;
-        }
+        .added .line-prefix { color: #28a745; }
+        .removed .line-prefix { color: #dc3545; }
+        .unchanged .line-prefix { color: #adb5bd; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h2 style="margin: 0 0 16px 0;">Text Comparison</h2>
-        <div class="comparison">
-            <div class="snap-info old">
-                <div class="timestamp">Previous: ${formatTimestamp(oldSnap.timestamp)}</div>
-                <div class="size">Size: ${formatFileSize(oldSnap.contentSize.toLong())}</div>
-            </div>
-            <div class="snap-info new">
-                <div class="timestamp">Current: ${formatTimestamp(newSnap.timestamp)}</div>
-                <div class="size">Size: ${formatFileSize(newSnap.contentSize.toLong())}</div>
+    <div class="diff-container">
+        <div class="diff-header">
+            <div class="diff-stats">
+                <span class="added-count">+${diff.addedLines}</span> 
+                <span class="removed-count">-${diff.removedLines}</span> 
+                <span>${diff.unchangedLines} unchanged</span>
             </div>
         </div>
-        <div class="legend">
-            <div class="legend-item">
-                <div class="legend-color" style="background: #ffe6e6; border: 1px solid #ff6b6b;"></div>
-                <span>Removed</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: #e6fff6; border: 1px solid #4ecdc4;"></div>
-                <span>Added</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: #f8f9fa; border: 1px solid #ccc;"></div>
-                <span>Unchanged</span>
-            </div>
+        <div class="diff-content">
+            ${diff.html}
         </div>
-    </div>
-    <div class="diff-content">
-        $diff
     </div>
 </body>
 </html>
         """.trimIndent()
     }
 
-    private fun generateSimpleDiff(oldContent: String, newContent: String): String {
+    private fun generateCleanContentHtml(content: String, title: String): String {
+        return """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+            background: #ffffff;
+            color: #1d1d1f;
+            line-height: 1.7;
+            padding: 24px;
+            font-size: 14px;
+            height: 100vh;
+            overflow-x: hidden;
+        }
+        .header {
+            background: #f8f9fa;
+            margin: -24px -24px 20px -24px;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: 600;
+            font-size: 13px;
+            color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .content {
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            max-width: 100%;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .content:empty::after {
+            content: "No content";
+            color: #adb5bd;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">${escapeHtml(title)}</div>
+    <div class="content">${escapeHtml(content)}</div>
+</body>
+</html>
+        """.trimIndent()
+    }
+
+    private fun generateVisualDiff(oldContent: String, newContent: String): DiffResult {
         val oldLines = oldContent.lines()
         val newLines = newContent.lines()
         val result = StringBuilder()
 
+        var addedCount = 0
+        var removedCount = 0
+        var unchangedCount = 0
+
+        // Enhanced diff algorithm with context
         val maxLines = maxOf(oldLines.size, newLines.size)
-        
-        for (i in 0 until maxLines) {
-            val oldLine = oldLines.getOrNull(i)
-            val newLine = newLines.getOrNull(i)
+        var oldIndex = 0
+        var newIndex = 0
+
+        while (oldIndex < oldLines.size || newIndex < newLines.size) {
+            val oldLine = oldLines.getOrNull(oldIndex)
+            val newLine = newLines.getOrNull(newIndex)
             
             when {
                 oldLine == null -> {
-                    // Line was added
-                    result.append("<div class=\"diff-line added\">+ ${escapeHtml(newLine ?: "")}</div>")
+                    result.append(
+                        "<div class=\"diff-line added\"><span class=\"line-prefix\">+</span>${
+                            escapeHtml(
+                                newLine ?: ""
+                            )
+                        }</div>"
+                    )
+                    addedCount++
+                    newIndex++
                 }
                 newLine == null -> {
-                    // Line was removed
-                    result.append("<div class=\"diff-line removed\">- ${escapeHtml(oldLine)}</div>")
+                    result.append(
+                        "<div class=\"diff-line removed\"><span class=\"line-prefix\">−</span>${
+                            escapeHtml(
+                                oldLine
+                            )
+                        }</div>"
+                    )
+                    removedCount++
+                    oldIndex++
                 }
                 oldLine == newLine -> {
-                    // Line unchanged
-                    result.append("<div class=\"diff-line unchanged\">  ${escapeHtml(oldLine)}</div>")
+                    result.append(
+                        "<div class=\"diff-line unchanged\"><span class=\"line-prefix\"> </span>${
+                            escapeHtml(
+                                oldLine
+                            )
+                        }</div>"
+                    )
+                    unchangedCount++
+                    oldIndex++
+                    newIndex++
                 }
                 else -> {
-                    // Line changed
-                    result.append("<div class=\"diff-line removed\">- ${escapeHtml(oldLine)}</div>")
-                    result.append("<div class=\"diff-line added\">+ ${escapeHtml(newLine)}</div>")
+                    result.append(
+                        "<div class=\"diff-line removed\"><span class=\"line-prefix\">−</span>${
+                            escapeHtml(
+                                oldLine
+                            )
+                        }</div>"
+                    )
+                    result.append(
+                        "<div class=\"diff-line added\"><span class=\"line-prefix\">+</span>${
+                            escapeHtml(
+                                newLine
+                            )
+                        }</div>"
+                    )
+                    addedCount++
+                    removedCount++
+                    oldIndex++
+                    newIndex++
                 }
             }
         }
-        
-        return result.toString()
+
+        return DiffResult(result.toString(), addedCount, removedCount, unchangedCount)
     }
 
     private fun escapeHtml(text: String): String {
@@ -502,8 +602,50 @@ class TextViewModel @Inject constructor(
             return "%.1f %s".format(size, units[unitIndex])
         }
     }
+
+    fun clearComparison() {
+        _uiState.value = _uiState.value.copy(
+            currentSnap = null,
+            previousSnap = null,
+            diffHtml = ""
+        )
+        _webViewContent.value = WebViewContent("", "")
+    }
+
+    fun setDiffViewMode(mode: DiffViewMode) {
+        _diffViewMode.value = mode
+    }
+
+    fun setVisualViewMode(mode: VisualViewMode) {
+        _visualViewMode.value = mode
+    }
 }
 
-enum class TextViewMode {
-    DIFF, ORIGINAL, REVISED
+enum class DiffViewMode {
+    TEXT, VISUAL
 }
+
+enum class VisualViewMode {
+    OVERLAY, BEFORE, AFTER
+}
+
+data class WebViewContent(
+    val previousContent: String,
+    val currentContent: String
+)
+
+data class DiffResult(
+    val html: String,
+    val addedLines: Int,
+    val removedLines: Int,
+    val unchangedLines: Int
+)
+
+// Helper data class for the 5-tuple
+data class Tuple5<A, B, C, D, E>(
+    val first: A,
+    val second: B,
+    val third: C,
+    val fourth: D,
+    val fifth: E
+)
