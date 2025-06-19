@@ -19,13 +19,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material.icons.outlined.Brightness6
-import androidx.compose.material.icons.outlined.CloudSync
-import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -92,7 +91,7 @@ fun SettingsScreen(
                         ),
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -140,6 +139,62 @@ fun SettingsScreen(
                         checked = uiState.backgroundSync,
                         onCheckedChange = { viewModel.updateBackgroundSync(it) }
                     )
+                }
+            )
+        }
+
+        // Turbo Sync Card
+        item {
+            SettingsCard(
+                icon = Icons.Default.FlashOn,
+                title = "Turbo Sync",
+                subtitle = if (uiState.turboMode) {
+                    val elapsed = System.currentTimeMillis() - uiState.turboStartTime
+                    val remainingMin =
+                        ((3 * 60 * 60 * 1000 - elapsed) / (60 * 1000)).coerceAtLeast(0)
+                    "Active • ${remainingMin}min remaining"
+                } else {
+                    "Intensive monitoring for 3 hours"
+                },
+                onClick = {
+                    if (uiState.turboMode) {
+                        viewModel.disableTurboMode()
+                    } else {
+                        // Show site selection dialog
+                        // For now, we'll need to add this functionality
+                    }
+                },
+                trailing = {
+                    if (uiState.turboMode) {
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.error,
+                                    CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            // Pulsing animation
+                            val infiniteTransition =
+                                rememberInfiniteTransition(label = "turbo_pulse")
+                            val alpha by infiniteTransition.animateFloat(
+                                initialValue = 0.3f,
+                                targetValue = 1f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(800, easing = LinearEasing),
+                                    repeatMode = RepeatMode.Reverse
+                                ),
+                                label = "alpha"
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .alpha(alpha)
+                                    .background(MaterialTheme.colorScheme.error, CircleShape)
+                            )
+                        }
+                    }
                 }
             )
         }
@@ -218,9 +273,9 @@ private fun SettingsCard(
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
-            
+
             Spacer(modifier = Modifier.width(16.dp))
-            
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
@@ -236,7 +291,7 @@ private fun SettingsCard(
                     modifier = Modifier.alpha(0.8f)
                 )
             }
-            
+
             trailing?.invoke()
         }
     }

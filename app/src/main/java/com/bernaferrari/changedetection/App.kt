@@ -1,32 +1,20 @@
 package com.bernaferrari.changedetection
 
 import android.app.Application
-import com.facebook.stetho.Stetho
-import com.jakewharton.threetenabp.AndroidThreeTen
-import com.orhanobut.logger.AndroidLogAdapter
-import com.orhanobut.logger.Logger
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
 @HiltAndroidApp
-class App : Application() {
+class App : Application(), Configuration.Provider {
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
 
-    override fun onCreate() {
-        super.onCreate()
-        INSTANCE = this
-        AndroidThreeTen.init(this)
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .setMinimumLoggingLevel(android.util.Log.DEBUG)
+            .build()
 
-        Logger.addLogAdapter(object : AndroidLogAdapter() {
-            override fun isLoggable(priority: Int, tag: String?): Boolean {
-                return true
-            }
-        })
-    }
-
-    companion object {
-        private var INSTANCE: App? = null
-
-        @JvmStatic
-        fun get(): App =
-            INSTANCE ?: throw NullPointerException("App INSTANCE must not be null")
-    }
 }

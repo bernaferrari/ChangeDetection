@@ -1,42 +1,51 @@
 package com.bernaferrari.changedetection.ui.main
 
 import android.app.Application
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
-import androidx.work.WorkManager
 import com.bernaferrari.changedetection.WorkerHelper
+import com.bernaferrari.changedetection.WorkerHelper.Companion.UNIQUEWORK
 import com.bernaferrari.changedetection.repo.ContentTypeInfo
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
+import com.bernaferrari.changedetection.settings.SettingsViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
-/**
- * Exposes the data to be used in the site list screen.
- * Inspired from Architecture Components MVVM sample app
- */
 @HiltViewModel
 class MainViewModel @Inject constructor(
     context: Application,
     private val mSnapsRepository: SnapsRepository,
-    private val mSitesRepository: SitesRepository
+    private val mSitesRepository: SitesRepository,
+    private val workerHelper: WorkerHelper,
+    private val dataStore: DataStore<Preferences>
 ) : AndroidViewModel(context), CoroutineScope {
 
     internal var shouldSyncWhenAppOpen = true
 
-    internal val getOutputStatus: LiveData<List<WorkInfo>>
-        get() = WorkManager.getInstance().getWorkInfosForUniqueWorkLiveData(WorkerHelper.UNIQUEWORK)
+    val workInfoFlow = workerHelper.getWorkInfoFlow()
 
     private var job: Job = Job()
 
@@ -61,28 +70,9 @@ class MainViewModel @Inject constructor(
         mSnapsRepository.deleteSnapsForSiteIdAndContentType(siteId, contentType)
     }
 
-    // Called when clicking on fab.
-    internal fun saveSite(
-        site: Site
-    ) = GlobalScope.launch {
+    internal fun saveSite(site: Site) = GlobalScope.launch {
         mSitesRepository.saveSite(site)
     }
-
-    // Called when clicking on fab.
-//    internal fun saveWebsite(
-//        snap: Snap,
-//        content: ByteArray
-//    ): MutableLiveData<Boolean> {
-//
-//        val didItWork = MutableLiveData<Boolean>()
-//
-//        launch(Dispatchers.Main) {
-//            val saveSnap = mSnapsRepository.saveSnap(snap, content)
-//            didItWork.value = saveSnap is Result.Success
-//        }
-//
-//        return didItWork
-//    }
 
     suspend fun getRecentContentTypes(siteId: String): List<ContentTypeInfo> {
         return mSnapsRepository.getContentTypeInfo(siteId)
@@ -92,16 +82,53 @@ class MainViewModel @Inject constructor(
         mSitesRepository.updateSite(site)
     }
 
-    private var items = MutableLiveData<MutableList<SiteAndLastSnap>>()
-    
-    // Add StateFlow for Compose compatibility
+    // StateFlow for Compose compatibility
     private val _sitesFlow = MutableStateFlow<List<SiteAndLastSnap>>(emptyList())
     val sitesFlow: StateFlow<List<SiteAndLastSnap>> = _sitesFlow.asStateFlow()
 
-    internal fun loadSites(): MutableLiveData<MutableList<SiteAndLastSnap>> {
-        items = MutableLiveData()
+    // StateFlow for tracking loading sites
+    private val _loadingSites = MutableStateFlow<Set<String>>(emptySet())
+    val loadingSites: StateFlow<Set<String>> = _loadingSites.asStateFlow()
+
+    // Turbo mode related flows
+    val turboModeState = dataStore.data.map { preferences ->
+        val isActive = preferences[SettingsViewModel.TURBO_MODE_KEY] ?: false
+        val siteIdsString = preferences[SettingsViewModel.TURBO_SITE_IDS_KEY] ?: ""
+        val siteIds = if (siteIdsString.isBlank()) emptyList()
+        else siteIdsString.split(",").filter { it.isNotBlank() }
+        val startTime = preferences[SettingsViewModel.TURBO_START_TIME_KEY] ?: 0L
+
+        TurboModeState(
+            isActive = isActive,
+            siteIds = siteIds,
+            startTime = startTime
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = TurboModeState()
+    )
+
+    // Initialize data loading
+    init {
         updateItems()
-        return items
+
+        // Monitor work info changes to update loading states
+        launch {
+            workInfoFlow.collect { workInfoList ->
+                val runningSiteIds = workInfoList
+                    .filter { it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED }
+                    .flatMap { it.tags }
+                    .filter { it != "singleEvent" && it != UNIQUEWORK }
+                    .toSet()
+
+                val completedSites = _loadingSites.value - runningSiteIds
+                if (completedSites.isNotEmpty()) {
+                    _loadingSites.value = runningSiteIds
+                    updateItems()
+                }
+            }
+        }
     }
 
     internal fun updateItems() = launch(Dispatchers.Main) {
@@ -110,7 +137,6 @@ class MainViewModel @Inject constructor(
             mSitesRepository.getSites()
                 .mapTo(list) { SiteAndLastSnap(it, getLastSnap(it.id), false) }
         }
-        items.value = list
         _sitesFlow.value = list
     }
 
@@ -123,23 +149,48 @@ class MainViewModel @Inject constructor(
     suspend fun isAlreadyMonitoringSite(id: String, url: String): Boolean =
         mSitesRepository.getSiteByUrl(url) != null || mSitesRepository.getSiteById(id) != null
 
-//    internal fun getPruningList(context: Context): MutableList<DialogItemSimple> {
-//
-//        val color = context.getColorFromAttr(R.attr.strongColor)
-//        val items = mutableListOf<DialogItemSimple>()
-//
-//        items += DialogItemSimple(
-//            context.getString(R.string.pruning),
-//            IconicsDrawable(context, CommunityMaterial.Icon.cmd_content_cut).color(color),
-//            LongPress.PRUNING
-//        )
-//
-//        items += DialogItemSimple(
-//            context.getString(R.string.remove_all),
-//            IconicsDrawable(context, CommunityMaterial.Icon.cmd_delete).color(color),
-//            LongPress.ALL
-//        )
-//
-//        return items
-//    }
+    internal fun reloadSite(site: Site) {
+        // Add to loading sites
+        _loadingSites.value = _loadingSites.value + site.id
+        workerHelper.reloadSite(site)
+        launch {
+            mSitesRepository.updateSite(site.copy(timestamp = System.currentTimeMillis()))
+            updateItems()
+        }
+    }
+
+    suspend fun getLastTurboSiteIds(): List<String> {
+        val preferences = dataStore.data.first()
+        val siteIdsString = preferences[SettingsViewModel.TURBO_SITE_IDS_KEY] ?: ""
+        return if (siteIdsString.isBlank()) emptyList()
+        else siteIdsString.split(",").filter { it.isNotBlank() }
+    }
+
+    fun startTurboMode(siteIds: List<String>) {
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[SettingsViewModel.TURBO_MODE_KEY] = true
+                preferences[SettingsViewModel.TURBO_SITE_IDS_KEY] = siteIds.joinToString(",")
+                preferences[SettingsViewModel.TURBO_START_TIME_KEY] = System.currentTimeMillis()
+            }
+            workerHelper.startTurboMode(siteIds)
+        }
+    }
+
+    fun stopTurboMode() {
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[SettingsViewModel.TURBO_MODE_KEY] = false
+                preferences[SettingsViewModel.TURBO_SITE_IDS_KEY] = ""
+                preferences[SettingsViewModel.TURBO_START_TIME_KEY] = 0L
+            }
+            workerHelper.stopTurboMode()
+        }
+    }
 }
+
+data class TurboModeState(
+    val isActive: Boolean = false,
+    val siteIds: List<String> = emptyList(),
+    val startTime: Long = 0L
+)

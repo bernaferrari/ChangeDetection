@@ -19,7 +19,6 @@ import javax.inject.Singleton
 class SnapsRepository @Inject constructor(
     private val mSnapsLocalDataSource: SnapsDataSource
 ) : SnapsDataSource {
-
     override fun getSingleSnapPair(id: String): ByteArray {
         return mSnapsLocalDataSource.getSingleSnapPair(id)
     }

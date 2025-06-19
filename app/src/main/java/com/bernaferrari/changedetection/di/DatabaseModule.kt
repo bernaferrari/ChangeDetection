@@ -24,7 +24,9 @@ object DatabaseModule {
             context.applicationContext,
             ChangeDatabase::class.java,
             "Changes.db"
-        ).build()
+        )
+            .addMigrations(ChangeDatabase.MIGRATION_1_2)
+            .build()
     }
 
     @Provides

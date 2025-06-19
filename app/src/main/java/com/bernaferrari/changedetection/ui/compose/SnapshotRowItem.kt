@@ -2,10 +2,17 @@ package com.bernaferrari.changedetection.ui.compose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -16,31 +23,30 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
-import com.bernaferrari.changedetection.extensions.getColorFromAttr
 import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.bernaferrari.changedetection.repo.Snap
 
 @Composable
 fun SnapshotRowItem(
+    modifier: Modifier = Modifier,
     snap: Snap,
     isSelected: Boolean = false,
     onSelectionChanged: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    
+
     val textColor = if (isSelected) {
-        Color(ContextCompat.getColor(context, R.color.md_blue_A200))
+        MaterialTheme.colorScheme.primary
     } else {
-        Color(context.getColorFromAttr(R.attr.strongColor))
+        MaterialTheme.colorScheme.secondaryContainer
     }
-    
+
     val subtitleColor = if (isSelected) {
-        Color(ContextCompat.getColor(context, R.color.md_blue_A200))
+        MaterialTheme.colorScheme.primary
     } else {
-        Color(ContextCompat.getColor(context, R.color.FontWeak))
+        MaterialTheme.colorScheme.secondaryContainer
     }
-    
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -56,14 +62,14 @@ fun SnapshotRowItem(
                 style = MaterialTheme.typography.bodyLarge,
                 color = textColor
             )
-            
+
             Text(
                 text = snap.contentSize.readableFileSize(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = subtitleColor
             )
         }
-        
+
         if (isSelected) {
             Box(
                 modifier = Modifier

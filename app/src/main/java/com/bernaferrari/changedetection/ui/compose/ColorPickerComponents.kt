@@ -1,28 +1,45 @@
 package com.bernaferrari.changedetection.ui.compose
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.repo.ColorGroup
 import kotlinx.coroutines.launch
+import kotlin.math.cos
+import kotlin.math.sin
 
 @Composable
 fun ColorPickerList(
@@ -40,8 +57,6 @@ fun ColorPickerList(
             ColorPickerButton(
                 colorGroup = colorGroup,
                 isSelected = currentColors == colorGroup,
-                isFirst = index == 0,
-                animationDelay = index * 80,
                 onClick = { _ ->
                     onColorSelected(colorGroup)
                 }
@@ -55,13 +70,12 @@ fun ColorPickerButton(
     modifier: Modifier = Modifier,
     colorGroup: ColorGroup,
     isSelected: Boolean,
-    isFirst: Boolean = false,
     allowReselection: Boolean = false,
-    animationDelay: Int = 0,
     onClick: (Boolean) -> Unit,
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+    val hapticFeedback = LocalHapticFeedback.current
 
     // Shape morphing animation - circle to rounded square
     val cornerRadius by animateDpAsState(
@@ -71,50 +85,6 @@ fun ColorPickerButton(
             stiffness = Spring.StiffnessMedium
         ),
         label = "cornerRadius"
-    )
-
-    // Enhanced scale animation with bounce
-    val scale by animateFloatAsState(
-        targetValue = when {
-            isPressed -> 0.9f
-            isSelected -> 1f
-            else -> 1f
-        },
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "scale"
-    )
-
-    // Rotation animation for selected state
-    val rotation by animateFloatAsState(
-        targetValue = if (isSelected) 90f else 45f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "rotation"
-    )
-
-    // Inner border width animation
-    val innerBorderWidth by animateDpAsState(
-        targetValue = if (isSelected) 2.dp else 0.dp,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "innerBorder"
-    )
-
-    // Entrance animation with better staggering
-    val entranceScale by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
-        label = "entrance"
     )
 
     // Elevation animation
@@ -127,20 +97,63 @@ fun ColorPickerButton(
         label = "elevation"
     )
 
-    // Border color with subtle glow effect
+    // Border animation progress - mimics the original View's progress animation
+    val borderProgress by animateFloatAsState(
+        targetValue = if (isSelected) 1f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "borderProgress"
+    )
+
+    // Calculate border properties with smooth interpolation
+    val borderWidth = (2.dp * borderProgress).coerceAtLeast(0.dp)
     val borderColor by animateColorAsState(
-        targetValue = if (isSelected) Color.White.copy(alpha = 0.9f) else Color.Transparent,
-        animationSpec = tween(
-            durationMillis = 300,
-            easing = FastOutSlowInEasing
+        targetValue = if (isSelected) MaterialTheme.colorScheme.surfaceContainer else Color.Transparent,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
         ),
         label = "borderColor"
     )
 
+    // Rotation animation for selected state
+    val rotation by animateFloatAsState(
+        targetValue = if (isSelected) 0f else 45f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "rotation"
+    )
+
+    val density = LocalDensity.current
+    val sizePx = remember(density) { // Remember to avoid re-calculation unless density changes
+        with(density) { 36.dp.toPx() }
+    }
+
+    // Counter-rotate gradient to keep it visually stable.
+    // Base gradient is from (0,0) to (sizePx, sizePx) (top-left to bottom-right).
+    // We rotate both points by -rotation degrees around the origin.
+    val angleRadians = Math.toRadians(-rotation.toDouble())
+    val cosA = cos(angleRadians).toFloat()
+    val sinA = sin(angleRadians).toFloat()
+
+    // Rotate start point (0, 0) - this stays at origin
+    val startX = 0f * cosA - 0f * sinA
+    val startY = 0f * sinA + 0f * cosA
+
+    // Rotate end point (sizePx, sizePx)
+    val endX = sizePx * cosA - sizePx * sinA
+    val endY = sizePx * sinA + sizePx * cosA
+
+    val gradientStart = Offset(startX, startY)
+    val gradientEnd = Offset(endX, endY)
+
     Box(
         modifier = modifier
             .size(36.dp)
-            .scale(scale * entranceScale)
             .rotate(rotation)
             .shadow(
                 elevation = elevation,
@@ -153,29 +166,34 @@ fun ColorPickerButton(
                     colors = listOf(
                         Color(colorGroup.first),
                         Color(colorGroup.second)
-                    )
+                    ),
+                    start = gradientStart,
+                    end = gradientEnd
                 ),
                 shape = RoundedCornerShape(cornerRadius)
             )
-            .padding(innerBorderWidth)
-            .clip(RoundedCornerShape(cornerRadius - innerBorderWidth))
+            .padding(borderWidth)
+            .clip(RoundedCornerShape((cornerRadius - borderWidth).coerceAtLeast(0.dp)))
             .background(
                 color = borderColor,
-                shape = RoundedCornerShape(cornerRadius - innerBorderWidth)
+                shape = RoundedCornerShape((cornerRadius - borderWidth).coerceAtLeast(0.dp))
             )
-            .padding(if (isSelected) 2.dp else 0.dp)
-            .clip(RoundedCornerShape(cornerRadius - innerBorderWidth - if (isSelected) 1.dp else 0.dp))
+            .padding(2.dp)
+            .clip(RoundedCornerShape((cornerRadius - borderWidth - 2.dp).coerceAtLeast(0.dp)))
             .background(
                 brush = Brush.linearGradient(
                     colors = listOf(
                         Color(colorGroup.first),
                         Color(colorGroup.second)
-                    )
+                    ),
+                    start = gradientStart,
+                    end = gradientEnd
                 ),
-                shape = RoundedCornerShape(cornerRadius - innerBorderWidth - if (isSelected) 1.dp else 0.dp)
+                shape = RoundedCornerShape((cornerRadius - borderWidth - 2.dp).coerceAtLeast(0.dp))
             )
             .clickable {
                 if (!isSelected || allowReselection) {
+                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                     isPressed = true
                     onClick(!isSelected)
                     coroutineScope.launch {

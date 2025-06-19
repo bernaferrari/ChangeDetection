@@ -1,5 +1,5 @@
 import java.io.FileInputStream
-import java.util.*
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -53,6 +53,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
@@ -98,6 +99,7 @@ dependencies {
 
     // Android Core
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.startup)
 
     // Compose BOM - manages all compose library versions
     implementation(platform(libs.androidx.compose.bom))
@@ -112,9 +114,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.compose)
 
-    // Fragment support for viewModels()
-    implementation(libs.androidx.fragment.ktx)
-
     // Coil for image loading
     implementation(libs.coil.compose)
     implementation(libs.coil.core)
@@ -122,6 +121,7 @@ dependencies {
     // Hilt for Dependency Injection
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.hilt.work)
 
@@ -146,9 +146,9 @@ dependencies {
 
     // UI Utils
     implementation(libs.androidx.palette.ktx)
+    implementation(libs.material.kolor)
 
     // Legacy UI components (minimal set for backward compatibility)
-    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.browser)
 
     // Web scraping and networking
@@ -157,7 +157,6 @@ dependencies {
     implementation(libs.okio)
 
     // Date/Time utilities
-    implementation(libs.threeten.android)
     implementation(libs.timeago)
 
     // Text processing
@@ -165,9 +164,6 @@ dependencies {
 
     // Image handling
     implementation(libs.subsampling.scale.imageview)
-
-    // Development tools
-    implementation(libs.stetho)
 
     // Debugging
     debugImplementation(libs.androidx.compose.ui.tooling)

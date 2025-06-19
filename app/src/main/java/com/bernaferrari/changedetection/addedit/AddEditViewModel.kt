@@ -1,7 +1,5 @@
 package com.bernaferrari.changedetection.addedit
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.WorkerHelper
@@ -26,12 +24,27 @@ data class AddEditUiState(
 @HiltViewModel
 class AddEditViewModel @Inject constructor(
     private val sitesDao: SitesDao,
-    private val dataStore: DataStore<Preferences>,
     private val workerHelper: WorkerHelper
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddEditUiState())
     val uiState: StateFlow<AddEditUiState> = _uiState.asStateFlow()
+
+    private val _site = MutableStateFlow<Site?>(null)
+    val site: StateFlow<Site?> = _site.asStateFlow()
+
+    fun loadSite(siteId: String) {
+        viewModelScope.launch {
+            try {
+                val siteData = withContext(Dispatchers.IO) {
+                    sitesDao.getSiteById(siteId)
+                }
+                _site.value = siteData
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.message)
+            }
+        }
+    }
 
     fun addSite(
         title: String,

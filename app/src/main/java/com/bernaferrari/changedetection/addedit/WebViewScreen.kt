@@ -26,6 +26,7 @@ fun WebViewScreen(
     initialUrl: String = "https://google.com",
     onNavigateUp: () -> Unit,
     onUrlSelected: (String) -> Unit,
+    onShowComparison: (String) -> Unit = {},
     viewModel: SharedViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -51,7 +52,13 @@ fun WebViewScreen(
                     onClick = { webView?.goBack() },
                     enabled = canGoBack
                 ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                }
+                IconButton(
+                    onClick = { onShowComparison(currentUrl) },
+                    enabled = currentUrl.isNotEmpty()
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.CompareArrows, contentDescription = "Compare")
                 }
                 TextButton(
                     onClick = {

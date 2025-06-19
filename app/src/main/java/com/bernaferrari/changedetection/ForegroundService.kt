@@ -10,12 +10,8 @@ import android.os.Build
 import android.os.IBinder
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequest
-import androidx.work.WorkManager
+import com.orhanobut.logger.Logger
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ForegroundService : Service() {
@@ -26,23 +22,21 @@ class ForegroundService : Service() {
         private const val CHANNEL_NAME = "Sync Service"
     }
 
-    @Inject
-    lateinit var workerHelper: WorkerHelper
-
-    private val syncWork = OneTimeWorkRequest.Builder(SyncWorker::class.java)
-        .setInitialDelay(500, TimeUnit.MILLISECONDS)
-        .build()
-
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
+        Logger.d("ForegroundService created")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Toast.makeText(this, "Service starting", Toast.LENGTH_SHORT).show()
+        Logger.d("ForegroundService starting")
 
         startForeground(NOTIFICATION_ID, createNotification())
-        scheduleWork()
+
+        // Don't schedule work here - let the service just handle notifications
+        // Work scheduling should be handled by WorkerHelper through settings
+        Logger.d("ForegroundService started successfully")
 
         return START_STICKY
     }
@@ -65,10 +59,10 @@ class ForegroundService : Service() {
     }
 
     private fun createNotification() = NotificationCompat.Builder(this, CHANNEL_ID)
-        .setContentTitle("Turbo mode is enabled")
-        .setContentText("Checking every X seconds")
+        .setContentTitle("Background sync enabled")
+        .setContentText("Monitoring changes in background")
         .setSmallIcon(R.drawable.ic_sync)
-        .setColor(0xffff0000.toInt())
+        .setColor(0xFF2196F3.toInt())
         .setContentIntent(
             PendingIntent.getActivity(
                 this, 0,
@@ -77,23 +71,20 @@ class ForegroundService : Service() {
             )
         )
         .setOngoing(true)
+        .setPriority(NotificationCompat.PRIORITY_LOW)
         .build()
-
-    private fun scheduleWork() {
-        WorkManager.getInstance(this)
-            .beginUniqueWork(workerHelper.UNIQUEWORK, ExistingWorkPolicy.REPLACE, syncWork)
-            .enqueue()
-    }
 
     override fun onDestroy() {
         super.onDestroy()
-        workerHelper.cancelWork()
+        Logger.d("ForegroundService destroying")
+        // Don't cancel work here - let WorkerHelper manage work lifecycle
         stopForeground(true)
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
-        workerHelper.cancelWork()
+        Logger.d("ForegroundService task removed")
+        // Don't cancel work here either
         stopSelf()
     }
 }

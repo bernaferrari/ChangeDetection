@@ -1,59 +1,38 @@
 package com.bernaferrari.changedetection
 
 import android.content.Context
+import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.hilt.work.HiltWorker
-import androidx.work.*
+import androidx.work.BackoffPolicy
+import androidx.work.Constraints
+import androidx.work.CoroutineWorker
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.settings.SettingsViewModel
 import com.orhanobut.logger.Logger
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
-import kotlinx.coroutines.Dispatchers
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@HiltWorker
-class SyncWorker @AssistedInject constructor(
-    @Assisted context: Context,
-    @Assisted workerParams: WorkerParameters,
-    private val okHttpClient: OkHttpClient
-) : CoroutineWorker(context, workerParams) {
-
-    override suspend fun doWork(): Result {
-        return try {
-            val siteId = inputData.getString("id")
-            val isSingle = inputData.getBoolean("isSingle", false)
-            val wifiRequired = inputData.getBoolean(WorkerHelper.WIFI, false)
-
-            Logger.d("Starting sync work for site: $siteId, isSingle: $isSingle, wifi: $wifiRequired")
-
-            // Your existing sync logic would go here
-            Result.success()
-        } catch (e: Exception) {
-            Logger.e("Sync work failed: ${e.localizedMessage}")
-            Result.retry()
-        }
-    }
-}
-
 @Singleton
 open class WorkerHelper @Inject constructor(
-    private val workManager: WorkManager,
-    private val okHttpClient: OkHttpClient
+    @ApplicationContext private val context: Context,
 ) {
-
     companion object {
         const val UNIQUEWORK = "work"
+        const val TURBO_WORK = "turbo_work"
         const val WIFI = "wifi"
         const val CHARGING = "charging"
         const val BATTERYNOTLOW = "batteryNotLow"
@@ -83,13 +62,15 @@ open class WorkerHelper @Inject constructor(
     }
 
     open fun cancelWork() {
-        workManager.cancelAllWorkByTag(UNIQUEWORK)
+        WorkManager.getInstance(context).cancelAllWorkByTag(UNIQUEWORK)
     }
 
     private fun schedulePeriodicWork(
         intervalMinutes: Long,
         constraints: WorkConstraints
     ) {
+        Logger.d("Scheduling periodic work with interval: $intervalMinutes minutes")
+
         val workerConstraints = Constraints.Builder().apply {
             setRequiredNetworkType(if (constraints.wifi) NetworkType.UNMETERED else NetworkType.CONNECTED)
             if (constraints.batteryNotLow) setRequiresBatteryNotLow(true)
@@ -106,6 +87,7 @@ open class WorkerHelper @Inject constructor(
             IDLE to constraints.deviceIdle
         )
 
+
         val periodicWork = PeriodicWorkRequestBuilder<SyncWorker>(intervalMinutes, TimeUnit.MINUTES)
             .addTag(UNIQUEWORK)
             .setConstraints(workerConstraints)
@@ -113,64 +95,86 @@ open class WorkerHelper @Inject constructor(
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.MINUTES)
             .build()
 
-        workManager.enqueueUniquePeriodicWork(
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             UNIQUEWORK,
-            ExistingPeriodicWorkPolicy.REPLACE,
+            ExistingPeriodicWorkPolicy.UPDATE,
             periodicWork
         )
+
+        Logger.d("Periodic work scheduled successfully")
     }
 
+    fun getWorkInfoFlow() = WorkManager.getInstance(context).getWorkInfosByTagFlow(UNIQUEWORK)
+
+    // Add method to get work info for specific site
+    fun getSiteWorkInfoFlow(siteId: String) =
+        WorkManager.getInstance(context).getWorkInfosByTagFlow(siteId)
+
     fun reloadSite(site: Site) {
-        val work = OneTimeWorkRequestBuilder<SyncWorker>()
+        Logger.d("🔄 Scheduling one-time work for site: ${site.id}")
+
+        val workerClass = if (site.browserMode) {
+            BrowserSyncWorker::class.java
+        } else {
+            SyncWorker::class.java
+        }
+
+        val work = OneTimeWorkRequestBuilder<CoroutineWorker>()
             .setInputData(workDataOf("id" to site.id, "isSingle" to true))
             .addTag("singleEvent")
+            .addTag("reload_${site.id}")
             .addTag(site.id)
+            .addTag(UNIQUEWORK)
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
 
-        workManager
-            .beginUniqueWork(site.id, ExistingWorkPolicy.REPLACE, work)
+        WorkManager.getInstance(context)
+            .beginUniqueWork("reload_${site.id}", ExistingWorkPolicy.REPLACE, work)
             .enqueue()
+
+        Logger.d("✅ One-time work scheduled for site: ${site.id}")
     }
 
-    suspend fun fetchFromServer(url: String): FetchResult = withContext(Dispatchers.IO) {
-        try {
-            val request = Request.Builder()
-                .url(url)
-                .addHeader("User-Agent", "ChangeDetection/1.0")
-                .build()
+    private fun scheduleOneTimeWork(siteId: String) {
+        val work = OneTimeWorkRequestBuilder<SyncWorker>()
+            .setInputData(workDataOf("id" to siteId, "isSingle" to true))
+            .addTag(siteId)
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
 
-            okHttpClient.newCall(request).execute().use { response ->
-                Logger.d("Response successful: ${response.isSuccessful} for $url")
-                Logger.d("Response headers: ${response.headers}")
+        WorkManager.getInstance(context).enqueue(work)
+    }
 
-                val contentType = response.header("content-type", "") ?: ""
-                val bytes = response.body?.use { body ->
-                    if (contentType.contains("text", ignoreCase = true)) {
-                        body.string().toByteArray()
-                    } else {
-                        body.bytes()
-                    }
-                } ?: throw IllegalStateException("Response body is null")
+    fun startTurboMode(siteIds: List<String>) {
+        Logger.d("🚀 Starting Turbo Mode for ${siteIds.size} sites: $siteIds")
 
-                FetchResult.Success(contentType, bytes)
-            }
-        } catch (e: UnknownHostException) {
-            Logger.e("Network error for $url: ${e.localizedMessage}")
-            FetchResult.Error("Network not available: $url")
-        } catch (e: IllegalArgumentException) {
-            Logger.e("Invalid URL: $url")
-            FetchResult.Error("Invalid URL: $url")
-        } catch (e: SocketTimeoutException) {
-            Logger.e("Timeout for $url")
-            FetchResult.Error("Request timeout: $url")
-        } catch (e: Exception) {
-            Logger.e("Unexpected error for $url: ${e.localizedMessage}")
-            FetchResult.Error("${e.localizedMessage ?: "Unknown error"}: $url")
+        // Start foreground service
+        val serviceIntent = Intent(context, TurboSyncService::class.java).apply {
+            putStringArrayListExtra("siteIds", ArrayList(siteIds))
+            putExtra("startTime", System.currentTimeMillis())
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(serviceIntent)
+        } else {
+            context.startService(serviceIntent)
+        }
+
+        Logger.d("✅ Turbo Mode started successfully for ${siteIds.size} sites")
     }
 
-    fun getWorkInfo() = workManager.getWorkInfosByTagLiveData(UNIQUEWORK)
+    fun stopTurboMode() {
+        Logger.d("🛑 Stopping Turbo Mode")
+
+        // Stop foreground service
+        val serviceIntent = Intent(context, TurboSyncService::class.java)
+        context.stopService(serviceIntent)
+
+        // Cancel turbo work
+        WorkManager.getInstance(context).cancelAllWorkByTag(TURBO_WORK)
+
+        Logger.d("✅ Turbo Mode stopped successfully")
+    }
 }
 
 data class WorkConstraints(
@@ -190,25 +194,4 @@ data class WorkConstraints(
             )
         }
     }
-}
-
-sealed class FetchResult {
-    data class Success(val contentType: String, val data: ByteArray) : FetchResult() {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-            other as Success
-            if (contentType != other.contentType) return false
-            if (!data.contentEquals(other.data)) return false
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = contentType.hashCode()
-            result = 31 * result + data.contentHashCode()
-            return result
-        }
-    }
-
-    data class Error(val message: String) : FetchResult()
 }
