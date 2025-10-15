@@ -78,6 +78,13 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <!-- Quick Monitor Service -->
+        <service
+            android:name=".QuickMonitorService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
         <!-- Remove default WorkManager initializer -->
         <provider
             android:name="androidx.startup.InitializationProvider"

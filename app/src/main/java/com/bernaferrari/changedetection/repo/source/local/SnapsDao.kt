@@ -10,8 +10,21 @@ import androidx.room.Query
 import com.bernaferrari.changedetection.repo.Snap
 import kotlinx.coroutines.flow.Flow
 
+data class ContentTypeCount(
+    val contentType: String,
+    val count: Int
+)
+
+data class ContentDuplicationStats(
+    val unique_content: Int,
+    val total_snaps: Int
+) {
+    val duplicationRate: Float get() = if (total_snaps > 0) 1f - (unique_content.toFloat() / total_snaps) else 0f
+}
+
 /**
- * Data Access Object for the sites table.
+ * Data Access Object for the snaps table.
+ * Includes performance optimizations with proper indexing
  * Inspired from Architecture Components MVVM sample app
  */
 @Dao
@@ -46,6 +59,9 @@ interface SnapsDao {
      * @param siteId the site url to be filtered.
      * @return list with last 3 contentTypes.
      */
+    @Query("SELECT contentType, COUNT(*) as count FROM snaps WHERE siteId = :siteId GROUP BY contentType")
+    fun getContentTypesWithCount(siteId: String): List<ContentTypeCount>
+
     @Query("SELECT count(*) FROM snaps WHERE siteId = :siteId GROUP BY contentType")
     fun getContentTypesCount(siteId: String): List<Int>
 
@@ -148,7 +164,7 @@ interface SnapsDao {
      *
      * @param snap the snap to be inserted.
      */
-    @Insert(onConflict = OnConflictStrategy.FAIL)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     fun insertSnap(snap: Snap)
 
 
@@ -159,14 +175,30 @@ interface SnapsDao {
     fun deleteTasks()
 
 
-    @Query("SELECT COUNT(*) FROM ( SELECT * FROM snaps GROUP BY siteId HAVING COUNT(*) > 1 ) T1 JOIN snaps T2 ON T1.siteId = T2.siteId")
+    // Optimized: Count snaps for sites with changes (more than 1 snap)
+    @Query("SELECT COUNT(*) FROM snaps WHERE siteId IN (SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 1)")
     fun countNumberOfChanges(): Flow<Int>
 
-    @Query("SELECT t2.* FROM ( SELECT * FROM snaps GROUP BY siteId HAVING COUNT(*) > 1 ) T1 JOIN snaps T2 ON T1.siteId = T2.siteId ORDER BY timestamp DESC")
+    // Optimized: Get snaps from sites with changes, with pagination
+    @Query("SELECT * FROM snaps WHERE siteId IN (SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 1) ORDER BY timestamp DESC")
     fun getSnapsPaged(): PagingSource<Int, Snap>
 
-    @Query("SELECT t2.* FROM ( SELECT * FROM snaps GROUP BY siteId HAVING COUNT(*) > 1 ) T1 JOIN snaps T2 ON T1.siteId = T2.siteId ORDER BY timestamp DESC")
+    // Optimized: Same as above but for different use case  
+    @Query("SELECT * FROM snaps WHERE siteId IN (SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 1) ORDER BY timestamp DESC")
     fun getSnapsPagedSource(): PagingSource<Int, Snap>
+    
+    // Enhanced: Get only the most recent snap for each site with changes
+    @Query("""
+        SELECT s1.* FROM snaps s1
+        INNER JOIN (
+            SELECT siteId, MAX(timestamp) as max_timestamp 
+            FROM snaps 
+            GROUP BY siteId 
+            HAVING COUNT(*) > 1
+        ) s2 ON s1.siteId = s2.siteId AND s1.timestamp = s2.max_timestamp
+        ORDER BY s1.timestamp DESC
+    """)
+    fun getLatestSnapsFromSitesWithChanges(): PagingSource<Int, Snap>
 
 
     /**
@@ -193,5 +225,37 @@ interface SnapsDao {
 
     @Query("SELECT count(*) FROM snaps WHERE siteId = :siteId AND contentType LIKE :filter ORDER BY timestamp DESC")
     fun countSnapsWithChange(siteId: String, filter: String): Flow<Int>
+
+    // Fast content comparison using hashes
+    @Query("SELECT contentHash FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 1")
+    fun getLastContentHash(siteId: String): String?
+    
+    @Query("SELECT processedContentHash FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 1")
+    fun getLastProcessedContentHash(siteId: String): String?
+    
+    // Check if content with same hash already exists
+    @Query("SELECT COUNT(*) FROM snaps WHERE siteId = :siteId AND contentHash = :hash")
+    fun hasContentWithHash(siteId: String, hash: String): Int
+    
+    // Get snaps with different content hashes (actual changes)
+    @Query("""
+        SELECT * FROM snaps s1 
+        WHERE siteId = :siteId 
+        AND NOT EXISTS (
+            SELECT 1 FROM snaps s2 
+            WHERE s2.siteId = :siteId 
+            AND s2.contentHash = s1.contentHash 
+            AND s2.timestamp < s1.timestamp
+        )
+        ORDER BY timestamp DESC
+    """)
+    fun getUniqueContentSnaps(siteId: String): List<Snap>
+    
+    // Performance monitoring queries
+    @Query("SELECT AVG(contentSize) FROM snaps WHERE siteId = :siteId")
+    fun getAverageContentSize(siteId: String): Double?
+    
+    @Query("SELECT COUNT(DISTINCT contentHash) as unique_content, COUNT(*) as total_snaps FROM snaps WHERE siteId = :siteId")
+    fun getContentDuplicationStats(siteId: String): ContentDuplicationStats
 
 }

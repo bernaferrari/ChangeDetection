@@ -28,7 +28,9 @@ data class SettingsUiState(
     val themeMode: String = "MATERIAL_YOU",
     val turboMode: Boolean = false,
     val turboSiteIds: List<String> = emptyList(),
-    val turboStartTime: Long = 0L
+    val turboStartTime: Long = 0L,
+    val turboSyncInterval: Long = 30,
+    val turboDuration: Long = 180
 )
 
 @HiltViewModel
@@ -52,6 +54,8 @@ class SettingsViewModel @Inject constructor(
         val TURBO_MODE_KEY = booleanPreferencesKey("turbo_mode")
         val TURBO_SITE_IDS_KEY = stringPreferencesKey("turbo_site_ids")
         val TURBO_START_TIME_KEY = longPreferencesKey("turbo_start_time")
+        val TURBO_SYNC_INTERVAL_KEY = longPreferencesKey("turbo_sync_interval")
+        val TURBO_DURATION_KEY = longPreferencesKey("turbo_duration")
     }
 
     val uiState: StateFlow<SettingsUiState> = dataStore.data.map { preferences ->
@@ -76,7 +80,9 @@ class SettingsViewModel @Inject constructor(
             themeMode = preferences[THEME_MODE_KEY] ?: "MATERIAL_YOU",
             turboMode = preferences[TURBO_MODE_KEY] ?: false,
             turboSiteIds = turboSiteIds,
-            turboStartTime = preferences[TURBO_START_TIME_KEY] ?: 0L
+            turboStartTime = preferences[TURBO_START_TIME_KEY] ?: 0L,
+            turboSyncInterval = preferences[TURBO_SYNC_INTERVAL_KEY] ?: 30,
+            turboDuration = preferences[TURBO_DURATION_KEY] ?: 180
         )
     }.stateIn(
         scope = viewModelScope,
@@ -172,14 +178,17 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun enableTurboMode(siteIds: List<String>) {
+    fun enableTurboMode(siteIds: List<String>, syncIntervalSeconds: Int = 30, durationMinutes: Int = 180) {
         viewModelScope.launch {
             dataStore.edit { preferences ->
                 preferences[TURBO_MODE_KEY] = true
                 preferences[TURBO_SITE_IDS_KEY] = siteIds.joinToString(",")
                 preferences[TURBO_START_TIME_KEY] = System.currentTimeMillis()
+                preferences[TURBO_SYNC_INTERVAL_KEY] = syncIntervalSeconds.toLong()
+                preferences[TURBO_DURATION_KEY] = durationMinutes.toLong()
             }
-            workerHelper.startTurboMode(siteIds)
+            // Use quick monitor instead of turbo mode
+            workerHelper.startQuickMonitor(siteIds, syncIntervalSeconds)
         }
     }
 
@@ -190,7 +199,8 @@ class SettingsViewModel @Inject constructor(
                 preferences[TURBO_SITE_IDS_KEY] = ""
                 preferences[TURBO_START_TIME_KEY] = 0L
             }
-            workerHelper.stopTurboMode()
+            // Stop quick monitor
+            workerHelper.stopQuickMonitor()
         }
     }
 }

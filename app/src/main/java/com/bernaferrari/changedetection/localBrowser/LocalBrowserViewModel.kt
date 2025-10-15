@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 data class BrowserState(
     val content: String = "",
-    val isLoading: Boolean = true
+    val isLoading: Boolean = false
 )
 
 @HiltViewModel
@@ -25,6 +25,10 @@ class LocalBrowserViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(BrowserState())
     val state: StateFlow<BrowserState> = _state.asStateFlow()
+
+    fun reset() {
+        _state.value = BrowserState()
+    }
 
     fun fetchData(snapId: String) {
         viewModelScope.launch {

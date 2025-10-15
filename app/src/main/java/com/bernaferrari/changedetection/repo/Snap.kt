@@ -6,7 +6,17 @@ import java.util.*
 
 @Entity(
     tableName = "snaps",
-    indices = [(Index(value = ["siteId", "snapId"], unique = true))],
+    indices = [
+        (Index(value = ["siteId", "snapId"], unique = true)),
+        (Index(value = ["siteId", "timestamp"], name = "index_snaps_siteId_timestamp")),
+        (Index(value = ["siteId", "contentType"], name = "index_snaps_siteId_contentType")),
+        (Index(value = ["timestamp"], name = "index_snaps_timestamp")),
+        (Index(value = ["contentType"], name = "index_snaps_contentType")),
+        (Index(value = ["siteId", "contentType", "timestamp"], name = "index_snaps_composite")),
+        (Index(value = ["contentHash"], name = "index_snaps_contentHash")),
+        (Index(value = ["processedContentHash"], name = "index_snaps_processedContentHash")),
+        (Index(value = ["siteId", "contentHash"], name = "index_snaps_siteId_contentHash"))
+    ],
     foreignKeys = [(
             ForeignKey(
                 entity = Site::class,
@@ -35,7 +45,9 @@ data class Snap(
     val timestamp: Long,
     val contentType: String,
     val contentCharset: String,
-    val contentSize: Int
+    val contentSize: Int,
+    val contentHash: String = "", // SHA-256 hash for fast comparison
+    val processedContentHash: String = "" // Hash of processed/cleaned content
 ) {
     @Ignore
     constructor(
@@ -43,13 +55,17 @@ data class Snap(
         timestamp: Long,
         contentType: String,
         contentCharset: String,
-        contentSize: Int
+        contentSize: Int,
+        contentHash: String = "",
+        processedContentHash: String = ""
     ) : this(
         UUID.randomUUID().toString(),
         siteId,
         timestamp,
         contentType,
         contentCharset,
-        contentSize
+        contentSize,
+        contentHash,
+        processedContentHash
     )
 }

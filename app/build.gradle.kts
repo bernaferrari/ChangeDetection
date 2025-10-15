@@ -1,9 +1,11 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.compose)
@@ -16,7 +18,7 @@ android {
 
     defaultConfig {
         applicationId = "com.bernaferrari.changedetection"
-        minSdk = 21
+        minSdk = 30
         targetSdk = 36
         versionCode = 34
         versionName = "2.31"
@@ -42,8 +44,10 @@ android {
         }
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_17
+        }
     }
 
     compileOptions {
@@ -89,13 +93,16 @@ android {
 }
 
 dependencies {
-
+        // Glance AppWidget
+        implementation(libs.androidx.glance)
+        implementation(libs.androidx.glance.appwidget)
     implementation(project(":diffutils"))
 
     // Kotlin
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.serialization.json)
 
     // Android Core
     implementation(libs.androidx.core.ktx)
@@ -108,6 +115,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material3.window.size)
+    implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

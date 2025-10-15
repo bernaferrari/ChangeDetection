@@ -1,129 +1,323 @@
 package com.bernaferrari.changedetection.addedit
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bernaferrari.changedetection.WorkerHelper
-import com.bernaferrari.changedetection.repo.ColorGroup
+import com.bernaferrari.changedetection.extensions.normalizeUrl
 import com.bernaferrari.changedetection.repo.Site
-import com.bernaferrari.changedetection.repo.source.local.SitesDao
+import com.bernaferrari.changedetection.monitoring.ZapRule
+import com.bernaferrari.changedetection.repo.source.SitesRepository
+import com.bernaferrari.changedetection.browser.BrowserSessionData
+import com.bernaferrari.changedetection.browser.SelectedElement
+import com.bernaferrari.changedetection.browser.ZappedElement
+import com.bernaferrari.changedetection.WorkerHelper
+import com.bernaferrari.changedetection.repo.withCookies
+import com.bernaferrari.changedetection.repo.withSmartMonitoring
+import com.bernaferrari.changedetection.repo.withZapRules
+import com.bernaferrari.changedetection.repo.zapRules
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 data class AddEditUiState(
+    val url: String = "",
+    val title: String = "",
+    val selectedColors: Pair<Int, Int> = Pair(0xFF2196F3.toInt(), 0xFF1976D2.toInt()),
     val isLoading: Boolean = false,
-    val isSuccess: Boolean = false,
-    val error: String? = null
+    val isSaving: Boolean = false,
+    val urlError: String? = null,
+    val saveError: String? = null,
+    val saveComplete: Boolean = false,
+    val browserData: BrowserSessionData? = null,
+    val useCookies: Boolean = false,
+    val cookieBytes: Long = 0L,
+    val hasCapturedCookies: Boolean = false
 )
 
 @HiltViewModel
 class AddEditViewModel @Inject constructor(
-    private val sitesDao: SitesDao,
-    private val workerHelper: WorkerHelper
+    private val sitesRepository: SitesRepository,
+    private val workerHelper: WorkerHelper,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-
+    
+    private val siteId: String? = savedStateHandle.get<String>("siteId")
+    
     private val _uiState = MutableStateFlow(AddEditUiState())
     val uiState: StateFlow<AddEditUiState> = _uiState.asStateFlow()
-
-    private val _site = MutableStateFlow<Site?>(null)
-    val site: StateFlow<Site?> = _site.asStateFlow()
-
-    fun loadSite(siteId: String) {
-        viewModelScope.launch {
-            try {
-                val siteData = withContext(Dispatchers.IO) {
-                    sitesDao.getSiteById(siteId)
-                }
-                _site.value = siteData
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = e.message)
+    
+    init {
+        // Load site if editing
+        siteId?.let { id ->
+            viewModelScope.launch {
+                loadSite(id)
             }
         }
     }
+    
+    private suspend fun loadSite(id: String) {
+        _uiState.update { it.copy(isLoading = true) }
+        try {
+            val site = sitesRepository.getSiteById(id)
+            site?.let {
+                _uiState.update { state ->
+                    val selectors = site.cssSelector.split(',')
+                        .map { it.trim() }
+                        .filter { it.isNotEmpty() }
+                        .mapIndexed { index, selector ->
+                            SelectedElement(
+                                selector = selector,
+                                description = selector,
+                                timestamp = index.toLong()
+                            )
+                        }
 
-    fun addSite(
-        title: String,
-        url: String,
-        tags: String,
-        useBrowser: Boolean,
-        colors: ColorGroup,
-        threshold: Int
-    ) {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+                    val zapped = site.zapRules.mapIndexed { index, rule ->
+                        when (rule) {
+                            is ZapRule.CssSelector -> ZappedElement(
+                                selector = rule.selector,
+                                description = rule.selector,
+                                timestamp = index.toLong()
+                            )
 
-            try {
-                val site = Site(
-                    title = title.takeIf { it.isNotBlank() },
-                    url = url,
-                    timestamp = System.currentTimeMillis(),
-                    tags = tags.takeIf { it.isNotBlank() } ?: "",
-                    colors = colors,
-                    isBrowser = useBrowser,
-                    threshold = threshold
+                            is ZapRule.ElementType -> ZappedElement(
+                                selector = rule.tagName,
+                                description = rule.tagName,
+                                timestamp = index.toLong()
+                            )
+
+                            is ZapRule.AttributePattern -> ZappedElement(
+                                selector = "[${rule.attribute}~=${rule.pattern}]",
+                                description = rule.pattern,
+                                timestamp = index.toLong()
+                            )
+
+                            is ZapRule.TextPattern -> ZappedElement(
+                                selector = rule.pattern,
+                                description = rule.pattern,
+                                timestamp = index.toLong()
+                            )
+
+                            is ZapRule.XPath -> ZappedElement(
+                                selector = rule.xpath,
+                                description = rule.xpath,
+                                timestamp = index.toLong()
+                            )
+                        }
+                    }
+
+                    state.copy(
+                        url = site.url,
+                        title = site.title ?: "",
+                        selectedColors = site.colors,
+                        isLoading = false,
+                        browserData = BrowserSessionData(
+                            url = site.url,
+                            title = site.title ?: "",
+                            cookies = site.cookieData,
+                            userAgent = site.userAgent,
+                            selectedElements = selectors,
+                            zappedElements = zapped
+                        ),
+                        useCookies = site.cookieData.isNotBlank(),
+                        cookieBytes = site.cookieData?.toByteArray()?.size?.toLong() ?: 0L,
+                        hasCapturedCookies = site.cookieData.isNotBlank()
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    saveError = "Failed to load site"
                 )
+            }
+        }
+    }
+    
+    fun setUrl(url: String) {
+        val trimmed = url.trim()
+        val normalized = trimmed.normalizeUrl()
 
+        _uiState.update { current ->
+            val resolvedUrl = normalized ?: trimmed
+            val updatedTitle = if (current.title.isEmpty() && normalized != null) {
+                runCatching { java.net.URL(normalized).host.replace("www.", "") }
+                    .getOrElse { current.title }
+            } else {
+                current.title
+            }
 
-                withContext(Dispatchers.IO) {
-                    sitesDao.insertSite(site)
+            current.copy(
+                url = resolvedUrl,
+                urlError = if (trimmed.isNotEmpty() && normalized == null) {
+                    "Please enter a valid URL"
+                } else null,
+                title = updatedTitle
+            )
+        }
+    }
+    
+    fun setTitle(title: String) {
+        _uiState.update { it.copy(title = title) }
+    }
+    
+    fun setColors(colors: Pair<Int, Int>) {
+        _uiState.update { it.copy(selectedColors = colors) }
+    }
+    
+    fun setBrowserData(data: BrowserSessionData) {
+        _uiState.update { 
+            val cookies = data.cookies.orEmpty()
+            val newCookieBytes = cookies.toByteArray().size.toLong()
+            val previousBytes = it.cookieBytes
+            val resolvedUseCookies = when {
+                newCookieBytes == 0L -> false
+                previousBytes == 0L -> true
+                else -> it.useCookies
+            }
+            it.copy(
+                title = data.title ?: it.title,
+                browserData = data,
+                useCookies = resolvedUseCookies,
+                cookieBytes = newCookieBytes,
+                hasCapturedCookies = newCookieBytes > 0 || it.hasCapturedCookies
+            )
+        }
+    }
+
+    fun setUseCookies(enabled: Boolean) {
+        _uiState.update { it.copy(useCookies = enabled) }
+    }
+    
+    
+    fun saveSite() {
+        val state = _uiState.value
+        val normalizedUrl = state.url.normalizeUrl()
+        if (normalizedUrl == null) {
+            _uiState.update { it.copy(urlError = "Please enter a valid URL") }
+            return
+        }
+        
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSaving = true, saveError = null) }
+            
+            try {
+                val browserData = state.browserData
+
+                val selectedSelectors: List<String> = browserData?.selectedElements?.map { it.selector }.orEmpty()
+                val joinedCssSelector: String = selectedSelectors.joinToString(separator = ",")
+                val hasElementMonitoring = selectedSelectors.isNotEmpty()
+                val hasMultipleElements = selectedSelectors.size > 1
+
+                val zapRules = browserData?.zappedElements
+                    ?.map { element -> ZapRule.CssSelector(element.selector) }
+                    .orEmpty()
+
+                val resolvedTitle = state.title.ifBlank {
+                    try {
+                        java.net.URL(normalizedUrl).host.replace("www.", "")
+                    } catch (e: Exception) {
+                        "Website"
+                    }
                 }
 
-                // Trigger initial sync using DataStore-based WorkerHelper
+                val existingSite = siteId?.let { sitesRepository.getSiteById(it) }
+
+                val baseSite = existingSite?.copy(
+                    url = normalizedUrl,
+                    title = resolvedTitle,
+                    colors = state.selectedColors,
+                    timestamp = System.currentTimeMillis()
+                ) ?: Site(
+                    id = java.util.UUID.randomUUID().toString(),
+                    url = normalizedUrl,
+                    title = resolvedTitle,
+                    colors = state.selectedColors,
+                    isBrowser = browserData != null,
+                    isSyncEnabled = true,
+                    isNotificationEnabled = true,
+                    cookieData = "",
+                    userAgent = "",
+                    zapRulesJson = "",
+                    cssSelector = "",
+                    elementMonitoring = false,
+                    multipleElementMonitoring = false,
+                    smartMonitoringEnabled = false,
+                    timestamp = System.currentTimeMillis(),
+                    isSuccessful = true,
+                    isRead = false,
+                    threshold = 0,
+                    notes = "",
+                    constraints = com.bernaferrari.changedetection.repo.ConstraintsRequired(
+                        false, false, false, false
+                    )
+                )
+
+                var updatedSite = baseSite
+
+                if (browserData != null) {
+                    updatedSite = updatedSite.copy(
+                        cssSelector = joinedCssSelector,
+                        elementMonitoring = hasElementMonitoring,
+                        multipleElementMonitoring = hasMultipleElements,
+                        userAgent = browserData.userAgent,
+                        isBrowser = true
+                    )
+
+                    val cookieMap = parseCookieHeader(browserData.cookies)
+                    updatedSite = if (state.useCookies && cookieMap.isNotEmpty()) {
+                        updatedSite.withCookies(cookieMap)
+                    } else {
+                        updatedSite.copy(cookieData = "")
+                    }
+
+                    updatedSite = updatedSite.withZapRules(zapRules)
+                    updatedSite = updatedSite.withSmartMonitoring(enabled = hasElementMonitoring || zapRules.isNotEmpty())
+                } else if (!state.useCookies) {
+                    updatedSite = updatedSite.copy(cookieData = "")
+                }
+
+                val site = updatedSite
+                
+                sitesRepository.saveSite(site)
+
+                // Trigger initial sync to populate first snapshot
                 workerHelper.reloadSite(site)
 
-                _uiState.value = AddEditUiState(isSuccess = true)
-
+                _uiState.update { current ->
+                    current.copy(isSaving = false, saveComplete = true)
+                }
             } catch (e: Exception) {
-                _uiState.value = AddEditUiState(error = e.message)
+                _uiState.update {
+                    it.copy(
+                        isSaving = false,
+                        saveError = "Failed to save site: ${e.message}"
+                    )
+                }
             }
         }
     }
+}
 
-    fun updateSite(
-        site: Site,
-        title: String,
-        url: String,
-        tags: String,
-        useBrowser: Boolean,
-        colors: ColorGroup,
-        threshold: Int
-    ) {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+private fun parseCookieHeader(header: String): Map<String, String> {
+    if (header.isBlank()) return emptyMap()
 
-            try {
-                val updatedSite = site.copy(
-                    title = title.takeIf { it.isNotBlank() },
-                    url = url,
-                    notes = tags.takeIf { it.isNotBlank() } ?: "",
-                    isBrowser = useBrowser,
-                    colors = colors,
-                    threshold = threshold
-                )
+    val tokens = header.split(';')
+    val map = mutableMapOf<String, String>()
 
-                withContext(Dispatchers.IO) {
-                    sitesDao.updateSite(updatedSite)
-                }
-
-                // Reload if URL changed
-                if (site.url != url) {
-                    workerHelper.reloadSite(updatedSite)
-                }
-
-                _uiState.value = AddEditUiState(isSuccess = true)
-
-            } catch (e: Exception) {
-                _uiState.value = AddEditUiState(error = e.message)
-            }
+    tokens.forEach { token ->
+        val parts = token.trim().split('=', limit = 2)
+        val name = parts.getOrNull(0)?.trim().orEmpty()
+        if (name.isNotEmpty()) {
+            val value = parts.getOrNull(1)?.trim() ?: ""
+            map[name] = value
         }
     }
 
-    fun clearState() {
-        _uiState.value = AddEditUiState()
-    }
+    return map
 }

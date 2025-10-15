@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Network Errors -->
+    <string name="error_page_not_found">Page not found. The website may have moved or been deleted.</string>
+    <string name="error_access_forbidden">Access denied. You may need to log in or don\'t have permission to view this page.</string>
+    <string name="error_server_error">Server error. The website is temporarily unavailable.</string>
+    <string name="error_network_general">Network error (Code: %d). Please check your connection.</string>
+    <string name="error_no_internet">No internet connection. Please check your network settings.</string>
+    <string name="error_request_timeout">Request timed out. The website is taking too long to respond.</string>
+    
+    <!-- Validation Errors -->
+    <string name="error_invalid_url">Please enter a valid URL (e.g., https://example.com)</string>
+    <string name="error_invalid_email">Please enter a valid email address</string>
+    <string name="error_invalid_css_selector">Invalid CSS selector. Please check your syntax.</string>
+    <string name="error_validation_general">Invalid %s. Please check your input.</string>
+    
+    <!-- Database Errors -->
+    <string name="error_database_general">Database error. Your data may be temporarily unavailable.</string>
+    
+    <!-- Sync Errors -->
+    <string name="error_rate_limited">Too many requests. Please wait before trying again.</string>
+    <string name="error_quota_exceeded">Daily monitoring limit reached. Upgrade to continue monitoring.</string>
+    <string name="error_content_too_large">Content is too large to monitor. Try using element selection.</string>
+    <string name="error_invalid_content">Invalid content type. Only web pages and text content are supported.</string>
+    <string name="error_sync_general">Sync failed. Please try again later.</string>
+    
+    <!-- Authentication Errors -->
+    <string name="error_authentication_failed">Login failed. Please check your credentials.</string>
+    
+    <!-- System Errors -->
+    <string name="error_permissions_denied">Permission denied. Please grant the required permissions.</string>
+    <string name="error_out_of_memory">Not enough memory. Try reducing the number of monitored sites.</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    
+    <!-- Action Suggestions -->
+    <string name="action_check_url">Check the URL</string>
+    <string name="action_verify_page_exists">Verify the page exists</string>
+    <string name="action_try_again_later">Try again later</string>
+    <string name="action_check_input">Check your input</string>
+    <string name="action_see_examples">See examples</string>
+    <string name="action_restart_app">Restart the app</string>
+    <string name="action_clear_cache">Clear cache</string>
+    <string name="action_wait_and_retry">Wait and retry</string>
+    <string name="action_use_element_selector">Use element selector</string>
+    <string name="action_add_content_filters">Add content filters</string>
+    <string name="action_check_settings">Check settings</string>
+    <string name="action_check_credentials">Check credentials</string>
+    <string name="action_refresh_cookies">Refresh cookies</string>
+    <string name="action_check_internet">Check internet connection</string>
+    <string name="action_check_wifi">Check WiFi connection</string>
+    <string name="action_check_connection_speed">Check connection speed</string>
+    <string name="action_try_again">Try again</string>
+    <string name="action_check_permissions">Check permissions</string>
+    <string name="action_grant_permissions">Grant permissions</string>
+    <string name="action_reduce_monitoring_sites">Reduce monitored sites</string>
+    
+    <!-- Error Dialog Titles -->
+    <string name="error_dialog_title_network">Connection Problem</string>
+    <string name="error_dialog_title_validation">Input Error</string>
+    <string name="error_dialog_title_sync">Sync Issue</string>
+    <string name="error_dialog_title_auth">Login Problem</string>
+    <string name="error_dialog_title_system">System Error</string>
+    <string name="error_dialog_title_general">Error</string>
+    
+    <!-- Error Actions -->
+    <string name="error_action_retry">Retry</string>
+    <string name="error_action_dismiss">Dismiss</string>
+    <string name="error_action_settings">Settings</string>
+    <string name="error_action_help">Help</string>
+    <string name="error_action_report">Report Issue</string>
+    
+    <!-- Success Messages -->
+    <string name="success_site_added">Site added successfully</string>
+    <string name="success_site_updated">Site updated successfully</string>
+    <string name="success_sync_completed">Sync completed</string>
+    <string name="success_authentication_saved">Login credentials saved</string>
+    <string name="success_filters_applied">Smart filters applied</string>
+    <string name="success_element_selected">Element selected for monitoring</string>
+    
+    <!-- Progress Messages -->
+    <string name="progress_loading_site">Loading site…</string>
+    <string name="progress_saving_changes">Saving changes…</string>
+    <string name="progress_syncing">Syncing %s…</string>
+    <string name="progress_processing_content">Processing content…</string>
+    <string name="progress_applying_filters">Applying smart filters…</string>
+    <string name="progress_authenticating">Authenticating…</string>
+    
+    <!-- Info Messages -->
+    <string name="info_smart_monitoring_enabled">Smart monitoring is analyzing your content and will reduce false positives</string>
+    <string name="info_element_monitoring_active">Monitoring specific element only</string>
+    <string name="info_turbo_mode_active">Turbo mode: Checking every %d seconds</string>
+    <string name="info_authentication_configured">Login credentials configured</string>
+    <string name="info_filters_active">%d smart filters active</string>
+    
+    <!-- Warning Messages -->
+    <string name="warning_large_content">This page is very large. Consider using element selection to monitor specific parts.</string>
+    <string name="warning_frequent_changes">This page changes frequently. You may want to enable smart filtering.</string>
+    <string name="warning_no_changes_detected">No changes detected in the last %d checks</string>
+    <string name="warning_authentication_expired">Login session may have expired. Consider refreshing credentials.</string>
+    
+    <!-- Confirmation Messages -->
+    <string name="confirm_delete_site">Delete this site and all its monitoring history?</string>
+    <string name="confirm_clear_cache">Clear all cached data? This will free up storage space.</string>
+    <string name="confirm_reset_settings">Reset all settings to default values?</string>
+    <string name="confirm_stop_turbo_mode">Stop turbo mode monitoring?</string>
+</resources>

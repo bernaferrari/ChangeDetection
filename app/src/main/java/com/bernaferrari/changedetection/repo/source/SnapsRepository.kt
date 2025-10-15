@@ -81,12 +81,16 @@ class SnapsRepository @Inject constructor(
         mSnapsLocalDataSource.pruneSnaps(siteId)
     }
 
-    override suspend fun getAllSnapsFromSite(siteId: String): List<Snap> {
-        // Since we don't have a direct method, we'll need to get the LiveData and extract the value
-        // This is a temporary solution - ideally the data source interface should have this method
-        val liveData = mSnapsLocalDataSource.getSnaps(siteId)
-        // Note: This is not ideal as LiveData.value might be null
-        // In a real implementation, you'd want to add getAllSnapsFromSite to SnapsDataSource interface
-        return liveData.value ?: emptyList()
+    override suspend fun getAllSnapsForSite(siteId: String): List<Snap> {
+        return mSnapsLocalDataSource.getAllSnapsForSite(siteId)
+    }
+
+    // Fast content hash comparison methods
+    override suspend fun getLastContentHash(siteId: String): String? {
+        return mSnapsLocalDataSource.getLastContentHash(siteId)
+    }
+
+    override suspend fun getLastProcessedContentHash(siteId: String): String? {
+        return mSnapsLocalDataSource.getLastProcessedContentHash(siteId)
     }
 }
