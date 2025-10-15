@@ -23,9 +23,11 @@ object DatabaseModule {
         return Room.databaseBuilder(
             context.applicationContext,
             ChangeDatabase::class.java,
-            "Changes.db"
+            "Changes2.db"
         )
             .addMigrations(ChangeDatabase.MIGRATION_1_2)
+            .addMigrations(ChangeDatabase.MIGRATION_2_3)
+            .addMigrations(ChangeDatabase.MIGRATION_3_4)
             .build()
     }
 

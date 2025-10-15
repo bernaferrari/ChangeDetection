@@ -8,7 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -77,7 +77,7 @@ fun HowItWorksScreen(
                 title = { Text("How It Works") },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -105,6 +105,20 @@ fun HowItWorksScreen(
             item {
                 Spacer(modifier = Modifier.height(16.dp))
                 GetStartedCard()
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                // Quick start CTA to add site
+                Button(
+                    onClick = onBackClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text("Start by adding a website", style = MaterialTheme.typography.titleMedium)
+                }
             }
         }
     }

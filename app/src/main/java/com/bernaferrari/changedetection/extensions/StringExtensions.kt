@@ -9,13 +9,16 @@ import org.jsoup.safety.Safelist
 internal fun String.cleanUpHtml(): String =
     Jsoup.clean(this, "", Safelist.relaxed(), Document.OutputSettings().prettyPrint(false))
 
-// verify if a url is valid
-internal fun String.isValidUrl(): Boolean {
-    // first one will not catch links without http:// before them.
-    return Patterns.WEB_URL.matcher(this).matches() && this.lowercase().matches(
-        "^\\w+://.*".toRegex()
-    )
+internal fun String.normalizeUrl(defaultScheme: String = "https"): String? {
+    val trimmed = this.trim()
+    if (trimmed.isEmpty()) return null
+
+    val candidate = if ("://" in trimmed) trimmed else "$defaultScheme://$trimmed"
+    return if (Patterns.WEB_URL.matcher(candidate).matches()) candidate else null
 }
+
+// verify if a url is valid (accepts inputs without explicit scheme and normalizes internally)
+internal fun String.isValidUrl(): Boolean = this.normalizeUrl() != null
 
 internal fun String.removeClutterAndBeautifyHtmlIfNecessary(type: String): String =
     if (type == "text/html") Jsoup.clean(this, Safelist.relaxed()) else this
@@ -53,14 +56,4 @@ internal fun regexEmail(): Regex =
 
 internal fun regexValidWebsite(): Regex = "(http|https)://.*".toRegex()
 
-fun String.fixUrlIfNecessary(): String {
-    return if (!this.trim().isValidUrl()) {
-        if ("https://$this".trim().isValidUrl()) {
-            "https://$this".trim()
-        } else {
-            this
-        }
-    } else {
-        this
-    }
-}
+fun String.fixUrlIfNecessary(): String = this.normalizeUrl() ?: this.trim()

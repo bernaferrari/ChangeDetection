@@ -55,12 +55,12 @@
     <string name="empty_please_select_two">Selecione dois itens abaixo\npara comparar as diferenças</string>
     <string name="empty_no_change_detected">Nenhuma mudança detectada entre esses dois items</string>
 
-    <string name="remove_this">Remover %1s</string>
+    <string name="remove_this">Remover %1$s</string>
     <string name="remove_content">Tem certeza que deseja remover isso?</string>
 
-    <string name="are_you_sure">Você tem certeza que deseja remover %1s de %2s?</string>
+    <string name="are_you_sure">Você tem certeza que deseja remover %1$s de %2$s?</string>
     <string name="missing_internet">Erro! Sem conexão com a internet</string>
-    <string name="was_updated">%1s foi atualizado!</string>
+    <string name="was_updated">%1$s foi atualizado!</string>
 
     <string name="url">Link do Site</string>
     <string name="title">Título</string>
@@ -106,7 +106,7 @@
         <item quantity="other">%d items</item>
     </plurals>
 
-    <string name="change_detected_notification_with_title">%1s (%2s) foi atualizado!</string>
+    <string name="change_detected_notification_with_title">%1$s (%2$s) foi atualizado!</string>
     <string name="change_detected_notification_without_title">Mudança detectada! (%1s)</string>
 
     <string name="sort_by_name">Ordenar por nome</string>
@@ -116,9 +116,170 @@
     <string name="bkp_export">Exportar</string>
     <string name="bkp_import">Importar</string>
     <string name="bkp_description">Você pode salvar uma cópia dos sites que você está rastreando, ou restaurar de um backup existente. Somente informações, como título, url, cor e preferências são mantidos. Você pode exportar/importar por vários locais, incluindo Google Drive e armazenamento interno do Android.</string>
+    <string name="skip">Pular</string>
 
     <string name="filter">Filtro</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_button_get_started">Começar</string>
+    <string name="onboarding_title_welcome">Bem-vindo ao ChangeDetection</string>
+    <string name="onboarding_description_welcome">Monitore qualquer site e receba notificações instantâneas quando conteúdos importantes mudarem.</string>
+    <string-array name="onboarding_highlights_welcome">
+        <item>Monitoramento em tempo real</item>
+        <item>Detecção inteligente de mudanças</item>
+        <item>Notificações encantadoras</item>
+    </string-array>
+    <string name="onboarding_title_element_selection">Seleção inteligente de elementos</string>
+    <string name="onboarding_description_element_selection">Escolha elementos específicos como preços, estoque ou seções de conteúdo com um seletor visual intuitivo.</string>
+    <string-array name="onboarding_highlights_element_selection">
+        <item>Seletor visual de elementos</item>
+        <item>Foco inteligente no conteúdo</item>
+        <item>Suporte a autenticação</item>
+    </string-array>
+    <string name="onboarding_title_zap">Monitoramento sem anúncios</string>
+    <string name="onboarding_description_zap">Remova anúncios, banners e distrações para que apenas o conteúdo relevante seja acompanhado.</string>
+    <string-array name="onboarding_highlights_zap">
+        <item>Bloqueio poderoso de conteúdo</item>
+        <item>Seleção da hierarquia principal</item>
+        <item>Regras persistentes de bloqueio</item>
+    </string-array>
+    <string name="onboarding_title_turbo">Modo turbo</string>
+    <string name="onboarding_description_turbo">Ative o monitoramento em alta frequência para lançamentos, edições limitadas ou qualquer momento em que segundos importam.</string>
+    <string-array name="onboarding_highlights_turbo">
+        <item>Intervalos de 15 segundos</item>
+        <item>Agendamento baseado em prioridade</item>
+        <item>Alertas em tempo real</item>
+    </string-array>
+    <string name="onboarding_title_analytics">Análises poderosas</string>
+    <string name="onboarding_description_analytics">Entenda padrões de mudança, confiabilidade e desempenho com gráficos e insights envolventes.</string>
+    <string-array name="onboarding_highlights_analytics">
+        <item>Análise da frequência de mudanças</item>
+        <item>Métricas de confiabilidade do site</item>
+        <item>Recursos de exportação</item>
+    </string-array>
+    <string name="onboarding_title_ready">Pronto para começar</string>
+    <string name="onboarding_description_ready">Adicione seu primeiro site e experimente o poder da detecção inteligente de mudanças.</string>
+    <string-array name="onboarding_highlights_ready">
+        <item>Monitoramento nível enterprise</item>
+        <item>Design moderno e encantador</item>
+        <item>Notificações super-rápidas</item>
+    </string-array>
+
+    <!-- Main Screen -->
+    <string name="main_add_site">Adicionar site</string>
+    <string name="main_empty_title">Nenhum site ainda</string>
+    <string name="main_empty_subtitle">Adicione um site para começar a monitorar mudanças.</string>
+    <string name="main_features_title">✨ Recursos</string>
+    <string-array name="main_features_list">
+        <item>🚀 Modo turbo — monitore a cada 5-30 segundos</item>
+        <item>🔐 Autenticação segura para sites protegidos</item>
+        <item>🎯 Acompanhe elementos específicos com precisão</item>
+        <item>⚡ Notificações em tempo real para cada mudança</item>
+    </string-array>
+    <string name="main_header_tagline">Controle cada mudança com tranquilidade.</string>
+    <plurals name="main_header_site_count">
+        <item quantity="zero">Nenhum site monitorado</item>
+        <item quantity="one">%d site monitorado</item>
+        <item quantity="other">%d sites monitorados</item>
+    </plurals>
+    <string name="main_empty_learn_more">Saiba como funciona</string>
+    <string name="nav_home">Início</string>
+    <string name="nav_logs">Registros</string>
+    <string name="nav_settings">Configurações</string>
+
+    <!-- Quick Monitor -->
+    <string name="quick_monitor_toast_starting">Iniciando Turbo monitor…</string>
+    <string name="quick_monitor_toast_failed">Não foi possível iniciar o Turbo monitor: %1$s</string>
+    <string name="quick_monitor_toast_extended">Extendido por 1 hora</string>
+    <string name="quick_monitor_alert_state_on">Primeiro plano</string>
+    <string name="quick_monitor_banner_active_title">⚡ Turbo monitor</string>
+    <string name="quick_monitor_banner_inactive_title">💡 Turbo monitor</string>
+    <string name="quick_monitor_banner_active_details">Monitorando %1$d sites a cada %2$d segundos • Decorrido %3$s • Restante %4$s</string>
+    <string name="quick_monitor_banner_inactive_details">Toque para fixar uma notificação e acompanhar mudanças a cada poucos segundos.</string>
+    <string name="quick_monitor_banner_service_running">Serviço em primeiro plano</string>
+    <string name="quick_monitor_banner_notifications">Notificação fixa enquanto estiver ativo</string>
+    <string name="quick_monitor_banner_button_stop">Parar Turbo</string>
+    <string name="quick_monitor_banner_button_start">Iniciar Turbo</string>
+    <string name="quick_monitor_banner_live_badge">AO VIVO</string>
+    <string name="all_good">Tudo certo</string>
+    <string name="recent_changes">Mudanças recentes</string>
+    <string name="quick_monitor_banner_checking_site">Verificando: %1$s</string>
+    <string name="quick_monitor_banner_progress">%1$d/%2$d</string>
+    <!-- Status & Logs -->
+    <string name="status_last_snapshot">Último: %1$s</string>
+    <string name="status_no_snapshots">Sem capturas</string>
+    <string name="logs_error_loading">Erro ao carregar dados</string>
+    <string name="logs_last_changes_title">Mudanças recentes</string>
+    <plurals name="logs_changes_detected">
+        <item quantity="one">%d mudança detectada</item>
+        <item quantity="other">%d mudanças detectadas</item>
+    </plurals>
+    <string name="logs_remove_snapshot_title">Remover captura?</string>
+    <string name="logs_remove_snapshot_body">%1$s · %2$s</string>
+    <string name="logs_empty_title">Ainda não há mudanças detectadas</string>
+    <string name="logs_empty_subtitle">Comece a monitorar sites para ver as mudanças aqui.</string>
+
+    <!-- Settings -->
+    <!-- Browser Controls -->
+    <string name="browser_monitor_label">Monitorar</string>
+    <string name="browser_zap_label">Ocultar</string>
+    <string name="browser_review_rules">Revisar</string>
+    <string name="browser_clear_zaps">Limpar</string>
+    <string name="browser_monitored_zapped_counts">%1$d monitorados • %2$d ocultos</string>
+    <string name="browser_wait_for_load">Aguardando a página terminar de carregar…</string>
+    <string name="browser_ready_select_hint">Escolha Monitorar ou Ocultar para focar no conteúdo importante.</string>
+    <string name="browser_manage_elements">Revisar seleções</string>
+    <string name="browser_full_page_monitoring">Monitorando a página inteira</string>
+    <string name="full_page_monitoring_hint">Vamos acompanhar toda a página. Você pode refinar o que monitoramos mais tarde, se preferir.</string>
+    <string name="browser_parent_preview_title_block">Conteúdo a ocultar</string>
+    <string name="browser_parent_preview_title_monitor">Conteúdo a monitorar</string>
+    <string name="browser_parent_preview_selector_label">Seletor CSS</string>
+    <string name="browser_parent_preview_text_label">Texto visível</string>
+    <string name="settings_theme_title">Tema</string>
+    <string name="settings_monitoring_section">Monitoramento</string>
+    <string name="settings_background_sync_title">Sincronização em segundo plano</string>
+    <string name="settings_background_sync_disabled">Desativada</string>
+    <string name="settings_background_sync_every">A cada %1$d minutos</string>
+    <string name="settings_turbo_title">Monitor turbo</string>
+    <string name="settings_turbo_active">Ativo • %1$d min restantes</string>
+    <string name="settings_turbo_description">Monitoramento intensivo por 3 horas</string>
+    <string name="settings_about_section">Sobre</string>
+    <string name="settings_about_title">Sobre o ChangeDetection</string>
+    <string name="settings_about_subtitle">Informações de versão e licenças</string>
+
+    <!-- Notifications -->
+    <string name="quick_monitor_notification_initial_title">⚡ Turbo monitor iniciando…</string>
+    <string name="quick_monitor_notification_initial_text">Preparando monitoramento de alta frequência</string>
     <string name="settings">Configurações</string>
     <string name="about">Sobre</string>
 
+    <string name="confirmation_ready_title">Tudo pronto para começar a monitorar</string>
+    <string name="confirmation_ready_subtitle">Revise os detalhes abaixo ou ajuste o que quiser antes de continuar.</string>
+    <plurals name="monitoring_elements_selected">
+        <item quantity="one">%d elemento selecionado</item>
+        <item quantity="other">%d elementos selecionados</item>
+    </plurals>
+    <plurals name="monitoring_elements_zapped">
+        <item quantity="one">%d elemento oculto</item>
+        <item quantity="other">%d elementos ocultos</item>
+    </plurals>
+
+    <!-- Quick Monitor (Turbo Mode) -->
+    <string name="action_stop_monitoring">Parar monitoramento</string>
+    <string name="action_extend_one_hour">Estender 1 hora</string>
+    <string name="quick_monitor_extend_1h">Estender 1h</string>
+    <string name="theme_color_preview_title">Acento selecionado</string>
+    <string name="theme_color_preview_body">Usaremos este degradê em cartões e cronogramas deste site.</string>
+    <string name="turbo_mode_dialog_warning_title">Alto consumo de bateria</string>
+    <string name="turbo_mode_dialog_warning_body">O modo Turbo verifica a cada %1$ds e mantém o dispositivo ativo. Use quando cada segundo importar.</string>
+    <plurals name="turbo_mode_selected_sites">
+        <item quantity="one">%d site selecionado</item>
+        <item quantity="other">%d sites selecionados</item>
+    </plurals>
+    <string name="cookies_section_title">Cookies de sessão</string>
+    <string name="cookies_section_caption">Mantenha-se conectado e reutilize os cookies capturados durante as verificações.</string>
+    <string name="cookies_switch_label">Usar cookies</string>
+    <string name="cookies_switch_description">Desative se o site falhar quando estiver autenticado.</string>
+    <string name="cookies_size_label">%1$s de cookies capturados</string>
+    <string name="cookies_none">Nenhum cookie capturado ainda</string>
 </resources>

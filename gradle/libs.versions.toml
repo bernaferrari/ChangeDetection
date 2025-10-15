@@ -1,38 +1,40 @@
 [versions]
-activityCompose = "1.10.1"
-androidGradlePlugin = "8.10.1"
+activityCompose = "1.11.0"
+androidGradlePlugin = "8.13.0"
 compose = "1.8.2"
-composeBom = "2025.06.00"
+composeBom = "2025.09.01"
 coroutines = "1.10.2"
 datastore = "1.1.7"
-hilt = "2.56.2"
-hilt-android = "1.3.0-alpha01"
+hilt = "2.57.2"
+hilt-android = "1.3.0"
 junit = "4.13.2"
-kotlin = "2.1.21"
-ktx = "1.16.0"
+kotlin = "2.2.10"
+kotlinxSerializationJson = "1.9.0"
+ktx = "1.17.0"
 leakcanary = "2.14"
-lifecycle = "2.9.1"
-material3 = "1.4.0-alpha15"
-materialKolor = "3.0.0-alpha04"
-navigation = "2.9.0"
+lifecycle = "2.9.4"
+material3 = "1.5.0-alpha04"
+materialKolor = "3.0.1"
+navigation = "2.9.5"
 paging = "3.3.6"
 paletteKtx = "1.0.0"
-room = "2.7.1"
-work = "2.10.1"
+room = "2.8.1"
+work = "2.10.5"
 logger = "2.2.0"
-coil = "3.2.0"
-ksp = "2.1.21-2.0.1"
-gradle-versions = "0.52.0"
-spotless = "7.0.3"
-version-catalog-update = "1.0.0"
-jsoup = "1.18.3"
-okhttp = "4.12.0"
-okio = "3.11.0"
-timeAgo = "4.0.3"
-commonsText = "1.12.0"
-browser = "1.8.0"
+coil = "3.3.0"
+ksp = "2.2.10-2.0.2"
+gradle-versions = "0.53.0"
+spotless = "8.0.0"
+version-catalog-update = "1.0.1"
+jsoup = "1.21.2"
+okhttp = "5.1.0"
+okio = "3.16.0"
+timeAgo = "4.1.0"
+commonsText = "1.14.0"
+browser = "1.9.0"
 subsamplingScaleImageView = "3.10.0"
 startup = "1.2.0"
+glance = "1.1.1"
 
 [libraries]
 androidx-startup = { module = "androidx.startup:startup-runtime", version.ref = "startup" }
@@ -70,6 +72,7 @@ junit = { module = "junit:junit", version.ref = "junit" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 logger = { module = "com.orhanobut:logger", version.ref = "logger" }
 
@@ -89,6 +92,8 @@ commons-text = { module = "org.apache.commons:commons-text", version.ref = "comm
 androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
 subsampling-scale-imageview = { module = "com.davemorrissey.labs:subsampling-scale-image-view", version.ref = "subsamplingScaleImageView" }
 material-kolor = { module = "com.materialkolor:material-kolor", version.ref = "materialKolor" }
+androidx-glance = { module = "androidx.glance:glance", version.ref = "glance" }
+androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

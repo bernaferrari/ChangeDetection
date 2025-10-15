@@ -7,9 +7,9 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,17 +19,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -44,16 +47,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.extensions.convertTimestampToDate
 import com.bernaferrari.changedetection.extensions.readableFileSize
@@ -65,354 +70,337 @@ import com.bernaferrari.changedetection.ui.theme.ChangeDetectionTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlin.math.abs
 
 enum class SyncStatus {
     LOADING, OK, ERROR
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainCard(
     modifier: Modifier = Modifier,
     site: Site,
     lastSnap: Snap?,
     syncStatus: SyncStatus = SyncStatus.OK,
+    isQuickMonitored: Boolean = false,
     onReloadClick: () -> Unit,
+    onReloadLongClick: () -> Unit = {},
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
 ) {
-    val context = LocalContext.current
+    val haptics = LocalHapticFeedback.current
 
-    // State for time updates
-    var lastSyncText by remember { mutableStateOf("") }
-    var lastChangeText by remember { mutableStateOf("") }
+    var lastSyncLabel by remember { mutableStateOf("") }
+    var lastChangeLabel by remember { mutableStateOf("") }
 
-    // Enhanced animations - keep spinning while loading
-    val infiniteTransition = rememberInfiniteTransition(label = "sync_animation")
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "rotation"
-    )
-
-    // Determine if should be spinning based on sync status
-    val isSpinning = syncStatus == SyncStatus.LOADING
-
-    // Get string resources
-    val syncingText = stringResource(R.string.syncing)
-    val errorText = stringResource(R.string.error)
-    val nothingYetText = stringResource(R.string.nothing_yet)
+    val syncingLabel = stringResource(R.string.syncing)
+    val errorLabel = stringResource(R.string.error)
+    val nothingYetLabel = stringResource(R.string.nothing_yet)
     val lastSyncTitle = stringResource(R.string.last_sync)
     val lastChangeTitle = stringResource(R.string.last_change)
 
-    // Update time texts periodically
-    LaunchedEffect(site.timestamp, syncStatus) {
+    LaunchedEffect(site.timestamp, syncStatus, lastSnap?.contentSize) {
         updateTimeText(site.timestamp).collect {
-            lastSyncText = if (syncStatus == SyncStatus.ERROR) {
-                "${site.timestamp.convertTimestampToDate()} – $errorText"
-            } else if (syncStatus == SyncStatus.LOADING) {
-                syncingText
-            } else {
-                "${site.timestamp.convertTimestampToDate()} – ${lastSnap?.contentSize?.readableFileSize() ?: ""}"
+            lastSyncLabel = when {
+                syncStatus == SyncStatus.ERROR ->
+                    "${site.timestamp.convertTimestampToDate()} • $errorLabel"
+                syncStatus == SyncStatus.LOADING -> syncingLabel
+                else -> {
+                    val size = lastSnap?.contentSize?.readableFileSize().orEmpty()
+                    if (size.isNotEmpty()) "${site.timestamp.convertTimestampToDate()} • $size"
+                    else site.timestamp.convertTimestampToDate()
+                }
             }
         }
     }
 
     LaunchedEffect(lastSnap?.timestamp) {
-        if (lastSnap != null) {
-            updateTimeText(lastSnap.timestamp).collect {
-                lastChangeText = lastSnap.timestamp.convertTimestampToDate()
-            }
+        if (lastSnap == null) {
+            lastChangeLabel = nothingYetLabel
         } else {
-            lastChangeText = nothingYetText
+            updateTimeText(lastSnap.timestamp).collect {
+                lastChangeLabel = lastSnap.timestamp.convertTimestampToDate()
+            }
         }
     }
 
-    // Enhanced color scheme matching original design
-    val (gradientColors, reloadIconColor, separatorColor) = when {
-        syncStatus == SyncStatus.ERROR && site.isSyncEnabled -> {
-            val errorColor = Color(0xFFFF5449)
-            Triple(
-                listOf(errorColor, errorColor.copy(red = 0.8f)),
-                Color.White,
-                Color(0x20000000)
-            )
-        }
+    val accentStart = Color(site.colors.first)
+    val accentEnd = Color(site.colors.second)
+    val gradient = listOf(accentStart, accentEnd)
 
-        !site.isSyncEnabled -> {
-            val disabledColor = Color(ContextCompat.getColor(context, R.color.md_grey_600))
-            Triple(
-                listOf(disabledColor, disabledColor),
-                Color.White,
-                Color(0x20000000)
-            )
-        }
-
-        else -> {
-            val primaryColor = Color(site.colors.first)
-            val secondaryColor = Color(site.colors.second)
-            Triple(
-                listOf(primaryColor, secondaryColor),
-                Color.White,
-                Color(0x20000000)
-            )
-        }
+    val statusChip = when (syncStatus) {
+        SyncStatus.LOADING -> StatusChipData(
+            icon = Icons.Outlined.Sync,
+            label = stringResource(R.string.syncing),
+            container = MaterialTheme.colorScheme.secondaryContainer,
+            content = MaterialTheme.colorScheme.onSecondaryContainer,
+            animate = true
+        )
+        SyncStatus.ERROR -> StatusChipData(
+            icon = Icons.Filled.CheckCircle,
+            label = stringResource(R.string.error),
+            container = MaterialTheme.colorScheme.errorContainer,
+            content = MaterialTheme.colorScheme.onErrorContainer
+        )
+        SyncStatus.OK -> StatusChipData(
+            icon = Icons.Filled.CheckCircle,
+            label = stringResource(R.string.all_good),
+            container = MaterialTheme.colorScheme.primaryContainer,
+            content = MaterialTheme.colorScheme.onPrimaryContainer
+        )
     }
 
-    ElevatedCard(
+    val hasRecentChange = lastSnap?.let {
+        System.currentTimeMillis() - it.timestamp < 24 * 60 * 60 * 1000L
+    } == true
+
+    val border = if (isQuickMonitored) {
+        BorderStroke(1.25.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f))
+    } else null
+
+    Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        ),
-        shape = RoundedCornerShape(24.dp),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp)
+        shape = RoundedCornerShape(28.dp),
+        border = border,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier
-                .clip(RoundedCornerShape(24.dp))
-                .combinedClickable(
-                    onClick = onClick,
-                    onLongClick = onLongClick
-                )
+                .combinedClickable(onClick = onClick, onLongClick = onLongClick)
         ) {
-            // Gradient header section matching original design
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            // Hero banner
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.linearGradient(gradient),
+                        RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+                    )
+                    .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 20.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            Brush.linearGradient(colors = gradientColors),
-                            RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
-                        )
-                        .padding(16.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            val title = if (site.title.isNullOrBlank()) {
-                                site.url.replaceFirst(
-                                    "^(http[s]?://www\\.|http[s]?://|www\\.)".toRegex(),
-                                    ""
-                                )
-                            } else {
-                                site.title
-                            }
-
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier.align(Alignment.CenterStart),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
                             Text(
-                                text = title,
-                                style = MaterialTheme.typography.headlineSmall,
+                                text = site.title.takeIf { !it.isNullOrBlank() }
+                                    ?: site.url.trimStart('h', 't', 'p', 's', ':', '/', '/').removePrefix("www."),
+                                style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.SemiBold,
+                                color = Color.White,
                                 maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                color = Color.White
+                                overflow = TextOverflow.Ellipsis
                             )
-
-                            Spacer(modifier = Modifier.height(4.dp))
-
                             Text(
                                 text = site.url,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White.copy(alpha = 0.9f),
+                                color = Color.White.copy(alpha = 0.8f),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(16.dp))
+                        ReloadButton(
+                            isQuickMonitored = isQuickMonitored,
+                            gradient = gradient,
+                            isLoading = syncStatus == SyncStatus.LOADING,
+                            onClick = onReloadClick,
+                            onLongClick = {
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onReloadLongClick()
+                            },
+                            modifier = Modifier.align(Alignment.TopEnd)
+                        )
+                    }
 
-                        // Reload button matching original design
-                        Surface(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clickable {
-                                    onReloadClick()
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        StatusAssistChip(data = statusChip)
+
+                        if (isQuickMonitored) {
+                            AssistChip(
+                                onClick = {},
+                                enabled = false,
+                                label = { Text(text = stringResource(R.string.quick_monitor_active)) },
+                                leadingIcon = {
+                                    Icon(Icons.Filled.Bolt, contentDescription = null, modifier = Modifier.size(16.dp))
                                 },
-                            shape = CircleShape,
-                            color = Color.White,
-                            shadowElevation = 4.dp
-                        ) {
-                            Box(
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Sync,
-                                    contentDescription = "Reload",
-                                    tint = gradientColors.first(),
-                                    modifier = Modifier
-                                        .size(20.dp)
-                                        .let {
-                                            if (isSpinning) it.rotate(rotation) else it
-                                        }
+                                colors = AssistChipDefaults.assistChipColors(
+                                    disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    disabledLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    disabledLeadingIconContentColor = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
-                            }
+                            )
+                        }
+
+                        if (hasRecentChange) {
+                            AssistChip(
+                                onClick = {},
+                                enabled = false,
+                                label = { Text(text = stringResource(R.string.recent_changes)) },
+                                leadingIcon = {
+                                    Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null, modifier = Modifier.size(16.dp))
+                                },
+                                colors = AssistChipDefaults.assistChipColors(
+                                    disabledContainerColor = Color.White.copy(alpha = 0.2f),
+                                    disabledLabelColor = Color.White,
+                                    disabledLeadingIconContentColor = Color.White
+                                )
+                            )
                         }
                     }
                 }
             }
 
-            // Status section matching original layout
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
-                // Last sync status
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalAlignment = Alignment.Top
                 ) {
-                    Surface(
-                        modifier = Modifier.size(36.dp),
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Sync,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .size(20.dp)
-                                    .let {
-                                        if (isSpinning) it.rotate(rotation) else it
-                                    }
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = lastSyncTitle,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        Text(
-                            text = lastSyncText,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    InfoColumn(
+                        icon = Icons.Outlined.Sync,
+                        title = lastSyncTitle,
+                        value = lastSyncLabel,
+                        isLoading = syncStatus == SyncStatus.LOADING,
+                        modifier = Modifier.fillMaxWidth(0.5f)
+                    )
+                    InfoColumn(
+                        icon = Icons.Filled.History,
+                        title = lastChangeTitle,
+                        value = lastChangeLabel,
+                        isLoading = false,
+                        modifier = Modifier.fillMaxWidth(0.5f)
+                    )
                 }
 
-                // Separator line matching original
-                Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider(
-                    modifier = Modifier.fillMaxWidth(),
-                    thickness = 1.dp,
-                    color = separatorColor
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Last change status
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                if (!site.notes.isNullOrBlank()) {
                     Surface(
-                        modifier = Modifier.size(36.dp),
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
                     ) {
-                        Box(
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.History,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.secondary,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = lastChangeTitle,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        Text(
-                            text = lastChangeText,
+                            text = site.notes,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(16.dp)
                         )
                     }
                 }
             }
         }
     }
-
 }
 
-// Helper data class for multiple return values
-private data class Tuple5<A, B, C, D, E>(
-    val first: A,
-    val second: B,
-    val third: C,
-    val fourth: D,
-    val fifth: E
+private data class StatusChipData(
+    val icon: ImageVector,
+    val label: String,
+    val container: Color,
+    val content: Color,
+    val animate: Boolean = false
 )
 
 @Composable
-private fun StatusIndicator(
-    icon: ImageVector,
-    text: String,
-    backgroundColor: Color,
-    textColor: Color,
-    modifier: Modifier = Modifier,
-    isAnimating: Boolean = false,
-    rotation: Float = 0f
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-    ) {
-        Box(
-            modifier = Modifier
-                .size(24.dp)
-                .clip(CircleShape)
-                .background(backgroundColor),
-            contentAlignment = Alignment.Center
-        ) {
+private fun StatusAssistChip(data: StatusChipData) {
+    val rotation = if (data.animate) {
+        val infinite = rememberInfiniteTransition(label = "status_rotation")
+        val animated by infinite.animateFloat(
+            initialValue = 0f,
+            targetValue = 360f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1000, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "status_spin"
+        )
+        animated
+    } else 0f
+
+    AssistChip(
+        onClick = {},
+        enabled = false,
+        label = {
+            Text(
+                text = data.label,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        leadingIcon = {
             Icon(
-                imageVector = icon,
+                imageVector = data.icon,
                 contentDescription = null,
-                tint = Color.White,
                 modifier = Modifier
                     .size(16.dp)
-                    .let { if (isAnimating) it.rotate(rotation) else it }
+                    .let { if (data.animate) it.rotate(rotation) else it }
+            )
+        },
+        colors = AssistChipDefaults.assistChipColors(
+            disabledContainerColor = data.container,
+            disabledLabelColor = data.content,
+            disabledLeadingIconContentColor = data.content
+        )
+    )
+}
+
+@Composable
+private fun InfoColumn(
+    icon: ImageVector,
+    title: String,
+    value: String,
+    isLoading: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val rotation = if (isLoading) {
+        val infinite = rememberInfiniteTransition(label = "info_spin")
+        val animated by infinite.animateFloat(
+            initialValue = 0f,
+            targetValue = 360f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1200, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "info_rotation"
+        )
+        animated
+    } else 0f
+
+    Column(modifier = modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(18.dp)
+                            .let { if (isLoading) it.rotate(rotation) else it },
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
+        Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = text,
-            style = MaterialTheme.typography.bodySmall,
-            color = textColor,
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
@@ -420,46 +408,51 @@ private fun StatusIndicator(
 }
 
 @Composable
-private fun RotatingStatusIndicator(
-    imageVector: ImageVector,
-    text: String,
-    backgroundColor: Color,
-    textColor: Color,
-    modifier: Modifier = Modifier,
-    isAnimating: Boolean = false,
-    rotation: Float = 0f,
-    onIconClick: () -> Unit = {}
+private fun ReloadButton(
+    isQuickMonitored: Boolean,
+    gradient: List<Color>,
+    isLoading: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    val rotation = if (isLoading) {
+        val infinite = rememberInfiniteTransition(label = "reload_spin")
+        val animated by infinite.animateFloat(
+            initialValue = 0f,
+            targetValue = 360f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(900, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "reload_rotation"
+        )
+        animated
+    } else 0f
+
+    Box(
         modifier = modifier
-    ) {
-        Box(
-            modifier = Modifier
-                .size(24.dp)
-                .clip(CircleShape)
-                .background(backgroundColor)
-                .clickable { onIconClick() },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = imageVector,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier
-                    .size(16.dp)
-                    .let { if (isAnimating) it.rotate(rotation) else it }
+            .size(44.dp)
+            .clip(CircleShape)
+            .background(Color.White.copy(alpha = if (isQuickMonitored) 0.25f else 0.18f))
+            .border(
+                width = 1.dp,
+                color = Color.White.copy(alpha = 0.35f),
+                shape = CircleShape
             )
-        }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodySmall,
-            color = textColor,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = if (isQuickMonitored) Icons.Filled.Bolt else Icons.Outlined.Sync,
+            contentDescription = if (isQuickMonitored) "Stop quick monitoring" else "Reload site",
+            tint = if (isQuickMonitored) Color.White else gradient.first(),
+            modifier = Modifier
+                .size(22.dp)
+                .let { if (isLoading) it.rotate(rotation) else it }
         )
     }
 }
@@ -468,25 +461,21 @@ private fun updateTimeText(timestamp: Long): Flow<Unit> = flow {
     while (true) {
         emit(Unit)
 
-        val delay = abs(System.currentTimeMillis() - timestamp)
-        val seconds = delay / 1000
-        val min = seconds / 60
-        val hours = min / 60
+        val diffMillis = kotlin.math.abs(System.currentTimeMillis() - timestamp)
+        val seconds = diffMillis / 1000
+        val minutes = seconds / 60
+        val hours = minutes / 60
 
-        val timeToWait = when {
-            hours / 24 > 0 -> 3600 * 24
-            hours > 0 -> 3600
-            min > 0 -> 60
-            else -> 30
+        val interval = when {
+            hours >= 24 -> 3_600L * 24
+            hours > 0 -> 3_600L
+            minutes > 0 -> 60L
+            else -> 30L
         }
 
-        val ttl = (timeToWait * 1000).toFloat()
-        val finalTimeToWait = ((1 - ((delay / ttl) % 1)) * ttl).toLong()
-
-        delay(finalTimeToWait)
+        delay(interval * 1000)
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
@@ -497,7 +486,7 @@ private fun MainCardPreview() {
                 site = Site(
                     title = "TechCrunch",
                     url = "https://techcrunch.com",
-                    timestamp = System.currentTimeMillis() - 1800000, // 30 min ago (last sync)
+                    timestamp = System.currentTimeMillis() - 1800000,
                     id = "1",
                     isSuccessful = true,
                     isBrowser = false,
@@ -505,128 +494,53 @@ private fun MainCardPreview() {
                     isRead = false,
                     isSyncEnabled = true,
                     isNotificationEnabled = true,
-                    notes = "",
+                    notes = "Watching IPO coverage.",
                     colors = ColorGroup(0xFF2196F3.toInt(), 0xFF21CBF3.toInt()),
                     constraints = ConstraintsRequired(false, false, false, false)
                 ),
                 lastSnap = Snap(
                     siteId = "1",
-                    timestamp = System.currentTimeMillis() - 3600000, // 1 hour ago (last change)
+                    timestamp = System.currentTimeMillis() - 3600000,
                     contentSize = 15420,
                     contentType = "text/html",
                     contentCharset = "UTF-8"
                 ),
                 syncStatus = SyncStatus.OK,
-                onReloadClick = { },
-                onClick = { }
+                isQuickMonitored = true,
+                onReloadClick = {},
+                onReloadLongClick = {},
+                onClick = {}
             )
         }
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun MainCardLoadingPreview() {
     ChangeDetectionTheme {
         Surface {
             MainCard(
                 site = Site(
-                    title = "GitHub",
-                    url = "https://github.com",
-                    timestamp = System.currentTimeMillis() - 600000, // 10 min ago (last sync)
+                    title = "Government Portal",
+                    url = "https://gov.example",
+                    timestamp = System.currentTimeMillis(),
                     id = "2",
                     isSuccessful = true,
-                    isBrowser = false,
+                    isBrowser = true,
                     threshold = 0,
                     isRead = false,
                     isSyncEnabled = true,
                     isNotificationEnabled = true,
-                    notes = "",
-                    colors = ColorGroup(0xFF4CAF50.toInt(), 0xFF8BC34A.toInt()),
+                    notes = "Requires login",
+                    colors = ColorGroup(0xFF009688.toInt(), 0xFF4DB6AC.toInt()),
                     constraints = ConstraintsRequired(false, false, false, false)
                 ),
-                lastSnap = Snap(
-                    siteId = "2",
-                    timestamp = System.currentTimeMillis() - 900000, // 15 min ago (last change)
-                    contentSize = 8750,
-                    contentType = "text/html",
-                    contentCharset = "UTF-8"
-                ),
+                lastSnap = null,
                 syncStatus = SyncStatus.LOADING,
-                onReloadClick = { },
-                onClick = { }
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
-@Composable
-private fun MainCardErrorPreview() {
-    ChangeDetectionTheme {
-        Surface {
-            MainCard(
-                site = Site(
-                    title = "Example Site",
-                    url = "https://example.com",
-                    timestamp = System.currentTimeMillis() - 7200000, // 2 hours ago (last sync)
-                    id = "3",
-                    isSuccessful = false,
-                    isBrowser = false,
-                    threshold = 0,
-                    isRead = false,
-                    isSyncEnabled = true,
-                    isNotificationEnabled = true,
-                    notes = "",
-                    colors = ColorGroup(0xFFFF5722.toInt(), 0xFFFF9800.toInt()),
-                    constraints = ConstraintsRequired(false, false, false, false)
-                ),
-                lastSnap = Snap(
-                    siteId = "3",
-                    timestamp = System.currentTimeMillis() - 10800000, // 3 hours ago (last change)
-                    contentSize = 12340,
-                    contentType = "text/html",
-                    contentCharset = "UTF-8"
-                ),
-                syncStatus = SyncStatus.ERROR,
-                onReloadClick = { },
-                onClick = { }
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
-@Composable
-private fun MainCardDisabledPreview() {
-    ChangeDetectionTheme {
-        Surface {
-            MainCard(
-                site = Site(
-                    title = "Disabled Site",
-                    url = "https://disabled.com",
-                    timestamp = System.currentTimeMillis() - 86400000, // 1 day ago (last sync)
-                    id = "4",
-                    isSuccessful = true,
-                    isBrowser = false,
-                    threshold = 0,
-                    isRead = false,
-                    isSyncEnabled = false,
-                    isNotificationEnabled = true,
-                    notes = "",
-                    colors = ColorGroup(0xFF9C27B0.toInt(), 0xFFE91E63.toInt()),
-                    constraints = ConstraintsRequired(false, false, false, false)
-                ),
-                lastSnap = Snap(
-                    siteId = "4",
-                    timestamp = System.currentTimeMillis() - 172800000, // 2 days ago (last change)
-                    contentSize = 9876,
-                    contentType = "text/html",
-                    contentCharset = "UTF-8"
-                ),
-                syncStatus = SyncStatus.OK,
-                onReloadClick = { },
-                onClick = { }
+                onReloadClick = {},
+                onReloadLongClick = {},
+                onClick = {}
             )
         }
     }

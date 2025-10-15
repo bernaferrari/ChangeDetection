@@ -1,123 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Change Detection</string>
-
-    <string name="yes">Si</string>
-    <string name="no">No</string>
-
-    <string name="save">Salva</string>
-    <string name="cancel">Annulla</string>
-    <string name="close">Chiudi</string>
-
-    <string name="inputName">Digita il titolo</string>
-    <string name="inputUrl">Digita l\' url</string>
-    <string name="syncing">Sincronizzazione…</string>
-    <string name="success_copied">Copiato</string>
-    <string name="nothing_yet">ancora niente</string>
-
-    <string name="version">Versione</string>
-    <string name="licenses">Licenze</string>
-    <string name="rate">Valuta l\' app</string>
-
-    <string name="email">Inviami una mail</string>
-    <string name="help">Aiuto</string>
-    <string name="email_subject">Change Detection feedback</string>
-    <string name="github">Fork su GitHub</string>
-    <string name="bugs">Bugs? Domande? Feedback?</string>
-
-    <string name="remove">Rimuovi</string>
-    <string name="remove_more">Rimuovi…</string>
-
-    <string name="remove_all">Rimuovi tutto</string>
-    <string name="pruning">Conserva solo gli ultimi 5 oggetti</string>
-
-    <string name="edittitle">Modifica sito web</string>
-    <string name="editsubtitle">Modifica un sito web che viene monitorato</string>
-
-    <string name="addtitle">Nuovo sito web</string>
-    <string name="addsubtitle">Aggiungi un sito web da monitorare</string>
-
-    <string name="edit">Modifica</string>
-    <string name="open_in_browser">Apri nel browser</string>
-    <string name="sync_disable">Disattiva sincronizzazione</string>
-    <string name="sync_enable">Attiva sincronizzazione</string>
-
-    <string name="notification_disable">Disattiva notifiche</string>
-    <string name="notification_enable">Attiva notifiche</string>
-
-    <string name="reload">Ricarica</string>
-
-    <string name="error">ERRORE</string>
-    <string name="author">Autore</string>
-  
-    <string name="icon_designer">Icon Designer (Famil Qasimov)</string>
-
-    <string name="less_than_two">Errore! Impossibile vedere la differenza con meno di due elementi.</string>
-    <string name="empty_please_select_two">Seleziona due elementi sotto\nper confrontare le differenze</string>
-    <string name="empty_no_change_detected">Nessuna modifica rilevata tra queste due istantanee</string>
-
-    <string name="remove_this">Rimuovi %1s</string>
-    <string name="remove_content">Sei sicuro di voler rimuovere questo?</string>
-
-    <string name="are_you_sure">Sei sicuro di voler rimuovere %1s da %2s?</string>
-    <string name="missing_internet">Errore! Connessione Internet mancante</string>
-    <string name="was_updated">%1s è stato aggiornato!</string>
-
-    <string name="url">Url sitoweb</string>
-    <string name="title">Titolo</string>
-
-    <string name="wifi_on">Wifi attivo</string>
-    <string name="turn_on_background_sync_title">Attiva la sincronizzazione in background</string>
-    <string name="turn_on_background_sync_content">La sincronizzazione in background è disattivata. Ti piacerebbe attivarla? Puoi personalizzarla su Impostazioni</string>
-    <string name="background_sync">Sincronizzazione in background</string>
-    <string name="sync_interval">Intervallo sincronizzazione</string>
-
-    <string name="constraints">Costanti</string>
-    <string name="device_idle">Dispositivo inattivo</string>
-    <string name="charging">In carica</string>
-    <string name="batter_not_low">Batteria non scarica</string>
-
-    <string name="min">min</string>
-    <string name="hour">1 ora</string>
-    <string name="hours">ore</string>
-
-    <string name="original_plus_diffs">Originale + Cambiamenti</string>
-    <string name="revised">Cambiamenti</string>
-    <string name="original">Originale</string>
-    <string name="source">Fonte</string>
-    <string name="diff">Differenza</string>
-
-    <string name="incorrect_url">URL errato</string>
-    <string name="no_websites_being_monitored">Nessun sito web monitorato</string>
-
-    <string name="control_bar_quality">Alta qualità</string>
-    <string name="share">Condividi</string>
-    <string name="no_changes_detected">Nessuna modifica rilevata</string>
-
-    <string name="next">AVANTI</string>
-    <string name="previous">PRECEDENTE</string>
-
-    <string name="last_change">Ultima Modifica</string>
-    <string name="last_sync">Ultima Sincronizzazione</string>
-
-    <plurals name="items">
-        <item quantity="one">%d elemento</item>
-        <item quantity="other">%d elementi</item>
+    <!-- Browser Controls -->
+    <string name="browser_monitor_label">Monitorare</string>
+    <string name="browser_zap_label">Nascondi</string>
+    <string name="browser_review_rules">Rivedi</string>
+    <string name="browser_clear_zaps">Svuota</string>
+    <string name="browser_monitored_zapped_counts">%1$d monitorati • %2$d nascosti</string>
+    <string name="browser_wait_for_load">In attesa che la pagina finisca di caricarsi…</string>
+    <string name="browser_ready_select_hint">Scegli Monitorare o Nascondi per concentrarti sul contenuto importante.</string>
+    <string name="browser_manage_elements">Rivedi selezioni</string>
+    <string name="browser_full_page_monitoring">Monitoraggio dell\'intera pagina</string>
+    <string name="full_page_monitoring_hint">Terremo d\'occhio l\'intera pagina. Potrai affinare cosa monitorare più avanti se lo desideri.</string>
+    <string name="confirmation_ready_title">Tutto pronto per iniziare il monitoraggio</string>
+    <string name="confirmation_ready_subtitle">Controlla i dettagli qui sotto o modifica ciò che vuoi prima di continuare.</string>
+    <plurals name="monitoring_elements_selected">
+        <item quantity="one">%d elemento selezionato</item>
+        <item quantity="other">%d elementi selezionati</item>
     </plurals>
+    <plurals name="monitoring_elements_zapped">
+        <item quantity="one">%d elemento nascosto</item>
+        <item quantity="other">%d elementi nascosti</item>
+    </plurals>
+    <string name="browser_parent_preview_title_block">Contenuto da nascondere</string>
+    <string name="browser_parent_preview_title_monitor">Contenuto da monitorare</string>
+    <string name="browser_parent_preview_selector_label">Selettore CSS</string>
+    <string name="browser_parent_preview_text_label">Testo visibile</string>
 
-    <string name="change_detected_notification_with_title">%1s (%2s) è stato aggiornato!</string>
-    <string name="change_detected_notification_without_title">Cambiamento rilevato! (%1s)</string>
+    <!-- Main Screen -->
+    <string name="main_add_site">Aggiungi sito</string>
+    <string name="main_empty_title">Nessun sito ancora</string>
+    <string name="main_empty_subtitle">Aggiungi un sito web per iniziare a monitorare le modifiche.</string>
+    <string name="main_features_title">✨ Funzioni</string>
+    <string-array name="main_features_list">
+        <item>🚀 Modalità turbo — controlla ogni 5-30 secondi</item>
+        <item>🔐 Autenticazione sicura per siti protetti</item>
+        <item>🎯 Monitora elementi specifici con precisione</item>
+        <item>⚡ Notifiche in tempo reale per ogni modifica</item>
+    </string-array>
+    <string name="main_header_tagline">Resta al comando di ogni cambiamento.</string>
+    <plurals name="main_header_site_count">
+        <item quantity="zero">Nessun sito monitorato</item>
+        <item quantity="one">%d sito monitorato</item>
+        <item quantity="other">%d siti monitorati</item>
+    </plurals>
+    <string name="main_empty_learn_more">Scopri come funziona</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_logs">Registro</string>
+    <string name="nav_settings">Impostazioni</string>
 
-    <string name="sort_by_name">Ordina per nome</string>
-    <string name="disable_dark_mode">Disattiva il tema escuro</string>
-    <string name="enable_dark_mode">Abilita il tema oscuro</string>
-    <string name="backup">Backup</string>
-    <string name="bkp_export">Esportare</string>
-    <string name="bkp_import">Importare</string>
-    <string name="bkp_description"></string>
-
-    <string name="filter">Filtro</string>
-    <string name="settings">Impostazioni</string>
-    <string name="about">Su</string>
-
+    <!-- Turbo Monitor -->
+    <string name="quick_monitor_title">Monitor turbo</string>
+    <string name="quick_monitor_active">Monitor turbo attivo</string>
+    <string name="quick_monitor_toast_starting">Avvio del monitor turbo…</string>
+    <string name="quick_monitor_toast_failed">Impossibile avviare il monitor turbo: %1$s</string>
+    <string name="quick_monitor_toast_extended">Esteso di 1 ora</string>
+    <string name="quick_monitor_alert_state_on">Primo piano</string>
+    <string name="quick_monitor_banner_active_title">⚡ Monitor turbo</string>
+    <string name="quick_monitor_banner_inactive_title">💡 Monitor turbo</string>
+    <string name="quick_monitor_banner_active_details">Monitoraggio di %1$d siti ogni %2$d secondi • Trascorsi %3$s • Rimasti %4$s</string>
+    <string name="quick_monitor_banner_inactive_details">Tocca per fissare una notifica e controllare i cambiamenti ogni pochi secondi.</string>
+    <string name="quick_monitor_banner_service_running">Servizio in primo piano</string>
+    <string name="quick_monitor_banner_notifications">Notifica fissata mentre è attivo</string>
+    <string name="quick_monitor_banner_button_stop">Ferma Turbo</string>
+    <string name="quick_monitor_banner_button_start">Avvia Turbo</string>
+    <string name="quick_monitor_banner_live_badge">LIVE</string>
+    <string name="all_good">Tutto ok</string>
+    <string name="recent_changes">Modifiche recenti</string>
+    <string name="quick_monitor_banner_checking_site">Verifica: %1$s</string>
+    <string name="quick_monitor_banner_progress">%1$d/%2$d</string>
+    <string name="quick_monitor_notification_title">⚡ Monitor turbo attivo</string>
+    <string name="quick_monitor_notification_subtitle">Monitoraggio di %1$d siti ogni %2$d secondi</string>
+    <string name="quick_monitor_notification_bigtext">⚡ Monitoraggio di %1$d siti
+🔄 Controllo ogni %2$d secondi
+📳 Notifica in primo piano
+✨ Tocca per vedere i risultati</string>
+    <string name="quick_monitor_notification_initial_title">⚡ Monitor turbo in avvio…</string>
+    <string name="quick_monitor_notification_initial_text">Preparazione del monitoraggio ad alta frequenza</string>
+    <string name="quick_monitor_every_seconds">Ogni %1$d s • Servizio in primo piano</string>
+    <string name="label_sites">Siti</string>
+    <string name="label_interval">Intervallo</string>
+    <string name="label_alerts">Primo piano</string>
+    <string name="quick_monitor_choose_interval">Scegli l\'intervallo del Turbo: resterà in primo piano per 3 ore o finché non lo arresti.</string>
+    <string name="theme_color_preview_title">Accento selezionato</string>
+    <string name="theme_color_preview_body">Useremo questo gradiente su schede e cronologie per questo sito.</string>
+    <string name="turbo_mode_duration_hint">Il Turbo resta in primo piano fino a 3 ore o finché lo fermi.</string>
+    <string name="turbo_mode_choose_sites">Scegli siti</string>
+    <string name="turbo_mode_button_start">Avvia Turbo</string>
+    <string name="turbo_mode_button_stop">Ferma Turbo</string>
+    <string name="turbo_mode_header">Monitor turbo</string>
+    <string name="turbo_mode_subheader">Controlli ad alta frequenza con notifica fissata.</string>
+    <string name="turbo_mode_no_sites">Aggiungi almeno un sito prima di avviare il Turbo.</string>
+    <string name="turbo_mode_site_selection">%1$d siti selezionati</string>
+    <plurals name="turbo_mode_selected_sites">
+        <item quantity="one">%d sito selezionato</item>
+        <item quantity="other">%d siti selezionati</item>
+    </plurals>
+    <string name="turbo_mode_dialog_warning_title">Elevato consumo di batteria</string>
+    <string name="turbo_mode_dialog_warning_body">Il Turbo controlla ogni %1$ds e mantiene il dispositivo attivo. Usalo quando ogni secondo conta.</string>
+    <string name="cookies_section_title">Cookie di sessione</string>
+    <string name="cookies_section_caption">Rimani connesso e riutilizza i cookie acquisiti durante i controlli.</string>
+    <string name="cookies_switch_label">Usa i cookie</string>
+    <string name="cookies_switch_description">Disattiva se il sito si blocca quando sei connesso.</string>
+    <string name="cookies_size_label">%1$s di cookie acquisiti</string>
+    <string name="cookies_none">Nessun cookie acquisito</string>
 </resources>

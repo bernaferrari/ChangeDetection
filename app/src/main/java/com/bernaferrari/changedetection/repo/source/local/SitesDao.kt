@@ -35,10 +35,10 @@ interface SitesDao {
     /**
      * Select a site by url.
      *
-     * @param siteId the site url.
-     * @return the site with siteId.
+     * @param siteUrl the site url.
+     * @return the site with siteUrl.
      */
-    @Query("SELECT * FROM sites WHERE siteId = :siteUrl")
+    @Query("SELECT * FROM sites WHERE url = :siteUrl")
     fun getSiteByUrl(siteUrl: String): Site?
 
 

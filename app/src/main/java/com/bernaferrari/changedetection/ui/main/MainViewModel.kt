@@ -5,6 +5,9 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
@@ -17,26 +20,32 @@ import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.settings.SettingsViewModel
+import com.bernaferrari.changedetection.ui.main.QuickMonitorState
+import com.orhanobut.logger.Logger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    context: Application,
+    private val context: Application,
     private val mSnapsRepository: SnapsRepository,
     private val mSitesRepository: SitesRepository,
     private val workerHelper: WorkerHelper,
@@ -57,12 +66,12 @@ class MainViewModel @Inject constructor(
         super.onCleared()
     }
 
-    internal fun removeSite(site: Site) = GlobalScope.launch {
+    internal fun removeSite(site: Site) = viewModelScope.launch {
         mSnapsRepository.deleteAllSnaps(site.id)
         mSitesRepository.deleteSite(site.id)
     }
 
-    internal fun pruneSite(siteId: String) = GlobalScope.launch {
+    internal fun pruneSite(siteId: String) = viewModelScope.launch {
         mSnapsRepository.pruneSnaps(siteId)
     }
 
@@ -70,7 +79,7 @@ class MainViewModel @Inject constructor(
         mSnapsRepository.deleteSnapsForSiteIdAndContentType(siteId, contentType)
     }
 
-    internal fun saveSite(site: Site) = GlobalScope.launch {
+    internal fun saveSite(site: Site) = viewModelScope.launch {
         mSitesRepository.saveSite(site)
     }
 
@@ -78,41 +87,67 @@ class MainViewModel @Inject constructor(
         return mSnapsRepository.getContentTypeInfo(siteId)
     }
 
-    internal fun updateSite(site: Site) = GlobalScope.launch {
+    internal fun updateSite(site: Site) = viewModelScope.launch {
         mSitesRepository.updateSite(site)
     }
-
-    // StateFlow for Compose compatibility
-    private val _sitesFlow = MutableStateFlow<List<SiteAndLastSnap>>(emptyList())
-    val sitesFlow: StateFlow<List<SiteAndLastSnap>> = _sitesFlow.asStateFlow()
 
     // StateFlow for tracking loading sites
     private val _loadingSites = MutableStateFlow<Set<String>>(emptySet())
     val loadingSites: StateFlow<Set<String>> = _loadingSites.asStateFlow()
 
-    // Turbo mode related flows
-    val turboModeState = dataStore.data.map { preferences ->
-        val isActive = preferences[SettingsViewModel.TURBO_MODE_KEY] ?: false
-        val siteIdsString = preferences[SettingsViewModel.TURBO_SITE_IDS_KEY] ?: ""
-        val siteIds = if (siteIdsString.isBlank()) emptyList()
-        else siteIdsString.split(",").filter { it.isNotBlank() }
-        val startTime = preferences[SettingsViewModel.TURBO_START_TIME_KEY] ?: 0L
+    // Optimized StateFlow for Compose compatibility - combines sites and snaps efficiently
+    val sitesFlow: StateFlow<List<SiteAndLastSnap>> = combine(
+        mSitesRepository.getDataWithChanges(),
+        _loadingSites.asStateFlow()
+    ) { sites, loadingSiteIds ->
+        coroutineScope {
+            sites.map { site ->
+                async(Dispatchers.IO) {
+                    val snap = runCatching { mSnapsRepository.getMostRecentSnap(site.id) }.getOrNull()
 
-        TurboModeState(
+                    SiteAndLastSnap(
+                        site = site,
+                        snap = snap,
+                        isSyncing = loadingSiteIds.contains(site.id)
+                    )
+                }
+            }.awaitAll()
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    // Quick Monitor state
+    private val QUICK_MONITOR_ACTIVE_KEY = booleanPreferencesKey("quick_monitor_active")
+    private val QUICK_MONITOR_SITE_IDS_KEY = stringPreferencesKey("quick_monitor_site_ids")
+    private val QUICK_MONITOR_START_TIME_KEY = longPreferencesKey("quick_monitor_start_time")
+    private val QUICK_MONITOR_DEADLINE_TIME_KEY = longPreferencesKey("quick_monitor_deadline_time")
+    private val QUICK_MONITOR_INTERVAL_KEY = intPreferencesKey("quick_monitor_interval_seconds")
+    
+    val quickMonitorState = dataStore.data.map { preferences ->
+        val isActive = preferences[QUICK_MONITOR_ACTIVE_KEY] ?: false
+        val siteIdsString = preferences[QUICK_MONITOR_SITE_IDS_KEY] ?: ""
+        val siteIds = if (siteIdsString.isBlank()) emptySet()
+        else siteIdsString.split(",").filter { it.isNotBlank() }.toSet()
+        val startTime = preferences[QUICK_MONITOR_START_TIME_KEY] ?: 0L
+
+        QuickMonitorState(
             isActive = isActive,
             siteIds = siteIds,
-            startTime = startTime
+            startTime = startTime,
+            deadlineTime = preferences[QUICK_MONITOR_DEADLINE_TIME_KEY] ?: 0L,
+            intervalSeconds = preferences[QUICK_MONITOR_INTERVAL_KEY] ?: 15
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = TurboModeState()
+        initialValue = QuickMonitorState()
     )
 
-    // Initialize data loading
+    // Initialize monitoring
     init {
-        updateItems()
-
         // Monitor work info changes to update loading states
         launch {
             workInfoFlow.collect { workInfoList ->
@@ -122,23 +157,12 @@ class MainViewModel @Inject constructor(
                     .filter { it != "singleEvent" && it != UNIQUEWORK }
                     .toSet()
 
-                val completedSites = _loadingSites.value - runningSiteIds
-                if (completedSites.isNotEmpty()) {
-                    _loadingSites.value = runningSiteIds
-                    updateItems()
-                }
+                // Update loading sites state
+                _loadingSites.value = runningSiteIds
             }
         }
     }
 
-    internal fun updateItems() = launch(Dispatchers.Main) {
-        val list = mutableListOf<SiteAndLastSnap>()
-        withContext(Dispatchers.IO) {
-            mSitesRepository.getSites()
-                .mapTo(list) { SiteAndLastSnap(it, getLastSnap(it.id), false) }
-        }
-        _sitesFlow.value = list
-    }
 
     private suspend fun getLastSnap(siteId: String): Snap? {
         return mSnapsRepository.getMostRecentSnap(siteId)
@@ -150,47 +174,105 @@ class MainViewModel @Inject constructor(
         mSitesRepository.getSiteByUrl(url) != null || mSitesRepository.getSiteById(id) != null
 
     internal fun reloadSite(site: Site) {
-        // Add to loading sites
-        _loadingSites.value = _loadingSites.value + site.id
-        workerHelper.reloadSite(site)
-        launch {
+        viewModelScope.launch {
+            scheduleSiteReload(site)
+        }
+    }
+
+    fun refreshAllSites() {
+        viewModelScope.launch {
+            val sites = runCatching { mSitesRepository.getSites() }.getOrDefault(emptyList())
+            if (sites.isEmpty()) return@launch
+
+            sites.forEach { site ->
+                scheduleSiteReload(site)
+            }
+        }
+    }
+
+    private suspend fun scheduleSiteReload(site: Site) {
+        try {
+            if (_loadingSites.value.contains(site.id)) {
+                return
+            }
+
+            _loadingSites.update { it + site.id }
+
+            // Update site timestamp to indicate sync started
             mSitesRepository.updateSite(site.copy(timestamp = System.currentTimeMillis()))
-            updateItems()
+
+            // Start sync work
+            workerHelper.reloadSite(site)
+
+            // Monitor work completion without blocking caller
+            monitorSiteWorkCompletionAsync(site.id)
+
+        } catch (e: Exception) {
+            // Remove from loading state on error
+            _loadingSites.update { it - site.id }
         }
     }
 
-    suspend fun getLastTurboSiteIds(): List<String> {
-        val preferences = dataStore.data.first()
-        val siteIdsString = preferences[SettingsViewModel.TURBO_SITE_IDS_KEY] ?: ""
-        return if (siteIdsString.isBlank()) emptyList()
-        else siteIdsString.split(",").filter { it.isNotBlank() }
-    }
-
-    fun startTurboMode(siteIds: List<String>) {
+    private fun monitorSiteWorkCompletionAsync(siteId: String) {
         viewModelScope.launch {
-            dataStore.edit { preferences ->
-                preferences[SettingsViewModel.TURBO_MODE_KEY] = true
-                preferences[SettingsViewModel.TURBO_SITE_IDS_KEY] = siteIds.joinToString(",")
-                preferences[SettingsViewModel.TURBO_START_TIME_KEY] = System.currentTimeMillis()
-            }
-            workerHelper.startTurboMode(siteIds)
+            monitorSiteWorkCompletion(siteId)
+        }
+    }
+    
+    private suspend fun monitorSiteWorkCompletion(siteId: String) {
+        try {
+            // Wait a bit for work to start, then monitor completion
+            delay(1000)
+            
+            // Observe work status until it finishes
+            workInfoFlow
+                .map { workInfoList ->
+                    workInfoList.any { workInfo ->
+                        workInfo.state in listOf(WorkInfo.State.RUNNING, WorkInfo.State.ENQUEUED) &&
+                            workInfo.tags.contains(siteId)
+                    }
+                }
+                .first { isStillRunning -> !isStillRunning }
+        } catch (e: Exception) {
+            Logger.e("Failed to monitor work for site $siteId: ${e.message}")
+        } finally {
+            _loadingSites.update { it - siteId }
         }
     }
 
-    fun stopTurboMode() {
+    // Quick Monitor functions - simple, fast monitoring
+    fun startQuickMonitor(siteIds: Set<String>, intervalSeconds: Int = 15) {
         viewModelScope.launch {
+            Logger.d("🚀 MainViewModel: Starting Quick Monitor for ${siteIds.size} sites: $siteIds")
+            
             dataStore.edit { preferences ->
-                preferences[SettingsViewModel.TURBO_MODE_KEY] = false
-                preferences[SettingsViewModel.TURBO_SITE_IDS_KEY] = ""
-                preferences[SettingsViewModel.TURBO_START_TIME_KEY] = 0L
+                preferences[QUICK_MONITOR_ACTIVE_KEY] = true
+                preferences[QUICK_MONITOR_SITE_IDS_KEY] = siteIds.joinToString(",")
+                preferences[QUICK_MONITOR_START_TIME_KEY] = System.currentTimeMillis()
+                preferences[QUICK_MONITOR_INTERVAL_KEY] = intervalSeconds
             }
-            workerHelper.stopTurboMode()
+            Logger.d("💾 MainViewModel: Quick Monitor state saved to DataStore")
+            
+            // Start quick monitoring with selected interval
+            workerHelper.startQuickMonitor(siteIds.toList(), intervalSeconds = intervalSeconds)
+            Logger.d("⚡ MainViewModel: WorkerHelper.startQuickMonitor called")
+        }
+    }
+
+    fun stopQuickMonitor() {
+        viewModelScope.launch {
+            Logger.d("⏹️ MainViewModel: Stopping Quick Monitor")
+            
+            dataStore.edit { preferences ->
+                preferences[QUICK_MONITOR_ACTIVE_KEY] = false
+                preferences[QUICK_MONITOR_SITE_IDS_KEY] = ""
+                preferences[QUICK_MONITOR_START_TIME_KEY] = 0L
+                preferences[QUICK_MONITOR_INTERVAL_KEY] = 15
+            }
+            Logger.d("💾 MainViewModel: Quick Monitor state cleared from DataStore")
+            
+            workerHelper.stopQuickMonitor()
+            Logger.d("⏹️ MainViewModel: WorkerHelper.stopQuickMonitor called")
         }
     }
 }
-
-data class TurboModeState(
-    val isActive: Boolean = false,
-    val siteIds: List<String> = emptyList(),
-    val startTime: Long = 0L
-)

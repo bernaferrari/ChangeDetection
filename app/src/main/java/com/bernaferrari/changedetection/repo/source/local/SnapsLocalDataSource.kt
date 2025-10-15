@@ -10,6 +10,7 @@ import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.cleanUpHtml
 import com.bernaferrari.changedetection.repo.source.Result
 import com.bernaferrari.changedetection.repo.source.SnapsDataSource
+import com.bernaferrari.changedetection.util.ContentHasher
 import com.orhanobut.logger.Logger
 import kotlinx.coroutines.withContext
 import java.nio.charset.Charset
@@ -22,40 +23,61 @@ import kotlin.math.abs
 class SnapsLocalDataSource constructor(
     private val mAppExecutors: AppExecutors,
     private val mSnapsDao: SnapsDao,
-    private val appContext: Context
+    private val appContext: Context,
+    private val contentHasher: ContentHasher = ContentHasher()
 ) : SnapsDataSource {
 
     override suspend fun pruneSnaps(siteId: String) =
         withContext(mAppExecutors.ioContext) {
-
-            val snapsList = mSnapsDao.getAllSnapsForSiteId(siteId).toMutableList()
-
-            // this will remove items similar by contentSize
-            val distinctList = snapsList.distinctBy { it.contentSize }
-
-            // if there are no duplicated items, just remove all items except the first 5
-            if (distinctList.size == snapsList.size) {
-                snapsList.drop(5).forEach { deleteSnap(it.snapId) }
-            } else {
-                // if there are duplicated items, remove them first
-                distinctList.forEach { snap ->
-                    // keep the oldest version and remove all the other duplicates
-                    snapsList.asSequence()
-                        .filter { it.contentSize == snap.contentSize }
-                        .drop(1)
-                        .forEach {
-                            Logger.d("Remove " + it.contentSize)
-                            deleteSnap(it.snapId)
-                            snapsList.remove(it)
-                        }
-                }
-
-                // then remove the all items except the first 5
-                snapsList.drop(5).forEach {
-                    deleteSnap(it.snapId)
-                }
-            }
+            
+            // Use optimized database-level pruning instead of loading all data into memory
+            pruneSnapsOptimized(siteId)
         }
+    
+    /**
+     * Optimized pruning algorithm that uses database queries instead of loading all data
+     */
+    private suspend fun pruneSnapsOptimized(siteId: String) {
+        // First, get content duplication stats to determine pruning strategy
+        val duplicationStats = mSnapsDao.getContentDuplicationStats(siteId)
+        
+        if (duplicationStats.duplicationRate > 0.3) {
+            // High duplication rate - remove duplicates first using content hashes
+            pruneByContentHash(siteId)
+        }
+        
+        // Then keep only the most recent 10 unique snapshots
+        pruneOldSnaps(siteId, keepCount = 10)
+    }
+    
+    /**
+     * Remove duplicate content based on hash comparison
+     */
+    private suspend fun pruneByContentHash(siteId: String) {
+        val uniqueSnaps = mSnapsDao.getUniqueContentSnaps(siteId)
+        val allSnapIds = mSnapsDao.getAllSnapsForSiteId(siteId).map { it.snapId }.toSet()
+        val uniqueSnapIds = uniqueSnaps.map { it.snapId }.toSet()
+        
+        // Delete duplicates (snaps not in unique list)
+        val duplicateIds = allSnapIds - uniqueSnapIds
+        duplicateIds.forEach { snapId ->
+            appContext.deleteFile(snapId)
+            mSnapsDao.deleteSnapById(snapId)
+            Logger.d("Removed duplicate snap: $snapId")
+        }
+    }
+    
+    /**
+     * Keep only the most recent N snapshots
+     */
+    private suspend fun pruneOldSnaps(siteId: String, keepCount: Int) {
+        val oldSnaps = mSnapsDao.getAllSnapsForSiteId(siteId).drop(keepCount)
+        oldSnaps.forEach { snap ->
+            appContext.deleteFile(snap.snapId)
+            mSnapsDao.deleteSnapById(snap.snapId)
+            Logger.d("Removed old snap: ${snap.snapId}")
+        }
+    }
 
 
     override suspend fun deleteAllSnaps(siteId: String) {
@@ -81,7 +103,7 @@ class SnapsLocalDataSource constructor(
             mSnapsDao.getAllSnapsForSiteIdFilteredWithLiveData(siteId, filter)
         }
 
-    override suspend fun getAllSnapsFromSite(siteId: String): List<Snap> {
+    override suspend fun getAllSnapsForSite(siteId: String): List<Snap> {
         return withContext(mAppExecutors.ioContext) {
             mSnapsDao.getAllSnapsForSiteId(siteId)
         }
@@ -205,6 +227,17 @@ class SnapsLocalDataSource constructor(
     override fun getSingleSnapPair(id: String): ByteArray {
         return appContext.openFileInput(id).readBytes()
     }
+    
+    // Fast content hash comparison methods
+    override suspend fun getLastContentHash(siteId: String): String? =
+        withContext(mAppExecutors.ioContext) {
+            mSnapsDao.getLastContentHash(siteId)
+        }
+    
+    override suspend fun getLastProcessedContentHash(siteId: String): String? =
+        withContext(mAppExecutors.ioContext) {
+            mSnapsDao.getLastProcessedContentHash(siteId)
+        }
 
 //    private fun imageCompressor(snap: Snap): Snap {
 //

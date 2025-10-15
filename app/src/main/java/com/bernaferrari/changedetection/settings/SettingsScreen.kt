@@ -1,11 +1,5 @@
 package com.bernaferrari.changedetection.settings
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,10 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Card
@@ -43,10 +35,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.model.ThemeMode
 import com.bernaferrari.sdkmonitor.ui.settings.ThemeModeToggle
 
@@ -85,7 +79,7 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(
-                        text = "Theme",
+                        text = stringResource(id = R.string.settings_theme_title),
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.SemiBold
                         ),
@@ -114,7 +108,7 @@ fun SettingsScreen(
         // Sync Section (simplified header)
         item {
             Text(
-                text = "Monitoring",
+                text = stringResource(id = R.string.settings_monitoring_section),
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
@@ -127,11 +121,11 @@ fun SettingsScreen(
         item {
             SettingsCard(
                 icon = Icons.Default.Sync,
-                title = "Background Sync",
+                title = stringResource(id = R.string.settings_background_sync_title),
                 subtitle = if (uiState.backgroundSync) {
-                    "Every ${uiState.syncInterval} minutes"
+                    stringResource(id = R.string.settings_background_sync_every, uiState.syncInterval)
                 } else {
-                    "Disabled"
+                    stringResource(id = R.string.settings_background_sync_disabled)
                 },
                 onClick = { showBackgroundSyncDialog = true },
                 trailing = {
@@ -143,66 +137,10 @@ fun SettingsScreen(
             )
         }
 
-        // Turbo Sync Card
-        item {
-            SettingsCard(
-                icon = Icons.Default.FlashOn,
-                title = "Turbo Sync",
-                subtitle = if (uiState.turboMode) {
-                    val elapsed = System.currentTimeMillis() - uiState.turboStartTime
-                    val remainingMin =
-                        ((3 * 60 * 60 * 1000 - elapsed) / (60 * 1000)).coerceAtLeast(0)
-                    "Active • ${remainingMin}min remaining"
-                } else {
-                    "Intensive monitoring for 3 hours"
-                },
-                onClick = {
-                    if (uiState.turboMode) {
-                        viewModel.disableTurboMode()
-                    } else {
-                        // Show site selection dialog
-                        // For now, we'll need to add this functionality
-                    }
-                },
-                trailing = {
-                    if (uiState.turboMode) {
-                        Box(
-                            modifier = Modifier
-                                .size(12.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.error,
-                                    CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            // Pulsing animation
-                            val infiniteTransition =
-                                rememberInfiniteTransition(label = "turbo_pulse")
-                            val alpha by infiniteTransition.animateFloat(
-                                initialValue = 0.3f,
-                                targetValue = 1f,
-                                animationSpec = infiniteRepeatable(
-                                    animation = tween(800, easing = LinearEasing),
-                                    repeatMode = RepeatMode.Reverse
-                                ),
-                                label = "alpha"
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .alpha(alpha)
-                                    .background(MaterialTheme.colorScheme.error, CircleShape)
-                            )
-                        }
-                    }
-                }
-            )
-        }
-
         // About Section (simplified)
         item {
             Text(
-                text = "About",
+                text = stringResource(id = R.string.settings_about_section),
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
@@ -215,8 +153,8 @@ fun SettingsScreen(
         item {
             SettingsCard(
                 icon = Icons.Default.Info,
-                title = "About Change Detection",
-                subtitle = "Version info and licenses",
+                title = stringResource(id = R.string.settings_about_title),
+                subtitle = stringResource(id = R.string.settings_about_subtitle),
                 onClick = onAboutClick
             )
         }
@@ -296,4 +234,3 @@ private fun SettingsCard(
         }
     }
 }
-

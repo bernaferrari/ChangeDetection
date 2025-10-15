@@ -1,6 +1,7 @@
 package com.bernaferrari.changedetection.logs
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,9 +30,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -41,10 +44,12 @@ import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.ui.compose.SectionHeader
+import com.bernaferrari.changedetection.R
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @Composable
 fun LogsScreen(
@@ -75,7 +80,7 @@ fun LogsScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Error loading data")
+                    Text(stringResource(id = R.string.logs_error_loading))
                 }
             }
 
@@ -91,8 +96,12 @@ fun LogsScreen(
                 ) {
                     item {
                         SectionHeader(
-                            title = "Last Changes",
-                            subtitle = "$versionsCount changes detected"
+                            title = stringResource(id = R.string.logs_last_changes_title),
+                            subtitle = stringResource(
+                                id = R.plurals.logs_changes_detected,
+                                versionsCount,
+                                versionsCount
+                            )
                         )
                     }
 
@@ -135,12 +144,14 @@ fun LogsScreen(
             Instant.ofEpochMilli(snap.timestamp),
             ZoneId.systemDefault()
         )
+        val formattedDate = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM).format(dateTime)
+        val sizeLabel = snap.contentSize.readableFileSize()
 
         AlertDialog(
             onDismissRequest = { showDeleteDialog = null },
-            title = { Text("Remove snapshot?") },
+            title = { Text(stringResource(id = R.string.logs_remove_snapshot_title)) },
             text = {
-                Text("${snap.contentSize.readableFileSize()} | ${dateTime.dayOfMonth}")
+                Text(stringResource(id = R.string.logs_remove_snapshot_body, sizeLabel, formattedDate))
             },
             confirmButton = {
                 TextButton(
@@ -149,12 +160,12 @@ fun LogsScreen(
                         showDeleteDialog = null
                     }
                 ) {
-                    Text("Remove")
+                    Text(stringResource(id = R.string.remove))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = null }) {
-                    Text("Cancel")
+                    Text(stringResource(id = R.string.cancel))
                 }
             }
         )
@@ -174,12 +185,18 @@ private fun LogItem(
     )
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth(),
-        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp)
     ) {
-        Box {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                    role = Role.Button
+                )
+        ) {
             // Gradient background
             Spacer(
                 modifier = Modifier
@@ -251,7 +268,7 @@ private fun LogItem(
 }
 
 @Composable
-private fun EmptyLogsContent() {
+private fun EmptyLogsComponent() {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -260,13 +277,13 @@ private fun EmptyLogsContent() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "No changes detected yet",
+                text = stringResource(id = R.string.logs_empty_title),
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Start monitoring websites to see changes here",
+                text = stringResource(id = R.string.logs_empty_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

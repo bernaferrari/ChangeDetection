@@ -113,13 +113,9 @@ open class WorkerHelper @Inject constructor(
     fun reloadSite(site: Site) {
         Logger.d("🔄 Scheduling one-time work for site: ${site.id}")
 
-        val workerClass = if (site.browserMode) {
-            BrowserSyncWorker::class.java
-        } else {
-            SyncWorker::class.java
-        }
+        val workerClass = SyncWorker::class.java
 
-        val work = OneTimeWorkRequestBuilder<CoroutineWorker>()
+        val work = OneTimeWorkRequestBuilder<SyncWorker>()
             .setInputData(workDataOf("id" to site.id, "isSingle" to true))
             .addTag("singleEvent")
             .addTag("reload_${site.id}")
@@ -134,6 +130,11 @@ open class WorkerHelper @Inject constructor(
 
         Logger.d("✅ One-time work scheduled for site: ${site.id}")
     }
+    
+    fun reloadSiteById(siteId: String) {
+        Logger.d("🔄 Scheduling one-time work for site ID: $siteId")
+        scheduleOneTimeWork(siteId)
+    }
 
     private fun scheduleOneTimeWork(siteId: String) {
         val work = OneTimeWorkRequestBuilder<SyncWorker>()
@@ -145,36 +146,60 @@ open class WorkerHelper @Inject constructor(
         WorkManager.getInstance(context).enqueue(work)
     }
 
-    fun startTurboMode(siteIds: List<String>) {
-        Logger.d("🚀 Starting Turbo Mode for ${siteIds.size} sites: $siteIds")
-
-        // Start foreground service
-        val serviceIntent = Intent(context, TurboSyncService::class.java).apply {
-            putStringArrayListExtra("siteIds", ArrayList(siteIds))
-            putExtra("startTime", System.currentTimeMillis())
+    fun startQuickMonitor(siteIds: List<String>, intervalSeconds: Int = 15) {
+        Logger.d("⚡ Starting Quick Monitor for ${siteIds.size} sites: $siteIds (${intervalSeconds}s interval)")
+        
+        try {
+            // Start the foreground service for quick monitoring
+            Logger.d("📱 About to start QuickMonitorService...")
+            
+            // Ensure we have valid site IDs
+            if (siteIds.isEmpty()) {
+                Logger.e("❌ Cannot start Quick Monitor with empty site list")
+                return
+            }
+            
+            // Log context info
+            Logger.d("📱 Starting from context: ${context.javaClass.simpleName}")
+            
+            QuickMonitorService.start(context, siteIds, intervalSeconds)
+            Logger.d("✅ QuickMonitorService.start() called successfully")
+            
+            // Also trigger immediate work for the sites
+            siteIds.forEach { siteId ->
+                Logger.d("🔄 Scheduling immediate work for site: $siteId")
+                scheduleOneTimeWork(siteId)
+            }
+        } catch (e: Exception) {
+            Logger.e("❌ Failed to start QuickMonitorService: ${e.message}")
+            e.printStackTrace()
         }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(serviceIntent)
-        } else {
-            context.startService(serviceIntent)
-        }
-
-        Logger.d("✅ Turbo Mode started successfully for ${siteIds.size} sites")
     }
-
-    fun stopTurboMode() {
-        Logger.d("🛑 Stopping Turbo Mode")
-
-        // Stop foreground service
-        val serviceIntent = Intent(context, TurboSyncService::class.java)
-        context.stopService(serviceIntent)
-
-        // Cancel turbo work
-        WorkManager.getInstance(context).cancelAllWorkByTag(TURBO_WORK)
-
-        Logger.d("✅ Turbo Mode stopped successfully")
+    
+    private fun scheduleQuickMonitorWork(siteId: String, intervalSeconds: Int) {
+        val work = OneTimeWorkRequestBuilder<SyncWorker>()
+            .setInputData(workDataOf("id" to siteId, "isSingle" to true))
+            .addTag("quick_monitor")
+            .addTag(siteId)
+            .addTag(UNIQUEWORK)
+            .setInitialDelay(intervalSeconds.toLong(), TimeUnit.SECONDS)
+            .build()
+        
+        WorkManager.getInstance(context)
+            .beginUniqueWork(
+                "quick_monitor_$siteId",
+                ExistingWorkPolicy.REPLACE,
+                work
+            )
+            .enqueue()
     }
+    
+    fun stopQuickMonitor() {
+        Logger.d("⏹️ Stopping Quick Monitor")
+        WorkManager.getInstance(context).cancelAllWorkByTag("quick_monitor")
+        QuickMonitorService.stop(context)
+    }
+    
 }
 
 data class WorkConstraints(
