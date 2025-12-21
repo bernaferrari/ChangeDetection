@@ -46,6 +46,20 @@ class SnapsRepository @Inject constructor(
         return mSnapsLocalDataSource.getMostRecentSnap(siteId)
     }
 
+    /**
+     * OPTIMIZATION: Get all most recent snaps in a single query.
+     * Solves N+1 query problem for loading sites with snapshots.
+     *
+     * @return Map of siteId to its most recent Snap
+     */
+    override suspend fun getAllMostRecentSnaps(): Map<String, Snap> {
+        return mSnapsLocalDataSource.getAllMostRecentSnaps()
+    }
+
+    override suspend fun getSnapById(snapId: String): Snap? {
+        return mSnapsLocalDataSource.getSnapById(snapId)
+    }
+
     override suspend fun getSnaps(siteId: String): LiveData<List<Snap>> {
         return mSnapsLocalDataSource.getSnaps(siteId)
     }
@@ -61,7 +75,7 @@ class SnapsRepository @Inject constructor(
     override fun getSnapPair(
         originalId: String,
         newId: String
-    ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>> {
+    ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>>? {
         return mSnapsLocalDataSource.getSnapPair(originalId, newId)
     }
 

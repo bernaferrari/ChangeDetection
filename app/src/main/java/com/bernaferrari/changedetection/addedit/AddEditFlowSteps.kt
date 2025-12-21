@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,6 +40,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.surfaceColorAtElevation
 import android.content.ClipDescription
@@ -141,7 +143,7 @@ fun BeautifulUrlInputStep(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Navigate back")
                     }
                 }
             )
@@ -157,27 +159,8 @@ fun BeautifulUrlInputStep(
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp, vertical = 20.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    val pasteEnabled = clipboardPreview?.let { it.isNotBlank() && it != url } == true
-
-                    FilledTonalButton(
-                        onClick = {
-                            val text = readClipboardText()
-                            if (!text.isNullOrBlank()) {
-                                onUrlChange(text)
-                                clipboardPreview = text
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            }
-                        },
-                        enabled = pasteEnabled,
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Icon(Icons.Default.ContentPaste, contentDescription = null)
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(text = stringResource(id = android.R.string.paste))
-                    }
-
                     Button(
                         onClick = {
                             keyboardController?.hide()
@@ -217,10 +200,39 @@ fun BeautifulUrlInputStep(
                         .padding(horizontal = 24.dp, vertical = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(18.dp)
                 ) {
-                    Text(
-                        text = stringResource(id = R.string.monitor_any_website),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                    )
+                    val pasteEnabled = clipboardPreview?.let { it.isNotBlank() && it != url } == true
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.monitor_any_website),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                        )
+                        TextButton(
+                            onClick = {
+                                val text = readClipboardText()
+                                if (!text.isNullOrBlank()) {
+                                    onUrlChange(text)
+                                    clipboardPreview = text
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                }
+                            },
+                            enabled = pasteEnabled
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ContentPaste,
+                                contentDescription = stringResource(id = android.R.string.paste),
+                                tint = if (pasteEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                    alpha = 0.4f
+                                )
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(text = stringResource(id = android.R.string.paste))
+                        }
+                    }
                     Text(
                         text = stringResource(id = R.string.enter_website_url_ellipsis),
                         style = MaterialTheme.typography.bodyMedium,
@@ -239,7 +251,8 @@ fun BeautifulUrlInputStep(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
                             imeAction = ImeAction.Go,
-                            keyboardType = KeyboardType.Uri
+                            keyboardType = KeyboardType.Text,
+                            autoCorrect = false
                         ),
                         keyboardActions = KeyboardActions(
                             onGo = {

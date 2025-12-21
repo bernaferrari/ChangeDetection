@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.res.stringResource
@@ -86,7 +87,7 @@ fun ZapManagerOverlay(
                         if (uiState.zappedElements.isNotEmpty()) {
                             item {
                                 ZapSectionHeader(
-                                    title = "Blocked Elements",
+                                    title = stringResource(id = R.string.browser_zap_manager_blocked_section_title),
                                     count = uiState.zappedElements.size,
                                     icon = Icons.Default.Block,
                                     color = MaterialTheme.colorScheme.error
@@ -105,7 +106,7 @@ fun ZapManagerOverlay(
                         if (uiState.selectedElements.isNotEmpty()) {
                             item {
                                 ZapSectionHeader(
-                                    title = "Monitored Elements",
+                                    title = stringResource(id = R.string.browser_zap_manager_monitored_section_title),
                                     count = uiState.selectedElements.size,
                                     icon = Icons.Default.Visibility,
                                     color = MaterialTheme.colorScheme.primary
@@ -144,59 +145,39 @@ private fun ZapManagerHeader(
     onClose: () -> Unit,
     onClearAll: () -> Unit
 ) {
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(20.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Column {
-            Text(
-                text = "Element Manager",
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                StatChip(
-                    count = totalZapped,
-                    label = "Blocked",
-                    color = MaterialTheme.colorScheme.error
-                )
-                StatChip(
-                    count = totalSelected,
-                    label = "Monitored",
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-        
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            if (totalZapped > 0) {
-                FilledTonalButton(
-                    onClick = onClearAll,
-                    colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
-                    )
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    text = stringResource(id = R.string.browser_zap_manager_title),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        Icons.Default.ClearAll,
-                        contentDescription = "Clear All",
-                        modifier = Modifier.size(16.dp)
+                    StatChip(
+                        count = totalZapped,
+                        label = stringResource(id = R.string.browser_zap_manager_blocked_label),
+                        color = MaterialTheme.colorScheme.error
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(stringResource(id = R.string.browser_clear_zaps))
+                    StatChip(
+                        count = totalSelected,
+                        label = stringResource(id = R.string.browser_zap_manager_monitored_label),
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
-            
             IconButton(
                 onClick = onClose,
                 modifier = Modifier
@@ -207,9 +188,27 @@ private fun ZapManagerHeader(
             ) {
                 Icon(
                     Icons.Default.Close,
-                    contentDescription = "Close",
+                    contentDescription = stringResource(id = R.string.close),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+        }
+
+        if (totalZapped > 0) {
+            FilledTonalButton(
+                onClick = onClearAll,
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                ),
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Icon(
+                    Icons.Default.ClearAll,
+                    contentDescription = stringResource(id = R.string.browser_zap_manager_clear_all),
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(text = stringResource(id = R.string.browser_zap_manager_clear_all))
             }
         }
     }
@@ -294,6 +293,7 @@ private fun ZappedElementCard(
     element: ZappedElement,
     onRemove: () -> Unit
 ) {
+    val timeAgo = relativeTimeText(element.timestamp)
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -340,7 +340,10 @@ private fun ZappedElementCard(
                     Spacer(modifier = Modifier.height(4.dp))
                     
                     Text(
-                        text = "Blocked ${formatTimeAgo(element.timestamp)}",
+                        text = stringResource(
+                            id = R.string.browser_zap_manager_blocked_timestamp,
+                            timeAgo
+                        ),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -357,7 +360,7 @@ private fun ZappedElementCard(
                 ) {
                     Icon(
                         Icons.Default.Remove,
-                        contentDescription = "Remove block",
+                        contentDescription = stringResource(id = R.string.browser_zap_manager_remove_block),
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(16.dp)
                     )
@@ -371,6 +374,7 @@ private fun ZappedElementCard(
 private fun SelectedElementCard(
     element: SelectedElement
 ) {
+    val timeAgo = relativeTimeText(element.timestamp)
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -420,7 +424,10 @@ private fun SelectedElementCard(
                     )
                     
                     Text(
-                        text = "Added ${formatTimeAgo(element.timestamp)}",
+                        text = stringResource(
+                            id = R.string.browser_zap_manager_added_timestamp,
+                            timeAgo
+                        ),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -447,13 +454,13 @@ private fun EmptyZapManagerState() {
         )
         
         Text(
-            text = "No rules yet",
+            text = stringResource(id = R.string.browser_zap_manager_empty_title),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         
         Text(
-            text = "Use the Zap and Monitor buttons to start blocking unwanted elements and monitoring changes.",
+            text = stringResource(id = R.string.browser_zap_manager_empty_message),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -485,7 +492,7 @@ private fun ZapManagerTips() {
                     modifier = Modifier.size(16.dp)
                 )
                 Text(
-                    text = "Pro Tips",
+                    text = stringResource(id = R.string.browser_zap_manager_tip_title),
                     style = MaterialTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.Bold
                     ),
@@ -494,7 +501,7 @@ private fun ZapManagerTips() {
             }
             
             Text(
-                text = "• Zap removes ads, banners, and unwanted content\n• Monitor tracks specific elements for changes\n• Rules persist across all visits to this site\n• Use parent selector for broader blocking",
+                text = stringResource(id = R.string.browser_zap_manager_tip_body),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer
             )
@@ -502,19 +509,30 @@ private fun ZapManagerTips() {
     }
 }
 
-private fun formatTimeAgo(timestamp: Long): String {
+@Composable
+private fun relativeTimeText(timestamp: Long): String {
     val now = System.currentTimeMillis()
-    val diff = now - timestamp
-    
-    val seconds = diff / 1000
-    val minutes = seconds / 60
+    val diff = (now - timestamp).coerceAtLeast(0)
+    val minutes = (diff / 60000).toInt()
     val hours = minutes / 60
     val days = hours / 24
-    
+
     return when {
-        days > 0 -> "${days}d ago"
-        hours > 0 -> "${hours}h ago"
-        minutes > 0 -> "${minutes}m ago"
-        else -> "now"
+        days > 0 -> pluralStringResource(
+            id = R.plurals.browser_time_days_ago,
+            count = days,
+            days
+        )
+        hours > 0 -> pluralStringResource(
+            id = R.plurals.browser_time_hours_ago,
+            count = hours,
+            hours
+        )
+        minutes > 0 -> pluralStringResource(
+            id = R.plurals.browser_time_minutes_ago,
+            count = minutes,
+            minutes
+        )
+        else -> stringResource(id = R.string.browser_time_now)
     }
 }

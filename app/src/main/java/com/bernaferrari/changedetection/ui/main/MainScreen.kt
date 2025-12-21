@@ -1,43 +1,40 @@
 package com.bernaferrari.changedetection.ui.main
 
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.ui.platform.LocalContext
@@ -48,16 +45,19 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.draw.scale
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.work.WorkInfo
@@ -68,13 +68,12 @@ import com.bernaferrari.changedetection.repo.ConstraintsRequired
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.changedetection.repo.Snap
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import com.bernaferrari.changedetection.ui.compose.MainCard
 import com.bernaferrari.changedetection.ui.compose.SiteOptionsBottomSheet
 import com.bernaferrari.changedetection.ui.compose.SyncStatus
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringArrayResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import com.bernaferrari.changedetection.ui.design.CanvasSectionHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -209,61 +208,10 @@ fun MainScreenContent(
         }
     }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    var showQuickMonitorSheet by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            LargeTopAppBar(
-                title = {
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(
-                            text = stringResource(id = R.string.app_name),
-                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
-                        )
-                        Text(
-                            text = stringResource(id = R.string.main_header_tagline),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = pluralStringResource(R.plurals.main_header_site_count, sites.size, sites.size),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                },
-                actions = {
-                    if (quickMonitorState.isActive) {
-                        TextButton(
-                            onClick = {
-                                try {
-                                    Toast.makeText(
-                                        context,
-                                        context.getString(R.string.quick_monitor_extend_1h),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    QuickMonitorService.extend(context)
-                                } catch (_: Exception) {}
-                            }
-                        ) {
-                            Text(text = stringResource(id = R.string.quick_monitor_extend_1h))
-                        }
-
-                        TextButton(
-                            onClick = onStopQuickMonitor,
-                            colors = ButtonDefaults.textButtonColors(
-                                contentColor = MaterialTheme.colorScheme.error
-                            )
-                        ) {
-                            Text(stringResource(id = R.string.action_stop_monitoring))
-                        }
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
-        },
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAddSite,
@@ -278,106 +226,94 @@ fun MainScreenContent(
             state = pullToRefreshState,
             modifier = Modifier.fillMaxSize()
         ) {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 96.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                    .padding(paddingValues),
+                verticalArrangement = Arrangement.spacedBy(28.dp),
+                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 32.dp)
             ) {
-                Spacer(modifier = Modifier.height(12.dp))
-
-                if (quickMonitorState.isActive) {
-                    QuickMonitorBanner(
-                        isActive = true,
-                        sitesCount = quickMonitorState.siteIds.size,
-                        intervalSeconds = quickMonitorState.intervalSeconds,
-                        onToggle = onStopQuickMonitor,
-                        startTime = quickMonitorState.startTime.takeIf { it > 0L },
-                        deadlineTime = quickMonitorState.deadlineTime.takeIf { it > 0L },
-                        modifier = Modifier.fillMaxWidth()
+                item {
+                    HomeHeroSection(
+                        sitesCount = sites.size,
+                        onAddSite = onAddSite,
+                        onHowItWorks = onHowItWorks,
+                        quickMonitorSites = quickMonitorState.siteIds.size
                     )
                 }
 
-                QuickMonitorCard(
-                    isActive = quickMonitorState.isActive,
-                    sitesCount = quickMonitorState.siteIds.size,
-                    totalSitesCount = sites.size,
-                    intervalSeconds = quickMonitorState.intervalSeconds,
-                    onStart = { selectedInterval ->
-                        if (sites.isEmpty()) {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.turbo_mode_no_sites),
-                                Toast.LENGTH_LONG
-                            ).show()
-                        } else {
-                            pendingTurboInterval = selectedInterval
-                            if (quickMonitorState.siteIds.isNotEmpty()) {
-                                cachedTurboSelection = quickMonitorState.siteIds.toList()
+                item {
+                    QuickMonitorStatusCard(
+                        quickMonitorState = quickMonitorState,
+                        onQuickMonitorClick = {
+                            if (sites.isEmpty()) {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.turbo_mode_no_sites),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                showQuickMonitorSheet = true
                             }
-                            showTurboDialog = true
-                        }
-                    },
-                    onStop = onStopQuickMonitor,
-                    onExtend = {
-                        try {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.quick_monitor_toast_extended),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            QuickMonitorService.extend(context)
-                        } catch (_: Exception) {}
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                        },
+                        onStopQuickMonitor = onStopQuickMonitor
+                    )
+                }
 
                 if (sites.isEmpty()) {
-                    MainEmptyState(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        onAddSite = onAddSite,
-                        onHowItWorks = onHowItWorks
-                    )
+                    item {
+                        MainEmptyState(
+                            modifier = Modifier.fillMaxWidth(),
+                            onAddSite = onAddSite,
+                            onHowItWorks = onHowItWorks
+                        )
+                    }
                 } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(bottom = 24.dp)
-                    ) {
-                        items(sites) { siteAndSnap ->
-                            val syncStatus = getSyncStatus(siteAndSnap.site)
-                            val isQuickMonitored = quickMonitorState.siteIds.contains(siteAndSnap.site.id)
+                    item {
+                        CanvasSectionHeader(
+                            title = stringResource(id = R.string.home_monitored_sites_title)
+                        )
+                    }
 
-                            MainCard(
-                                site = siteAndSnap.site,
-                                lastSnap = siteAndSnap.snap,
-                                syncStatus = syncStatus,
-                                isQuickMonitored = isQuickMonitored,
-                                onClick = { onSiteClick(siteAndSnap) },
-                                onLongClick = {
-                                    selectedSite = siteAndSnap.site
-                                    showBottomSheet = true
-                                },
-                                onReloadClick = {
-                                    if (isQuickMonitored) {
-                                        onStopQuickMonitor()
-                                    } else {
-                                        onReloadSite(siteAndSnap.site)
-                                    }
-                                },
-                                onReloadLongClick = {
-                                    if (!quickMonitorState.isActive) {
-                                        onLongPress(siteAndSnap.site)
+                    items(sites) { siteAndSnap ->
+                        val syncStatus = getSyncStatus(siteAndSnap.site)
+                        val isQuickMonitored = quickMonitorState.siteIds.contains(siteAndSnap.site.id)
+
+                        MainCard(
+                            site = siteAndSnap.site,
+                            lastSnap = siteAndSnap.snap,
+                            syncStatus = syncStatus,
+                            isQuickMonitored = isQuickMonitored,
+                            onClick = { onSiteClick(siteAndSnap) },
+                            onLongClick = {
+                                selectedSite = siteAndSnap.site
+                                showBottomSheet = true
+                            },
+                            onReloadClick = {
+                                if (isQuickMonitored) {
+                                    onStopQuickMonitor()
+                                } else {
+                                    onReloadSite(siteAndSnap.site)
+                                }
+                            },
+                            onOptionsClick = {
+                                selectedSite = siteAndSnap.site
+                                showBottomSheet = true
+                            },
+                            onQuickMonitorClick = when {
+                                quickMonitorState.isActive -> null
+                                viewModel != null -> {
+                                    {
+                                        viewModel.startQuickMonitor(setOf(siteAndSnap.site.id))
                                     }
                                 }
-                            )
-                        }
+                                else -> null
+                            }
+                        )
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(80.dp))
                     }
                 }
             }
@@ -404,6 +340,44 @@ fun MainScreenContent(
                     selectedSite = null
                     showBottomSheet = false
                 }
+            )
+        }
+
+        if (showQuickMonitorSheet) {
+            QuickMonitorBottomSheet(
+                isActive = quickMonitorState.isActive,
+                sitesCount = quickMonitorState.siteIds.size,
+                totalSitesCount = sites.size,
+                intervalSeconds = quickMonitorState.intervalSeconds,
+                onStart = { selectedInterval ->
+                    if (sites.isEmpty()) {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.turbo_mode_no_sites),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        pendingTurboInterval = selectedInterval
+                        if (quickMonitorState.siteIds.isNotEmpty()) {
+                            cachedTurboSelection = quickMonitorState.siteIds.toList()
+                        }
+                        showQuickMonitorSheet = false
+                        showTurboDialog = true
+                    }
+                },
+                onStop = onStopQuickMonitor,
+                onExtend = {
+                    try {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.quick_monitor_toast_extended),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        QuickMonitorService.extend(context)
+                    } catch (_: Exception) {}
+                },
+                onDismiss = { showQuickMonitorSheet = false },
+                sheetState = androidx.compose.material3.rememberModalBottomSheetState()
             )
         }
 
@@ -455,100 +429,352 @@ fun MainScreenContent(
 }
 
 @Composable
+private fun HomeHeroSection(
+    sitesCount: Int,
+    onAddSite: () -> Unit,
+    onHowItWorks: () -> Unit,
+    quickMonitorSites: Int
+) {
+    val subtitle = if (sitesCount == 0) {
+        stringResource(id = R.string.home_hero_subtitle_empty)
+    } else {
+        stringResource(id = R.string.home_hero_subtitle, sitesCount)
+    }
+    val heroGradient = Brush.linearGradient(
+        colors = listOf(
+            MaterialTheme.colorScheme.primary,
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.92f),
+            MaterialTheme.colorScheme.tertiary
+        ),
+        start = Offset(0f, 0f),
+        end = Offset(600f, 600f)
+    )
+    val contentColor = MaterialTheme.colorScheme.onPrimary
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(36.dp))
+            .background(heroGradient)
+            .padding(horizontal = 28.dp, vertical = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        Surface(
+            shape = RoundedCornerShape(50),
+            color = contentColor.copy(alpha = 0.15f)
+        ) {
+            Text(
+                text = stringResource(id = R.string.home_hero_badge),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = contentColor,
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+            )
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                text = stringResource(id = R.string.home_hero_title),
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = contentColor
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyLarge,
+                color = contentColor.copy(alpha = 0.85f)
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            HeroMetricChip(
+                label = stringResource(id = R.string.home_stats_sites_label),
+                value = sitesCount.toString(),
+                icon = Icons.Filled.Language,
+                modifier = Modifier.weight(1f),
+                containerColor = contentColor.copy(alpha = 0.12f),
+                contentColor = contentColor
+            )
+            HeroMetricChip(
+                label = stringResource(id = R.string.home_stats_quick_monitor_label),
+                value = quickMonitorSites.toString(),
+                icon = Icons.Filled.Speed,
+                modifier = Modifier.weight(1f),
+                containerColor = contentColor.copy(alpha = 0.12f),
+                contentColor = contentColor
+            )
+        }
+        Button(
+            onClick = onAddSite,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(26.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = contentColor,
+                contentColor = MaterialTheme.colorScheme.primary
+            )
+        ) {
+            Text(text = stringResource(id = R.string.main_add_site))
+        }
+        TextButton(
+            onClick = onHowItWorks,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            colors = ButtonDefaults.textButtonColors(contentColor = contentColor)
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.HelpOutline,
+                contentDescription = null
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = stringResource(id = R.string.home_action_learn))
+        }
+    }
+}
+
+@Composable
+private fun QuickMonitorStatusCard(
+    quickMonitorState: QuickMonitorState,
+    onQuickMonitorClick: () -> Unit,
+    onStopQuickMonitor: () -> Unit
+) {
+    val isActive = quickMonitorState.isActive
+    val description = if (isActive) {
+        stringResource(
+            id = R.string.home_quick_monitor_description_active,
+            quickMonitorState.intervalSeconds,
+            quickMonitorState.siteIds.size
+        )
+    } else {
+        stringResource(id = R.string.home_quick_monitor_description_idle)
+    }
+
+    val containerColor = if (isActive) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else {
+        MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
+    }
+    val contentColor = if (isActive) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        color = containerColor,
+        tonalElevation = if (isActive) 4.dp else 1.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(18.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    modifier = Modifier.size(52.dp),
+                    shape = CircleShape,
+                    color = contentColor.copy(alpha = 0.12f)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Filled.Bolt,
+                            contentDescription = null,
+                            tint = contentColor
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = if (isActive) {
+                            stringResource(id = R.string.home_quick_monitor_active)
+                        } else {
+                            stringResource(id = R.string.home_quick_monitor_idle)
+                        },
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = contentColor
+                    )
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = contentColor.copy(alpha = 0.8f)
+                    )
+                }
+                StatusBadge(
+                    text = if (isActive) {
+                        stringResource(id = R.string.quick_monitor_banner_live_badge)
+                    } else {
+                        stringResource(id = R.string.home_stats_syncing_idle)
+                    },
+                    containerColor = contentColor.copy(alpha = 0.15f),
+                    contentColor = contentColor
+                )
+            }
+            Button(
+                onClick = if (isActive) onStopQuickMonitor else onQuickMonitorClick,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp),
+                colors = if (isActive) {
+                    ButtonDefaults.buttonColors(
+                        containerColor = contentColor,
+                        contentColor = containerColor
+                    )
+                } else {
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            ) {
+                Text(
+                    text = if (isActive) {
+                        stringResource(id = R.string.home_quick_monitor_stop)
+                    } else {
+                        stringResource(id = R.string.home_quick_monitor_start)
+                    }
+                )
+            }
+            TextButton(
+                onClick = onQuickMonitorClick,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                colors = ButtonDefaults.textButtonColors(contentColor = contentColor.copy(alpha = 0.9f))
+            ) {
+                Text(text = stringResource(id = R.string.home_quick_monitor_manage))
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatusBadge(
+    text: String,
+    modifier: Modifier = Modifier,
+    containerColor: Color,
+    contentColor: Color
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(50),
+        color = containerColor
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+            color = contentColor,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+        )
+    }
+}
+
+@Composable
+private fun HeroMetricChip(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    containerColor: Color? = null,
+    contentColor: Color? = null
+) {
+    val backgroundColor = containerColor ?: MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
+    val foregroundColor = contentColor ?: MaterialTheme.colorScheme.onSurface
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(28.dp),
+        color = backgroundColor
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            if (icon != null) {
+                Surface(
+                    modifier = Modifier.size(36.dp),
+                    shape = CircleShape,
+                    color = foregroundColor.copy(alpha = 0.12f)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = foregroundColor
+                        )
+                    }
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = foregroundColor.copy(alpha = 0.75f)
+                )
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = foregroundColor
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun MainEmptyState(
     modifier: Modifier = Modifier,
     onAddSite: () -> Unit,
     onHowItWorks: () -> Unit
 ) {
-    val featureItems = stringArrayResource(id = R.array.main_features_list)
-    val infiniteTransition = rememberInfiniteTransition(label = "empty_state")
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "empty_scale"
-    )
-
-    Box(
+    Surface(
         modifier = modifier,
-        contentAlignment = Alignment.Center
+        shape = RoundedCornerShape(32.dp),
+        color = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
     ) {
         Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp, vertical = 36.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-            modifier = Modifier.padding(horizontal = 32.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .scale(scale)
-                    .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
+            Surface(
+                modifier = Modifier.size(88.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
             ) {
-                Text(
-                    text = "🌐",
-                    fontSize = 48.sp
-                )
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Filled.Language,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
-
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
                     text = stringResource(id = R.string.main_empty_title),
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
+                    textAlign = TextAlign.Center
                 )
-
                 Text(
                     text = stringResource(id = R.string.main_empty_subtitle),
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
             }
-
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
-                ),
-                shape = RoundedCornerShape(16.dp)
+            Button(
+                onClick = onAddSite,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.main_features_title),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-
-                    featureItems.forEach { feature ->
-                        Text(
-                            text = feature,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
+                Text(text = stringResource(id = R.string.home_empty_primary))
             }
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Button(onClick = onAddSite, shape = RoundedCornerShape(16.dp)) {
-                    Text(text = stringResource(id = R.string.main_add_site))
-                }
-                TextButton(onClick = onHowItWorks) {
-                    Text(text = stringResource(id = R.string.main_empty_learn_more))
-                }
+            TextButton(onClick = onHowItWorks) {
+                Text(text = stringResource(id = R.string.main_empty_learn_more))
             }
         }
     }

@@ -258,4 +258,25 @@ interface SnapsDao {
     @Query("SELECT COUNT(DISTINCT contentHash) as unique_content, COUNT(*) as total_snaps FROM snaps WHERE siteId = :siteId")
     fun getContentDuplicationStats(siteId: String): ContentDuplicationStats
 
+    /**
+     * OPTIMIZATION: Get most recent snap for ALL sites in a single query.
+     * This solves the N+1 query problem when loading sites with their latest snapshots.
+     *
+     * Instead of: 1 query to get all sites + N queries to get each site's latest snap
+     * We now do: 1 query that gets the latest snap for each site that exists
+     *
+     * Performance: For 50 sites, this reduces queries from 51 to 1 (98% improvement)
+     *
+     * @return Map of siteId to its most recent Snap
+     */
+    @Query("""
+        SELECT s1.* FROM snaps s1
+        WHERE s1.timestamp = (
+            SELECT MAX(timestamp) FROM snaps s2
+            WHERE s2.siteId = s1.siteId
+        )
+        ORDER BY s1.timestamp DESC
+    """)
+    suspend fun getAllMostRecentSnaps(): List<Snap>
+
 }

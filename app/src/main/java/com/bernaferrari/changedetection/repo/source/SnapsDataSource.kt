@@ -15,6 +15,8 @@ interface SnapsDataSource {
 
     suspend fun getMostRecentSnap(siteId: String): Snap?
 
+    suspend fun getAllMostRecentSnaps(): Map<String, Snap>
+
     suspend fun getSnaps(siteId: String): LiveData<List<Snap>>
 
     suspend fun getSnapsFiltered(siteId: String, filter: String): LiveData<List<Snap>>
@@ -23,6 +25,8 @@ interface SnapsDataSource {
 
     fun getSnapForPaging(siteId: String, filter: String): PagingSource<Int, Snap>
 
+    suspend fun getSnapById(snapId: String): Snap?
+
     fun getSnapContent(snapId: String): ByteArray
 
     suspend fun getLastNSnapsForSiteId(siteId: String, limit: Int): List<Snap>?
@@ -30,7 +34,7 @@ interface SnapsDataSource {
     fun getSnapPair(
         originalId: String,
         newId: String
-    ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>>
+    ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>>?
 
     suspend fun saveSnap(snap: Snap, content: ByteArray, threshold: Int): Result<Snap>
 

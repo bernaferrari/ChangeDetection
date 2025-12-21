@@ -43,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -113,9 +114,25 @@ fun ElementSelectorScreen(
     var isLoading by remember { mutableStateOf(true) }
     var selectedElement by remember { mutableStateOf<ElementInfo?>(null) }
     var elementHierarchy by remember { mutableStateOf<List<ElementInfo>>(emptyList()) }
-    var selectedIndex by remember { mutableStateOf(0) }
+    var selectedIndex by remember { mutableIntStateOf(0) }
     var webView by remember { mutableStateOf<WebView?>(null) }
     var showInstructions by remember { mutableStateOf(true) }
+
+    // Cleanup WebView and JavaScript interface when activity finishes
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose {
+            try {
+                webView?.stopLoading()
+                webView?.removeJavascriptInterface("Android")
+                webView?.clearHistory()
+                webView?.clearCache(true)
+                webView?.destroy()
+                webView = null
+            } catch (e: Exception) {
+                com.orhanobut.logger.Logger.e("❌ Error cleaning up ElementSelectorActivity WebView: ${e.message}")
+            }
+        }
+    }
 
     Scaffold(
         topBar = {

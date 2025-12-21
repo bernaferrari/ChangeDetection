@@ -359,13 +359,17 @@ class SyncWorker @AssistedInject constructor(
                 com.bernaferrari.changedetection.repo.AuthenticationMethod.BASIC -> {
                     if (site.encryptedCredentials.isNotBlank()) {
                         try {
-                            // For now, we'll just use the credentials as-is (in production, decrypt first)
-                            // Expected format: "username:password" or JSON with username/password fields
-                            val credentialString = site.encryptedCredentials
-                            val encodedCredentials = java.util.Base64.getEncoder()
-                                .encodeToString(credentialString.toByteArray(Charsets.UTF_8))
-                            requestBuilder.addHeader("Authorization", "Basic $encodedCredentials")
-                            Logger.d("🔐 Applied Basic auth for ${site.title}")
+                            // Decrypt credentials from Android Keystore encryption
+                            val credentials = com.bernaferrari.changedetection.security.CredentialManager.decryptCredentials(site.encryptedCredentials)
+                            if (credentials != null && credentials.username.isNotBlank()) {
+                                val credentialString = "${credentials.username}:${credentials.password}"
+                                val encodedCredentials = java.util.Base64.getEncoder()
+                                    .encodeToString(credentialString.toByteArray(Charsets.UTF_8))
+                                requestBuilder.addHeader("Authorization", "Basic $encodedCredentials")
+                                Logger.d("🔐 Applied Basic auth for ${site.title}")
+                            } else {
+                                Logger.w("⚠️ Failed to decrypt credentials for ${site.title}")
+                            }
                         } catch (e: Exception) {
                             Logger.w("⚠️ Failed to apply Basic auth for ${site.title}: ${e.message}")
                         }

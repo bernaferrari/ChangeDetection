@@ -55,6 +55,21 @@ fun BrowserSetupDialog(
     var isLoading by remember { mutableStateOf(true) }
     var webView by remember { mutableStateOf<WebView?>(null) }
 
+    // Cleanup WebView when dialog is dismissed
+    androidx.compose.runtime.DisposableEffect(Unit) {
+        onDispose {
+            try {
+                webView?.stopLoading()
+                webView?.clearHistory()
+                webView?.clearCache(true)
+                webView?.destroy()
+                webView = null
+            } catch (e: Exception) {
+                com.orhanobut.logger.Logger.e("❌ Error cleaning up BrowserSetupDialog WebView: ${e.message}")
+            }
+        }
+    }
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(

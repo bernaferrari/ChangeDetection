@@ -171,8 +171,7 @@ open class WorkerHelper @Inject constructor(
                 scheduleOneTimeWork(siteId)
             }
         } catch (e: Exception) {
-            Logger.e("❌ Failed to start QuickMonitorService: ${e.message}")
-            e.printStackTrace()
+            Logger.e("❌ Failed to start QuickMonitorService: ${e.message}, stack trace: ${e.stackTraceToString()}")
         }
     }
     

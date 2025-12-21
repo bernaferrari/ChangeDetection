@@ -18,12 +18,14 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material3.*
+import androidx.compose.material3.surfaceColorAtElevation
 import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import java.io.File
-import com.bernaferrari.diffutils.diffs.DiffUtils
-import com.bernaferrari.diffutils.diffs.UnifiedDiffUtils
+import com.bernaferrari.changedetection.R
+import com.bernaferrari.difflib.DiffUtils
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.viewinterop.AndroidView
@@ -41,12 +43,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.bernaferrari.changedetection.repo.Snap
+import com.bernaferrari.changedetection.repo.Site
 import java.text.SimpleDateFormat
 import java.util.*
+import com.orhanobut.logger.Logger
+import com.bernaferrari.changedetection.ui.design.CanvasEmptyState
+import com.bernaferrari.changedetection.ui.design.CanvasHero
+import com.bernaferrari.changedetection.ui.design.CanvasSectionHeader
+import com.bernaferrari.changedetection.ui.design.InsightCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -120,105 +129,17 @@ fun ComparisonScreen(
             }
             
             uiState.snaps.isEmpty() -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(24.dp),
-                        modifier = Modifier.padding(32.dp)
-                    ) {
-                        // Beautiful animated empty state
-                        val infiniteTransition = rememberInfiniteTransition(label = "empty_snapshots")
-                        val pulseAlpha by infiniteTransition.animateFloat(
-                            initialValue = 0.4f,
-                            targetValue = 1.0f,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(2000, easing = FastOutSlowInEasing),
-                                repeatMode = RepeatMode.Reverse
-                            ),
-                            label = "pulse"
-                        )
-                        
-                        Box(
-                            modifier = Modifier
-                                .size(120.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = pulseAlpha * 0.3f),
-                                    CircleShape
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Schedule,
-                                contentDescription = null,
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.primary.copy(alpha = pulseAlpha)
-                            )
-                        }
-                        
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.first_snapshot_title),
-                                style = MaterialTheme.typography.headlineSmall.copy(
-                                    fontWeight = FontWeight.Bold
-                                ),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.first_snapshot_desc),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                        
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(20.dp),
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                Text(
-                                    text = "💡 " + androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.what_happens_next),
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.SemiBold
-                                    ),
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                
-                                listOf(
-                                    "📸 " + androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.taking_initial_snapshot),
-                                    "🔄 " + androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.future_changes_detected),
-                                    "📊 " + androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.comparison_will_show_differences),
-                                    "🔔 " + androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.you_will_be_notified)
-                                ).forEach { step ->
-                                    Text(
-                                        text = step,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
+                val site = uiState.site ?: return@Scaffold
+                ComparisonEmptyContent(
+                    paddingValues = paddingValues,
+                    site = site
+                )
             }
             
             else -> {
+                val site = uiState.site ?: return@Scaffold
                 val selectedPairIndex = uiState.selectedPairIndex
                 if (selectedPairIndex != null && uiState.snaps.size > selectedPairIndex + 1) {
-                    // Show diff view
                     DiffComparisonView(
                         snap1 = uiState.snaps[selectedPairIndex],
                         snap2 = uiState.snaps[selectedPairIndex + 1],
@@ -231,143 +152,12 @@ fun ComparisonScreen(
                             .padding(paddingValues)
                     )
                 } else {
-                    // Show snapshot list with pairs
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                            .padding(horizontal = 16.dp),
-                        contentPadding = PaddingValues(vertical = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        item {
-                            Card(
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                                )
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(20.dp),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    Text(
-                                        text = "📊 " + androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.site_statistics),
-                                        style = MaterialTheme.typography.titleMedium.copy(
-                                            fontWeight = FontWeight.SemiBold
-                                        ),
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                    
-                                    uiState.site?.let { site ->
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween
-                                        ) {
-                                            StatsItem(androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.total_snapshots), uiState.snaps.size.toString())
-                                            StatsItem(androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.status), if (site.isSuccessful) "✅ Active" else "❌ Error")
-                                        }
-                                        
-                                        if (site.elementMonitoring) {
-                                            Text(
-                                                text = "🎯 " + androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.element_monitoring_enabled),
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.secondary
-                                            )
-                                        }
-                                        
-                                        if (site.requiresAuthentication) {
-                                            Text(
-                                                text = "🔐 " + androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.authentication_configured),
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.secondary
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        
-                        if (uiState.snaps.size > 1) {
-                            item {
-                                Card(
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
-                                    )
-                                ) {
-                                    Column(
-                                        modifier = Modifier.padding(16.dp),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Compare,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(20.dp),
-                                                tint = MaterialTheme.colorScheme.secondary
-                                            )
-                                            Text(
-                                                text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.version_comparisons),
-                                                style = MaterialTheme.typography.titleMedium.copy(
-                                                    fontWeight = FontWeight.SemiBold
-                                                ),
-                                                color = MaterialTheme.colorScheme.secondary
-                                            )
-                                        }
-                                        Text(
-                                            text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.version_comparisons_desc),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        
-                        if (uiState.snaps.size > 1) {
-                            item {
-                                Text(
-                                    text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.version_history, uiState.snaps.size),
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.SemiBold
-                                    ),
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
-                            
-                            // Show comparison pairs
-                            items(uiState.snaps.size - 1) { index ->
-                                ComparisonPairCard(
-                                    newerSnap = uiState.snaps[index],
-                                    olderSnap = uiState.snaps[index + 1],
-                                    pairIndex = index,
-                                    isSelected = uiState.selectedPairIndex == index,
-                                    onClick = { viewModel.selectPairForComparison(index) }
-                                )
-                            }
-                        } else {
-                            item {
-                                Text(
-                                    text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.snapshots_count, uiState.snaps.size),
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.SemiBold
-                                    ),
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
-                            
-                            items(uiState.snaps) { snap ->
-                                SnapshotCard(
-                                    snap = snap,
-                                    isSelected = false,
-                                    selectionNumber = null,
-                                    onClick = { }
-                                )
-                            }
-                        }
-                    }
+                    ComparisonLoadedContent(
+                        paddingValues = paddingValues,
+                        site = site,
+                        uiState = uiState,
+                        onSelectPair = { index -> viewModel.selectPairForComparison(index) }
+                    )
                 }
             }
         }
@@ -375,22 +165,167 @@ fun ComparisonScreen(
 }
 
 @Composable
-private fun StatsItem(
-    label: String,
-    value: String
+private fun ComparisonLoadedContent(
+    paddingValues: PaddingValues,
+    site: Site,
+    uiState: ComparisonUiState,
+    onSelectPair: (Int) -> Unit
 ) {
-    Column {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+    val snaps = uiState.snaps
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues),
+        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        item {
+            ComparisonHeroSection(site = site, totalSnapshots = snaps.size)
+        }
+        item {
+            ComparisonStatsRow(
+                totalSnapshots = snaps.size,
+                latestTimestamp = snaps.firstOrNull()?.timestamp,
+                isElementMonitoring = site.elementMonitoring
+            )
+        }
+
+        if (snaps.size > 1) {
+            item {
+                CanvasSectionHeader(
+                    title = stringResource(id = R.string.comparison_section_snapshots)
+                )
+            }
+            item {
+                Text(
+                    text = stringResource(id = R.string.comparison_quick_tip),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            items(snaps.size - 1) { index ->
+                ComparisonPairCard(
+                    newerSnap = snaps[index],
+                    olderSnap = snaps[index + 1],
+                    pairIndex = index,
+                    onClick = { onSelectPair(index) }
+                )
+            }
+        } else {
+            item {
+                CanvasSectionHeader(
+                    title = stringResource(id = R.string.comparison_section_snapshots)
+                )
+            }
+            item {
+                SnapshotCard(
+                    snap = snaps.first(),
+                    onClick = {}
+                )
+            }
+            item {
+                Text(
+                    text = stringResource(id = R.string.comparison_single_snapshot_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ComparisonEmptyContent(
+    paddingValues: PaddingValues,
+    site: Site
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues),
+        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        item {
+            ComparisonHeroSection(site = site, totalSnapshots = 0)
+        }
+        item {
+            CanvasEmptyState(
+                icon = Icons.Default.Schedule,
+                title = stringResource(id = R.string.comparison_empty_title),
+                subtitle = stringResource(id = R.string.comparison_empty_subtitle),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+private fun ComparisonHeroSection(
+    site: Site,
+    totalSnapshots: Int
+) {
+    val title = site.title?.takeIf { it.isNotBlank() } ?: site.url
+    CanvasHero(
+        title = title,
+        subtitle = site.url,
+        badge = stringResource(id = R.string.comparison_hero_badge),
+        modifier = Modifier.fillMaxWidth(),
+        trailingContent = {
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = totalSnapshots.toString(),
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(id = R.string.comparison_stats_snapshots_label),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    )
+}
+
+@Composable
+private fun ComparisonStatsRow(
+    totalSnapshots: Int,
+    latestTimestamp: Long?,
+    isElementMonitoring: Boolean
+) {
+    val latestDisplay = latestTimestamp?.let { formatTimestamp(it) }
+    val latestSupporting = latestDisplay?.let {
+        stringResource(id = R.string.comparison_stats_latest_supporting, it)
+    }
+    val scopeValue = if (isElementMonitoring) {
+        stringResource(id = R.string.comparison_stats_scope_element)
+    } else {
+        stringResource(id = R.string.comparison_stats_scope_page)
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        InsightCard(
+            modifier = Modifier.weight(1f),
+            icon = Icons.Default.Schedule,
+            label = stringResource(id = R.string.comparison_stats_snapshots_label),
+            value = totalSnapshots.toString()
         )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge.copy(
-                fontWeight = FontWeight.Medium
-            ),
-            color = MaterialTheme.colorScheme.onSurface
+        InsightCard(
+            modifier = Modifier.weight(1f),
+            icon = Icons.Default.History,
+            label = stringResource(id = R.string.comparison_stats_latest_label),
+            value = latestDisplay ?: stringResource(id = R.string.comparison_stats_unavailable),
+            supportingText = latestSupporting ?: stringResource(id = R.string.comparison_stats_unavailable)
+        )
+        InsightCard(
+            modifier = Modifier.weight(1f),
+            icon = Icons.Default.Visibility,
+            label = stringResource(id = R.string.comparison_stats_scope_label),
+            value = scopeValue
         )
     }
 }
@@ -398,83 +333,58 @@ private fun StatsItem(
 @Composable
 private fun SnapshotCard(
     snap: Snap,
-    isSelected: Boolean = false,
-    selectionNumber: Int? = null,
     onClick: () -> Unit = {}
 ) {
     Card(
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) 
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-            else MaterialTheme.colorScheme.surfaceContainer
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
         ),
-        border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
-        modifier = Modifier.clickable { onClick() }
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(18.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            if (selectionNumber != null) {
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .background(MaterialTheme.colorScheme.primary, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = selectionNumber.toString(),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Bold
-                        )
-                    )
-                }
-            } else {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(
                     imageVector = Icons.Default.Schedule,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
-            
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = formatTimestamp(snap.timestamp),
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Medium
-                    )
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)
                 )
-                
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.type_label, snap.contentType),
+                        text = stringResource(id = R.string.type_label, snap.contentType),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    
                     Text(
-                        text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.size_label, formatBytes(snap.contentSize)),
+                        text = stringResource(id = R.string.size_label, formatBytes(snap.contentSize)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            }
-            
-            if (isSelected) {
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "Selected",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
             }
         }
     }
@@ -543,7 +453,7 @@ private fun DiffLine(
     ) {
         // Line number
         Text(
-            text = String.format("%4d", lineNumber),
+            text = String.format(Locale.getDefault(), "%4d", lineNumber),
             style = MaterialTheme.typography.bodySmall.copy(
                 fontFamily = FontFamily.Monospace
             ),
@@ -631,130 +541,78 @@ private fun ComparisonPairCard(
     newerSnap: Snap,
     olderSnap: Snap,
     pairIndex: Int,
-    isSelected: Boolean = false,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit
 ) {
     Card(
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(26.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) 
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-            else MaterialTheme.colorScheme.surfaceContainer
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
         ),
-        border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
-        modifier = Modifier.clickable { onClick() }
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(22.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Comparison header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Compare,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                Column {
+                    Text(
+                        text = stringResource(id = R.string.comparison_pair_title, pairIndex + 1, pairIndex + 2),
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)
                     )
                     Text(
-                        text = "Version ${pairIndex + 1} → ${pairIndex + 2}",
-                        style = MaterialTheme.typography.titleSmall.copy(
-                            fontWeight = FontWeight.SemiBold
+                        text = stringResource(
+                            id = R.string.comparison_pair_time_diff,
+                            formatTimeDiff(newerSnap.timestamp - olderSnap.timestamp)
                         ),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                
-                if (isSelected) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Selected",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = "View comparison",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-            
-            // Time diff
-            val timeDiff = newerSnap.timestamp - olderSnap.timestamp
-            val timeDiffText = formatTimeDiff(timeDiff)
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Newer",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = formatTimestamp(newerSnap.timestamp),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = formatBytes(newerSnap.contentSize),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = null,
-                    modifier = Modifier
-                        .size(20.dp)
-                        .align(Alignment.CenterVertically),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                
-                Column(modifier = Modifier.weight(1f)) {
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(horizontalAlignment = Alignment.Start) {
                     Text(
-                        text = "Older",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = stringResource(id = R.string.newer_label, formatTimestamp(newerSnap.timestamp)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = formatTimestamp(olderSnap.timestamp),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Text(
-                        text = formatBytes(olderSnap.contentSize),
+                        text = stringResource(id = R.string.size_label, formatBytes(newerSnap.contentSize)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            }
-            
-            // Time difference chip
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
-            ) {
-                Text(
-                    text = "⏱ $timeDiffText between versions",
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = stringResource(id = R.string.older_label, formatTimestamp(olderSnap.timestamp)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = stringResource(id = R.string.size_label, formatBytes(olderSnap.contentSize)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
@@ -803,7 +661,7 @@ private fun DiffComparisonView(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Navigate back")
                     }
                     Text(
                         text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.diff_comparison),
@@ -817,7 +675,7 @@ private fun DiffComparisonView(
                             IconButton(onClick = {
                                 shareUnifiedDiff(context, snap1, snap2, content1, content2)
                             }) {
-                                Icon(Icons.Default.Share, contentDescription = null)
+                                Icon(Icons.Default.Share, contentDescription = "Share diff")
                             }
                             TextButton(onClick = onBack) { Text(androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.done)) }
                         }
@@ -842,7 +700,7 @@ private fun DiffComparisonView(
                     }
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
+                        contentDescription = "Comparison arrow",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Column {
@@ -885,7 +743,7 @@ private fun DiffComparisonView(
                         onClick = { mode = "TEXT" },
                         label = { Text(androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.text_diff)) },
                         leadingIcon = if (mode == "TEXT") {
-                            { Icon(Icons.AutoMirrored.Filled.Article, contentDescription = null) }
+                            { Icon(Icons.AutoMirrored.Filled.Article, contentDescription = "Text diff mode") }
                         } else null
                     )
                     FilterChip(
@@ -893,7 +751,7 @@ private fun DiffComparisonView(
                         onClick = { mode = "HTML" },
                         label = { Text(androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.rendered_html)) },
                         leadingIcon = if (mode == "HTML") {
-                            { Icon(Icons.Default.Language, contentDescription = null) }
+                            { Icon(Icons.Default.Language, contentDescription = "HTML diff mode") }
                         } else null
                     )
                 }
@@ -1074,7 +932,55 @@ private fun RenderedHtmlComparison(
     val addColor = "rgba(76,175,80,0.18)" // subtle green
     val remColor = "rgba(244,67,54,0.18)" // subtle red
 
+    // Track WebView references for proper cleanup
+    var oldWebView by remember { mutableStateOf<WebView?>(null) }
+    var newWebView by remember { mutableStateOf<WebView?>(null) }
+
+    // Cleanup WebViews when composable leaves the composition
+    DisposableEffect(Unit) {
+        onDispose {
+            try {
+                oldWebView?.stopLoading()
+                oldWebView?.clearHistory()
+                oldWebView?.clearCache(true)
+                oldWebView?.destroy()
+                oldWebView = null
+            } catch (e: Exception) {
+                Logger.e("❌ Error cleaning up old WebView: ${e.message}")
+            }
+
+            try {
+                newWebView?.stopLoading()
+                newWebView?.clearHistory()
+                newWebView?.clearCache(true)
+                newWebView?.destroy()
+                newWebView = null
+            } catch (e: Exception) {
+                Logger.e("❌ Error cleaning up new WebView: ${e.message}")
+            }
+        }
+    }
+
     Row(modifier = modifier) {
+        // Sanitize HTML before rendering to prevent XSS attacks
+        val sanitizedOldContent = remember(oldContent) {
+            com.bernaferrari.changedetection.util.HtmlSanitizer.sanitize(
+                oldContent,
+                com.bernaferrari.changedetection.util.HtmlSanitizer.SafetyLevel.BALANCED
+            )
+        }
+        val sanitizedNewContent = remember(newContent) {
+            com.bernaferrari.changedetection.util.HtmlSanitizer.sanitize(
+                newContent,
+                com.bernaferrari.changedetection.util.HtmlSanitizer.SafetyLevel.BALANCED
+            )
+        }
+
+        /**
+         * OPTIMIZATION: First WebView for old/removed content.
+         * Lifecycle: Created in factory, stored for cleanup in DisposableEffect,
+         * destroyed when composable leaves composition.
+         */
         AndroidView(
             factory = { ctx ->
                 WebView(ctx).apply {
@@ -1088,11 +994,17 @@ private fun RenderedHtmlComparison(
                             view?.evaluateJavascript("window.applyChangeHighlights($removedJsArray, '$remColor');", null)
                         }
                     }
-                }
+                }.also { oldWebView = it }
             },
-            update = { it.loadDataWithBaseURL(null, oldContent, "text/html", "utf-8", null) },
+            update = { it.loadDataWithBaseURL(null, sanitizedOldContent, "text/html", "utf-8", null) },
             modifier = Modifier.weight(1f)
         )
+
+        /**
+         * OPTIMIZATION: Second WebView for new/added content.
+         * Lifecycle: Created in factory, stored for cleanup in DisposableEffect,
+         * destroyed when composable leaves composition.
+         */
         AndroidView(
             factory = { ctx ->
                 WebView(ctx).apply {
@@ -1106,9 +1018,9 @@ private fun RenderedHtmlComparison(
                             view?.evaluateJavascript("window.applyChangeHighlights($addedJsArray, '$addColor');", null)
                         }
                     }
-                }
+                }.also { newWebView = it }
             },
-            update = { it.loadDataWithBaseURL(null, newContent, "text/html", "utf-8", null) },
+            update = { it.loadDataWithBaseURL(null, sanitizedNewContent, "text/html", "utf-8", null) },
             modifier = Modifier.weight(1f)
         )
     }

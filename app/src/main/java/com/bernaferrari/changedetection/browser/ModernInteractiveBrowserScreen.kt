@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -34,6 +36,8 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -46,7 +50,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,6 +61,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -62,8 +69,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.delay
 import com.bernaferrari.changedetection.extensions.normalizeUrl
+import com.bernaferrari.changedetection.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -140,7 +149,9 @@ fun ModernInteractiveBrowserScreen(
                     if (finalUrl.isNotBlank()) {
                         viewModel.setCurrentUrl(finalUrl)
                     }
-                }
+                },
+                modifier = Modifier
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
             )
             
             // WebView Container
@@ -160,6 +171,24 @@ fun ModernInteractiveBrowserScreen(
                     },
                     modifier = Modifier.fillMaxSize()
                 )
+
+                DisposableEffect(webView) {
+                    onDispose {
+                        webView?.apply {
+                            try {
+                                stopLoading()
+                                clearHistory()
+                                clearCache(true)
+                                setWebChromeClient(WebChromeClient())
+                                setWebViewClient(WebViewClient())
+                                destroy()
+                            } catch (_: Exception) {
+                            } finally {
+                                webView = null
+                            }
+                        }
+                    }
+                }
                 
                 if (uiState.isLoading) {
                     LinearProgressIndicator(
@@ -273,7 +302,8 @@ private fun BrowserControlsBar(
     currentUrl: String,
     isLoading: Boolean,
     webView: WebView?,
-    onUrlSubmit: (String) -> Unit
+    onUrlSubmit: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var urlText by remember { mutableStateOf(currentUrl) }
     var isUrlEditing by remember { mutableStateOf(false) }
@@ -292,72 +322,75 @@ private fun BrowserControlsBar(
         }
     }
 
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier.fillMaxWidth()
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
+        )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Navigation buttons
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(
+                modifier = Modifier
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
+                        shape = RoundedCornerShape(20.dp)
+                    )
+                    .padding(horizontal = 4.dp, vertical = 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 IconButton(
                     onClick = { webView?.let { if (it.canGoBack()) it.goBack() } },
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
-                
                 IconButton(
                     onClick = { webView?.let { if (it.canGoForward()) it.goForward() } },
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = "Forward",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
-                
                 IconButton(
                     onClick = {
                         webView?.let {
-                            if (isLoading) {
-                                it.stopLoading()
-                            } else {
-                                it.reload()
-                            }
+                            if (isLoading) it.stopLoading() else it.reload()
                         }
                     },
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(36.dp)
                 ) {
                     Icon(
-                        if (isLoading) Icons.Default.Close else Icons.Default.Refresh,
+                        imageVector = if (isLoading) Icons.Default.Close else Icons.Default.Refresh,
                         contentDescription = if (isLoading) "Stop" else "Refresh",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
-            
-            // URL input field
             OutlinedTextField(
                 value = urlText,
-                onValueChange = { 
+                onValueChange = {
                     urlText = it
                     isUrlEditing = true
                 },
-                placeholder = { Text(androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.enter_website_url_ellipsis)) },
+                modifier = Modifier.weight(1f),
+                placeholder = {
+                    Text(text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.enter_website_url_ellipsis))
+                },
                 leadingIcon = {
                     Icon(
                         Icons.Default.Language,
@@ -381,11 +414,12 @@ private fun BrowserControlsBar(
                         }
                     }
                 },
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(20.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
                 ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
@@ -405,65 +439,85 @@ private fun BoxScope.ModeOverlay(
     mode: InteractionMode,
     isVisible: Boolean
 ) {
+    val overlayData = when (mode) {
+        InteractionMode.ELEMENT_SELECT -> ModeOverlayData(
+            icon = Icons.Default.TouchApp,
+            accent = MaterialTheme.colorScheme.primary,
+            title = stringResource(id = R.string.browser_mode_select_title),
+            subtitle = stringResource(id = R.string.browser_mode_select_subtitle)
+        )
+        InteractionMode.ELEMENT_ZAP -> ModeOverlayData(
+            icon = Icons.Default.Block,
+            accent = MaterialTheme.colorScheme.error,
+            title = stringResource(id = R.string.browser_mode_zap_title),
+            subtitle = stringResource(id = R.string.browser_mode_zap_subtitle)
+        )
+        InteractionMode.LOGIN_CAPTURE -> ModeOverlayData(
+            icon = Icons.Default.Info,
+            accent = MaterialTheme.colorScheme.tertiary,
+            title = stringResource(id = R.string.browser_mode_login_title),
+            subtitle = stringResource(id = R.string.browser_mode_login_subtitle)
+        )
+        else -> null
+    }
+
     AnimatedVisibility(
-        visible = isVisible && mode != InteractionMode.NORMAL,
+        visible = isVisible && overlayData != null,
         enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
         exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 }),
         modifier = Modifier
             .align(Alignment.BottomStart)
             .padding(horizontal = 24.dp, vertical = 24.dp)
     ) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            tonalElevation = 4.dp,
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
-        ) {
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+        overlayData?.let { data ->
+            Surface(
+                shape = RoundedCornerShape(22.dp),
+                tonalElevation = 6.dp,
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f)
             ) {
-                Icon(
-                    imageVector = when (mode) {
-                        InteractionMode.ELEMENT_SELECT -> Icons.Default.TouchApp
-                        InteractionMode.ELEMENT_ZAP -> Icons.Default.Block
-                        InteractionMode.LOGIN_CAPTURE -> Icons.Default.Info
-                        InteractionMode.NORMAL -> Icons.Default.Info
-                    },
-                    contentDescription = null,
-                    tint = when (mode) {
-                        InteractionMode.ELEMENT_SELECT -> MaterialTheme.colorScheme.primary
-                        InteractionMode.ELEMENT_ZAP -> MaterialTheme.colorScheme.error
-                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                Row(
+                    modifier = Modifier
+                        .padding(horizontal = 18.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = data.accent.copy(alpha = 0.15f)
+                    ) {
+                        Icon(
+                            imageVector = data.icon,
+                            contentDescription = null,
+                            tint = data.accent,
+                            modifier = Modifier
+                                .size(40.dp)
+                                .padding(8.dp)
+                        )
                     }
-                )
-                Column {
-                    Text(
-                        text = when (mode) {
-                            InteractionMode.ELEMENT_SELECT -> "Element selection active"
-                            InteractionMode.ELEMENT_ZAP -> "Element zapping active"
-                            InteractionMode.LOGIN_CAPTURE -> "Login capture"
-                            InteractionMode.NORMAL -> ""
-                        },
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = when (mode) {
-                            InteractionMode.ELEMENT_SELECT -> "Tap elements to monitor"
-                            InteractionMode.ELEMENT_ZAP -> "Tap elements to remove"
-                            InteractionMode.LOGIN_CAPTURE -> "Interact with login form"
-                            InteractionMode.NORMAL -> ""
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Column {
+                        Text(
+                            text = data.title,
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = data.subtitle,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
     }
 }
+
+private data class ModeOverlayData(
+    val icon: ImageVector,
+    val accent: Color,
+    val title: String,
+    val subtitle: String
+)
 
 private fun setupWebView(webView: WebView, viewModel: InteractiveBrowserViewModel) {
     webView.apply {

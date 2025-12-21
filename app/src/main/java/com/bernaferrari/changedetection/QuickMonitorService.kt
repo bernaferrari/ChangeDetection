@@ -144,8 +144,7 @@ class QuickMonitorService : Service() {
             }
             Logger.d("✅ Foreground service started successfully")
         } catch (e: Exception) {
-            Logger.e("❌ Failed to start foreground service: ${e.message}")
-            e.printStackTrace()
+            Logger.e("❌ Failed to start foreground service: ${e.message}, stack trace: ${e.stackTraceToString()}")
             // If foreground fails, stop the service
             stopSelf()
             return START_NOT_STICKY

@@ -14,4 +14,4 @@ dependencyResolutionManagement {
     }
 }
 
-include(":app", ":diffutils")
+include(":app", ":shared")

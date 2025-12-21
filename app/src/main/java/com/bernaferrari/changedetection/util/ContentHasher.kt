@@ -4,60 +4,82 @@ import com.bernaferrari.changedetection.extensions.cleanUpHtml
 import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
+import java.util.Collections
+import java.util.LinkedHashMap
 
 /**
- * Utility class for efficient content hashing and comparison
- * Provides fast content change detection using cryptographic hashes
+ * Thread-safe utility class for efficient content hashing and comparison.
+ * Provides fast content change detection using cryptographic hashes.
+ *
+ * Security & Performance:
+ * - SHA-256 hashing for cryptographic integrity
+ * - Thread-safe using ConcurrentHashMap and synchronization
+ * - LRU cache to prevent unbounded memory growth
+ * - Synchronized MessageDigest access (not thread-safe)
  */
 @Singleton
 class ContentHasher @Inject constructor() {
-    
+
     private val messageDigest = MessageDigest.getInstance("SHA-256")
-    private val htmlCleanupCache = mutableMapOf<String, String>()
-    private val hashCache = mutableMapOf<String, String>()
-    
+
+    // Use thread-safe LinkedHashMap with LRU eviction policy
+    private val htmlCleanupCache: MutableMap<String, String> =
+        Collections.synchronizedMap(object : LinkedHashMap<String, String>(16, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, String>?): Boolean {
+                return size > MAX_CACHE_SIZE
+            }
+        })
+
+    private val hashCache: MutableMap<String, String> =
+        Collections.synchronizedMap(object : LinkedHashMap<String, String>(16, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, String>?): Boolean {
+                return size > MAX_CACHE_SIZE
+            }
+        })
+
     companion object {
         private const val MAX_CACHE_SIZE = 1000
-        private const val CACHE_CLEANUP_THRESHOLD = 1200
     }
-    
+
     /**
      * Generate SHA-256 hash for raw content
+     * Thread-safe with synchronized messageDigest access
      */
     fun hashContent(content: ByteArray): String {
         val contentString = content.toString(Charsets.UTF_8)
-        
-        // Check cache first
+
+        // Check cache first (synchronized map)
         val cachedHash = hashCache[contentString]
         if (cachedHash != null) {
             return cachedHash
         }
-        
-        synchronized(messageDigest) {
+
+        // Synchronize MessageDigest access only
+        val hash = synchronized(messageDigest) {
             messageDigest.reset()
             val hashBytes = messageDigest.digest(content)
-            val hash = hashBytes.joinToString("") { "%02x".format(it) }
-            
-            // Cache the result
-            cacheHash(contentString, hash)
-            return hash
+            hashBytes.joinToString("") { "%02x".format(it) }
         }
+
+        // Cache the result
+        hashCache[contentString] = hash
+        return hash
     }
-    
+
     /**
      * Generate hash for HTML content after cleanup
      * This provides more stable comparison for HTML content
      */
     fun hashHtmlContent(content: ByteArray): String {
         val contentString = content.toString(Charsets.UTF_8)
-        
+
         // Get cleaned HTML (cached)
         val cleanedHtml = getCleanedHtml(contentString)
-        
+
         // Hash the cleaned content
         return hashContent(cleanedHtml.toByteArray(Charsets.UTF_8))
     }
-    
+
     /**
      * Compare two content pieces efficiently using hashes
      */
@@ -68,7 +90,7 @@ class ContentHasher @Inject constructor() {
     ): Boolean {
         if (newContent.isEmpty()) return false
         if (previousContent.isEmpty()) return true
-        
+
         return if (contentType.contains("html", ignoreCase = true)) {
             // For HTML, use cleaned comparison
             val newHash = hashHtmlContent(newContent)
@@ -81,20 +103,21 @@ class ContentHasher @Inject constructor() {
             newHash != prevHash
         }
     }
-    
+
     /**
      * Fast content size-based pre-filtering
      * Returns true if content might have changed based on size
      */
     fun quickSizeCheck(newSize: Int, previousSize: Int, threshold: Double = 0.05): Boolean {
         if (previousSize == 0) return newSize > 0
-        
+
         val sizeChange = kotlin.math.abs(newSize - previousSize).toDouble() / previousSize
         return sizeChange > threshold
     }
-    
+
     /**
      * Get cleaned HTML with caching
+     * Thread-safe through synchronized map
      */
     private fun getCleanedHtml(html: String): String {
         // Check cache first
@@ -102,51 +125,27 @@ class ContentHasher @Inject constructor() {
         if (cached != null) {
             return cached
         }
-        
+
         // Clean the HTML
         val cleaned = html.cleanUpHtml()
-        
-        // Cache the result
-        cacheCleanedHtml(html, cleaned)
+
+        // Cache the result (LinkedHashMap will auto-evict when full)
+        htmlCleanupCache[html] = cleaned
         return cleaned
     }
-    
-    /**
-     * Cache hash with size management
-     */
-    private fun cacheHash(content: String, hash: String) {
-        if (hashCache.size > CACHE_CLEANUP_THRESHOLD) {
-            // Remove oldest entries (simple LRU simulation)
-            val toRemove = hashCache.keys.take(hashCache.size - MAX_CACHE_SIZE)
-            toRemove.forEach { hashCache.remove(it) }
-        }
-        
-        hashCache[content] = hash
-    }
-    
-    /**
-     * Cache cleaned HTML with size management
-     */
-    private fun cacheCleanedHtml(original: String, cleaned: String) {
-        if (htmlCleanupCache.size > CACHE_CLEANUP_THRESHOLD) {
-            // Remove oldest entries (simple LRU simulation)
-            val toRemove = htmlCleanupCache.keys.take(htmlCleanupCache.size - MAX_CACHE_SIZE)
-            toRemove.forEach { htmlCleanupCache.remove(it) }
-        }
-        
-        htmlCleanupCache[original] = cleaned
-    }
-    
+
     /**
      * Clear all caches (useful for memory management)
+     * Thread-safe operation
      */
     fun clearCaches() {
         htmlCleanupCache.clear()
         hashCache.clear()
     }
-    
+
     /**
      * Get cache statistics for monitoring
+     * Thread-safe read of synchronized maps
      */
     fun getCacheStats(): CacheStats {
         return CacheStats(
@@ -174,7 +173,7 @@ fun ByteArray.hashedWith(hasher: ContentHasher): String = hasher.hashContent(thi
 fun ByteArray.htmlHashedWith(hasher: ContentHasher): String = hasher.hashHtmlContent(this)
 
 fun ByteArray.isChangedFrom(
-    previous: ByteArray, 
-    contentType: String, 
+    previous: ByteArray,
+    contentType: String,
     hasher: ContentHasher
 ): Boolean = hasher.contentChanged(this, previous, contentType)

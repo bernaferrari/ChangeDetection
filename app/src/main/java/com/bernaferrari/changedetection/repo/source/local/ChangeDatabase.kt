@@ -47,8 +47,10 @@ abstract class ChangeDatabase : RoomDatabase() {
                         }
                     }
                 } catch (e: Exception) {
-                    // Log error but don't crash - allow app to continue with existing schema
-                    android.util.Log.e("ChangeDatabase", "Migration 1->2 failed: ${e.message}")
+                    // Log detailed error information but allow app to continue
+                    android.util.Log.e("ChangeDatabase", "❌ Migration 1->2 failed: ${e.message}", e)
+                    // Re-throw for crash reporting, but handled by Room's migration strategy
+                    throw RuntimeException("Database migration 1->2 failed", e)
                 }
             }
         }
@@ -78,46 +80,71 @@ abstract class ChangeDatabase : RoomDatabase() {
                         }
                     }
                 } catch (e: Exception) {
-                    android.util.Log.e("ChangeDatabase", "Migration 2->3 failed: ${e.message}")
+                    android.util.Log.e("ChangeDatabase", "❌ Migration 2->3 failed: ${e.message}", e)
+                    throw RuntimeException("Database migration 2->3 failed", e)
                 }
             }
         }
         
         val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                // Browser and Request Configuration
-                database.execSQL("ALTER TABLE sites ADD COLUMN followRedirects INTEGER NOT NULL DEFAULT 1")
-                database.execSQL("ALTER TABLE sites ADD COLUMN requestTimeoutMs INTEGER NOT NULL DEFAULT 30000")
-                database.execSQL("ALTER TABLE sites ADD COLUMN customHeadersJson TEXT NOT NULL DEFAULT ''")
-                
-                // Authentication Support
-                database.execSQL("ALTER TABLE sites ADD COLUMN requiresAuthentication INTEGER NOT NULL DEFAULT 0")
-                database.execSQL("ALTER TABLE sites ADD COLUMN authenticationMethod TEXT NOT NULL DEFAULT 'NONE'")
-                database.execSQL("ALTER TABLE sites ADD COLUMN encryptedCredentials TEXT NOT NULL DEFAULT ''")
-                database.execSQL("ALTER TABLE sites ADD COLUMN oauthTokenData TEXT NOT NULL DEFAULT ''")
-                database.execSQL("ALTER TABLE sites ADD COLUMN sessionPersistence INTEGER NOT NULL DEFAULT 1")
-                
-                // Enhanced Element Monitoring
-                database.execSQL("ALTER TABLE sites ADD COLUMN multipleElementMonitoring INTEGER NOT NULL DEFAULT 0")
-                database.execSQL("ALTER TABLE sites ADD COLUMN elementHighlighting INTEGER NOT NULL DEFAULT 0")
-                
-                // Smart Content Processing Enhancements
-                database.execSQL("ALTER TABLE sites ADD COLUMN noiseFiltering INTEGER NOT NULL DEFAULT 1")
-                database.execSQL("ALTER TABLE sites ADD COLUMN contentNormalization INTEGER NOT NULL DEFAULT 1")
-                
-                // Sync and Priority Settings
-                database.execSQL("ALTER TABLE sites ADD COLUMN syncPriority TEXT NOT NULL DEFAULT 'NORMAL'")
-                database.execSQL("ALTER TABLE sites ADD COLUMN backgroundSyncEnabled INTEGER NOT NULL DEFAULT 1")
-                database.execSQL("ALTER TABLE sites ADD COLUMN syncFrequencyMinutes INTEGER NOT NULL DEFAULT 60")
-                
-                // Proxy and Network Settings
-                database.execSQL("ALTER TABLE sites ADD COLUMN useProxy INTEGER NOT NULL DEFAULT 0")
-                database.execSQL("ALTER TABLE sites ADD COLUMN proxyConfigJson TEXT NOT NULL DEFAULT ''") 
-                database.execSQL("ALTER TABLE sites ADD COLUMN retryAttempts INTEGER NOT NULL DEFAULT 3")
-                database.execSQL("ALTER TABLE sites ADD COLUMN retryDelayMs INTEGER NOT NULL DEFAULT 5000")
-                
-                // Convert contentFocusMode from string to enum-compatible values
-                database.execSQL("UPDATE sites SET contentFocusMode = 'AUTO' WHERE contentFocusMode NOT IN ('AUTO', 'ECOMMERCE', 'NEWS', 'GENERAL', 'CUSTOM')")
+                try {
+                    // Check existing columns
+                    val cursor = database.query("PRAGMA table_info(sites)")
+                    val existingColumns = mutableSetOf<String>()
+                    while (cursor.moveToNext()) {
+                        val columnName = cursor.getString(cursor.getColumnIndexOrThrow("name"))
+                        existingColumns.add(columnName)
+                    }
+                    cursor.close()
+
+                    // Browser and Request Configuration
+                    safeAddColumn(database, existingColumns, "followRedirects", "INTEGER NOT NULL DEFAULT 1")
+                    safeAddColumn(database, existingColumns, "requestTimeoutMs", "INTEGER NOT NULL DEFAULT 30000")
+                    safeAddColumn(database, existingColumns, "customHeadersJson", "TEXT NOT NULL DEFAULT ''")
+
+                    // Authentication Support
+                    safeAddColumn(database, existingColumns, "requiresAuthentication", "INTEGER NOT NULL DEFAULT 0")
+                    safeAddColumn(database, existingColumns, "authenticationMethod", "TEXT NOT NULL DEFAULT 'NONE'")
+                    safeAddColumn(database, existingColumns, "encryptedCredentials", "TEXT NOT NULL DEFAULT ''")
+                    safeAddColumn(database, existingColumns, "oauthTokenData", "TEXT NOT NULL DEFAULT ''")
+                    safeAddColumn(database, existingColumns, "sessionPersistence", "INTEGER NOT NULL DEFAULT 1")
+
+                    // Enhanced Element Monitoring
+                    safeAddColumn(database, existingColumns, "multipleElementMonitoring", "INTEGER NOT NULL DEFAULT 0")
+                    safeAddColumn(database, existingColumns, "elementHighlighting", "INTEGER NOT NULL DEFAULT 0")
+
+                    // Smart Content Processing Enhancements
+                    safeAddColumn(database, existingColumns, "noiseFiltering", "INTEGER NOT NULL DEFAULT 1")
+                    safeAddColumn(database, existingColumns, "contentNormalization", "INTEGER NOT NULL DEFAULT 1")
+
+                    // Sync and Priority Settings
+                    safeAddColumn(database, existingColumns, "syncPriority", "TEXT NOT NULL DEFAULT 'NORMAL'")
+                    safeAddColumn(database, existingColumns, "backgroundSyncEnabled", "INTEGER NOT NULL DEFAULT 1")
+                    safeAddColumn(database, existingColumns, "syncFrequencyMinutes", "INTEGER NOT NULL DEFAULT 60")
+
+                    // Proxy and Network Settings
+                    safeAddColumn(database, existingColumns, "useProxy", "INTEGER NOT NULL DEFAULT 0")
+                    safeAddColumn(database, existingColumns, "proxyConfigJson", "TEXT NOT NULL DEFAULT ''")
+                    safeAddColumn(database, existingColumns, "retryAttempts", "INTEGER NOT NULL DEFAULT 3")
+                    safeAddColumn(database, existingColumns, "retryDelayMs", "INTEGER NOT NULL DEFAULT 5000")
+
+                    // Convert contentFocusMode from string to enum-compatible values
+                    database.execSQL("UPDATE sites SET contentFocusMode = 'AUTO' WHERE contentFocusMode NOT IN ('AUTO', 'ECOMMERCE', 'NEWS', 'GENERAL', 'CUSTOM')")
+                } catch (e: Exception) {
+                    android.util.Log.e("ChangeDatabase", "❌ Migration 3->4 failed: ${e.message}", e)
+                    throw RuntimeException("Database migration 3->4 failed", e)
+                }
+            }
+
+            private fun safeAddColumn(database: SupportSQLiteDatabase, existingColumns: Set<String>, columnName: String, columnDef: String) {
+                if (!existingColumns.contains(columnName)) {
+                    try {
+                        database.execSQL("ALTER TABLE sites ADD COLUMN $columnName $columnDef")
+                    } catch (e: Exception) {
+                        android.util.Log.w("ChangeDatabase", "⚠️ Could not add column $columnName: ${e.message}")
+                    }
+                }
             }
         }
     }
