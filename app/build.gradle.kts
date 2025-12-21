@@ -96,7 +96,8 @@ dependencies {
         // Glance AppWidget
         implementation(libs.androidx.glance)
         implementation(libs.androidx.glance.appwidget)
-    implementation(project(":diffutils"))
+    implementation("io.github.bernaferrari:fast-kotlin-diff-core:1.0.0")
+    implementation(project(":shared"))
 
     // Kotlin
     implementation(libs.kotlin.stdlib)
@@ -152,6 +153,9 @@ dependencies {
     // Logging
     implementation(libs.logger)
 
+    // Security - Encrypted SharedPreferences and CredentialManager
+    implementation(libs.androidx.security.crypto)
+
     // UI Utils
     implementation(libs.androidx.palette.ktx)
     implementation(libs.material.kolor)
@@ -179,6 +183,11 @@ dependencies {
 
     // Testing
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.mockito.core)
+    androidTestImplementation(libs.mockito.kotlin)
 }

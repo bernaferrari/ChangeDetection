@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Network Errors -->
+    <string name="error_page_not_found">Página não encontrada. O site pode ter sido movido ou removido.</string>
+    <string name="error_access_forbidden">Acesso negado. Talvez você precise fazer login ou não tenha permissão para ver esta página.</string>
+    <string name="error_server_error">Erro no servidor. O site está temporariamente indisponível.</string>
+    <string name="error_network_general">Erro de rede (código: %d). Verifique sua conexão.</string>
+    <string name="error_no_internet">Sem conexão com a internet. Verifique as configurações de rede.</string>
+    <string name="error_request_timeout">Tempo de solicitação esgotado. O site está demorando para responder.</string>
+
+    <!-- Validation Errors -->
+    <string name="error_invalid_url">Informe uma URL válida (ex.: https://example.com)</string>
+    <string name="error_invalid_email">Informe um e-mail válido</string>
+    <string name="error_invalid_css_selector">Seletor CSS inválido. Verifique a sintaxe.</string>
+    <string name="error_validation_general">O campo %s é inválido. Verifique sua entrada.</string>
+
+    <!-- Database Errors -->
+    <string name="error_database_general">Erro no banco de dados. Seus dados podem estar temporariamente indisponíveis.</string>
+
+    <!-- Sync Errors -->
+    <string name="error_rate_limited">Muitas solicitações. Aguarde antes de tentar novamente.</string>
+    <string name="error_quota_exceeded">Limite diário de monitoramento atingido. Faça upgrade para continuar.</string>
+    <string name="error_content_too_large">O conteúdo é grande demais para monitorar. Tente usar a seleção de elementos.</string>
+    <string name="error_invalid_content">Tipo de conteúdo inválido. Apenas páginas web e texto são suportados.</string>
+    <string name="error_sync_general">Falha na sincronização. Tente novamente mais tarde.</string>
+
+    <!-- Authentication Errors -->
+    <string name="error_authentication_failed">Falha no login. Verifique suas credenciais.</string>
+
+    <!-- System Errors -->
+    <string name="error_permissions_denied">Permissão negada. Conceda as permissões necessárias.</string>
+    <string name="error_out_of_memory">Memória insuficiente. Reduza a quantidade de sites monitorados.</string>
+    <string name="error_generic">Algo deu errado. Tente de novo.</string>
+
+    <!-- Action Suggestions -->
+    <string name="action_check_url">Verificar URL</string>
+    <string name="action_verify_page_exists">Confirmar se a página existe</string>
+    <string name="action_try_again_later">Tentar novamente mais tarde</string>
+    <string name="action_check_input">Verificar entrada</string>
+    <string name="action_see_examples">Ver exemplos</string>
+    <string name="action_restart_app">Reiniciar o app</string>
+    <string name="action_clear_cache">Limpar cache</string>
+    <string name="action_wait_and_retry">Aguarde e tente novamente</string>
+    <string name="action_use_element_selector">Usar seletor de elementos</string>
+    <string name="action_add_content_filters">Adicionar filtros de conteúdo</string>
+    <string name="action_check_settings">Verificar configurações</string>
+    <string name="action_check_credentials">Verificar credenciais</string>
+    <string name="action_refresh_cookies">Atualizar cookies</string>
+    <string name="action_check_internet">Verificar conexão com a internet</string>
+    <string name="action_check_wifi">Verificar Wi-Fi</string>
+    <string name="action_check_connection_speed">Verificar velocidade da conexão</string>
+    <string name="action_try_again">Tentar novamente</string>
+    <string name="action_check_permissions">Verificar permissões</string>
+    <string name="action_grant_permissions">Conceder permissões</string>
+    <string name="action_reduce_monitoring_sites">Reduzir sites monitorados</string>
+
+    <!-- Error Dialog Titles -->
+    <string name="error_dialog_title_network">Problema de conexão</string>
+    <string name="error_dialog_title_validation">Erro de entrada</string>
+    <string name="error_dialog_title_sync">Problema de sincronização</string>
+    <string name="error_dialog_title_auth">Problema de login</string>
+    <string name="error_dialog_title_system">Erro do sistema</string>
+    <string name="error_dialog_title_general">Erro</string>
+
+    <!-- Error Actions -->
+    <string name="error_action_retry">Tentar novamente</string>
+    <string name="error_action_dismiss">Fechar</string>
+    <string name="error_action_settings">Configurações</string>
+    <string name="error_action_help">Ajuda</string>
+    <string name="error_action_report">Reportar problema</string>
+
+    <!-- Success Messages -->
+    <string name="success_site_added">Site adicionado com sucesso</string>
+    <string name="success_site_updated">Site atualizado com sucesso</string>
+    <string name="success_sync_completed">Sincronização concluída</string>
+    <string name="success_authentication_saved">Credenciais salvas</string>
+    <string name="success_filters_applied">Filtros inteligentes aplicados</string>
+    <string name="success_element_selected">Elemento selecionado para monitoramento</string>
+
+    <!-- Progress Messages -->
+    <string name="progress_loading_site">Carregando site…</string>
+    <string name="progress_saving_changes">Salvando alterações…</string>
+    <string name="progress_syncing">Sincronizando %s…</string>
+    <string name="progress_processing_content">Processando conteúdo…</string>
+    <string name="progress_applying_filters">Aplicando filtros inteligentes…</string>
+    <string name="progress_authenticating">Autenticando…</string>
+
+    <!-- Info Messages -->
+    <string name="info_smart_monitoring_enabled">O monitoramento inteligente está analisando o conteúdo e reduzirá falsos positivos</string>
+    <string name="info_element_monitoring_active">Monitorando apenas o elemento selecionado</string>
+    <string name="info_turbo_mode_active">Modo turbo: verificando a cada %d segundos</string>
+    <string name="info_authentication_configured">Credenciais de login configuradas</string>
+    <string name="info_filters_active">%d filtros inteligentes ativos</string>
+
+    <!-- Warning Messages -->
+    <string name="warning_large_content">Esta página é muito grande. Considere monitorar apenas partes específicas.</string>
+    <string name="warning_frequent_changes">Esta página muda com frequência. Considere ativar os filtros inteligentes.</string>
+    <string name="warning_no_changes_detected">Nenhuma alteração detectada nas últimas %d verificações</string>
+    <string name="warning_authentication_expired">A sessão pode ter expirado. Considere renovar as credenciais.</string>
+
+    <!-- Confirmation Messages -->
+    <string name="confirm_delete_site">Excluir este site e todo o histórico de monitoramento?</string>
+    <string name="confirm_clear_cache">Limpar todos os dados em cache? Isso liberará espaço.</string>
+    <string name="confirm_reset_settings">Restaurar todas as configurações para os valores padrão?</string>
+    <string name="confirm_stop_turbo_mode">Parar o modo turbo?</string>
+</resources>

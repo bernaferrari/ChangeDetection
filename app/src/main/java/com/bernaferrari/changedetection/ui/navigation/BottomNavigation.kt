@@ -111,44 +111,35 @@ private fun BottomNavigationLayout(
             content()
         }
 
-        Surface(
+        NavigationBar(
             modifier = Modifier
                 .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            shape = RoundedCornerShape(28.dp),
-            tonalElevation = 6.dp,
-            shadowElevation = 12.dp,
-            color = colorScheme.surfaceColorAtElevation(3.dp)
+                .navigationBarsPadding(),
+            containerColor = colorScheme.surfaceContainer,
+            contentColor = colorScheme.onSurfaceVariant,
+            tonalElevation = 3.dp
         ) {
-            NavigationBar(
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = Color.Transparent,
-                contentColor = colorScheme.onSurfaceVariant,
-                tonalElevation = 0.dp
-            ) {
-                bottomNavItems.forEach { item ->
-                    val isSelected = currentRoute == item.route
-                    val label = stringResource(id = item.labelRes)
+            bottomNavItems.forEach { item ->
+                val isSelected = currentRoute == item.route
+                val label = stringResource(id = item.labelRes)
 
-                    NavigationBarItem(
-                        icon = { Icon(imageVector = item.icon, contentDescription = label) },
-                        label = { Text(text = label) },
-                        selected = isSelected,
-                        onClick = {
-                            if (!isSelected) {
-                                navController.navigate(item.route) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
+                NavigationBarItem(
+                    icon = { Icon(imageVector = item.icon, contentDescription = label) },
+                    label = { Text(text = label) },
+                    selected = isSelected,
+                    onClick = {
+                        if (!isSelected) {
+                            navController.navigate(item.route) {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
                                 }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                        },
-                        colors = navigationColors
-                    )
-                }
+                        }
+                    },
+                    colors = navigationColors
+                )
             }
         }
     }
@@ -170,61 +161,50 @@ private fun NavigationRailLayout(
     )
 
     Row(modifier = Modifier.fillMaxSize()) {
-        Surface(
+        NavigationRail(
             modifier = Modifier
                 .fillMaxHeight()
-                .padding(vertical = 16.dp, horizontal = 12.dp)
                 .statusBarsPadding(),
-            shape = RoundedCornerShape(30.dp),
-            tonalElevation = 8.dp,
-            shadowElevation = 16.dp,
-            color = colorScheme.surfaceColorAtElevation(4.dp)
-        ) {
-            NavigationRail(
-                modifier = Modifier
-                    .padding(vertical = 20.dp)
-                    .fillMaxHeight(),
-                containerColor = Color.Transparent,
-                contentColor = colorScheme.onSurfaceVariant,
-                header = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Bolt,
-                            contentDescription = null,
-                            tint = colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-            ) {
-                bottomNavItems.forEach { item ->
-                    val isSelected = currentRoute == item.route
-                    val label = stringResource(id = item.labelRes)
-
-                    NavigationRailItem(
-                        icon = { Icon(imageVector = item.icon, contentDescription = label) },
-                        label = { Text(text = label) },
-                        selected = isSelected,
-                        onClick = {
-                            if (!isSelected) {
-                                navController.navigate(item.route) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        },
-                        alwaysShowLabel = true,
-                        colors = railColors
+            containerColor = colorScheme.surfaceContainer,
+            contentColor = colorScheme.onSurfaceVariant,
+            header = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Bolt,
+                        contentDescription = null,
+                        tint = colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
+            }
+        ) {
+            bottomNavItems.forEach { item ->
+                val isSelected = currentRoute == item.route
+                val label = stringResource(id = item.labelRes)
+
+                NavigationRailItem(
+                    icon = { Icon(imageVector = item.icon, contentDescription = label) },
+                    label = { Text(text = label) },
+                    selected = isSelected,
+                    onClick = {
+                        if (!isSelected) {
+                            navController.navigate(item.route) {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    },
+                    alwaysShowLabel = true,
+                    colors = railColors
+                )
             }
         }
 

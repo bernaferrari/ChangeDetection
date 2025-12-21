@@ -113,7 +113,7 @@ fun AddEditConfirmScreen(
                         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                         onNavigateUp()
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Navigate back")
                     }
                 }
             )
@@ -266,7 +266,7 @@ private fun SitePreviewCard(
                             )
                         },
                         leadingIcon = {
-                            Icon(Icons.Default.Language, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Language, contentDescription = "Language selection", modifier = Modifier.size(16.dp))
                         },
                         colors = AssistChipDefaults.assistChipColors(
                             disabledContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
@@ -479,7 +479,7 @@ private fun MonitorZapSection(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Icon(Icons.Default.AutoAwesome, contentDescription = "Preview section", tint = MaterialTheme.colorScheme.primary)
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         text = stringResource(id = R.string.preview),
@@ -953,7 +953,7 @@ private fun ActionButtons(
             shape = RoundedCornerShape(16.dp),
             border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
         ) {
-            Icon(Icons.Default.Edit, contentDescription = null)
+            Icon(Icons.Default.Edit, contentDescription = "Edit settings")
             Spacer(modifier = Modifier.width(8.dp))
             Text(stringResource(id = R.string.edit_label))
         }
@@ -974,7 +974,7 @@ private fun ActionButtons(
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Icon(Icons.Default.RocketLaunch, contentDescription = null)
+                Icon(Icons.Default.RocketLaunch, contentDescription = "Start monitoring")
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     stringResource(id = R.string.start_monitoring),
@@ -998,7 +998,7 @@ private fun ErrorCard(saveError: String?) {
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.Error, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
+            Icon(Icons.Default.Error, contentDescription = "Error occurred", tint = MaterialTheme.colorScheme.onErrorContainer)
             Text(text = saveError.orEmpty(), color = MaterialTheme.colorScheme.onErrorContainer)
         }
     }

@@ -31,6 +31,22 @@ fun ElementSelectorDialog(
     var selectedElement by remember { mutableStateOf<ElementInfo?>(null) }
     var webView by remember { mutableStateOf<WebView?>(null) }
 
+    // Cleanup WebView and JavaScript interface when dialog is dismissed
+    DisposableEffect(Unit) {
+        onDispose {
+            try {
+                webView?.stopLoading()
+                webView?.removeJavascriptInterface("Android")
+                webView?.clearHistory()
+                webView?.clearCache(true)
+                webView?.destroy()
+                webView = null
+            } catch (e: Exception) {
+                com.orhanobut.logger.Logger.e("❌ Error cleaning up ElementSelectorDialog WebView: ${e.message}")
+            }
+        }
+    }
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(

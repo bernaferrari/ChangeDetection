@@ -17,4 +17,9 @@ class App : Application(), Configuration.Provider {
             .setMinimumLoggingLevel(android.util.Log.DEBUG)
             .build()
 
+    override fun onCreate() {
+        super.onCreate()
+        // Initialize secure credential manager
+        com.bernaferrari.changedetection.security.CredentialManager.initialize(this)
+    }
 }

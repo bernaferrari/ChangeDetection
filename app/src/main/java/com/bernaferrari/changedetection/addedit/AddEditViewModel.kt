@@ -140,11 +140,9 @@ class AddEditViewModel @Inject constructor(
     }
     
     fun setUrl(url: String) {
-        val trimmed = url.trim()
-        val normalized = trimmed.normalizeUrl()
+        val normalized = url.normalizeUrl()
 
         _uiState.update { current ->
-            val resolvedUrl = normalized ?: trimmed
             val updatedTitle = if (current.title.isEmpty() && normalized != null) {
                 runCatching { java.net.URL(normalized).host.replace("www.", "") }
                     .getOrElse { current.title }
@@ -153,8 +151,8 @@ class AddEditViewModel @Inject constructor(
             }
 
             current.copy(
-                url = resolvedUrl,
-                urlError = if (trimmed.isNotEmpty() && normalized == null) {
+                url = url,
+                urlError = if (url.isNotEmpty() && normalized == null) {
                     "Please enter a valid URL"
                 } else null,
                 title = updatedTitle

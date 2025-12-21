@@ -12,6 +12,10 @@
     <string name="inputName">Type the title</string>
     <string name="inputUrl">Type the url</string>
     <string name="syncing">Syncing…</string>
+    <string name="status_sync_in_progress">Synchronization in progress</string>
+    <string name="status_sync_error">Last sync failed</string>
+    <string name="status_sync_ok">Last sync succeeded</string>
+
     <string name="success_copied">Copied</string>
     <string name="nothing_yet">nothing yet</string>
 
@@ -204,6 +208,8 @@
 
     <!-- Onboarding -->
     <string name="onboarding_button_get_started">Get started</string>
+    <string name="onboarding_badge_step">Step %1$d of %2$d</string>
+    <string name="onboarding_section_title">Why you\'ll love it</string>
     <string name="onboarding_title_welcome">Welcome to ChangeDetection</string>
     <string name="onboarding_description_welcome">Monitor any website for changes and receive instant notifications when important content updates.</string>
     <string-array name="onboarding_highlights_welcome">
@@ -246,7 +252,16 @@
         <item>Modern, delightful design</item>
         <item>Lightning-fast notifications</item>
     </string-array>
+    <string name="quick_monitor_sites_selected_label">Sites selected</string>
     <string name="quick_monitor_banner_active_details">Monitoring %1$d sites every %2$d seconds • Elapsed %3$s • Remaining %4$s</string>
+    <string name="quick_monitor_sheet_badge_live">Live session</string>
+    <string name="quick_monitor_sheet_badge_idle">Turbo ready</string>
+    <string name="quick_monitor_sheet_interval_title">Session cadence</string>
+    <string name="quick_monitor_sheet_active_section_title">Currently running</string>
+    <string name="quick_monitor_sheet_limit_hint">Turbo monitor runs up to 3 hours and can be extended while active.</string>
+    <string name="quick_monitor_sheet_empty_title">No sites ready for Turbo</string>
+    <string name="quick_monitor_sheet_empty_subtitle">Add a website or choose at least one site to launch a session.</string>
+    <string name="quick_monitor_interval_value">%1$d seconds</string>
     <string name="main_empty_title">No sites yet</string>
     <string name="main_empty_subtitle">Add a website to start monitoring changes.</string>
     <string name="main_features_title">✨ Features</string>
@@ -257,12 +272,56 @@
         <item>⚡ Real-time notifications for every change</item>
     </string-array>
     <string name="main_add_site">Add site</string>
+    <string name="how_it_works_title">How it works</string>
+    <string name="how_it_works_hero_badge">Product tour</string>
+    <string name="how_it_works_hero_title">Eyes on every launch.</string>
+    <string name="how_it_works_hero_subtitle">See how ChangeDetection keeps tabs on the entire web in four modern steps.</string>
+    <string name="how_it_works_steps_header">The flow</string>
+    <string name="how_it_works_step_add_title">Add any website</string>
+    <string name="how_it_works_step_add_description">Paste a link or share from your browser. Name it and you’re tracking.</string>
+    <string name="how_it_works_step_add_highlight">Share sheet &amp; imports make setup instant.</string>
+    <string name="how_it_works_step_monitor_title">We monitor constantly</string>
+    <string name="how_it_works_step_monitor_description">Cloud + on-device checks keep every source fresh without draining battery.</string>
+    <string name="how_it_works_step_monitor_highlight">Adaptive scheduling prioritises your critical sources.</string>
+    <string name="how_it_works_step_focus_title">Focus on what matters</string>
+    <string name="how_it_works_step_focus_description">Use the interactive browser to monitor prices, text, media, or zap distractions.</string>
+    <string name="how_it_works_step_focus_highlight">Visual selection + zapping keeps signals clean.</string>
+    <string name="how_it_works_step_alerts_title">Get confident alerts</string>
+    <string name="how_it_works_step_alerts_description">Smart diffing and push notifications let you act instantly.</string>
+    <string name="how_it_works_step_alerts_highlight">Rich notifications ship with context and diffs.</string>
+    <string name="how_it_works_footer_title">Ready when you are</string>
+    <string name="how_it_works_footer_description">Jump back to your sites or launch a Turbo session whenever drop times get close.</string>
+    <string name="how_it_works_primary_cta">Back to app</string>
     <string name="main_header_tagline">Stay in control of every change.</string>
     <plurals name="main_header_site_count">
         <item quantity="zero">No sites monitored</item>
         <item quantity="one">%d site monitored</item>
         <item quantity="other">%d sites monitored</item>
     </plurals>
+    <string name="home_stats_sites_label">Sources</string>
+    <string name="home_stats_syncing_label">Background sync</string>
+    <string name="home_stats_sites_supporting">Pinned destinations</string>
+    <string name="home_stats_syncing_supporting">Running silently</string>
+    <string name="home_stats_syncing_idle">Idle</string>
+    <string name="home_stats_syncing_hint">Tap refresh to pull new updates</string>
+    <string name="home_stats_quick_monitor_label">Turbo</string>
+    <string name="home_stats_quick_monitor_supporting">Sites in fast mode</string>
+    <string name="home_quick_monitor_active">Quick Monitor is live</string>
+    <string name="home_quick_monitor_idle">Turbo-ready monitoring</string>
+    <string name="home_quick_monitor_description_active">Checking every %1$d s across %2$d sites</string>
+    <string name="home_quick_monitor_description_idle">Keep tabs on launches and limited drops in real-time.</string>
+    <string name="home_quick_monitor_start">Launch Turbo</string>
+    <string name="home_quick_monitor_stop">Stop Turbo</string>
+    <string name="home_quick_monitor_manage">Manage</string>
+    <string name="home_quick_monitor_action">Quick monitor this site</string>
+    <string name="home_action_learn">How it works</string>
+    <string name="home_monitored_sites_title">Monitored sites</string>
+    <string name="more_options">More options</string>
+    <string name="home_hero_badge">Today</string>
+    <string name="home_hero_title">Stay ahead effortlessly</string>
+    <string name="home_hero_subtitle">Watching %1$d sources in the background.</string>
+    <string name="home_hero_subtitle_empty">Add your first source to start monitoring.</string>
+    <string name="home_empty_primary">Add first site</string>
     <string name="main_empty_learn_more">Learn how it works</string>
     <string name="nav_home">Home</string>
     <string name="nav_logs">Logs</string>
@@ -280,10 +339,52 @@
     <string name="browser_manage_elements">Review selections</string>
     <string name="browser_full_page_monitoring">Monitoring the entire page</string>
     <string name="full_page_monitoring_hint">We\'ll keep an eye on the whole page. You can refine what we watch later if needed.</string>
+    <string name="browser_mode_select_title">Element selection active</string>
+    <string name="browser_mode_select_subtitle">Tap elements to monitor.</string>
+    <string name="browser_mode_zap_title">Zap mode active</string>
+    <string name="browser_mode_zap_subtitle">Tap elements to hide/remove.</string>
+    <string name="browser_mode_login_title">Login capture active</string>
+    <string name="browser_mode_login_subtitle">Interact with the page to sign in.</string>
     <string name="browser_parent_preview_title_block">Content to block</string>
     <string name="browser_parent_preview_title_monitor">Content to monitor</string>
     <string name="browser_parent_preview_selector_label">CSS selector</string>
     <string name="browser_parent_preview_text_label">Visible text</string>
+    <string name="browser_parent_title_monitor">Choose what to monitor</string>
+    <string name="browser_parent_title_block">Choose what to block</string>
+    <string name="browser_parent_subtitle">Slide or tap to move between the selected element and its parents.</string>
+    <string name="browser_parent_slider_label_narrow">Exact</string>
+    <string name="browser_parent_slider_label_broad">Broader</string>
+    <string name="browser_parent_hierarchy_title">Element hierarchy</string>
+    <string name="browser_parent_badge_target">Target</string>
+    <string name="browser_parent_action_cancel">Cancel</string>
+    <string name="browser_parent_action_monitor">Use selection</string>
+    <string name="browser_parent_action_block">Block element</string>
+    <string name="browser_zap_manager_title">Element manager</string>
+    <string name="browser_zap_manager_blocked_label">Blocked</string>
+    <string name="browser_zap_manager_monitored_label">Monitored</string>
+    <string name="browser_zap_manager_clear_all">Clear blocked</string>
+    <string name="browser_zap_manager_blocked_section_title">Blocked elements</string>
+    <string name="browser_zap_manager_monitored_section_title">Monitored elements</string>
+    <string name="browser_zap_manager_empty_title">No rules yet</string>
+    <string name="browser_zap_manager_empty_message">Use Zap or Monitor to create rules that persist for this site.</string>
+    <string name="browser_zap_manager_tip_title">Pro tips</string>
+    <string name="browser_zap_manager_tip_body">Zap removes banners and noise, Monitor tracks important pieces, and parent selection widens your scope.</string>
+    <string name="browser_zap_manager_remove_block">Remove block</string>
+    <string name="browser_zap_manager_blocked_timestamp">Blocked %1$s</string>
+    <string name="browser_zap_manager_added_timestamp">Added %1$s</string>
+    <string name="browser_time_now">Just now</string>
+    <plurals name="browser_time_minutes_ago">
+        <item quantity="one">1 min ago</item>
+        <item quantity="other">%d min ago</item>
+    </plurals>
+    <plurals name="browser_time_hours_ago">
+        <item quantity="one">1 hr ago</item>
+        <item quantity="other">%d hrs ago</item>
+    </plurals>
+    <plurals name="browser_time_days_ago">
+        <item quantity="one">1 day ago</item>
+        <item quantity="other">%d days ago</item>
+    </plurals>
 
     <string name="quick_monitor_toast_starting">Starting Turbo monitor…</string>
     <string name="quick_monitor_toast_failed">Unable to start Turbo monitor: %1$s</string>
@@ -304,11 +405,20 @@
     <string name="status_last_snapshot">Last: %1$s</string>
     <string name="status_no_snapshots">No snapshots</string>
     <string name="logs_error_loading">Error loading data</string>
-    <string name="logs_last_changes_title">Recent changes</string>
-    <plurals name="logs_changes_detected">
-        <item quantity="one">%d change detected</item>
-        <item quantity="other">%d changes detected</item>
-    </plurals>
+<string name="logs_last_changes_title">Recent changes</string>
+<plurals name="logs_changes_detected">
+    <item quantity="one">%d change detected</item>
+    <item quantity="other">%d changes detected</item>
+</plurals>
+<string name="logs_hero_badge">Activity</string>
+<string name="logs_hero_title">Change history</string>
+<string name="logs_hero_subtitle">Tracking %1$d changes across %2$d sites</string>
+<string name="logs_stats_changes_label">Total changes</string>
+<string name="logs_stats_changes_supporting">Snapshots stored</string>
+<string name="logs_stats_sites_label">Sites captured</string>
+<string name="logs_stats_sites_supporting">Sources covered</string>
+<string name="logs_section_history">Recent activity</string>
+<string name="logs_empty_primary">Start monitoring</string>
     <string name="logs_remove_snapshot_title">Remove snapshot?</string>
     <string name="logs_remove_snapshot_body">%1$s · %2$s</string>
     <string name="logs_empty_title">No changes detected yet</string>
@@ -346,9 +456,23 @@
     <string name="settings_turbo_title">Turbo monitor</string>
     <string name="settings_turbo_active">Active • %1$d min remaining</string>
     <string name="settings_turbo_description">High-frequency monitoring for 3 hours</string>
+    <string name="settings_section_appearance">Appearance</string>
     <string name="settings_about_section">About</string>
     <string name="settings_about_title">About ChangeDetection</string>
     <string name="settings_about_subtitle">Version info and licenses</string>
+    <string name="settings_hero_badge">Preferences</string>
+    <string name="settings_hero_title">Make it yours</string>
+    <string name="settings_hero_subtitle_sync_on">Background sync is on – your sources stay fresh.</string>
+    <string name="settings_hero_subtitle_sync_off">Turn on background sync to keep every site updated automatically.</string>
+    <string name="settings_hero_action">Manage sync</string>
+    <string name="settings_metric_theme_label">Theme</string>
+    <string name="settings_metric_theme_supporting">Current appearance</string>
+    <string name="settings_metric_sync_label">Sync cadence</string>
+    <string name="settings_metric_sync_supporting">Foreground cadence</string>
+    <string name="settings_metric_sync_disabled_supporting">Disabled on this device</string>
+    <string name="settings_quick_actions_title">Quick actions</string>
+    <string name="settings_action_contact">Contact developer</string>
+    <string name="settings_action_docs">View docs</string>
 
     <!-- Notifications -->
     <string name="quick_monitor_notification_initial_title">⚡ Turbo monitor starting…</string>
@@ -401,6 +525,21 @@
     <string name="future_changes_detected">Future changes are detected automatically.</string>
     <string name="comparison_will_show_differences">Comparisons highlight what changed between versions.</string>
     <string name="you_will_be_notified">You will receive a notification when something changes.</string>
+    <string name="comparison_hero_badge">Live insights</string>
+    <string name="comparison_stats_snapshots_label">Snapshots</string>
+    <string name="comparison_stats_latest_label">Latest change</string>
+    <string name="comparison_stats_latest_supporting">Updated %1$s</string>
+    <string name="comparison_stats_unavailable">No changes yet</string>
+    <string name="comparison_stats_scope_label">Focus</string>
+    <string name="comparison_stats_scope_element">Selected elements</string>
+    <string name="comparison_stats_scope_page">Full page</string>
+    <string name="comparison_section_snapshots">Version history</string>
+    <string name="comparison_empty_title">No versions yet</string>
+    <string name="comparison_empty_subtitle">Capture your first snapshot to start comparing.</string>
+    <string name="comparison_quick_tip">Tap a version pair to open the diff.</string>
+    <string name="comparison_pair_title">Version %1$d → %2$d</string>
+    <string name="comparison_pair_time_diff">%1$s apart</string>
+    <string name="comparison_single_snapshot_hint">We need at least two snapshots to compare changes.</string>
     <string name="site_statistics">Site statistics</string>
     <string name="total_snapshots">Total snapshots</string>
     <string name="status">Status</string>

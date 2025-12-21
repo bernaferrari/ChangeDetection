@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.combinedClickable
@@ -26,14 +27,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -52,6 +56,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -83,9 +90,10 @@ fun MainCard(
     syncStatus: SyncStatus = SyncStatus.OK,
     isQuickMonitored: Boolean = false,
     onReloadClick: () -> Unit,
-    onReloadLongClick: () -> Unit = {},
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
+    onOptionsClick: (() -> Unit)? = null,
+    onQuickMonitorClick: (() -> Unit)? = null
 ) {
     val haptics = LocalHapticFeedback.current
 
@@ -133,19 +141,22 @@ fun MainCard(
             label = stringResource(R.string.syncing),
             container = MaterialTheme.colorScheme.secondaryContainer,
             content = MaterialTheme.colorScheme.onSecondaryContainer,
+            stateDescription = stringResource(R.string.status_sync_in_progress),
             animate = true
         )
         SyncStatus.ERROR -> StatusChipData(
-            icon = Icons.Filled.CheckCircle,
+            icon = Icons.Filled.Error,
             label = stringResource(R.string.error),
             container = MaterialTheme.colorScheme.errorContainer,
-            content = MaterialTheme.colorScheme.onErrorContainer
+            content = MaterialTheme.colorScheme.onErrorContainer,
+            stateDescription = stringResource(R.string.status_sync_error)
         )
         SyncStatus.OK -> StatusChipData(
             icon = Icons.Filled.CheckCircle,
             label = stringResource(R.string.all_good),
             container = MaterialTheme.colorScheme.primaryContainer,
-            content = MaterialTheme.colorScheme.onPrimaryContainer
+            content = MaterialTheme.colorScheme.onPrimaryContainer,
+            stateDescription = stringResource(R.string.status_sync_ok)
         )
     }
 
@@ -159,13 +170,27 @@ fun MainCard(
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(20.dp),
         border = border,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 1.dp,
+            pressedElevation = 4.dp,
+            hoveredElevation = 2.dp
+        )
     ) {
         Column(
             modifier = Modifier
-                .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+                .combinedClickable(
+                    onClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onClick()
+                    },
+                    onLongClick = {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onLongClick()
+                    }
+                )
         ) {
             // Hero banner
             Box(
@@ -173,7 +198,7 @@ fun MainCard(
                     .fillMaxWidth()
                     .background(
                         Brush.linearGradient(gradient),
-                        RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+                        RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
                     )
                     .padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 20.dp)
             ) {
@@ -201,17 +226,7 @@ fun MainCard(
                             )
                         }
 
-                        ReloadButton(
-                            isQuickMonitored = isQuickMonitored,
-                            gradient = gradient,
-                            isLoading = syncStatus == SyncStatus.LOADING,
-                            onClick = onReloadClick,
-                            onLongClick = {
-                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onReloadLongClick()
-                            },
-                            modifier = Modifier.align(Alignment.TopEnd)
-                        )
+                        // Top-right space left intentionally clean for hero gradient
                     }
 
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -223,7 +238,7 @@ fun MainCard(
                                 enabled = false,
                                 label = { Text(text = stringResource(R.string.quick_monitor_active)) },
                                 leadingIcon = {
-                                    Icon(Icons.Filled.Bolt, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Filled.Bolt, contentDescription = "Quick monitor active", modifier = Modifier.size(16.dp))
                                 },
                                 colors = AssistChipDefaults.assistChipColors(
                                     disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -239,7 +254,7 @@ fun MainCard(
                                 enabled = false,
                                 label = { Text(text = stringResource(R.string.recent_changes)) },
                                 leadingIcon = {
-                                    Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = "Recent changes detected", modifier = Modifier.size(16.dp))
                                 },
                                 colors = AssistChipDefaults.assistChipColors(
                                     disabledContainerColor = Color.White.copy(alpha = 0.2f),
@@ -292,6 +307,46 @@ fun MainCard(
                         )
                     }
                 }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ReloadButton(
+                        isQuickMonitored = isQuickMonitored,
+                        gradient = gradient,
+                        isLoading = syncStatus == SyncStatus.LOADING,
+                        onClick = onReloadClick,
+                        onLongClick = {},
+                        modifier = Modifier
+                    )
+
+                    if (onQuickMonitorClick != null) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(
+                            onClick = onQuickMonitorClick
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Bolt,
+                                contentDescription = stringResource(id = R.string.home_quick_monitor_action),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
+                    if (onOptionsClick != null) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        IconButton(onClick = onOptionsClick) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = stringResource(id = R.string.more_options)
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -302,6 +357,7 @@ private data class StatusChipData(
     val label: String,
     val container: Color,
     val content: Color,
+    val stateDescription: String,
     val animate: Boolean = false
 )
 
@@ -322,6 +378,10 @@ private fun StatusAssistChip(data: StatusChipData) {
     } else 0f
 
     AssistChip(
+        modifier = Modifier.semantics(mergeDescendants = true) {
+            contentDescription = data.label
+            stateDescription = data.stateDescription
+        },
         onClick = {},
         enabled = false,
         label = {
@@ -508,7 +568,8 @@ private fun MainCardPreview() {
                 syncStatus = SyncStatus.OK,
                 isQuickMonitored = true,
                 onReloadClick = {},
-                onReloadLongClick = {},
+                onQuickMonitorClick = {},
+                onOptionsClick = {},
                 onClick = {}
             )
         }
@@ -539,7 +600,8 @@ private fun MainCardLoadingPreview() {
                 lastSnap = null,
                 syncStatus = SyncStatus.LOADING,
                 onReloadClick = {},
-                onReloadLongClick = {},
+                onQuickMonitorClick = {},
+                onOptionsClick = {},
                 onClick = {}
             )
         }

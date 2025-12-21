@@ -43,9 +43,47 @@
         <item quantity="one">%d sito monitorato</item>
         <item quantity="other">%d siti monitorati</item>
     </plurals>
+    <string name="home_stats_sites_label">Fonti</string>
+    <string name="home_stats_syncing_label">Sincronizzazione in background</string>
+    <string name="home_stats_sites_supporting">Destinazioni salvate</string>
+    <string name="home_stats_syncing_supporting">Attiva in silenzio</string>
+    <string name="home_stats_syncing_idle">Inattiva</string>
+    <string name="home_stats_syncing_hint">Tocca Aggiorna per recuperare novità</string>
+    <string name="home_stats_quick_monitor_label">Turbo</string>
+    <string name="home_stats_quick_monitor_supporting">Siti in modalità rapida</string>
+    <string name="home_quick_monitor_active">Quick Monitor attivo</string>
+    <string name="home_quick_monitor_idle">Monitoraggio pronto per Turbo</string>
+    <string name="home_quick_monitor_description_active">Controllo ogni %1$d s su %2$d siti</string>
+    <string name="home_quick_monitor_description_idle">Tieni d\'occhio lanci e drop limitati in tempo reale.</string>
+    <string name="home_quick_monitor_start">Avvia Turbo</string>
+    <string name="home_quick_monitor_stop">Ferma Turbo</string>
+    <string name="home_quick_monitor_manage">Gestisci</string>
+    <string name="home_quick_monitor_action">Monitora questo sito con Turbo</string>
+    <string name="home_action_learn">Come funziona</string>
+    <string name="home_monitored_sites_title">Siti monitorati</string>
+    <string name="more_options">Altre opzioni</string>
+    <string name="home_hero_badge">Oggi</string>
+    <string name="home_hero_title">Rimani sempre aggiornato</string>
+    <string name="home_hero_subtitle">Monitoriamo %1$d fonti in background.</string>
+    <string name="home_hero_subtitle_empty">Aggiungi la tua prima fonte per iniziare.</string>
+    <string name="home_empty_primary">Aggiungi il primo sito</string>
     <string name="main_empty_learn_more">Scopri come funziona</string>
     <string name="nav_home">Home</string>
     <string name="nav_logs">Registro</string>
+    <string name="logs_last_changes_title">Modifiche recenti</string>
+    <plurals name="logs_changes_detected">
+        <item quantity="one">%d modifica rilevata</item>
+        <item quantity="other">%d modifiche rilevate</item>
+    </plurals>
+    <string name="logs_hero_badge">Attività</string>
+    <string name="logs_hero_title">Cronologia delle modifiche</string>
+    <string name="logs_hero_subtitle">Registriamo %1$d cambi in %2$d siti</string>
+    <string name="logs_stats_changes_label">Modifiche totali</string>
+    <string name="logs_stats_changes_supporting">Snapshot salvati</string>
+    <string name="logs_stats_sites_label">Siti acquisiti</string>
+    <string name="logs_stats_sites_supporting">Fonti coperte</string>
+    <string name="logs_section_history">Attività recente</string>
+    <string name="logs_empty_primary">Inizia a monitorare</string>
     <string name="nav_settings">Impostazioni</string>
 
     <!-- Turbo Monitor -->
@@ -103,4 +141,123 @@
     <string name="cookies_switch_description">Disattiva se il sito si blocca quando sei connesso.</string>
     <string name="cookies_size_label">%1$s di cookie acquisiti</string>
     <string name="cookies_none">Nessun cookie acquisito</string>
+
+    <!-- Settings additions -->
+    <string name="settings_theme_title">Tema</string>
+    <string name="settings_monitoring_section">Monitoraggio</string>
+    <string name="settings_background_sync_title">Sincronizzazione in background</string>
+    <string name="settings_background_sync_disabled">Disattivata</string>
+    <string name="settings_background_sync_every">Ogni %1$d minuti</string>
+    <string name="settings_turbo_title">Monitor turbo</string>
+    <string name="settings_turbo_active">Attivo • %1$d min rimanenti</string>
+    <string name="settings_turbo_description">Monitoraggio ad alta frequenza per 3 ore</string>
+    <string name="settings_section_appearance">Aspetto</string>
+    <string name="settings_about_section">Informazioni</string>
+    <string name="settings_about_title">Informazioni su ChangeDetection</string>
+    <string name="settings_about_subtitle">Versione e licenze</string>
+    <string name="settings_hero_badge">Preferenze</string>
+    <string name="settings_hero_title">Personalizza l’esperienza</string>
+    <string name="settings_hero_subtitle_sync_on">La sincronizzazione in background è attiva: le tue fonti restano aggiornate.</string>
+    <string name="settings_hero_subtitle_sync_off">Attiva la sincronizzazione in background per mantenere ogni sito al passo.</string>
+    <string name="settings_hero_action">Gestisci sincronizzazione</string>
+    <string name="settings_metric_theme_label">Tema</string>
+    <string name="settings_metric_theme_supporting">Aspetto attuale</string>
+    <string name="settings_metric_sync_label">Cadenza di sincronizzazione</string>
+    <string name="settings_quick_actions_title">Azioni rapide</string>
+    <string name="settings_action_contact">Contatta lo sviluppatore</string>
+    <string name="settings_action_docs">Vedi documentazione</string>
+
+    <!-- Comparison -->
+    <string name="comparison_hero_badge">Analisi in tempo reale</string>
+    <string name="comparison_stats_snapshots_label">Acquisizioni</string>
+    <string name="comparison_stats_latest_label">Ultima modifica</string>
+    <string name="comparison_stats_latest_supporting">Aggiornato %1$s</string>
+    <string name="comparison_stats_unavailable">Nessuna modifica</string>
+    <string name="comparison_stats_scope_label">Focus</string>
+    <string name="comparison_stats_scope_element">Elementi selezionati</string>
+    <string name="comparison_stats_scope_page">Pagina intera</string>
+    <string name="comparison_section_snapshots">Cronologia versioni</string>
+    <string name="comparison_empty_title">Nessuna versione ancora</string>
+    <string name="comparison_empty_subtitle">Acquisisci la prima versione per iniziare a confrontare.</string>
+    <string name="comparison_quick_tip">Tocca una coppia di versioni per aprire il diff.</string>
+    <string name="comparison_pair_title">Versione %1$d → %2$d</string>
+    <string name="comparison_pair_time_diff">A distanza di %1$s</string>
+    <string name="comparison_single_snapshot_hint">Servono almeno due acquisizioni per confrontare.</string>
+    <string name="quick_monitor_sites_selected_label">Siti selezionati</string>
+
+    <string name="quick_monitor_sheet_badge_live">Sessione live</string>
+    <string name="quick_monitor_sheet_badge_idle">Turbo pronto</string>
+    <string name="quick_monitor_sheet_interval_title">Cadenza della sessione</string>
+    <string name="quick_monitor_sheet_active_section_title">In esecuzione</string>
+    <string name="quick_monitor_sheet_limit_hint">Il Turbo dura fino a 3 ore e può essere esteso mentre è attivo.</string>
+    <string name="quick_monitor_sheet_empty_title">Nessun sito pronto per il Turbo</string>
+    <string name="quick_monitor_sheet_empty_subtitle">Aggiungi un sito o scegline almeno uno per avviare la sessione.</string>
+    <string name="quick_monitor_interval_value">%1$d secondi</string>
+
+    <string name="how_it_works_title">Come funziona</string>
+    <string name="how_it_works_hero_badge">Tour</string>
+    <string name="how_it_works_hero_title">Occhi su ogni lancio.</string>
+    <string name="how_it_works_hero_subtitle">Scopri come ChangeDetection segue il web in quattro passaggi moderni.</string>
+    <string name="how_it_works_steps_header">Il flusso</string>
+    <string name="how_it_works_step_add_title">Aggiungi qualsiasi sito</string>
+    <string name="how_it_works_step_add_description">Incolla un link o condividilo dal browser. Dagli un nome e sei pronto.</string>
+    <string name="how_it_works_step_add_highlight">Condividere e importare rende la configurazione immediata.</string>
+    <string name="how_it_works_step_monitor_title">Lo controlliamo costantemente</string>
+    <string name="how_it_works_step_monitor_description">Controlli su cloud e dispositivo mantengono tutto aggiornato senza consumi.</string>
+    <string name="how_it_works_step_monitor_highlight">La pianificazione adattiva dà priorità alle fonti critiche.</string>
+    <string name="how_it_works_step_focus_title">Concentrati su ciò che conta</string>
+    <string name="how_it_works_step_focus_description">Il browser interattivo consente di seguire prezzi, testi, media o rimuovere distrazioni.</string>
+    <string name="how_it_works_step_focus_highlight">Selezione visiva e zap mantengono il segnale pulito.</string>
+    <string name="how_it_works_step_alerts_title">Ricevi avvisi affidabili</string>
+    <string name="how_it_works_step_alerts_description">Diff intelligente e notifiche push ti fanno agire subito.</string>
+    <string name="how_it_works_step_alerts_highlight">Notifiche ricche arrivano con contesto e differenze.</string>
+    <string name="how_it_works_footer_title">Pronto quando lo sei tu</string>
+    <string name="how_it_works_footer_description">Torna ai tuoi siti o avvia Turbo quando il lancio si avvicina.</string>
+    <string name="how_it_works_primary_cta">Torna all\'app</string>
+
+    <string name="browser_mode_select_title">Selezione elementi attiva</string>
+    <string name="browser_mode_select_subtitle">Tocca gli elementi da monitorare.</string>
+    <string name="browser_mode_zap_title">Modalità Zap attiva</string>
+    <string name="browser_mode_zap_subtitle">Tocca per nascondere o rimuovere elementi.</string>
+    <string name="browser_mode_login_title">Cattura accesso attiva</string>
+    <string name="browser_mode_login_subtitle">Interagisci con la pagina per accedere.</string>
+
+    <string name="browser_parent_title_monitor">Scegli cosa monitorare</string>
+    <string name="browser_parent_title_block">Scegli cosa bloccare</string>
+    <string name="browser_parent_subtitle">Fai scorrere o tocca per passare tra l\'elemento e i genitori.</string>
+    <string name="browser_parent_slider_label_narrow">Preciso</string>
+    <string name="browser_parent_slider_label_broad">Più ampio</string>
+    <string name="browser_parent_hierarchy_title">Gerarchia dell\'elemento</string>
+    <string name="browser_parent_badge_target">Target</string>
+    <string name="browser_parent_action_cancel">Annulla</string>
+    <string name="browser_parent_action_monitor">Usa selezione</string>
+    <string name="browser_parent_action_block">Blocca elemento</string>
+
+    <string name="browser_zap_manager_title">Gestore elementi</string>
+    <string name="browser_zap_manager_blocked_label">Bloccati</string>
+    <string name="browser_zap_manager_monitored_label">Monitorati</string>
+    <string name="browser_zap_manager_clear_all">Pulisci bloccati</string>
+    <string name="browser_zap_manager_blocked_section_title">Elementi bloccati</string>
+    <string name="browser_zap_manager_monitored_section_title">Elementi monitorati</string>
+    <string name="browser_zap_manager_empty_title">Nessuna regola</string>
+    <string name="browser_zap_manager_empty_message">Usa Zap o Monitora per creare regole permanenti per questo sito.</string>
+    <string name="browser_zap_manager_tip_title">Suggerimenti</string>
+    <string name="browser_zap_manager_tip_body">Zap rimuove banner e rumore, Monitora segue gli elementi importanti e la selezione padre amplia la copertura.</string>
+    <string name="browser_zap_manager_remove_block">Rimuovi blocco</string>
+    <string name="browser_zap_manager_blocked_timestamp">Bloccato %1$s</string>
+    <string name="browser_zap_manager_added_timestamp">Aggiunto %1$s</string>
+
+    <string name="browser_time_now">Ora</string>
+    <plurals name="browser_time_minutes_ago">
+        <item quantity="one">1 min fa</item>
+        <item quantity="other">%d min fa</item>
+    </plurals>
+    <plurals name="browser_time_hours_ago">
+        <item quantity="one">1 h fa</item>
+        <item quantity="other">%d h fa</item>
+    </plurals>
+    <plurals name="browser_time_days_ago">
+        <item quantity="one">1 giorno fa</item>
+        <item quantity="other">%d giorni fa</item>
+    </plurals>
 </resources>

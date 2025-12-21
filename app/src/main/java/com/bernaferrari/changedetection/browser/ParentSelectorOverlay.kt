@@ -209,16 +209,32 @@ private fun ParentSelectorHeader(
     mode: InteractionMode,
     onClose: () -> Unit
 ) {
-    val color = if (mode == InteractionMode.ELEMENT_ZAP) {
+    val accent = if (mode == InteractionMode.ELEMENT_ZAP) {
         MaterialTheme.colorScheme.error
     } else {
         MaterialTheme.colorScheme.primary
     }
-    
+    val title = stringResource(
+        id = if (mode == InteractionMode.ELEMENT_ZAP) {
+            R.string.browser_parent_title_block
+        } else {
+            R.string.browser_parent_title_monitor
+        }
+    )
+    val subtitle = stringResource(id = R.string.browser_parent_subtitle)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp),
+            .background(
+                brush = Brush.horizontalGradient(
+                    listOf(
+                        accent.copy(alpha = 0.15f),
+                        accent.copy(alpha = 0.04f)
+                    )
+                )
+            )
+            .padding(24.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -233,28 +249,25 @@ private fun ParentSelectorHeader(
                     Icons.Default.Visibility
                 },
                 contentDescription = null,
-                tint = color,
+                tint = accent,
                 modifier = Modifier.size(28.dp)
             )
             Column {
                 Text(
-                    text = if (mode == InteractionMode.ELEMENT_ZAP) {
-                        "Select Element to Block"
-                    } else {
-                        "Select Element to Monitor"
-                    },
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold
-                    )
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.SemiBold
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "Use slider to select parent elements",
+                    text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
-        
+
         IconButton(
             onClick = onClose,
             modifier = Modifier
@@ -265,7 +278,7 @@ private fun ParentSelectorHeader(
         ) {
             Icon(
                 Icons.Default.Close,
-                contentDescription = "Close",
+                contentDescription = stringResource(id = R.string.close),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -297,12 +310,12 @@ private fun ParentLevelSlider(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Narrower",
+                text = stringResource(id = R.string.browser_parent_slider_label_narrow),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "Broader", 
+                text = stringResource(id = R.string.browser_parent_slider_label_broad),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -501,7 +514,7 @@ private fun HierarchyVisualization(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = "Element Hierarchy",
+            text = stringResource(id = R.string.browser_parent_hierarchy_title),
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.SemiBold
             )
@@ -608,7 +621,7 @@ private fun HierarchyItem(
                     color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f)
                 ) {
                     Text(
-                        text = "TARGET",
+                        text = stringResource(id = R.string.browser_parent_badge_target).uppercase(),
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.tertiary
@@ -640,7 +653,7 @@ private fun BottomActionBar(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Cancel")
+                Text(text = stringResource(id = R.string.browser_parent_action_cancel))
             }
             
             Button(
@@ -667,9 +680,9 @@ private fun BottomActionBar(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = if (mode == InteractionMode.ELEMENT_ZAP) {
-                        "Block Element"
+                        stringResource(id = R.string.browser_parent_action_block)
                     } else {
-                        "Monitor Element"
+                        stringResource(id = R.string.browser_parent_action_monitor)
                     },
                     style = MaterialTheme.typography.labelLarge.copy(
                         fontWeight = FontWeight.Bold

@@ -55,7 +55,7 @@ fun LocalBrowserScreen(
                 }
             }
         )
-        
+
         // Content
         Box(
             modifier = Modifier.fillMaxSize()
@@ -65,23 +65,53 @@ fun LocalBrowserScreen(
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else {
+                // Track WebView reference for proper cleanup
+                var webView by remember { mutableStateOf<WebView?>(null) }
+
+                // Cleanup WebView when composable leaves the composition
+                DisposableEffect(Unit) {
+                    onDispose {
+                        try {
+                            webView?.stopLoading()
+                            webView?.clearHistory()
+                            webView?.clearCache(true)
+                            webView?.destroy()
+                            webView = null
+                        } catch (e: Exception) {
+                            com.orhanobut.logger.Logger.e("❌ Error cleaning up WebView: ${e.message}")
+                        }
+                    }
+                }
+
                 AndroidView(
                     factory = { context ->
                         WebView(context).apply {
                             settings.javaScriptEnabled = true
                             settings.domStorageEnabled = true
-                        }
+                        }.also { webView = it }
                     },
-                    update = { webView ->
+                    update = { webViewInstance ->
                         if (isLocalSnapshot) {
                             if (state.content.isNotBlank()) {
-                                val processedContent = state.content.replaceRelativePathWithAbsolute(safeUrl)
-                                webView.loadDataWithBaseURL("", processedContent, "text/html", "UTF-8", "")
+                                // Sanitize HTML snapshot to prevent XSS
+                                val sanitizedContent = com.bernaferrari.changedetection.util.HtmlSanitizer.sanitize(
+                                    state.content,
+                                    com.bernaferrari.changedetection.util.HtmlSanitizer.SafetyLevel.BALANCED
+                                )
+                                val processedContent = sanitizedContent.replaceRelativePathWithAbsolute(safeUrl)
+                                webViewInstance.settings.defaultTextEncodingName = state.charset
+                                webViewInstance.loadDataWithBaseURL(
+                                    /* baseUrl = */ "",
+                                    /* data = */ processedContent,
+                                    /* mimeType = */ state.mimeType,
+                                    /* encoding = */ state.charset,
+                                    /* historyUrl = */ ""
+                                )
                             } else {
-                                webView.loadUrl("about:blank")
+                                webViewInstance.loadUrl("about:blank")
                             }
                         } else {
-                            webView.loadUrl(safeUrl)
+                            webViewInstance.loadUrl(safeUrl)
                         }
                     },
                     modifier = Modifier.fillMaxSize()

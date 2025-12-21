@@ -1,37 +1,56 @@
 package com.bernaferrari.changedetection.ui.howItWorks
 
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.CloudSync
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
-import kotlin.math.*
+import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.ui.design.CanvasHero
+import com.bernaferrari.changedetection.ui.design.CanvasPrimaryButton
+import com.bernaferrari.changedetection.ui.design.CanvasSectionHeader
+import androidx.compose.material3.surfaceColorAtElevation
 
-data class TimelineStep(
+data class HowItWorksStep(
     val icon: ImageVector,
     val title: String,
     val description: String,
-    val color: Color
+    val color: Color,
+    val highlight: String
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,45 +58,47 @@ data class TimelineStep(
 fun HowItWorksScreen(
     onBackClick: () -> Unit
 ) {
-    val primary = MaterialTheme.colorScheme.primary
-    val secondary = MaterialTheme.colorScheme.secondary
-    val tertiary = MaterialTheme.colorScheme.tertiary
-    val error = MaterialTheme.colorScheme.error
-
     val steps = listOf(
-        TimelineStep(
+        HowItWorksStep(
             icon = Icons.Outlined.Add,
-            title = "Add Website",
-            description = "Enter any website URL you want to monitor for changes",
-            color = primary
+            title = stringResource(id = R.string.how_it_works_step_add_title),
+            description = stringResource(id = R.string.how_it_works_step_add_description),
+            color = MaterialTheme.colorScheme.primary,
+            highlight = stringResource(id = R.string.how_it_works_step_add_highlight)
         ),
-        TimelineStep(
+        HowItWorksStep(
             icon = Icons.Outlined.CloudSync,
-            title = "We Monitor",
-            description = "Our system regularly checks your websites in the background",
-            color = secondary
+            title = stringResource(id = R.string.how_it_works_step_monitor_title),
+            description = stringResource(id = R.string.how_it_works_step_monitor_description),
+            color = MaterialTheme.colorScheme.secondary,
+            highlight = stringResource(id = R.string.how_it_works_step_monitor_highlight)
         ),
-        TimelineStep(
+        HowItWorksStep(
             icon = Icons.Outlined.Search,
-            title = "Detect Changes",
-            description = "Advanced algorithms compare content and identify modifications",
-            color = tertiary
+            title = stringResource(id = R.string.how_it_works_step_focus_title),
+            description = stringResource(id = R.string.how_it_works_step_focus_description),
+            color = MaterialTheme.colorScheme.tertiary,
+            highlight = stringResource(id = R.string.how_it_works_step_focus_highlight)
         ),
-        TimelineStep(
+        HowItWorksStep(
             icon = Icons.Outlined.Notifications,
-            title = "Get Notified",
-            description = "Instant notifications when changes are detected on your sites",
-            color = error
+            title = stringResource(id = R.string.how_it_works_step_alerts_title),
+            description = stringResource(id = R.string.how_it_works_step_alerts_description),
+            color = MaterialTheme.colorScheme.error,
+            highlight = stringResource(id = R.string.how_it_works_step_alerts_highlight)
         )
     )
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("How It Works") },
+                title = { Text(text = stringResource(id = R.string.how_it_works_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(id = R.string.close)
+                        )
                     }
                 }
             )
@@ -87,279 +108,140 @@ fun HowItWorksScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(24.dp),
-            verticalArrangement = Arrangement.spacedBy(32.dp)
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             item {
-                HeroSection()
-            }
-
-            itemsIndexed(steps) { index, step ->
-                TimelineItem(
-                    step = step,
-                    isLast = index == steps.size - 1,
-                    animationDelay = index * 200L
+                CanvasHero(
+                    modifier = Modifier.fillMaxWidth(),
+                    badge = stringResource(id = R.string.how_it_works_hero_badge),
+                    title = stringResource(id = R.string.how_it_works_hero_title),
+                    subtitle = stringResource(id = R.string.how_it_works_hero_subtitle)
                 )
             }
 
             item {
-                Spacer(modifier = Modifier.height(16.dp))
-                GetStartedCard()
+                CanvasSectionHeader(
+                    title = stringResource(id = R.string.how_it_works_steps_header)
+                )
+            }
+
+            items(steps) { step ->
+                HowItWorksStepCard(step = step)
             }
 
             item {
-                Spacer(modifier = Modifier.height(8.dp))
-                // Quick start CTA to add site
-                Button(
-                    onClick = onBackClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text("Start by adding a website", style = MaterialTheme.typography.titleMedium)
-                }
+                HowItWorksFooter(onBackClick = onBackClick)
             }
         }
     }
 }
 
 @Composable
-private fun HeroSection() {
-    val infiniteTransition = rememberInfiniteTransition(label = "hero")
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "scale"
-    )
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Box(
-            modifier = Modifier.size(120.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            val primary = MaterialTheme.colorScheme.primary
-            val secondary = MaterialTheme.colorScheme.secondary
-
-            // Animated background circles
-            Canvas(modifier = Modifier.size(120.dp)) {
-                val center = center
-                drawCircle(
-                    color = primary.copy(alpha = 0.1f),
-                    radius = size.minDimension / 2 * scale,
-                    center = center
-                )
-                drawCircle(
-                    color = secondary.copy(alpha = 0.08f),
-                    radius = size.minDimension / 3 * scale,
-                    center = center
-                )
-            }
-
-            Icon(
-                imageVector = Icons.Outlined.Visibility,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(64.dp)
-                    .scale(scale),
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Website Change Detection",
-            style = MaterialTheme.typography.headlineLarge.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 28.sp
-            ),
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = "Never miss important updates. We monitor your favorite websites 24/7 and notify you instantly when content changes.",
-            style = MaterialTheme.typography.bodyLarge.copy(
-                lineHeight = 24.sp
-            ),
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.alpha(0.9f)
-        )
-    }
-}
-
-@Composable
-private fun TimelineItem(
-    step: TimelineStep,
-    isLast: Boolean,
-    animationDelay: Long
-) {
-    var visible by remember { mutableStateOf(false) }
-    
-    LaunchedEffect(Unit) {
-        delay(animationDelay)
-        visible = true
-    }
-
-    val animatedScale by animateFloatAsState(
-        targetValue = if (visible) 1f else 0.8f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "scale"
-    )
-
-    val animatedAlpha by animateFloatAsState(
-        targetValue = if (visible) 1f else 0f,
-        animationSpec = tween(600, easing = FastOutSlowInEasing),
-        label = "alpha"
-    )
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .scale(animatedScale)
-            .alpha(animatedAlpha)
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Timeline node
-            Box(
-                modifier = Modifier
-                    .size(72.dp)
-                    .background(
-                        brush = Brush.radialGradient(
-                            colors = listOf(
-                                step.color.copy(alpha = 0.2f),
-                                step.color.copy(alpha = 0.05f)
-                            )
-                        ),
-                        shape = RoundedCornerShape(36.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .background(
-                            step.color.copy(alpha = 0.1f),
-                            RoundedCornerShape(28.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = step.icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(32.dp),
-                        tint = step.color
-                    )
-                }
-            }
-
-            // Timeline line
-            if (!isLast) {
-                Box(
-                    modifier = Modifier
-                        .width(3.dp)
-                        .height(60.dp)
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    step.color.copy(alpha = 0.3f),
-                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                                )
-                            ),
-                            shape = RoundedCornerShape(2.dp)
-                        )
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.width(24.dp))
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(top = 8.dp)
-        ) {
-            Text(
-                text = step.title,
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp
-                ),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = step.description,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    lineHeight = 22.sp
-                ),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.alpha(0.85f)
-            )
-        }
-    }
-}
-
-@Composable
-private fun GetStartedCard() {
+private fun HowItWorksStepCard(step: HowItWorksStep) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+            Card(
+                shape = CircleShape,
+                colors = CardDefaults.cardColors(
+                    containerColor = step.color.copy(alpha = 0.12f)
+                )
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = step.icon,
+                            contentDescription = null,
+                            tint = step.color
+                        )
+                    }
+                }
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = step.title,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = step.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = step.color.copy(alpha = 0.08f)
+                )
+            ) {
+                Text(
+                    text = step.highlight,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = step.color
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HowItWorksFooter(onBackClick: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Rocket,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             Text(
-                text = "Ready to Start?",
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold
-                ),
-                color = MaterialTheme.colorScheme.onSurface,
+                text = stringResource(id = R.string.how_it_works_footer_title),
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Text(
+                text = stringResource(id = R.string.how_it_works_footer_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "Add your first website and experience real-time change detection",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.alpha(0.8f)
+            CanvasPrimaryButton(
+                label = stringResource(id = R.string.how_it_works_primary_cta),
+                onClick = onBackClick,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
