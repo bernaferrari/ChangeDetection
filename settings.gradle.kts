@@ -14,4 +14,4 @@ dependencyResolutionManagement {
     }
 }
 
-include(":app", ":shared")
+include(":app")

@@ -186,7 +186,7 @@ private fun ComparisonLoadedContent(
             ComparisonStatsRow(
                 totalSnapshots = snaps.size,
                 latestTimestamp = snaps.firstOrNull()?.timestamp,
-                isElementMonitoring = site.elementMonitoring
+                isElementMonitoring = false
             )
         }
 
@@ -233,6 +233,7 @@ private fun ComparisonLoadedContent(
         }
     }
 }
+
 
 @Composable
 private fun ComparisonEmptyContent(
@@ -544,7 +545,7 @@ private fun ComparisonPairCard(
     onClick: () -> Unit
 ) {
     Card(
-        shape = RoundedCornerShape(26.dp),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
         ),
@@ -730,7 +731,7 @@ private fun DiffComparisonView(
                 CircularProgressIndicator()
             }
         } else if (content1 != null && content2 != null) {
-            var mode by remember { mutableStateOf("TEXT") }
+            var mode by remember { mutableStateOf("VISUAL") }
             Column(modifier = Modifier.fillMaxSize()) {
                 Row(
                     modifier = Modifier
@@ -743,7 +744,7 @@ private fun DiffComparisonView(
                         onClick = { mode = "TEXT" },
                         label = { Text(androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.text_diff)) },
                         leadingIcon = if (mode == "TEXT") {
-                            { Icon(Icons.AutoMirrored.Filled.Article, contentDescription = "Text diff mode") }
+                            { Icon(Icons.AutoMirrored.Filled.Article, contentDescription = null) }
                         } else null
                     )
                     FilterChip(
@@ -751,25 +752,43 @@ private fun DiffComparisonView(
                         onClick = { mode = "HTML" },
                         label = { Text(androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.rendered_html)) },
                         leadingIcon = if (mode == "HTML") {
-                            { Icon(Icons.Default.Language, contentDescription = "HTML diff mode") }
+                            { Icon(Icons.Default.Language, contentDescription = null) }
+                        } else null
+                    )
+                    FilterChip(
+                        selected = mode == "VISUAL",
+                        onClick = { mode = "VISUAL" },
+                        label = { Text("Visual Slider") },
+                        leadingIcon = if (mode == "VISUAL") {
+                            { Icon(Icons.Default.Compare, contentDescription = null) }
                         } else null
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                if (mode == "TEXT") {
-            SimpleDiffView(
-                        oldContent = content1,
-                        newContent = content2,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 0.dp)
-                    )
-                } else {
-                    RenderedHtmlComparison(
-                oldContent = content1,
-                newContent = content2,
-                modifier = Modifier.fillMaxSize()
-            )
+                when (mode) {
+                    "TEXT" -> {
+                        SimpleDiffView(
+                            oldContent = content1,
+                            newContent = content2,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 0.dp)
+                        )
+                    }
+                    "HTML" -> {
+                        RenderedHtmlComparison(
+                            oldContent = content1,
+                            newContent = content2,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    "VISUAL" -> {
+                        com.bernaferrari.changedetection.ui.comparison.VisualDiffView(
+                            oldContent = content1,
+                            newContent = content2,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
         } else {

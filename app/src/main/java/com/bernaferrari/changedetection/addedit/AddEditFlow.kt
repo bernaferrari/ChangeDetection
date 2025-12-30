@@ -9,9 +9,6 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,15 +16,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.browser.BrowserSessionData
 import com.bernaferrari.changedetection.browser.ModernInteractiveBrowserScreen
-import kotlinx.coroutines.delay
+import com.bernaferrari.changedetection.util.FeatureFlags
 
 enum class AddEditStep {
     URL_INPUT,
@@ -44,12 +37,10 @@ fun AddEditFlow(
     viewModel: AddEditViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
     var currentStep by remember { mutableStateOf(AddEditStep.URL_INPUT) }
     var browserData by remember { mutableStateOf<BrowserSessionData?>(null) }
-    var showSuccessDialog by remember { mutableStateOf(false) }
-    val successMessage = stringResource(id = R.string.site_added_successfully)
     var hasAutoNavigatedToConfirm by remember { mutableStateOf(false) }
+    val browserSessionEnabled = FeatureFlags.BROWSER_SESSION
 
     LaunchedEffect(selectedUrl, siteId) {
         if (siteId == null && !selectedUrl.isNullOrBlank()) {
@@ -62,22 +53,22 @@ fun AddEditFlow(
     LaunchedEffect(siteId, uiState.isLoading, uiState.browserData) {
         if (siteId != null &&
             !uiState.isLoading &&
-            uiState.browserData != null &&
             !hasAutoNavigatedToConfirm
         ) {
-            browserData = uiState.browserData
-            currentStep = AddEditStep.CONFIRM_DETAILS
-            hasAutoNavigatedToConfirm = true
+            if (browserSessionEnabled && uiState.browserData != null) {
+                browserData = uiState.browserData
+                currentStep = AddEditStep.CONFIRM_DETAILS
+                hasAutoNavigatedToConfirm = true
+            } else if (!browserSessionEnabled) {
+                currentStep = AddEditStep.CONFIRM_DETAILS
+                hasAutoNavigatedToConfirm = true
+            }
         }
     }
     
     // Handle save completion with success animation + snackbar
     LaunchedEffect(uiState.saveComplete) {
         if (uiState.saveComplete) {
-            snackbarHostState.showSnackbar(successMessage)
-            showSuccessDialog = true
-            delay(1500)
-            showSuccessDialog = false
             onSaveComplete()
         }
     }
@@ -85,7 +76,13 @@ fun AddEditFlow(
     BackHandler(enabled = currentStep != AddEditStep.URL_INPUT) {
         when (currentStep) {
             AddEditStep.BROWSER_SETUP -> currentStep = AddEditStep.URL_INPUT
-            AddEditStep.CONFIRM_DETAILS -> currentStep = AddEditStep.BROWSER_SETUP
+            AddEditStep.CONFIRM_DETAILS -> {
+                currentStep = if (browserSessionEnabled) {
+                    AddEditStep.BROWSER_SETUP
+                } else {
+                    AddEditStep.URL_INPUT
+                }
+            }
             else -> {}
         }
     }
@@ -112,23 +109,29 @@ fun AddEditFlow(
                         onUrlChange = viewModel::setUrl,
                         onNavigateUp = onNavigateUp,
                         onContinue = {
-                            currentStep = AddEditStep.BROWSER_SETUP
+                            currentStep = if (browserSessionEnabled) {
+                                AddEditStep.BROWSER_SETUP
+                            } else {
+                                AddEditStep.CONFIRM_DETAILS
+                            }
                         }
                     )
                 }
                 
                 AddEditStep.BROWSER_SETUP -> {
-                    ModernInteractiveBrowserScreen(
-                        initialUrl = uiState.url,
-                        initialSession = uiState.browserData,
-                        onNavigateUp = { currentStep = AddEditStep.URL_INPUT },
-                        onSaveComplete = { data ->
-                            browserData = data
-                            viewModel.setTitle(data.title ?: "")
-                            viewModel.setBrowserData(data)
-                            currentStep = AddEditStep.CONFIRM_DETAILS
-                        }
-                    )
+                    if (browserSessionEnabled) {
+                        ModernInteractiveBrowserScreen(
+                            initialUrl = uiState.url,
+                            initialSession = uiState.browserData,
+                            onNavigateUp = { currentStep = AddEditStep.URL_INPUT },
+                            onSaveComplete = { data ->
+                                browserData = data
+                                viewModel.setTitle(data.title ?: "")
+                                viewModel.setBrowserData(data)
+                                currentStep = AddEditStep.CONFIRM_DETAILS
+                            }
+                        )
+                    }
                 }
                 
                 AddEditStep.CONFIRM_DETAILS -> {
@@ -138,36 +141,24 @@ fun AddEditFlow(
                         selectedColors = uiState.selectedColors,
                         isSaving = uiState.isSaving,
                         saveError = uiState.saveError,
-                        browserData = browserData,
-                        useCookies = uiState.useCookies,
-                        cookieBytes = uiState.cookieBytes,
+                        browserData = if (browserSessionEnabled) browserData else null,
+                        useCookies = if (FeatureFlags.COOKIES) uiState.useCookies else false,
+                        cookieBytes = if (FeatureFlags.COOKIES) uiState.cookieBytes else 0L,
                         onTitleChange = viewModel::setTitle,
                         onColorChange = viewModel::setColors,
-                        onUseCookiesChange = viewModel::setUseCookies,
-                        onNavigateUp = { currentStep = AddEditStep.BROWSER_SETUP },
+                        onUseCookiesChange = if (FeatureFlags.COOKIES) viewModel::setUseCookies else { _: Boolean -> },
+                        onNavigateUp = {
+                            currentStep = if (browserSessionEnabled) {
+                                AddEditStep.BROWSER_SETUP
+                            } else {
+                                AddEditStep.URL_INPUT
+                            }
+                        },
                         onSave = viewModel::saveSite
                     )
                 }
             }
         }
 
-        // Success Dialog
-        if (showSuccessDialog) {
-            SuccessDialog(
-                accentColors = uiState.selectedColors,
-                onDismiss = { showSuccessDialog = false }
-            )
-        }
-
-        // Snackbar host (global for this flow)
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier.padding(16.dp)
-            )
-        }
     }
 }

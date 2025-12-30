@@ -6,7 +6,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.spring
+import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -558,7 +559,10 @@ private fun HierarchyItem(
         } else {
             Color.Transparent
         },
-        animationSpec = tween(300),
+        animationSpec = spring(
+            dampingRatio = ExpressiveSpring.QUICK_DAMPING,
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+        ),
         label = "hierarchyBackground"
     )
     

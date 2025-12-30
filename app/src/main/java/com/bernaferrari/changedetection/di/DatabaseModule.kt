@@ -27,7 +27,6 @@ object DatabaseModule {
         )
             .addMigrations(ChangeDatabase.MIGRATION_1_2)
             .addMigrations(ChangeDatabase.MIGRATION_2_3)
-            .addMigrations(ChangeDatabase.MIGRATION_3_4)
             .build()
     }
 
