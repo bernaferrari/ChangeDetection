@@ -92,6 +92,10 @@ class MainViewModel @Inject constructor(
     private val _loadingSites = MutableStateFlow<Set<String>>(emptySet())
     val loadingSites: StateFlow<Set<String>> = _loadingSites.asStateFlow()
 
+    // StateFlow for tracking initial data load
+    private val _isInitialLoading = MutableStateFlow(true)
+    val isInitialLoading: StateFlow<Boolean> = _isInitialLoading.asStateFlow()
+
     /**
      * OPTIMIZATION: Efficiently combines sites with their most recent snapshots.
      *
@@ -112,6 +116,9 @@ class MainViewModel @Inject constructor(
         mSitesRepository.getDataWithChanges(),
         _loadingSites.asStateFlow()
     ) { sites, loadingSiteIds ->
+        // Mark initial loading as complete
+        _isInitialLoading.value = false
+
         // Load all snapshots in a single optimized query
         val snapsBySite = runCatching { mSnapsRepository.getAllMostRecentSnaps() }.getOrNull() ?: emptyMap()
 
@@ -171,8 +178,37 @@ class MainViewModel @Inject constructor(
                 _loadingSites.value = runningSiteIds
             }
         }
+
+        restoreQuickMonitorIfNeeded()
     }
 
+    private fun restoreQuickMonitorIfNeeded() {
+        viewModelScope.launch {
+            val prefs = dataStore.data.first()
+            val isActive = prefs[QUICK_MONITOR_ACTIVE_KEY] ?: false
+            val siteIdsString = prefs[QUICK_MONITOR_SITE_IDS_KEY].orEmpty()
+            val siteIds = siteIdsString.split(",").filter { it.isNotBlank() }
+            val interval = prefs[QUICK_MONITOR_INTERVAL_KEY] ?: 15
+            val deadline = prefs[QUICK_MONITOR_DEADLINE_TIME_KEY] ?: 0L
+
+            if (!isActive || siteIds.isEmpty()) {
+                return@launch
+            }
+
+            if (deadline > 0L && System.currentTimeMillis() > deadline) {
+                dataStore.edit { preferences ->
+                    preferences[QUICK_MONITOR_ACTIVE_KEY] = false
+                    preferences[QUICK_MONITOR_SITE_IDS_KEY] = ""
+                    preferences[QUICK_MONITOR_START_TIME_KEY] = 0L
+                    preferences[QUICK_MONITOR_DEADLINE_TIME_KEY] = 0L
+                    preferences[QUICK_MONITOR_INTERVAL_KEY] = 15
+                }
+                return@launch
+            }
+
+            workerHelper.startQuickMonitor(siteIds, interval)
+        }
+    }
 
     private suspend fun getLastSnap(siteId: String): Snap? {
         return mSnapsRepository.getMostRecentSnap(siteId)

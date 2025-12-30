@@ -62,6 +62,7 @@ import com.bernaferrari.changedetection.extensions.isValidUrl
 import com.bernaferrari.changedetection.repo.ColorGroup
 import com.bernaferrari.changedetection.ui.compose.ColorPickerButton
 import com.bernaferrari.changedetection.util.GradientColors
+import com.bernaferrari.changedetection.util.FeatureFlags
 
 data class FormData(
     val title: String = "",
@@ -171,18 +172,20 @@ fun AddEditForm(
             title = stringResource(id = R.string.add_edit_monitoring_title),
             description = stringResource(id = R.string.add_edit_monitoring_description)
         ) {
-            PreferenceItem(
-                title = stringResource(id = R.string.add_edit_browser_rendering),
-                subtitle = stringResource(id = R.string.add_edit_browser_rendering_description),
-                leadingIcon = Icons.Outlined.Language,
-                trailingContent = {
-                    Switch(
-                        checked = formData.useBrowser,
-                        onCheckedChange = { onFormDataChange(formData.copy(useBrowser = it)) }
-                    )
-                },
-                onClick = { onFormDataChange(formData.copy(useBrowser = !formData.useBrowser)) }
-            )
+            if (FeatureFlags.BROWSER_SESSION) {
+                PreferenceItem(
+                    title = stringResource(id = R.string.add_edit_browser_rendering),
+                    subtitle = stringResource(id = R.string.add_edit_browser_rendering_description),
+                    leadingIcon = Icons.Outlined.Language,
+                    trailingContent = {
+                        Switch(
+                            checked = formData.useBrowser,
+                            onCheckedChange = { onFormDataChange(formData.copy(useBrowser = it)) }
+                        )
+                    },
+                    onClick = { onFormDataChange(formData.copy(useBrowser = !formData.useBrowser)) }
+                )
+            }
 
             if (isEditing) {
                 PreferenceItem(

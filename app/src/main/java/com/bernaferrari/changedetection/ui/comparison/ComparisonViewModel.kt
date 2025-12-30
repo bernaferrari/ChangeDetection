@@ -51,6 +51,11 @@ class ComparisonViewModel @Inject constructor(
                     site = site,
                     snaps = snaps
                 )
+                
+                // Auto-select the latest pair for immediate "Visual Diff"
+                if (snaps.size >= 2) {
+                     selectPairForComparison(0)
+                }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,

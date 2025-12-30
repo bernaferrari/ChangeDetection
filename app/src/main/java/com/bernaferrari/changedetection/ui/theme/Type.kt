@@ -16,46 +16,48 @@ import androidx.compose.ui.unit.sp
  */
 val Typography = Typography(
     // Display styles - Large, attention-grabbing text
+    // M3 Expressive: Use weight variation for visual hierarchy
     displayLarge = TextStyle(
         fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.Bold,  // M3 Expressive: Bold for maximum impact
         fontSize = 57.sp,
         lineHeight = 64.sp,
         letterSpacing = (-0.25).sp
     ),
     displayMedium = TextStyle(
         fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.SemiBold,  // M3 Expressive: Slightly lighter
         fontSize = 45.sp,
         lineHeight = 52.sp,
         letterSpacing = 0.sp
     ),
     displaySmall = TextStyle(
         fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.Medium,  // M3 Expressive: Cascade down
         fontSize = 36.sp,
         lineHeight = 44.sp,
         letterSpacing = 0.sp
     ),
 
     // Headline styles - Medium emphasis, section headers
+    // M3 Expressive: Weight variation guides attention
     headlineLarge = TextStyle(
         fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.SemiBold,  // M3 Expressive: Strong but not bold
         fontSize = 32.sp,
         lineHeight = 40.sp,
         letterSpacing = 0.sp
     ),
     headlineMedium = TextStyle(
         fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.Medium,  // M3 Expressive: Medium weight
         fontSize = 28.sp,
         lineHeight = 36.sp,
         letterSpacing = 0.sp
     ),
     headlineSmall = TextStyle(
         fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.Medium,  // M3 Expressive: Consistent with medium
         fontSize = 24.sp,
         lineHeight = 32.sp,
         letterSpacing = 0.sp

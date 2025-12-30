@@ -76,6 +76,29 @@ object AnimationDuration {
     const val ERROR_ANIMATION = 400
 }
 
+// ==================== M3 EXPRESSIVE SPRING SPECS ====================
+/**
+ * Material 3 Expressive spring animation specifications.
+ * These provide natural, bouncy feel recommended by M3 Expressive guidelines.
+ */
+object ExpressiveSpring {
+    // Standard interactive spring - for button presses, card touches
+    const val INTERACTIVE_DAMPING = 0.7f  // Low bounce, responsive
+    const val INTERACTIVE_STIFFNESS = 400f
+
+    // Bouncy spring - for emphasized transitions, FAB, chips
+    const val BOUNCY_DAMPING = 0.6f
+    const val BOUNCY_STIFFNESS = 300f
+
+    // Gentle spring - for subtle state changes, color transitions
+    const val GENTLE_DAMPING = 0.8f
+    const val GENTLE_STIFFNESS = 200f
+
+    // Quick spring - for snappy micro-interactions
+    const val QUICK_DAMPING = 0.75f
+    const val QUICK_STIFFNESS = 600f
+}
+
 // ==================== OPACITY/ALPHA CONSTANTS ====================
 object Alpha {
     const val FULL = 1.0f              // 100%

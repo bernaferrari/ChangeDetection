@@ -5,16 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.extensions.normalizeUrl
 import com.bernaferrari.changedetection.repo.Site
-import com.bernaferrari.changedetection.monitoring.ZapRule
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.browser.BrowserSessionData
-import com.bernaferrari.changedetection.browser.SelectedElement
-import com.bernaferrari.changedetection.browser.ZappedElement
 import com.bernaferrari.changedetection.WorkerHelper
-import com.bernaferrari.changedetection.repo.withCookies
-import com.bernaferrari.changedetection.repo.withSmartMonitoring
-import com.bernaferrari.changedetection.repo.withZapRules
-import com.bernaferrari.changedetection.repo.zapRules
+import com.bernaferrari.changedetection.util.FeatureFlags
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -65,67 +59,15 @@ class AddEditViewModel @Inject constructor(
             val site = sitesRepository.getSiteById(id)
             site?.let {
                 _uiState.update { state ->
-                    val selectors = site.cssSelector.split(',')
-                        .map { it.trim() }
-                        .filter { it.isNotEmpty() }
-                        .mapIndexed { index, selector ->
-                            SelectedElement(
-                                selector = selector,
-                                description = selector,
-                                timestamp = index.toLong()
-                            )
-                        }
-
-                    val zapped = site.zapRules.mapIndexed { index, rule ->
-                        when (rule) {
-                            is ZapRule.CssSelector -> ZappedElement(
-                                selector = rule.selector,
-                                description = rule.selector,
-                                timestamp = index.toLong()
-                            )
-
-                            is ZapRule.ElementType -> ZappedElement(
-                                selector = rule.tagName,
-                                description = rule.tagName,
-                                timestamp = index.toLong()
-                            )
-
-                            is ZapRule.AttributePattern -> ZappedElement(
-                                selector = "[${rule.attribute}~=${rule.pattern}]",
-                                description = rule.pattern,
-                                timestamp = index.toLong()
-                            )
-
-                            is ZapRule.TextPattern -> ZappedElement(
-                                selector = rule.pattern,
-                                description = rule.pattern,
-                                timestamp = index.toLong()
-                            )
-
-                            is ZapRule.XPath -> ZappedElement(
-                                selector = rule.xpath,
-                                description = rule.xpath,
-                                timestamp = index.toLong()
-                            )
-                        }
-                    }
-
                     state.copy(
                         url = site.url,
                         title = site.title ?: "",
                         selectedColors = site.colors,
                         isLoading = false,
-                        browserData = BrowserSessionData(
-                            url = site.url,
-                            title = site.title ?: "",
-                            cookies = site.cookieData,
-                            userAgent = site.userAgent,
-                            selectedElements = selectors,
-                            zappedElements = zapped
-                        ),
-                        useCookies = site.cookieData.isNotBlank(),
-                        cookieBytes = site.cookieData?.toByteArray()?.size?.toLong() ?: 0L,
-                        hasCapturedCookies = site.cookieData.isNotBlank()
+                        browserData = null,
+                        useCookies = false,
+                        cookieBytes = 0L,
+                        hasCapturedCookies = false
                     )
                 }
             }
@@ -169,14 +111,24 @@ class AddEditViewModel @Inject constructor(
     }
     
     fun setBrowserData(data: BrowserSessionData) {
-        _uiState.update { 
+        if (!FeatureFlags.BROWSER_SESSION) return
+
+        _uiState.update {
             val cookies = data.cookies.orEmpty()
-            val newCookieBytes = cookies.toByteArray().size.toLong()
+            val newCookieBytes = if (FeatureFlags.COOKIES) {
+                cookies.toByteArray().size.toLong()
+            } else {
+                0L
+            }
             val previousBytes = it.cookieBytes
-            val resolvedUseCookies = when {
-                newCookieBytes == 0L -> false
-                previousBytes == 0L -> true
-                else -> it.useCookies
+            val resolvedUseCookies = if (FeatureFlags.COOKIES) {
+                when {
+                    newCookieBytes == 0L -> false
+                    previousBytes == 0L -> true
+                    else -> it.useCookies
+                }
+            } else {
+                false
             }
             it.copy(
                 title = data.title ?: it.title,
@@ -189,7 +141,9 @@ class AddEditViewModel @Inject constructor(
     }
 
     fun setUseCookies(enabled: Boolean) {
-        _uiState.update { it.copy(useCookies = enabled) }
+        if (FeatureFlags.COOKIES) {
+            _uiState.update { it.copy(useCookies = enabled) }
+        }
     }
     
     
@@ -205,16 +159,7 @@ class AddEditViewModel @Inject constructor(
             _uiState.update { it.copy(isSaving = true, saveError = null) }
             
             try {
-                val browserData = state.browserData
-
-                val selectedSelectors: List<String> = browserData?.selectedElements?.map { it.selector }.orEmpty()
-                val joinedCssSelector: String = selectedSelectors.joinToString(separator = ",")
-                val hasElementMonitoring = selectedSelectors.isNotEmpty()
-                val hasMultipleElements = selectedSelectors.size > 1
-
-                val zapRules = browserData?.zappedElements
-                    ?.map { element -> ZapRule.CssSelector(element.selector) }
-                    .orEmpty()
+                val browserData = if (FeatureFlags.BROWSER_SESSION) state.browserData else null
 
                 val resolvedTitle = state.title.ifBlank {
                     try {
@@ -239,13 +184,6 @@ class AddEditViewModel @Inject constructor(
                     isBrowser = browserData != null,
                     isSyncEnabled = true,
                     isNotificationEnabled = true,
-                    cookieData = "",
-                    userAgent = "",
-                    zapRulesJson = "",
-                    cssSelector = "",
-                    elementMonitoring = false,
-                    multipleElementMonitoring = false,
-                    smartMonitoringEnabled = false,
                     timestamp = System.currentTimeMillis(),
                     isSuccessful = true,
                     isRead = false,
@@ -259,25 +197,7 @@ class AddEditViewModel @Inject constructor(
                 var updatedSite = baseSite
 
                 if (browserData != null) {
-                    updatedSite = updatedSite.copy(
-                        cssSelector = joinedCssSelector,
-                        elementMonitoring = hasElementMonitoring,
-                        multipleElementMonitoring = hasMultipleElements,
-                        userAgent = browserData.userAgent,
-                        isBrowser = true
-                    )
-
-                    val cookieMap = parseCookieHeader(browserData.cookies)
-                    updatedSite = if (state.useCookies && cookieMap.isNotEmpty()) {
-                        updatedSite.withCookies(cookieMap)
-                    } else {
-                        updatedSite.copy(cookieData = "")
-                    }
-
-                    updatedSite = updatedSite.withZapRules(zapRules)
-                    updatedSite = updatedSite.withSmartMonitoring(enabled = hasElementMonitoring || zapRules.isNotEmpty())
-                } else if (!state.useCookies) {
-                    updatedSite = updatedSite.copy(cookieData = "")
+                    updatedSite = updatedSite.copy(isBrowser = true)
                 }
 
                 val site = updatedSite
@@ -300,22 +220,4 @@ class AddEditViewModel @Inject constructor(
             }
         }
     }
-}
-
-private fun parseCookieHeader(header: String): Map<String, String> {
-    if (header.isBlank()) return emptyMap()
-
-    val tokens = header.split(';')
-    val map = mutableMapOf<String, String>()
-
-    tokens.forEach { token ->
-        val parts = token.trim().split('=', limit = 2)
-        val name = parts.getOrNull(0)?.trim().orEmpty()
-        if (name.isNotEmpty()) {
-            val value = parts.getOrNull(1)?.trim() ?: ""
-            map[name] = value
-        }
-    }
-
-    return map
 }

@@ -9,9 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Bolt
@@ -25,50 +24,51 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.navigation.LogsDestination
+import com.bernaferrari.changedetection.navigation.MainDestination
+import com.bernaferrari.changedetection.navigation.SettingsDestination
+import com.bernaferrari.changedetection.navigation.TurboDestination
 
 private enum class NavigationLayout { BottomBar, Rail }
 
 data class BottomNavItem(
-    val route: String,
+    val destination: NavKey,
     @StringRes val labelRes: Int,
     val icon: ImageVector
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem("main", R.string.nav_home, Icons.Default.Home),
-    BottomNavItem("logs", R.string.nav_logs, Icons.AutoMirrored.Filled.List),
-    BottomNavItem("settings", R.string.nav_settings, Icons.Default.Settings)
+    BottomNavItem(MainDestination, R.string.nav_home, Icons.Default.Home),
+    BottomNavItem(TurboDestination, R.string.home_stats_quick_monitor_label, Icons.Filled.Bolt),
+    BottomNavItem(LogsDestination, R.string.nav_logs, Icons.AutoMirrored.Filled.List),
+    BottomNavItem(SettingsDestination, R.string.nav_settings, Icons.Default.Settings)
 )
 
 @Composable
 fun ChangeDetectionBottomNavigation(
-    navController: NavController,
+    backStack: NavBackStack<NavKey>,
     windowSizeClass: WindowSizeClass,
     content: @Composable () -> Unit
 ) {
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-    val routesWithNav = remember { bottomNavItems.map { it.route } }
-    val shouldShowNav = currentRoute != null && routesWithNav.contains(currentRoute)
+    val currentDestination = backStack.lastOrNull()
+    val isTabDestination = currentDestination is MainDestination ||
+            currentDestination is TurboDestination ||
+            currentDestination is LogsDestination ||
+            currentDestination is SettingsDestination
 
-    if (!shouldShowNav) {
+    if (!isTabDestination) {
         Box(modifier = Modifier.fillMaxSize()) {
             content()
         }
@@ -82,15 +82,15 @@ fun ChangeDetectionBottomNavigation(
     }
 
     when (layout) {
-        NavigationLayout.BottomBar -> BottomNavigationLayout(navController, currentRoute, content)
-        NavigationLayout.Rail -> NavigationRailLayout(navController, currentRoute, content)
+        NavigationLayout.BottomBar -> BottomNavigationLayout(backStack, currentDestination, content)
+        NavigationLayout.Rail -> NavigationRailLayout(backStack, currentDestination, content)
     }
 }
 
 @Composable
 private fun BottomNavigationLayout(
-    navController: NavController,
-    currentRoute: String?,
+    backStack: NavBackStack<NavKey>,
+    currentDestination: NavKey?,
     content: @Composable () -> Unit
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -120,7 +120,13 @@ private fun BottomNavigationLayout(
             tonalElevation = 3.dp
         ) {
             bottomNavItems.forEach { item ->
-                val isSelected = currentRoute == item.route
+                val isSelected = when (item.destination) {
+                    is MainDestination -> currentDestination is MainDestination
+                    is TurboDestination -> currentDestination is TurboDestination
+                    is LogsDestination -> currentDestination is LogsDestination
+                    is SettingsDestination -> currentDestination is SettingsDestination
+                    else -> false
+                }
                 val label = stringResource(id = item.labelRes)
 
                 NavigationBarItem(
@@ -129,13 +135,7 @@ private fun BottomNavigationLayout(
                     selected = isSelected,
                     onClick = {
                         if (!isSelected) {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            navigateToTab(backStack, item.destination)
                         }
                     },
                     colors = navigationColors
@@ -147,8 +147,8 @@ private fun BottomNavigationLayout(
 
 @Composable
 private fun NavigationRailLayout(
-    navController: NavController,
-    currentRoute: String?,
+    backStack: NavBackStack<NavKey>,
+    currentDestination: NavKey?,
     content: @Composable () -> Unit
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -184,7 +184,13 @@ private fun NavigationRailLayout(
             }
         ) {
             bottomNavItems.forEach { item ->
-                val isSelected = currentRoute == item.route
+                val isSelected = when (item.destination) {
+                    is MainDestination -> currentDestination is MainDestination
+                    is TurboDestination -> currentDestination is TurboDestination
+                    is LogsDestination -> currentDestination is LogsDestination
+                    is SettingsDestination -> currentDestination is SettingsDestination
+                    else -> false
+                }
                 val label = stringResource(id = item.labelRes)
 
                 NavigationRailItem(
@@ -193,13 +199,7 @@ private fun NavigationRailLayout(
                     selected = isSelected,
                     onClick = {
                         if (!isSelected) {
-                            navController.navigate(item.route) {
-                                popUpTo(navController.graph.startDestinationId) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+                            navigateToTab(backStack, item.destination)
                         }
                     },
                     alwaysShowLabel = true,
@@ -215,5 +215,27 @@ private fun NavigationRailLayout(
         ) {
             content()
         }
+    }
+}
+
+/**
+ * Navigate to a tab destination, replacing the current tab in the back stack.
+ */
+private fun navigateToTab(backStack: NavBackStack<NavKey>, destination: NavKey) {
+    // Find the index of the first tab destination
+    val tabIndex = backStack.indexOfFirst {
+        it is MainDestination || it is TurboDestination || it is LogsDestination || it is SettingsDestination
+    }
+
+    if (tabIndex >= 0) {
+        // Replace the existing tab with the new one
+        backStack[tabIndex] = destination
+        // Remove any items after the tab (detail screens)
+        while (backStack.size > tabIndex + 1) {
+            backStack.removeLast()
+        }
+    } else {
+        // No tab exists, just add it
+        backStack.add(destination)
     }
 }

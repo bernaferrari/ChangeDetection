@@ -77,6 +77,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.browser.BrowserSessionData
+import com.bernaferrari.changedetection.extensions.normalizeUrl
+import com.bernaferrari.changedetection.util.FeatureFlags
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,6 +99,8 @@ fun AddEditConfirmScreen(
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val scrollState = rememberScrollState()
+    val browserSessionEnabled = FeatureFlags.BROWSER_SESSION
+    val cookiesEnabled = FeatureFlags.COOKIES
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
@@ -127,11 +131,13 @@ fun AddEditConfirmScreen(
                 .padding(horizontal = 24.dp, vertical = 24.dp),
             verticalArrangement = Arrangement.spacedBy(28.dp)
         ) {
-            OverviewBanner(
-                monitoredCount = browserData?.selectedElements?.size ?: 0,
-                zappedCount = browserData?.zappedElements?.size ?: 0,
-                hasCookies = browserData?.cookies?.isNotBlank() == true
-            )
+            if (browserSessionEnabled) {
+                OverviewBanner(
+                    monitoredCount = browserData?.selectedElements?.size ?: 0,
+                    zappedCount = browserData?.zappedElements?.size ?: 0,
+                    hasCookies = browserData?.cookies?.isNotBlank() == true
+                )
+            }
 
             SitePreviewCard(
                 url = url,
@@ -139,13 +145,15 @@ fun AddEditConfirmScreen(
                 selectedColors = selectedColors
             )
 
-            if (browserData != null && (browserData.selectedElements.isNotEmpty() || browserData.zappedElements.isNotEmpty())) {
-                MonitorZapSection(
-                    monitoredElements = browserData.selectedElements,
-                    zappedElements = browserData.zappedElements
-                )
-            } else {
-                FullPageMonitoringCard()
+            if (browserSessionEnabled) {
+                if (browserData != null && (browserData.selectedElements.isNotEmpty() || browserData.zappedElements.isNotEmpty())) {
+                    MonitorZapSection(
+                        monitoredElements = browserData.selectedElements,
+                        zappedElements = browserData.zappedElements
+                    )
+                } else {
+                    FullPageMonitoringCard()
+                }
             }
 
             TitleSection(
@@ -165,13 +173,15 @@ fun AddEditConfirmScreen(
                 }
             )
 
-            AuthenticationSection(
-                useCookies = useCookies,
-                cookieBytes = cookieBytes,
-                onUseCookiesChange = onUseCookiesChange
-            )
+            if (cookiesEnabled) {
+                AuthenticationSection(
+                    useCookies = useCookies,
+                    cookieBytes = cookieBytes,
+                    onUseCookiesChange = onUseCookiesChange
+                )
+            }
 
-            if (browserData != null) {
+            if (browserSessionEnabled && browserData != null) {
                 FeaturesSummaryCard(browserData = browserData, cookieBytes = cookieBytes)
             }
 
@@ -220,35 +230,36 @@ private fun SitePreviewCard(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp))
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
+                .padding(horizontal = 20.dp, vertical = 18.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(132.dp)
-                    .clip(RoundedCornerShape(20.dp))
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(16.dp))
                     .background(
                         Brush.linearGradient(
                             listOf(Color(selectedColors.first), Color(selectedColors.second))
                         )
                     ),
-                contentAlignment = Alignment.BottomStart
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Palette,
                     contentDescription = null,
                     tint = Color.White.copy(alpha = 0.96f),
-                    modifier = Modifier
-                        .padding(20.dp)
-                        .size(36.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Text(
                     text = displayTitle,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
@@ -256,23 +267,12 @@ private fun SitePreviewCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 if (domain.isNotEmpty()) {
-                    AssistChip(
-                        onClick = {},
-                        enabled = false,
-                        label = {
-                            Text(
-                                text = domain,
-                                style = MaterialTheme.typography.labelLarge
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(Icons.Default.Language, contentDescription = "Language selection", modifier = Modifier.size(16.dp))
-                        },
-                        colors = AssistChipDefaults.assistChipColors(
-                            disabledContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
-                            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledLeadingIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    Text(
+                        text = domain,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -720,7 +720,8 @@ private fun extractDomain(url: String): String {
     return runCatching {
         val sanitized = url.trim()
         if (sanitized.isEmpty()) return@runCatching ""
-        val host = java.net.URI(sanitized).host.orEmpty()
+        val normalized = sanitized.normalizeUrl() ?: "https://$sanitized"
+        val host = java.net.URI(normalized).host ?: java.net.URL(normalized).host
         host.removePrefix("www.")
     }.getOrDefault("")
 }
