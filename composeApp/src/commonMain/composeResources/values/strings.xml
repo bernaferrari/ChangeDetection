@@ -1,0 +1,180 @@
+<resources>
+    <string name="app_name">Change Detection</string>
+    <string name="refresh_all">Refresh all</string>
+    <string name="add_site">Add site</string>
+    <string name="refresh">Refresh</string>
+    <string name="delete">Delete</string>
+    <string name="last_sync">Last sync: %s</string>
+    <string name="last_change">Last change: %s</string>
+    <string name="connection_error">Connection error</string>
+    <string name="more_options">More options</string>
+    <string name="loading">Loading…</string>
+    <string name="ok">OK</string>
+    <string name="error">Error</string>
+    <string name="turbo_mode">Turbo Mode</string>
+    <string name="how_it_works">How it works</string>
+    <string name="turbo_help_title">How Turbo Mode works</string>
+    <string name="turbo_help_text">Turbo Mode monitors your selected sites at high frequency.\n\nDue to Android battery optimization, the system automatically stops background tasks after approximately 3 hours. You\'ll need to re-enable Turbo Mode when this happens.\n\nTip: Keep the app open or disable battery optimization for longer monitoring.</string>
+    <string name="got_it">Got it</string>
+    <string name="status_active">Active</string>
+    <string name="status_inactive">Inactive</string>
+    <plurals name="monitoring_sites">
+        <item quantity="one">Monitoring %d site</item>
+        <item quantity="other">Monitoring %d sites</item>
+    </plurals>
+    <string name="select_sites_to_monitor">Select sites below to monitor</string>
+    <string name="select_sites">Select sites</string>
+    <string name="monitoring">Monitoring</string>
+    <string name="every_label">Every %s</string>
+    <string name="no_sites_yet">No sites yet</string>
+    <string name="add_sites_to_monitor">Add sites to start monitoring</string>
+    <string name="start">START</string>
+    <string name="stop">STOP</string>
+    <string name="edit">Edit</string>
+    <string name="open_in_browser">Open in browser</string>
+    <string name="sync_disable">Disable syncing</string>
+    <string name="sync_enable">Enable syncing</string>
+    <string name="notification_disable">Disable notifications</string>
+    <string name="notification_enable">Enable notifications</string>
+    <string name="remove">Remove</string>
+    <string name="turbo_mode_duration_hint">Turbo runs in the foreground for up to 3 hours or until you stop it.</string>
+    <string name="cancel">Cancel</string>
+    <string name="turbo_mode_button_start">Start Turbo</string>
+    <string name="turbo_mode_header">Turbo monitor</string>
+    <string name="turbo_mode_subheader">High-frequency checks with a live notification.</string>
+    <string name="label_interval">Interval</string>
+    <string name="quick_monitor_sites_selected_label">Sites selected</string>
+    <string name="turbo_mode_dialog_warning_title">High battery usage</string>
+    <string name="turbo_mode_dialog_warning_body">Turbo checks every %d s and keeps the device awake. Use it when seconds matter.</string>
+    <plurals name="turbo_mode_selected_sites">
+        <item quantity="one">%d site selected</item>
+        <item quantity="other">%d sites selected</item>
+    </plurals>
+    <plurals name="items">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+    <string name="min">min</string>
+    <string name="hour">1 hour</string>
+    <string name="hours">hours</string>
+    <string name="start_monitoring">Start Monitoring</string>
+    <string name="start_monitoring_description">Track changes on any website and get notified when content updates.</string>
+    <string name="add_first_site">Add Your First Site</string>
+    <string name="learn_how_it_works">Learn How It Works</string>
+    <string name="quick_monitor_title">Quick Monitor</string>
+    <string name="quick_monitor_next_check_in">Next check in %ds</string>
+    <string name="turbo_mode_button_stop">Stop</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_turbo">Turbo</string>
+    <string name="nav_logs">Logs</string>
+    <string name="nav_settings">Settings</string>
+    <string name="home_stats_quick_monitor_label">Turbo</string>
+
+    <!-- Settings -->
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_monitoring_section">Monitoring</string>
+    <string name="settings_background_sync_title">Background sync</string>
+    <string name="settings_background_sync_enable">Enable background sync</string>
+    <string name="settings_background_sync_disabled">Disabled</string>
+    <string name="settings_background_sync_every">Every %d minutes</string>
+    <string name="settings_about_section">About</string>
+    <string name="settings_about_title">About ChangeDetection</string>
+    <string name="settings_action_contact">Contact developer</string>
+    <string name="settings_sync_constraints_title">Sync constraints</string>
+    <string name="settings_sync_constraint_wifi">Require Wi‑Fi</string>
+    <string name="settings_sync_constraint_charging">Require charging</string>
+    <string name="settings_sync_constraint_battery">Require battery not low</string>
+    <string name="settings_sync_constraint_idle">Require device idle</string>
+    <string name="settings_sync_interval_label">Sync every:</string>
+    <string name="settings_sync_interval_value">Value</string>
+    <string name="settings_sync_unit_minutes">minutes</string>
+    <string name="settings_sync_unit_hours">hours</string>
+    <string name="settings_sync_unit_days">days</string>
+    <string name="done">Done</string>
+
+    <plurals name="settings_sync_every_minutes">
+        <item quantity="one">Sync every %d minute</item>
+        <item quantity="other">Sync every %d minutes</item>
+    </plurals>
+    <plurals name="settings_sync_every_hours">
+        <item quantity="one">Sync every %d hour</item>
+        <item quantity="other">Sync every %d hours</item>
+    </plurals>
+    <plurals name="settings_sync_every_days">
+        <item quantity="one">Sync every %d day</item>
+        <item quantity="other">Sync every %d days</item>
+    </plurals>
+    <string name="comparison_hero_badge">Live insights</string>
+    <string name="comparison_stats_snapshots_label">Snapshots</string>
+    <string name="comparison_stats_latest_label">Latest change</string>
+    <string name="comparison_stats_latest_supporting">Updated %s</string>
+    <string name="comparison_stats_unavailable">No changes yet</string>
+    <string name="comparison_stats_scope_label">Focus</string>
+    <string name="comparison_stats_scope_element">Selected elements</string>
+    <string name="comparison_stats_scope_page">Full page</string>
+    <string name="comparison_section_snapshots">Version history</string>
+    <string name="comparison_empty_title">No versions yet</string>
+    <string name="comparison_empty_subtitle">Capture your first snapshot to start comparing.</string>
+    <string name="comparison_quick_tip">Tap a version pair to open the diff.</string>
+    <string name="comparison_pair_title">Version %d → %d</string>
+    <string name="comparison_pair_time_diff">%s apart</string>
+    <string name="comparison_single_snapshot_hint">We need at least two snapshots to compare changes.</string>
+    <string name="type_label">Type: %s</string>
+    <string name="size_label">Size: %s</string>
+    <string name="diff_comparison">Compare snapshots</string>
+    <string name="older_label">Older • %s</string>
+    <string name="newer_label">Newer • %s</string>
+    <string name="text_diff">Text diff</string>
+    <string name="rendered_html">Rendered HTML</string>
+    <string name="failed_to_load_content">Failed to load content</string>
+
+    <!-- About -->
+    <string name="about_title">About</string>
+    <string name="about_designed_by">Designed &amp; developed by</string>
+    <string name="about_developer_name">Bernardo Ferrari</string>
+    <string name="about_open_source_disclaimer">This project is open source and is licensed under Apache 2.0.</string>
+    <string name="about_view_on_github">View on GitHub</string>
+    <string name="about_contact_developer">Contact Developer</string>
+    <string name="about_view_licenses">View Open Source Licenses</string>
+    <string name="about_licenses_title">Open Source</string>
+    <string name="about_licenses_subtitle">Built with love using amazing libraries</string>
+    <string name="about_stat_libraries">Libraries</string>
+    <string name="about_stat_categories">Categories</string>
+    <string name="about_stat_apache">Apache 2.0</string>
+
+    <!-- How It Works -->
+    <string name="how_it_works_title">How it works</string>
+    <string name="how_it_works_hero_badge">Product tour</string>
+    <string name="how_it_works_hero_title">Eyes on every launch.</string>
+    <string name="how_it_works_hero_subtitle">See how ChangeDetection keeps tabs on the entire web in four modern steps.</string>
+    <string name="how_it_works_steps_header">The flow</string>
+    <string name="how_it_works_step_add_title">Add any website</string>
+    <string name="how_it_works_step_add_description">Paste a link or share from your browser. Name it and you’re tracking.</string>
+    <string name="how_it_works_step_add_highlight">Share sheet &amp; imports make setup instant.</string>
+    <string name="how_it_works_step_monitor_title">We monitor constantly</string>
+    <string name="how_it_works_step_monitor_description">Cloud + on-device checks keep every source fresh without draining battery.</string>
+    <string name="how_it_works_step_monitor_highlight">Adaptive scheduling prioritises your critical sources.</string>
+    <string name="how_it_works_step_focus_title">Focus on what matters</string>
+    <string name="how_it_works_step_focus_description">Use the interactive browser to monitor prices, text, media, or zap distractions.</string>
+    <string name="how_it_works_step_focus_highlight">Visual selection + zapping keeps signals clean.</string>
+    <string name="how_it_works_step_alerts_title">Get confident alerts</string>
+    <string name="how_it_works_step_alerts_description">Smart diffing and push notifications let you act instantly.</string>
+    <string name="how_it_works_step_alerts_highlight">Rich notifications ship with context and diffs.</string>
+    <string name="how_it_works_footer_title">Ready when you are</string>
+    <string name="how_it_works_footer_description">Jump back to your sites or launch a Turbo session whenever drop times get close.</string>
+    <string name="how_it_works_primary_cta">Back to app</string>
+
+    <!-- Logs -->
+    <string name="logs_error_loading">Error loading data</string>
+    <string name="logs_hero_title">Change history</string>
+    <string name="logs_hero_subtitle">%1$d changes across %2$d sites</string>
+    <string name="logs_section_history">Recent activity</string>
+    <string name="logs_empty_title">No changes detected yet</string>
+    <string name="logs_empty_subtitle">Start monitoring websites to see changes here.</string>
+    <string name="logs_remove_snapshot_title">Remove snapshot?</string>
+    <string name="logs_remove_snapshot_body">%1$s · %2$s</string>
+    <string name="logs_just_now">Just now</string>
+    <string name="logs_min_ago">%d min ago</string>
+    <string name="logs_hr_ago">%d hr ago</string>
+    <string name="logs_day_ago">%d day ago</string>
+</resources>
