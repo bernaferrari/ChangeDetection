@@ -31,7 +31,7 @@
         android:usesCleartextTraffic="true">
 
         <activity
-            android:name="com.bernaferrari.changedetection.MainActivity"
+            android:name=".MainActivity"
             android:configChanges="locale|keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize"
             android:exported="true">
 
@@ -79,7 +79,7 @@
 
         <!-- Quick Monitor Service -->
         <service
-            android:name=".QuickMonitorService"
+            android:name="com.bernaferrari.changedetection.QuickMonitorService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync" />

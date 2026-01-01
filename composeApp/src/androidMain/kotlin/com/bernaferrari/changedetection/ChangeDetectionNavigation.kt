@@ -1,0 +1,237 @@
+package com.bernaferrari.changedetection
+
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
+import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
+import com.bernaferrari.changedetection.addedit.AddEditFlow
+import com.bernaferrari.changedetection.localBrowser.LocalBrowserScreen
+import com.bernaferrari.changedetection.logs.LogsScreen
+import com.bernaferrari.changedetection.navigation.*
+import com.bernaferrari.changedetection.ui.about.AboutScreen
+import com.bernaferrari.changedetection.ui.comparison.ComparisonScreen
+import com.bernaferrari.changedetection.ui.howItWorks.HowItWorksScreen
+import com.bernaferrari.changedetection.ui.main.MainScreen
+import com.bernaferrari.changedetection.ui.main.MainViewModel
+import com.bernaferrari.changedetection.ui.main.TurboScreen
+import com.bernaferrari.changedetection.ui.navigation.ChangeDetectionBottomNavigation
+import com.bernaferrari.changedetection.ui.settings.SettingsScreen
+import com.bernaferrari.changedetection.ui.theme.ChangeDetectionTheme
+import com.bernaferrari.changedetection.ui.theme.ThemeViewModel
+import org.koin.compose.viewmodel.koinViewModel
+
+/**
+ * Platform-specific actions that the [ChangeDetectionApp] needs to perform.
+ */
+data class PlatformActions(
+    val openUrl: (String) -> Unit = {},
+    val openEmail: (email: String, subject: String) -> Unit = { _, _ -> },
+    val startTurbo: (siteIds: Set<String>, intervalSeconds: Int) -> Unit = { _, _ -> },
+    val stopTurbo: () -> Unit = {}
+)
+
+@Composable
+fun ChangeDetectionRootApp(
+    windowSizeClass: WindowSizeClass,
+    platformActions: PlatformActions = PlatformActions()
+) {
+    val themeViewModel: ThemeViewModel = koinViewModel()
+
+    ChangeDetectionTheme(
+        darkTheme = themeViewModel.shouldUseDarkTheme(),
+        dynamicColor = themeViewModel.shouldUseDynamicColor(),
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            ChangeDetectionApp(
+                windowSizeClass = windowSizeClass,
+                platformActions = platformActions
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+@Composable
+fun ChangeDetectionApp(
+    windowSizeClass: WindowSizeClass,
+    platformActions: PlatformActions
+) {
+    val backStack = rememberNavBackStack(MainDestination)
+    val mainViewModel: MainViewModel = koinViewModel()
+    val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
+
+    ChangeDetectionBottomNavigation(
+        backStack = backStack,
+        windowSizeClass = windowSizeClass
+    ) {
+        NavDisplay(
+            backStack = backStack,
+            onBack = { backStack.removeLastOrNull() },
+            sceneStrategy = listDetailStrategy,
+            entryDecorators = listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator()
+            ),
+            entryProvider = entryProvider {
+                entry<MainDestination>(
+                    metadata = ListDetailSceneStrategy.listPane(
+                        detailPlaceholder = {
+                            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                                Text("Select a site to view details")
+                            }
+                        }
+                    )
+                ) {
+                    MainScreen(
+                        viewModel = mainViewModel,
+                        onAddSite = { backStack.add(AddEditDestination) },
+                        onSiteClick = { site -> backStack.add(ComparisonDestination(siteId = site.id)) },
+                        onSiteEdit = { site -> backStack.add(EditSiteDestination(siteId = site.id)) },
+                        onLearnMore = { backStack.add(HowItWorksDestination) }
+                    )
+                }
+
+                entry<TurboDestination> {
+                    val sites by mainViewModel.sitesFlow.collectAsState()
+                    val quickMonitorState by mainViewModel.quickMonitorState.collectAsState()
+
+                    TurboScreen(
+                        sites = sites,
+                        quickMonitorState = quickMonitorState,
+                        onStartTurbo = { selectedUrl, interval ->
+                            platformActions.startTurbo(selectedUrl, interval)
+                        },
+                        onStopTurbo = {
+                            platformActions.stopTurbo()
+                        }
+                    )
+                }
+
+                entry<LogsDestination> {
+                    LogsScreen(
+                        onSnapClick = { snapId, url ->
+                            backStack.add(BrowserDestination(snapId = snapId, url = url))
+                        }
+                    )
+                }
+
+                entry<SettingsDestination> {
+                    SettingsScreen(
+                        onAboutClick = { backStack.add(AboutDestination) }
+                    )
+                }
+
+                // Full-screen destinations (no bottom navigation)
+                entry<AddEditDestination>(
+                    metadata = NavDisplay.transitionSpec {
+                        slideInVertically(initialOffsetY = { it }) togetherWith
+                                slideOutVertically(targetOffsetY = { it })
+                    } + NavDisplay.popTransitionSpec {
+                        slideInVertically(initialOffsetY = { -it }) togetherWith
+                                slideOutVertically(targetOffsetY = { it })
+                    }
+                ) {
+                    AddEditFlow(
+                        onNavigateUp = { backStack.removeLastOrNull() },
+                        onSaveComplete = { backStack.removeLastOrNull() }
+                    )
+                }
+
+                entry<EditSiteDestination>(
+                    metadata = NavDisplay.transitionSpec {
+                        slideInHorizontally(initialOffsetX = { it }) togetherWith
+                                slideOutHorizontally(targetOffsetX = { -it })
+                    } + NavDisplay.popTransitionSpec {
+                        slideInHorizontally(initialOffsetX = { -it }) togetherWith
+                                slideOutHorizontally(targetOffsetX = { it })
+                    }
+                ) { key ->
+                    AddEditFlow(
+                        siteId = key.siteId,
+                        onNavigateUp = { backStack.removeLastOrNull() },
+                        onSaveComplete = { backStack.removeLastOrNull() }
+                    )
+                }
+
+                entry<AboutDestination> {
+                    AboutScreen(
+                        onBack = { backStack.removeLastOrNull() },
+                        onSocialClick = { url ->
+                            platformActions.openUrl(url)
+                        },
+                        onGitHubClick = { url ->
+                            platformActions.openUrl(url)
+                        },
+                        onContactClick = {
+                            platformActions.openEmail("bernaferrari2@gmail.com", "Change Detection Feedback")
+                        },
+                        onLicenseUrlClick = { url ->
+                            platformActions.openUrl(url)
+                        }
+                    )
+                }
+
+                entry<HowItWorksDestination> {
+                    HowItWorksScreen(
+                        onBackClick = { backStack.removeLastOrNull() }
+                    )
+                }
+
+                entry<BrowserDestination> { key ->
+                    LocalBrowserScreen(
+                        snapId = key.snapId,
+                        url = key.url.ifEmpty { "https://google.com" },
+                        onDismiss = { backStack.removeLastOrNull() }
+                    )
+                }
+
+                entry<ComparisonDestination>(
+                    metadata = ListDetailSceneStrategy.detailPane() + NavDisplay.transitionSpec {
+                        slideInHorizontally(initialOffsetX = { it }) togetherWith
+                                slideOutHorizontally(targetOffsetX = { -it })
+                    } + NavDisplay.popTransitionSpec {
+                        slideInHorizontally(initialOffsetX = { -it }) togetherWith
+                                slideOutHorizontally(targetOffsetX = { it })
+                    }
+                ) { key ->
+                    ComparisonScreen(
+                        siteId = key.siteId,
+                        onNavigateUp = { backStack.removeLastOrNull() }
+                    )
+                }
+            },
+            transitionSpec = {
+                slideInHorizontally(initialOffsetX = { it }) togetherWith
+                        slideOutHorizontally(targetOffsetX = { -it })
+            },
+            popTransitionSpec = {
+                slideInHorizontally(initialOffsetX = { -it }) togetherWith
+                        slideOutHorizontally(targetOffsetX = { it })
+            }
+        )
+    }
+}
