@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 
 data class SettingsUiState(
     val lightMode: Boolean = true,
@@ -184,7 +183,7 @@ class SettingsViewModel(
             dataStore.edit { preferences ->
                 preferences[TURBO_MODE_KEY] = true
                 preferences[TURBO_SITE_IDS_KEY] = siteIds.joinToString(",")
-                preferences[TURBO_START_TIME_KEY] = Clock.System.now().toEpochMilliseconds()
+                preferences[TURBO_START_TIME_KEY] = System.currentTimeMillis()
                 preferences[TURBO_SYNC_INTERVAL_KEY] = syncIntervalSeconds.toLong()
                 preferences[TURBO_DURATION_KEY] = durationMinutes.toLong()
             }

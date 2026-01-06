@@ -163,7 +163,7 @@ private fun StepItem(number: Int, step: HowItWorksStep) {
 
                 Column {
                     Text(
-                        text = "Step $number",
+                        text = stringResource(Res.string.step_number, number),
                         style = MaterialTheme.typography.labelMedium,
                         color = step.color,
                         fontWeight = FontWeight.Bold

@@ -323,9 +323,9 @@ data class OnboardingPageData(
     val icon: ImageVector,
     val iconColor: Color,
     val iconBackgroundColor: Color,
-    @StringRes val titleRes: Int,
-    @StringRes val descriptionRes: Int,
-    @ArrayRes val highlightsRes: Int? = null
+    @field:StringRes val titleRes: Int,
+    @field:StringRes val descriptionRes: Int,
+    @field:ArrayRes val highlightsRes: Int? = null
 )
 
 val onboardingPages = listOf(

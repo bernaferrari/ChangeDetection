@@ -13,6 +13,7 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import com.bernaferrari.changedetection.ui.main.MainViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -83,7 +84,7 @@ private fun openUrl(context: android.content.Context, url: String) {
 private fun openEmail(context: android.content.Context, email: String, subject: String) {
     try {
         val intent = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
-            data = android.net.Uri.parse("mailto:$email?subject=${android.net.Uri.encode(subject)}")
+            data = "mailto:$email?subject=${android.net.Uri.encode(subject)}".toUri()
         }
         context.startActivity(intent)
     } catch (e: Exception) {

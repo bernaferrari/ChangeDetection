@@ -32,10 +32,10 @@ object AnalyticsLogger {
     /**
      * Log an operation with automatic timing
      */
-    internal inline fun <T> logOperation(
+    internal fun <T> logOperation(
         operationName: String,
         tag: String = "OPERATION",
-        noinline block: () -> T
+        block: () -> T
     ): T {
         val startTime = System.nanoTime()
         val startMemory = getMemoryUsage()
@@ -265,7 +265,7 @@ object AnalyticsLogger {
 /**
  * Extension functions for easier logging
  */
-internal inline fun <T> logTiming(label: String, noinline block: () -> T): T {
+internal fun <T> logTiming(label: String, block: () -> T): T {
     val startTime = System.nanoTime()
     return try {
         block().also {

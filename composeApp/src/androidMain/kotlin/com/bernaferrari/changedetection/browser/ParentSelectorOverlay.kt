@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -79,8 +80,20 @@ fun ParentSelectorOverlay(
 
                 AnimatedVisibility(
                     visible = true,
-                    enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-                    exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+                    enter = slideInVertically(
+                        initialOffsetY = { it },
+                        animationSpec = spring(
+                            dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
+                            stiffness = ExpressiveSpring.GENTLE_STIFFNESS
+                        )
+                    ) + fadeIn(animationSpec = tween(300)),
+                    exit = slideOutVertically(
+                        targetOffsetY = { it },
+                        animationSpec = spring(
+                            dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
+                            stiffness = ExpressiveSpring.GENTLE_STIFFNESS
+                        )
+                    ) + fadeOut(animationSpec = tween(300)),
                     modifier = Modifier.align(Alignment.BottomCenter)
                 ) {
                     ParentSelectorContent(
@@ -129,7 +142,7 @@ private fun ParentSelectorContent(
             onSelectLevel(0)
         }
     }
-    
+
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(24.dp),
@@ -146,11 +159,11 @@ private fun ParentSelectorContent(
                 mode = mode,
                 onClose = onDismiss
             )
-            
+
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
             )
-            
+
             // Main Content
             Column(
                 modifier = Modifier
@@ -167,18 +180,18 @@ private fun ParentSelectorContent(
                         onSelectLevel(level)
                     }
                 )
-                
+
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 24.dp),
                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
                 )
-                
+
                 // Preview Section
                 ElementPreview(
                     selectedElement = parentChain.getOrNull(selectedLevel),
                     mode = mode
                 )
-                
+
                 // Hierarchy Visualization
                 HierarchyVisualization(
                     hierarchy = parentChain,
@@ -190,7 +203,7 @@ private fun ParentSelectorContent(
                     }
                 )
             }
-            
+
             // Bottom Actions
             BottomActionBar(
                 mode = mode,
@@ -321,7 +334,7 @@ private fun ParentLevelSlider(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        
+
         Slider(
             value = sliderValue,
             onValueChange = { value ->
@@ -418,14 +431,14 @@ private fun ElementPreview(
                     element.id.takeIf { it.isNotBlank() }?.let {
                         AttributeChip("#$it", MaterialTheme.colorScheme.tertiary)
                     }
-                    
+
                     element.className.split(" ")
                         .firstOrNull { it.isNotBlank() }
                         ?.let {
                             AttributeChip(".$it", MaterialTheme.colorScheme.secondary)
                         }
                 }
-                
+
                 // Selector
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
@@ -441,7 +454,7 @@ private fun ElementPreview(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
-                
+
                 // Text preview if available
                 element.displayName.takeIf { it.isNotBlank() }?.let { text ->
                     HorizontalDivider(
@@ -520,7 +533,7 @@ private fun HierarchyVisualization(
                 fontWeight = FontWeight.SemiBold
             )
         )
-        
+
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
@@ -565,7 +578,7 @@ private fun HierarchyItem(
         ),
         label = "hierarchyBackground"
     )
-    
+
     Surface(
         onClick = onClick,
         color = backgroundColor,
@@ -592,7 +605,7 @@ private fun HierarchyItem(
                     tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                 )
             }
-            
+
             // Element info
             Text(
                 text = buildString {
@@ -618,7 +631,7 @@ private fun HierarchyItem(
                     MaterialTheme.colorScheme.onSurfaceVariant
                 }
             )
-            
+
             if (element.index == 0) {
                 Surface(
                     shape = RoundedCornerShape(4.dp),
@@ -659,7 +672,7 @@ private fun BottomActionBar(
             ) {
                 Text(text = stringResource(id = R.string.browser_parent_action_cancel))
             }
-            
+
             Button(
                 onClick = onConfirm,
                 modifier = Modifier.weight(2f),

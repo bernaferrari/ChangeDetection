@@ -1,6 +1,8 @@
 package com.bernaferrari.changedetection.ui.main
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -8,6 +10,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -118,27 +123,31 @@ fun QuickMonitorCompactBanner(
                         modifier = Modifier.size(20.dp)
                     )
 
-                    Text(
-                        text = buildString {
-                            append(
-                                pluralStringResource(
-                                    Res.plurals.turbo_mode_selected_sites,
-                                    sitesCount,
-                                    sitesCount
-                                )
-                            )
-                            append(" • ")
-                            append(
-                                stringResource(
-                                    Res.string.quick_monitor_next_check_in,
-                                    remainingSeconds.coerceAtLeast(0)
-                                )
+                    AnimatedContent(
+                        targetState = remainingSeconds.coerceAtLeast(0),
+                        transitionSpec = {
+                            if (targetState < initialState) {
+                                slideInVertically { height -> height } + fadeIn() togetherWith
+                                        slideOutVertically { height -> -height } + fadeOut()
+                            } else {
+                                slideInVertically { height -> -height } + fadeIn() togetherWith
+                                        slideOutVertically { height -> height } + fadeOut()
+                            }.using(
+                                SizeTransform(clip = false)
                             )
                         },
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                        label = "timer_tick"
+                    ) { seconds ->
+                        Text(
+                            text = stringResource(
+                                Res.string.quick_monitor_next_check_in,
+                                seconds
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                 }
 
                 FilledTonalIconButton(

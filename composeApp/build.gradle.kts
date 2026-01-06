@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose) // Kotlin Compose plugin required for Kotlin 2.0+
     alias(libs.plugins.jetbrains.compose)
@@ -11,11 +11,30 @@ plugins {
 }
 
 kotlin {
-    @Suppress("DEPRECATION")
-    androidTarget {
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
+    androidLibrary {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
+        androidResources {
+            enable = true
+        }
+        namespace = "com.bernaferrari.changedetection"
+        compileSdk = 36
+        minSdk = 30
+        packaging {
+            resources {
+                excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            }
+        }
+        lint {
+            abortOnError = false
+        }
+        withHostTest { }
+        withDeviceTest { }
     }
     
     listOf(
@@ -28,7 +47,7 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlin.stdlib)
@@ -44,7 +63,7 @@ kotlin {
             // HTML Parsing (Ksoup - Jsoup for KMP)
             implementation(libs.ksoup)
             // Date/Time (KMP)
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+            implementation(libs.kotlinx.datetime)
             // Compose Multiplatform UI
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -52,6 +71,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.materialIconsExtended)
+            implementation(libs.androidx.graphics.shapes)
             
             // Logging (Napier)
             implementation(libs.napier)
@@ -61,11 +81,11 @@ kotlin {
             implementation(libs.androidx.room.paging)
             
             // AndroidX Lifecycle ViewModel (KMP)
-            implementation(libs.androidx.lifecycle.viewmodel)
-            implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(libs.jetbrains.androidx.lifecycle.viewmodel)
+            implementation(libs.jetbrains.androidx.lifecycle.runtime.compose)
             implementation(libs.androidx.datastore.preferences)
             implementation(libs.koin.compose.viewmodel)
-            implementation("io.github.bernaferrari:fast-kotlin-diff-core:1.0.0")
+            implementation(libs.fast.kotlin.diff.core)
             
             // Navigation 3 (KMP-compatible runtime)
             implementation(libs.androidx.navigation3.runtime)
@@ -93,6 +113,7 @@ kotlin {
 
             // Compose (already provided by compose multiplatform in commonMain)
             implementation(libs.androidx.compose.ui.tooling.preview)
+            implementation(libs.androidx.compose.material3)  // M3 Expressive APIs (1.5.0-alpha11)
             implementation(libs.androidx.compose.material3.window.size)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
 
@@ -132,11 +153,11 @@ kotlin {
             implementation(libs.androidx.glance.appwidget)
         }
         iosMain.dependencies {
-            implementation(libs.ktor.client.ios)
+            implementation(libs.ktor.client.darwin)
         }
 
-        // Unit tests
-        val androidUnitTest by getting {
+        // Host (JVM) tests
+        val androidHostTest by getting {
             dependencies {
                 implementation(libs.junit)
                 implementation(libs.kotlinx.coroutines.test)
@@ -145,8 +166,8 @@ kotlin {
             }
         }
 
-        // Instrumented tests
-        val androidInstrumentedTest by getting {
+        // Device (instrumented) tests
+        val androidDeviceTest by getting {
             dependencies {
                 implementation(libs.androidx.test.core)
                 implementation(libs.androidx.compose.ui.test.junit4)
@@ -158,42 +179,6 @@ kotlin {
 
 compose.resources {
     packageOfResClass = "com.bernaferrari.changedetection.shared.generated.resources"
-}
-
-android {
-    namespace = "com.bernaferrari.changedetection"
-    compileSdk = 36
-
-    defaultConfig {
-        minSdk = 30
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    buildFeatures {
-        compose = true
-        buildConfig = true
-    }
-
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-
-    buildTypes {
-        named("release") {
-            isMinifyEnabled = false
-        }
-    }
-
-    lint {
-        abortOnError = false
-    }
 }
 
 room {

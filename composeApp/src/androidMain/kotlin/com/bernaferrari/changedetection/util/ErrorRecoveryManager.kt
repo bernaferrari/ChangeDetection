@@ -159,7 +159,7 @@ object ErrorRecoveryManager {
      * Handle specific error types with appropriate recovery
      */
     fun handleSpecificError(
-        error: Exception,
+        error: Throwable,
         context: String,
         onRecovered: (() -> Unit)? = null
     ): Boolean {
@@ -254,7 +254,7 @@ object ErrorRecoveryManager {
     /**
      * Get error recovery suggestions for user display
      */
-    fun getSuggestionsForError(error: Exception): List<String> {
+    fun getSuggestionsForError(error: Throwable): List<String> {
         val suggestions = mutableListOf<String>()
 
         when (error) {

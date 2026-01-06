@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.Card
@@ -322,113 +323,141 @@ private fun BrowserControlsBar(
         }
     }
 
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
-        )
+    // Sleek browser-style controls without Card wrapper
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(
+        // Compact navigation buttons
+        IconButton(
+            onClick = { webView?.let { if (it.canGoBack()) it.goBack() } },
+            modifier = Modifier.size(40.dp)
+        ) {
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        
+        IconButton(
+            onClick = { webView?.let { if (it.canGoForward()) it.goForward() } },
+            modifier = Modifier.size(40.dp)
+        ) {
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "Forward",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        
+        // Address field - rounded pill shape like Safari
+        Surface(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                .weight(1f)
+                .height(44.dp),
+            shape = RoundedCornerShape(22.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh
         ) {
             Row(
                 modifier = Modifier
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
-                        shape = RoundedCornerShape(20.dp)
-                    )
-                    .padding(horizontal = 4.dp, vertical = 2.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                IconButton(
-                    onClick = { webView?.let { if (it.canGoBack()) it.goBack() } },
-                    modifier = Modifier.size(36.dp)
-                ) {
+                // Lock/Globe icon
+                if (currentUrl.startsWith("https")) {
                     Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onSurface
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
                     )
-                }
-                IconButton(
-                    onClick = { webView?.let { if (it.canGoForward()) it.goForward() } },
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = "Forward",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                IconButton(
-                    onClick = {
-                        webView?.let {
-                            if (isLoading) it.stopLoading() else it.reload()
-                        }
-                    },
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Icon(
-                        imageVector = if (isLoading) Icons.Default.Close else Icons.Default.Refresh,
-                        contentDescription = if (isLoading) "Stop" else "Refresh",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-            OutlinedTextField(
-                value = urlText,
-                onValueChange = {
-                    urlText = it
-                    isUrlEditing = true
-                },
-                modifier = Modifier.weight(1f),
-                placeholder = {
-                    Text(text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.enter_website_url_ellipsis))
-                },
-                leadingIcon = {
+                } else {
                     Icon(
                         Icons.Default.Language,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp)
                     )
-                },
-                trailingIcon = {
-                    if (urlText != currentUrl && urlText.isNotBlank()) {
-                        IconButton(
-                            onClick = {
-                                submitUrl(urlText)
-                                isUrlEditing = false
+                }
+                
+                androidx.compose.foundation.text.BasicTextField(
+                    value = urlText,
+                    onValueChange = {
+                        urlText = it
+                        isUrlEditing = true
+                    },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurface
+                    ),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
+                    keyboardActions = KeyboardActions(
+                        onGo = {
+                            submitUrl(urlText)
+                            isUrlEditing = false
+                        }
+                    ),
+                    decorationBox = { innerTextField ->
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            if (urlText.isEmpty()) {
+                                Text(
+                                    text = stringResource(id = R.string.enter_website_url_ellipsis),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
+                            innerTextField()
                         }
                     }
-                },
-                shape = RoundedCornerShape(20.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
-                ),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
-                keyboardActions = KeyboardActions(
-                    onGo = {
-                        submitUrl(urlText)
-                        isUrlEditing = false
-                    }
                 )
+                
+                // Show loading or GO button
+                if (isLoading) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                } else if (urlText != currentUrl && urlText.isNotBlank()) {
+                    IconButton(
+                        onClick = {
+                            submitUrl(urlText)
+                            isUrlEditing = false
+                        },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = "Go",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
+        }
+        
+        // Reload button
+        IconButton(
+            onClick = {
+                webView?.let {
+                    if (isLoading) it.stopLoading() else it.reload()
+                }
+            },
+            modifier = Modifier.size(40.dp)
+        ) {
+            Icon(
+                imageVector = if (isLoading) Icons.Default.Close else Icons.Default.Refresh,
+                contentDescription = if (isLoading) "Stop" else "Refresh",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -524,7 +553,6 @@ private fun setupWebView(webView: WebView, viewModel: InteractiveBrowserViewMode
         settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
-            databaseEnabled = true // Enable database for login persistence
             allowFileAccess = false
             allowContentAccess = false
             setSupportZoom(true)

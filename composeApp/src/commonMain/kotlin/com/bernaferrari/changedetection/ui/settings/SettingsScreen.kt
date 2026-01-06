@@ -3,8 +3,10 @@ package com.bernaferrari.changedetection.ui.settings
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,12 +17,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -37,16 +41,22 @@ import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.rounded.Sync
+import androidx.compose.material3.ButtonGroup
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -57,13 +67,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.model.ThemeMode
+import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -80,117 +94,137 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showBackgroundSyncDialog by remember { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(vertical = 16.dp)
-    ) {
-        // Header
-        item {
-            SettingsHeader()
-        }
-
-        // Theme Section
-        item {
-            SectionHeader(
-                title = stringResource(Res.string.settings_section_appearance),
-                icon = Icons.Outlined.Palette
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        stringResource(Res.string.settings_title),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
+                modifier = Modifier.statusBarsPadding()
             )
-            ThemeSelector(
-                selectedTheme = uiState.themeMode,
-                onThemeSelected = { viewModel.updateThemeMode(it) }
-            )
-        }
-
-        // Sync Settings
-        item {
-            SectionHeader(
-                title = stringResource(Res.string.settings_monitoring_section),
-                icon = Icons.Outlined.Sync
-            )
-            SettingsGroup {
-                ToggleItem(
-                    icon = Icons.Outlined.Sync,
-                    title = stringResource(Res.string.settings_background_sync_title),
-                    subtitle = if (uiState.backgroundSync) {
-                        stringResource(Res.string.settings_background_sync_every, uiState.syncInterval)
-                    } else {
-                        stringResource(Res.string.settings_background_sync_disabled)
-                    },
-                    checked = uiState.backgroundSync,
-                    onCheckedChange = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        viewModel.updateBackgroundSync(it)
-                    },
-                    onClick = { showBackgroundSyncDialog = true }
+        },
+        contentWindowInsets = WindowInsets(0) // Remove system insets
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp)
+        ) {
+            item {
+                SectionHeader(
+                    title = stringResource(Res.string.settings_section_appearance),
+                    icon = Icons.Outlined.Palette
                 )
-                ItemDivider()
-                ActionItem(
-                    icon = Icons.Outlined.Schedule,
-                    title = "Sync Interval",
-                    value = "${uiState.syncInterval} min",
-                    onClick = { showBackgroundSyncDialog = true }
-                )
+                SettingsGroup {
+                    ThemeSelector(
+                        selectedTheme = uiState.themeMode,
+                        onThemeSelected = { viewModel.updateThemeMode(it) }
+                    )
+                }
             }
-        }
 
-        // About Section
-        item {
-            SectionHeader(
-                title = stringResource(Res.string.settings_about_section),
-                icon = Icons.Outlined.Info
-            )
-            SettingsGroup {
-                ActionItem(
-                    icon = Icons.Outlined.Info,
-                    title = stringResource(Res.string.settings_about_title),
-                    onClick = onAboutClick
+            // Sync Settings
+            item {
+                SectionHeader(
+                    title = stringResource(Res.string.settings_monitoring_section),
+                    icon = Icons.Outlined.Sync
                 )
-                ItemDivider()
-                ActionItem(
-                    icon = Icons.Outlined.Code,
-                    title = "Version",
-                    value = "3.0.0",
-                    showChevron = false,
-                    onClick = {}
-                )
-                ItemDivider()
-                ActionItem(
-                    icon = Icons.Outlined.Email,
-                    title = stringResource(Res.string.settings_action_contact),
-                    onClick = onContactClick
-                )
+                SettingsGroup {
+                    ToggleItem(
+                        icon = Icons.Outlined.Sync,
+                        title = stringResource(Res.string.settings_background_sync_title),
+                        subtitle = if (uiState.backgroundSync) {
+                            stringResource(Res.string.settings_background_sync_every, uiState.syncInterval)
+                        } else {
+                            stringResource(Res.string.settings_background_sync_disabled)
+                        },
+                        checked = uiState.backgroundSync,
+                        onCheckedChange = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.updateBackgroundSync(it)
+                        },
+                        onClick = { showBackgroundSyncDialog = true }
+                    )
+                    ItemDivider()
+                    ActionItem(
+                        icon = Icons.Outlined.Schedule,
+                        title = stringResource(Res.string.settings_sync_interval_title),
+                        value = "${uiState.syncInterval} min",
+                        onClick = { showBackgroundSyncDialog = true }
+                    )
+                }
             }
-        }
 
-        // Footer
-        item {
-            Spacer(modifier = Modifier.height(32.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Made with",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            // About Section
+            item {
+                SectionHeader(
+                    title = stringResource(Res.string.settings_about_section),
+                    icon = Icons.Outlined.Info
                 )
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    imageVector = Icons.Outlined.Favorite,
-                    contentDescription = null,
-                    modifier = Modifier.size(14.dp),
-                    tint = Color(0xFFE91E63)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = "by Bernardo Ferrari",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                SettingsGroup {
+                    ActionItem(
+                        icon = Icons.Outlined.Info,
+                        title = stringResource(Res.string.settings_about_title),
+                        onClick = onAboutClick
+                    )
+                    ItemDivider()
+                    ActionItem(
+                        icon = Icons.Outlined.Code,
+                        title = stringResource(Res.string.settings_version),
+                        value = "3.0.0",
+                        showChevron = false,
+                        onClick = {}
+                    )
+                    ItemDivider()
+                    ActionItem(
+                        icon = Icons.Outlined.Email,
+                        title = stringResource(Res.string.settings_action_contact),
+                        onClick = onContactClick
+                    )
+                }
             }
-            Spacer(modifier = Modifier.height(80.dp))
+
+            // Footer
+            item {
+                Spacer(modifier = Modifier.height(32.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Made with",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Outlined.Favorite,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = Color(0xFFE91E63)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "by Bernardo Ferrari",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.height(80.dp))
+            }
         }
     }
 
@@ -198,60 +232,6 @@ fun SettingsScreen(
         BackgroundSyncDialog(
             onDismiss = { showBackgroundSyncDialog = false },
             viewModel = viewModel
-        )
-    }
-}
-
-@Composable
-private fun SettingsHeader() {
-    val infiniteTransition = rememberInfiniteTransition(label = "settings_float")
-    val floatingOffset by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 6f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2500, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "floating_offset"
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .size(72.dp)
-                .offset(y = floatingOffset.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.Sync,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(36.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Settings",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = "Customize your experience",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -289,7 +269,7 @@ private fun SettingsGroup(content: @Composable () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surfaceContainer
     ) {
         Column {
@@ -304,50 +284,35 @@ private fun ThemeSelector(
     selectedTheme: String,
     onThemeSelected: (String) -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
     val themes = listOf(
-        Triple(Icons.Outlined.LightMode, "Light", ThemeMode.LIGHT.name),
-        Triple(Icons.Outlined.DarkMode, "Dark", ThemeMode.DARK.name),
-        Triple(Icons.Outlined.Palette, "System", ThemeMode.SYSTEM.name)
+        Pair("Light", ThemeMode.LIGHT.name),
+        Pair("Dark", ThemeMode.DARK.name),
+        Pair("System", ThemeMode.SYSTEM.name)
     )
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(16.dp)
     ) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surfaceContainer
+        SingleChoiceSegmentedButtonRow(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier.fillMaxWidth()
+            themes.forEachIndexed { index, (label, value) ->
+                SegmentedButton(
+                    selected = selectedTheme == value,
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onThemeSelected(value)
+                    },
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = themes.size),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    themes.forEachIndexed { index, (icon, label, value) ->
-                        SegmentedButton(
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = themes.size,
-                                baseShape = RoundedCornerShape(12.dp)
-                            ),
-                            onClick = { onThemeSelected(value) },
-                            selected = selectedTheme == value,
-                            icon = {
-                                SegmentedButtonDefaults.Icon(active = selectedTheme == value) {
-                                    Icon(
-                                        imageVector = icon,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                            }
-                        ) {
-                            Text(
-                                text = label,
-                                style = MaterialTheme.typography.labelLarge
-                            )
-                        }
-                    }
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 }
             }
         }
@@ -363,11 +328,23 @@ private fun ToggleItem(
     onCheckedChange: (Boolean) -> Unit,
     onClick: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1f,
+        animationSpec = spring(
+            dampingRatio = ExpressiveSpring.QUICK_DAMPING,
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+        ),
+        label = "toggleScale"
+    )
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .scale(scale)
             .clickable(
-                interactionSource = remember { MutableInteractionSource() },
+                interactionSource = interactionSource,
                 indication = ripple(),
                 onClick = onClick
             )
@@ -411,11 +388,23 @@ private fun ActionItem(
     showChevron: Boolean = true,
     onClick: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1f,
+        animationSpec = spring(
+            dampingRatio = ExpressiveSpring.QUICK_DAMPING,
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+        ),
+        label = "actionScale"
+    )
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .scale(scale)
             .clickable(
-                interactionSource = remember { MutableInteractionSource() },
+                interactionSource = interactionSource,
                 indication = ripple(),
                 onClick = onClick
             )

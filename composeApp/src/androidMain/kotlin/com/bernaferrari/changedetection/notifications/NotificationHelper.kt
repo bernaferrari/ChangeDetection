@@ -81,19 +81,12 @@ class NotificationHelper(private val context: Context) {
 
             val notification = NotificationCompat.Builder(context, CHANNEL_ID_CHANGES)
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("Change Detected!")
-                .setContentText("${site.title ?: site.url} - $changeDescription")
-                .setStyle(NotificationCompat.BigTextStyle().bigText(
-                    "Site: ${site.title ?: "Website"}\n" +
-                    "URL: ${site.url}\n" +
-                    "Change: $changeDescription\n\n" +
-                    "Tap to view differences"
-                ))
+                .setContentTitle(site.title ?: site.url)
+                .setContentText("Change detected")
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setCategory(NotificationCompat.CATEGORY_STATUS)
+                .setOngoing(true)
                 .build()
 
             val notificationId = NOTIFICATION_ID_CHANGE_BASE + site.id.hashCode()
@@ -127,13 +120,8 @@ class NotificationHelper(private val context: Context) {
 
             val notification = NotificationCompat.Builder(context, CHANNEL_ID_SYNC)
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("Sync Error")
-                .setContentText("${site.title ?: site.url} - $errorMessage")
-                .setStyle(NotificationCompat.BigTextStyle().bigText(
-                    "Site: ${site.title ?: "Website"}\n" +
-                    "URL: ${site.url}\n" +
-                    "Error: $errorMessage"
-                ))
+                .setContentTitle(site.title ?: site.url)
+                .setContentText("Sync failed")
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)

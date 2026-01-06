@@ -1,49 +1,73 @@
 package com.bernaferrari.changedetection.ui.settings
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.BatteryChargingFull
+import androidx.compose.material.icons.outlined.BatterySaver
+import androidx.compose.material.icons.outlined.PhoneAndroid
+import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material.icons.outlined.Wifi
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bernaferrari.changedetection.shared.generated.resources.*
-import org.jetbrains.compose.resources.StringResource
+import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackgroundSyncDialog(
     onDismiss: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     var syncEnabled by remember { mutableStateOf(uiState.backgroundSync) }
     var intervalValue by remember { mutableLongStateOf(uiState.syncInterval) }
@@ -53,227 +77,377 @@ fun BackgroundSyncDialog(
         intervalValue = uiState.syncInterval
     }
 
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            modifier = Modifier.padding(16.dp),
-            shape = RoundedCornerShape(16.dp)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 32.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+            // Hero Section
+            SyncHeroSection(
+                syncEnabled = syncEnabled,
+                intervalMinutes = intervalValue
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Enable/Disable Toggle
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surfaceContainer
             ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = stringResource(Res.string.settings_background_sync_enable),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = if (syncEnabled) stringResource(Res.string.settings_sync_monitoring_in_background) else stringResource(Res.string.settings_background_sync_disabled),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = syncEnabled,
+                        onCheckedChange = {
+                            syncEnabled = it
+                            viewModel.updateBackgroundSync(it)
+                        }
+                    )
+                }
+            }
+
+            if (syncEnabled) {
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Interval Picker
+                IntervalChipPicker(
+                    currentInterval = intervalValue,
+                    onIntervalChanged = { newInterval ->
+                        intervalValue = newInterval
+                        viewModel.updateSyncInterval(newInterval)
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Constraints Section
+                ConstraintsSection(
+                    requireWifi = uiState.requireWifi,
+                    requireCharging = uiState.requireCharging,
+                    requireBatteryNotLow = uiState.requireBatteryNotLow,
+                    requireDeviceIdle = uiState.requireDeviceIdle,
+                    onWifiChange = { viewModel.updateWifiConstraint(it) },
+                    onChargingChange = { viewModel.updateChargingConstraint(it) },
+                    onBatteryChange = { viewModel.updateBatteryNotLowConstraint(it) },
+                    onIdleChange = { viewModel.updateDeviceIdleConstraint(it) }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Done Button
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+            ) {
+                Text(stringResource(Res.string.done))
+            }
+        }
+    }
+}
+
+@Composable
+private fun SyncHeroSection(
+    syncEnabled: Boolean,
+    intervalMinutes: Long
+) {
+    val containerColor by animateColorAsState(
+        targetValue = if (syncEnabled) 
+            MaterialTheme.colorScheme.primaryContainer 
+        else 
+            MaterialTheme.colorScheme.surfaceContainerHighest,
+        animationSpec = spring(
+            dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
+            stiffness = ExpressiveSpring.GENTLE_STIFFNESS
+        ),
+        label = "heroColor"
+    )
+    
+    val contentColor by animateColorAsState(
+        targetValue = if (syncEnabled)
+            MaterialTheme.colorScheme.onPrimaryContainer
+        else
+            MaterialTheme.colorScheme.onSurfaceVariant,
+        animationSpec = spring(
+            dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
+            stiffness = ExpressiveSpring.GENTLE_STIFFNESS
+        ),
+        label = "heroContentColor"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(containerColor)
+            .padding(24.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(contentColor.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Sync,
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+            
+            Column {
                 Text(
                     text = stringResource(Res.string.settings_background_sync_title),
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = contentColor
                 )
-
-                ConstraintRow(
-                    titleRes = Res.string.settings_background_sync_enable,
-                    checked = syncEnabled,
-                    onCheckedChange = {
-                        syncEnabled = it
-                        viewModel.updateBackgroundSync(it)
-                    }
-                )
-
-                if (syncEnabled) {
-                    IntervalPicker(
-                        currentInterval = intervalValue,
-                        onIntervalChanged = { newInterval ->
-                            intervalValue = newInterval
-                            viewModel.updateSyncInterval(newInterval)
+                
+                val description = if (syncEnabled) {
+                    when {
+                        intervalMinutes >= 1440 -> {
+                            val days = intervalMinutes / 1440
+                            pluralStringResource(
+                                resource = Res.plurals.settings_sync_every_days,
+                                quantity = days.toInt(),
+                                days.toInt()
+                            )
                         }
-                    )
-
-                    SyncDescription(intervalValue)
-
-                    Text(
-                        text = stringResource(Res.string.settings_sync_constraints_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium
-                    )
-
-                    ConstraintRow(
-                        titleRes = Res.string.settings_sync_constraint_wifi,
-                        checked = uiState.requireWifi,
-                        onCheckedChange = { viewModel.updateWifiConstraint(it) }
-                    )
-
-                    ConstraintRow(
-                        titleRes = Res.string.settings_sync_constraint_charging,
-                        checked = uiState.requireCharging,
-                        onCheckedChange = { viewModel.updateChargingConstraint(it) }
-                    )
-
-                    ConstraintRow(
-                        titleRes = Res.string.settings_sync_constraint_battery,
-                        checked = uiState.requireBatteryNotLow,
-                        onCheckedChange = { viewModel.updateBatteryNotLowConstraint(it) }
-                    )
-
-                    ConstraintRow(
-                        titleRes = Res.string.settings_sync_constraint_idle,
-                        checked = uiState.requireDeviceIdle,
-                        onCheckedChange = { viewModel.updateDeviceIdleConstraint(it) }
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = onDismiss) {
-                        Text(stringResource(Res.string.done))
+                        intervalMinutes >= 60 -> {
+                            val hours = intervalMinutes / 60
+                            pluralStringResource(
+                                resource = Res.plurals.settings_sync_every_hours,
+                                quantity = hours.toInt(),
+                                hours.toInt()
+                            )
+                        }
+                        else -> pluralStringResource(
+                            resource = Res.plurals.settings_sync_every_minutes,
+                            quantity = intervalMinutes.toInt(),
+                            intervalMinutes.toInt()
+                        )
                     }
+                } else {
+                    stringResource(Res.string.settings_sync_not_syncing)
                 }
+                
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = contentColor.copy(alpha = 0.8f)
+                )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun IntervalPicker(
+private fun IntervalChipPicker(
     currentInterval: Long,
     onIntervalChanged: (Long) -> Unit
 ) {
-    val availableUnits = listOf(
-        IntervalUnit(minutesMultiplier = 1L, labelRes = Res.string.settings_sync_unit_minutes),
-        IntervalUnit(minutesMultiplier = 60L, labelRes = Res.string.settings_sync_unit_hours),
-        IntervalUnit(minutesMultiplier = 1440L, labelRes = Res.string.settings_sync_unit_days)
+    // Common intervals in minutes
+    val intervals = listOf(
+        15L to "15m",
+        30L to "30m",
+        60L to "1h",
+        120L to "2h",
+        360L to "6h",
+        720L to "12h",
+        1440L to "1d"
     )
 
-    val initialUnitIndex = when {
-        currentInterval >= 1440 -> 2
-        currentInterval >= 60 -> 1
-        else -> 0
-    }
-    val initialValue = when (initialUnitIndex) {
-        2 -> currentInterval / 1440
-        1 -> currentInterval / 60
-        else -> currentInterval
-    }.coerceAtLeast(1)
+    Column(
+        modifier = Modifier.padding(horizontal = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = stringResource(Res.string.settings_sync_interval_label),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
 
-    var selectedUnitIndex by rememberSaveable { mutableIntStateOf(initialUnitIndex) }
-    var inputValue by rememberSaveable { mutableStateOf(initialValue.toString()) }
-
-    fun emitInterval() {
-        val numericValue = inputValue.toLongOrNull()
-        if (numericValue != null && numericValue > 0) {
-            val unit = availableUnits[selectedUnitIndex]
-            onIntervalChanged(numericValue * unit.minutesMultiplier)
-        }
-    }
-
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(stringResource(Res.string.settings_sync_interval_label))
-
-        Row(
+        FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            OutlinedTextField(
-                value = inputValue,
-                onValueChange = { newValue ->
-                    val sanitized = newValue.filter { it.isDigit() }.take(5)
-                    inputValue = sanitized
-                    emitInterval()
-                },
-                modifier = Modifier.width(100.dp),
-                singleLine = true,
-                label = { Text(stringResource(Res.string.settings_sync_interval_value)) }
-            )
-
-            var expanded by remember { mutableStateOf(false) }
-
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
-            ) {
-                OutlinedTextField(
-                    value = stringResource(availableUnits[selectedUnitIndex].labelRes),
-                    onValueChange = { },
-                    readOnly = true,
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier.width(140.dp).menuAnchor()
+            intervals.forEach { (minutes, label) ->
+                val isSelected = currentInterval == minutes
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { onIntervalChanged(minutes) },
+                    label = { Text(label) },
+                    leadingIcon = if (isSelected) {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    } else null,
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 )
-
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    availableUnits.forEachIndexed { index, unit ->
-                        DropdownMenuItem(
-                            text = { Text(stringResource(unit.labelRes)) },
-                            onClick = {
-                                selectedUnitIndex = index
-                                expanded = false
-                                emitInterval()
-                            }
-                        )
-                    }
-                }
             }
         }
     }
 }
 
 @Composable
-private fun ConstraintRow(
-    titleRes: StringResource,
+private fun ConstraintsSection(
+    requireWifi: Boolean,
+    requireCharging: Boolean,
+    requireBatteryNotLow: Boolean,
+    requireDeviceIdle: Boolean,
+    onWifiChange: (Boolean) -> Unit,
+    onChargingChange: (Boolean) -> Unit,
+    onBatteryChange: (Boolean) -> Unit,
+    onIdleChange: (Boolean) -> Unit
+) {
+    Column(
+        modifier = Modifier.padding(horizontal = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = stringResource(Res.string.settings_sync_constraints_title),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        
+        Text(
+            text = stringResource(Res.string.settings_sync_constraints_description),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceContainer
+        ) {
+            Column {
+                ConstraintItem(
+                    icon = Icons.Outlined.Wifi,
+                    title = stringResource(Res.string.settings_sync_constraint_wifi),
+                    checked = requireWifi,
+                    onCheckedChange = onWifiChange
+                )
+                
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 56.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+                
+                ConstraintItem(
+                    icon = Icons.Outlined.BatteryChargingFull,
+                    title = stringResource(Res.string.settings_sync_constraint_charging),
+                    checked = requireCharging,
+                    onCheckedChange = onChargingChange
+                )
+                
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 56.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+                
+                ConstraintItem(
+                    icon = Icons.Outlined.BatterySaver,
+                    title = stringResource(Res.string.settings_sync_constraint_battery),
+                    checked = requireBatteryNotLow,
+                    onCheckedChange = onBatteryChange
+                )
+                
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 56.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+                
+                ConstraintItem(
+                    icon = Icons.Outlined.PhoneAndroid,
+                    title = stringResource(Res.string.settings_sync_constraint_idle),
+                    checked = requireDeviceIdle,
+                    onCheckedChange = onIdleChange
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ConstraintItem(
+    icon: ImageVector,
+    title: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(stringResource(titleRes))
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(24.dp)
+        )
+        
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        )
+        
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange
         )
     }
 }
-
-@Composable
-private fun SyncDescription(intervalMinutes: Long) {
-    val description = when {
-        intervalMinutes >= 1440 -> {
-            val days = intervalMinutes / 1440
-            pluralStringResource(
-                resource = Res.plurals.settings_sync_every_days,
-                quantity = days.toInt(),
-                days.toInt()
-            )
-        }
-
-        intervalMinutes >= 60 -> {
-            val hours = intervalMinutes / 60
-            pluralStringResource(
-                resource = Res.plurals.settings_sync_every_hours,
-                quantity = hours.toInt(),
-                hours.toInt()
-            )
-        }
-
-        else -> pluralStringResource(
-            resource = Res.plurals.settings_sync_every_minutes,
-            quantity = intervalMinutes.toInt(),
-            intervalMinutes.toInt()
-        )
-    }
-
-    Text(
-        text = description,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-}
-
-private data class IntervalUnit(
-    val minutesMultiplier: Long,
-    val labelRes: StringResource
-)

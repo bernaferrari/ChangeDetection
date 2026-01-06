@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 
 class MainViewModel(
     private val mSnapsRepository: SnapsRepository,
@@ -70,20 +69,13 @@ class MainViewModel(
     private val _loadingSites = MutableStateFlow<Set<String>>(emptySet())
     val loadingSites: StateFlow<Set<String>> = _loadingSites.asStateFlow()
 
-    // StateFlow for tracking initial data load
-    private val _isInitialLoading = MutableStateFlow(true)
-    val isInitialLoading: StateFlow<Boolean> = _isInitialLoading.asStateFlow()
-
     /**
      * OPTIMIZATION: Efficiently combines sites with their most recent snapshots.
      */
-    val sitesFlow: StateFlow<List<SiteAndLastSnap>> = combine(
+    val sitesFlow: StateFlow<List<SiteAndLastSnap>?> = combine(
         mSitesRepository.getDataWithChanges(),
         _loadingSites.asStateFlow()
     ) { sites, loadingSiteIds ->
-        // Mark initial loading as complete
-        _isInitialLoading.value = false
-
         // Load all snapshots in a single optimized query
         val snapsBySite = runCatching { mSnapsRepository.getAllMostRecentSnaps() }.getOrNull() ?: emptyMap()
 
@@ -98,7 +90,7 @@ class MainViewModel(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
+        initialValue = null
     )
 
     // Quick Monitor state
@@ -160,7 +152,7 @@ class MainViewModel(
                 return@launch
             }
 
-            if (deadline > 0L && Clock.System.now().toEpochMilliseconds() > deadline) {
+            if (deadline > 0L && System.currentTimeMillis() > deadline) {
                 dataStore.edit { preferences ->
                     preferences[QUICK_MONITOR_ACTIVE_KEY] = false
                     preferences[QUICK_MONITOR_SITE_IDS_KEY] = ""
@@ -210,7 +202,7 @@ class MainViewModel(
             _loadingSites.update { it + site.id }
 
             // Update site timestamp to indicate sync started
-            mSitesRepository.updateSite(site.copy(timestamp = Clock.System.now().toEpochMilliseconds()))
+            mSitesRepository.updateSite(site.copy(timestamp = System.currentTimeMillis()))
 
             // Start sync work
             monitoringManager.reloadSite(site)
@@ -260,7 +252,7 @@ class MainViewModel(
             dataStore.edit { preferences ->
                 preferences[QUICK_MONITOR_ACTIVE_KEY] = true
                 preferences[QUICK_MONITOR_SITE_IDS_KEY] = siteIds.joinToString(",")
-                preferences[QUICK_MONITOR_START_TIME_KEY] = Clock.System.now().toEpochMilliseconds()
+                preferences[QUICK_MONITOR_START_TIME_KEY] = System.currentTimeMillis()
                 preferences[QUICK_MONITOR_INTERVAL_KEY] = intervalSeconds
             }
             Napier.d("💾 MainViewModel: Quick Monitor state saved to DataStore")
