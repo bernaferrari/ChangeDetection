@@ -7,8 +7,6 @@ import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,7 +40,7 @@ private val bottomNavItems = listOf(
 @Composable
 fun ChangeDetectionBottomNavigation(
     backStack: NavBackStack<NavKey>,
-    windowSizeClass: WindowSizeClass,
+    useNavigationRail: Boolean,
     content: @Composable () -> Unit
 ) {
     val currentDestination = backStack.lastOrNull()
@@ -58,11 +56,7 @@ fun ChangeDetectionBottomNavigation(
         return
     }
 
-    val layout = when (windowSizeClass.widthSizeClass) {
-        WindowWidthSizeClass.Compact, WindowWidthSizeClass.Medium -> NavigationLayout.BottomBar
-        WindowWidthSizeClass.Expanded -> NavigationLayout.Rail
-        else -> NavigationLayout.BottomBar
-    }
+    val layout = if (useNavigationRail) NavigationLayout.Rail else NavigationLayout.BottomBar
 
     when (layout) {
         NavigationLayout.BottomBar -> BottomNavigationLayout(backStack, currentDestination, content)

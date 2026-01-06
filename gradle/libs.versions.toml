@@ -150,6 +150,7 @@ subsampling-scale-imageview = { module = "com.davemorrissey.labs:subsampling-sca
 timeago = { module = "com.github.marlonlom:timeago", version.ref = "timeAgo" }
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version = "2.6.2" }
 ksoup = { module = "com.fleeksoft.ksoup:ksoup", version = "0.2.5" }
+webview-multiplatform = { module = "io.github.kevinnzou:compose-webview-multiplatform", version = "1.9.40" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

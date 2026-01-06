@@ -1,19 +1,13 @@
 package com.bernaferrari.changedetection.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialExpressiveTheme
-import androidx.compose.material3.MotionScheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
 // Expressive Shapes with larger corner radii for modern look
@@ -79,29 +73,22 @@ private val DarkColorScheme = darkColorScheme(
     onErrorContainer = Color(0xFFF9DEDC)
 )
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ChangeDetectionTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = true, // Kept for API compatibility, but currently unused in shared code
     content: @Composable () -> Unit
 ) {
+    // TODO: Implement dynamic color support for Android via expect/actual if needed
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
 
-    // Use MaterialExpressiveTheme with expressive motion for bouncy, delightful animations
-    MaterialExpressiveTheme(
+    MaterialTheme(
         colorScheme = colorScheme,
         shapes = Shapes,
         typography = Typography,
-        motionScheme = MotionScheme.expressive(),
         content = content
     )
 }

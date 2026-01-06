@@ -12,6 +12,8 @@ import com.bernaferrari.changedetection.background.MonitoringManager
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -183,7 +185,7 @@ class SettingsViewModel(
             dataStore.edit { preferences ->
                 preferences[TURBO_MODE_KEY] = true
                 preferences[TURBO_SITE_IDS_KEY] = siteIds.joinToString(",")
-                preferences[TURBO_START_TIME_KEY] = System.currentTimeMillis()
+                preferences[TURBO_START_TIME_KEY] = getNow()
                 preferences[TURBO_SYNC_INTERVAL_KEY] = syncIntervalSeconds.toLong()
                 preferences[TURBO_DURATION_KEY] = durationMinutes.toLong()
             }
@@ -202,3 +204,5 @@ class SettingsViewModel(
         }
     }
 }
+
+private fun getNow() = com.bernaferrari.changedetection.util.platformCurrentTimeMillis()

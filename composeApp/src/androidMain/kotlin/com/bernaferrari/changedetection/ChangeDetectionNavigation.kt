@@ -14,6 +14,7 @@ import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,7 +28,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.bernaferrari.changedetection.addedit.AddEditFlow
 import com.bernaferrari.changedetection.localBrowser.LocalBrowserScreen
-import com.bernaferrari.changedetection.logs.LogsScreen
+import com.bernaferrari.changedetection.ui.logs.LogsScreen
 import com.bernaferrari.changedetection.navigation.*
 import com.bernaferrari.changedetection.ui.about.AboutScreen
 import com.bernaferrari.changedetection.ui.comparison.ComparisonScreen
@@ -86,7 +87,7 @@ fun ChangeDetectionApp(
 
     ChangeDetectionBottomNavigation(
         backStack = backStack,
-        windowSizeClass = windowSizeClass
+        useNavigationRail = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
     ) {
         NavDisplay(
             backStack = backStack,
@@ -133,6 +134,7 @@ fun ChangeDetectionApp(
 
                 entry<LogsDestination> {
                     LogsScreen(
+                        onNavigateUp = { backStack.removeLastOrNull() },
                         onSnapClick = { snapId, url ->
                             backStack.add(BrowserDestination(snapId = snapId, url = url))
                         }
@@ -244,7 +246,9 @@ fun ChangeDetectionApp(
                 ) { key ->
                     ComparisonScreen(
                         siteId = key.siteId,
-                        onNavigateUp = { backStack.removeLastOrNull() }
+                        onNavigateUp = { backStack.removeLastOrNull() },
+                        onSiteEdit = { id -> backStack.add(EditSiteDestination(siteId = id)) },
+                        onSiteDelete = { backStack.removeLastOrNull() }
                     )
                 }
             },

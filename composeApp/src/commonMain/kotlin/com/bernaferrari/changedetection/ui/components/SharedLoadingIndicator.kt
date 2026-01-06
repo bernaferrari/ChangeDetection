@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 /**
  * Shared loading state component for KMP.
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SharedLoadingIndicator(
     modifier: Modifier = Modifier
@@ -26,7 +25,7 @@ fun SharedLoadingIndicator(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        CircularWavyProgressIndicator(
+        CircularProgressIndicator(
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(48.dp)
         )

@@ -266,30 +266,31 @@ fun SharedMainCard(
                 }
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             
-            // Metadata row - 50/50 split, left aligned
-            Row(
+            // Metadata rows - stacked vertically like the reference design
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 4.dp)
+                    .padding(horizontal = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // Left half - Changed
-                MetadataItem(
-                    icon = Icons.Rounded.History,
-                    label = "Changed",
-                    value = lastChangeValue,
-                    accentColor = siteColor,
-                    modifier = Modifier.weight(1f)
+                // Last Sync row
+                MetadataRow(
+                    icon = Icons.Rounded.Sync,
+                    label = "Last Sync",
+                    value = lastSyncValue,
+                    secondaryValue = fileSizeValue.takeIf { it.isNotBlank() },
+                    accentColor = siteColor
                 )
                 
-                // Right half - Synced
-                MetadataItem(
-                    icon = Icons.Rounded.Sync,
-                    label = "Synced",
-                    value = lastSyncValue,
-                    accentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f)
+                // Last Change row
+                MetadataRow(
+                    icon = Icons.Rounded.History,
+                    label = "Last Change",
+                    value = lastChangeValue,
+                    secondaryValue = null,
+                    accentColor = siteColor
                 )
             }
         }
@@ -297,40 +298,73 @@ fun SharedMainCard(
 }
 
 /**
- * Left-aligned metadata item.
+ * Horizontal metadata row with icon, label, and value.
  */
 @Composable
-private fun MetadataItem(
+private fun MetadataRow(
     icon: ImageVector,
     label: String,
     value: String,
+    secondaryValue: String?,
     accentColor: Color,
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = accentColor,
-            modifier = Modifier.size(18.dp)
-        )
-        Spacer(modifier = Modifier.size(8.dp))
-        Column {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
+        // Icon in a subtle circular background
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(accentColor.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = accentColor,
+                modifier = Modifier.size(18.dp)
             )
+        }
+        
+        Spacer(modifier = Modifier.size(12.dp))
+        
+        // Label and value
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
             )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (secondaryValue != null) {
+                    Text(
+                        text = "–",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                    Text(
+                        text = secondaryValue,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
     }
 }
+
+
