@@ -6,6 +6,7 @@ import com.bernaferrari.changedetection.repo.source.local.SitesDao
 import com.bernaferrari.changedetection.repo.source.local.SnapsDao
 import io.github.aakira.napier.Napier
 import com.fleeksoft.ksoup.Ksoup
+import kotlinx.datetime.Clock
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -262,5 +263,5 @@ class SyncEngine(
     /**
      * Platform-independent way to get current time in milliseconds.
      */
-    private fun currentTimeMillis(): Long = System.currentTimeMillis()
+    private fun currentTimeMillis(): Long = com.bernaferrari.changedetection.util.platformCurrentTimeMillis()
 }

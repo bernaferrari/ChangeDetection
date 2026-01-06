@@ -1,5 +1,6 @@
 package com.bernaferrari.changedetection.ui.interactions
 
+import com.bernaferrari.changedetection.util.getCurrentTimeMillis
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -144,7 +145,7 @@ object MicroInteractions {
         this.graphicsLayer {
             translationX = if (shakeState) {
                 // Create shake effect by alternating direction
-                offsetX * kotlin.math.sin(System.currentTimeMillis() / 20.0).toFloat()
+                offsetX * kotlin.math.sin(getCurrentTimeMillis() / 20.0).toFloat()
             } else {
                 0f
             }

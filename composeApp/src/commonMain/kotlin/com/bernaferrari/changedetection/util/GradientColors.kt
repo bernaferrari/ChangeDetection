@@ -1,6 +1,5 @@
 package com.bernaferrari.changedetection.util
 
-import android.graphics.drawable.GradientDrawable
 import com.bernaferrari.changedetection.repo.ColorGroup
 
 /**
@@ -41,10 +40,4 @@ object GradientColors {
             Pair(0xff622774.toInt(), 0xffC53364.toInt())  // Dark-Purple -> Light-Purple
         )
     }
-
-    fun getGradientDrawable(color: ColorGroup): GradientDrawable = GradientDrawable(
-        GradientDrawable.Orientation.TR_BL, intArrayOf(
-            color.first, color.second
-        )
-    )
 }

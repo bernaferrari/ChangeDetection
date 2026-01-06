@@ -18,6 +18,7 @@ import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import io.github.aakira.napier.Napier
+import kotlinx.datetime.Clock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -152,7 +153,7 @@ class MainViewModel(
                 return@launch
             }
 
-            if (deadline > 0L && System.currentTimeMillis() > deadline) {
+            if (deadline > 0L && getNow() > deadline) {
                 dataStore.edit { preferences ->
                     preferences[QUICK_MONITOR_ACTIVE_KEY] = false
                     preferences[QUICK_MONITOR_SITE_IDS_KEY] = ""
@@ -202,7 +203,7 @@ class MainViewModel(
             _loadingSites.update { it + site.id }
 
             // Update site timestamp to indicate sync started
-            mSitesRepository.updateSite(site.copy(timestamp = System.currentTimeMillis()))
+            mSitesRepository.updateSite(site.copy(timestamp = getNow()))
 
             // Start sync work
             monitoringManager.reloadSite(site)
@@ -252,7 +253,7 @@ class MainViewModel(
             dataStore.edit { preferences ->
                 preferences[QUICK_MONITOR_ACTIVE_KEY] = true
                 preferences[QUICK_MONITOR_SITE_IDS_KEY] = siteIds.joinToString(",")
-                preferences[QUICK_MONITOR_START_TIME_KEY] = System.currentTimeMillis()
+                preferences[QUICK_MONITOR_START_TIME_KEY] = getNow()
                 preferences[QUICK_MONITOR_INTERVAL_KEY] = intervalSeconds
             }
             Napier.d("💾 MainViewModel: Quick Monitor state saved to DataStore")
@@ -280,3 +281,5 @@ class MainViewModel(
         }
     }
 }
+
+private fun getNow() = com.bernaferrari.changedetection.util.platformCurrentTimeMillis()

@@ -10,6 +10,8 @@ fun Long.readableFileSize(): String {
     if (this <= 0) return "0 B"
     val units = arrayOf("B", "KB", "MB", "GB", "TB")
     val digitGroups = (log10(this.toDouble()) / log10(1024.0)).toInt()
-    return "%.1f %s".format(this / 1024.0.pow(digitGroups.toDouble()), units[digitGroups])
+    val value = this / 1024.0.pow(digitGroups.toDouble())
+    val roundedValue = (value * 10).toInt() / 10.0
+    return "$roundedValue ${units[digitGroups]}"
 }
 

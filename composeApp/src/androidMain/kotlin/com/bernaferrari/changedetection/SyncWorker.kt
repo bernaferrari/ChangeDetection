@@ -16,11 +16,20 @@ import com.bernaferrari.changedetection.util.ContentHasher
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.net.SocketTimeoutException
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.url
+import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.readBytes
+import io.ktor.http.isSuccess
+import io.ktor.client.call.body
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.ServerResponseException
+import io.ktor.client.network.sockets.ConnectTimeoutException
+import io.ktor.client.network.sockets.SocketTimeoutException
 import java.net.UnknownHostException
 
 class SyncWorker(
@@ -28,7 +37,7 @@ class SyncWorker(
     workerParams: WorkerParameters
 ) : CoroutineWorker(context, workerParams), KoinComponent {
 
-    private val okHttpClient: OkHttpClient by inject()
+    private val httpClient: HttpClient by inject()
     private val sitesRepository: SitesRepository by inject()
     private val snapsRepository: SnapsRepository by inject()
     private val errorHandler: ErrorHandler by inject()
@@ -100,9 +109,9 @@ class SyncWorker(
 
                     // Handle error with proper error types
                     val error = when {
-                        fetchResult.message.contains("HTTP 404") -> NetworkError(404, "Page not found")
-                        fetchResult.message.contains("HTTP 403") -> NetworkError(403, "Access forbidden")
-                        fetchResult.message.contains("HTTP 5") -> NetworkError(500, "Server error")
+                        fetchResult.message.contains("404") -> NetworkError(404, "Page not found")
+                        fetchResult.message.contains("403") -> NetworkError(403, "Access forbidden")
+                        fetchResult.message.contains("500") -> NetworkError(500, "Server error")
                         fetchResult.message.contains("timeout") -> SyncError(
                             SyncError.Reason.NETWORK_ERROR,
                             "Request timeout"
@@ -134,29 +143,38 @@ class SyncWorker(
 
     private suspend fun fetchFromServer(site: Site): FetchResult = withContext(Dispatchers.IO) {
         try {
-            val requestBuilder = Request.Builder()
-                .url(site.url)
-                .addHeader("User-Agent", "ChangeDetection/1.0")
-
-            val request = requestBuilder.build()
-
-            okHttpClient.newCall(request).execute().use { response ->
-                Napier.d("Response successful: ${response.isSuccessful} for ${site.url}")
-
-                if (!response.isSuccessful) {
-                    return@withContext FetchResult.Error("HTTP ${response.code}: ${response.message}")
-                }
-
-                val contentType = response.header("content-type", "text/html") ?: "text/html"
-                val fullContent = response.body.use { body ->
-                    body.string()
-                }
-
-                // Process content with SmartMonitoringEngine
-                val finalContent = processContentWithSmartEngine(fullContent)
-
-                FetchResult.Success(contentType, finalContent.toByteArray())
+            val response = httpClient.get(site.url) {
+                header("User-Agent", "ChangeDetection/1.0")
             }
+
+            Napier.d("Response status: ${response.status} for ${site.url}")
+
+            if (!response.status.isSuccess()) {
+                return@withContext FetchResult.Error("HTTP ${response.status.value}: ${response.status.description}")
+            }
+
+            val contentType = response.headers["Content-Type"] ?: "text/html"
+            val bodyBytes = response.readBytes()
+            
+            // Process context with SmartMonitoringEngine (placeholder call as in original)
+            // Ideally SmartMonitoringEngine should take bytes or handle extraction, but preserving original logic implies it might take string?
+            // Checking original: processContentWithSmartEngine(fullContent: String)
+            // So we convert to string for processing, but return bytes.
+            
+            // Note: Ktor's readBytes consumes the stream. We have the bytes now.
+            // If we need string for processing:
+            // val fullContent = String(bodyBytes, Charsets.UTF_8) // Simplification or use charset from response
+            
+            // Re-implementing correctly:
+            val fullContent = io.ktor.utils.io.core.String(bodyBytes) // UTF-8 default
+            val finalContent = processContentWithSmartEngine(fullContent)
+            
+            // If finalContent changed (it's string), we might strictly need to return bytes of that string?
+            // Original code: FetchResult.Success(contentType, finalContent.toByteArray())
+            // So yes, we return the processed content bytes.
+
+            FetchResult.Success(contentType, finalContent.toByteArray())
+
         } catch (e: UnknownHostException) {
             Napier.e("Network error for ${site.url}: ${e.localizedMessage}")
             FetchResult.Error("Network not available: ${site.url}")
@@ -166,6 +184,15 @@ class SyncWorker(
         } catch (e: SocketTimeoutException) {
             Napier.e("Timeout for ${site.url}")
             FetchResult.Error("Request timeout: ${site.url}")
+        } catch (e: ConnectTimeoutException) {
+             Napier.e("Connect timeout for ${site.url}")
+            FetchResult.Error("Request timeout: ${site.url}")
+        } catch (e: ClientRequestException) {
+            Napier.e("Client error for ${site.url}: ${e.response.status}")
+            FetchResult.Error("HTTP ${e.response.status.value}: ${e.response.status.description}")
+        } catch (e: ServerResponseException) {
+             Napier.e("Server error for ${site.url}: ${e.response.status}")
+            FetchResult.Error("HTTP ${e.response.status.value}: ${e.response.status.description}")
         } catch (e: Exception) {
             Napier.e("Unexpected error for ${site.url}: ${e.localizedMessage}")
             FetchResult.Error("${e.localizedMessage ?: "Unknown error"}: ${site.url}")
@@ -210,6 +237,10 @@ class SyncWorker(
         return try {
             if (contentType.contains("html", ignoreCase = true)) {
                 val content = String(newContent, Charsets.UTF_8)
+                // Use a KMP-friendly HTML parser or regex if simple, 
+                // but since this file is currently in androidMain, Jsoup is still available and imported?
+                // Original file had `org.jsoup.Jsoup`. I will preserve it since I am only maintaining it in androidMain for now.
+                // Assuming Jsoup dependency is available in androidMain.
                 val doc = org.jsoup.Jsoup.parse(content)
                 val textLength = doc.text().length
 

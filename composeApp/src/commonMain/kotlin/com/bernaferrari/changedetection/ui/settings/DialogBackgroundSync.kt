@@ -50,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -181,34 +182,30 @@ private fun SyncHeroSection(
     syncEnabled: Boolean,
     intervalMinutes: Long
 ) {
-    val containerColor by animateColorAsState(
-        targetValue = if (syncEnabled) 
-            MaterialTheme.colorScheme.primaryContainer 
-        else 
-            MaterialTheme.colorScheme.surfaceContainerHighest,
-        animationSpec = spring(
-            dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
-            stiffness = ExpressiveSpring.GENTLE_STIFFNESS
-        ),
-        label = "heroColor"
-    )
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
     
-    val contentColor by animateColorAsState(
-        targetValue = if (syncEnabled)
-            MaterialTheme.colorScheme.onPrimaryContainer
-        else
-            MaterialTheme.colorScheme.onSurfaceVariant,
-        animationSpec = spring(
-            dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
-            stiffness = ExpressiveSpring.GENTLE_STIFFNESS
-        ),
-        label = "heroContentColor"
-    )
+    val gradient = if (syncEnabled) {
+        Brush.linearGradient(
+            colors = listOf(primaryColor, tertiaryColor),
+            start = androidx.compose.ui.geometry.Offset(0f, 0f),
+            end = androidx.compose.ui.geometry.Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+        )
+    } else {
+        Brush.linearGradient(
+            colors = listOf(
+                MaterialTheme.colorScheme.surfaceContainerHighest,
+                MaterialTheme.colorScheme.surfaceContainerHigh
+            )
+        )
+    }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(containerColor)
+            .padding(horizontal = 24.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(gradient)
             .padding(24.dp)
     ) {
         Row(
@@ -217,16 +214,16 @@ private fun SyncHeroSection(
         ) {
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(64.dp)
                     .clip(CircleShape)
-                    .background(contentColor.copy(alpha = 0.15f)),
+                    .background(Color.White.copy(alpha = if (syncEnabled) 0.2f else 0.5f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Sync,
                     contentDescription = null,
-                    tint = contentColor,
-                    modifier = Modifier.size(28.dp)
+                    tint = if (syncEnabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(32.dp)
                 )
             }
             
@@ -235,7 +232,7 @@ private fun SyncHeroSection(
                     text = stringResource(Res.string.settings_background_sync_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = contentColor
+                    color = if (syncEnabled) Color.White else MaterialTheme.colorScheme.onSurface
                 )
                 
                 val description = if (syncEnabled) {
@@ -269,7 +266,7 @@ private fun SyncHeroSection(
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = contentColor.copy(alpha = 0.8f)
+                    color = if (syncEnabled) Color.White.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

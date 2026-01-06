@@ -89,6 +89,7 @@ kotlin {
             
             // Navigation 3 (KMP-compatible runtime)
             implementation(libs.androidx.navigation3.runtime)
+            implementation(libs.webview.multiplatform)
         }
         androidMain.dependencies {
             implementation(libs.koin.android)

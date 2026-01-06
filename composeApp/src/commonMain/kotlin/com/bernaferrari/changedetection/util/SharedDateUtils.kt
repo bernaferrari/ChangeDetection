@@ -1,26 +1,40 @@
 package com.bernaferrari.changedetection.util
 
+import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.periodUntil
 import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
 
-expect fun formatTimestamp(timestamp: Long): String
+fun formatTimestamp(timestamp: Long): String {
+    val instant = Instant.fromEpochMilliseconds(timestamp)
+    val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+    
+    // Custom formatting since KMP doesn't support java.text.SimpleDateFormat
+    // Format: MMM dd, HH:mm:ss
+    val monthNames = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+    val month = monthNames[localDateTime.monthNumber - 1]
+    
+    val day = localDateTime.dayOfMonth.toString().padStart(2, '0')
+    val hour = localDateTime.hour.toString().padStart(2, '0')
+    val minute = localDateTime.minute.toString().padStart(2, '0')
+    val second = localDateTime.second.toString().padStart(2, '0')
+    
+    return "$month $day, $hour:$minute:$second"
+}
 
 fun getRelativeTimeLabel(timestamp: Long): String {
-    val now = kotlin.time.Instant.fromEpochMilliseconds(Clock.System.now().toEpochMilliseconds())
-    val then = kotlin.time.Instant.fromEpochMilliseconds(timestamp)
-    val period = then.periodUntil(now, TimeZone.currentSystemDefault())
+    val now = platformCurrentTimeMillis()
+    val diff = now - timestamp
+    val seconds = diff / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    val days = hours / 24
 
     return when {
-        period.days >= 7 -> then.toLocalDateTime(TimeZone.currentSystemDefault()).let {
-            // Simplified for now, could use a platform-specific formatter for better results
-            "${it.month.name.take(3)} ${it.day}"
-        }
-
-        period.days >= 1 -> "${period.days}d ago"
-        period.hours >= 1 -> "${period.hours}h ago"
-        period.minutes >= 1 -> "${period.minutes}m ago"
-        else -> "Just now"
+        seconds < 60 -> "Just now"
+        minutes < 60 -> "$minutes min ago"
+        hours < 24 -> "$hours hr ago"
+        else -> "$days day ago"
     }
 }
+
+fun getCurrentTimeMillis(): Long = platformCurrentTimeMillis()

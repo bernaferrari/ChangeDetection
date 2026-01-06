@@ -12,7 +12,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
+// import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -101,6 +101,7 @@ private data class Quadruple<A, B, C, D>(
     val fourth: D
 )
 
+/*
 @Preview(showBackground = true)
 @Composable
 private fun TextDiffItemAdditionPreview() {
@@ -139,3 +140,4 @@ private fun TextDiffItemNormalPreview() {
         }
     }
 }
+*/

@@ -16,16 +16,10 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.layout.statusBarsPadding
-import android.content.Intent
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.FileProvider
-import java.io.File
-import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.shared.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.viewinterop.AndroidView
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,21 +28,24 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.util.formatTimestamp
-import com.bernaferrari.changedetection.util.UnifiedDiffUtils
 import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
-import com.orhanobut.logger.Logger
+import io.github.aakira.napier.Napier
 import org.koin.compose.viewmodel.koinViewModel
+import com.multiplatform.webview.web.WebView
+import com.multiplatform.webview.web.rememberWebViewStateWithHTMLData
+import com.multiplatform.webview.web.LoadingState
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ComparisonScreen(
     siteId: String,
     onNavigateUp: () -> Unit,
+    onSiteEdit: (String) -> Unit,
+    onSiteDelete: () -> Unit,
     viewModel: ComparisonViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -73,7 +70,7 @@ fun ComparisonScreen(
                     Column {
                         Text(
                             text = uiState.site?.title?.takeIf { it.isNotBlank() }
-                                ?: stringResource(id = R.string.site_details_title),
+                                ?: stringResource(Res.string.app_name),
                             style = MaterialTheme.typography.titleLarge
                         )
                         uiState.site?.url?.let { url ->
@@ -94,6 +91,65 @@ fun ComparisonScreen(
                         )
                     }
                 },
+                actions = {
+                    var showMenu by remember { mutableStateOf(false) }
+
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "More options"
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Reload") },
+                            onClick = {
+                                viewModel.reloadSite()
+                                showMenu = false
+                            },
+                            leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Edit") },
+                            onClick = {
+                                onSiteEdit(siteId)
+                                showMenu = false
+                            },
+                            leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Prune") },
+                            onClick = {
+                                viewModel.pruneSite()
+                                showMenu = false
+                            },
+                            leadingIcon = { Icon(Icons.Default.CleaningServices, contentDescription = null) }
+                        )
+                        HorizontalDivider()
+                        DropdownMenuItem(
+                            text = { Text("Delete") },
+                            onClick = {
+                                viewModel.deleteSite()
+                                onSiteDelete()
+                                showMenu = false
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            },
+                            colors = MenuDefaults.itemColors(
+                                textColor = MaterialTheme.colorScheme.error
+                            )
+                        )
+                    }
+                },
                 scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
@@ -111,7 +167,7 @@ fun ComparisonScreen(
                         .padding(paddingValues),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularWavyProgressIndicator()
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
                 }
             }
 
@@ -123,7 +179,7 @@ fun ComparisonScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = stringResource(id = R.string.site_not_found),
+                        text = "Site not found",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.error
                     )
@@ -141,6 +197,8 @@ fun ComparisonScreen(
             uiState.snaps.size == 1 -> {
                 SingleSnapshotState(
                     snap = uiState.snaps.first(),
+                    content = uiState.singleSnapContent,
+                    isLoadingContent = uiState.isLoadingDiff,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues)
@@ -155,6 +213,17 @@ fun ComparisonScreen(
                     content2 = uiState.snapContent2,
                     isLoadingDiff = uiState.isLoadingDiff,
                     onSelectPair = { viewModel.selectPairForComparison(it) },
+                    onShare = {
+                         val idx = uiState.selectedPairIndex ?: 0
+                         if (idx + 1 < uiState.snaps.size && uiState.snapContent1 != null && uiState.snapContent2 != null) {
+                             viewModel.shareDiff(
+                                 snap1 = uiState.snaps[idx],
+                                 snap2 = uiState.snaps[idx + 1],
+                                 content1 = uiState.snapContent1!!,
+                                 content2 = uiState.snapContent2!!
+                             )
+                         }
+                    },
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues)
@@ -190,13 +259,13 @@ private fun EmptySnapshotState(modifier: Modifier = Modifier) {
             }
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = stringResource(id = R.string.comparison_empty_title),
+                text = stringResource(Res.string.comparison_empty_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = stringResource(id = R.string.comparison_empty_subtitle),
+                text = stringResource(Res.string.comparison_empty_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -206,56 +275,114 @@ private fun EmptySnapshotState(modifier: Modifier = Modifier) {
 }
 
 @Composable
+@ExperimentalMaterial3Api
 private fun SingleSnapshotState(
     snap: Snap,
+    content: String?,
+    isLoadingContent: Boolean,
     modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(48.dp)
-        ) {
-            Box(
+    if (content != null) {
+        val isHtml = remember(snap.contentType) {
+            snap.contentType.contains("html", ignoreCase = true)
+        }
+
+        Box(modifier = modifier) {
+            if (isHtml) {
+                val webViewState = rememberWebViewStateWithHTMLData(
+                    data = content
+                )
+                WebView(
+                    state = webViewState,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(bottom = 16.dp)
+                ) {
+                    Text(
+                        text = content,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontFamily = FontFamily.Monospace,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
+            
+            // Floating label for timestamp
+            Surface(
                 modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 32.dp),
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.9f),
+                tonalElevation = 4.dp
             ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(40.dp)
+                Text(
+                    text = formatTimestamp(snap.timestamp),
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = "1 snapshot captured",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(id = R.string.comparison_single_snapshot_hint),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = formatTimestamp(snap.timestamp),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
+        }
+    } else if (isLoadingContent) {
+        Box(
+            modifier = modifier,
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    } else {
+        Box(
+            modifier = modifier,
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(48.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = "1 snapshot captured",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(Res.string.comparison_single_snapshot_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = formatTimestamp(snap.timestamp),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun DiffFirstContent(
     snaps: List<Snap>,
@@ -264,10 +391,9 @@ private fun DiffFirstContent(
     content2: String?,
     isLoadingDiff: Boolean,
     onSelectPair: (Int) -> Unit,
+    onShare: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-
     Column(modifier = modifier) {
         // Version selector - horizontal scrollable chips
         VersionSelector(
@@ -287,21 +413,19 @@ private fun DiffFirstContent(
             FilterChip(
                 selected = mode == "TEXT",
                 onClick = { mode = "TEXT" },
-                label = { Text(stringResource(id = R.string.text_diff)) }
+                label = { Text(stringResource(Res.string.text_diff)) }
             )
             FilterChip(
                 selected = mode == "HTML",
                 onClick = { mode = "HTML" },
-                label = { Text(stringResource(id = R.string.rendered_html)) }
+                label = { Text(stringResource(Res.string.rendered_html)) }
             )
             
             Spacer(modifier = Modifier.weight(1f))
             
             // Share button
             if (content1 != null && content2 != null) {
-                IconButton(onClick = {
-                    shareUnifiedDiff(context, snaps[selectedPairIndex], snaps[selectedPairIndex + 1], content1, content2)
-                }) {
+                IconButton(onClick = onShare) {
                     Icon(Icons.Default.Share, contentDescription = "Share diff")
                 }
             }
@@ -313,7 +437,7 @@ private fun DiffFirstContent(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularWavyProgressIndicator()
+                CircularProgressIndicator(modifier = Modifier.size(24.dp))
             }
         } else if (content1 != null && content2 != null) {
             when (mode) {
@@ -338,7 +462,7 @@ private fun DiffFirstContent(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = stringResource(id = R.string.failed_to_load_content),
+                    text = stringResource(Res.string.failed_to_load_content),
                     color = MaterialTheme.colorScheme.error
                 )
             }
@@ -474,12 +598,12 @@ private fun SimpleDiffView(
                     FilterChip(
                         selected = !showOnlyChanges,
                         onClick = { showOnlyChanges = false },
-                        label = { Text(stringResource(id = R.string.filter_all)) }
+                        label = { Text("All") }
                     )
                     FilterChip(
                         selected = showOnlyChanges,
                         onClick = { showOnlyChanges = true },
-                        label = { Text(stringResource(id = R.string.filter_only_changes)) }
+                        label = { Text("Changes") }
                     )
                 }
             }
@@ -559,81 +683,26 @@ private fun RenderedHtmlComparison(
     val addColor = "rgba(76,175,80,0.18)"
     val remColor = "rgba(244,67,54,0.18)"
 
-    var oldWebView by remember { mutableStateOf<WebView?>(null) }
-    var newWebView by remember { mutableStateOf<WebView?>(null) }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            try {
-                oldWebView?.stopLoading()
-                oldWebView?.clearHistory()
-                oldWebView?.clearCache(true)
-                oldWebView?.destroy()
-                oldWebView = null
-            } catch (e: Exception) {
-                Logger.e("Error cleaning up old WebView: ${e.message}")
-            }
-            try {
-                newWebView?.stopLoading()
-                newWebView?.clearHistory()
-                newWebView?.clearCache(true)
-                newWebView?.destroy()
-                newWebView = null
-            } catch (e: Exception) {
-                Logger.e("Error cleaning up new WebView: ${e.message}")
-            }
-        }
+    val sanitizedOldContent = remember(oldContent) {
+        com.bernaferrari.changedetection.util.HtmlSanitizer.sanitize(oldContent)
+    }
+    val sanitizedNewContent = remember(newContent) {
+        com.bernaferrari.changedetection.util.HtmlSanitizer.sanitize(newContent)
     }
 
-    Row(modifier = modifier) {
-        val sanitizedOldContent = remember(oldContent) {
-            com.bernaferrari.changedetection.util.HtmlSanitizer.sanitize(oldContent)
-        }
-        val sanitizedNewContent = remember(newContent) {
-            com.bernaferrari.changedetection.util.HtmlSanitizer.sanitize(newContent)
-        }
+    val oldWebViewState = rememberWebViewStateWithHTMLData(data = sanitizedOldContent)
+    val newWebViewState = rememberWebViewStateWithHTMLData(data = sanitizedNewContent)
 
-        AndroidView(
-            factory = { ctx ->
-                WebView(ctx).apply {
-                    settings.javaScriptEnabled = true
-                    settings.domStorageEnabled = true
-                    webViewClient = object : WebViewClient() {
-                        override fun onPageFinished(view: WebView?, url: String?) {
-                            super.onPageFinished(view, url)
-                            val js = buildHighlighterJs()
-                            view?.evaluateJavascript(js, null)
-                            view?.evaluateJavascript(
-                                "window.applyChangeHighlights($removedJsArray, '$remColor');",
-                                null
-                            )
-                        }
-                    }
-                }.also { oldWebView = it }
-            },
-            update = { it.loadDataWithBaseURL(null, sanitizedOldContent, "text/html", "utf-8", null) },
+    // Note: JavaScript evaluation is not directly supported in webview-multiplatform state.
+    // The highlighting would need to be done via modified HTML content instead.
+
+    Row(modifier = modifier) {
+        WebView(
+            state = oldWebViewState,
             modifier = Modifier.weight(1f)
         )
-
-        AndroidView(
-            factory = { ctx ->
-                WebView(ctx).apply {
-                    settings.javaScriptEnabled = true
-                    settings.domStorageEnabled = true
-                    webViewClient = object : WebViewClient() {
-                        override fun onPageFinished(view: WebView?, url: String?) {
-                            super.onPageFinished(view, url)
-                            val js = buildHighlighterJs()
-                            view?.evaluateJavascript(js, null)
-                            view?.evaluateJavascript(
-                                "window.applyChangeHighlights($addedJsArray, '$addColor');",
-                                null
-                            )
-                        }
-                    }
-                }.also { newWebView = it }
-            },
-            update = { it.loadDataWithBaseURL(null, sanitizedNewContent, "text/html", "utf-8", null) },
+        WebView(
+            state = newWebViewState,
             modifier = Modifier.weight(1f)
         )
     }
@@ -681,44 +750,6 @@ private fun buildHighlighterJs(): String = """
 })();
 """.trimIndent()
 
-private fun shareUnifiedDiff(
-    context: android.content.Context,
-    snap1: Snap,
-    snap2: Snap,
-    content1: String,
-    content2: String
-) {
-    try {
-        val oldLines = content1.lines()
-        val newLines = content2.lines()
-        val patch = com.bernaferrari.difflib.DiffUtils.diff(oldLines, newLines)
-        val diff = UnifiedDiffUtils.generateUnifiedDiff(
-            originalFileName = "v${snap1.timestamp}",
-            revisedFileName = "v${snap2.timestamp}",
-            originalLines = oldLines,
-            patch = patch,
-            contextSize = 3
-        )
-        val diffText = diff.joinToString("\n")
-        
-        val cacheDir = File(context.cacheDir, "diffs")
-        cacheDir.mkdirs()
-        val diffFile = File(cacheDir, "diff_${System.currentTimeMillis()}.diff")
-        diffFile.writeText(diffText)
-        
-        val uri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.provider",
-            diffFile
-        )
-        
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        context.startActivity(Intent.createChooser(intent, "Share diff"))
-    } catch (e: Exception) {
-        Logger.e("Failed to share diff: ${e.message}")
-    }
-}
+// Use calculateChangeStats and ComparisonStatsRow from ComparisonComponents.kt
+
+

@@ -14,7 +14,7 @@
     <string name="turbo_mode">Turbo Mode</string>
     <string name="how_it_works">How it works</string>
     <string name="turbo_help_title">How Turbo Mode works</string>
-    <string name="turbo_help_text">Turbo Mode monitors your selected sites at **high frequency**.\n\nDue to Android battery optimization, the system automatically stops background tasks after approximately **3 hours**. You’ll need to re-enable Turbo Mode when this happens.\n\n**Tip:** Keep the app open or disable battery optimization for longer monitoring.</string>
+    <string name="turbo_help_text">Turbo Mode monitors your selected sites at **high frequency**.\n\nDue to Android battery optimization, the system automatically stops background tasks after approximately **3 hours**. You'll need to re-enable Turbo Mode when this happens.\n\n**Tip:** Keep the app open or disable battery optimization for longer monitoring.</string>
     <string name="got_it">Got it</string>
     <string name="status_active">Active</string>
     <string name="status_inactive">Inactive</string>
@@ -158,7 +158,7 @@
     <string name="how_it_works_hero_subtitle">See how ChangeDetection keeps tabs on the entire web in four modern steps.</string>
     <string name="how_it_works_steps_header">The flow</string>
     <string name="how_it_works_step_add_title">Add any website</string>
-    <string name="how_it_works_step_add_description">Paste a link or share from your browser. Name it and you’re tracking.</string>
+    <string name="how_it_works_step_add_description">Paste a link or share from your browser. Name it and you're tracking.</string>
     <string name="how_it_works_step_add_highlight">Share sheet &amp; imports make setup instant.</string>
     <string name="how_it_works_step_monitor_title">We monitor constantly</string>
     <string name="how_it_works_step_monitor_description">Cloud + on-device checks keep every source fresh without draining battery.</string>
@@ -186,4 +186,35 @@
     <string name="logs_min_ago">%d min ago</string>
     <string name="logs_hr_ago">%d hr ago</string>
     <string name="logs_day_ago">%d day ago</string>
+
+    <!-- Onboarding (New) -->
+    <string name="onboarding_title_welcome">Welcome</string>
+    <string name="onboarding_description_welcome">Start tracking changes on the web effortlessly.</string>
+    <string name="onboarding_title_element_selection">Select Elements</string>
+    <string name="onboarding_description_element_selection">Pick exactly what you want to monitor.</string>
+    <string name="onboarding_title_zap">Zap Distractions</string>
+    <string name="onboarding_description_zap">Remove unwanted parts of the page before tracking.</string>
+    <string name="onboarding_title_turbo">Turbo Mode</string>
+    <string name="onboarding_description_turbo">Get notified instantly with high-frequency checks.</string>
+    <string name="onboarding_title_analytics">Analytics</string>
+    <string name="onboarding_description_analytics">Visualize changes over time.</string>
+    <string name="onboarding_title_ready">You\'re Ready</string>
+    <string name="onboarding_description_ready">Let\'s get started!</string>
+    <string name="onboarding_badge_step">Step %1$d of %2$d</string>
+    <string name="onboarding_section_title">Overview</string>
+    <string name="onboarding_button_get_started">Get Started</string>
+    <string name="continue_label">Continue</string>
+    <string name="skip">Skip</string>
+    <string name="back">Back</string>
+
+    <!-- Add/Edit -->
+    <string name="save">Save</string>
+    <string name="site_name">Site Name</string>
+    <string name="site_name_placeholder">Example Website</string>
+    <string name="color_theme">Color Theme</string>
+    <string name="complete_setup">Complete Setup</string>
+
+    <!-- LocalBrowser -->
+    <string name="local_browser_title_snapshot">Snapshot View</string>
+    <string name="local_browser_title_live">Live Browser</string>
 </resources>

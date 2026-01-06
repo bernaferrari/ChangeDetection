@@ -7,7 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+// import org.jetbrains.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.repo.ColorGroup
 import com.bernaferrari.changedetection.ui.components.ColorPickerButton
@@ -43,6 +43,7 @@ fun ColorFilterList(
     }
 }
 
+/*
 @Preview(showBackground = true)
 @Composable
 private fun ColorFilterListPreview() {
@@ -60,3 +61,4 @@ private fun ColorFilterListPreview() {
         }
     }
 }
+*/

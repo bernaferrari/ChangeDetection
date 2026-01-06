@@ -62,13 +62,16 @@ val androidModule: Module = module {
     // WorkerHelper (implements MonitoringManager)
     single { WorkerHelper(androidContext(), get()) }
     single<MonitoringManager> { get<WorkerHelper>() }
+    single<com.bernaferrari.changedetection.platform.ShareManager> { 
+        com.bernaferrari.changedetection.platform.AndroidShareManager(androidContext()) 
+    }
 
     // Android-specific ViewModels
     viewModel { ThemeViewModel(get()) }
     viewModel { MainViewModel(get(), get(), get(), get()) }
     viewModelOf(::LocalBrowserViewModel)
     viewModelOf(::InteractiveBrowserViewModel)
-    viewModel { (siteId: String?) -> AddEditViewModel(siteId) }
+    viewModel { (siteId: String?) -> AddEditViewModel(siteId, get(), get()) }
 
     // SettingsViewModel with dependencies
     viewModel { SettingsViewModel(get(), get()) }
