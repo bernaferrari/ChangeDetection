@@ -3,6 +3,7 @@ package com.bernaferrari.changedetection.ui.main
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -15,12 +16,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,24 +49,23 @@ fun MainScreen(
     onAddSite: () -> Unit,
     onSiteClick: (Site) -> Unit,
     onSiteEdit: (Site) -> Unit,
-    onLearnMore: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val sites by viewModel.sitesFlow.collectAsState()
     val quickMonitorState by viewModel.quickMonitorState.collectAsState()
-    val isLoading by viewModel.isInitialLoading.collectAsState()
     val loadingSites by viewModel.loadingSites.collectAsState()
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = {
                     Text(
                         text = stringResource(R.string.app_name),
-                        style = MaterialTheme.typography.headlineMedium
+                        style = MaterialTheme.typography.titleLarge
                     )
                 },
                 actions = {
@@ -78,7 +77,7 @@ fun MainScreen(
                     }
                 },
                 scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.largeTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
                 ),
@@ -92,7 +91,7 @@ fun MainScreen(
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ) {
                 Icon(
-                    imageVector = Icons.Default.Add,
+                    imageVector = Icons.Filled.Add,
                     contentDescription = stringResource(R.string.add_site)
                 )
             }
@@ -103,15 +102,22 @@ fun MainScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            if (sites.isEmpty() && !isLoading) {
+            if (sites == null) {
+                // Initial loading from database
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = androidx.compose.ui.Alignment.Center
+                ) {
+                    androidx.compose.material3.CircularProgressIndicator()
+                }
+            } else if (sites!!.isEmpty()) {
                 EmptyStateComponent(
                     modifier = Modifier.fillMaxSize(),
-                    onAddSite = onAddSite,
-                    onLearnMore = onLearnMore
+                    onAddSite = onAddSite
                 )
             } else {
                 SitesList(
-                    sites = sites,
+                    sites = sites!!,
                     quickMonitorSiteIds = quickMonitorState.siteIds,
                     loadingSites = loadingSites,
                     onSiteClick = { siteAndSnap -> onSiteClick(siteAndSnap.site) },
@@ -138,7 +144,7 @@ private fun SitesList(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(
@@ -174,6 +180,7 @@ private fun SitesList(
                 lastChangeValue = lastChangeValue,
                 fileSizeValue = fileSizeValue,
                 onClick = { onSiteClick(siteAndSnap) },
+                onRefreshClick = { onSiteRefresh(siteAndSnap) },
                 onOptionsClick = { showOptionsFor = siteAndSnap }
             )
         }

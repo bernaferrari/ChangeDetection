@@ -8,20 +8,24 @@ commonsText = "1.15.0"
 composeBom = "2025.12.01"
 coroutines = "1.10.2"
 datastore = "1.2.0"
+fastKotlinDiffCore = "1.0.0"
 glance = "1.1.1"
 gradle-versions = "0.53.0"
+graphicsShapes = "1.0.1"
 hilt = "2.57.2"
 hilt-android = "1.3.0"
-jsoup = "1.21.2"
+jsoup = "1.22.1"
 junit = "4.13.2"
 koin = "4.1.1"
 kotlin = "2.3.0"
+kotlinxDatetime = "0.7.1"
 kotlinxSerializationJson = "1.9.0"
 ksp = "2.3.4"
 ktor = "3.3.3"
 ktx = "1.17.0"
 leakcanary = "2.14"
 lifecycle = "2.10.0"
+jetbrainsAndroidxLifecycle = "2.9.6"
 logger = "2.2.0"
 napier = "2.7.1"
 material3 = "1.5.0-alpha11"
@@ -32,6 +36,7 @@ mockito-kotlin = "6.1.0"
 nav3 = "1.1.0-alpha01"
 nav3Lifecycle = "2.10.0"
 navigation = "2.9.6"
+jetbrainsAndroidxNavigation = "2.9.1"
 okhttp = "5.3.2"
 okio = "3.16.4"
 paging = "3.3.6"
@@ -42,7 +47,7 @@ spotless = "8.1.0"
 sqldelight = "2.2.1"
 startup = "1.2.0"
 subsamplingScaleImageView = "3.10.0"
-timeAgo = "4.1.0"
+timeAgo = "4.2.0"
 ui = "1.10.0"
 version-catalog-update = "1.0.1"
 work = "2.11.0"
@@ -68,6 +73,7 @@ androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "ktx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 androidx-glance = { module = "androidx.glance:glance", version.ref = "glance" }
 androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
+androidx-graphics-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = "graphicsShapes" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
@@ -75,6 +81,10 @@ androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecy
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3" }
+fast-kotlin-diff-core = { module = "io.github.bernaferrari:fast-kotlin-diff-core", version.ref = "fastKotlinDiffCore" }
+jetbrains-androidx-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "jetbrainsAndroidxLifecycle" }
+jetbrains-androidx-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel", version.ref = "jetbrainsAndroidxLifecycle" }
+jetbrains-androidx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "jetbrainsAndroidxNavigation" }
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging" }
 androidx-paging-common = { module = "androidx.paging:paging-common", version.ref = "paging" }
 androidx-paging-runtime-ktx = { module = "androidx.paging:paging-runtime-ktx", version.ref = "paging" }
@@ -111,11 +121,13 @@ kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 # Ktor Client (Multiplatform)
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-ios = { module = "io.ktor:ktor-client-ios", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
@@ -136,12 +148,13 @@ sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sq
 sqldelight-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
 subsampling-scale-imageview = { module = "com.davemorrissey.labs:subsampling-scale-image-view", version.ref = "subsamplingScaleImageView" }
 timeago = { module = "com.github.marlonlom:timeago", version.ref = "timeAgo" }
-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version = "2.5.0-alpha11" }
-ksoup = { module = "com.fleeksoft.ksoup:ksoup", version = "0.2.0" }
+sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version = "2.6.2" }
+ksoup = { module = "com.fleeksoft.ksoup:ksoup", version = "0.2.5" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidGradlePlugin" }
 android-test = { id = "com.android.test", version.ref = "androidGradlePlugin" }
 compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 gradle-versions = { id = "com.github.ben-manes.versions", version.ref = "gradle-versions" }
@@ -153,6 +166,6 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 sqldelight-plugin = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
-jetbrains-compose = { id = "org.jetbrains.compose", version = "1.7.0" }
+jetbrains-compose = { id = "org.jetbrains.compose", version = "1.9.3" }
 androidx-room = { id = "androidx.room", version.ref = "room" }
 version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "version-catalog-update" }

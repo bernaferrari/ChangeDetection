@@ -148,9 +148,9 @@ class SyncWorker(
                 }
 
                 val contentType = response.header("content-type", "text/html") ?: "text/html"
-                val fullContent = response.body?.use { body ->
+                val fullContent = response.body.use { body ->
                     body.string()
-                } ?: throw IllegalStateException("Response body is null")
+                }
 
                 // Process content with SmartMonitoringEngine
                 val finalContent = processContentWithSmartEngine(fullContent)

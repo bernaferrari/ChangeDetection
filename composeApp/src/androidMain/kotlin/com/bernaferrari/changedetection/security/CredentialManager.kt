@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.bernaferrari.changedetection.security
 
 import android.content.Context

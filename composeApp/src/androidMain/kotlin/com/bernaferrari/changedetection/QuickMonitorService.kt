@@ -202,13 +202,6 @@ class QuickMonitorService : Service(), KoinComponent {
             this, 0, stopIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        val extendIntent = Intent(this, QuickMonitorService::class.java).apply {
-            action = ACTION_EXTEND
-        }
-        val extendPendingIntent = PendingIntent.getService(
-            this, 1, extendIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
 
         val mainIntent = Intent(this, MainActivityProvider.getMainActivityClass())
         val mainPendingIntent = PendingIntent.getActivity(
@@ -216,39 +209,23 @@ class QuickMonitorService : Service(), KoinComponent {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val title = getString(R.string.quick_monitor_notification_title)
-        val content = getString(R.string.quick_monitor_notification_subtitle, siteIds.size, intervalSeconds)
-        val bigText = getString(R.string.quick_monitor_notification_bigtext, siteIds.size, intervalSeconds)
-        val badge = getString(R.string.quick_monitor_banner_live_badge)
-        val accentColor = ContextCompat.getColor(this, R.color.turbo_notification_accent)
-
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("$title • $badge")
-            .setContentText(content)
+        // Minimal notification
+        val sitesText = if (siteIds.size == 1) "1 site" else "${siteIds.size} sites"
+        val intervalText = if (intervalSeconds >= 60) "${intervalSeconds / 60}m" else "${intervalSeconds}s"
+        
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("Turbo Mode")
+            .setContentText("$sitesText • Every $intervalText")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(mainPendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
-            .setShowWhen(true)
-            .setColor(accentColor)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(bigText))
+            .setSilent(true)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
-            .addAction(
-                android.R.drawable.ic_media_pause,
-                getString(R.string.action_stop_monitoring),
-                stopPendingIntent
-            )
-            .addAction(
-                android.R.drawable.ic_menu_add,
-                getString(R.string.action_extend_one_hour),
-                extendPendingIntent
-            )
+            .addAction(0, "Stop", stopPendingIntent)
             .build()
-
-        Napier.d("Notification created successfully")
-        return notification
     }
 
     private fun createNotificationChannel() {

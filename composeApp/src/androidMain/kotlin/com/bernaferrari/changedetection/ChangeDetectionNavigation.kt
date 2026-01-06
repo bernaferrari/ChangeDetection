@@ -110,8 +110,7 @@ fun ChangeDetectionApp(
                         viewModel = mainViewModel,
                         onAddSite = { backStack.add(AddEditDestination) },
                         onSiteClick = { site -> backStack.add(ComparisonDestination(siteId = site.id)) },
-                        onSiteEdit = { site -> backStack.add(EditSiteDestination(siteId = site.id)) },
-                        onLearnMore = { backStack.add(HowItWorksDestination) }
+                        onSiteEdit = { site -> backStack.add(EditSiteDestination(siteId = site.id)) }
                     )
                 }
 
@@ -120,8 +119,9 @@ fun ChangeDetectionApp(
                     val quickMonitorState by mainViewModel.quickMonitorState.collectAsState()
 
                     TurboScreen(
-                        sites = sites,
+                        sites = sites ?: emptyList(),
                         quickMonitorState = quickMonitorState,
+                        isLoading = sites == null,
                         onStartTurbo = { selectedUrl, interval ->
                             platformActions.startTurbo(selectedUrl, interval)
                         },
@@ -177,7 +177,15 @@ fun ChangeDetectionApp(
                     )
                 }
 
-                entry<AboutDestination> {
+                entry<AboutDestination>(
+                    metadata = NavDisplay.transitionSpec {
+                        slideInHorizontally(initialOffsetX = { it }) togetherWith
+                                slideOutHorizontally(targetOffsetX = { -it })
+                    } + NavDisplay.popTransitionSpec {
+                        slideInHorizontally(initialOffsetX = { -it }) togetherWith
+                                slideOutHorizontally(targetOffsetX = { it })
+                    }
+                ) {
                     AboutScreen(
                         onBack = { backStack.removeLastOrNull() },
                         onSocialClick = { url ->
@@ -195,13 +203,29 @@ fun ChangeDetectionApp(
                     )
                 }
 
-                entry<HowItWorksDestination> {
+                entry<HowItWorksDestination>(
+                    metadata = NavDisplay.transitionSpec {
+                        slideInHorizontally(initialOffsetX = { it }) togetherWith
+                                slideOutHorizontally(targetOffsetX = { -it })
+                    } + NavDisplay.popTransitionSpec {
+                        slideInHorizontally(initialOffsetX = { -it }) togetherWith
+                                slideOutHorizontally(targetOffsetX = { it })
+                    }
+                ) {
                     HowItWorksScreen(
                         onBackClick = { backStack.removeLastOrNull() }
                     )
                 }
 
-                entry<BrowserDestination> { key ->
+                entry<BrowserDestination>(
+                    metadata = NavDisplay.transitionSpec {
+                        slideInVertically(initialOffsetY = { it }) togetherWith
+                                slideOutVertically(targetOffsetY = { it })
+                    } + NavDisplay.popTransitionSpec {
+                        slideInVertically(initialOffsetY = { -it }) togetherWith
+                                slideOutVertically(targetOffsetY = { it })
+                    }
+                ) { key ->
                     LocalBrowserScreen(
                         snapId = key.snapId,
                         url = key.url.ifEmpty { "https://google.com" },
@@ -225,12 +249,8 @@ fun ChangeDetectionApp(
                 }
             },
             transitionSpec = {
-                slideInHorizontally(initialOffsetX = { it }) togetherWith
-                        slideOutHorizontally(targetOffsetX = { -it })
-            },
-            popTransitionSpec = {
-                slideInHorizontally(initialOffsetX = { -it }) togetherWith
-                        slideOutHorizontally(targetOffsetX = { it })
+                androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(300)) togetherWith
+                        androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(300))
             }
         )
     }

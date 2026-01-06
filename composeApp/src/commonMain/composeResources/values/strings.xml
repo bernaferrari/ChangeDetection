@@ -14,7 +14,7 @@
     <string name="turbo_mode">Turbo Mode</string>
     <string name="how_it_works">How it works</string>
     <string name="turbo_help_title">How Turbo Mode works</string>
-    <string name="turbo_help_text">Turbo Mode monitors your selected sites at high frequency.\n\nDue to Android battery optimization, the system automatically stops background tasks after approximately 3 hours. You\'ll need to re-enable Turbo Mode when this happens.\n\nTip: Keep the app open or disable battery optimization for longer monitoring.</string>
+    <string name="turbo_help_text">Turbo Mode monitors your selected sites at **high frequency**.\n\nDue to Android battery optimization, the system automatically stops background tasks after approximately **3 hours**. You’ll need to re-enable Turbo Mode when this happens.\n\n**Tip:** Keep the app open or disable battery optimization for longer monitoring.</string>
     <string name="got_it">Got it</string>
     <string name="status_active">Active</string>
     <string name="status_inactive">Inactive</string>
@@ -71,6 +71,7 @@
     <string name="home_stats_quick_monitor_label">Turbo</string>
 
     <!-- Settings -->
+    <string name="settings_title">Settings</string>
     <string name="settings_section_appearance">Appearance</string>
     <string name="settings_monitoring_section">Monitoring</string>
     <string name="settings_background_sync_title">Background sync</string>
@@ -86,11 +87,19 @@
     <string name="settings_sync_constraint_battery">Require battery not low</string>
     <string name="settings_sync_constraint_idle">Require device idle</string>
     <string name="settings_sync_interval_label">Sync every:</string>
+    <string name="settings_sync_interval_title">Sync Interval</string>
     <string name="settings_sync_interval_value">Value</string>
     <string name="settings_sync_unit_minutes">minutes</string>
     <string name="settings_sync_unit_hours">hours</string>
     <string name="settings_sync_unit_days">days</string>
+    <string name="settings_version">Version</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_ok">OK</string>
     <string name="done">Done</string>
+    <string name="settings_sync_monitoring_in_background">Monitoring in background</string>
+    <string name="settings_sync_not_syncing">Not syncing in background</string>
+    <string name="settings_sync_constraints_description">Sync only when these conditions are met</string>
+    <string name="step_number">Step %d</string>
 
     <plurals name="settings_sync_every_minutes">
         <item quantity="one">Sync every %d minute</item>

@@ -71,8 +71,12 @@ fun TurboModeDialog(
 ) {
     var selectedSiteIds by remember {
         mutableStateOf(
-            if (lastSelectedSiteIds.isNotEmpty()) lastSelectedSiteIds.toSet()
-            else sites.take(3).map { it.id }.toSet()
+            if (lastSelectedSiteIds.isNotEmpty()) {
+                val validIds = sites.map { it.id }.toSet()
+                lastSelectedSiteIds.filter { it in validIds }.toSet()
+            } else {
+                sites.take(3).map { it.id }.toSet()
+            }
         )
     }
 

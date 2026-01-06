@@ -127,7 +127,7 @@ fun AddEditFlow(
                             onNavigateUp = { currentStep = AddEditStep.URL_INPUT },
                             onSaveComplete = { data ->
                                 browserData = data
-                                viewModel.setTitle(data.title ?: "")
+                                viewModel.setTitle(data.title)
                                 viewModel.setBrowserData(data)
                                 currentStep = AddEditStep.CONFIRM_DETAILS
                             }
@@ -139,6 +139,7 @@ fun AddEditFlow(
                     AddEditConfirmScreen(
                         url = uiState.url,
                         title = uiState.title,
+                        isEditing = siteId != null,
                         selectedColors = uiState.selectedColors,
                         isSaving = uiState.isSaving,
                         saveError = uiState.saveError,

@@ -18,6 +18,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,22 +30,27 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import android.content.ClipDescription
 import android.content.ClipboardManager
 import androidx.compose.runtime.Composable
@@ -85,21 +93,41 @@ fun BeautifulUrlInputStep(
     onNavigateUp: () -> Unit,
     onContinue: () -> Unit
 ) {
-    val scrollState = rememberScrollState()
-    val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val haptic = LocalHapticFeedback.current
     val clipboard = LocalClipboard.current
     val context = LocalContext.current
-    val nativeClipboard = remember { clipboard.nativeClipboard as? ClipboardManager }
-    var clipboardPreview by remember { mutableStateOf<String?>(null) }
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
+    val nativeClipboard = remember { clipboard.nativeClipboard }
+    
+    // WebView state
+    var webView by remember { mutableStateOf<android.webkit.WebView?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+    var currentWebUrl by remember { mutableStateOf(url) }
+    var urlBarText by remember { mutableStateOf(url) }
+    var isFocused by remember { mutableStateOf(false) }
+    
+    // Sync URL bar when external URL changes
+    LaunchedEffect(url) {
+        if (url != urlBarText && url.isNotBlank()) {
+            urlBarText = url
+        }
+    }
+
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+        kotlinx.coroutines.delay(100)
+        keyboardController?.show()
+    }
 
     fun readClipboardText(): String? {
         val manager = nativeClipboard ?: return null
         val description = manager.primaryClipDescription
         val supportsText = description?.hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN) == true ||
-            description?.hasMimeType(ClipDescription.MIMETYPE_TEXT_HTML) == true ||
-            description?.hasMimeType(ClipDescription.MIMETYPE_TEXT_URILIST) == true
+                description?.hasMimeType(ClipDescription.MIMETYPE_TEXT_HTML) == true ||
+                description?.hasMimeType(ClipDescription.MIMETYPE_TEXT_URILIST) == true
         if (!supportsText) return null
 
         val clip = manager.primaryClip ?: return null
@@ -108,257 +136,373 @@ fun BeautifulUrlInputStep(
         return text?.takeIf { it.isNotEmpty() }
     }
 
-    LaunchedEffect(nativeClipboard) {
-        clipboardPreview = readClipboardText()
-    }
-
-    DisposableEffect(nativeClipboard) {
-        if (nativeClipboard == null) return@DisposableEffect onDispose {}
-        val listener = ClipboardManager.OnPrimaryClipChangedListener {
-            clipboardPreview = readClipboardText()
-        }
-        nativeClipboard.addPrimaryClipChangedListener(listener)
-        onDispose {
-            nativeClipboard.removePrimaryClipChangedListener(listener)
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
-
     val isValid = remember(url, urlError) {
         url.isNotBlank() && url.isValidUrl() && urlError == null
     }
+    
+    // Show WebView only when URL is valid
+    val showPreview = url.isNotBlank() && url.isValidUrl()
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(id = R.string.configure_site),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateUp) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Navigate back")
-                    }
-                }
-            )
-        },
-        bottomBar = {
+            // Compact browser-style address bar
             Surface(
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp,
-                shadowElevation = 12.dp
+                shadowElevation = 2.dp,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.End
+                        .statusBarsPadding()
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
                 ) {
-                    Button(
-                        onClick = {
-                            keyboardController?.hide()
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onContinue()
-                        },
-                        enabled = isValid,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(18.dp),
-                        elevation = ButtonDefaults.buttonElevation(8.dp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(text = stringResource(id = R.string.continue_label))
+                        // Close button
+                        IconButton(
+                            onClick = onNavigateUp,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        
+                        // URL input field - pill shaped
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(44.dp),
+                            shape = RoundedCornerShape(22.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                // Lock/Globe icon
+                                if (url.startsWith("https")) {
+                                    Icon(
+                                        imageVector = androidx.compose.material.icons.Icons.Default.Lock,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                } else {
+                                    Icon(
+                                        Icons.Default.Language,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                                
+                                androidx.compose.foundation.text.BasicTextField(
+                                    value = urlBarText,
+                                    onValueChange = { newValue ->
+                                        val trimmed = newValue.trim()
+                                        urlBarText = trimmed
+                                        onUrlChange(trimmed)
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .focusRequester(focusRequester)
+                                        .onFocusChanged { isFocused = it.isFocused },
+                                    cursorBrush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.primary),
+                                    singleLine = true,
+                                    textStyle = MaterialTheme.typography.bodyMedium.copy(
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    ),
+                                    keyboardOptions = KeyboardOptions(
+                                        imeAction = ImeAction.Go,
+                                        keyboardType = KeyboardType.Uri
+                                    ),
+                                    keyboardActions = KeyboardActions(
+                                        onGo = {
+                                            keyboardController?.hide()
+                                            focusManager.clearFocus()
+                                            // Ensure we try to load what the user typed
+                                            val trimmed = urlBarText.trim()
+                                            if (trimmed != urlBarText) {
+                                                urlBarText = trimmed
+                                            }
+                                            val finalUrl = if (!trimmed.startsWith("http") && trimmed.isNotEmpty()) "https://$trimmed" else trimmed
+                                            onUrlChange(finalUrl)
+                                            // Update currentWebUrl BEFORE loading to prevent race condition
+                                            currentWebUrl = finalUrl
+                                            webView?.loadUrl(finalUrl)
+                                        }
+                                    ),
+                                    decorationBox = { innerTextField ->
+                                        Box(modifier = Modifier.fillMaxWidth()) {
+                                            if (urlBarText.isEmpty()) {
+                                                Text(
+                                                    text = "Enter website URL",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                            innerTextField()
+                                        }
+                                    }
+                                )
+                                
+                                // Clear button
+                                androidx.compose.animation.AnimatedVisibility(visible = urlBarText.isNotEmpty()) {
+                                    IconButton(
+                                        onClick = {
+                                            urlBarText = ""
+                                            onUrlChange("")
+                                            focusRequester.requestFocus()
+                                        },
+                                        modifier = Modifier.size(20.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = "Clear",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                }
+                                
+                                // Loading indicator
+                                if (isLoading) {
+                                    androidx.compose.material3.CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+                        
+                        // Paste button (compact)
+                        IconButton(
+                            onClick = {
+                                val text = readClipboardText()?.trim()
+                                if (!text.isNullOrBlank()) {
+                                    urlBarText = text
+                                    onUrlChange(text)
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    // Auto-load if valid URL
+                                    if (text.isValidUrl()) {
+                                        val finalUrl = if (!text.startsWith("http")) "https://$text" else text
+                                        // Update currentWebUrl BEFORE loading to prevent race condition
+                                        currentWebUrl = finalUrl
+                                        webView?.loadUrl(finalUrl)
+                                    }
+                                }
+                            },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ContentPaste,
+                                contentDescription = "Paste",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        bottomBar = {
+            androidx.compose.animation.AnimatedVisibility(
+                visible = true,
+                enter = androidx.compose.animation.slideInVertically { it } + androidx.compose.animation.fadeIn(),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 3.dp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .imePadding()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Button(
+                            onClick = {
+                                keyboardController?.hide()
+                                val trimmed = urlBarText.trim()
+                                if (trimmed != urlBarText) {
+                                    urlBarText = trimmed
+                                    onUrlChange(trimmed)
+                                }
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                onContinue()
+                            },
+                            enabled = isValid,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text(text = stringResource(id = R.string.continue_label))
+                        }
                     }
                 }
             }
         }
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(scrollState)
-                .padding(horizontal = 24.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(32.dp)
         ) {
-            UrlHero()
-
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                tonalElevation = 6.dp,
-                color = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(18.dp)
-                ) {
-                    val pasteEnabled = clipboardPreview?.let { it.isNotBlank() && it != url } == true
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.monitor_any_website),
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
-                        )
-                        TextButton(
-                            onClick = {
-                                val text = readClipboardText()
-                                if (!text.isNullOrBlank()) {
-                                    onUrlChange(text)
-                                    clipboardPreview = text
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            if (showPreview) {
+                // Live WebView preview
+                androidx.compose.ui.viewinterop.AndroidView(
+                    factory = { ctx ->
+                        android.webkit.WebView(ctx).apply {
+                            settings.javaScriptEnabled = true
+                            settings.domStorageEnabled = true
+                            settings.setSupportZoom(true)
+                            settings.builtInZoomControls = true
+                            settings.displayZoomControls = false
+                            settings.useWideViewPort = true
+                            settings.loadWithOverviewMode = true
+                            
+                            webViewClient = object : android.webkit.WebViewClient() {
+                                override fun onPageStarted(
+                                    view: android.webkit.WebView?,
+                                    loadingUrl: String?,
+                                    favicon: android.graphics.Bitmap?
+                                ) {
+                                    super.onPageStarted(view, loadingUrl, favicon)
+                                    isLoading = true
                                 }
-                            },
-                            enabled = pasteEnabled
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ContentPaste,
-                                contentDescription = stringResource(id = android.R.string.paste),
-                                tint = if (pasteEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                                    alpha = 0.4f
-                                )
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(text = stringResource(id = android.R.string.paste))
-                        }
-                    }
-                    Text(
-                        text = stringResource(id = R.string.enter_website_url_ellipsis),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    OutlinedTextField(
-                        value = url,
-                        onValueChange = onUrlChange,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester),
-                        label = { Text(text = stringResource(id = R.string.browser_monitor_label)) },
-                        placeholder = { Text("https://example.com") },
-                        isError = urlError != null,
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            imeAction = ImeAction.Go,
-                            keyboardType = KeyboardType.Text,
-                            autoCorrect = false
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onGo = {
-                                val refreshedText = url
-                                if (refreshedText.isNotBlank() && refreshedText.isValidUrl() && urlError == null) {
-                                    keyboardController?.hide()
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    onContinue()
-                                } else {
-                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                
+                                override fun onPageFinished(view: android.webkit.WebView?, finishedUrl: String?) {
+                                    super.onPageFinished(view, finishedUrl)
+                                    isLoading = false
+                                    // Update URL when user navigates
+                                    finishedUrl?.let { newUrl ->
+                                        if (newUrl != currentWebUrl && newUrl != "about:blank") {
+                                            currentWebUrl = newUrl
+                                            // Only update bar if not focused (prevent overwriting user typing)
+                                            if (!isFocused) {
+                                                urlBarText = newUrl
+                                                onUrlChange(newUrl)
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                override fun shouldOverrideUrlLoading(
+                                    view: android.webkit.WebView?,
+                                    request: android.webkit.WebResourceRequest?
+                                ): Boolean {
+                                    // Allow navigation and update the URL
+                                    request?.url?.toString()?.let { newUrl ->
+                                        currentWebUrl = newUrl
+                                        if (!isFocused) {
+                                            urlBarText = newUrl
+                                            onUrlChange(newUrl)
+                                        }
+                                    }
+                                    return false // Let WebView handle navigation
                                 }
                             }
-                        ),
-                        supportingText = {
-                            Text(
-                                text = urlError ?: stringResource(id = R.string.enter_website_url_ellipsis),
-                                color = if (urlError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        },
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun UrlHero() {
-    val infiniteTransition = rememberInfiniteTransition(label = "hero_pulse")
-    val pulse by infiniteTransition.animateFloat(
-        initialValue = 0.96f,
-        targetValue = 1.04f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 4200, easing = LinearOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "hero_scale"
-    )
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
-        tonalElevation = 8.dp,
-        color = MaterialTheme.colorScheme.primaryContainer
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 28.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(18.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(96.dp)
-                    .background(
-                        brush = Brush.radialGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                Color.Transparent
-                            )
-                        ),
-                        shape = CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Box(
+                            
+                            // Load initial URL
+                            val initialUrl = if (!url.startsWith("http")) "https://$url" else url
+                            loadUrl(initialUrl)
+                            webView = this
+                        }
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                    update = { wv ->
+                        // Only reload if URL changed externally (not from WebView navigation)
+                        if (url != currentWebUrl && url.isValidUrl()) {
+                            val loadUrl = if (!url.startsWith("http")) "https://$url" else url
+                            if (loadUrl != wv.url) {
+                                currentWebUrl = loadUrl
+                                wv.loadUrl(loadUrl)
+                            }
+                        }
+                    }
+                )
+            } else {
+                // Empty state - show hint to enter URL
+                Column(
                     modifier = Modifier
-                        .size(72.dp)
-                        .background(
-                            brush = Brush.linearGradient(
-                                listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.secondary
-                                )
-                            ),
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
+                        .fillMaxSize()
+                        .padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Language,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier
-                            .size(34.dp)
-                            .scale(pulse)
+                    Surface(
+                        modifier = Modifier.size(80.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Language,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    Text(
+                        text = "Enter a website URL",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = "Type or paste a URL above to see a preview",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                    
+                    // Show error if any
+                    urlError?.let { error ->
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = error,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
-
-            Text(
-                text = stringResource(id = R.string.monitor_any_website),
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
-            )
-            Text(
-                text = stringResource(id = R.string.review_and_start_monitoring),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
-            )
+        }
+    }
+    
+    // Cleanup WebView
+    DisposableEffect(Unit) {
+        onDispose {
+            webView?.stopLoading()
+            webView?.destroy()
+            webView = null
         }
     }
 }
+
+// UrlHero removed - was unused
 
 @Composable
 fun SuccessDialog(

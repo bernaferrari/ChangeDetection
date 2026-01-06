@@ -262,6 +262,5 @@ class SyncEngine(
     /**
      * Platform-independent way to get current time in milliseconds.
      */
-    private fun currentTimeMillis(): Long = kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
+    private fun currentTimeMillis(): Long = System.currentTimeMillis()
 }
-

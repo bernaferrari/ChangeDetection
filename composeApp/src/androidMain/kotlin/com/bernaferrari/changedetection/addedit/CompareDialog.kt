@@ -1,19 +1,25 @@
 package com.bernaferrari.changedetection.addedit
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import com.bernaferrari.changedetection.R
 import com.bernaferrari.changedetection.extensions.readableFileSize
 import com.bernaferrari.changedetection.repo.source.WebResult
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CompareDialog(
     url: String,
@@ -21,6 +27,7 @@ fun CompareDialog(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState()
 
     var directResult by remember { mutableStateOf<String?>(null) }
     var directLoading by remember { mutableStateOf(true) }
@@ -33,11 +40,6 @@ fun CompareDialog(
     LaunchedEffect(url) {
         // Direct request
         scope.launch {
-//            val result = fetchFromServer(url)
-//            directResult = when {
-//                result.second.isNotEmpty() -> result.second.size.readableFileSize()
-//                else -> result.first
-//            }
             directLoading = false
         }
 
@@ -59,79 +61,122 @@ fun CompareDialog(
         }
     }
 
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+            // Header
+            Text(
+                text = stringResource(R.string.compare_results_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+
+            // Results
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceContainer
             ) {
-                Text(
-                    text = "Compare Results",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-
-                // Direct request section
-                Column {
-                    Text(
-                        text = "Direct Request",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium
-                    )
-                    if (directLoading) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            CircularProgressIndicator(modifier = Modifier.size(16.dp))
-                            Text("Loading...")
-                        }
-                    } else {
-                        Text(
-                            text = directResult ?: "No result",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-
-                // Browser request section
-                Column {
-                    Text(
-                        text = "Browser Request",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium
-                    )
-                    if (browserLoading) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            CircularProgressIndicator(modifier = Modifier.size(16.dp))
-                            Text("Loading...")
-                        }
-                    } else {
-                        Text(
-                            text = browserResult ?: "No result",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
-                }
-
-                // Close button
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    TextButton(onClick = onDismiss) {
-                        Text("Close")
-                    }
+                    CompareResultRow(
+                        icon = Icons.Default.Cloud,
+                        title = stringResource(R.string.compare_direct_request),
+                        result = directResult,
+                        isLoading = directLoading
+                    )
+                    
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    
+                    CompareResultRow(
+                        icon = Icons.Default.Language,
+                        title = stringResource(R.string.compare_browser_request),
+                        result = browserResult,
+                        isLoading = browserLoading
+                    )
                 }
             }
+
+            // Close button
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text(stringResource(R.string.dialog_close))
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompareResultRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    result: String?,
+    isLoading: Boolean
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(24.dp)
+        )
+        
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium
+            )
+            
+            if (isLoading) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(14.dp),
+                        strokeWidth = 2.dp
+                    )
+                    Text(
+                        text = stringResource(R.string.loading),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                Text(
+                    text = result ?: stringResource(R.string.no_result),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        
+        if (!isLoading && result != null && !result.startsWith("Error")) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }
@@ -151,113 +196,3 @@ object CompareDialogHelper {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun CompareDialogPreview() {
-    MaterialTheme {
-        CompareDialogContent(
-            directResult = "1.2 MB",
-            directLoading = false,
-            browserResult = "1.5 MB",
-            browserLoading = false,
-            onDismiss = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun CompareDialogLoadingPreview() {
-    MaterialTheme {
-        CompareDialogContent(
-            directResult = null,
-            directLoading = true,
-            browserResult = "Error: Network timeout",
-            browserLoading = false,
-            onDismiss = {}
-        )
-    }
-}
-
-@Composable
-private fun CompareDialogContent(
-    directResult: String?,
-    directLoading: Boolean,
-    browserResult: String?,
-    browserLoading: Boolean,
-    onDismiss: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                text = "Compare Results",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-
-            // Direct request section
-            Column {
-                Text(
-                    text = "Direct Request",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium
-                )
-                if (directLoading) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        CircularProgressIndicator(modifier = Modifier.size(16.dp))
-                        Text("Loading...")
-                    }
-                } else {
-                    Text(
-                        text = directResult ?: "No result",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-
-            // Browser request section
-            Column {
-                Text(
-                    text = "Browser Request",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium
-                )
-                if (browserLoading) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        CircularProgressIndicator(modifier = Modifier.size(16.dp))
-                        Text("Loading...")
-                    }
-                } else {
-                    Text(
-                        text = browserResult ?: "No result",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-
-            // Close button
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                TextButton(onClick = onDismiss) {
-                    Text("Close")
-                }
-            }
-        }
-    }
-}

@@ -12,33 +12,17 @@ import androidx.compose.ui.unit.sp
 object SharedTypography {
     val cardTitle: TextStyle
         @Composable
-        get() = TextStyle(
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 0.sp
-        )
+        get() = MaterialTheme.typography.titleMedium
 
     val cardSubtitle: TextStyle
         @Composable
-        get() = TextStyle(
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Normal,
-            letterSpacing = 0.sp
-        )
+        get() = MaterialTheme.typography.bodyMedium
 
     val captionText: TextStyle
         @Composable
-        get() = TextStyle(
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Normal,
-            letterSpacing = 0.25.sp
-        )
+        get() = MaterialTheme.typography.bodySmall
 
     val sectionHeader: TextStyle
         @Composable
-        get() = TextStyle(
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            letterSpacing = 0.1.sp
-        )
+        get() = MaterialTheme.typography.titleSmall
 }

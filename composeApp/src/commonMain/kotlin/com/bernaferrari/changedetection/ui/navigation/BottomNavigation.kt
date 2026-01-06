@@ -78,9 +78,9 @@ private fun BottomNavigationLayout(
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val navigationColors = NavigationBarItemDefaults.colors(
-        selectedIconColor = colorScheme.onPrimaryContainer,
-        selectedTextColor = colorScheme.onPrimaryContainer,
-        indicatorColor = colorScheme.primaryContainer,
+        selectedIconColor = colorScheme.onSecondaryContainer,
+        selectedTextColor = colorScheme.onSecondaryContainer,
+        indicatorColor = colorScheme.secondaryContainer,
         unselectedIconColor = colorScheme.onSurfaceVariant,
         unselectedTextColor = colorScheme.onSurfaceVariant,
     )
@@ -96,11 +96,11 @@ private fun BottomNavigationLayout(
 
         NavigationBar(
             modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding(),
+                .fillMaxWidth(),
             containerColor = colorScheme.surfaceContainer,
             contentColor = colorScheme.onSurfaceVariant,
-            tonalElevation = 3.dp
+            tonalElevation = 0.dp,
+            windowInsets = NavigationBarDefaults.windowInsets
         ) {
             bottomNavItems.forEach { item ->
                 val isSelected = when (item.destination) {
@@ -113,15 +113,22 @@ private fun BottomNavigationLayout(
                 val label = stringResource(item.labelRes)
 
                 NavigationBarItem(
-                    icon = { Icon(imageVector = item.icon, contentDescription = label) },
-                    label = { Text(text = label) },
+                    icon = { Icon(imageVector = item.icon, contentDescription = null) },
+                    label = {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium
+                        )
+                    },
                     selected = isSelected,
                     onClick = {
                         if (!isSelected) {
                             navigateToTab(backStack, item.destination)
                         }
                     },
-                    colors = navigationColors
+                    colors = navigationColors,
+                    alwaysShowLabel = true
                 )
             }
         }

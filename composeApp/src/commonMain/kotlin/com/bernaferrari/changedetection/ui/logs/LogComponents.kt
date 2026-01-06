@@ -27,82 +27,150 @@ import com.bernaferrari.changedetection.util.getRelativeTimeLabel
 import com.bernaferrari.changedetection.util.readableFileSize
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Position of an item in a list for expressive corner styling.
+ * First items get top corners rounded, last items get bottom corners rounded.
+ */
+enum class ListItemPosition {
+    FIRST,      // First item - rounded top corners
+    MIDDLE,     // Middle items - no rounded corners
+    LAST,       // Last item - rounded bottom corners  
+    SINGLE      // Only item - all corners rounded
+}
+
+/**
+ * Gets the appropriate corner shape based on item position.
+ */
+fun getListItemShape(position: ListItemPosition): RoundedCornerShape {
+    return when (position) {
+        ListItemPosition.FIRST -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+        ListItemPosition.MIDDLE -> RoundedCornerShape(4.dp)
+        ListItemPosition.LAST -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+        ListItemPosition.SINGLE -> RoundedCornerShape(24.dp)
+    }
+}
+
 @Composable
 fun LogItem(
     snap: Snap,
     site: Site,
+    position: ListItemPosition = ListItemPosition.MIDDLE,
     onClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
     val siteColor = Color(site.colors.first)
+    val siteColor2 = Color(site.colors.second)
+    val gradient = remember(siteColor, siteColor2) {
+        androidx.compose.ui.graphics.Brush.linearGradient(listOf(siteColor, siteColor2))
+    }
     val timeLabel = getRelativeTimeLabel(snap.timestamp)
+    val shape = getListItemShape(position)
 
-    Row(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 24.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 16.dp)
+            .padding(vertical = 2.dp), // Small gap between items for M3 Expressive
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shape = shape
     ) {
-        // Color indicator
-        Box(
+        Row(
             modifier = Modifier
-                .width(4.dp)
-                .height(48.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .background(siteColor)
-        )
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        // Content
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = getTitle(site),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min) // Essential for continuous timeline
+                .clickable(onClick = onClick)
+                .padding(end = 16.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Timeline Indicator
+            Box(
+                modifier = Modifier
+                    .width(48.dp)
+                    .fillMaxHeight(),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = timeLabel,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                // Vertical Line
+                if (position != ListItemPosition.SINGLE) {
+                    // Top half
+                    if (position != ListItemPosition.FIRST) {
+                        Box(
+                            modifier = Modifier
+                                .width(2.dp)
+                                .fillMaxHeight(0.5f)
+                                .align(Alignment.TopCenter)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        )
+                    }
+                    // Bottom half
+                    if (position != ListItemPosition.LAST) {
+                        Box(
+                            modifier = Modifier
+                                .width(2.dp)
+                                .fillMaxHeight(0.5f)
+                                .align(Alignment.BottomCenter)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        )
+                    }
+                }
 
-                Text(
-                    text = "•",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Text(
-                    text = snap.contentSize.toLong().readableFileSize(),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                // Gradient Dot
+                Box(
+                    modifier = Modifier
+                        .size(14.dp)
+                        .clip(CircleShape)
+                        .background(gradient)
                 )
             }
-        }
 
-        // Delete button
-        IconButton(
-            onClick = onDeleteClick,
-            modifier = Modifier.size(40.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Delete,
-                contentDescription = "Delete",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp)
-            )
+            // Content
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = getTitle(site),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = timeLabel,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Text(
+                        text = "•",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Text(
+                        text = snap.contentSize.toLong().readableFileSize(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            // Delete button
+            IconButton(
+                onClick = onDeleteClick,
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Delete,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }
@@ -126,14 +194,14 @@ fun LogsHeader(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(24.dp),
+            .padding(24.dp)
+            .offset(y = floatingOffset.dp), // Apply animation to entire column
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Icon
         Box(
             modifier = Modifier
                 .size(72.dp)
-                .offset(y = floatingOffset.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center

@@ -84,8 +84,11 @@ class AddEditViewModel(
 
         _uiState.update { current ->
             val updatedTitle = if (current.title.isEmpty() && normalized != null) {
-                runCatching { java.net.URL(normalized).host.replace("www.", "") }
-                    .getOrElse { current.title }
+                runCatching {
+                    val host = java.net.URL(normalized).host.replace("www.", "")
+                    // Regex to grab the first part of the domain (e.g. "g1" from "g1.globo.com")
+                    host.split(".").firstOrNull() ?: host
+                }.getOrElse { current.title }
             } else {
                 current.title
             }
@@ -129,7 +132,7 @@ class AddEditViewModel(
                 false
             }
             it.copy(
-                title = data.title ?: it.title,
+                title = data.title,
                 browserData = data,
                 useCookies = resolvedUseCookies,
                 cookieBytes = newCookieBytes,

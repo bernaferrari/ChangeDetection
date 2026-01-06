@@ -1,18 +1,20 @@
 package com.bernaferrari.changedetection.ui.components
 
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.material3.ripple
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,17 +27,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,29 +49,23 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.bernaferrari.changedetection.shared.generated.resources.Res
-import com.bernaferrari.changedetection.shared.generated.resources.connection_error
-import com.bernaferrari.changedetection.shared.generated.resources.last_change
-import com.bernaferrari.changedetection.shared.generated.resources.last_sync
-import com.bernaferrari.changedetection.shared.generated.resources.more_options
-import org.jetbrains.compose.resources.stringResource
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
-import com.bernaferrari.changedetection.ui.theme.SharedTypography
+import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
 
 enum class SyncStatus {
     LOADING, OK, ERROR
 }
 
 /**
- * Main card component for displaying a monitored site.
- * This version uses Compose Multiplatform resources for strings.
+ * M3 Expressive Split Card - rounded gradient header + 50/50 metadata footer.
+ * Features a prominent refresh button with guaranteed full rotation.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SharedMainCard(
     modifier: Modifier = Modifier,
@@ -82,232 +78,259 @@ fun SharedMainCard(
     fileSizeValue: String,
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
+    onRefreshClick: (() -> Unit)? = null,
     onOptionsClick: (() -> Unit)? = null
 ) {
     var isPressed by remember { mutableStateOf(false) }
+    val isLoading = syncStatus == SyncStatus.LOADING
+    val isDark = isSystemInDarkTheme()
 
-    // Spring animation for touch response
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 0.97f else 1f,
         label = "card_scale",
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessMedium
+            dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
+            stiffness = ExpressiveSpring.GENTLE_STIFFNESS
         )
     )
 
-    // Remember site colors and gradient to avoid redundant calculations
+    // Rotation animation that always completes a full rotation
+    val rotationAnimatable = remember { Animatable(0f) }
+    
+    LaunchedEffect(isLoading) {
+        if (isLoading) {
+            // Start spinning continuously
+            while (true) {
+                rotationAnimatable.animateTo(
+                    targetValue = rotationAnimatable.value + 360f,
+                    animationSpec = tween(800, easing = LinearEasing)
+                )
+            }
+        } else {
+            // Complete the current rotation to nearest 360
+            val currentRotation = rotationAnimatable.value
+            val remainder = currentRotation % 360f
+            if (remainder > 0f) {
+                // Finish the rotation
+                val targetRotation = currentRotation + (360f - remainder)
+                rotationAnimatable.animateTo(
+                    targetValue = targetRotation,
+                    animationSpec = tween(
+                        durationMillis = ((360f - remainder) / 360f * 800f).toInt(),
+                        easing = LinearEasing
+                    )
+                )
+            }
+        }
+    }
+
+    // Site colors
     val siteColor = remember(site.colors.first) { Color(site.colors.first) }
     val siteColor2 = remember(site.colors.second) { Color(site.colors.second) }
+    
+    // Gradient
     val gradient = remember(siteColor, siteColor2) {
-        Brush.linearGradient(listOf(siteColor, siteColor2))
+        Brush.linearGradient(
+            colors = listOf(siteColor, siteColor2),
+            start = androidx.compose.ui.geometry.Offset(0f, 0f),
+            end = androidx.compose.ui.geometry.Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+        )
     }
 
-    // Subtle tint with site color - using surfaceContainer as base
-    val surfaceContainer = MaterialTheme.colorScheme.surfaceContainer
-    val containerColor = remember(isQuickMonitored, siteColor, surfaceContainer) {
-        if (isQuickMonitored) {
-            Color.Unspecified // Let the Card use surfaceContainerHigh
-        } else {
-            lerp(surfaceContainer, siteColor, 0.04f)
-        }
+    // Display info
+    val displayTitle = remember(site.title, site.url) {
+        site.title?.takeIf { it.isNotBlank() }
+            ?: site.url.replace(Regex("^https?://(www\\.)?"), "").substringBefore("/")
+    }
+    
+    val displayDomain = remember(site.url) {
+        site.url.replace(Regex("^https?://(www\\.)?"), "").substringBefore("/")
     }
 
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val borderColor = remember(isQuickMonitored, siteColor, primaryColor) {
-        if (isQuickMonitored) {
-            primaryColor.copy(alpha = 0.5f)
-        } else {
-            siteColor.copy(alpha = 0.15f)
-        }
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+
+    // Update isPressed based on actual press state
+    LaunchedEffect(pressed) {
+        isPressed = pressed
+    }
+
+    // Border color based on theme
+    val borderColor = if (isDark) {
+        Color.Black.copy(alpha = 0.4f)
+    } else {
+        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
     }
 
     Card(
         modifier = modifier
             .fillMaxWidth()
             .scale(scale)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick
+            .clip(RoundedCornerShape(24.dp))
+            .combinedClickable(
+                interactionSource = interactionSource,
+                indication = ripple(),
+                onClick = onClick,
+                onLongClick = {
+                    onLongClick()
+                    onOptionsClick?.invoke()
+                }
             ),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isQuickMonitored) {
-                MaterialTheme.colorScheme.surfaceContainerHigh
-            } else {
-                containerColor
-            }
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
         border = BorderStroke(1.dp, borderColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Left: Site Icon / Indicator
+        Column(modifier = Modifier.padding(12.dp)) {
+            // Gradient header with full border radius
             Box(
                 modifier = Modifier
-                    .size(52.dp)
+                    .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
-                    .background(gradient),
-                contentAlignment = Alignment.Center
+                    .background(gradient)
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
-                // Initial
-                Text(
-                    text = site.title?.firstOrNull()?.uppercase() ?: "W",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = Color.White.copy(alpha = 0.95f)
-                )
-
-                // Overlay for Status
-                if (syncStatus != SyncStatus.OK || isQuickMonitored) {
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .background(Color.Black.copy(alpha = 0.3f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        val rotation = if (syncStatus == SyncStatus.LOADING) {
-                            val infinite = rememberInfiniteTransition(label = "status_spin")
-                            infinite.animateFloat(
-                                initialValue = 0f,
-                                targetValue = 360f,
-                                animationSpec = infiniteRepeatable(
-                                    animation = tween(1000, easing = FastOutSlowInEasing),
-                                    repeatMode = RepeatMode.Restart
-                                ),
-                                label = "status_rotation"
-                            ).value
-                        } else 0f
-
-                        Icon(
-                            imageVector = when {
-                                syncStatus == SyncStatus.LOADING -> Icons.Filled.Refresh
-                                syncStatus == SyncStatus.ERROR -> Icons.Filled.Warning
-                                isQuickMonitored -> Icons.Filled.Star
-                                else -> Icons.Filled.Refresh
-                            },
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier
-                                .size(24.dp)
-                                .rotate(rotation)
-                        )
-                    }
-                }
-            }
-
-            // Right: Content
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                // Header: Title and Menu
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Title + Domain
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = site.title?.takeIf { it.isNotBlank() }
-                                ?: site.url.replace(Regex("^https?://(www\\.)?"), ""),
-                            style = SharedTypography.cardTitle,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (isQuickMonitored) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(22.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.White.copy(alpha = 0.25f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Bolt,
+                                        contentDescription = "Turbo",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
+                            }
+                            Text(
+                                text = displayTitle,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        
                         Spacer(modifier = Modifier.height(2.dp))
+                        
                         Text(
-                            text = site.url.replace(Regex("^https?://"), ""),
-                            style = SharedTypography.captionText,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            text = displayDomain,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.7f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-
-                    if (onOptionsClick != null) {
+                    
+                    // Refresh button - prominent and actionable
+                    if (onRefreshClick != null) {
                         Box(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(40.dp)
                                 .clip(CircleShape)
-                                .clickable(onClick = onOptionsClick),
+                                .background(Color.White)
+                                .clickable(
+                                    enabled = !isLoading,
+                                    onClick = onRefreshClick
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = stringResource(Res.string.more_options),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
+                                imageVector = Icons.Rounded.Refresh,
+                                contentDescription = "Refresh",
+                                tint = siteColor,
+                                modifier = Modifier
+                                    .size(22.dp)
+                                    .rotate(rotationAnimatable.value)
                             )
                         }
                     }
                 }
-
-                // Metadata Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Last Change
-                    MetadataItem(
-                        icon = Icons.Filled.Info,
-                        text = stringResource(Res.string.last_change, lastChangeValue),
-                        color = siteColor
-                    )
-
-                    // Size / Sync
-                    MetadataItem(
-                        icon = Icons.Filled.Refresh,
-                        text = if (fileSizeValue.isNotEmpty()) fileSizeValue else stringResource(
-                            Res.string.last_sync,
-                            lastSyncValue
-                        ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-
-                if (syncStatus == SyncStatus.ERROR) {
-                    Text(
-                        text = stringResource(Res.string.connection_error),
-                        style = SharedTypography.captionText,
-                        color = MaterialTheme.colorScheme.error,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Metadata row - 50/50 split, left aligned
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp)
+            ) {
+                // Left half - Changed
+                MetadataItem(
+                    icon = Icons.Rounded.History,
+                    label = "Changed",
+                    value = lastChangeValue,
+                    accentColor = siteColor,
+                    modifier = Modifier.weight(1f)
+                )
+                
+                // Right half - Synced
+                MetadataItem(
+                    icon = Icons.Rounded.Sync,
+                    label = "Synced",
+                    value = lastSyncValue,
+                    accentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }
 }
 
+/**
+ * Left-aligned metadata item.
+ */
 @Composable
 private fun MetadataItem(
     icon: ImageVector,
-    text: String,
-    color: Color
+    label: String,
+    value: String,
+    accentColor: Color,
+    modifier: Modifier = Modifier
 ) {
     Row(
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.Start
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = color,
-            modifier = Modifier.size(14.dp)
+            tint = accentColor,
+            modifier = Modifier.size(18.dp)
         )
-        Text(
-            text = text,
-            style = SharedTypography.captionText,
-            color = color,
-            maxLines = 1
-        )
+        Spacer(modifier = Modifier.size(8.dp))
+        Column {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
