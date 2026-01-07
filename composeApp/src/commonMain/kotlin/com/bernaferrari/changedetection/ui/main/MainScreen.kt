@@ -40,8 +40,8 @@ import com.bernaferrari.changedetection.shared.generated.resources.app_name
 import com.bernaferrari.changedetection.shared.generated.resources.refresh_all
 import com.bernaferrari.changedetection.shared.generated.resources.add_site
 import org.jetbrains.compose.resources.stringResource
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration.Companion.seconds
@@ -216,7 +216,7 @@ private fun SitesList(
 
 // Simple relative time formatter for KMP
 fun formatRelativeTime(timestamp: Long): String {
-    val nowMs = com.bernaferrari.changedetection.util.platformCurrentTimeMillis()
+    val nowMs = kotlin.time.Clock.System.now().toEpochMilliseconds()
     val durationMs = nowMs - timestamp
     val seconds = durationMs / 1000
 

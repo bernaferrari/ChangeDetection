@@ -1,6 +1,7 @@
 package com.bernaferrari.changedetection.util
 
-import kotlinx.datetime.Instant
+
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
@@ -11,9 +12,9 @@ fun formatTimestamp(timestamp: Long): String {
     // Custom formatting since KMP doesn't support java.text.SimpleDateFormat
     // Format: MMM dd, HH:mm:ss
     val monthNames = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-    val month = monthNames[localDateTime.monthNumber - 1]
+    val month = monthNames[localDateTime.month.ordinal]
     
-    val day = localDateTime.dayOfMonth.toString().padStart(2, '0')
+    val day = localDateTime.day.toString().padStart(2, '0')
     val hour = localDateTime.hour.toString().padStart(2, '0')
     val minute = localDateTime.minute.toString().padStart(2, '0')
     val second = localDateTime.second.toString().padStart(2, '0')
@@ -22,7 +23,7 @@ fun formatTimestamp(timestamp: Long): String {
 }
 
 fun getRelativeTimeLabel(timestamp: Long): String {
-    val now = platformCurrentTimeMillis()
+    val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
     val diff = now - timestamp
     val seconds = diff / 1000
     val minutes = seconds / 60
@@ -37,4 +38,4 @@ fun getRelativeTimeLabel(timestamp: Long): String {
     }
 }
 
-fun getCurrentTimeMillis(): Long = platformCurrentTimeMillis()
+fun getCurrentTimeMillis(): Long = kotlin.time.Clock.System.now().toEpochMilliseconds()

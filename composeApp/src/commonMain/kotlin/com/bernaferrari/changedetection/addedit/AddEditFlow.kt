@@ -1,6 +1,5 @@
 package com.bernaferrari.changedetection.addedit
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -22,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bernaferrari.changedetection.browser.BrowserSessionData
 import com.bernaferrari.changedetection.browser.ModernInteractiveBrowserScreen
 import com.bernaferrari.changedetection.util.FeatureFlags
+import com.bernaferrari.changedetection.util.BackHandler
 
 enum class AddEditStep {
     URL_INPUT,

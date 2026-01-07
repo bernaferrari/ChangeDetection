@@ -51,7 +51,7 @@ class ErrorHandler {
             message = errorResult.userMessage,
             context = context,
             userAction = userAction,
-            timestamp = com.bernaferrari.changedetection.util.platformCurrentTimeMillis(),
+            timestamp = kotlin.time.Clock.System.now().toEpochMilliseconds(),
             stackTrace = error.stackTraceToString()
         )
 

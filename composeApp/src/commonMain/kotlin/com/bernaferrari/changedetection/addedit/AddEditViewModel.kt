@@ -8,7 +8,6 @@ import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.browser.BrowserSessionData
 import com.bernaferrari.changedetection.background.MonitoringManager
 import com.bernaferrari.changedetection.util.FeatureFlags
-import com.bernaferrari.changedetection.util.platformCurrentTimeMillis
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import io.ktor.http.Url
@@ -177,7 +176,7 @@ class AddEditViewModel(
                     url = normalizedUrl,
                     title = resolvedTitle,
                     colors = state.selectedColors,
-                    timestamp = platformCurrentTimeMillis()
+                    timestamp = kotlin.time.Clock.System.now().toEpochMilliseconds()
                 ) ?: Site(
                     id = Uuid.random().toString(),
                     url = normalizedUrl,
@@ -186,7 +185,7 @@ class AddEditViewModel(
                     isBrowser = browserData != null,
                     isSyncEnabled = true,
                     isNotificationEnabled = true,
-                    timestamp = platformCurrentTimeMillis(),
+                    timestamp = kotlin.time.Clock.System.now().toEpochMilliseconds(),
                     isSuccessful = true,
                     isRead = false,
                     threshold = 0,

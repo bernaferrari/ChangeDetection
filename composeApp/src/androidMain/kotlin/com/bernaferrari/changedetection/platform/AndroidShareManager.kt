@@ -3,7 +3,7 @@ package com.bernaferrari.changedetection.platform
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
-import com.orhanobut.logger.Logger
+import io.github.aakira.napier.Napier
 import java.io.File
 
 class AndroidShareManager(private val context: Context) : ShareManager {
@@ -20,7 +20,7 @@ class AndroidShareManager(private val context: Context) : ShareManager {
             }
             context.startActivity(chooser)
         } catch (e: Exception) {
-            Logger.e("Failed to share text: ${e.message}")
+            Napier.e("Failed to share text: ${e.message}")
         }
     }
 
@@ -49,7 +49,7 @@ class AndroidShareManager(private val context: Context) : ShareManager {
             }
             context.startActivity(chooser)
         } catch (e: Exception) {
-            Logger.e("Failed to share file: ${e.message}")
+            Napier.e("Failed to share file: ${e.message}")
         }
     }
 }

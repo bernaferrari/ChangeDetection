@@ -129,7 +129,7 @@ fun ElementSelectorScreen(
                 webView?.destroy()
                 webView = null
             } catch (e: Exception) {
-                com.orhanobut.logger.Logger.e("❌ Error cleaning up ElementSelectorActivity WebView: ${e.message}")
+                io.github.aakira.napier.Napier.e("❌ Error cleaning up ElementSelectorActivity WebView: ${e.message}")
             }
         }
     }

@@ -213,6 +213,29 @@
     <string name="site_name_placeholder">Example Website</string>
     <string name="color_theme">Color Theme</string>
     <string name="complete_setup">Complete Setup</string>
+    <string name="success_title">All set!</string>
+    <string name="site_added_successfully">Monitoring started successfully.</string>
+    <string name="website_url">Website URL</string>
+    <string name="enter_website_url">Enter website URL</string>
+    <string name="website_url_placeholder">https://example.com</string>
+    <string name="add_edit_url_description">Enter the exact address you want to monitor.</string>
+    <string name="add_edit_details_title">Details</string>
+    <string name="add_edit_details_description">Add context so future alerts are easy to understand.</string>
+    <string name="add_edit_tags_label">Tags or notes (optional)</string>
+    <string name="add_edit_tags_placeholder">work, important</string>
+    <string name="add_edit_monitoring_title">Monitoring preferences</string>
+    <string name="add_edit_monitoring_description">Fine-tune how we capture changes for this page.</string>
+    <string name="add_edit_browser_rendering">Browser rendering</string>
+    <string name="add_edit_browser_rendering_description">Enable JavaScript and CSS</string>
+    <string name="add_edit_change_threshold">Change threshold</string>
+    <string name="add_edit_change_threshold_description">Minimum difference to detect</string>
+    <string name="add_edit_threshold_dialog_title">Change threshold</string>
+    <string name="add_edit_threshold_dialog_body">Set the minimum size difference in bytes to detect changes.</string>
+    <string name="add_edit_threshold_label">Threshold (bytes)</string>
+    <string name="add_edit_threshold_apply">Apply</string>
+    <string name="add_edit_color_theme_description">Pick a gradient to highlight future change cards.</string>
+    <string name="add_edit_compare_versions">Compare versions</string>
+    <string name="add_edit_threshold_value_bytes">%s bytes</string>
 
     <!-- LocalBrowser -->
     <string name="local_browser_title_snapshot">Snapshot View</string>

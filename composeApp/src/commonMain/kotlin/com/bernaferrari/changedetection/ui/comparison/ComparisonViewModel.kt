@@ -10,7 +10,7 @@ import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.util.decodeByteArray
 import com.bernaferrari.changedetection.platform.ShareManager
 import com.bernaferrari.changedetection.util.UnifiedDiffUtils
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,10 +55,11 @@ class ComparisonViewModel(
                  contextSize = 3
              )
              val diffText = diff.joinToString("\n")
-             val fileName = "diff_${com.bernaferrari.changedetection.util.platformCurrentTimeMillis()}.diff"
+             val shareText = "Diff generated at ${kotlin.time.Clock.System.now().toEpochMilliseconds()}"
+             val fileName = "diff_${kotlin.time.Clock.System.now().toEpochMilliseconds()}.diff"
              
              withContext(Dispatchers.Main) {
-                 shareManager.shareFile(fileName, diffText, "Share diff")
+                 shareManager.shareFile(fileName, diffText, shareText)
              }
         }
     }
