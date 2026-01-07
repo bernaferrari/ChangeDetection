@@ -63,7 +63,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -671,96 +670,6 @@ private fun EmptyState(modifier: Modifier = Modifier) {
         description = stringResource(Res.string.add_sites_to_monitor),
         modifier = modifier
     )
-}
-
-@Composable
-private fun SiteRow(
-    site: Site,
-    isSelected: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit
-) {
-    val siteColor = Color(site.colors.first)
-
-    val backgroundColor by animateColorAsState(
-        targetValue = if (isSelected)
-            siteColor.copy(alpha = 0.12f)
-        else
-            MaterialTheme.colorScheme.surfaceContainerLow,
-        animationSpec = spring(
-            dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
-        ),
-        label = "bg"
-    )
-
-    val indicatorColor by animateColorAsState(
-        targetValue = if (isSelected) siteColor else MaterialTheme.colorScheme.outlineVariant,
-        animationSpec = spring(
-            dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
-        ),
-        label = "indicator"
-    )
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(
-                if (enabled) {
-                    Modifier.clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = ripple(),
-                        onClick = onClick
-                    )
-                } else Modifier
-            )
-            .background(backgroundColor)
-            .padding(horizontal = 24.dp, vertical = 14.dp)
-            .then(if (!enabled) Modifier.alpha(0.6f) else Modifier),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Left indicator bar
-        Box(
-            modifier = Modifier
-                .width(4.dp)
-                .height(40.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .background(indicatorColor)
-        )
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = site.title.takeIf { !it.isNullOrBlank() } ?: site.url,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            if (!site.title.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = site.url,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        // Circular selection indicator
-        CircularCheckIndicator(
-            isSelected = isSelected,
-            enabled = enabled,
-            color = siteColor,
-            onClick = onClick
-        )
-    }
 }
 
 /**

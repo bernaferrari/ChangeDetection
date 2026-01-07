@@ -50,9 +50,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -277,43 +274,29 @@ private fun SettingsGroup(content: @Composable () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ThemeSelector(
     selectedTheme: String,
     onThemeSelected: (String) -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
-    val themes = listOf(
-        Pair("Light", ThemeMode.LIGHT.name),
-        Pair("Dark", ThemeMode.DARK.name),
-        Pair("System", ThemeMode.SYSTEM.name)
-    )
 
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        SingleChoiceSegmentedButtonRow(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            themes.forEachIndexed { index, (label, value) ->
-                SegmentedButton(
-                    selected = selectedTheme == value,
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onThemeSelected(value)
-                    },
-                    shape = SegmentedButtonDefaults.itemShape(index = index, count = themes.size),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                }
-            }
+        ThemeMode.entries.forEach { mode ->
+            ThemeModeToggle(
+                themeMode = mode,
+                isSelected = selectedTheme == mode.name,
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onThemeSelected(mode.name)
+                },
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }

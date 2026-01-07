@@ -101,6 +101,15 @@
     <string name="settings_sync_constraints_description">Sync only when these conditions are met</string>
     <string name="step_number">Step %d</string>
 
+    <string name="theme_system_title">System</string>
+    <string name="theme_system_desc">Match your device settings</string>
+    <string name="theme_material_you_title">For You</string>
+    <string name="theme_material_you_desc">Dynamic colors from your wallpaper</string>
+    <string name="theme_light_title">Light</string>
+    <string name="theme_light_desc">Always use light theme</string>
+    <string name="theme_dark_title">Dark</string>
+    <string name="theme_dark_desc">Always use dark theme</string>
+
     <plurals name="settings_sync_every_minutes">
         <item quantity="one">Sync every %d minute</item>
         <item quantity="other">Sync every %d minutes</item>
