@@ -12,8 +12,8 @@ import com.bernaferrari.changedetection.background.MonitoringManager
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -205,4 +205,4 @@ class SettingsViewModel(
     }
 }
 
-private fun getNow() = com.bernaferrari.changedetection.util.platformCurrentTimeMillis()
+private fun getNow() = kotlin.time.Clock.System.now().toEpochMilliseconds()

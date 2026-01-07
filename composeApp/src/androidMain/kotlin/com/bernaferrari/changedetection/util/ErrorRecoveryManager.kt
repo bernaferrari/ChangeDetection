@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import com.orhanobut.logger.Logger
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.first
 import java.io.File
 
@@ -33,7 +33,7 @@ object ErrorRecoveryManager {
         dataStore: DataStore<Preferences>
     ) {
         try {
-            Logger.d("🔍 Starting error recovery checks...")
+            Napier.d("🔍 Starting error recovery checks...")
 
             // Check database integrity
             validateDatabaseIntegrity(context)
@@ -47,9 +47,9 @@ object ErrorRecoveryManager {
             // Clean up orphaned files
             cleanupOrphanedFiles(context)
 
-            Logger.d("✅ Error recovery checks completed successfully")
+            Napier.d("✅ Error recovery checks completed successfully")
         } catch (e: Exception) {
-            Logger.e("❌ Error during recovery check: ${e.message}", e)
+            Napier.e("❌ Error during recovery check: ${e.message}", e)
         }
     }
 
@@ -61,12 +61,12 @@ object ErrorRecoveryManager {
             // Check if database file exists and is readable
             val dbFile = context.getDatabasePath("Changes2.db")
             if (!dbFile.exists()) {
-                Logger.w("⚠️ Database file missing - will be created on next access")
+                Napier.w("⚠️ Database file missing - will be created on next access")
                 return
             }
 
             if (!dbFile.canRead()) {
-                Logger.e("❌ Database file is not readable - permissions issue detected")
+                Napier.e("❌ Database file is not readable - permissions issue detected")
                 // Could trigger permission recovery here
                 return
             }
@@ -74,12 +74,12 @@ object ErrorRecoveryManager {
             // Database size sanity check
             val sizeMB = dbFile.length() / (1024 * 1024)
             if (sizeMB > 500) {
-                Logger.w("⚠️ Database is very large (${sizeMB}MB) - consider pruning old snapshots")
+                Napier.w("⚠️ Database is very large (${sizeMB}MB) - consider pruning old snapshots")
             }
 
-            Logger.d("✅ Database integrity check passed")
+            Napier.d("✅ Database integrity check passed")
         } catch (e: Exception) {
-            Logger.e("❌ Database integrity check failed: ${e.message}")
+            Napier.e("❌ Database integrity check failed: ${e.message}")
         }
     }
 
@@ -90,7 +90,7 @@ object ErrorRecoveryManager {
         try {
             val filesDir = context.filesDir
             if (!filesDir.canWrite()) {
-                Logger.e("❌ File storage not writable - critical error")
+                Napier.e("❌ File storage not writable - critical error")
                 return
             }
 
@@ -101,12 +101,12 @@ object ErrorRecoveryManager {
 
             val fileCount = snapshotFiles?.size ?: 0
             if (fileCount > 1000) {
-                Logger.w("⚠️ Large number of snapshot files ($fileCount) - consider cleanup")
+                Napier.w("⚠️ Large number of snapshot files ($fileCount) - consider cleanup")
             }
 
-            Logger.d("✅ File storage check passed - $fileCount snapshot files found")
+            Napier.d("✅ File storage check passed - $fileCount snapshot files found")
         } catch (e: Exception) {
-            Logger.e("❌ File storage check failed: ${e.message}")
+            Napier.e("❌ File storage check failed: ${e.message}")
         }
     }
 
@@ -124,10 +124,10 @@ object ErrorRecoveryManager {
             // Example: if (preferences[SYNC_INTERVAL_KEY] == null) { fix it }
 
             if (!hasIssues) {
-                Logger.d("✅ Preferences validation passed")
+                Napier.d("✅ Preferences validation passed")
             }
         } catch (e: Exception) {
-            Logger.e("❌ Preferences validation failed: ${e.message}")
+            Napier.e("❌ Preferences validation failed: ${e.message}")
         }
     }
 
@@ -141,7 +141,7 @@ object ErrorRecoveryManager {
                 file.isFile && file.name.matches(Regex("[a-f0-9-]{36}"))
             } ?: emptyArray()
 
-            Logger.d("🧹 Checking ${snapshotFiles.size} snapshot files for orphans...")
+            Napier.d("🧹 Checking ${snapshotFiles.size} snapshot files for orphans...")
 
             // In a real implementation, you would:
             // 1. Get all valid snapIds from database
@@ -149,9 +149,9 @@ object ErrorRecoveryManager {
             // 3. Delete files not in database
             // 4. Log cleanup actions
 
-            Logger.d("✅ Orphan file cleanup completed")
+            Napier.d("✅ Orphan file cleanup completed")
         } catch (e: Exception) {
-            Logger.e("❌ Orphan cleanup failed: ${e.message}")
+            Napier.e("❌ Orphan cleanup failed: ${e.message}")
         }
     }
 
@@ -166,28 +166,28 @@ object ErrorRecoveryManager {
         return when (error) {
             // Database errors
             is android.database.sqlite.SQLiteException -> {
-                Logger.e("❌ Database error in $context: ${error.message}")
+                Napier.e("❌ Database error in $context: ${error.message}")
                 // Could trigger database repair here
                 false
             }
 
             // IO errors
             is java.io.IOException -> {
-                Logger.e("❌ IO error in $context: ${error.message}")
+                Napier.e("❌ IO error in $context: ${error.message}")
                 // Could clear cache or free space
                 false
             }
 
             // Memory errors
             is OutOfMemoryError -> {
-                Logger.e("❌ Out of memory error in $context")
+                Napier.e("❌ Out of memory error in $context")
                 System.gc() // Request garbage collection
                 onRecovered?.invoke()
                 true
             }
 
             else -> {
-                Logger.e("❌ Unknown error in $context: ${error.message}")
+                Napier.e("❌ Unknown error in $context: ${error.message}")
                 false
             }
         }
@@ -205,10 +205,10 @@ object ErrorRecoveryManager {
             val backupFile = File(backupDir, "db_backup_${System.currentTimeMillis()}.db")
             dbFile.copyTo(backupFile, overwrite = true)
 
-            Logger.d("✅ Safety backup created: ${backupFile.absolutePath}")
+            Napier.d("✅ Safety backup created: ${backupFile.absolutePath}")
             backupFile
         } catch (e: Exception) {
-            Logger.e("❌ Failed to create safety backup: ${e.message}")
+            Napier.e("❌ Failed to create safety backup: ${e.message}")
             null
         }
     }
@@ -220,10 +220,10 @@ object ErrorRecoveryManager {
         return try {
             val dbFile = context.getDatabasePath("Changes2.db")
             backupFile.copyTo(dbFile, overwrite = true)
-            Logger.d("✅ Database restored from backup")
+            Napier.d("✅ Database restored from backup")
             true
         } catch (e: Exception) {
-            Logger.e("❌ Failed to restore from backup: ${e.message}")
+            Napier.e("❌ Failed to restore from backup: ${e.message}")
             false
         }
     }
@@ -243,10 +243,10 @@ object ErrorRecoveryManager {
                     }
                 }
             }
-            Logger.d("🧹 Cleared cache - freed ${freedBytes / 1024}KB")
+            Napier.d("🧹 Cleared cache - freed ${freedBytes / 1024}KB")
             freedBytes
         } catch (e: Exception) {
-            Logger.e("❌ Failed to clear cache: ${e.message}")
+            Napier.e("❌ Failed to clear cache: ${e.message}")
             0L
         }
     }

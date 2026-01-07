@@ -154,25 +154,12 @@ class SyncWorker(
             }
 
             val contentType = response.headers["Content-Type"] ?: "text/html"
-            val bodyBytes = response.readBytes()
-            
-            // Process context with SmartMonitoringEngine (placeholder call as in original)
-            // Ideally SmartMonitoringEngine should take bytes or handle extraction, but preserving original logic implies it might take string?
-            // Checking original: processContentWithSmartEngine(fullContent: String)
-            // So we convert to string for processing, but return bytes.
-            
-            // Note: Ktor's readBytes consumes the stream. We have the bytes now.
-            // If we need string for processing:
-            // val fullContent = String(bodyBytes, Charsets.UTF_8) // Simplification or use charset from response
+            val bodyBytes = response.body<ByteArray>()
             
             // Re-implementing correctly:
-            val fullContent = io.ktor.utils.io.core.String(bodyBytes) // UTF-8 default
+            val fullContent = bodyBytes.decodeToString() // UTF-8 default
             val finalContent = processContentWithSmartEngine(fullContent)
             
-            // If finalContent changed (it's string), we might strictly need to return bytes of that string?
-            // Original code: FetchResult.Success(contentType, finalContent.toByteArray())
-            // So yes, we return the processed content bytes.
-
             FetchResult.Success(contentType, finalContent.toByteArray())
 
         } catch (e: UnknownHostException) {
@@ -236,7 +223,7 @@ class SyncWorker(
     private suspend fun generateChangeDescription(newContent: ByteArray, contentType: String): String {
         return try {
             if (contentType.contains("html", ignoreCase = true)) {
-                val content = String(newContent, Charsets.UTF_8)
+                val content = newContent.decodeToString()
                 // Use a KMP-friendly HTML parser or regex if simple, 
                 // but since this file is currently in androidMain, Jsoup is still available and imported?
                 // Original file had `org.jsoup.Jsoup`. I will preserve it since I am only maintaining it in androidMain for now.

@@ -54,9 +54,13 @@ class LocalBrowserViewModel : ViewModel(), KoinComponent {
 
                 val decodedContent = runCatching {
                     val charset = Charset.forName(charsetName)
-                    String(bytes, charset = charset)
+                    bytes.decodeToString(
+                        startIndex = 0,
+                        endIndex = bytes.size,
+                        throwOnInvalidSequence = false
+                    )
                 }.getOrElse {
-                    String(bytes, charset = Charsets.UTF_8)
+                    bytes.decodeToString()
                 }
 
                 _state.value = BrowserState(

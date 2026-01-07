@@ -1,32 +1,14 @@
 package com.bernaferrari.changedetection.util
 
-import com.orhanobut.logger.Logger
-import java.text.SimpleDateFormat
-import java.util.*
-import java.util.concurrent.TimeUnit
+import io.github.aakira.napier.Napier
+import kotlin.time.TimeSource
 
 /**
  * Advanced analytics and performance logging utility.
- *
- * Tracks:
- * - Operation timing and performance
- * - Memory usage
- * - Database query performance
- * - Network latency
- * - Feature usage
- * - Error rates
- *
- * Provides:
- * - Structured logging
- * - Performance metrics
- * - Memory profiling
- * - Network diagnostics
- *
- * Security: Does not log sensitive data (credentials, tokens, etc.)
+ * Migrated to Multiplatform using Napier.
  */
 object AnalyticsLogger {
 
-    private val dateFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.US)
     private val performanceMetrics = mutableMapOf<String, PerformanceMetric>()
 
     /**
@@ -37,21 +19,21 @@ object AnalyticsLogger {
         tag: String = "OPERATION",
         block: () -> T
     ): T {
-        val startTime = System.nanoTime()
+        val mark = TimeSource.Monotonic.markNow()
         val startMemory = getMemoryUsage()
 
         return try {
             val result = block()
-            val duration = (System.nanoTime() - startTime) / 1_000_000 // Convert to ms
+            val duration = mark.elapsedNow().inWholeMilliseconds
             val memoryDelta = getMemoryUsage() - startMemory
 
-            Logger.d("✅ $tag: $operationName completed in ${duration}ms (${formatMemory(memoryDelta)})")
+            Napier.d("✅ $tag: $operationName completed in ${duration}ms (${formatMemory(memoryDelta)})", tag = tag)
 
             recordMetric(operationName, duration, memoryDelta)
             result
         } catch (e: Exception) {
-            val duration = (System.nanoTime() - startTime) / 1_000_000
-            Logger.e("❌ $tag: $operationName failed after ${duration}ms: ${e.message}")
+            val duration = mark.elapsedNow().inWholeMilliseconds
+            Napier.e("❌ $tag: $operationName failed after ${duration}ms: ${e.message}", tag = tag)
             throw e
         }
     }
@@ -71,7 +53,7 @@ object AnalyticsLogger {
             else -> "❌ VERY SLOW"
         }
 
-        Logger.d("$performanceLevel DB: $queryName took ${durationMs}ms (${resultCount} results)")
+        Napier.d("$performanceLevel DB: $queryName took ${durationMs}ms (${resultCount} results)", tag = "Database")
         recordMetric("db_$queryName", durationMs, 0)
     }
 
@@ -92,7 +74,7 @@ object AnalyticsLogger {
         }
 
         val sizeText = if (sizeBytes > 0) " (${formatBytes(sizeBytes)})" else ""
-        Logger.d("$statusEmoji HTTP $statusCode: ${durationMs}ms$sizeText")
+        Napier.d("$statusEmoji HTTP $statusCode: ${durationMs}ms$sizeText", tag = "Network")
         recordMetric("network_$statusCode", durationMs, sizeBytes)
     }
 
@@ -100,19 +82,10 @@ object AnalyticsLogger {
      * Log memory usage snapshot
      */
     fun logMemorySnapshot(label: String = "Memory") {
-        val runtime = Runtime.getRuntime()
-        val used = (runtime.totalMemory() - runtime.freeMemory()) / 1_048_576 // MB
-        val max = runtime.maxMemory() / 1_048_576 // MB
-        val percent = (used * 100) / max
-
-        val emoji = when {
-            percent < 50 -> "🟢"
-            percent < 75 -> "🟡"
-            percent < 90 -> "🟠"
-            else -> "🔴"
-        }
-
-        Logger.d("$emoji $label: ${used}MB / ${max}MB (${percent}%)")
+        val used = getMemoryUsage() / 1_048_576 // MB
+        // Max memory is tricky in common code, omitting percentage for now or need another expect
+        
+        Napier.d("💾 $label: ${used}MB used", tag = "Memory")
     }
 
     /**
@@ -123,7 +96,7 @@ object AnalyticsLogger {
         metadata: Map<String, Any>? = null
     ) {
         val metaStr = metadata?.entries?.joinToString(", ") { "${it.key}=${it.value}" } ?: ""
-        Logger.d("📊 Feature: $featureName" + (if (metaStr.isNotEmpty()) " [$metaStr]" else ""))
+        Napier.d("📊 Feature: $featureName" + (if (metaStr.isNotEmpty()) " [$metaStr]" else ""), tag = "Feature")
     }
 
     /**
@@ -138,10 +111,10 @@ object AnalyticsLogger {
         val total = hitCount + missCount
         val hitRate = if (total > 0) (hitCount * 100) / total else 0
 
-        Logger.d("💾 Cache $cacheName: ${hitRate}% hit rate ($hitCount hits, $missCount misses)")
+        Napier.d("💾 Cache $cacheName: ${hitRate}% hit rate ($hitCount hits, $missCount misses)", tag = "Cache")
 
         if (evictionCount > 0) {
-            Logger.d("   Evicted $evictionCount entries")
+            Napier.d("   Evicted $evictionCount entries", tag = "Cache")
         }
     }
 
@@ -158,7 +131,7 @@ object AnalyticsLogger {
         val changeEmoji = if (changeDetected) "📝" else "✅"
         val sizeText = if (contentSize > 0) " (${formatBytes(contentSize.toLong())})" else ""
 
-        Logger.d("$changeEmoji Sync $siteName: ${durationMs}ms$sizeText")
+        Napier.d("$changeEmoji Sync $siteName: ${durationMs}ms$sizeText", tag = "Sync")
         recordMetric("sync_$siteId", durationMs, contentSize.toLong())
     }
 
@@ -175,7 +148,7 @@ object AnalyticsLogger {
         val infoStr = additionalInfo?.entries?.joinToString(", ") { "${it.key}=${it.value}" } ?: ""
         val infoText = if (infoStr.isNotEmpty()) " [$infoStr]" else ""
 
-        Logger.e("❌ $errorName$contextStr: $errorMessage$infoText")
+        Napier.e("❌ $errorName$contextStr: $errorMessage$infoText", tag = "Error")
     }
 
     /**
@@ -201,14 +174,14 @@ object AnalyticsLogger {
      */
     fun clearMetrics() {
         performanceMetrics.clear()
-        Logger.d("📊 Performance metrics cleared")
+        Napier.d("📊 Performance metrics cleared", tag = "Metrics")
     }
 
     /**
      * Log ANR (Application Not Responding) warning
      */
     fun logANRWarning(operationName: String, durationMs: Long) {
-        Logger.e("🚨 ANR WARNING: $operationName took ${durationMs}ms (>5000ms threshold)")
+        Napier.e("🚨 ANR WARNING: $operationName took ${durationMs}ms (>5000ms threshold)", tag = "ANR")
     }
 
     /**
@@ -217,7 +190,7 @@ object AnalyticsLogger {
     fun logJankDetected(frameCount: Int, droppedFrames: Int) {
         val jankPercent = (droppedFrames * 100) / frameCount
         if (jankPercent > 10) {
-            Logger.w("⚠️  JANK DETECTED: $droppedFrames frames dropped out of $frameCount ($jankPercent%)")
+            Napier.w("⚠️  JANK DETECTED: $droppedFrames frames dropped out of $frameCount ($jankPercent%)", tag = "Performance")
         }
     }
 
@@ -230,12 +203,6 @@ object AnalyticsLogger {
         metric.maxDuration = maxOf(metric.maxDuration, durationMs)
         metric.minDuration = minOf(metric.minDuration, durationMs)
         performanceMetrics[name] = metric
-    }
-
-    internal fun getMemoryUsage(): Long {
-        return Runtime.getRuntime().run {
-            totalMemory() - freeMemory()
-        }
     }
 
     internal fun formatMemory(bytes: Long): String {
@@ -266,15 +233,15 @@ object AnalyticsLogger {
  * Extension functions for easier logging
  */
 internal fun <T> logTiming(label: String, block: () -> T): T {
-    val startTime = System.nanoTime()
+    val mark = TimeSource.Monotonic.markNow()
     return try {
         block().also {
-            val duration = (System.nanoTime() - startTime) / 1_000_000
-            Logger.d("⏱️  $label: ${duration}ms")
+            val duration = mark.elapsedNow().inWholeMilliseconds
+            Napier.d("⏱️  $label: ${duration}ms", tag = "Timing")
         }
     } catch (e: Exception) {
-        val duration = (System.nanoTime() - startTime) / 1_000_000
-        Logger.e("❌ $label failed after ${duration}ms")
+        val duration = mark.elapsedNow().inWholeMilliseconds
+        Napier.e("❌ $label failed after ${duration}ms", tag = "Timing")
         throw e
     }
 }
@@ -283,12 +250,11 @@ internal fun <T> logTiming(label: String, block: () -> T): T {
  * Measure memory allocation
  */
 fun <T> measureMemory(label: String, block: () -> T): T {
-    val runtime = Runtime.getRuntime()
-    val memBefore = runtime.totalMemory() - runtime.freeMemory()
+    val memBefore = getMemoryUsage()
 
     return block().also {
-        val memAfter = runtime.totalMemory() - runtime.freeMemory()
+        val memAfter = getMemoryUsage()
         val delta = memAfter - memBefore
-        Logger.d("💾 $label: allocated ${delta / 1_024}KB")
+        Napier.d("💾 $label: allocated ${delta / 1_024}KB", tag = "Memory")
     }
 }

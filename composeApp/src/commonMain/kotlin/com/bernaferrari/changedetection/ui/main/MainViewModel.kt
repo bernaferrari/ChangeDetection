@@ -18,7 +18,7 @@ import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import io.github.aakira.napier.Napier
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -282,4 +282,4 @@ class MainViewModel(
     }
 }
 
-private fun getNow() = com.bernaferrari.changedetection.util.platformCurrentTimeMillis()
+private fun getNow() = kotlin.time.Clock.System.now().toEpochMilliseconds()

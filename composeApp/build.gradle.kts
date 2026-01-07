@@ -125,11 +125,9 @@ kotlin {
             // DataStore for Preferences
             implementation(libs.androidx.datastore.preferences)
 
-            // Logging
-            implementation(libs.logger)
 
-            // Security - Encrypted SharedPreferences
-            implementation(libs.androidx.security.crypto)
+
+
 
             // UI Utils
             implementation(libs.androidx.palette.ktx)

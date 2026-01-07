@@ -6,7 +6,7 @@ import com.bernaferrari.changedetection.di.androidModule
 import com.bernaferrari.changedetection.di.appModule
 import com.bernaferrari.changedetection.di.initKoin
 import com.bernaferrari.changedetection.di.platformModule
-import com.bernaferrari.changedetection.security.CredentialManager
+
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
 import org.koin.android.ext.koin.androidContext
@@ -33,8 +33,7 @@ class App : Application(), Configuration.Provider, KoinComponent {
         // Initialize Napier for logging
         Napier.base(DebugAntilog())
 
-        // Initialize secure credential manager
-        CredentialManager.initialize(this)
+
 
         // Initialize Koin for all dependencies
         initKoin {

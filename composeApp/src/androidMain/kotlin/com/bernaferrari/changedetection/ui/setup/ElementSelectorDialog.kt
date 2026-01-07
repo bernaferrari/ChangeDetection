@@ -42,7 +42,7 @@ actual fun ElementSelectorDialog(
                 webView?.destroy()
                 webView = null
             } catch (e: Exception) {
-                com.orhanobut.logger.Logger.e("❌ Error cleaning up ElementSelectorDialog WebView: ${e.message}")
+                io.github.aakira.napier.Napier.e("❌ Error cleaning up ElementSelectorDialog WebView: ${e.message}")
             }
         }
     }

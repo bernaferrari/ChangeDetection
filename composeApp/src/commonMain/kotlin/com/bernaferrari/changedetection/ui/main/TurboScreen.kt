@@ -115,8 +115,15 @@ fun TurboScreen(
     onStopTurbo: () -> Unit
 ) {
     val isRunning = quickMonitorState.isActive
-    var selectedIds by remember(quickMonitorState.siteIds) {
-        mutableStateOf(if (quickMonitorState.isActive) quickMonitorState.siteIds else emptySet())
+    var selectedIds by remember {
+        mutableStateOf(quickMonitorState.siteIds)
+    }
+
+    // Sync selectedIds when turbo starts (but don't clear when it stops)
+    LaunchedEffect(quickMonitorState.isActive, quickMonitorState.siteIds) {
+        if (quickMonitorState.isActive) {
+            selectedIds = quickMonitorState.siteIds
+        }
     }
     var intervalSeconds by remember { mutableIntStateOf(15) }
     var showHelpDialog by remember { mutableStateOf(false) }
@@ -124,12 +131,12 @@ fun TurboScreen(
 
     // Countdown timer state
     var countdownSeconds by remember { mutableIntStateOf(intervalSeconds) }
-    
+
     // Derived state: Is any selected site currently syncing?
     val isNetworkSyncing = remember(sites, selectedIds) {
         sites.any { selectedIds.contains(it.site.id) && it.isSyncing }
     }
-    
+
     // Track previous sync state to unblock timer on completion
     var wasSyncing by remember { mutableStateOf(false) }
 
@@ -149,7 +156,7 @@ fun TurboScreen(
                 countdownSeconds = intervalSeconds
                 wasSyncing = false
             }
-            
+
             // Countdown loop
             while (!isNetworkSyncing && countdownSeconds > 0) {
                 delay(1000)
@@ -181,12 +188,12 @@ fun TurboScreen(
                         boldRegex.findAll(helpText).forEach { match ->
                             // Append text before the bold part
                             append(helpText.substring(currentIndex, match.range.first))
-                            
+
                             // Append the bold part
                             withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                                 append(match.groupValues[1])
                             }
-                            
+
                             currentIndex = match.range.last + 1
                         }
                         // Append remaining text
@@ -246,6 +253,7 @@ fun TurboScreen(
                     CircularProgressIndicator()
                 }
             }
+
             sites.isEmpty() -> {
                 SharedEmptyState(
                     icon = Icons.Rounded.Bolt,
@@ -254,85 +262,85 @@ fun TurboScreen(
                     modifier = Modifier.padding(padding)
                 )
             }
+
             else -> {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp)
-            ) {
-                // Hero section with circular progress
-                item {
-                    TurboHero(
-                        isRunning = isRunning,
-                        isSyncing = showLoading,
-                        intervalSeconds = intervalSeconds,
-                        countdownSeconds = countdownSeconds,
-                        onIntervalChange = { intervalSeconds = it },
-                        onToggle = {
-                             if (isRunning) {
-                                onStopTurbo()
-                            } else if (selectedIds.isNotEmpty()) {
-                                onStartTurbo(selectedIds, intervalSeconds)
-                            }
-                        },
-                        canToggle = isRunning || selectedIds.isNotEmpty()
-                    )
-                }
-
-                // Sites section header
-                item {
-                    Text(
-                        text = if (isRunning) stringResource(Res.string.monitoring) else stringResource(Res.string.select_sites),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 8.dp)
-                    )
-                }
-
-                // Sites list with individual row styling
-                item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(0.dp)
-                    ) {
-                        val visibleSites = if (isRunning) {
-                            sites.filter { selectedIds.contains(it.site.id) }
-                        } else {
-                            sites
-                        }
-                        
-                        visibleSites.forEachIndexed { index, siteAndSnap ->
-                            val isSelected = selectedIds.contains(siteAndSnap.site.id)
-                            val enabled = !isRunning
-                            val isFirst = index == 0
-                            val isLast = index == visibleSites.size - 1
-                            
-                            SiteRowCard(
-                                site = siteAndSnap.site,
-                                isSelected = isSelected,
-                                enabled = enabled,
-                                isSyncing = showLoading,
-                                isFirst = isFirst,
-                                isLast = isLast,
-                                onClick = {
-                                    val newIds = selectedIds.toMutableSet()
-                                    if (isSelected) newIds.remove(siteAndSnap.site.id) else newIds.add(siteAndSnap.site.id)
-                                    selectedIds = newIds
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp)
+                ) {
+                    // Hero section with circular progress
+                    item {
+                        TurboHero(
+                            isRunning = isRunning,
+                            isSyncing = showLoading,
+                            intervalSeconds = intervalSeconds,
+                            countdownSeconds = countdownSeconds,
+                            onIntervalChange = { intervalSeconds = it },
+                            onToggle = {
+                                if (isRunning) {
+                                    onStopTurbo()
+                                } else if (selectedIds.isNotEmpty()) {
+                                    onStartTurbo(selectedIds, intervalSeconds)
                                 }
-                            )
+                            },
+                            canToggle = isRunning || selectedIds.isNotEmpty()
+                        )
+                    }
+
+                    // Sites section header
+                    item {
+                        Text(
+                            text = if (isRunning) stringResource(Res.string.monitoring) else stringResource(Res.string.select_sites),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp, vertical = 8.dp)
+                        )
+                    }
+
+                    // Sites list with individual row styling
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                        ) {
+                            val visibleSites = if (isRunning) {
+                                sites.filter { selectedIds.contains(it.site.id) }
+                            } else {
+                                sites
+                            }
+
+                            visibleSites.forEachIndexed { index, siteAndSnap ->
+                                val isSelected = selectedIds.contains(siteAndSnap.site.id)
+                                val enabled = !isRunning
+                                val isFirst = index == 0
+                                val isLast = index == visibleSites.size - 1
+
+                                SiteRowCard(
+                                    site = siteAndSnap.site,
+                                    isSelected = isSelected,
+                                    enabled = enabled,
+                                    isSyncing = showLoading,
+                                    isFirst = isFirst,
+                                    isLast = isLast,
+                                    onClick = {
+                                        val newIds = selectedIds.toMutableSet()
+                                        if (isSelected) newIds.remove(siteAndSnap.site.id) else newIds.add(siteAndSnap.site.id)
+                                        selectedIds = newIds
+                                    }
+                                )
+                            }
                         }
                     }
                 }
             }
         }
     }
-}
 }
 
 @Composable
@@ -355,7 +363,7 @@ private fun SiteRowCard(
     // Background color when selected
     val backgroundColor by animateColorAsState(
         targetValue = if (isSelected)
-            MaterialTheme.colorScheme.secondaryContainer
+            siteColor.copy(alpha = 0.12f)
         else
             MaterialTheme.colorScheme.surfaceContainerLow,
         animationSpec = spring(
@@ -393,14 +401,16 @@ private fun SiteRowCard(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp) // Reduced padding
-            .animateContentSize(animationSpec = spring(
-                dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-                stiffness = ExpressiveSpring.QUICK_STIFFNESS
-            )),
+            .padding(vertical = 2.dp)
+            .animateContentSize(
+                animationSpec = spring(
+                    dampingRatio = ExpressiveSpring.QUICK_DAMPING,
+                    stiffness = ExpressiveSpring.QUICK_STIFFNESS
+                )
+            ),
         shape = shape,
         color = backgroundColor,
-        shadowElevation = if (isSelected) 4.dp else 0.dp // Add elevation when selected
+        tonalElevation = if (isSelected) 3.dp else 0.dp // Use tonal elevation for M3 - no clipping
     ) {
         Row(
             modifier = Modifier
@@ -492,7 +502,7 @@ private fun TurboHero(
         targetValue = if (isRunning)
             MaterialTheme.colorScheme.primaryContainer
         else
-            MaterialTheme.colorScheme.surfaceContainerHighest,
+            MaterialTheme.colorScheme.primaryContainer,
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
             stiffness = ExpressiveSpring.GENTLE_STIFFNESS
@@ -516,7 +526,7 @@ private fun TurboHero(
                 .clip(CircleShape)
                 .background(containerColor)
                 .then(
-                    if (!isRunning) Modifier.clickable { 
+                    if (!isRunning) Modifier.clickable {
                         // Entire circle is now clickable
                         val currentIndex = intervalOptions.indexOfFirst { it.seconds == intervalSeconds }
                         val nextIndex = (currentIndex + 1) % intervalOptions.size
@@ -528,7 +538,7 @@ private fun TurboHero(
             if (isRunning && !isSyncing) {
                 // Circular progress indicator
                 val progress = if (intervalSeconds > 0) countdownSeconds.toFloat() / intervalSeconds.toFloat() else 0f
-                
+
                 CircularProgressIndicator(
                     progress = { progress },
                     modifier = Modifier.size(110.dp),
@@ -544,12 +554,7 @@ private fun TurboHero(
                 modifier = Modifier
                     .size(80.dp)
                     .clip(CircleShape)
-                    .background(
-                        if (isRunning)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.surfaceContainerHigh
-                    ),
+                    .background(MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
                 if (isSyncing) {
@@ -577,7 +582,7 @@ private fun TurboHero(
                             text = label,
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
@@ -681,7 +686,7 @@ private fun SiteRow(
         targetValue = if (isSelected)
             siteColor.copy(alpha = 0.12f)
         else
-            Color.Transparent,
+            MaterialTheme.colorScheme.surfaceContainerLow,
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
             stiffness = ExpressiveSpring.QUICK_STIFFNESS
@@ -818,7 +823,7 @@ private fun CircularCheckIndicator(
         ),
         label = "circleBg"
     )
-    
+
     val borderColor by animateColorAsState(
         targetValue = if (isSelected) color else MaterialTheme.colorScheme.outline,
         animationSpec = spring(

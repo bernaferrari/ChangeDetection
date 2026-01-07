@@ -77,13 +77,13 @@ import com.bernaferrari.changedetection.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ModernInteractiveBrowserScreen(
+actual fun ModernInteractiveBrowserScreen(
     initialUrl: String,
-    initialSession: BrowserSessionData? = null,
+    initialSession: BrowserSessionData?,
     onNavigateUp: () -> Unit,
-    onSaveComplete: (BrowserSessionData) -> Unit,
-    viewModel: InteractiveBrowserViewModel = koinViewModel()
+    onSaveComplete: (BrowserSessionData) -> Unit
 ) {
+    val viewModel: InteractiveBrowserViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     
