@@ -2,6 +2,8 @@ package com.bernaferrari.changedetection.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -60,17 +62,29 @@ class ThemeViewModel(
         }
     }
 
+    /**
+     * Returns whether dark theme should be used.
+     * Uses collectAsState() to ensure the UI recomposes when theme changes.
+     */
     @Composable
     fun shouldUseDarkTheme(): Boolean {
-        return when (themeMode.value) {
+        val mode by themeMode.collectAsState()
+        return when (mode) {
             ThemeMode.LIGHT -> false
             ThemeMode.DARK -> true
             ThemeMode.SYSTEM, ThemeMode.MATERIAL_YOU -> isSystemInDarkTheme()
         }
     }
 
+    /**
+     * Returns whether dynamic colors (Material You) should be used.
+     * MATERIAL_YOU theme mode always enables dynamic colors.
+     * Uses collectAsState() to ensure the UI recomposes when preference changes.
+     */
     @Composable
     fun shouldUseDynamicColor(): Boolean {
-        return dynamicColor.value
+        val mode by themeMode.collectAsState()
+        // MATERIAL_YOU mode always uses dynamic colors
+        return mode == ThemeMode.MATERIAL_YOU
     }
 }
