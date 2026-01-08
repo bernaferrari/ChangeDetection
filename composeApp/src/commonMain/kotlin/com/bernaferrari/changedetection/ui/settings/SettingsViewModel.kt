@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
@@ -12,8 +13,6 @@ import com.bernaferrari.changedetection.background.MonitoringManager
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
-import kotlin.time.Clock
-import kotlin.time.Instant
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -33,7 +32,8 @@ data class SettingsUiState(
     val turboSiteIds: List<String> = emptyList(),
     val turboStartTime: Long = 0L,
     val turboSyncInterval: Long = 30,
-    val turboDuration: Long = 180
+    val turboDuration: Long = 180,
+    val minChangeThreshold: Int = 0
 )
 
 class SettingsViewModel(
@@ -58,6 +58,7 @@ class SettingsViewModel(
         val TURBO_START_TIME_KEY = longPreferencesKey("turbo_start_time")
         val TURBO_SYNC_INTERVAL_KEY = longPreferencesKey("turbo_sync_interval")
         val TURBO_DURATION_KEY = longPreferencesKey("turbo_duration")
+        val MIN_CHANGE_THRESHOLD_KEY = intPreferencesKey("min_change_threshold")
     }
 
     val uiState: StateFlow<SettingsUiState> = dataStore.data.map { preferences ->
@@ -84,7 +85,8 @@ class SettingsViewModel(
             turboSiteIds = turboSiteIds,
             turboStartTime = preferences[TURBO_START_TIME_KEY] ?: 0L,
             turboSyncInterval = preferences[TURBO_SYNC_INTERVAL_KEY] ?: 30,
-            turboDuration = preferences[TURBO_DURATION_KEY] ?: 180
+            turboDuration = preferences[TURBO_DURATION_KEY] ?: 180,
+            minChangeThreshold = preferences[MIN_CHANGE_THRESHOLD_KEY] ?: 0
         )
     }.stateIn(
         scope = viewModelScope,
@@ -190,6 +192,14 @@ class SettingsViewModel(
                 preferences[TURBO_DURATION_KEY] = durationMinutes.toLong()
             }
             monitoringManager.startQuickMonitor(siteIds, syncIntervalSeconds)
+        }
+    }
+
+    fun updateMinChangeThreshold(threshold: Int) {
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[MIN_CHANGE_THRESHOLD_KEY] = threshold
+            }
         }
     }
 

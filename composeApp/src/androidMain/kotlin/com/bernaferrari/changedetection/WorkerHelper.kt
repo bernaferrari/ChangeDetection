@@ -68,11 +68,13 @@ class WorkerHelper(
     ) {
         Napier.d("Scheduling periodic work with interval: $intervalMinutes minutes")
 
+        val requiresDeviceIdle = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && constraints.deviceIdle
+
         val workerConstraints = Constraints.Builder().apply {
             setRequiredNetworkType(if (constraints.wifi) NetworkType.UNMETERED else NetworkType.CONNECTED)
             if (constraints.batteryNotLow) setRequiresBatteryNotLow(true)
             if (constraints.charging) setRequiresCharging(true)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && constraints.deviceIdle) {
+            if (requiresDeviceIdle) {
                 setRequiresDeviceIdle(true)
             }
         }.build()
@@ -84,17 +86,19 @@ class WorkerHelper(
             IDLE to constraints.deviceIdle
         )
 
-        val periodicWork = PeriodicWorkRequestBuilder<SyncWorker>(intervalMinutes, TimeUnit.MINUTES)
+        val periodicWorkBuilder = PeriodicWorkRequestBuilder<SyncWorker>(intervalMinutes, TimeUnit.MINUTES)
             .addTag(UNIQUEWORK)
             .setConstraints(workerConstraints)
             .setInputData(inputData)
-            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.MINUTES)
-            .build()
+
+        if (!requiresDeviceIdle) {
+            periodicWorkBuilder.setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.MINUTES)
+        }
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             UNIQUEWORK,
             ExistingPeriodicWorkPolicy.UPDATE,
-            periodicWork
+            periodicWorkBuilder.build()
         )
 
         Napier.d("Periodic work scheduled successfully")
@@ -133,6 +137,7 @@ class WorkerHelper(
         val work = OneTimeWorkRequestBuilder<SyncWorker>()
             .setInputData(workDataOf("id" to siteId, "isSingle" to true))
             .addTag(siteId)
+            .addTag(UNIQUEWORK)
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
 
