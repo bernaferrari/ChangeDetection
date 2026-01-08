@@ -18,6 +18,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import com.bernaferrari.changedetection.ui.settings.SettingsViewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -42,6 +47,7 @@ class SyncWorker(
     private val snapsRepository: SnapsRepository by inject()
     private val errorHandler: ErrorHandler by inject()
     private val notificationHelper: NotificationHelper by inject()
+    private val dataStore: DataStore<Preferences> by inject()
 
     init {
         Napier.d("SyncWorker created successfully with Koin")
@@ -116,10 +122,12 @@ class SyncWorker(
                             SyncError.Reason.NETWORK_ERROR,
                             "Request timeout"
                         )
+
                         fetchResult.message.contains("Network not available") -> SyncError(
                             SyncError.Reason.NETWORK_ERROR,
                             "No internet connection"
                         )
+
                         else -> SyncError(SyncError.Reason.UNKNOWN, fetchResult.message)
                     }
 
@@ -155,11 +163,11 @@ class SyncWorker(
 
             val contentType = response.headers["Content-Type"] ?: "text/html"
             val bodyBytes = response.body<ByteArray>()
-            
+
             // Re-implementing correctly:
             val fullContent = bodyBytes.decodeToString() // UTF-8 default
             val finalContent = processContentWithSmartEngine(fullContent)
-            
+
             FetchResult.Success(contentType, finalContent.toByteArray())
 
         } catch (e: UnknownHostException) {
@@ -172,13 +180,13 @@ class SyncWorker(
             Napier.e("Timeout for ${site.url}")
             FetchResult.Error("Request timeout: ${site.url}")
         } catch (e: ConnectTimeoutException) {
-             Napier.e("Connect timeout for ${site.url}")
+            Napier.e("Connect timeout for ${site.url}")
             FetchResult.Error("Request timeout: ${site.url}")
         } catch (e: ClientRequestException) {
             Napier.e("Client error for ${site.url}: ${e.response.status}")
             FetchResult.Error("HTTP ${e.response.status.value}: ${e.response.status.description}")
         } catch (e: ServerResponseException) {
-             Napier.e("Server error for ${site.url}: ${e.response.status}")
+            Napier.e("Server error for ${site.url}: ${e.response.status}")
             FetchResult.Error("HTTP ${e.response.status.value}: ${e.response.status.description}")
         } catch (e: Exception) {
             Napier.e("Unexpected error for ${site.url}: ${e.localizedMessage}")
@@ -198,13 +206,23 @@ class SyncWorker(
     private suspend fun checkForContentChanges(siteId: String, newContent: ByteArray, contentType: String): Boolean {
         if (newContent.isEmpty()) return false
 
-        // Quick size-based check first
+        // Check for size changes with configurable threshold
         val lastSnap = snapsRepository.getMostRecentSnap(siteId)
-        if (lastSnap != null && !ContentHasher.quickSizeCheck(newContent.size, lastSnap.contentSize)) {
-            return false
-        }
+        if (lastSnap != null) {
+            val threshold = dataStore.data.map {
+                it[SettingsViewModel.MIN_CHANGE_THRESHOLD_KEY] ?: 0
+            }.first()
 
-        // Hash-based comparison
+            if (threshold > 0) {
+                // Convert percentage (0-10) to decimal (0.0-0.1)
+                val thresholdDecimal = threshold.toDouble() / 100.0
+
+                if (!ContentHasher.quickSizeCheck(newContent.size, lastSnap.contentSize, thresholdDecimal)) {
+                    Napier.d("Change ignored due to size threshold ($threshold%): ${newContent.size} vs ${lastSnap.contentSize}")
+                    return false
+                }
+            }
+        }
         val newHash = if (contentType.contains("html", ignoreCase = true)) {
             ContentHasher.hashHtmlContent(newContent)
         } else {
