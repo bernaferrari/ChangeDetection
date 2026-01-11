@@ -2,8 +2,6 @@ package com.bernaferrari.changedetection.ui.logs
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,16 +26,11 @@ fun LogsScreen(
     val pagedItems = viewModel.pagedSnaps.collectAsLazyPagingItems()
     val siteMap by viewModel.siteMap.collectAsStateWithLifecycle()
     val versionsCount by viewModel.versionsCount.collectAsStateWithLifecycle()
-    
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(Res.string.nav_logs)) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateUp) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-                    }
-                }
+                title = { Text(stringResource(Res.string.nav_logs)) }
             )
         }
     ) { padding ->
@@ -63,7 +56,7 @@ fun LogsScreen(
                         siteCount = siteMap.size
                     )
                 }
-                
+
                 items(
                     count = pagedItems.itemCount,
                     key = pagedItems.itemKey { item ->
@@ -99,6 +92,7 @@ fun LogsScreen(
                                 )
                             }
                         }
+
                         is LogUiModel.Header -> {
                             // Date header
                             Text(
@@ -108,6 +102,7 @@ fun LogsScreen(
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                             )
                         }
+
                         null -> {} // Loading state placeholder
                     }
                 }

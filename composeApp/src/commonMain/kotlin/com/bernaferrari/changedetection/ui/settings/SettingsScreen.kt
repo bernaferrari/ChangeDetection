@@ -141,7 +141,7 @@ fun SettingsScreen(
                         icon = Icons.Outlined.Sync,
                         title = stringResource(Res.string.settings_background_sync_title),
                         subtitle = if (uiState.backgroundSync) {
-                            stringResource(Res.string.settings_background_sync_every, uiState.syncInterval)
+                            stringResource(Res.string.settings_sync_monitoring_in_background)
                         } else {
                             stringResource(Res.string.settings_background_sync_disabled)
                         },
@@ -150,13 +150,6 @@ fun SettingsScreen(
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             viewModel.updateBackgroundSync(it)
                         },
-                        onClick = { showBackgroundSyncDialog = true }
-                    )
-                    ItemDivider()
-                    ActionItem(
-                        icon = Icons.Outlined.Schedule,
-                        title = stringResource(Res.string.settings_sync_interval_title),
-                        value = "${uiState.syncInterval} min",
                         onClick = { showBackgroundSyncDialog = true }
                     )
                 }
