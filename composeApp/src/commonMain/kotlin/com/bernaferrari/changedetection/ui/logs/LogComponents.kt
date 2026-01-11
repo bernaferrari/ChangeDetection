@@ -1,8 +1,6 @@
 package com.bernaferrari.changedetection.ui.logs
 
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,9 +40,21 @@ enum class ListItemPosition {
  */
 fun getListItemShape(position: ListItemPosition): RoundedCornerShape {
     return when (position) {
-        ListItemPosition.FIRST -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+        ListItemPosition.FIRST -> RoundedCornerShape(
+            topStart = 24.dp,
+            topEnd = 24.dp,
+            bottomStart = 4.dp,
+            bottomEnd = 4.dp
+        )
+
         ListItemPosition.MIDDLE -> RoundedCornerShape(4.dp)
-        ListItemPosition.LAST -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+        ListItemPosition.LAST -> RoundedCornerShape(
+            topStart = 4.dp,
+            topEnd = 4.dp,
+            bottomStart = 24.dp,
+            bottomEnd = 24.dp
+        )
+
         ListItemPosition.SINGLE -> RoundedCornerShape(24.dp)
     }
 }
@@ -60,9 +69,6 @@ fun LogItem(
 ) {
     val siteColor = Color(site.colors.first)
     val siteColor2 = Color(site.colors.second)
-    val gradient = remember(siteColor, siteColor2) {
-        androidx.compose.ui.graphics.Brush.linearGradient(listOf(siteColor, siteColor2))
-    }
     val timeLabel = getRelativeTimeLabel(snap.timestamp)
     val shape = getListItemShape(position)
 
@@ -70,57 +76,30 @@ fun LogItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(vertical = 2.dp), // Small gap between items for M3 Expressive
+            .padding(vertical = 2.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
-        shape = shape
+        shape = shape,
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(IntrinsicSize.Min) // Essential for continuous timeline
-                .clickable(onClick = onClick)
-                .padding(end = 16.dp, top = 12.dp, bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Timeline Indicator
+            // Color indicator pill
             Box(
                 modifier = Modifier
-                    .width(48.dp)
-                    .fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                // Vertical Line
-                if (position != ListItemPosition.SINGLE) {
-                    // Top half
-                    if (position != ListItemPosition.FIRST) {
-                        Box(
-                            modifier = Modifier
-                                .width(2.dp)
-                                .fillMaxHeight(0.5f)
-                                .align(Alignment.TopCenter)
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .width(4.dp)
+                    .height(40.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(
+                        androidx.compose.ui.graphics.Brush.verticalGradient(
+                            listOf(siteColor, siteColor2)
                         )
-                    }
-                    // Bottom half
-                    if (position != ListItemPosition.LAST) {
-                        Box(
-                            modifier = Modifier
-                                .width(2.dp)
-                                .fillMaxHeight(0.5f)
-                                .align(Alignment.BottomCenter)
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
-                        )
-                    }
-                }
-
-                // Gradient Dot
-                Box(
-                    modifier = Modifier
-                        .size(14.dp)
-                        .clip(CircleShape)
-                        .background(gradient)
-                )
-            }
+                    )
+            )
 
             // Content
             Column(modifier = Modifier.weight(1f)) {
@@ -135,40 +114,23 @@ fun LogItem(
 
                 Spacer(modifier = Modifier.height(2.dp))
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = timeLabel,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Text(
-                        text = "•",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Text(
-                        text = snap.contentSize.toLong().readableFileSize(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Text(
+                    text = "$timeLabel • ${snap.contentSize.toLong().readableFileSize()}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
             // Delete button
             IconButton(
                 onClick = onDeleteClick,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(36.dp)
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Delete,
                     contentDescription = "Delete",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
         }
@@ -180,28 +142,16 @@ fun LogsHeader(
     versionsCount: Int,
     siteCount: Int
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "logs_float")
-    val floatingOffset by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 6f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2500, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "floating_offset"
-    )
-
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(24.dp)
-            .offset(y = floatingOffset.dp), // Apply animation to entire column
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Icon
         Box(
             modifier = Modifier
-                .size(72.dp)
+                .size(48.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
@@ -210,42 +160,28 @@ fun LogsHeader(
                 imageVector = Icons.Rounded.History,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(24.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = stringResource(Res.string.logs_hero_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = stringResource(Res.string.logs_hero_subtitle, versionsCount, siteCount),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(Res.string.logs_hero_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = stringResource(Res.string.logs_hero_subtitle, versionsCount, siteCount),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
 @Composable
 fun LogsEmptyState() {
-    val infiniteTransition = rememberInfiniteTransition(label = "empty_pulse")
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.08f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulse_scale"
-    )
-
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -256,8 +192,7 @@ fun LogsEmptyState() {
         ) {
             Box(
                 modifier = Modifier
-                    .size(96.dp)
-                    .scale(pulseScale)
+                    .size(80.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surfaceContainerHighest),
                 contentAlignment = Alignment.Center
@@ -266,7 +201,7 @@ fun LogsEmptyState() {
                     imageVector = Icons.Rounded.History,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(40.dp)
                 )
             }
 

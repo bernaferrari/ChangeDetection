@@ -55,7 +55,8 @@ data class PlatformActions(
 @Composable
 fun ChangeDetectionRootApp(
     windowSizeClass: WindowSizeClass,
-    platformActions: PlatformActions = PlatformActions()
+    platformActions: PlatformActions = PlatformActions(),
+    initialSiteId: String? = null
 ) {
     val themeViewModel: ThemeViewModel = koinViewModel()
 
@@ -69,7 +70,8 @@ fun ChangeDetectionRootApp(
         ) {
             ChangeDetectionApp(
                 windowSizeClass = windowSizeClass,
-                platformActions = platformActions
+                platformActions = platformActions,
+                initialSiteId = initialSiteId
             )
         }
     }
@@ -79,10 +81,18 @@ fun ChangeDetectionRootApp(
 @Composable
 fun ChangeDetectionApp(
     windowSizeClass: WindowSizeClass,
-    platformActions: PlatformActions
+    platformActions: PlatformActions,
+    initialSiteId: String? = null
 ) {
     val backStack = rememberNavBackStack(MainDestination)
     val mainViewModel: MainViewModel = koinViewModel()
+
+    // Handle deep link from notification
+    androidx.compose.runtime.LaunchedEffect(initialSiteId) {
+        if (initialSiteId != null) {
+            backStack.add(ComparisonDestination(siteId = initialSiteId))
+        }
+    }
     val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
 
     ChangeDetectionBottomNavigation(

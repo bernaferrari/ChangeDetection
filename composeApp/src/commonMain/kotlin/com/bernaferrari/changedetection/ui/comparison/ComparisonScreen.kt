@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -214,15 +215,15 @@ fun ComparisonScreen(
                     isLoadingDiff = uiState.isLoadingDiff,
                     onSelectPair = { viewModel.selectPairForComparison(it) },
                     onShare = {
-                         val idx = uiState.selectedPairIndex ?: 0
-                         if (idx + 1 < uiState.snaps.size && uiState.snapContent1 != null && uiState.snapContent2 != null) {
-                             viewModel.shareDiff(
-                                 snap1 = uiState.snaps[idx],
-                                 snap2 = uiState.snaps[idx + 1],
-                                 content1 = uiState.snapContent1!!,
-                                 content2 = uiState.snapContent2!!
-                             )
-                         }
+                        val idx = uiState.selectedPairIndex ?: 0
+                        if (idx + 1 < uiState.snaps.size && uiState.snapContent1 != null && uiState.snapContent2 != null) {
+                            viewModel.shareDiff(
+                                snap1 = uiState.snaps[idx],
+                                snap2 = uiState.snaps[idx + 1],
+                                content1 = uiState.snapContent1!!,
+                                content2 = uiState.snapContent2!!
+                            )
+                        }
                     },
                     modifier = Modifier
                         .fillMaxSize()
@@ -311,7 +312,7 @@ private fun SingleSnapshotState(
                     )
                 }
             }
-            
+
             // Floating label for timestamp
             Surface(
                 modifier = Modifier
@@ -403,7 +404,7 @@ private fun DiffFirstContent(
         )
 
         // Diff mode selector
-        var mode by remember { mutableStateOf("TEXT") }
+        var mode by remember { mutableStateOf("HTML") }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -420,9 +421,9 @@ private fun DiffFirstContent(
                 onClick = { mode = "HTML" },
                 label = { Text(stringResource(Res.string.rendered_html)) }
             )
-            
+
             Spacer(modifier = Modifier.weight(1f))
-            
+
             // Share button
             if (content1 != null && content2 != null) {
                 IconButton(onClick = onShare) {
@@ -448,6 +449,7 @@ private fun DiffFirstContent(
                         modifier = Modifier.fillMaxSize()
                     )
                 }
+
                 "HTML" -> {
                     RenderedHtmlComparison(
                         oldContent = content1,
@@ -490,7 +492,7 @@ private fun VersionSelector(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
         )
-        
+
         Row(
             modifier = Modifier
                 .horizontalScroll(scrollState)
@@ -500,7 +502,7 @@ private fun VersionSelector(
             for (i in 0 until snaps.size - 1) {
                 val isSelected = i == selectedIndex
                 val snap1 = snaps[i]
-                
+
                 VersionChip(
                     label = "v${snaps.size - i} → v${snaps.size - i - 1}",
                     subtitle = formatTimestamp(snap1.timestamp),
@@ -520,9 +522,9 @@ private fun VersionChip(
     onClick: () -> Unit
 ) {
     val containerColor by animateColorAsState(
-        targetValue = if (isSelected) 
-            MaterialTheme.colorScheme.primaryContainer 
-        else 
+        targetValue = if (isSelected)
+            MaterialTheme.colorScheme.primaryContainer
+        else
             MaterialTheme.colorScheme.surfaceContainer,
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
@@ -544,9 +546,9 @@ private fun VersionChip(
                 text = label,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (isSelected) 
-                    MaterialTheme.colorScheme.onPrimaryContainer 
-                else 
+                color = if (isSelected)
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                else
                     MaterialTheme.colorScheme.onSurface
             )
             Text(
@@ -593,7 +595,7 @@ private fun SimpleDiffView(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 ComparisonStatsRow(stats = changeStats)
-                
+
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(
                         selected = !showOnlyChanges,
@@ -618,13 +620,16 @@ private fun SimpleDiffView(
                         oldLine == newLine -> {
                             DiffLine(i + 1, oldLine, DiffLineType.UNCHANGED)
                         }
+
                         oldLine.isNotEmpty() && newLine.isNotEmpty() -> {
                             DiffLine(i + 1, oldLine, DiffLineType.REMOVED)
                             DiffLine(i + 1, newLine, DiffLineType.ADDED)
                         }
+
                         oldLine.isNotEmpty() -> {
                             DiffLine(i + 1, oldLine, DiffLineType.REMOVED)
                         }
+
                         newLine.isNotEmpty() -> {
                             DiffLine(i + 1, newLine, DiffLineType.ADDED)
                         }
@@ -671,17 +676,12 @@ private fun RenderedHtmlComparison(
     newContent: String,
     modifier: Modifier = Modifier
 ) {
-    val (removedKeywords, addedKeywords) = remember(oldContent, newContent) {
-        extractChangedKeywords(oldContent, newContent)
+    var overlayOpacity by remember { mutableFloatStateOf(0.5f) }
+
+    // Calculate similarity percentage
+    val similarityPercent = remember(oldContent, newContent) {
+        calculateSimilarity(oldContent, newContent)
     }
-    val removedJsArray = remember(removedKeywords) { 
-        removedKeywords.joinToString(prefix = "[\"", postfix = "\"]", separator = "\",\"") 
-    }
-    val addedJsArray = remember(addedKeywords) { 
-        addedKeywords.joinToString(prefix = "[\"", postfix = "\"]", separator = "\",\"") 
-    }
-    val addColor = "rgba(76,175,80,0.18)"
-    val remColor = "rgba(244,67,54,0.18)"
 
     val sanitizedOldContent = remember(oldContent) {
         com.bernaferrari.changedetection.util.HtmlSanitizer.sanitize(oldContent)
@@ -693,19 +693,144 @@ private fun RenderedHtmlComparison(
     val oldWebViewState = rememberWebViewStateWithHTMLData(data = sanitizedOldContent)
     val newWebViewState = rememberWebViewStateWithHTMLData(data = sanitizedNewContent)
 
-    // Note: JavaScript evaluation is not directly supported in webview-multiplatform state.
-    // The highlighting would need to be done via modified HTML content instead.
+    Column(modifier = modifier) {
+        // Similarity indicator at top
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.surfaceContainerLow
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val similarityColor = when {
+                    similarityPercent >= 90 -> MaterialTheme.colorScheme.tertiary
+                    similarityPercent >= 70 -> MaterialTheme.colorScheme.primary
+                    similarityPercent >= 50 -> MaterialTheme.colorScheme.secondary
+                    else -> MaterialTheme.colorScheme.error
+                }
 
-    Row(modifier = modifier) {
-        WebView(
-            state = oldWebViewState,
-            modifier = Modifier.weight(1f)
-        )
-        WebView(
-            state = newWebViewState,
-            modifier = Modifier.weight(1f)
-        )
+                Text(
+                    text = "${100 - similarityPercent}% changed",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = similarityColor
+                )
+                Text(
+                    text = " • ",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "${similarityPercent}% similar",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        // Overlay comparison area
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
+            // Base layer: Old content (always fully visible as background)
+            WebView(
+                state = oldWebViewState,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            // Overlay layer: New content with adjustable opacity
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer { alpha = overlayOpacity }
+            ) {
+                WebView(
+                    state = newWebViewState,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+
+        // Control bar
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 2.dp
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Old button
+                FilterChip(
+                    selected = overlayOpacity == 0f,
+                    onClick = { overlayOpacity = 0f },
+                    label = { Text("Old") },
+                    leadingIcon = if (overlayOpacity == 0f) {
+                        { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                    } else null
+                )
+
+                // Blend slider
+                Slider(
+                    value = overlayOpacity,
+                    onValueChange = { overlayOpacity = it },
+                    modifier = Modifier.weight(1f),
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                    )
+                )
+
+                // New button
+                FilterChip(
+                    selected = overlayOpacity == 1f,
+                    onClick = { overlayOpacity = 1f },
+                    label = { Text("New") },
+                    leadingIcon = if (overlayOpacity == 1f) {
+                        { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                    } else null
+                )
+            }
+        }
     }
+}
+
+/**
+ * Calculate similarity percentage between two strings using a simple comparison.
+ * Returns a value from 0-100 representing how similar the texts are.
+ */
+private fun calculateSimilarity(old: String, new: String): Int {
+    if (old == new) return 100
+    if (old.isEmpty() || new.isEmpty()) return 0
+
+    // Strip HTML tags for comparison
+    val oldText = old.replace(Regex("<[^>]+>"), " ").replace(Regex("\\s+"), " ").trim()
+    val newText = new.replace(Regex("<[^>]+>"), " ").replace(Regex("\\s+"), " ").trim()
+
+    if (oldText == newText) return 100
+
+    // Use word-level comparison
+    val oldWords = oldText.lowercase().split(Regex("\\s+")).toSet()
+    val newWords = newText.lowercase().split(Regex("\\s+")).toSet()
+
+    if (oldWords.isEmpty() && newWords.isEmpty()) return 100
+    if (oldWords.isEmpty() || newWords.isEmpty()) return 0
+
+    val intersection = oldWords.intersect(newWords).size
+    val union = oldWords.union(newWords).size
+
+    return ((intersection.toDouble() / union.toDouble()) * 100).toInt()
 }
 
 private fun extractChangedKeywords(oldHtml: String, newHtml: String): Pair<List<String>, List<String>> {

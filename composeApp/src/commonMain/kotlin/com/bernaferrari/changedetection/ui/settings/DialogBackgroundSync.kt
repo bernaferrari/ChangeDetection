@@ -207,22 +207,10 @@ private fun HeroHeader(
     syncEnabled: Boolean,
     onToggle: (Boolean) -> Unit
 ) {
-    val backgroundColor by animateColorAsState(
-        targetValue = if (syncEnabled)
-            MaterialTheme.colorScheme.primaryContainer
-        else
-            MaterialTheme.colorScheme.surfaceContainerHigh,
-        animationSpec = spring(
-            dampingRatio = ExpressiveSpring.BOUNCY_DAMPING,
-            stiffness = ExpressiveSpring.BOUNCY_STIFFNESS
-        ),
-        label = "heroBg"
-    )
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(backgroundColor)
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .padding(horizontal = 24.dp, vertical = 24.dp)
     ) {
         Row(

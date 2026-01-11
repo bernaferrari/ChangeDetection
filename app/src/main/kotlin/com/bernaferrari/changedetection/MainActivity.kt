@@ -49,6 +49,13 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // Read deep link extras from notification
+        val initialSiteId = if (intent.getBooleanExtra("openComparison", false)) {
+            intent.getStringExtra("siteId")
+        } else {
+            null
+        }
+
         setContent {
             val windowSizeClass = calculateWindowSizeClass(this)
             val mainViewModel: MainViewModel = koinViewModel()
@@ -66,7 +73,8 @@ class MainActivity : ComponentActivity() {
                         QuickMonitorService.stop(context)
                         mainViewModel.stopQuickMonitor()
                     }
-                )
+                ),
+                initialSiteId = initialSiteId
             )
         }
     }
