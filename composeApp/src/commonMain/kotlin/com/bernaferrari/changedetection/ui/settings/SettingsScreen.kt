@@ -9,6 +9,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -71,6 +72,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bernaferrari.changedetection.model.ThemeMode
+import com.bernaferrari.changedetection.repo.ComparisonMethod
 import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import com.bernaferrari.changedetection.shared.generated.resources.*
@@ -151,6 +153,46 @@ fun SettingsScreen(
                             viewModel.updateBackgroundSync(it)
                         },
                         onClick = { showBackgroundSyncDialog = true }
+                    )
+                }
+            }
+
+            item {
+                SettingsGroup {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = stringResource(Res.string.settings_comparison_title),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(Res.string.settings_comparison_subtitle),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        ComparisonMethodSelector(
+                            selectedMethod = uiState.comparisonMethod,
+                            onMethodSelected = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                viewModel.updateComparisonMethod(it)
+                            }
+                        )
+                    }
+                    ItemDivider()
+                    ActionItem(
+                        icon = Icons.Outlined.Schedule,
+                        title = stringResource(Res.string.settings_browser_delay_title),
+                        value = formatDelay(uiState.browserDelayMs),
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.updateBrowserDelay(nextDelay(uiState.browserDelayMs))
+                        }
                     )
                 }
             }
@@ -450,4 +492,54 @@ private fun ItemDivider() {
         modifier = Modifier.padding(start = 56.dp),
         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
     )
+}
+
+@Composable
+private fun ComparisonMethodSelector(
+    selectedMethod: ComparisonMethod,
+    onMethodSelected: (ComparisonMethod) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(12.dp)),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        ComparisonMethod.values().forEach { method ->
+            val isSelected = method == selectedMethod
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxSize()
+                    .padding(4.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
+                    .clickable { onMethodSelected(method) },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = method.name.lowercase().replaceFirstChar { it.uppercase() },
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                    ),
+                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+private fun nextDelay(current: Long): Long {
+    val options = listOf(2000L, 5000L, 10000L, 15000L)
+    val index = options.indexOf(current).takeIf { it >= 0 } ?: 1
+    return options[(index + 1) % options.size]
+}
+
+private fun formatDelay(delayMs: Long): String {
+    val seconds = (delayMs / 1000L).coerceAtLeast(1L)
+    return "${seconds}s"
 }

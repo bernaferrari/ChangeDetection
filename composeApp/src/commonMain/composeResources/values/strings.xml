@@ -145,6 +145,12 @@
     <string name="text_diff">Text diff</string>
     <string name="rendered_html">Rendered HTML</string>
     <string name="failed_to_load_content">Failed to load content</string>
+    <string name="comparison_no_changes_title">No differences found</string>
+    <string name="comparison_no_changes_text">The text content of both snapshots is identical.</string>
+    <string name="comparison_no_changes_html">The visual content of both snapshots is identical.</string>
+    <string name="settings_comparison_title">Comparison method</string>
+    <string name="settings_comparison_subtitle">Applies to all monitored sites</string>
+    <string name="settings_browser_delay_title">Browser delay</string>
 
     <!-- About -->
     <string name="about_title">About</string>

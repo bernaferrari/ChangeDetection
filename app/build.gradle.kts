@@ -5,7 +5,7 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+
     alias(libs.plugins.compose)
 }
 
@@ -86,6 +86,7 @@ android {
 
 dependencies {
     implementation(project(":composeApp"))
+    implementation(platform(libs.androidx.compose.bom))
 
     // Koin for dependency injection
     implementation(libs.koin.android)

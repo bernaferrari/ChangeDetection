@@ -24,6 +24,7 @@ import com.bernaferrari.changedetection.util.FeatureFlags
 import com.bernaferrari.changedetection.util.BackHandler
 
 enum class AddEditStep {
+    LOADING,
     URL_INPUT,
     BROWSER_SETUP,
     CONFIRM_DETAILS
@@ -38,7 +39,9 @@ fun AddEditFlow(
     viewModel: AddEditViewModel = koinViewModel { parametersOf(siteId) }
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var currentStep by remember { mutableStateOf(AddEditStep.URL_INPUT) }
+    var currentStep by remember {
+        mutableStateOf(if (siteId != null) AddEditStep.LOADING else AddEditStep.URL_INPUT)
+    }
     var browserData by remember { mutableStateOf<BrowserSessionData?>(null) }
     var hasAutoNavigatedToConfirm by remember { mutableStateOf(false) }
     val browserSessionEnabled = FeatureFlags.BROWSER_SESSION
@@ -56,24 +59,21 @@ fun AddEditFlow(
             !uiState.isLoading &&
             !hasAutoNavigatedToConfirm
         ) {
-            if (browserSessionEnabled && uiState.browserData != null) {
+            if (uiState.browserData != null) {
                 browserData = uiState.browserData
-                currentStep = AddEditStep.CONFIRM_DETAILS
-                hasAutoNavigatedToConfirm = true
-            } else if (!browserSessionEnabled) {
-                currentStep = AddEditStep.CONFIRM_DETAILS
-                hasAutoNavigatedToConfirm = true
             }
+            currentStep = AddEditStep.CONFIRM_DETAILS
+            hasAutoNavigatedToConfirm = true
         }
     }
-    
+
     // Handle save completion with success animation + snackbar
     LaunchedEffect(uiState.saveComplete) {
         if (uiState.saveComplete) {
             onSaveComplete()
         }
     }
-    
+
     BackHandler(enabled = currentStep != AddEditStep.URL_INPUT) {
         when (currentStep) {
             AddEditStep.BROWSER_SETUP -> currentStep = AddEditStep.URL_INPUT
@@ -84,20 +84,21 @@ fun AddEditFlow(
                     AddEditStep.URL_INPUT
                 }
             }
+
             else -> {}
         }
     }
-    
+
     Box(modifier = Modifier.fillMaxSize()) {
         AnimatedContent(
             targetState = currentStep,
             transitionSpec = {
                 if (targetState.ordinal > initialState.ordinal) {
-                    (slideInHorizontally { it } + fadeIn()) togetherWith 
-                    (slideOutHorizontally { -it } + fadeOut())
+                    (slideInHorizontally { it } + fadeIn()) togetherWith
+                            (slideOutHorizontally { -it } + fadeOut())
                 } else {
-                    (slideInHorizontally { -it } + fadeIn()) togetherWith 
-                    (slideOutHorizontally { it } + fadeOut())
+                    (slideInHorizontally { -it } + fadeIn()) togetherWith
+                            (slideOutHorizontally { it } + fadeOut())
                 }
             },
             label = "step_transition"
@@ -118,7 +119,7 @@ fun AddEditFlow(
                         }
                     )
                 }
-                
+
                 AddEditStep.BROWSER_SETUP -> {
                     if (browserSessionEnabled) {
                         ModernInteractiveBrowserScreen(
@@ -134,7 +135,7 @@ fun AddEditFlow(
                         )
                     }
                 }
-                
+
                 AddEditStep.CONFIRM_DETAILS -> {
                     AddEditConfirmScreen(
                         url = uiState.url,
@@ -158,6 +159,15 @@ fun AddEditFlow(
                         },
                         onSave = viewModel::saveSite
                     )
+                }
+
+                AddEditStep.LOADING -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = androidx.compose.ui.Alignment.Center
+                    ) {
+                        androidx.compose.material3.CircularProgressIndicator()
+                    }
                 }
             }
         }

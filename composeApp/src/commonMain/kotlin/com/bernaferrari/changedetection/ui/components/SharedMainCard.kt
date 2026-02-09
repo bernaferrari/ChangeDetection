@@ -96,7 +96,7 @@ fun SharedMainCard(
 
     // Rotation animation that always completes a full rotation
     val rotationAnimatable = remember { Animatable(0f) }
-    
+
     LaunchedEffect(isLoading) {
         if (isLoading) {
             // Start spinning continuously
@@ -127,7 +127,7 @@ fun SharedMainCard(
     // Site colors
     val siteColor = remember(site.colors.first) { Color(site.colors.first) }
     val siteColor2 = remember(site.colors.second) { Color(site.colors.second) }
-    
+
     // Gradient
     val gradient = remember(siteColor, siteColor2) {
         Brush.linearGradient(
@@ -142,7 +142,7 @@ fun SharedMainCard(
         site.title?.takeIf { it.isNotBlank() }
             ?: site.url.replace(Regex("^https?://(www\\.)?"), "").substringBefore("/")
     }
-    
+
     val displayDomain = remember(site.url) {
         site.url.replace(Regex("^https?://(www\\.)?"), "").substringBefore("/")
     }
@@ -178,19 +178,18 @@ fun SharedMainCard(
             ),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         border = BorderStroke(1.dp, borderColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            // Gradient header with full border radius
+        Column {
+            // Edge-to-edge gradient header with top rounded corners only
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
                     .background(gradient)
-                    .padding(horizontal = 16.dp, vertical = 14.dp)
+                    .padding(horizontal = 16.dp, vertical = 16.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -228,9 +227,9 @@ fun SharedMainCard(
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
-                        
+
                         Spacer(modifier = Modifier.height(2.dp))
-                        
+
                         Text(
                             text = displayDomain,
                             style = MaterialTheme.typography.bodySmall,
@@ -239,14 +238,14 @@ fun SharedMainCard(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    
+
                     // Refresh button - prominent and actionable
                     if (onRefreshClick != null) {
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(CircleShape)
-                                .background(Color.White)
+                                .background(Color.White.copy(alpha = 0.2f))
                                 .clickable(
                                     enabled = !isLoading,
                                     onClick = onRefreshClick
@@ -256,7 +255,7 @@ fun SharedMainCard(
                             Icon(
                                 imageVector = Icons.Rounded.Refresh,
                                 contentDescription = "Refresh",
-                                tint = siteColor,
+                                tint = Color.White,
                                 modifier = Modifier
                                     .size(22.dp)
                                     .rotate(rotationAnimatable.value)
@@ -265,15 +264,12 @@ fun SharedMainCard(
                     }
                 }
             }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            // Metadata rows - stacked vertically like the reference design
+
+            // Metadata section with padding
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 // Last Sync row
                 MetadataRow(
@@ -283,7 +279,16 @@ fun SharedMainCard(
                     secondaryValue = fileSizeValue.takeIf { it.isNotBlank() },
                     accentColor = siteColor
                 )
-                
+
+                // Subtle divider
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp, horizontal = 4.dp)
+                        .height(1.dp)
+                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                )
+
                 // Last Change row
                 MetadataRow(
                     icon = Icons.Rounded.History,
@@ -315,24 +320,24 @@ private fun MetadataRow(
             .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Icon in a subtle circular background
+        // Icon with solid accent background and white icon for better contrast
         Box(
             modifier = Modifier
-                .size(32.dp)
+                .size(36.dp)
                 .clip(CircleShape)
-                .background(accentColor.copy(alpha = 0.12f)),
+                .background(accentColor),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = accentColor,
+                tint = Color.White,
                 modifier = Modifier.size(18.dp)
             )
         }
-        
+
         Spacer(modifier = Modifier.size(12.dp))
-        
+
         // Label and value
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -352,7 +357,7 @@ private fun MetadataRow(
                 )
                 if (secondaryValue != null) {
                     Text(
-                        text = "–",
+                        text = "·",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                     )

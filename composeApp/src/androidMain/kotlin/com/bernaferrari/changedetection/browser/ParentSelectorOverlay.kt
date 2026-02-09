@@ -45,7 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.library.R
 import kotlin.math.roundToInt
 
 @Composable

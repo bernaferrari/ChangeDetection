@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.background.MonitoringManager
+import com.bernaferrari.changedetection.repo.ComparisonMethod
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -33,7 +34,9 @@ data class SettingsUiState(
     val turboStartTime: Long = 0L,
     val turboSyncInterval: Long = 30,
     val turboDuration: Long = 180,
-    val minChangeThreshold: Int = 0
+    val minChangeThreshold: Int = 0,
+    val comparisonMethod: ComparisonMethod = ComparisonMethod.HTML,
+    val browserDelayMs: Long = 5000
 )
 
 class SettingsViewModel(
@@ -59,6 +62,8 @@ class SettingsViewModel(
         val TURBO_SYNC_INTERVAL_KEY = longPreferencesKey("turbo_sync_interval")
         val TURBO_DURATION_KEY = longPreferencesKey("turbo_duration")
         val MIN_CHANGE_THRESHOLD_KEY = intPreferencesKey("min_change_threshold")
+        val COMPARISON_METHOD_KEY = stringPreferencesKey("comparison_method")
+        val BROWSER_DELAY_KEY = longPreferencesKey("browser_delay_ms")
     }
 
     val uiState: StateFlow<SettingsUiState> = dataStore.data.map { preferences ->
@@ -86,7 +91,11 @@ class SettingsViewModel(
             turboStartTime = preferences[TURBO_START_TIME_KEY] ?: 0L,
             turboSyncInterval = preferences[TURBO_SYNC_INTERVAL_KEY] ?: 30,
             turboDuration = preferences[TURBO_DURATION_KEY] ?: 180,
-            minChangeThreshold = preferences[MIN_CHANGE_THRESHOLD_KEY] ?: 0
+            minChangeThreshold = preferences[MIN_CHANGE_THRESHOLD_KEY] ?: 0,
+            comparisonMethod = runCatching {
+                ComparisonMethod.valueOf(preferences[COMPARISON_METHOD_KEY] ?: ComparisonMethod.HTML.name)
+            }.getOrElse { ComparisonMethod.HTML },
+            browserDelayMs = preferences[BROWSER_DELAY_KEY] ?: 5000
         )
     }.stateIn(
         scope = viewModelScope,
@@ -199,6 +208,22 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStore.edit { preferences ->
                 preferences[MIN_CHANGE_THRESHOLD_KEY] = threshold
+            }
+        }
+    }
+
+    fun updateComparisonMethod(method: ComparisonMethod) {
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[COMPARISON_METHOD_KEY] = method.name
+            }
+        }
+    }
+
+    fun updateBrowserDelay(delayMs: Long) {
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[BROWSER_DELAY_KEY] = delayMs
             }
         }
     }

@@ -1,12 +1,6 @@
 package com.bernaferrari.changedetection.addedit
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,10 +15,7 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -50,12 +41,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
@@ -74,6 +63,8 @@ import com.bernaferrari.changedetection.shared.generated.resources.save
 import com.bernaferrari.changedetection.shared.generated.resources.site_name
 import com.bernaferrari.changedetection.shared.generated.resources.site_name_placeholder
 import com.bernaferrari.changedetection.shared.generated.resources.start_monitoring
+import com.bernaferrari.changedetection.repo.ColorGroup
+import com.bernaferrari.changedetection.ui.components.ColorPickerList
 import io.ktor.http.Url
 import org.jetbrains.compose.resources.stringResource
 
@@ -250,7 +241,7 @@ fun AddEditConfirmScreen(
                     availableColors = defaultAvailableColors,
                     onColorChange = { colors ->
                         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onColorChange(colors)
+                        onColorChange(colors.first to colors.second)
                     }
                 )
             }
@@ -319,90 +310,34 @@ private fun GradientHeroBanner(
 @Composable
 private fun ColorThemeSelector(
     selectedColors: Pair<Int, Int>,
-    availableColors: List<Pair<Int, Int>>,
-    onColorChange: (Pair<Int, Int>) -> Unit
+    availableColors: List<ColorGroup>,
+    onColorChange: (ColorGroup) -> Unit
 ) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding = PaddingValues(horizontal = 4.dp)
-    ) {
-        items(availableColors) { colors ->
-            GradientPill(
-                colors = colors,
-                isSelected = colors == selectedColors,
-                onClick = { onColorChange(colors) }
-            )
-        }
-    }
-}
-
-@Composable
-private fun GradientPill(
-    colors: Pair<Int, Int>,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val scale by animateFloatAsState(
-        targetValue = if (isSelected) 1.05f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "scale"
+    val selectedGroup = ColorGroup(selectedColors.first, selectedColors.second)
+    ColorPickerList(
+        currentColors = selectedGroup,
+        gradientList = availableColors,
+        onColorSelected = onColorChange,
+        modifier = Modifier.fillMaxWidth()
     )
-
-    Box(
-        modifier = Modifier
-            .height(44.dp)
-            .width(56.dp)
-            .scale(scale)
-            .clip(RoundedCornerShape(22.dp))
-            .background(
-                Brush.horizontalGradient(
-                    colors = listOf(Color(colors.first), Color(colors.second))
-                )
-            )
-            .then(
-                if (isSelected) {
-                    Modifier.border(
-                        width = 3.dp,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        shape = RoundedCornerShape(22.dp)
-                    )
-                } else {
-                    Modifier
-                }
-            )
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        AnimatedVisibility(visible = isSelected) {
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
 }
 
 // Original gradient colors from GradientColors.kt
 private val defaultAvailableColors = listOf(
-    Pair(0xff40C4FF.toInt(), 0xff536DFE.toInt()), // Light Blue A200 to Indigo A200
-    Pair(0xfffeb47b.toInt(), 0xffff7e5f.toInt()), // Ed's Sunset Gradient
-    Pair(0xffF54EA2.toInt(), 0xffFF7676.toInt()), // Pink -> Pink
-    Pair(0xff17EAD9.toInt(), 0xff448AFF.toInt()), // Cyan -> Blue
-    Pair(0xff20e281.toInt(), 0xff00bf8f.toInt()), // Green -> Light-Green
-    Pair(0xff7117EA.toInt(), 0xffEA6060.toInt()), // Purple -> Instagram-Purple
-    Pair(0xffFBB03B.toInt(), 0xffD4145A.toInt()), // Sanguine
-    Pair(0xffFEAC5E.toInt(), 0xff5d0058.toInt()), // Yellow -> Purple
-    Pair(0xffffb88c.toInt(), 0xffde6262.toInt()), // A Lost Memory
-    Pair(0xff1e3c72.toInt(), 0xff2a5298.toInt()), // Eternal Constance
-    Pair(0xff3AA17E.toInt(), 0xff00537E.toInt()), // New Leaf
-    Pair(0xff29ABE2.toInt(), 0xff4F00BC.toInt()), // Deep Sea
-    Pair(0xffEBC08D.toInt(), 0xffF24645.toInt()), // Fizzy Peach
-    Pair(0xff622774.toInt(), 0xffC53364.toInt())  // Dark-Purple -> Light-Purple
+    ColorGroup(0xff40C4FF.toInt(), 0xff536DFE.toInt()), // Light Blue A200 to Indigo A200
+    ColorGroup(0xfffeb47b.toInt(), 0xffff7e5f.toInt()), // Ed's Sunset Gradient
+    ColorGroup(0xffF54EA2.toInt(), 0xffFF7676.toInt()), // Pink -> Pink
+    ColorGroup(0xff17EAD9.toInt(), 0xff448AFF.toInt()), // Cyan -> Blue
+    ColorGroup(0xff20e281.toInt(), 0xff00bf8f.toInt()), // Green -> Light-Green
+    ColorGroup(0xff7117EA.toInt(), 0xffEA6060.toInt()), // Purple -> Instagram-Purple
+    ColorGroup(0xffFBB03B.toInt(), 0xffD4145A.toInt()), // Sanguine
+    ColorGroup(0xffFEAC5E.toInt(), 0xff5d0058.toInt()), // Yellow -> Purple
+    ColorGroup(0xffffb88c.toInt(), 0xffde6262.toInt()), // A Lost Memory
+    ColorGroup(0xff1e3c72.toInt(), 0xff2a5298.toInt()), // Eternal Constance
+    ColorGroup(0xff3AA17E.toInt(), 0xff00537E.toInt()), // New Leaf
+    ColorGroup(0xff29ABE2.toInt(), 0xff4F00BC.toInt()), // Deep Sea
+    ColorGroup(0xffEBC08D.toInt(), 0xffF24645.toInt()), // Fizzy Peach
+    ColorGroup(0xff622774.toInt(), 0xffC53364.toInt())  // Dark-Purple -> Light-Purple
 )
 
 private fun extractDomain(url: String): String {

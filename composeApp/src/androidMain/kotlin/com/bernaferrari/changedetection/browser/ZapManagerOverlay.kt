@@ -27,7 +27,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.res.stringResource
-import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.library.R
 
 @Composable
 fun ZapManagerOverlay(
@@ -71,11 +71,11 @@ fun ZapManagerOverlay(
                         onClose = onDismiss,
                         onClearAll = onClearAllZapped
                     )
-                    
+
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                     )
-                    
+
                     // Content sections
                     LazyColumn(
                         modifier = Modifier
@@ -93,7 +93,7 @@ fun ZapManagerOverlay(
                                     color = MaterialTheme.colorScheme.error
                                 )
                             }
-                            
+
                             items(uiState.zappedElements) { zappedElement ->
                                 ZappedElementCard(
                                     element = zappedElement,
@@ -101,7 +101,7 @@ fun ZapManagerOverlay(
                                 )
                             }
                         }
-                        
+
                         // Selected Elements Section
                         if (uiState.selectedElements.isNotEmpty()) {
                             item {
@@ -112,21 +112,21 @@ fun ZapManagerOverlay(
                                     color = MaterialTheme.colorScheme.primary
                                 )
                             }
-                            
+
                             items(uiState.selectedElements) { selectedElement ->
                                 SelectedElementCard(
                                     element = selectedElement
                                 )
                             }
                         }
-                        
+
                         // Empty state
                         if (uiState.zappedElements.isEmpty() && uiState.selectedElements.isEmpty()) {
                             item {
                                 EmptyZapManagerState()
                             }
                         }
-                        
+
                         // Footer with tips
                         item {
                             ZapManagerTips()
@@ -324,9 +324,9 @@ private fun ZappedElementCard(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-                    
+
                     Spacer(modifier = Modifier.height(4.dp))
-                    
+
                     Text(
                         text = element.selector,
                         style = MaterialTheme.typography.bodySmall.copy(
@@ -336,9 +336,9 @@ private fun ZappedElementCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    
+
                     Spacer(modifier = Modifier.height(4.dp))
-                    
+
                     Text(
                         text = stringResource(
                             id = R.string.browser_zap_manager_blocked_timestamp,
@@ -348,7 +348,7 @@ private fun ZappedElementCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                
+
                 IconButton(
                     onClick = onRemove,
                     modifier = Modifier
@@ -399,7 +399,7 @@ private fun SelectedElementCard(
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(16.dp)
                 )
-                
+
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
@@ -412,7 +412,7 @@ private fun SelectedElementCard(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-                    
+
                     Text(
                         text = element.selector,
                         style = MaterialTheme.typography.bodySmall.copy(
@@ -422,7 +422,7 @@ private fun SelectedElementCard(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    
+
                     Text(
                         text = stringResource(
                             id = R.string.browser_zap_manager_added_timestamp,
@@ -452,13 +452,13 @@ private fun EmptyZapManagerState() {
             modifier = Modifier.size(64.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
         )
-        
+
         Text(
             text = stringResource(id = R.string.browser_zap_manager_empty_title),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        
+
         Text(
             text = stringResource(id = R.string.browser_zap_manager_empty_message),
             style = MaterialTheme.typography.bodyMedium,
@@ -499,7 +499,7 @@ private fun ZapManagerTips() {
                     color = MaterialTheme.colorScheme.secondary
                 )
             }
-            
+
             Text(
                 text = stringResource(id = R.string.browser_zap_manager_tip_body),
                 style = MaterialTheme.typography.bodySmall,
@@ -523,16 +523,19 @@ private fun relativeTimeText(timestamp: Long): String {
             count = days,
             days
         )
+
         hours > 0 -> pluralStringResource(
             id = R.plurals.browser_time_hours_ago,
             count = hours,
             hours
         )
+
         minutes > 0 -> pluralStringResource(
             id = R.plurals.browser_time_minutes_ago,
             count = minutes,
             minutes
         )
+
         else -> stringResource(id = R.string.browser_time_now)
     }
 }

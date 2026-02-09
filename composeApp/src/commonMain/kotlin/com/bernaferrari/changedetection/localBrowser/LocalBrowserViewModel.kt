@@ -4,9 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
-import io.ktor.utils.io.charsets.Charset
-import io.ktor.utils.io.charsets.Charsets
-import io.ktor.utils.io.core.String
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -52,16 +49,7 @@ class LocalBrowserViewModel : ViewModel(), KoinComponent {
                 val (snap, bytes, encoding) = snapshotInfo
                 val (mimeType, charsetName) = encoding
 
-                val decodedContent = runCatching {
-                    val charset = Charset.forName(charsetName)
-                    bytes.decodeToString(
-                        startIndex = 0,
-                        endIndex = bytes.size,
-                        throwOnInvalidSequence = false
-                    )
-                }.getOrElse {
-                    bytes.decodeToString()
-                }
+                val decodedContent = bytes.decodeToString()
 
                 _state.value = BrowserState(
                     content = decodedContent,

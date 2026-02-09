@@ -38,10 +38,10 @@ class AddEditViewModel(
     private val sitesRepository: SitesRepository,
     private val monitoringManager: MonitoringManager
 ) : ViewModel() {
-    
-    private val _uiState = MutableStateFlow(AddEditUiState())
+
+    private val _uiState = MutableStateFlow(AddEditUiState(isLoading = siteId != null))
     val uiState: StateFlow<AddEditUiState> = _uiState.asStateFlow()
-    
+
     init {
         // Load site if editing
         siteId?.let { id ->
@@ -50,7 +50,7 @@ class AddEditViewModel(
             }
         }
     }
-    
+
     private suspend fun loadSite(id: String) {
         _uiState.update { it.copy(isLoading = true) }
         try {
@@ -78,7 +78,7 @@ class AddEditViewModel(
             }
         }
     }
-    
+
     fun setUrl(url: String) {
         val normalized = url.normalizeUrl()
 
@@ -102,15 +102,15 @@ class AddEditViewModel(
             )
         }
     }
-    
+
     fun setTitle(title: String) {
         _uiState.update { it.copy(title = title) }
     }
-    
+
     fun setColors(colors: Pair<Int, Int>) {
         _uiState.update { it.copy(selectedColors = colors) }
     }
-    
+
     fun setBrowserData(data: BrowserSessionData) {
         if (!FeatureFlags.BROWSER_SESSION) return
 
@@ -146,8 +146,7 @@ class AddEditViewModel(
             _uiState.update { it.copy(useCookies = enabled) }
         }
     }
-    
-    
+
     fun saveSite() {
         val state = _uiState.value
         val normalizedUrl = state.url.normalizeUrl()
@@ -155,10 +154,10 @@ class AddEditViewModel(
             _uiState.update { it.copy(urlError = "Please enter a valid URL") }
             return
         }
-        
+
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true, saveError = null) }
-            
+
             try {
                 val browserData = if (FeatureFlags.BROWSER_SESSION) state.browserData else null
 
@@ -202,7 +201,7 @@ class AddEditViewModel(
                 }
 
                 val site = updatedSite
-                
+
                 sitesRepository.saveSite(site)
 
                 // Trigger initial sync to populate first snapshot

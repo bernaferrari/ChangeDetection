@@ -75,7 +75,10 @@ class WorkerHelper(
             if (constraints.batteryNotLow) setRequiresBatteryNotLow(true)
             if (constraints.charging) setRequiresCharging(true)
             if (requiresDeviceIdle) {
-                setRequiresDeviceIdle(true)
+                // Device Idle constraint causes a crash with PeriodicWorkRequest because it has default backoff criteria
+                // which cannot be unset and is incompatible with idle mode jobs.
+                // We must ignore this constraint for periodic work to prevent the crash.
+                Napier.w("Ignoring Device Idle constraint for Periodic Work to prevent crash (incompatible with backoff).")
             }
         }.build()
 
@@ -91,9 +94,7 @@ class WorkerHelper(
             .setConstraints(workerConstraints)
             .setInputData(inputData)
 
-        if (!requiresDeviceIdle) {
-            periodicWorkBuilder.setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.MINUTES)
-        }
+        periodicWorkBuilder.setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.MINUTES)
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             UNIQUEWORK,

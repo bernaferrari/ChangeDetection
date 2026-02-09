@@ -149,9 +149,10 @@ class SmartMonitoringEngine {
 
     private fun extractMeaningfulContent(content: String): String {
         // Remove noise and extract meaningful text
+        // Using [\\s\\S]*? instead of .*? with DOT_MATCHES_ALL for multiline matching
         return content
-            .replace(Regex("<script[^>]*>.*?</script>", RegexOption.DOT_MATCHES_ALL), "")
-            .replace(Regex("<style[^>]*>.*?</style>", RegexOption.DOT_MATCHES_ALL), "")
+            .replace(Regex("<script[^>]*>[\\s\\S]*?</script>", RegexOption.IGNORE_CASE), "")
+            .replace(Regex("<style[^>]*>[\\s\\S]*?</style>", RegexOption.IGNORE_CASE), "")
             .replace(Regex("<[^>]+>"), " ") // Remove HTML tags
             .replace(Regex("\\s+"), " ") // Normalize whitespace
             .replace(Regex("\\b\\d{13,}\\b"), "[TIMESTAMP]") // Replace timestamps
