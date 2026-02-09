@@ -6,6 +6,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -15,6 +16,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,13 +28,27 @@ fun LogsScreen(
     val pagedItems = viewModel.pagedSnaps.collectAsLazyPagingItems()
     val siteMap by viewModel.siteMap.collectAsStateWithLifecycle()
     val versionsCount by viewModel.versionsCount.collectAsStateWithLifecycle()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(Res.string.nav_logs)) }
+                title = {
+                    Text(
+                        text = stringResource(Res.string.nav_logs),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
+                modifier = Modifier.statusBarsPadding()
             )
-        }
+        },
+        contentWindowInsets = WindowInsets(0)
     ) { padding ->
         if (pagedItems.itemCount == 0) {
             Box(
@@ -48,7 +64,7 @@ fun LogsScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
-                contentPadding = PaddingValues(vertical = 8.dp)
+                contentPadding = PaddingValues(top = 8.dp, bottom = 100.dp)
             ) {
                 item {
                     LogsHeader(
@@ -94,13 +110,7 @@ fun LogsScreen(
                         }
 
                         is LogUiModel.Header -> {
-                            // Date header
-                            Text(
-                                text = item.date,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            )
+                            DateHeader(date = item.date)
                         }
 
                         null -> {} // Loading state placeholder

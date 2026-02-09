@@ -1,5 +1,7 @@
 package com.bernaferrari.changedetection
 
+import com.bernaferrari.changedetection.library.R
+
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -88,6 +90,7 @@ class QuickMonitorService : Service(), KoinComponent {
                 stopQuickMonitor()
                 return START_NOT_STICKY
             }
+
             ACTION_EXTEND -> {
                 extendOneHour()
                 return START_STICKY
@@ -114,7 +117,11 @@ class QuickMonitorService : Service(), KoinComponent {
 
             // Start foreground with the notification
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(NOTIFICATION_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+                startForeground(
+                    NOTIFICATION_ID,
+                    notification,
+                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                )
             } else {
                 startForeground(NOTIFICATION_ID, notification)
             }
@@ -163,7 +170,10 @@ class QuickMonitorService : Service(), KoinComponent {
 
     private fun scheduleAutoStop(hoursFromNow: Int) {
         autoStopDeadlineMs = System.currentTimeMillis() + hoursFromNow * 60L * 60L * 1000L
-        try { autoStopJob?.cancel() } catch (_: Exception) {}
+        try {
+            autoStopJob?.cancel()
+        } catch (_: Exception) {
+        }
         autoStopJob = serviceScope.launch {
             val delayMs = (autoStopDeadlineMs - System.currentTimeMillis()).coerceAtLeast(0L)
             delay(delayMs)
@@ -180,7 +190,10 @@ class QuickMonitorService : Service(), KoinComponent {
         } else {
             autoStopDeadlineMs += 60L * 60L * 1000L
         }
-        try { autoStopJob?.cancel() } catch (_: Exception) {}
+        try {
+            autoStopJob?.cancel()
+        } catch (_: Exception) {
+        }
         autoStopJob = serviceScope.launch {
             val delayMs = (autoStopDeadlineMs - System.currentTimeMillis()).coerceAtLeast(0L)
             delay(delayMs)
@@ -212,7 +225,7 @@ class QuickMonitorService : Service(), KoinComponent {
         // Minimal notification
         val sitesText = if (siteIds.size == 1) "1 site" else "${siteIds.size} sites"
         val intervalText = if (intervalSeconds >= 60) "${intervalSeconds / 60}m" else "${intervalSeconds}s"
-        
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Turbo Mode")
             .setContentText("$sitesText • Every $intervalText")
@@ -272,7 +285,8 @@ class QuickMonitorService : Service(), KoinComponent {
         try {
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.notify(NOTIFICATION_ID, createNotification())
-        } catch (_: Exception) { }
+        } catch (_: Exception) {
+        }
     }
 
     private fun persistBannerState(active: Boolean) {
@@ -298,7 +312,8 @@ class QuickMonitorService : Service(), KoinComponent {
                         prefs[INTERVAL] = 15
                     }
                 }
-            } catch (_: Exception) {}
+            } catch (_: Exception) {
+            }
         }
     }
 }

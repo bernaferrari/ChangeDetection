@@ -41,10 +41,21 @@ class MainViewModel(
 
     val syncStatusFlow = monitoringManager.getSyncStatusFlow()
 
-    fun removeSite(site: Site) = viewModelScope.launch {
+    fun onDeleteSite(site: Site) {
+        _pendingDeletionSiteIds.update { it + site.id }
+    }
+
+    fun onUndoDeleteSite(site: Site) {
+        _pendingDeletionSiteIds.update { it - site.id }
+    }
+
+    fun onConfirmDeleteSite(site: Site) = viewModelScope.launch {
+        _pendingDeletionSiteIds.update { it - site.id }
         mSnapsRepository.deleteAllSnaps(site.id)
         mSitesRepository.deleteSite(site.id)
     }
+
+    fun removeSite(site: Site) = onConfirmDeleteSite(site) // Legacy/Direct delete if needed
 
     fun pruneSite(siteId: String) = viewModelScope.launch {
         mSnapsRepository.pruneSnaps(siteId)
@@ -70,24 +81,30 @@ class MainViewModel(
     private val _loadingSites = MutableStateFlow<Set<String>>(emptySet())
     val loadingSites: StateFlow<Set<String>> = _loadingSites.asStateFlow()
 
+    // StateFlow for tracking sites pending deletion (Undo feature)
+    private val _pendingDeletionSiteIds = MutableStateFlow<Set<String>>(emptySet())
+
     /**
      * OPTIMIZATION: Efficiently combines sites with their most recent snapshots.
      */
     val sitesFlow: StateFlow<List<SiteAndLastSnap>?> = combine(
         mSitesRepository.getDataWithChanges(),
-        _loadingSites.asStateFlow()
-    ) { sites, loadingSiteIds ->
+        _loadingSites.asStateFlow(),
+        _pendingDeletionSiteIds.asStateFlow()
+    ) { sites, loadingSiteIds, pendingDeletionIds ->
         // Load all snapshots in a single optimized query
         val snapsBySite = runCatching { mSnapsRepository.getAllMostRecentSnaps() }.getOrNull() ?: emptyMap()
 
-        // Map sites to SiteAndLastSnap using the pre-loaded snapshots (O(1) lookup)
-        sites.map { site ->
-            SiteAndLastSnap(
-                site = site,
-                snap = snapsBySite[site.id],  // Fast map lookup instead of separate query
-                isSyncing = loadingSiteIds.contains(site.id)
-            )
-        }
+        // Map sites to SiteAndLastSnap using the pre-loaded snapshots
+        sites
+            .filter { !pendingDeletionIds.contains(it.id) } // Filter out pending deletions
+            .map { site ->
+                SiteAndLastSnap(
+                    site = site,
+                    snap = snapsBySite[site.id],  // Fast map lookup instead of separate query
+                    isSyncing = loadingSiteIds.contains(site.id)
+                )
+            }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),

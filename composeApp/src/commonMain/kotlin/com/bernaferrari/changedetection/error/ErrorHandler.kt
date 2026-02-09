@@ -9,6 +9,7 @@ import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.network.sockets.SocketTimeoutException
 import kotlinx.io.IOException
+import kotlinx.datetime.Clock
 
 /**
  * Centralized error handling system for the Change Detection app
@@ -40,8 +41,7 @@ class ErrorHandler {
             is AuthenticationError -> handleAuthenticationError(error, context)
             is IOException -> handleNetworkConnectivity(error, context) // Includes UnknownHostException
             is ConnectTimeoutException, is SocketTimeoutException -> handleTimeout(error, context)
-            is SecurityException -> handlePermissions(error, context)
-            is OutOfMemoryError -> handleMemoryError(error, context)
+            // SecurityException and OutOfMemoryError are JVM-only, handled by generic catch
             else -> handleGenericError(error, context)
         }
 
@@ -158,23 +158,9 @@ class ErrorHandler {
         )
     }
 
-    private fun handlePermissions(error: SecurityException, errorContext: ErrorContext): ErrorResult {
-        return ErrorResult(
-            type = ErrorType.PERMISSIONS,
-            userMessage = "Permission denied",
-            isRetryable = false,
-            suggestedActions = listOf("Check permissions", "Grant permissions")
-        )
-    }
+    // handlePermissions removed: SecurityException is JVM-only
 
-    private fun handleMemoryError(error: OutOfMemoryError, errorContext: ErrorContext): ErrorResult {
-        return ErrorResult(
-            type = ErrorType.MEMORY,
-            userMessage = "Out of memory",
-            isRetryable = true,
-            suggestedActions = listOf("Clear cache", "Restart app", "Reduce monitoring sites")
-        )
-    }
+    // handleMemoryError removed: OutOfMemoryError is JVM-only
 
     private fun handleGenericError(error: Throwable, errorContext: ErrorContext): ErrorResult {
         return ErrorResult(

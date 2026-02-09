@@ -6,7 +6,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.library.R
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith

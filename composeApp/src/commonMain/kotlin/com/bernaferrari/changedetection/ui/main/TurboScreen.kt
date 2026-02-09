@@ -1,8 +1,12 @@
 package com.bernaferrari.changedetection.ui.main
 
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -91,6 +95,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.turbo_help_te
 import com.bernaferrari.changedetection.shared.generated.resources.turbo_help_title
 import com.bernaferrari.changedetection.shared.generated.resources.turbo_mode
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
+import com.bernaferrari.changedetection.ui.theme.CornerRadius
 import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
@@ -98,10 +103,10 @@ import org.jetbrains.compose.resources.stringResource
 private data class IntervalOption(val seconds: Int, val label: String)
 
 private val intervalOptions = listOf(
-    IntervalOption(15, "15 sec"),
-    IntervalOption(30, "30 sec"),
-    IntervalOption(60, "1 min"),
-    IntervalOption(120, "2 min"),
+    IntervalOption(15, "15s"),
+    IntervalOption(30, "30s"),
+    IntervalOption(60, "1m"),
+    IntervalOption(120, "2m"),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -113,6 +118,7 @@ fun TurboScreen(
     onStartTurbo: (siteIds: Set<String>, intervalSeconds: Int) -> Unit,
     onStopTurbo: () -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
     val isRunning = quickMonitorState.isActive
     var selectedIds by remember {
         mutableStateOf(quickMonitorState.siteIds)
@@ -276,8 +282,12 @@ fun TurboScreen(
                             isSyncing = showLoading,
                             intervalSeconds = intervalSeconds,
                             countdownSeconds = countdownSeconds,
-                            onIntervalChange = { intervalSeconds = it },
+                            onIntervalChange = {
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                intervalSeconds = it
+                            },
                             onToggle = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 if (isRunning) {
                                     onStopTurbo()
                                 } else if (selectedIds.isNotEmpty()) {
@@ -328,6 +338,7 @@ fun TurboScreen(
                                     isFirst = isFirst,
                                     isLast = isLast,
                                     onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                         val newIds = selectedIds.toMutableSet()
                                         if (isSelected) newIds.remove(siteAndSnap.site.id) else newIds.add(siteAndSnap.site.id)
                                         selectedIds = newIds
@@ -379,13 +390,13 @@ private fun SiteRowCard(
     )
 
     val topRadius by animateDpAsState(
-        targetValue = if (isSelected) 24.dp else if (isFirst) 16.dp else 4.dp,
+        targetValue = if (isSelected) CornerRadius.largePlus else if (isFirst) CornerRadius.medium else CornerRadius.xs,
         animationSpec = animationSpec,
         label = "topRadius"
     )
 
     val bottomRadius by animateDpAsState(
-        targetValue = if (isSelected) 24.dp else if (isLast) 16.dp else 4.dp,
+        targetValue = if (isSelected) CornerRadius.largePlus else if (isLast) CornerRadius.medium else CornerRadius.xs,
         animationSpec = animationSpec,
         label = "bottomRadius"
     )
@@ -397,9 +408,19 @@ private fun SiteRowCard(
         bottomEnd = bottomRadius
     )
 
+    val scale by animateFloatAsState(
+        targetValue = if (isSelected) 1.02f else 1f,
+        animationSpec = spring(
+            dampingRatio = ExpressiveSpring.BOUNCY_DAMPING,
+            stiffness = ExpressiveSpring.BOUNCY_STIFFNESS
+        ),
+        label = "scale"
+    )
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .scale(scale)
             .padding(vertical = 2.dp)
             .animateContentSize(
                 animationSpec = spring(
@@ -409,7 +430,7 @@ private fun SiteRowCard(
             ),
         shape = shape,
         color = backgroundColor,
-        tonalElevation = if (isSelected) 3.dp else 0.dp // Use tonal elevation for M3 - no clipping
+        tonalElevation = if (isSelected) 3.dp else 0.dp
     ) {
         Row(
             modifier = Modifier
@@ -501,7 +522,7 @@ private fun TurboHero(
         targetValue = if (isRunning)
             MaterialTheme.colorScheme.primaryContainer
         else
-            MaterialTheme.colorScheme.primaryContainer,
+            MaterialTheme.colorScheme.surfaceContainerHighest,
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
             stiffness = ExpressiveSpring.GENTLE_STIFFNESS
@@ -509,8 +530,27 @@ private fun TurboHero(
         label = "containerColor"
     )
 
+    // Add pulse animation when running
+    val pulseScale by remember(isRunning) { mutableStateOf(Animatable(1f)) }
+    LaunchedEffect(isRunning) {
+        if (isRunning) {
+            while (true) {
+                pulseScale.animateTo(
+                    targetValue = 1.05f,
+                    animationSpec = tween(1000)
+                )
+                pulseScale.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(1000)
+                )
+            }
+        } else {
+            pulseScale.snapTo(1f)
+        }
+    }
+
     // Current interval label
-    val currentLabel = intervalOptions.find { it.seconds == intervalSeconds }?.label ?: "15 sec"
+    val currentLabel = intervalOptions.find { it.seconds == intervalSeconds }?.label ?: "15s"
 
     Column(
         modifier = Modifier
@@ -522,6 +562,7 @@ private fun TurboHero(
         Box(
             modifier = Modifier
                 .size(120.dp)
+                .scale(if (isRunning) pulseScale.value else 1f)
                 .clip(CircleShape)
                 .background(containerColor)
                 .then(
@@ -570,7 +611,7 @@ private fun TurboHero(
                 } else {
                     // Animated interval display
                     AnimatedContent(
-                        targetState = currentLabel.replace(" sec", "s").replace(" min", "m"),
+                        targetState = currentLabel,
                         transitionSpec = {
                             slideInVertically { -it } + fadeIn() togetherWith
                                     slideOutVertically { it } + fadeOut()

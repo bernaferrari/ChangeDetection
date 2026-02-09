@@ -9,7 +9,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.bernaferrari.changedetection.MainActivityProvider
-import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.library.R
 import com.bernaferrari.changedetection.repo.Site
 import io.github.aakira.napier.Napier
 

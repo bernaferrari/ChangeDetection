@@ -39,6 +39,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewStateWithHTMLData
 import com.multiplatform.webview.web.LoadingState
+import com.bernaferrari.changedetection.ui.components.SharedEmptyState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -236,43 +237,12 @@ fun ComparisonScreen(
 
 @Composable
 private fun EmptySnapshotState(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier,
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(48.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Schedule,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(40.dp)
-                )
-            }
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = stringResource(Res.string.comparison_empty_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(Res.string.comparison_empty_subtitle),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-        }
-    }
+    SharedEmptyState(
+        icon = Icons.Default.Schedule,
+        title = stringResource(Res.string.comparison_empty_title),
+        description = stringResource(Res.string.comparison_empty_subtitle),
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -611,27 +581,36 @@ private fun SimpleDiffView(
             }
 
             // Diff lines
-            for (i in 0 until maxLines) {
-                val oldLine = oldLines.getOrNull(i) ?: ""
-                val newLine = newLines.getOrNull(i) ?: ""
+            if (changeStats.added == 0 && changeStats.removed == 0) {
+                SharedEmptyState(
+                    icon = Icons.Default.CheckCircle,
+                    title = stringResource(Res.string.comparison_no_changes_title),
+                    description = stringResource(Res.string.comparison_no_changes_text),
+                    modifier = Modifier.fillMaxSize().padding(32.dp)
+                )
+            } else {
+                for (i in 0 until maxLines) {
+                    val oldLine = oldLines.getOrNull(i) ?: ""
+                    val newLine = newLines.getOrNull(i) ?: ""
 
-                if (!showOnlyChanges || oldLine != newLine) {
-                    when {
-                        oldLine == newLine -> {
-                            DiffLine(i + 1, oldLine, DiffLineType.UNCHANGED)
-                        }
+                    if (!showOnlyChanges || oldLine != newLine) {
+                        when {
+                            oldLine == newLine -> {
+                                DiffLine(i + 1, oldLine, DiffLineType.UNCHANGED)
+                            }
 
-                        oldLine.isNotEmpty() && newLine.isNotEmpty() -> {
-                            DiffLine(i + 1, oldLine, DiffLineType.REMOVED)
-                            DiffLine(i + 1, newLine, DiffLineType.ADDED)
-                        }
+                            oldLine.isNotEmpty() && newLine.isNotEmpty() -> {
+                                DiffLine(i + 1, oldLine, DiffLineType.REMOVED)
+                                DiffLine(i + 1, newLine, DiffLineType.ADDED)
+                            }
 
-                        oldLine.isNotEmpty() -> {
-                            DiffLine(i + 1, oldLine, DiffLineType.REMOVED)
-                        }
+                            oldLine.isNotEmpty() -> {
+                                DiffLine(i + 1, oldLine, DiffLineType.REMOVED)
+                            }
 
-                        newLine.isNotEmpty() -> {
-                            DiffLine(i + 1, newLine, DiffLineType.ADDED)
+                            newLine.isNotEmpty() -> {
+                                DiffLine(i + 1, newLine, DiffLineType.ADDED)
+                            }
                         }
                     }
                 }
@@ -738,22 +717,31 @@ private fun RenderedHtmlComparison(
                 .weight(1f)
                 .fillMaxWidth()
         ) {
-            // Base layer: Old content (always fully visible as background)
-            WebView(
-                state = oldWebViewState,
-                modifier = Modifier.fillMaxSize()
-            )
-
-            // Overlay layer: New content with adjustable opacity
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer { alpha = overlayOpacity }
-            ) {
+            if (similarityPercent == 100) {
+                SharedEmptyState(
+                    icon = Icons.Default.CheckCircle,
+                    title = stringResource(Res.string.comparison_no_changes_title),
+                    description = stringResource(Res.string.comparison_no_changes_html),
+                    modifier = Modifier.fillMaxSize().padding(32.dp)
+                )
+            } else {
+                // Base layer: Old content (always fully visible as background)
                 WebView(
-                    state = newWebViewState,
+                    state = oldWebViewState,
                     modifier = Modifier.fillMaxSize()
                 )
+
+                // Overlay layer: New content with adjustable opacity
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer { alpha = overlayOpacity }
+                ) {
+                    WebView(
+                        state = newWebViewState,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
         }
 

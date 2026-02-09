@@ -22,7 +22,7 @@ kotlin {
         androidResources {
             enable = true
         }
-        namespace = "com.bernaferrari.changedetection"
+        namespace = "com.bernaferrari.changedetection.library"
         compileSdk = 36
         minSdk = 30
         packaging {
@@ -38,7 +38,6 @@ kotlin {
     }
     
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
@@ -78,18 +77,28 @@ kotlin {
             
             // Paging (KMP)
             implementation(libs.androidx.paging.common)
+            implementation(libs.androidx.paging.compose)
             implementation(libs.androidx.room.paging)
             
             // AndroidX Lifecycle ViewModel (KMP)
             implementation(libs.jetbrains.androidx.lifecycle.viewmodel)
+            implementation(libs.jetbrains.androidx.lifecycle.viewmodel.compose)
             implementation(libs.jetbrains.androidx.lifecycle.runtime.compose)
             implementation(libs.androidx.datastore.preferences)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.fast.kotlin.diff.core)
             
             // Navigation 3 (KMP-compatible runtime)
-            implementation(libs.androidx.navigation3.runtime)
+            implementation(libs.jetbrains.androidx.navigation3.runtime)
+            implementation(libs.jetbrains.androidx.navigation3.ui)
             implementation(libs.webview.multiplatform)
+            
+            // Adaptive
+            implementation(libs.jetbrains.compose.material3.adaptive.navigation3)
+            
+            // Core
+            implementation(libs.jetbrains.androidx.savedstate)
+            implementation(libs.jetbrains.androidx.window.core)
         }
         androidMain.dependencies {
             implementation(libs.koin.android)
@@ -101,22 +110,13 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.work.runtime.ktx)
             implementation(libs.timeago)
-            // Paging Compose (Android-only)
-            implementation(libs.androidx.paging.compose)
             // Navigation 3 UI (Android-specific)
-            implementation(libs.androidx.navigation3.ui)
-            implementation(libs.androidx.lifecycle.viewmodel.navigation3)
-            implementation(libs.androidx.compose.material3.adaptive.navigation3)
-
-            // Android Core
             implementation(libs.androidx.core.ktx)
             implementation(libs.androidx.startup)
 
             // Compose (already provided by compose multiplatform in commonMain)
             implementation(libs.androidx.compose.ui.tooling.preview)
-            implementation(libs.androidx.compose.material3)  // M3 Expressive APIs (1.5.0-alpha11)
             implementation(libs.androidx.compose.material3.window.size)
-            implementation(libs.androidx.lifecycle.viewmodel.compose)
 
             // Coil for image loading
             implementation(libs.coil.compose)
@@ -153,6 +153,7 @@ kotlin {
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+            implementation(libs.material.kolor)
         }
 
         // Host (JVM) tests
@@ -187,6 +188,5 @@ room {
 dependencies {
     add("kspAndroid", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
-    add("kspIosX64", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
 }

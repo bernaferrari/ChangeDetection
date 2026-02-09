@@ -1,5 +1,8 @@
 package com.bernaferrari.changedetection.ui.main
 
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,7 +42,23 @@ import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.app_name
 import com.bernaferrari.changedetection.shared.generated.resources.refresh_all
 import com.bernaferrari.changedetection.shared.generated.resources.add_site
+import com.bernaferrari.changedetection.util.getRelativeTimeLabel
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import com.bernaferrari.changedetection.background.SyncState
+import androidx.compose.material.icons.rounded.Bolt
+import com.bernaferrari.changedetection.shared.generated.resources.start_monitoring
+import com.bernaferrari.changedetection.shared.generated.resources.start_monitoring_description
+import com.bernaferrari.changedetection.shared.generated.resources.add_first_site
+import com.bernaferrari.changedetection.ui.components.SharedEmptyState
+import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
@@ -61,8 +80,24 @@ fun MainScreen(
     val sites by viewModel.sitesFlow.collectAsState()
     val quickMonitorState by viewModel.quickMonitorState.collectAsState()
     val loadingSites by viewModel.loadingSites.collectAsState()
-
+    val syncStatus by viewModel.syncStatusFlow.collectAsState(initial = emptyList())
+    val haptic = LocalHapticFeedback.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val refreshState = rememberPullToRefreshState()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    // Error handling for sync failures
+    LaunchedEffect(syncStatus) {
+        val hasError = syncStatus.any { it.state == SyncState.FAILED }
+        if (hasError) {
+            snackbarHostState.showSnackbar(
+                message = "Connection error",
+                withDismissAction = true,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
 
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -76,7 +111,10 @@ fun MainScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.refreshAllSites() }) {
+                    IconButton(onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.refreshAllSites()
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = stringResource(Res.string.refresh_all)
@@ -93,7 +131,10 @@ fun MainScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onAddSite,
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onAddSite()
+                },
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
             ) {
@@ -118,9 +159,13 @@ fun MainScreen(
                     androidx.compose.material3.CircularProgressIndicator()
                 }
             } else if (sites!!.isEmpty()) {
-                EmptyStateComponent(
+                SharedEmptyState(
+                    icon = Icons.Rounded.Bolt,
+                    title = stringResource(Res.string.start_monitoring),
+                    description = stringResource(Res.string.start_monitoring_description),
                     modifier = Modifier.fillMaxSize(),
-                    onAddSite = onAddSite
+                    primaryActionLabel = stringResource(Res.string.add_first_site),
+                    onPrimaryAction = onAddSite
                 )
             } else {
                 SitesList(
@@ -128,9 +173,27 @@ fun MainScreen(
                     quickMonitorSiteIds = quickMonitorState.siteIds,
                     loadingSites = loadingSites,
                     onSiteClick = { siteAndSnap -> onSiteClick(siteAndSnap.site) },
-                    onSiteRefresh = { siteAndSnap -> viewModel.reloadSite(siteAndSnap.site) },
+                    onSiteRefresh = { siteAndSnap ->
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        viewModel.reloadSite(siteAndSnap.site)
+                    },
                     onSiteEdit = { siteAndSnap -> onSiteEdit(siteAndSnap.site) },
-                    onSiteDelete = { siteAndSnap -> viewModel.removeSite(siteAndSnap.site) }
+                    onSiteDelete = { siteAndSnap ->
+                        val site = siteAndSnap.site
+                        viewModel.onDeleteSite(site)
+                        scope.launch {
+                            val result = snackbarHostState.showSnackbar(
+                                message = "Site deleted",
+                                actionLabel = "Undo",
+                                duration = SnackbarDuration.Short
+                            )
+                            if (result == SnackbarResult.ActionPerformed) {
+                                viewModel.onUndoDeleteSite(site)
+                            } else {
+                                viewModel.onConfirmDeleteSite(site)
+                            }
+                        }
+                    }
                 )
             }
         }
@@ -167,11 +230,11 @@ private fun SitesList(
             }
 
             val lastSyncValue = siteAndSnap.site.timestamp.takeIf { it > 0 }?.let {
-                formatRelativeTime(it)
+                getRelativeTimeLabel(it)
             } ?: "-"
 
             val lastChangeValue = siteAndSnap.snap?.timestamp?.let {
-                formatRelativeTime(it)
+                getRelativeTimeLabel(it)
             } ?: "-"
 
             val fileSizeValue = siteAndSnap.snap?.contentSize?.takeIf { it > 0 }?.let {
@@ -214,16 +277,4 @@ private fun SitesList(
     }
 }
 
-// Simple relative time formatter for KMP
-fun formatRelativeTime(timestamp: Long): String {
-    val nowMs = kotlin.time.Clock.System.now().toEpochMilliseconds()
-    val durationMs = nowMs - timestamp
-    val seconds = durationMs / 1000
 
-    return when {
-         seconds < 60 -> "just now"
-         seconds < 3600 -> "${seconds / 60}m ago"
-         seconds < 86400 -> "${seconds / 3600}h ago"
-         else -> "${seconds / 86400}d ago"
-    }
-}

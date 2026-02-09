@@ -38,7 +38,7 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.MainActivityProvider
-import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.library.R
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
@@ -102,7 +102,10 @@ class QuickMonitorWidget : GlanceAppWidget() {
 
             Text(
                 text = subtitle,
-                style = TextStyle(color = subtitleColor, fontStyle = if (isActive) FontStyle.Normal else FontStyle.Italic),
+                style = TextStyle(
+                    color = subtitleColor,
+                    fontStyle = if (isActive) FontStyle.Normal else FontStyle.Italic
+                ),
                 modifier = GlanceModifier.padding(top = 4.dp, bottom = 12.dp)
             )
 
@@ -123,7 +126,14 @@ class QuickMonitorWidget : GlanceAppWidget() {
                 } else {
                     Text(
                         text = context.getString(R.string.start),
-                        modifier = GlanceModifier.clickable(actionStartActivity(Intent(context, MainActivityProvider.getMainActivityClass()))),
+                        modifier = GlanceModifier.clickable(
+                            actionStartActivity(
+                                Intent(
+                                    context,
+                                    MainActivityProvider.getMainActivityClass()
+                                )
+                            )
+                        ),
                         style = TextStyle(color = accentColor, fontWeight = FontWeight.Medium)
                     )
                 }

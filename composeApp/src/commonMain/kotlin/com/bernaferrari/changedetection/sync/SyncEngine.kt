@@ -23,6 +23,7 @@ import kotlin.uuid.Uuid
  * This class contains the core logic that was previously in SyncWorker,
  * now made multiplatform using Ktor (networking) and Ksoup (HTML parsing).
  */
+@OptIn(ExperimentalUuidApi::class)
 class SyncEngine(
     private val httpClient: HttpClient,
     private val sitesDao: SitesDao,
@@ -68,12 +69,22 @@ class SyncEngine(
         }
 
         Napier.i("Starting sync for: ${site.title ?: site.url}")
-        val result = fetchFromServer(site)
 
+        val result = fetchFromServer(site)
+        processFetchResult(site, result)
+    }
+
+    /**
+     * Process the result of a fetch operation.
+     * Use this when fetching is done externally (e.g. ScreenshotService).
+     */
+    suspend fun processFetchResult(site: Site, result: FetchResult): Boolean = withContext(Dispatchers.Default) {
         when (result) {
             is FetchResult.Success -> {
-                val lastSnap = snapsDao.getLastSnapForSiteId(siteId)
-                val contentHash = if (result.contentType.contains("html", ignoreCase = true)) {
+                val lastSnap = snapsDao.getLastSnapForSiteId(site.id)
+                val isHtml = result.contentType.contains("html", ignoreCase = true)
+
+                val contentHash = if (isHtml) {
                     hashHtmlContent(result.data)
                 } else {
                     hashContent(result.data)
@@ -82,12 +93,15 @@ class SyncEngine(
                 val hasChanged = hasContentChanged(result.data, lastSnap?.contentHash, result.contentType)
 
                 if (hasChanged || lastSnap == null) {
-                    val changeReason = if (lastSnap == null) "Initial snapshot" else "Content changed"
+                    val changeReason = if (lastSnap == null) "Initial snapshot" else generateChangeDescription(
+                        result.data,
+                        result.contentType
+                    )
                     Napier.i("Changes detected for ${site.url}: $changeReason")
 
                     val snap = Snap(
                         snapId = Uuid.random().toString(),
-                        siteId = siteId,
+                        siteId = site.id,
                         timestamp = currentTimeMillis(),
                         contentType = result.contentType,
                         contentCharset = "UTF-8",
@@ -210,6 +224,8 @@ class SyncEngine(
                     textLength > 1000 -> "Content changes detected"
                     else -> "Minor content update detected"
                 }
+            } else if (contentType.contains("image", ignoreCase = true)) {
+                "Visual appearance changed"
             } else {
                 val sizeKb = newContent.size / 1024
                 when {

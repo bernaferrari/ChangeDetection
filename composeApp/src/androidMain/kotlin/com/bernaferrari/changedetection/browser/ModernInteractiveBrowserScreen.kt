@@ -73,7 +73,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.delay
 import com.bernaferrari.changedetection.extensions.normalizeUrl
-import com.bernaferrari.changedetection.R
+import com.bernaferrari.changedetection.library.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,9 +86,9 @@ actual fun ModernInteractiveBrowserScreen(
     val viewModel: InteractiveBrowserViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    
+
     var webView by remember { mutableStateOf<WebView?>(null) }
-    
+
     LaunchedEffect(initialUrl) {
         if (initialUrl.isNotBlank()) {
             viewModel.setInitialUrl(initialUrl)
@@ -102,7 +102,7 @@ actual fun ModernInteractiveBrowserScreen(
     LaunchedEffect(uiState.interactionMode) {
         viewModel.reapplyInteractionMode()
     }
-    
+
     var showModeHint by remember { mutableStateOf(false) }
     LaunchedEffect(uiState.interactionMode, uiState.isLoading) {
         if (!uiState.isLoading && uiState.interactionMode != InteractionMode.NORMAL) {
@@ -120,7 +120,7 @@ actual fun ModernInteractiveBrowserScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.configure_site),
+                        text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.library.R.string.configure_site),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.SemiBold
                         )
@@ -138,7 +138,7 @@ actual fun ModernInteractiveBrowserScreen(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             )
-            
+
             // Browser Controls
             BrowserControlsBar(
                 currentUrl = uiState.currentUrl,
@@ -154,7 +154,7 @@ actual fun ModernInteractiveBrowserScreen(
                 modifier = Modifier
                     .padding(horizontal = 24.dp, vertical = 16.dp)
             )
-            
+
             // WebView Container
             Box(modifier = Modifier.weight(1f)) {
                 AndroidView(
@@ -190,7 +190,7 @@ actual fun ModernInteractiveBrowserScreen(
                         }
                     }
                 }
-                
+
                 if (uiState.isLoading) {
                     LinearProgressIndicator(
                         modifier = Modifier
@@ -200,10 +200,10 @@ actual fun ModernInteractiveBrowserScreen(
                         trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                     )
                 }
-                
+
                 // Mode overlay
             }
-            
+
             // Bottom Control Bar with ZAP manager
             BottomControlBar(
                 uiState = uiState,
@@ -251,7 +251,7 @@ actual fun ModernInteractiveBrowserScreen(
             onSelectLevel = viewModel::selectParentAtIndex,
             onConfirm = { viewModel.confirmParentSelection() }
         )
-        
+
         // Floating Action Button for Continue
         AnimatedVisibility(
             visible = uiState.hasSessionData && !uiState.showParentSelector,
@@ -262,7 +262,7 @@ actual fun ModernInteractiveBrowserScreen(
                 .padding(end = 16.dp, bottom = 112.dp)
         ) {
             ExtendedFloatingActionButton(
-                onClick = { 
+                onClick = {
                     onSaveComplete(
                         BrowserSessionData(
                             url = uiState.currentUrl,
@@ -283,7 +283,7 @@ actual fun ModernInteractiveBrowserScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.R.string.continue_label),
+                    text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.library.R.string.continue_label),
                     style = MaterialTheme.typography.labelLarge.copy(
                         fontWeight = FontWeight.SemiBold
                     )
@@ -308,13 +308,13 @@ private fun BrowserControlsBar(
 ) {
     var urlText by remember { mutableStateOf(currentUrl) }
     var isUrlEditing by remember { mutableStateOf(false) }
-    
+
     LaunchedEffect(currentUrl) {
         if (!isUrlEditing) {
             urlText = currentUrl
         }
     }
-    
+
     val submitUrl: (String) -> Unit = { input ->
         val normalized = input.normalizeUrl()
         val finalUrl = normalized ?: input.trim()
@@ -343,7 +343,7 @@ private fun BrowserControlsBar(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        
+
         IconButton(
             onClick = { webView?.let { if (it.canGoForward()) it.goForward() } },
             modifier = Modifier.size(40.dp)
@@ -354,7 +354,7 @@ private fun BrowserControlsBar(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        
+
         // Address field - rounded pill shape like Safari
         Surface(
             modifier = Modifier
@@ -386,7 +386,7 @@ private fun BrowserControlsBar(
                         modifier = Modifier.size(16.dp)
                     )
                 }
-                
+
                 androidx.compose.foundation.text.BasicTextField(
                     value = urlText,
                     onValueChange = {
@@ -418,7 +418,7 @@ private fun BrowserControlsBar(
                         }
                     }
                 )
-                
+
                 // Show loading or GO button
                 if (isLoading) {
                     androidx.compose.material3.CircularProgressIndicator(
@@ -444,7 +444,7 @@ private fun BrowserControlsBar(
                 }
             }
         }
-        
+
         // Reload button
         IconButton(
             onClick = {
@@ -475,18 +475,21 @@ private fun BoxScope.ModeOverlay(
             title = stringResource(id = R.string.browser_mode_select_title),
             subtitle = stringResource(id = R.string.browser_mode_select_subtitle)
         )
+
         InteractionMode.ELEMENT_ZAP -> ModeOverlayData(
             icon = Icons.Default.Block,
             accent = MaterialTheme.colorScheme.error,
             title = stringResource(id = R.string.browser_mode_zap_title),
             subtitle = stringResource(id = R.string.browser_mode_zap_subtitle)
         )
+
         InteractionMode.LOGIN_CAPTURE -> ModeOverlayData(
             icon = Icons.Default.Info,
             accent = MaterialTheme.colorScheme.tertiary,
             title = stringResource(id = R.string.browser_mode_login_title),
             subtitle = stringResource(id = R.string.browser_mode_login_subtitle)
         )
+
         else -> null
     }
 
@@ -561,54 +564,55 @@ private fun setupWebView(webView: WebView, viewModel: InteractiveBrowserViewMode
             loadWithOverviewMode = true
             useWideViewPort = true
         }
-        
+
         // Enable automatic cookie and login persistence
         CookieManager.getInstance().apply {
             setAcceptCookie(true)
             setAcceptThirdPartyCookies(webView, true)
         }
-        
+
         // Add JavaScript interface for element interaction
         addJavascriptInterface(
             ModernElementInteractionInterface(viewModel),
             "AndroidInterface"
         )
-        
+
         webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
                 super.onPageStarted(view, url, favicon)
                 viewModel.setLoading(true)
                 url?.let { viewModel.setCurrentUrl(it) }
             }
-            
+
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 viewModel.setLoading(false)
-                
-                    // Extract page title
+
+                // Extract page title
                 view?.title?.let { title ->
                     if (title.isNotBlank() && title != url) {
                         viewModel.setPageTitle(title)
                     }
                 }
-                
+
                 // Auto-capture and persist cookies globally
-                    url?.let { 
+                url?.let {
                     val cookies = CookieManager.getInstance().getCookie(it) ?: ""
                     viewModel.setCapturedCookies(cookies)
-                    
+
                     // Auto-save cookies for future use across all sites
                     CookieManager.getInstance().setAcceptCookie(true)
                     CookieManager.getInstance().setAcceptThirdPartyCookies(view, true)
                 }
-                
-                    // Capture user agent from WebView settings
-                    try {
-                        val ua = view?.settings?.userAgentString ?: ""
-                        if (ua.isNotBlank()) {
-                            viewModel.setUserAgent(ua)
-                        }
-                    } catch (_: Exception) {}
+
+                // Capture user agent from WebView settings
+                try {
+                    val ua = view?.settings?.userAgentString ?: ""
+                    if (ua.isNotBlank()) {
+                        viewModel.setUserAgent(ua)
+                    }
+                } catch (_: Exception) {
+                }
 
                 // Inject interaction JavaScript
                 view?.evaluateJavascript(getModernInteractionJavaScript(), null)
@@ -616,11 +620,11 @@ private fun setupWebView(webView: WebView, viewModel: InteractiveBrowserViewMode
                 viewModel.reapplyInteractionMode()
             }
         }
-        
+
         webChromeClient = object : WebChromeClient() {
             override fun onReceivedTitle(view: WebView?, title: String?) {
                 super.onReceivedTitle(view, title)
-                title?.let { 
+                title?.let {
                     if (it.isNotBlank()) {
                         viewModel.setPageTitle(it)
                     }
