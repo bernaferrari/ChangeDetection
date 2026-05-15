@@ -1,14 +1,18 @@
 package com.bernaferrari.changedetection.addedit
 
 import android.graphics.Bitmap
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
@@ -59,6 +63,29 @@ class WebViewFragment : ScopedFragment() {
                 updateUrl(url)
                 progress?.visibility = View.GONE
                 super.onPageFinished(view, url)
+            }
+
+            override fun onReceivedError(
+                view: WebView?,
+                request: WebResourceRequest?,
+                error: WebResourceError?
+            ) {
+                super.onReceivedError(view, request, error)
+                // Only surface the main-frame failure, otherwise every blocked
+                // sub-resource would pop a toast
+                if (request?.isForMainFrame != true) return
+                progress?.visibility = View.GONE
+                val description = if (Build.VERSION.SDK_INT >= 23) {
+                    error?.description?.toString().orEmpty()
+                } else {
+                    ""
+                }
+                val message = if (description.isNotBlank()) {
+                    getString(R.string.webview_load_failed_with_reason, description)
+                } else {
+                    getString(R.string.webview_load_failed)
+                }
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             }
         }
 

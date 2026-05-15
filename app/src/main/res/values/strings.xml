@@ -3,6 +3,8 @@
 
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="webview_load_failed">Page failed to load</string>
+    <string name="webview_load_failed_with_reason">Page failed to load: %1$s</string>
 
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
