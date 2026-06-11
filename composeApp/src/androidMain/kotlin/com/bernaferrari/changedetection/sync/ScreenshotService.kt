@@ -10,8 +10,6 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
@@ -21,6 +19,9 @@ import android.webkit.WebViewClient
 import androidx.core.app.NotificationCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import com.bernaferrari.changedetection.browser.captureFullPageWebp
+import com.bernaferrari.changedetection.browser.configureChangeDetectionWebView
+import com.bernaferrari.changedetection.browser.destroySafely
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.source.local.SitesDao
 import com.bernaferrari.changedetection.ui.settings.SettingsViewModel
@@ -29,7 +30,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.io.ByteArrayOutputStream
 
 /**
  * Foreground Service to capture screenshots of websites.
@@ -65,14 +65,11 @@ class ScreenshotService :
             // ContextThemeWrapper is often needed for WebView in Service
             // But we use application context wrapped effectively by Service context
             webView = WebView(this).apply {
-                settings.javaScriptEnabled = true
-                settings.domStorageEnabled = true
-                settings.loadWithOverviewMode = true
-                settings.useWideViewPort = true
+                configureChangeDetectionWebView(overviewMode = true)
 
                 // Set a fixed width for consistent rendering (e.g. mobile view)
                 // 1080px width, height will grow
-                layout(0, 0, 1080, 1920)
+                layout(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)
             }
         } catch (e: Exception) {
             Napier.e("Failed to initialize WebView", e)
@@ -159,57 +156,23 @@ class ScreenshotService :
     private fun captureSnapshot(site: Site) {
         val wv = webView ?: return
 
-        try {
-            // Measure the full height of the content
-            // Note: wv.scale is deprecated, use displayMetrics.density instead
-            val density = resources.displayMetrics.density
-            val contentHeight = (wv.contentHeight * density).toInt()
-            val safeHeight = contentHeight.coerceAtMost(MAX_HEIGHT_PIXELS)
-            val width = wv.width
-
-            if (width <= 0 || safeHeight <= 0) {
-                handleError(site, "Invalid WebView dimensions")
-                return
-            }
-
-            // Create bitmap
-            val bitmap = Bitmap.createBitmap(width, safeHeight, Bitmap.Config.RGB_565) // 565 saves memory
-            val canvas = Canvas(bitmap)
-
-            // Layout again to ensure it renders full height?
-            // wv.layout(0, 0, width, safeHeight) // This might trigger relayout/reload
-
-            wv.draw(canvas)
-
-            // Compress to Byte Array (WebP or PNG)
-            serviceScope.launch(Dispatchers.Default) {
-                val stream = ByteArrayOutputStream()
-                // Use WebP for efficiency
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, 80, stream)
-                } else {
-                    bitmap.compress(Bitmap.CompressFormat.WEBP, 80, stream)
-                }
-                val byteArray = stream.toByteArray()
-
-                bitmap.recycle() // Free memory immediately
-
-                // Pass to SyncEngine
-                val result = SyncEngine.FetchResult.Success("image/webp", byteArray)
+        serviceScope.launch {
+            try {
+                val screenshot = wv.captureFullPageWebp(
+                    maxHeightPixels = MAX_HEIGHT_PIXELS,
+                    quality = WEBP_QUALITY,
+                )
+                val result = SyncEngine.FetchResult.Success(screenshot.contentType, screenshot.bytes)
                 syncEngine.processFetchResult(site, result)
-
-                // Done
-                withContext(Dispatchers.Main) {
-                    isProcessing = false
-                    processNext()
-                }
+                isProcessing = false
+                processNext()
+            } catch (e: Exception) {
+                Napier.e("Failed to capture screenshot", e)
+                handleError(site, e.message ?: "Unknown capture error")
+            } catch (e: OutOfMemoryError) {
+                Napier.e("OOM while capturing screenshot", e)
+                handleError(site, "Out of Memory while capturing")
             }
-        } catch (e: Exception) {
-            Napier.e("Failed to capture screenshot", e)
-            handleError(site, e.message ?: "Unknown capture error")
-        } catch (e: OutOfMemoryError) {
-            Napier.e("OOM while capturing screenshot", e)
-            handleError(site, "Out of Memory while capturing")
         }
     }
 
@@ -251,7 +214,7 @@ class ScreenshotService :
 
     override fun onDestroy() {
         super.onDestroy()
-        webView?.destroy()
+        webView?.destroySafely(clearCache = false)
         serviceScope.cancel()
     }
 
@@ -259,5 +222,8 @@ class ScreenshotService :
         const val EXTRA_SITE_ID = "site_id"
         private const val NOTIFICATION_ID = 1234
         private const val MAX_HEIGHT_PIXELS = 15000 // Cap at ~15k pixels height to prevent crashes
+        private const val WEBP_QUALITY = 80
+        private const val VIEWPORT_WIDTH = 1080
+        private const val VIEWPORT_HEIGHT = 1920
     }
 }

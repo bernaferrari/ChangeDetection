@@ -23,6 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.bernaferrari.changedetection.browser.configureChangeDetectionWebView
+import com.bernaferrari.changedetection.browser.destroySafely
+import com.bernaferrari.changedetection.browser.evaluateJavascriptSafely
 
 @Composable
 actual fun ElementSelectorDialog(
@@ -38,16 +41,8 @@ actual fun ElementSelectorDialog(
     // Cleanup WebView and JavaScript interface when dialog is dismissed
     DisposableEffect(Unit) {
         onDispose {
-            try {
-                webView?.stopLoading()
-                webView?.removeJavascriptInterface("Android")
-                webView?.clearHistory()
-                webView?.clearCache(true)
-                webView?.destroy()
-                webView = null
-            } catch (e: Exception) {
-                io.github.aakira.napier.Napier.e("❌ Error cleaning up ElementSelectorDialog WebView: ${e.message}")
-            }
+            webView?.destroySafely("Android")
+            webView = null
         }
     }
 
@@ -138,8 +133,7 @@ actual fun ElementSelectorDialog(
                     AndroidView(
                         factory = { context ->
                             WebView(context).apply {
-                                settings.javaScriptEnabled = true
-                                settings.domStorageEnabled = true
+                                configureChangeDetectionWebView(overviewMode = false)
 
                                 // Add JavaScript interface for element selection
                                 addJavascriptInterface(
@@ -162,7 +156,7 @@ actual fun ElementSelectorDialog(
                                         isLoading = false
 
                                         // Inject element selection JavaScript
-                                        view?.evaluateJavascript(elementSelectionScript, null)
+                                        view?.evaluateJavascriptSafely(elementSelectionScript)
                                     }
                                 }
 

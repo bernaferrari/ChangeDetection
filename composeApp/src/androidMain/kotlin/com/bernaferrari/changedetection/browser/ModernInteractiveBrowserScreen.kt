@@ -4,7 +4,6 @@
  */
 package com.bernaferrari.changedetection.browser
 
-import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebView
@@ -179,19 +178,8 @@ actual fun ModernInteractiveBrowserScreen(
 
                 DisposableEffect(webView) {
                     onDispose {
-                        webView?.apply {
-                            try {
-                                stopLoading()
-                                clearHistory()
-                                clearCache(true)
-                                setWebChromeClient(WebChromeClient())
-                                setWebViewClient(WebViewClient())
-                                destroy()
-                            } catch (_: Exception) {
-                            } finally {
-                                webView = null
-                            }
-                        }
+                        webView?.destroySafely()
+                        webView = null
                     }
                 }
 
@@ -557,23 +545,11 @@ private data class ModeOverlayData(
 
 private fun setupWebView(webView: WebView, viewModel: InteractiveBrowserViewModel) {
     webView.apply {
-        settings.apply {
-            javaScriptEnabled = true
-            domStorageEnabled = true
-            allowFileAccess = false
-            allowContentAccess = false
-            setSupportZoom(true)
-            builtInZoomControls = true
-            displayZoomControls = false
-            loadWithOverviewMode = true
-            useWideViewPort = true
-        }
-
-        // Enable automatic cookie and login persistence
-        CookieManager.getInstance().apply {
-            setAcceptCookie(true)
-            setAcceptThirdPartyCookies(webView, true)
-        }
+        configureChangeDetectionWebView(
+            enableZoom = true,
+            overviewMode = true,
+            acceptThirdPartyCookies = true,
+        )
 
         // Add JavaScript interface for element interaction
         addJavascriptInterface(
@@ -601,12 +577,7 @@ private fun setupWebView(webView: WebView, viewModel: InteractiveBrowserViewMode
 
                 // Auto-capture and persist cookies globally
                 url?.let {
-                    val cookies = CookieManager.getInstance().getCookie(it) ?: ""
-                    viewModel.setCapturedCookies(cookies)
-
-                    // Auto-save cookies for future use across all sites
-                    CookieManager.getInstance().setAcceptCookie(true)
-                    CookieManager.getInstance().setAcceptThirdPartyCookies(view, true)
+                    viewModel.setCapturedCookies(readCookiesForUrl(it))
                 }
 
                 // Capture user agent from WebView settings
@@ -619,7 +590,7 @@ private fun setupWebView(webView: WebView, viewModel: InteractiveBrowserViewMode
                 }
 
                 // Inject interaction JavaScript
-                view?.evaluateJavascript(getModernInteractionJavaScript(), null)
+                view?.evaluateJavascriptSafely(getModernInteractionJavaScript())
                 viewModel.applyZappedElements(viewModel.uiState.value.zappedElements)
                 viewModel.reapplyInteractionMode()
             }
