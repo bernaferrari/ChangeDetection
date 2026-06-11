@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.browser
 
 data class BrowserSessionData(
@@ -6,19 +10,19 @@ data class BrowserSessionData(
     val cookies: String,
     val userAgent: String,
     val selectedElements: List<SelectedElement>,
-    val zappedElements: List<ZappedElement>
+    val zappedElements: List<ZappedElement>,
 )
 
 data class SelectedElement(
     val selector: String,
     val description: String,
-    val timestamp: Long
+    val timestamp: Long,
 )
 
 data class ZappedElement(
     val selector: String,
     val description: String,
-    val timestamp: Long
+    val timestamp: Long,
 )
 
 data class ParentElement(
@@ -27,12 +31,12 @@ data class ParentElement(
     val tagName: String,
     val className: String,
     val id: String,
-    val index: Int
+    val index: Int,
 )
 
 enum class InteractionMode {
     NORMAL,
     LOGIN_CAPTURE,
     ELEMENT_SELECT,
-    ELEMENT_ZAP
+    ELEMENT_ZAP,
 }

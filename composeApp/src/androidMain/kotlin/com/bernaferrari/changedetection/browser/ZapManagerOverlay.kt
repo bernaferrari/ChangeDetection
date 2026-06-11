@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.browser
 
 import androidx.compose.animation.*
@@ -35,20 +39,20 @@ fun ZapManagerOverlay(
     onDismiss: () -> Unit,
     onRemoveZappedElement: (String) -> Unit,
     onClearAllZapped: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     AnimatedVisibility(
         visible = uiState.showZapManager,
         enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
         exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
-        modifier = modifier
+        modifier = modifier,
     ) {
         Dialog(
             onDismissRequest = onDismiss,
             properties = DialogProperties(
                 usePlatformDefaultWidth = false,
-                decorFitsSystemWindows = false
-            )
+                decorFitsSystemWindows = false,
+            ),
         ) {
             Card(
                 modifier = Modifier
@@ -57,23 +61,23 @@ fun ZapManagerOverlay(
                     .padding(16.dp),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.surface,
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
             ) {
                 Column(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     // Header similar to uBlock Origin
                     ZapManagerHeader(
                         totalZapped = uiState.zappedElements.size,
                         totalSelected = uiState.selectedElements.size,
                         onClose = onDismiss,
-                        onClearAll = onClearAllZapped
+                        onClearAll = onClearAllZapped,
                     )
 
                     HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                     )
 
                     // Content sections
@@ -81,7 +85,7 @@ fun ZapManagerOverlay(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
                         // Zapped Elements Section
                         if (uiState.zappedElements.isNotEmpty()) {
@@ -90,14 +94,14 @@ fun ZapManagerOverlay(
                                     title = stringResource(id = R.string.browser_zap_manager_blocked_section_title),
                                     count = uiState.zappedElements.size,
                                     icon = Icons.Default.Block,
-                                    color = MaterialTheme.colorScheme.error
+                                    color = MaterialTheme.colorScheme.error,
                                 )
                             }
 
                             items(uiState.zappedElements) { zappedElement ->
                                 ZappedElementCard(
                                     element = zappedElement,
-                                    onRemove = { onRemoveZappedElement(zappedElement.selector) }
+                                    onRemove = { onRemoveZappedElement(zappedElement.selector) },
                                 )
                             }
                         }
@@ -109,13 +113,13 @@ fun ZapManagerOverlay(
                                     title = stringResource(id = R.string.browser_zap_manager_monitored_section_title),
                                     count = uiState.selectedElements.size,
                                     icon = Icons.Default.Visibility,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = MaterialTheme.colorScheme.primary,
                                 )
                             }
 
                             items(uiState.selectedElements) { selectedElement ->
                                 SelectedElementCard(
-                                    element = selectedElement
+                                    element = selectedElement,
                                 )
                             }
                         }
@@ -143,38 +147,38 @@ private fun ZapManagerHeader(
     totalZapped: Int,
     totalSelected: Int,
     onClose: () -> Unit,
-    onClearAll: () -> Unit
+    onClearAll: () -> Unit,
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = stringResource(id = R.string.browser_zap_manager_title),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     StatChip(
                         count = totalZapped,
                         label = stringResource(id = R.string.browser_zap_manager_blocked_label),
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                     StatChip(
                         count = totalSelected,
                         label = stringResource(id = R.string.browser_zap_manager_monitored_label),
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -183,13 +187,13 @@ private fun ZapManagerHeader(
                 modifier = Modifier
                     .background(
                         MaterialTheme.colorScheme.surfaceVariant,
-                        CircleShape
-                    )
+                        CircleShape,
+                    ),
             ) {
                 Icon(
                     Icons.Default.Close,
                     contentDescription = stringResource(id = R.string.close),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -198,14 +202,14 @@ private fun ZapManagerHeader(
             FilledTonalButton(
                 onClick = onClearAll,
                 colors = ButtonDefaults.filledTonalButtonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
                 ),
-                modifier = Modifier.align(Alignment.End)
+                modifier = Modifier.align(Alignment.End),
             ) {
                 Icon(
                     Icons.Default.ClearAll,
                     contentDescription = stringResource(id = R.string.browser_zap_manager_clear_all),
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(16.dp),
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(text = stringResource(id = R.string.browser_zap_manager_clear_all))
@@ -218,29 +222,29 @@ private fun ZapManagerHeader(
 private fun StatChip(
     count: Int,
     label: String,
-    color: Color
+    color: Color,
 ) {
     Surface(
         shape = RoundedCornerShape(8.dp),
         color = color.copy(alpha = 0.1f),
-        border = BorderStroke(1.dp, color.copy(alpha = 0.3f))
+        border = BorderStroke(1.dp, color.copy(alpha = 0.3f)),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Text(
                 text = count.toString(),
                 style = MaterialTheme.typography.labelMedium.copy(
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 ),
-                color = color
+                color = color,
             )
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
-                color = color
+                color = color,
             )
         }
     }
@@ -251,38 +255,38 @@ private fun ZapSectionHeader(
     title: String,
     count: Int,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    color: Color
+    color: Color,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             tint = color,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(20.dp),
         )
         Text(
             text = "$title ($count)",
             style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
             ),
-            color = color
+            color = color,
         )
         Spacer(modifier = Modifier.weight(1f))
         Surface(
             shape = CircleShape,
-            color = color.copy(alpha = 0.1f)
+            color = color.copy(alpha = 0.1f),
         ) {
             Text(
                 text = count.toString(),
                 style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 ),
                 color = color,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
             )
         }
     }
@@ -291,38 +295,38 @@ private fun ZapSectionHeader(
 @Composable
 private fun ZappedElementCard(
     element: ZappedElement,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
 ) {
     val timeAgo = relativeTimeText(element.timestamp)
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)
+            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f),
         ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.2f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.2f)),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(12.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.Top,
             ) {
                 Column(
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text(
                         text = element.description,
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
                         ),
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -330,11 +334,11 @@ private fun ZappedElementCard(
                     Text(
                         text = element.selector,
                         style = MaterialTheme.typography.bodySmall.copy(
-                            fontFamily = FontFamily.Monospace
+                            fontFamily = FontFamily.Monospace,
                         ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -342,10 +346,10 @@ private fun ZappedElementCard(
                     Text(
                         text = stringResource(
                             id = R.string.browser_zap_manager_blocked_timestamp,
-                            timeAgo
+                            timeAgo,
                         ),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 
@@ -355,14 +359,14 @@ private fun ZappedElementCard(
                         .size(32.dp)
                         .background(
                             MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
-                            CircleShape
-                        )
+                            CircleShape,
+                        ),
                 ) {
                     Icon(
                         Icons.Default.Remove,
                         contentDescription = stringResource(id = R.string.browser_zap_manager_remove_block),
                         tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
                     )
                 }
             }
@@ -372,64 +376,64 @@ private fun ZappedElementCard(
 
 @Composable
 private fun SelectedElementCard(
-    element: SelectedElement
+    element: SelectedElement,
 ) {
     val timeAgo = relativeTimeText(element.timestamp)
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f),
         ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(12.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Icon(
                     Icons.Default.Visibility,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(16.dp),
                 )
 
                 Column(
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text(
                         text = element.description,
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
                         ),
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
 
                     Text(
                         text = element.selector,
                         style = MaterialTheme.typography.bodySmall.copy(
-                            fontFamily = FontFamily.Monospace
+                            fontFamily = FontFamily.Monospace,
                         ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
 
                     Text(
                         text = stringResource(
                             id = R.string.browser_zap_manager_added_timestamp,
-                            timeAgo
+                            timeAgo,
                         ),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -444,26 +448,26 @@ private fun EmptyZapManagerState() {
             .fillMaxWidth()
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Icon(
             imageVector = Icons.Default.Block,
             contentDescription = null,
             modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
         )
 
         Text(
             text = stringResource(id = R.string.browser_zap_manager_empty_title),
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Text(
             text = stringResource(id = R.string.browser_zap_manager_empty_message),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
     }
 }
@@ -474,36 +478,36 @@ private fun ZapManagerTips() {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
-        )
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
+        ),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Icon(
                     Icons.Default.Lightbulb,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(16.dp),
                 )
                 Text(
                     text = stringResource(id = R.string.browser_zap_manager_tip_title),
                     style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     ),
-                    color = MaterialTheme.colorScheme.secondary
+                    color = MaterialTheme.colorScheme.secondary,
                 )
             }
 
             Text(
                 text = stringResource(id = R.string.browser_zap_manager_tip_body),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
             )
         }
     }
@@ -521,19 +525,19 @@ private fun relativeTimeText(timestamp: Long): String {
         days > 0 -> pluralStringResource(
             id = R.plurals.browser_time_days_ago,
             count = days,
-            days
+            days,
         )
 
         hours > 0 -> pluralStringResource(
             id = R.plurals.browser_time_hours_ago,
             count = hours,
-            hours
+            hours,
         )
 
         minutes > 0 -> pluralStringResource(
             id = R.plurals.browser_time_minutes_ago,
             count = minutes,
-            minutes
+            minutes,
         )
 
         else -> stringResource(id = R.string.browser_time_now)

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.webview
 
 import android.app.Activity
@@ -40,7 +44,6 @@ import kotlin.test.assertTrue
 @RunWith(AndroidJUnit4::class)
 @HiltAndroidTest
 class WebViewLifecycleTest {
-
     @get:Rule(order = 0)
     val hiltRule = HiltAndroidRule(this)
 
@@ -79,7 +82,7 @@ class WebViewLifecycleTest {
                         settings.javaScriptEnabled = true
                         loadData("<html><body>Test</body></html>", "text/html", "utf-8")
                     }
-                }
+                },
             )
         }
 
@@ -104,7 +107,7 @@ class WebViewLifecycleTest {
                             settings.javaScriptEnabled = true
                             loadData("<html><body>Test</body></html>", "text/html", "utf-8")
                         }
-                    }
+                    },
                 )
             }
         }
@@ -129,7 +132,7 @@ class WebViewLifecycleTest {
         // Verify WebView is garbage collected
         assertTrue(
             weakReferences.firstOrNull()?.get() == null,
-            "WebView should be garbage collected after disposal"
+            "WebView should be garbage collected after disposal",
         )
     }
 
@@ -152,7 +155,9 @@ class WebViewLifecycleTest {
                                 loadData("<html><body>Content 1</body></html>", "text/html", "utf-8")
                             }
                         },
-                        modifier = androidx.compose.ui.Modifier.weight(1f)
+                        modifier =
+                        androidx.compose.ui.Modifier
+                            .weight(1f),
                     )
 
                     // Second WebView
@@ -163,7 +168,9 @@ class WebViewLifecycleTest {
                                 loadData("<html><body>Content 2</body></html>", "text/html", "utf-8")
                             }
                         },
-                        modifier = androidx.compose.ui.Modifier.weight(1f)
+                        modifier =
+                        androidx.compose.ui.Modifier
+                            .weight(1f),
                     )
                 }
             }
@@ -190,7 +197,7 @@ class WebViewLifecycleTest {
         val remainingRefs = weakReferences.count { it.get() != null }
         assertTrue(
             remainingRefs == 0,
-            "All WebViews should be garbage collected, but $remainingRefs still exist"
+            "All WebViews should be garbage collected, but $remainingRefs still exist",
         )
     }
 
@@ -210,7 +217,7 @@ class WebViewLifecycleTest {
                                 settings.javaScriptEnabled = true
                                 loadData("<html><body>First</body></html>", "text/html", "utf-8")
                             }
-                        }
+                        },
                     )
                 }
                 if (showSecondWebView) {
@@ -220,7 +227,7 @@ class WebViewLifecycleTest {
                                 settings.javaScriptEnabled = true
                                 loadData("<html><body>Second</body></html>", "text/html", "utf-8")
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -245,11 +252,11 @@ class WebViewLifecycleTest {
         // Verify first is cleaned but second remains
         assertTrue(
             firstWebViewRef.firstOrNull()?.get() == null,
-            "First WebView should be cleaned up"
+            "First WebView should be cleaned up",
         )
         assertTrue(
             secondWebViewRef.firstOrNull()?.get() != null,
-            "Second WebView should still be alive"
+            "Second WebView should still be alive",
         )
 
         // Remove second WebView
@@ -261,7 +268,7 @@ class WebViewLifecycleTest {
         // Verify second is now cleaned
         assertTrue(
             secondWebViewRef.firstOrNull()?.get() == null,
-            "Second WebView should be cleaned up"
+            "Second WebView should be cleaned up",
         )
     }
 
@@ -285,7 +292,7 @@ class WebViewLifecycleTest {
                                 settings.javaScriptEnabled = true
                                 loadUrl("https://example.com")
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -314,7 +321,7 @@ class WebViewLifecycleTest {
         val leakedWebViews = webViewRefs.count { it.get() != null }
         assertTrue(
             leakedWebViews == 0,
-            "Rapid navigation should not leak WebViews, but $leakedWebViews/${webViewRefs.size} leaked"
+            "Rapid navigation should not leak WebViews, but $leakedWebViews/${webViewRefs.size} leaked",
         )
     }
 
@@ -335,7 +342,7 @@ class WebViewLifecycleTest {
                             settings.javaScriptEnabled = true
                             loadData("<html><body>Config Test</body></html>", "text/html", "utf-8")
                         }
-                    }
+                    },
                 )
             }
         }
@@ -362,7 +369,7 @@ class WebViewLifecycleTest {
         // Verify original WebView is garbage collected
         assertTrue(
             webViewRefs.firstOrNull()?.get() == null,
-            "Original WebView should be cleaned up after configuration change"
+            "Original WebView should be cleaned up after configuration change",
         )
     }
 
@@ -381,18 +388,21 @@ class WebViewLifecycleTest {
                         WebView(ctx).apply {
                             settings.javaScriptEnabled = true
                             // Simulate adding JavaScript interface (like ElementSelectorDialog does)
-                            addJavascriptInterface(object {
-                                fun onElementSelected(selector: String) {
-                                    // Handle selection
-                                }
-                            }, "Android")
+                            addJavascriptInterface(
+                                object {
+                                    fun onElementSelected(selector: String) {
+                                        // Handle selection
+                                    }
+                                },
+                                "Android",
+                            )
                             loadData(
                                 "<html><body><script>window.Android.onElementSelected('test');</script></body></html>",
                                 "text/html",
-                                "utf-8"
+                                "utf-8",
                             )
                         }
-                    }
+                    },
                 )
             }
         }
@@ -436,10 +446,10 @@ class WebViewLifecycleTest {
                                 loadData(
                                     "<html><body>Memory Test ${System.currentTimeMillis()}</body></html>",
                                     "text/html",
-                                    "utf-8"
+                                    "utf-8",
                                 )
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -468,7 +478,7 @@ class WebViewLifecycleTest {
         val leakedCount = webViewRefs.count { it.get() != null }
         assertTrue(
             leakedCount < 2,
-            "Most WebViews should be garbage collected, but $leakedCount/10 leaked"
+            "Most WebViews should be garbage collected, but $leakedCount/10 leaked",
         )
 
         val finalMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
@@ -497,7 +507,7 @@ class WebViewLifecycleTest {
                             // Load empty/invalid content
                             loadData("", "text/html", "utf-8")
                         }
-                    }
+                    },
                 )
             }
         }
@@ -515,12 +525,13 @@ class WebViewLifecycleTest {
     @Test
     fun webView_handlesRapidLoadUnloadCycles() {
         var showWebView by mutableStateOf(true)
-        val urls = listOf(
-            "https://example.com",
-            "https://google.com",
-            "https://github.com",
-            "https://stackoverflow.com"
-        )
+        val urls =
+            listOf(
+                "https://example.com",
+                "https://google.com",
+                "https://github.com",
+                "https://stackoverflow.com",
+            )
 
         composeTestRule.setContent {
             if (showWebView) {
@@ -532,10 +543,10 @@ class WebViewLifecycleTest {
                             loadData(
                                 "<html><body>Test content</body></html>",
                                 "text/html",
-                                "utf-8"
+                                "utf-8",
                             )
                         }
-                    }
+                    },
                 )
             }
         }
@@ -573,7 +584,9 @@ class WebViewLifecycleTest {
                                     loadData("<html><body>Set1-View1</body></html>", "text/html", "utf-8")
                                 }
                             },
-                            modifier = androidx.compose.ui.Modifier.weight(1f)
+                            modifier =
+                            androidx.compose.ui.Modifier
+                                .weight(1f),
                         )
                         androidx.compose.ui.viewinterop.AndroidView(
                             factory = { ctx ->
@@ -582,7 +595,9 @@ class WebViewLifecycleTest {
                                     loadData("<html><body>Set1-View2</body></html>", "text/html", "utf-8")
                                 }
                             },
-                            modifier = androidx.compose.ui.Modifier.weight(1f)
+                            modifier =
+                            androidx.compose.ui.Modifier
+                                .weight(1f),
                         )
                     }
                 }
@@ -594,7 +609,7 @@ class WebViewLifecycleTest {
                                 settings.javaScriptEnabled = true
                                 loadData("<html><body>Set2-View1</body></html>", "text/html", "utf-8")
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -607,7 +622,7 @@ class WebViewLifecycleTest {
             val webViews = findAllWebViewsInActivity(composeTestRule.activity)
             assertTrue(
                 webViews.size == 3,
-                "Should have 3 WebViews, found ${webViews.size}"
+                "Should have 3 WebViews, found ${webViews.size}",
             )
         }
 
@@ -624,7 +639,7 @@ class WebViewLifecycleTest {
             val remainingWebViews = findAllWebViewsInActivity(composeTestRule.activity)
             assertTrue(
                 remainingWebViews.isEmpty(),
-                "All WebViews should be cleaned up, but ${remainingWebViews.size} remain"
+                "All WebViews should be cleaned up, but ${remainingWebViews.size} remain",
             )
         }
     }
@@ -636,9 +651,7 @@ class WebViewLifecycleTest {
     /**
      * Finds a single WebView in the activity's view hierarchy
      */
-    private fun findWebViewInActivity(activity: Activity): WebView? {
-        return findAllWebViewsInActivity(activity).firstOrNull()
-    }
+    private fun findWebViewInActivity(activity: Activity): WebView? = findAllWebViewsInActivity(activity).firstOrNull()
 
     /**
      * Recursively finds all WebViews in the activity's view hierarchy

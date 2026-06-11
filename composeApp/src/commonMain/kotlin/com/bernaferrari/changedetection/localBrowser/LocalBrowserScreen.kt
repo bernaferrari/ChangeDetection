@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.localBrowser
 
 import androidx.compose.foundation.layout.*
@@ -24,12 +28,12 @@ fun LocalBrowserScreen(
     snapId: String,
     url: String,
     onDismiss: () -> Unit,
-    viewModel: LocalBrowserViewModel = koinViewModel()
+    viewModel: LocalBrowserViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isLocalSnapshot = snapId.isNotBlank()
     val safeUrl = remember(url) { if (url.isNotBlank()) url else "https://google.com" }
-    
+
     LaunchedEffect(snapId) {
         if (isLocalSnapshot) {
             viewModel.fetchData(snapId)
@@ -37,9 +41,9 @@ fun LocalBrowserScreen(
             viewModel.reset()
         }
     }
-    
+
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) {
         // Top bar
         TopAppBar(
@@ -55,42 +59,42 @@ fun LocalBrowserScreen(
                 IconButton(onClick = onDismiss) {
                     Icon(Icons.Default.Close, contentDescription = "Close")
                 }
-            }
+            },
         )
 
         // Content
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         ) {
             if (isLocalSnapshot && state.isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center),
                 )
             } else {
                 if (isLocalSnapshot) {
                     // Local snapshot - load HTML data
                     if (state.content.isNotBlank()) {
                         val sanitizedContent = com.bernaferrari.changedetection.util.HtmlSanitizer.sanitize(
-                            state.content
+                            state.content,
                         )
                         val processedContent = sanitizedContent.replaceRelativePathWithAbsolute(safeUrl)
-                        
+
                         val webViewState = rememberWebViewStateWithHTMLData(
-                            data = processedContent
+                            data = processedContent,
                         )
-                        
+
                         WebView(
                             state = webViewState,
-                            modifier = Modifier.fillMaxSize()
+                            modifier = Modifier.fillMaxSize(),
                         )
                     }
                 } else {
                     // Live URL - load remote URL
                     val webViewState = rememberWebViewState(url = safeUrl)
-                    
+
                     WebView(
                         state = webViewState,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
             }

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
@@ -8,7 +12,6 @@ plugins {
 
     alias(libs.plugins.compose)
 }
-
 
 android {
     namespace = "com.bernaferrari.changedetection"
@@ -72,8 +75,8 @@ android {
             setProguardFiles(
                 listOf(
                     getDefaultProguardFile("proguard-android-optimize.txt"),
-                    file("proguard-rules.pro")
-                )
+                    file("proguard-rules.pro"),
+                ),
             )
             signingConfig = signingConfigs.getByName("release")
         }

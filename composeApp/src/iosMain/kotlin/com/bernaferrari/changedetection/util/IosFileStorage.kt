@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.util
 
 import platform.Foundation.*
@@ -12,9 +16,7 @@ class IosFileStorage : FileStorage {
         return paths.first() as String
     }
 
-    private fun getFilePath(fileName: String): String {
-        return "${getDocumentsDirectory()}/$fileName"
-    }
+    private fun getFilePath(fileName: String): String = "${getDocumentsDirectory()}/$fileName"
 
     override fun writeBytes(fileName: String, bytes: ByteArray) {
         val path = getFilePath(fileName)

@@ -1,5 +1,8 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.util
-
 
 import androidx.compose.runtime.Composable
 import com.bernaferrari.changedetection.shared.generated.resources.Res
@@ -7,10 +10,10 @@ import com.bernaferrari.changedetection.shared.generated.resources.logs_day_ago
 import com.bernaferrari.changedetection.shared.generated.resources.logs_hr_ago
 import com.bernaferrari.changedetection.shared.generated.resources.logs_just_now
 import com.bernaferrari.changedetection.shared.generated.resources.logs_min_ago
-import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Instant
 
 fun formatTimestamp(timestamp: Long): String {
     val instant = Instant.fromEpochMilliseconds(timestamp)
@@ -31,7 +34,10 @@ fun formatTimestamp(timestamp: Long): String {
 
 @Composable
 fun getRelativeTimeLabel(timestamp: Long): String {
-    val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
+    val now =
+        kotlin.time.Clock.System
+            .now()
+            .toEpochMilliseconds()
     val diff = now - timestamp
     val seconds = diff / 1000
     val minutes = seconds / 60
@@ -46,4 +52,6 @@ fun getRelativeTimeLabel(timestamp: Long): String {
     }
 }
 
-fun getCurrentTimeMillis(): Long = kotlin.time.Clock.System.now().toEpochMilliseconds()
+fun getCurrentTimeMillis(): Long = kotlin.time.Clock.System
+    .now()
+    .toEpochMilliseconds()

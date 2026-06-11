@@ -1,179 +1,433 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.error
 
 import io.github.aakira.napier.Napier
+import io.ktor.client.network.sockets.ConnectTimeoutException
+import io.ktor.client.network.sockets.SocketTimeoutException
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.ServerResponseException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.ServerResponseException
-import io.ktor.client.network.sockets.ConnectTimeoutException
-import io.ktor.client.network.sockets.SocketTimeoutException
 import kotlinx.io.IOException
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
+import kotlin.uuid.ExperimentalUuidApi
 
 /**
- * Centralized error handling system for the Change Detection app
- * Provides user-friendly error messages and handles different error types appropriately
+ * Centralized error handling system for the Change Detection app.
+ *
+ * Provides:
+ * - User-friendly error messages
+ * - Recovery actions
+ * - Severity classification
+ * - Error event streaming for UI
  */
+@OptIn(ExperimentalUuidApi::class)
 class ErrorHandler {
-
-    private val _errorEvents = MutableSharedFlow<ErrorEvent>()
+    private val _errorEvents = MutableSharedFlow<ErrorEvent>(extraBufferCapacity = 16)
     val errorEvents: SharedFlow<ErrorEvent> = _errorEvents.asSharedFlow()
 
     /**
-     * Handle errors and convert them to user-friendly messages
+     * Handle errors and convert them to user-friendly messages.
+     *
+     * @param error The throwable to handle
+     * @param context Where the error occurred
+     * @param userAction What action triggered the error (for logging)
+     * @param siteId Optional site ID for context-specific errors
+     * @return ErrorResult with user-friendly message and recovery options
      */
     fun handleError(
         error: Throwable,
         context: ErrorContext = ErrorContext.GENERAL,
-        userAction: String? = null
+        userAction: String? = null,
+        siteId: String? = null,
     ): ErrorResult {
+        val errorResult = classifyError(error, context)
 
-        Napier.e("Error in ${context.name}: ${error.message}")
+        // Log with appropriate level based on severity
+        logError(error, errorResult, context, userAction)
 
-        val errorResult = when (error) {
-            is ClientRequestException -> handleNetworkError(error.response.status.value, errorContext = context)
-            is ServerResponseException -> handleNetworkError(error.response.status.value, errorContext = context)
-            is NetworkError -> handleNetworkError(error.code, context)
-            is ValidationError -> handleValidationError(error, context)
-            is DatabaseError -> handleDatabaseError(error, context)
-            is SyncError -> handleSyncError(error, context)
-            is AuthenticationError -> handleAuthenticationError(error, context)
-            is IOException -> handleNetworkConnectivity(error, context) // Includes UnknownHostException
-            is ConnectTimeoutException, is SocketTimeoutException -> handleTimeout(error, context)
-            // SecurityException and OutOfMemoryError are JVM-only, handled by generic catch
-            else -> handleGenericError(error, context)
-        }
-
-        // Log the error event for monitoring
-        val errorEvent = ErrorEvent(
-            type = errorResult.type,
-            message = errorResult.userMessage,
-            context = context,
-            userAction = userAction,
-            timestamp = kotlin.time.Clock.System.now().toEpochMilliseconds(),
-            stackTrace = error.stackTraceToString()
-        )
-
-        // Emit error event for UI handling
-        try {
-            _errorEvents.tryEmit(errorEvent)
-        } catch (e: Exception) {
-            Napier.e("Failed to emit error event")
-        }
+        // Emit event for UI consumption
+        emitErrorEvent(errorResult, context, userAction, siteId, error)
 
         return errorResult
     }
 
-    private fun handleNetworkError(code: Int, errorContext: ErrorContext): ErrorResult {
-        val message = when (code) {
-            404 -> "Page not found"
-            403 -> "Access forbidden"
-            500, 502, 503 -> "Server error"
-            else -> "Network error ($code)"
-        }
+    private fun classifyError(
+        error: Throwable,
+        context: ErrorContext,
+    ): ErrorResult = when (error) {
+        // Ktor HTTP errors
+        is ClientRequestException -> handleClientError(error)
+        is ServerResponseException -> handleServerError(error)
 
+        // Custom app errors
+        is NetworkError -> handleNetworkError(error.code)
+        is ValidationError -> handleValidationError(error)
+        is DatabaseError -> handleDatabaseError(error)
+        is SyncError -> handleSyncError(error)
+        is AuthenticationError -> handleAuthenticationError(error)
+        is ContentError -> handleContentError(error)
+
+        // Network connectivity
+        is IOException -> handleConnectivityError(error)
+        is ConnectTimeoutException -> handleTimeoutError()
+        is SocketTimeoutException -> handleTimeoutError()
+
+        // Fallback
+        else -> handleGenericError(error)
+    }
+
+    private fun handleClientError(error: ClientRequestException): ErrorResult {
+        val code = error.response.status.value
+        return when (code) {
+            400 ->
+                ErrorResult(
+                    type = ErrorType.VALIDATION,
+                    userMessage = "Invalid request",
+                    severity = ErrorSeverity.WARNING,
+                    isRetryable = false,
+                    recoveryAction = RecoveryAction.CHECK_URL,
+                )
+            401 ->
+                ErrorResult(
+                    type = ErrorType.AUTHENTICATION,
+                    userMessage = "Login required",
+                    severity = ErrorSeverity.WARNING,
+                    isRetryable = true,
+                    recoveryAction = RecoveryAction.LOGIN_REQUIRED,
+                )
+            403 ->
+                ErrorResult(
+                    type = ErrorType.NETWORK,
+                    userMessage = "Access denied",
+                    description = "This site blocks automated requests",
+                    severity = ErrorSeverity.WARNING,
+                    isRetryable = false,
+                    suggestedActions = listOf("Try a different URL", "The site may require login"),
+                    recoveryAction = RecoveryAction.CHECK_URL,
+                )
+            404 ->
+                ErrorResult(
+                    type = ErrorType.NETWORK,
+                    userMessage = "Page not found",
+                    severity = ErrorSeverity.WARNING,
+                    isRetryable = false,
+                    suggestedActions = listOf("Check if the URL is correct", "The page may have been moved"),
+                    recoveryAction = RecoveryAction.CHECK_URL,
+                )
+            429 ->
+                ErrorResult(
+                    type = ErrorType.RATE_LIMITED,
+                    userMessage = "Too many requests",
+                    description = "Please wait before trying again",
+                    severity = ErrorSeverity.WARNING,
+                    isRetryable = true,
+                    recoveryAction = RecoveryAction.WAIT_AND_RETRY,
+                )
+            else ->
+                ErrorResult(
+                    type = ErrorType.NETWORK,
+                    userMessage = "Request failed ($code)",
+                    severity = ErrorSeverity.WARNING,
+                    isRetryable = code >= 500,
+                )
+        }
+    }
+
+    private fun handleServerError(error: ServerResponseException): ErrorResult {
+        val code = error.response.status.value
         return ErrorResult(
             type = ErrorType.NETWORK,
-            userMessage = message,
-            isRetryable = code in listOf(408, 429, 500, 502, 503, 504),
-            suggestedActions = if (code == 404) {
-                listOf("Check URL", "Verify page exists")
-            } else {
-                listOf("Try again later")
-            }
+            userMessage =
+            when (code) {
+                500 -> "Server error"
+                502 -> "Bad gateway"
+                503 -> "Service unavailable"
+                504 -> "Gateway timeout"
+                else -> "Server error ($code)"
+            },
+            description = "The website's server is having issues",
+            severity = ErrorSeverity.WARNING,
+            isRetryable = true,
+            recoveryAction = RecoveryAction.RETRY_LATER,
         )
     }
 
-    private fun handleValidationError(error: ValidationError, errorContext: ErrorContext): ErrorResult {
-        val message = when (error.field) {
-            "url" -> "Invalid URL"
-            "email" -> "Invalid email"
-            "css_selector" -> "Invalid CSS selector"
-            else -> "Validation error: ${error.field}"
-        }
+    private fun handleNetworkError(code: Int): ErrorResult = when (code) {
+        401 ->
+            ErrorResult(
+                type = ErrorType.AUTHENTICATION,
+                userMessage = "Login required",
+                severity = ErrorSeverity.WARNING,
+                isRetryable = true,
+                recoveryAction = RecoveryAction.LOGIN_REQUIRED,
+            )
+        403 ->
+            ErrorResult(
+                type = ErrorType.NETWORK,
+                userMessage = "Access denied",
+                description = "This site blocks automated requests",
+                severity = ErrorSeverity.WARNING,
+                isRetryable = false,
+                suggestedActions = listOf("Try a different URL", "The site may require login"),
+                recoveryAction = RecoveryAction.CHECK_URL,
+            )
+        404 ->
+            ErrorResult(
+                type = ErrorType.NETWORK,
+                userMessage = "Page not found",
+                severity = ErrorSeverity.WARNING,
+                isRetryable = false,
+                suggestedActions = listOf("Check if the URL is correct", "The page may have been moved"),
+                recoveryAction = RecoveryAction.CHECK_URL,
+            )
+        429 ->
+            ErrorResult(
+                type = ErrorType.RATE_LIMITED,
+                userMessage = "Too many requests",
+                description = "Please wait before trying again",
+                severity = ErrorSeverity.WARNING,
+                isRetryable = true,
+                recoveryAction = RecoveryAction.WAIT_AND_RETRY,
+            )
+        in 500..599 ->
+            ErrorResult(
+                type = ErrorType.NETWORK,
+                userMessage = "Server error ($code)",
+                description = "The website's server is having issues",
+                severity = ErrorSeverity.WARNING,
+                isRetryable = true,
+                recoveryAction = RecoveryAction.RETRY_LATER,
+            )
+        else ->
+            ErrorResult(
+                type = ErrorType.NETWORK,
+                userMessage = "Network error ($code)",
+                severity = ErrorSeverity.WARNING,
+                isRetryable = true,
+            )
+    }
+
+    private fun handleValidationError(error: ValidationError): ErrorResult {
+        val (message, description) =
+            when (error.field) {
+                "url" -> "Invalid URL" to "Please enter a valid web address"
+                "title" -> "Invalid title" to "Title cannot be empty"
+                "selector" -> "Invalid selector" to "CSS selector is not valid"
+                "threshold" -> "Invalid threshold" to "Threshold must be a positive number"
+                else -> "Invalid input" to error.message
+            }
 
         return ErrorResult(
             type = ErrorType.VALIDATION,
             userMessage = message,
+            description = description,
+            severity = ErrorSeverity.INFO,
             isRetryable = false,
-            suggestedActions = listOf("Check input", "See examples")
+            recoveryAction = RecoveryAction.FIX_INPUT,
         )
     }
 
-    private fun handleDatabaseError(error: DatabaseError, errorContext: ErrorContext): ErrorResult {
+    private fun handleDatabaseError(error: DatabaseError): ErrorResult {
+        val (message, description) =
+            when (error.operation) {
+                DatabaseError.Operation.READ -> "Storage read error" to "Failed to read data"
+                DatabaseError.Operation.WRITE -> "Storage save error" to "Failed to save data"
+                DatabaseError.Operation.DELETE -> "Storage delete error" to "Failed to delete data"
+                else -> "Storage error" to "A database error occurred"
+            }
+
         return ErrorResult(
             type = ErrorType.DATABASE,
-            userMessage = "Database error",
-            isRetryable = true,
-            suggestedActions = listOf("Restart app", "Clear cache")
-        )
-    }
-
-    private fun handleSyncError(error: SyncError, errorContext: ErrorContext): ErrorResult {
-        val message = when (error.reason) {
-            SyncError.Reason.RATE_LIMITED -> "Rate limited"
-            SyncError.Reason.QUOTA_EXCEEDED -> "Quota exceeded"
-            SyncError.Reason.CONTENT_TOO_LARGE -> "Content too large"
-            SyncError.Reason.INVALID_CONTENT -> "Invalid content"
-            else -> "Sync error"
-        }
-
-        return ErrorResult(
-            type = ErrorType.SYNC,
             userMessage = message,
-            isRetryable = error.reason != SyncError.Reason.QUOTA_EXCEEDED,
-            suggestedActions = when (error.reason) {
-                SyncError.Reason.RATE_LIMITED -> listOf("Wait and retry")
-                SyncError.Reason.CONTENT_TOO_LARGE -> listOf("Use element selector", "Add content filters")
-                else -> listOf("Check settings")
+            description = description,
+            severity = ErrorSeverity.ERROR,
+            isRetryable = true,
+            suggestedActions = listOf("Restart the app", "Free up storage space"),
+            recoveryAction = RecoveryAction.RESTART_APP,
+        )
+    }
+
+    private fun handleSyncError(error: SyncError): ErrorResult = when (error.reason) {
+        SyncError.Reason.RATE_LIMITED ->
+            ErrorResult(
+                type = ErrorType.RATE_LIMITED,
+                userMessage = "Rate limited",
+                description = "Too many requests to this site",
+                severity = ErrorSeverity.WARNING,
+                isRetryable = true,
+                recoveryAction = RecoveryAction.WAIT_AND_RETRY,
+            )
+        SyncError.Reason.CONTENT_TOO_LARGE ->
+            ErrorResult(
+                type = ErrorType.CONTENT,
+                userMessage = "Content too large",
+                description = "The page is too big to process",
+                severity = ErrorSeverity.WARNING,
+                isRetryable = false,
+                suggestedActions = listOf("Use element selection", "Choose a smaller page section"),
+                recoveryAction = RecoveryAction.SELECT_ELEMENT,
+            )
+        SyncError.Reason.NO_CHANGES ->
+            ErrorResult(
+                type = ErrorType.INFO,
+                userMessage = "No changes detected",
+                severity = ErrorSeverity.INFO,
+                isRetryable = false,
+            )
+        SyncError.Reason.SITE_DISABLED ->
+            ErrorResult(
+                type = ErrorType.INFO,
+                userMessage = "Site monitoring disabled",
+                severity = ErrorSeverity.INFO,
+                isRetryable = false,
+            )
+        else ->
+            ErrorResult(
+                type = ErrorType.SYNC,
+                userMessage = "Sync failed",
+                severity = ErrorSeverity.WARNING,
+                isRetryable = true,
+            )
+    }
+
+    private fun handleAuthenticationError(error: AuthenticationError): ErrorResult = ErrorResult(
+        type = ErrorType.AUTHENTICATION,
+        userMessage = "Authentication required",
+        description = "This site requires login",
+        severity = ErrorSeverity.WARNING,
+        isRetryable = false,
+        suggestedActions = listOf("Open in browser to log in", "Use a public page instead"),
+        recoveryAction = RecoveryAction.LOGIN_REQUIRED,
+    )
+
+    private fun handleContentError(error: ContentError): ErrorResult = ErrorResult(
+        type = ErrorType.CONTENT,
+        userMessage =
+        when (error.reason) {
+            ContentError.Reason.EMPTY -> "Empty content"
+            ContentError.Reason.UNSUPPORTED -> "Unsupported content type"
+            ContentError.Reason.ENCODING -> "Encoding error"
+            else -> "Content processing failed"
+        },
+        severity = ErrorSeverity.WARNING,
+        isRetryable = error.reason != ContentError.Reason.UNSUPPORTED,
+    )
+
+    private fun handleConnectivityError(error: IOException): ErrorResult {
+        val errorName = error::class.simpleName ?: "IOException"
+
+        return when {
+            errorName.contains("UnknownHost", ignoreCase = true) ->
+                ErrorResult(
+                    type = ErrorType.CONNECTIVITY,
+                    userMessage = "Website not found",
+                    description = "Could not find the website",
+                    severity = ErrorSeverity.WARNING,
+                    isRetryable = true,
+                    suggestedActions = listOf("Check the URL", "Check your internet connection"),
+                    recoveryAction = RecoveryAction.CHECK_CONNECTION,
+                )
+            errorName.contains("SSL", ignoreCase = true) ->
+                ErrorResult(
+                    type = ErrorType.CONNECTIVITY,
+                    userMessage = "SSL error",
+                    description = "Secure connection failed",
+                    severity = ErrorSeverity.WARNING,
+                    isRetryable = false,
+                    suggestedActions = listOf("The site may have certificate issues"),
+                    recoveryAction = RecoveryAction.CHECK_URL,
+                )
+            else ->
+                ErrorResult(
+                    type = ErrorType.CONNECTIVITY,
+                    userMessage = "No internet connection",
+                    severity = ErrorSeverity.WARNING,
+                    isRetryable = true,
+                    suggestedActions = listOf("Check your connection", "Try again"),
+                    recoveryAction = RecoveryAction.CHECK_CONNECTION,
+                )
+        }
+    }
+
+    private fun handleTimeoutError(): ErrorResult = ErrorResult(
+        type = ErrorType.TIMEOUT,
+        userMessage = "Request timed out",
+        description = "The website took too long to respond",
+        severity = ErrorSeverity.WARNING,
+        isRetryable = true,
+        suggestedActions = listOf("Check your connection speed", "Try again"),
+        recoveryAction = RecoveryAction.RETRY,
+    )
+
+    private fun handleGenericError(error: Throwable): ErrorResult = ErrorResult(
+        type = ErrorType.UNKNOWN,
+        userMessage = "Something went wrong",
+        description = error.message?.take(100),
+        severity = ErrorSeverity.ERROR,
+        isRetryable = true,
+        suggestedActions = listOf("Try again", "Restart the app if problem persists"),
+        recoveryAction = RecoveryAction.RETRY,
+    )
+
+    private fun logError(
+        error: Throwable,
+        result: ErrorResult,
+        context: ErrorContext,
+        userAction: String?,
+    ) {
+        val tag = "ErrorHandler"
+        val message =
+            buildString {
+                append("[${context.name}] ")
+                append(result.userMessage)
+                if (userAction != null) append(" (action: $userAction)")
+                append(" - ${error::class.simpleName}: ${error.message}")
             }
-        )
+
+        when (result.severity) {
+            ErrorSeverity.INFO -> Napier.i(message, tag = tag)
+            ErrorSeverity.WARNING -> Napier.w(message, tag = tag)
+            ErrorSeverity.ERROR -> Napier.e(message, error, tag = tag)
+            ErrorSeverity.CRITICAL -> Napier.e("CRITICAL: $message", error, tag = tag)
+        }
     }
 
-    private fun handleAuthenticationError(error: AuthenticationError, errorContext: ErrorContext): ErrorResult {
-        return ErrorResult(
-            type = ErrorType.AUTHENTICATION,
-            userMessage = "Authentication failed",
-            isRetryable = true,
-            suggestedActions = listOf("Check credentials", "Refresh cookies")
-        )
-    }
+    private fun emitErrorEvent(
+        result: ErrorResult,
+        context: ErrorContext,
+        userAction: String?,
+        siteId: String?,
+        error: Throwable,
+    ) {
+        val event =
+            ErrorEvent(
+                id =
+                kotlin.uuid.Uuid
+                    .random()
+                    .toString(),
+                type = result.type,
+                severity = result.severity,
+                message = result.userMessage,
+                description = result.description,
+                context = context,
+                userAction = userAction,
+                siteId = siteId,
+                timestamp = Clock.System.now().toEpochMilliseconds(),
+                isRetryable = result.isRetryable,
+                recoveryAction = result.recoveryAction,
+                suggestedActions = result.suggestedActions,
+            )
 
-    private fun handleNetworkConnectivity(error: Throwable, errorContext: ErrorContext): ErrorResult {
-        return ErrorResult(
-            type = ErrorType.CONNECTIVITY,
-            userMessage = "No internet connection",
-            isRetryable = true,
-            suggestedActions = listOf("Check internet", "Check WiFi")
-        )
-    }
-
-    private fun handleTimeout(error: Throwable, errorContext: ErrorContext): ErrorResult {
-        return ErrorResult(
-            type = ErrorType.TIMEOUT,
-            userMessage = "Request timeout",
-            isRetryable = true,
-            suggestedActions = listOf("Check connection speed", "Try again")
-        )
-    }
-
-    // handlePermissions removed: SecurityException is JVM-only
-
-    // handleMemoryError removed: OutOfMemoryError is JVM-only
-
-    private fun handleGenericError(error: Throwable, errorContext: ErrorContext): ErrorResult {
-        return ErrorResult(
-            type = ErrorType.UNKNOWN,
-            userMessage = "Something went wrong",
-            isRetryable = true,
-            suggestedActions = listOf("Try again", "Restart app"),
-            technicalDetails = error.message
-        )
+        _errorEvents.tryEmit(event)
     }
 }
 
-// Error types and data classes
+// Error classification
 enum class ErrorType {
     NETWORK,
     VALIDATION,
@@ -183,8 +437,17 @@ enum class ErrorType {
     CONNECTIVITY,
     TIMEOUT,
     PERMISSIONS,
-    MEMORY,
-    UNKNOWN
+    CONTENT,
+    RATE_LIMITED,
+    INFO,
+    UNKNOWN,
+}
+
+enum class ErrorSeverity {
+    INFO, // Just information, no action needed
+    WARNING, // Something went wrong but recoverable
+    ERROR, // Significant error, may need user action
+    CRITICAL, // App-breaking error
 }
 
 enum class ErrorContext {
@@ -195,56 +458,117 @@ enum class ErrorContext {
     AUTHENTICATION,
     DATABASE_OPERATION,
     CONTENT_PROCESSING,
-    USER_INPUT
+    USER_INPUT,
+    ADD_SITE,
+    EDIT_SITE,
+    DELETE_SITE,
+    BROWSER,
+}
+
+enum class RecoveryAction {
+    RETRY, // Simply retry the operation
+    RETRY_LATER, // Wait and retry
+    WAIT_AND_RETRY, // Rate limited - wait before retry
+    CHECK_CONNECTION, // Check internet connection
+    CHECK_URL, // Verify the URL is correct
+    FIX_INPUT, // Fix the input data
+    SELECT_ELEMENT, // Select a smaller element
+    LOGIN_REQUIRED, // Site requires authentication
+    RESTART_APP, // Restart the application
+    CONTACT_SUPPORT, // Contact support
+    NONE, // No recovery possible
 }
 
 data class ErrorResult(
     val type: ErrorType,
     val userMessage: String,
-    val isRetryable: Boolean,
+    val description: String? = null,
+    val severity: ErrorSeverity = ErrorSeverity.WARNING,
+    val isRetryable: Boolean = false,
     val suggestedActions: List<String> = emptyList(),
-    val technicalDetails: String? = null
-)
+    val recoveryAction: RecoveryAction = RecoveryAction.NONE,
+) {
+    val shouldShowToUser: Boolean
+        get() = severity != ErrorSeverity.INFO || type == ErrorType.INFO
+
+    val shouldLog: Boolean
+        get() = severity >= ErrorSeverity.WARNING
+}
 
 data class ErrorEvent(
+    val id: String,
     val type: ErrorType,
+    val severity: ErrorSeverity,
     val message: String,
+    val description: String?,
     val context: ErrorContext,
     val userAction: String?,
+    val siteId: String?,
     val timestamp: Long,
-    val stackTrace: String
+    val isRetryable: Boolean,
+    val recoveryAction: RecoveryAction,
+    val suggestedActions: List<String>,
 )
 
-// Custom exception classes
-class NetworkError(val code: Int, message: String) : Exception(message)
+// Custom exception classes with additional context
+class NetworkError(
+    val code: Int,
+    message: String,
+) : Exception(message)
 
-class ValidationError(val field: String, message: String) : Exception(message)
+class ValidationError(
+    val field: String,
+    message: String,
+) : Exception(message)
 
-class DatabaseError(message: String, cause: Throwable? = null) : Exception(message, cause)
+class DatabaseError(
+    val operation: Operation = Operation.UNKNOWN,
+    message: String,
+    cause: Throwable? = null,
+) : Exception(message, cause) {
+    enum class Operation { READ, WRITE, DELETE, UNKNOWN }
+}
 
-class SyncError(val reason: Reason, message: String) : Exception(message) {
+class SyncError(
+    val reason: Reason,
+    message: String = "",
+) : Exception(message) {
     enum class Reason {
         RATE_LIMITED,
-        QUOTA_EXCEEDED,
         CONTENT_TOO_LARGE,
-        INVALID_CONTENT,
+        NO_CHANGES,
+        SITE_DISABLED,
         NETWORK_ERROR,
-        UNKNOWN
+        UNKNOWN,
     }
 }
 
-class AuthenticationError(message: String, cause: Throwable? = null) : Exception(message, cause)
+class AuthenticationError(
+    message: String,
+    cause: Throwable? = null,
+) : Exception(message, cause)
 
-// Extension functions for easier error handling
-fun Throwable.toErrorResult(errorHandler: ErrorHandler, context: ErrorContext = ErrorContext.GENERAL): ErrorResult {
-    return errorHandler.handleError(this, context)
+class ContentError(
+    val reason: Reason,
+    message: String = "",
+) : Exception(message) {
+    enum class Reason { EMPTY, UNSUPPORTED, ENCODING, UNKNOWN }
 }
 
-fun <T> Result<T>.handleError(
+// Extension functions
+fun Throwable.toErrorResult(
     errorHandler: ErrorHandler,
-    context: ErrorContext = ErrorContext.GENERAL
-): Result<T> {
-    return this.onFailure { error ->
-        errorHandler.handleError(error, context)
-    }
+    context: ErrorContext = ErrorContext.GENERAL,
+): ErrorResult = errorHandler.handleError(this, context)
+
+suspend fun <T> Result<T>.handleError(
+    errorHandler: ErrorHandler,
+    context: ErrorContext = ErrorContext.GENERAL,
+): Result<T> = onFailure { error ->
+    errorHandler.handleError(error, context)
 }
+
+fun <T> Result<T>.getErrorResult(
+    errorHandler: ErrorHandler,
+    context: ErrorContext = ErrorContext.GENERAL,
+): ErrorResult? = exceptionOrNull()?.let { errorHandler.handleError(it, context) }

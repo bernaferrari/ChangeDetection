@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.background
 
 import org.koin.core.component.KoinComponent
@@ -6,15 +10,17 @@ import org.koin.core.component.inject
 /**
  * Android implementation of BackgroundScheduler using WorkerHelper.
  */
-actual fun createBackgroundScheduler(): BackgroundScheduler {
-    return AndroidBackgroundScheduler()
-}
+actual fun createBackgroundScheduler(): BackgroundScheduler = AndroidBackgroundScheduler()
 
-class AndroidBackgroundScheduler : BackgroundScheduler, KoinComponent {
-
+class AndroidBackgroundScheduler :
+    BackgroundScheduler,
+    KoinComponent {
     private val monitoringManager: MonitoringManager by inject()
 
-    override fun schedulePeriodicSync(intervalMinutes: Long, constraints: SyncConstraints) {
+    override fun schedulePeriodicSync(
+        intervalMinutes: Long,
+        constraints: SyncConstraints,
+    ) {
         // Handled via WorkerHelper / MonitoringManager through Koin
     }
 
@@ -26,7 +32,10 @@ class AndroidBackgroundScheduler : BackgroundScheduler, KoinComponent {
         // WorkManager handles immediate sync via WorkerHelper
     }
 
-    override fun startQuickMonitor(siteIds: List<String>, intervalSeconds: Int) {
+    override fun startQuickMonitor(
+        siteIds: List<String>,
+        intervalSeconds: Int,
+    ) {
         monitoringManager.startQuickMonitor(siteIds, intervalSeconds)
     }
 

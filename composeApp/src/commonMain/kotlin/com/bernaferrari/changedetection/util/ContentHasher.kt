@@ -1,13 +1,16 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.util
 
 import com.bernaferrari.changedetection.extensions.cleanUpHtml
 
 object ContentHasher {
+    private val htmlCleanupCache = SynchronizedCache<String, String>(MAX_CACHE_SIZE)
+    private val hashCache = SynchronizedCache<String, String>(MAX_CACHE_SIZE)
 
-    private val htmlCleanupCache = MessageSafeMap<String, String>(MAX_CACHE_SIZE)
-    private val hashCache = MessageSafeMap<String, String>(MAX_CACHE_SIZE)
-
-    private const val MAX_CACHE_SIZE = 1000
+    private const val MAX_CACHE_SIZE = 500 // Reduced since LRU is more efficient
 
     /**
      * Generate SHA-256 hash for raw content
@@ -47,7 +50,7 @@ object ContentHasher {
     fun contentChanged(
         newContent: ByteArray,
         previousContent: ByteArray,
-        contentType: String
+        contentType: String,
     ): Boolean {
         if (newContent.isEmpty()) return false
         if (previousContent.isEmpty()) return true
@@ -68,7 +71,11 @@ object ContentHasher {
     /**
      * Fast content size-based pre-filtering
      */
-    fun quickSizeCheck(newSize: Int, previousSize: Int, threshold: Double = 0.05): Boolean {
+    fun quickSizeCheck(
+        newSize: Int,
+        previousSize: Int,
+        threshold: Double = 0.05,
+    ): Boolean {
         if (previousSize == 0) return newSize > 0
 
         val sizeChange = kotlin.math.abs(newSize - previousSize).toDouble() / previousSize
@@ -102,25 +109,6 @@ object ContentHasher {
     }
 }
 
-// Simple thread-safe map wrapper for KMP (naive implementation)
-class MessageSafeMap<K, V>(private val maxSize: Int) {
-    private val map = mutableMapOf<K, V>()
-    // Lock logic would be needed for true thread safety in KMP (atomic/mutex), 
-    // but for now we'll keep it simple as single-threaded/main-thread optimized for UI.
-    // In a real app, use AtomicReference or Mutex.
-
-    operator fun get(key: K): V? = map[key]
-
-    operator fun set(key: K, value: V) {
-        if (map.size >= maxSize) {
-            map.remove(map.keys.first())
-        }
-        map[key] = value
-    }
-
-    fun clear() = map.clear()
-}
-
 /**
  * Extension functions for easier content comparison
  */
@@ -130,5 +118,5 @@ fun ByteArray.htmlHashedWith(): String = ContentHasher.hashHtmlContent(this)
 
 fun ByteArray.isChangedFrom(
     previous: ByteArray,
-    contentType: String
+    contentType: String,
 ): Boolean = ContentHasher.contentChanged(this, previous, contentType)

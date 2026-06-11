@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.util
 
 import kotlin.math.log10
@@ -14,4 +18,3 @@ fun Long.readableFileSize(): String {
     val roundedValue = (value * 10).toInt() / 10.0
     return "$roundedValue ${units[digitGroups]}"
 }
-

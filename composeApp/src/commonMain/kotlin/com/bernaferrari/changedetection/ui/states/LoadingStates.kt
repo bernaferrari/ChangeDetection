@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.states
 
 import androidx.compose.animation.core.*
@@ -65,20 +69,20 @@ fun Modifier.shimmerEffect(
  */
 @Composable
 fun SkeletonCard(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        )
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        ),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Header shimmer
             Box(
@@ -86,9 +90,9 @@ fun SkeletonCard(
                     .fillMaxWidth()
                     .height(24.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .shimmerEffect()
+                    .shimmerEffect(),
             )
-            
+
             // Content shimmer lines
             repeat(3) {
                 Box(
@@ -96,28 +100,28 @@ fun SkeletonCard(
                         .fillMaxWidth(if (it == 2) 0.7f else 1f)
                         .height(16.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .shimmerEffect()
+                        .shimmerEffect(),
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             // Footer shimmer
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Box(
                     modifier = Modifier
                         .size(80.dp, 32.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .shimmerEffect()
+                        .shimmerEffect(),
                 )
                 Box(
                     modifier = Modifier
                         .size(80.dp, 32.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .shimmerEffect()
+                        .shimmerEffect(),
                 )
             }
         }
@@ -130,46 +134,46 @@ fun SkeletonCard(
 @Composable
 fun PulsingLoadingIndicator(
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.primary
+    color: Color = MaterialTheme.colorScheme.primary,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse_loading")
-    
+
     val scale by infiniteTransition.animateFloat(
         initialValue = 0.8f,
         targetValue = 1.2f,
         animationSpec = infiniteRepeatable(
             animation = tween(1000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
+            repeatMode = RepeatMode.Reverse,
         ),
-        label = "pulse_scale"
+        label = "pulse_scale",
     )
-    
+
     val alpha by infiniteTransition.animateFloat(
         initialValue = 0.5f,
         targetValue = 1.0f,
         animationSpec = infiniteRepeatable(
             animation = tween(1000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
+            repeatMode = RepeatMode.Reverse,
         ),
-        label = "pulse_alpha"
+        label = "pulse_alpha",
     )
-    
+
     Box(
         modifier = modifier,
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
                 .size((48 * scale).dp)
                 .background(
                     color = color.copy(alpha = alpha * 0.3f),
-                    shape = CircleShape
-                )
+                    shape = CircleShape,
+                ),
         )
         CircularProgressIndicator(
             modifier = Modifier.size(40.dp),
             color = color,
-            strokeWidth = 4.dp
+            strokeWidth = 4.dp,
         )
     }
 }
@@ -180,26 +184,26 @@ fun PulsingLoadingIndicator(
 @Composable
 fun CenteredLoadingState(
     modifier: Modifier = Modifier,
-    message: String? = null
+    message: String? = null,
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             PulsingLoadingIndicator()
-            
+
             message?.let {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
         }
@@ -212,21 +216,21 @@ fun CenteredLoadingState(
 @Composable
 fun InlineLoadingIndicator(
     text: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         CircularProgressIndicator(
             modifier = Modifier.size(20.dp),
-            strokeWidth = 2.dp
+            strokeWidth = 2.dp,
         )
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -238,16 +242,16 @@ fun InlineLoadingIndicator(
 fun WaveLoadingIndicator(
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.primary,
-    dotCount: Int = 3
+    dotCount: Int = 3,
 ) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         repeat(dotCount) { index ->
             val infiniteTransition = rememberInfiniteTransition(label = "wave_$index")
-            
+
             val offsetY by infiniteTransition.animateFloat(
                 initialValue = 0f,
                 targetValue = -12f,
@@ -255,18 +259,18 @@ fun WaveLoadingIndicator(
                     animation = tween(
                         durationMillis = 600,
                         delayMillis = index * 100,
-                        easing = FastOutSlowInEasing
+                        easing = FastOutSlowInEasing,
                     ),
-                    repeatMode = RepeatMode.Reverse
+                    repeatMode = RepeatMode.Reverse,
                 ),
-                label = "wave_offset_$index"
+                label = "wave_offset_$index",
             )
-            
+
             Box(
                 modifier = Modifier
                     .size(12.dp)
                     .offset(y = offsetY.dp)
-                    .background(color, CircleShape)
+                    .background(color, CircleShape),
             )
         }
     }
@@ -278,11 +282,11 @@ fun WaveLoadingIndicator(
 @Composable
 fun SkeletonList(
     itemCount: Int = 5,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         repeat(itemCount) {
             SkeletonCard()
@@ -296,36 +300,36 @@ fun SkeletonList(
 @Composable
 fun SuccessCheckmark(
     modifier: Modifier = Modifier,
-    onAnimationComplete: () -> Unit = {}
+    onAnimationComplete: () -> Unit = {},
 ) {
     val scale by rememberInfiniteTransition(label = "success").animateFloat(
         initialValue = 0.8f,
         targetValue = 1.0f,
         animationSpec = infiniteRepeatable(
             animation = tween(800, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
+            repeatMode = RepeatMode.Reverse,
         ),
-        label = "success_scale"
+        label = "success_scale",
     )
-    
+
     LaunchedEffect(Unit) {
         kotlinx.coroutines.delay(2000)
         onAnimationComplete()
     }
-    
+
     Box(
         modifier = modifier
             .size((80 * scale).dp)
             .background(
                 MaterialTheme.colorScheme.primaryContainer,
-                CircleShape
+                CircleShape,
             ),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = "✓",
             fontSize = (40 * scale).sp,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
     }
 }

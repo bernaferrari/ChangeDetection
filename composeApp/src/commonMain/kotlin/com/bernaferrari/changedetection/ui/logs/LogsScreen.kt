@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.logs
 
 import androidx.compose.foundation.layout.*
@@ -17,13 +21,12 @@ import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogsScreen(
     onNavigateUp: () -> Unit,
     onSnapClick: (snapId: String, url: String) -> Unit,
-    viewModel: LogsViewModel = koinViewModel()
+    viewModel: LogsViewModel = koinViewModel(),
 ) {
     val pagedItems = viewModel.pagedSnaps.collectAsLazyPagingItems()
     val siteMap by viewModel.siteMap.collectAsStateWithLifecycle()
@@ -37,25 +40,25 @@ fun LogsScreen(
                 title = {
                     Text(
                         text = stringResource(Res.string.nav_logs),
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleLarge,
                     )
                 },
                 scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ),
-                modifier = Modifier.statusBarsPadding()
+                modifier = Modifier.statusBarsPadding(),
             )
         },
-        contentWindowInsets = WindowInsets(0)
+        contentWindowInsets = WindowInsets(0),
     ) { padding ->
         if (pagedItems.itemCount == 0) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 LogsEmptyState()
             }
@@ -64,12 +67,12 @@ fun LogsScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
-                contentPadding = PaddingValues(top = 8.dp, bottom = 100.dp)
+                contentPadding = PaddingValues(top = 8.dp, bottom = 100.dp),
             ) {
                 item {
                     LogsHeader(
                         versionsCount = versionsCount,
-                        siteCount = siteMap.size
+                        siteCount = siteMap.size,
                     )
                 }
 
@@ -86,7 +89,7 @@ fun LogsScreen(
                             is LogUiModel.Item -> "item"
                             is LogUiModel.Header -> "header"
                         }
-                    }
+                    },
                 ) { index ->
                     val item = pagedItems[index]
                     when (item) {
@@ -104,7 +107,7 @@ fun LogsScreen(
                                     site = site,
                                     position = position,
                                     onClick = { onSnapClick(item.snap.snapId, site.url) },
-                                    onDeleteClick = { viewModel.removeSnap(item.snap.snapId) }
+                                    onDeleteClick = { viewModel.removeSnap(item.snap.snapId) },
                                 )
                             }
                         }

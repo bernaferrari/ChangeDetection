@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.main
 
 import androidx.compose.animation.AnimatedVisibility
@@ -29,7 +33,7 @@ import org.jetbrains.compose.resources.stringResource
 fun QuickMonitorFab(
     visible: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
 
@@ -37,7 +41,7 @@ fun QuickMonitorFab(
         visible = visible,
         enter = fadeIn() + scaleIn(),
         exit = fadeOut() + scaleOut(),
-        modifier = modifier
+        modifier = modifier,
     ) {
         ExtendedFloatingActionButton(
             onClick = {
@@ -47,7 +51,7 @@ fun QuickMonitorFab(
             icon = {
                 Icon(
                     imageVector = Icons.Default.Bolt,
-                    contentDescription = null
+                    contentDescription = null,
                 )
             },
             text = {
@@ -57,8 +61,8 @@ fun QuickMonitorFab(
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             elevation = FloatingActionButtonDefaults.elevation(
                 defaultElevation = 3.dp,
-                pressedElevation = 6.dp
-            )
+                pressedElevation = 6.dp,
+            ),
         )
     }
 }

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.addedit
 
 import androidx.compose.foundation.background
@@ -84,7 +88,7 @@ fun AddEditConfirmScreen(
     onColorChange: (Pair<Int, Int>) -> Unit,
     onUseCookiesChange: (Boolean) -> Unit, // Keep param for compatibility
     onNavigateUp: () -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val scrollState = rememberScrollState()
@@ -110,21 +114,21 @@ fun AddEditConfirmScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ),
             )
         },
         bottomBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 3.dp
+                tonalElevation = 3.dp,
             ) {
                 Box(
                     modifier = Modifier
                         .windowInsetsPadding(WindowInsets.ime)
                         .navigationBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                 ) {
                     Button(
                         onClick = {
@@ -138,9 +142,9 @@ fun AddEditConfirmScreen(
                         shape = RoundedCornerShape(24.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.Transparent,
-                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                         ),
-                        contentPadding = PaddingValues(0.dp)
+                        contentPadding = PaddingValues(0.dp),
                     ) {
                         Box(
                             modifier = Modifier
@@ -150,41 +154,41 @@ fun AddEditConfirmScreen(
                                         Brush.horizontalGradient(
                                             colors = listOf(
                                                 Color(selectedColors.first),
-                                                Color(selectedColors.second)
-                                            )
+                                                Color(selectedColors.second),
+                                            ),
                                         )
                                     } else {
                                         Brush.horizontalGradient(
                                             colors = listOf(
                                                 MaterialTheme.colorScheme.surfaceVariant,
-                                                MaterialTheme.colorScheme.surfaceVariant
-                                            )
+                                                MaterialTheme.colorScheme.surfaceVariant,
+                                            ),
                                         )
                                     },
-                                    shape = RoundedCornerShape(24.dp)
+                                    shape = RoundedCornerShape(24.dp),
                                 ),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.Center,
                         ) {
                             if (isSaving) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(24.dp),
                                     color = Color.White,
-                                    strokeWidth = 2.5.dp
+                                    strokeWidth = 2.5.dp,
                                 )
                             } else {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 ) {
                                     Icon(
                                         if (isEditing) Icons.Default.Check else Icons.Default.RocketLaunch,
                                         contentDescription = null,
-                                        tint = if (title.isNotBlank()) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                                        tint = if (title.isNotBlank()) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                     Text(
                                         stringResource(if (isEditing) Res.string.save else Res.string.start_monitoring),
                                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                                        color = if (title.isNotBlank()) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = if (title.isNotBlank()) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
                             }
@@ -192,7 +196,7 @@ fun AddEditConfirmScreen(
                     }
                 }
             }
-        }
+        },
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -200,7 +204,7 @@ fun AddEditConfirmScreen(
                 .padding(paddingValues)
                 .verticalScroll(scrollState)
                 .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(28.dp)
+            verticalArrangement = Arrangement.spacedBy(28.dp),
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -208,7 +212,7 @@ fun AddEditConfirmScreen(
             GradientHeroBanner(
                 title = title,
                 domain = domain,
-                selectedColors = selectedColors
+                selectedColors = selectedColors,
             )
 
             // Site Name Input
@@ -224,8 +228,8 @@ fun AddEditConfirmScreen(
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(selectedColors.first),
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                )
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                ),
             )
 
             // Color Theme Section - Pill-style selector
@@ -233,7 +237,7 @@ fun AddEditConfirmScreen(
                 Text(
                     text = stringResource(Res.string.color_theme),
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
                 ColorThemeSelector(
@@ -242,7 +246,7 @@ fun AddEditConfirmScreen(
                     onColorChange = { colors ->
                         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                         onColorChange(colors.first to colors.second)
-                    }
+                    },
                 )
             }
 
@@ -255,7 +259,7 @@ fun AddEditConfirmScreen(
 private fun GradientHeroBanner(
     title: String,
     domain: String,
-    selectedColors: Pair<Int, Int>
+    selectedColors: Pair<Int, Int>,
 ) {
     val displayTitle = title.ifBlank { domain.ifBlank { "Website" } }
 
@@ -266,14 +270,14 @@ private fun GradientHeroBanner(
             .clip(RoundedCornerShape(28.dp))
             .background(
                 Brush.horizontalGradient(
-                    colors = listOf(Color(selectedColors.first), Color(selectedColors.second))
-                )
+                    colors = listOf(Color(selectedColors.first), Color(selectedColors.second)),
+                ),
             ),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
                 text = displayTitle,
@@ -281,25 +285,25 @@ private fun GradientHeroBanner(
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
             if (domain.isNotEmpty()) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Icon(
                         Icons.Default.Language,
                         contentDescription = null,
                         modifier = Modifier.size(14.dp),
-                        tint = Color.White.copy(alpha = 0.8f)
+                        tint = Color.White.copy(alpha = 0.8f),
                     )
                     Text(
                         text = domain,
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.8f),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
@@ -311,14 +315,14 @@ private fun GradientHeroBanner(
 private fun ColorThemeSelector(
     selectedColors: Pair<Int, Int>,
     availableColors: List<ColorGroup>,
-    onColorChange: (ColorGroup) -> Unit
+    onColorChange: (ColorGroup) -> Unit,
 ) {
     val selectedGroup = ColorGroup(selectedColors.first, selectedColors.second)
     ColorPickerList(
         currentColors = selectedGroup,
         gradientList = availableColors,
         onColorSelected = onColorChange,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 
@@ -337,7 +341,7 @@ private val defaultAvailableColors = listOf(
     ColorGroup(0xff3AA17E.toInt(), 0xff00537E.toInt()), // New Leaf
     ColorGroup(0xff29ABE2.toInt(), 0xff4F00BC.toInt()), // Deep Sea
     ColorGroup(0xffEBC08D.toInt(), 0xffF24645.toInt()), // Fizzy Peach
-    ColorGroup(0xff622774.toInt(), 0xffC53364.toInt())  // Dark-Purple -> Light-Purple
+    ColorGroup(0xff622774.toInt(), 0xffC53364.toInt()), // Dark-Purple -> Light-Purple
 )
 
 private fun extractDomain(url: String): String {

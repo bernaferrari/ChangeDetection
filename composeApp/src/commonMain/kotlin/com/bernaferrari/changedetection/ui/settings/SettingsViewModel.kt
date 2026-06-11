@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.settings
 
 import androidx.datastore.core.DataStore
@@ -36,14 +40,13 @@ data class SettingsUiState(
     val turboDuration: Long = 180,
     val minChangeThreshold: Int = 0,
     val comparisonMethod: ComparisonMethod = ComparisonMethod.HTML,
-    val browserDelayMs: Long = 5000
+    val browserDelayMs: Long = 5000,
 )
 
 class SettingsViewModel(
     private val dataStore: DataStore<Preferences>,
-    private val monitoringManager: MonitoringManager
+    private val monitoringManager: MonitoringManager,
 ) : ViewModel() {
-
     companion object {
         val LIGHT_MODE_KEY = booleanPreferencesKey("light_mode")
         val COLOR_BY_SDK_KEY = booleanPreferencesKey("color_by_sdk")
@@ -66,42 +69,46 @@ class SettingsViewModel(
         val BROWSER_DELAY_KEY = longPreferencesKey("browser_delay_ms")
     }
 
-    val uiState: StateFlow<SettingsUiState> = dataStore.data.map { preferences ->
-        val turboSiteIdsString = preferences[TURBO_SITE_IDS_KEY] ?: ""
-        val turboSiteIds = if (turboSiteIdsString.isBlank()) {
-            emptyList()
-        } else {
-            turboSiteIdsString.split(",").filter { it.isNotBlank() }
-        }
+    val uiState: StateFlow<SettingsUiState> =
+        dataStore.data
+            .map { preferences ->
+                val turboSiteIdsString = preferences[TURBO_SITE_IDS_KEY] ?: ""
+                val turboSiteIds =
+                    if (turboSiteIdsString.isBlank()) {
+                        emptyList()
+                    } else {
+                        turboSiteIdsString.split(",").filter { it.isNotBlank() }
+                    }
 
-        SettingsUiState(
-            lightMode = preferences[LIGHT_MODE_KEY] ?: true,
-            colorBySdk = preferences[COLOR_BY_SDK_KEY] ?: true,
-            showSystemApps = preferences[SHOW_SYSTEM_APPS_KEY] ?: true,
-            backgroundSync = preferences[BACKGROUND_SYNC_KEY] ?: false,
-            orderBySdk = preferences[ORDER_BY_SDK_KEY] ?: true,
-            syncInterval = preferences[SYNC_INTERVAL_KEY] ?: 60,
-            requireWifi = preferences[REQUIRE_WIFI_KEY] ?: false,
-            requireCharging = preferences[REQUIRE_CHARGING_KEY] ?: false,
-            requireBatteryNotLow = preferences[REQUIRE_BATTERY_NOT_LOW_KEY] ?: false,
-            requireDeviceIdle = preferences[REQUIRE_DEVICE_IDLE_KEY] ?: false,
-            themeMode = preferences[THEME_MODE_KEY] ?: "MATERIAL_YOU",
-            turboMode = preferences[TURBO_MODE_KEY] ?: false,
-            turboSiteIds = turboSiteIds,
-            turboStartTime = preferences[TURBO_START_TIME_KEY] ?: 0L,
-            turboSyncInterval = preferences[TURBO_SYNC_INTERVAL_KEY] ?: 30,
-            turboDuration = preferences[TURBO_DURATION_KEY] ?: 180,
-            minChangeThreshold = preferences[MIN_CHANGE_THRESHOLD_KEY] ?: 0,
-            comparisonMethod = runCatching {
-                ComparisonMethod.valueOf(preferences[COMPARISON_METHOD_KEY] ?: ComparisonMethod.HTML.name)
-            }.getOrElse { ComparisonMethod.HTML },
-            browserDelayMs = preferences[BROWSER_DELAY_KEY] ?: 5000
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = SettingsUiState()
-    )
+                SettingsUiState(
+                    lightMode = preferences[LIGHT_MODE_KEY] ?: true,
+                    colorBySdk = preferences[COLOR_BY_SDK_KEY] ?: true,
+                    showSystemApps = preferences[SHOW_SYSTEM_APPS_KEY] ?: true,
+                    backgroundSync = preferences[BACKGROUND_SYNC_KEY] ?: false,
+                    orderBySdk = preferences[ORDER_BY_SDK_KEY] ?: true,
+                    syncInterval = preferences[SYNC_INTERVAL_KEY] ?: 60,
+                    requireWifi = preferences[REQUIRE_WIFI_KEY] ?: false,
+                    requireCharging = preferences[REQUIRE_CHARGING_KEY] ?: false,
+                    requireBatteryNotLow = preferences[REQUIRE_BATTERY_NOT_LOW_KEY] ?: false,
+                    requireDeviceIdle = preferences[REQUIRE_DEVICE_IDLE_KEY] ?: false,
+                    themeMode = preferences[THEME_MODE_KEY] ?: "MATERIAL_YOU",
+                    turboMode = preferences[TURBO_MODE_KEY] ?: false,
+                    turboSiteIds = turboSiteIds,
+                    turboStartTime = preferences[TURBO_START_TIME_KEY] ?: 0L,
+                    turboSyncInterval = preferences[TURBO_SYNC_INTERVAL_KEY] ?: 30,
+                    turboDuration = preferences[TURBO_DURATION_KEY] ?: 180,
+                    minChangeThreshold = preferences[MIN_CHANGE_THRESHOLD_KEY] ?: 0,
+                    comparisonMethod =
+                    runCatching {
+                        ComparisonMethod.valueOf(preferences[COMPARISON_METHOD_KEY] ?: ComparisonMethod.HTML.name)
+                    }.getOrElse { ComparisonMethod.HTML },
+                    browserDelayMs = preferences[BROWSER_DELAY_KEY] ?: 5000,
+                )
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = SettingsUiState(),
+            )
 
     fun updateLightMode(lightMode: Boolean) {
         viewModelScope.launch {
@@ -166,7 +173,10 @@ class SettingsViewModel(
         updateConstraint(REQUIRE_DEVICE_IDLE_KEY, enabled)
     }
 
-    private fun updateConstraint(key: Preferences.Key<Boolean>, enabled: Boolean) {
+    private fun updateConstraint(
+        key: Preferences.Key<Boolean>,
+        enabled: Boolean,
+    ) {
         viewModelScope.launch {
             dataStore.edit { preferences ->
                 preferences[key] = enabled
@@ -191,7 +201,11 @@ class SettingsViewModel(
         }
     }
 
-    fun enableTurboMode(siteIds: List<String>, syncIntervalSeconds: Int = 30, durationMinutes: Int = 180) {
+    fun enableTurboMode(
+        siteIds: List<String>,
+        syncIntervalSeconds: Int = 30,
+        durationMinutes: Int = 180,
+    ) {
         viewModelScope.launch {
             dataStore.edit { preferences ->
                 preferences[TURBO_MODE_KEY] = true
@@ -240,4 +254,6 @@ class SettingsViewModel(
     }
 }
 
-private fun getNow() = kotlin.time.Clock.System.now().toEpochMilliseconds()
+private fun getNow() = kotlin.time.Clock.System
+    .now()
+    .toEpochMilliseconds()

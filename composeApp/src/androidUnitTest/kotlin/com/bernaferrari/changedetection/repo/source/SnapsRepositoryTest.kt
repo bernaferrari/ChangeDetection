@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.repo.source
 
 import com.bernaferrari.changedetection.repo.AppExecutors
@@ -46,7 +50,7 @@ class SnapsRepositoryTest {
         MockitoAnnotations.openMocks(this)
         appExecutors = AppExecutors(
             ioContext = Dispatchers.Unconfined,
-            uiContext = Dispatchers.Unconfined
+            uiContext = Dispatchers.Unconfined,
         )
         mockDao = mock(SnapsDao::class.java)
         localDataSource = SnapsLocalDataSource(appExecutors, mockDao, mockContext)
@@ -94,7 +98,7 @@ class SnapsRepositoryTest {
             snapId = "snap-latest",
             siteId = siteId,
             timestamp = 5000L,
-            contentSize = 999
+            contentSize = 999,
         )
 
         // Mock DAO to return only the most recent snap (as the SQL query would)
@@ -117,7 +121,7 @@ class SnapsRepositoryTest {
             createSnap(
                 snapId = "snap-$i",
                 siteId = "site-$i",
-                timestamp = i * 1000L
+                timestamp = i * 1000L,
             )
         }
 
@@ -164,7 +168,7 @@ class SnapsRepositoryTest {
         val singleSnap = createSnap(
             snapId = "only-snap",
             siteId = "only-site",
-            timestamp = 1000L
+            timestamp = 1000L,
         )
 
         `when`(mockDao.getAllMostRecentSnaps()).thenReturn(listOf(singleSnap))
@@ -204,7 +208,7 @@ class SnapsRepositoryTest {
             siteId = "site-1",
             timestamp = 1000L,
             contentHash = "",
-            processedContentHash = ""
+            processedContentHash = "",
         )
 
         `when`(mockDao.getAllMostRecentSnaps()).thenReturn(listOf(snapWithoutHash))
@@ -229,7 +233,7 @@ class SnapsRepositoryTest {
             createSnap(
                 snapId = "snap-$i",
                 siteId = "site-$i",
-                timestamp = i * 1000L
+                timestamp = i * 1000L,
             )
         }
 
@@ -271,7 +275,7 @@ class SnapsRepositoryTest {
         val snaps = listOf(
             createSnap("snap-1", "https://example.com", 1000L),
             createSnap("snap-2", "https://google.com", 2000L),
-            createSnap("snap-3", "https://github.com", 3000L)
+            createSnap("snap-3", "https://github.com", 3000L),
         )
 
         `when`(mockDao.getAllMostRecentSnaps()).thenReturn(snaps)
@@ -304,7 +308,7 @@ class SnapsRepositoryTest {
             createSnap(
                 snapId = "snap-$siteId",
                 siteId = siteId,
-                timestamp = System.currentTimeMillis()
+                timestamp = System.currentTimeMillis(),
             )
         }
 
@@ -317,7 +321,7 @@ class SnapsRepositoryTest {
 
         // Simulate mapping sites to SiteAndLastSnap
         val results = sites.map { siteId ->
-            Pair(siteId, snapsBySite[siteId])  // Fast O(1) map lookup
+            Pair(siteId, snapsBySite[siteId]) // Fast O(1) map lookup
         }
 
         // Assert: Verify the pattern works correctly
@@ -339,7 +343,7 @@ class SnapsRepositoryTest {
         // In case of duplicates, Map.associateBy will keep the last occurrence
         val snaps = listOf(
             createSnap("snap-1", "site-1", timestamp = 1000L),
-            createSnap("snap-2", "site-1", timestamp = 2000L)  // Same siteId, later timestamp
+            createSnap("snap-2", "site-1", timestamp = 2000L), // Same siteId, later timestamp
         )
 
         `when`(mockDao.getAllMostRecentSnaps()).thenReturn(snaps)
@@ -361,7 +365,7 @@ class SnapsRepositoryTest {
             createSnap(
                 snapId = "snap-$i",
                 siteId = "site-$i",
-                timestamp = i * 1000L
+                timestamp = i * 1000L,
             )
         }
 
@@ -390,17 +394,15 @@ class SnapsRepositoryTest {
         contentCharset: String = "UTF-8",
         contentSize: Int = 1024,
         contentHash: String = "hash-$snapId",
-        processedContentHash: String = "processed-$snapId"
-    ): Snap {
-        return Snap(
-            snapId = snapId,
-            siteId = siteId,
-            timestamp = timestamp,
-            contentType = contentType,
-            contentCharset = contentCharset,
-            contentSize = contentSize,
-            contentHash = contentHash,
-            processedContentHash = processedContentHash
-        )
-    }
+        processedContentHash: String = "processed-$snapId",
+    ): Snap = Snap(
+        snapId = snapId,
+        siteId = siteId,
+        timestamp = timestamp,
+        contentType = contentType,
+        contentCharset = contentCharset,
+        contentSize = contentSize,
+        contentHash = contentHash,
+        processedContentHash = processedContentHash,
+    )
 }

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.setup
 
 import android.webkit.JavascriptInterface
@@ -24,7 +28,7 @@ import androidx.compose.ui.window.DialogProperties
 actual fun ElementSelectorDialog(
     url: String,
     onDismiss: () -> Unit,
-    onElementSelected: (cssSelector: String, elementPreview: String) -> Unit
+    onElementSelected: (cssSelector: String, elementPreview: String) -> Unit,
 ) {
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(true) }
@@ -52,45 +56,45 @@ actual fun ElementSelectorDialog(
         properties = DialogProperties(
             usePlatformDefaultWidth = false,
             dismissOnBackPress = true,
-            dismissOnClickOutside = false
-        )
+            dismissOnClickOutside = false,
+        ),
     ) {
         Card(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            shape = RoundedCornerShape(24.dp)
+            shape = RoundedCornerShape(24.dp),
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // Header
                 Surface(
                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Row(
                         modifier = Modifier.padding(20.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Default.TouchApp,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
                         )
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Select Element to Monitor",
                                 style = MaterialTheme.typography.titleLarge.copy(
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
                                 ),
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             Text(
                                 text = "Tap any element on the page to monitor it",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
@@ -100,29 +104,29 @@ actual fun ElementSelectorDialog(
                 selectedElement?.let { element ->
                     Surface(
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Column(
                             modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             Text(
                                 text = "Selected: ${element.tagName}",
                                 style = MaterialTheme.typography.titleSmall.copy(
-                                    fontWeight = FontWeight.SemiBold
+                                    fontWeight = FontWeight.SemiBold,
                                 ),
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.primary,
                             )
                             Text(
                                 text = element.selector,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             if (element.preview.isNotEmpty()) {
                                 Text(
                                     text = element.preview.take(100) + if (element.preview.length > 100) "..." else "",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
@@ -138,16 +142,19 @@ actual fun ElementSelectorDialog(
                                 settings.domStorageEnabled = true
 
                                 // Add JavaScript interface for element selection
-                                addJavascriptInterface(object {
-                                    @JavascriptInterface
-                                    fun onElementSelected(
-                                        selector: String,
-                                        tagName: String,
-                                        preview: String
-                                    ) {
-                                        selectedElement = ElementInfo(selector, tagName, preview)
-                                    }
-                                }, "Android")
+                                addJavascriptInterface(
+                                    object {
+                                        @JavascriptInterface
+                                        fun onElementSelected(
+                                            selector: String,
+                                            tagName: String,
+                                            preview: String,
+                                        ) {
+                                            selectedElement = ElementInfo(selector, tagName, preview)
+                                        }
+                                    },
+                                    "Android",
+                                )
 
                                 webViewClient = object : WebViewClient() {
                                     override fun onPageFinished(view: WebView?, url: String?) {
@@ -163,13 +170,13 @@ actual fun ElementSelectorDialog(
                                 webView = this
                             }
                         },
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
                     )
 
                     if (isLoading) {
                         Box(
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.Center,
                         ) {
                             CircularProgressIndicator()
                         }
@@ -179,15 +186,15 @@ actual fun ElementSelectorDialog(
                 // Bottom Actions
                 Surface(
                     color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.5f),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Row(
                         modifier = Modifier.padding(20.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         OutlinedButton(
                             onClick = onDismiss,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         ) {
                             Text("Cancel")
                         }
@@ -199,12 +206,12 @@ actual fun ElementSelectorDialog(
                                 }
                             },
                             enabled = selectedElement != null,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Visibility,
                                 contentDescription = null,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(16.dp),
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Monitor Element")
@@ -323,5 +330,5 @@ private val elementSelectionScript = """
 private data class ElementInfo(
     val selector: String,
     val tagName: String,
-    val preview: String
+    val preview: String,
 )

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.components
 
 import androidx.compose.foundation.background
@@ -46,21 +50,21 @@ fun SnapshotRowItem(
             .fillMaxWidth()
             .clickable { onSelectionChanged(!isSelected) }
             .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         ) {
             Text(
                 text = snap.timestamp.convertTimestampToDate(),
                 style = MaterialTheme.typography.bodyLarge,
-                color = textColor
+                color = textColor,
             )
 
             Text(
                 text = snap.contentSize.readableFileSize(),
                 style = MaterialTheme.typography.bodyMedium,
-                color = subtitleColor
+                color = subtitleColor,
             )
         }
 
@@ -70,7 +74,7 @@ fun SnapshotRowItem(
                     .size(24.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 // Checkmark icon could go here
             }

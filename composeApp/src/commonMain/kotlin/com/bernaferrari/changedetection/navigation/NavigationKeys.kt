@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.navigation
 
 import androidx.navigation3.runtime.NavKey
@@ -38,7 +42,7 @@ data object HowItWorksDestination : NavKey
 @Serializable
 data class BrowserDestination(
     val snapId: String = "",
-    val url: String = ""
+    val url: String = "",
 ) : NavKey
 
 @Serializable

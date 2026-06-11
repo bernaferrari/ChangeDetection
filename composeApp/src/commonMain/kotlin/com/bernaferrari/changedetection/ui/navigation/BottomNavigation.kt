@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.navigation
 
 import androidx.compose.foundation.layout.*
@@ -27,27 +31,27 @@ private enum class NavigationLayout { BottomBar, Rail }
 data class BottomNavItem(
     val destination: NavKey,
     val labelRes: StringResource,
-    val icon: ImageVector
+    val icon: ImageVector,
 )
 
 private val bottomNavItems = listOf(
     BottomNavItem(MainDestination, Res.string.nav_home, Icons.Default.Home),
     BottomNavItem(TurboDestination, Res.string.home_stats_quick_monitor_label, Icons.Filled.Bolt),
     BottomNavItem(LogsDestination, Res.string.nav_logs, Icons.AutoMirrored.Filled.List),
-    BottomNavItem(SettingsDestination, Res.string.nav_settings, Icons.Default.Settings)
+    BottomNavItem(SettingsDestination, Res.string.nav_settings, Icons.Default.Settings),
 )
 
 @Composable
 fun ChangeDetectionBottomNavigation(
     backStack: NavBackStack<NavKey>,
     useNavigationRail: Boolean,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val currentDestination = backStack.lastOrNull()
     val isTabDestination = currentDestination is MainDestination ||
-            currentDestination is TurboDestination ||
-            currentDestination is LogsDestination ||
-            currentDestination is SettingsDestination
+        currentDestination is TurboDestination ||
+        currentDestination is LogsDestination ||
+        currentDestination is SettingsDestination
 
     if (!isTabDestination) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -68,7 +72,7 @@ fun ChangeDetectionBottomNavigation(
 private fun BottomNavigationLayout(
     backStack: NavBackStack<NavKey>,
     currentDestination: NavKey?,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val navigationColors = NavigationBarItemDefaults.colors(
@@ -83,7 +87,7 @@ private fun BottomNavigationLayout(
         Box(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxWidth()
+                .fillMaxWidth(),
         ) {
             content()
         }
@@ -94,7 +98,7 @@ private fun BottomNavigationLayout(
             containerColor = colorScheme.surfaceContainer,
             contentColor = colorScheme.onSurfaceVariant,
             tonalElevation = 0.dp,
-            windowInsets = NavigationBarDefaults.windowInsets
+            windowInsets = NavigationBarDefaults.windowInsets,
         ) {
             bottomNavItems.forEach { item ->
                 val isSelected = when (item.destination) {
@@ -112,7 +116,7 @@ private fun BottomNavigationLayout(
                         Text(
                             text = label,
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium
+                            fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium,
                         )
                     },
                     selected = isSelected,
@@ -122,7 +126,7 @@ private fun BottomNavigationLayout(
                         }
                     },
                     colors = navigationColors,
-                    alwaysShowLabel = true
+                    alwaysShowLabel = true,
                 )
             }
         }
@@ -133,7 +137,7 @@ private fun BottomNavigationLayout(
 private fun NavigationRailLayout(
     backStack: NavBackStack<NavKey>,
     currentDestination: NavKey?,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val railColors = NavigationRailItemDefaults.colors(
@@ -141,7 +145,7 @@ private fun NavigationRailLayout(
         selectedTextColor = colorScheme.onPrimaryContainer,
         indicatorColor = colorScheme.primaryContainer,
         unselectedIconColor = colorScheme.onSurfaceVariant,
-        unselectedTextColor = colorScheme.onSurfaceVariant
+        unselectedTextColor = colorScheme.onSurfaceVariant,
     )
 
     Row(modifier = Modifier.fillMaxSize()) {
@@ -156,16 +160,16 @@ private fun NavigationRailLayout(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 16.dp),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Default.Bolt,
                         contentDescription = null,
                         tint = colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
                     )
                 }
-            }
+            },
         ) {
             bottomNavItems.forEach { item ->
                 val isSelected = when (item.destination) {
@@ -187,7 +191,7 @@ private fun NavigationRailLayout(
                         }
                     },
                     alwaysShowLabel = true,
-                    colors = railColors
+                    colors = railColors,
                 )
             }
         }
@@ -195,7 +199,7 @@ private fun NavigationRailLayout(
         Box(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight()
+                .fillMaxHeight(),
         ) {
             content()
         }

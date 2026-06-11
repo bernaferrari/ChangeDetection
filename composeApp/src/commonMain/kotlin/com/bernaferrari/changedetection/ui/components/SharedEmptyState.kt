@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.components
 
 import androidx.compose.animation.*
@@ -25,7 +29,7 @@ fun SharedEmptyState(
     primaryActionLabel: String? = null,
     onPrimaryAction: (() -> Unit)? = null,
     secondaryActionLabel: String? = null,
-    onSecondaryAction: (() -> Unit)? = null
+    onSecondaryAction: (() -> Unit)? = null,
 ) {
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -34,11 +38,11 @@ fun SharedEmptyState(
 
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(32.dp)
+            modifier = Modifier.padding(32.dp),
         ) {
             AnimatedVisibility(
                 visible = visible,
@@ -46,22 +50,22 @@ fun SharedEmptyState(
                     initialScale = 0.8f,
                     animationSpec = spring(
                         dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
-                        stiffness = ExpressiveSpring.GENTLE_STIFFNESS
-                    )
-                )
+                        stiffness = ExpressiveSpring.GENTLE_STIFFNESS,
+                    ),
+                ),
             ) {
                 Box(
                     modifier = Modifier
                         .size(96.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(48.dp)
+                        modifier = Modifier.size(48.dp),
                     )
                 }
             }
@@ -71,20 +75,20 @@ fun SharedEmptyState(
             AnimatedVisibility(
                 visible = visible,
                 enter = fadeIn(animationSpec = tween(500, delayMillis = 100)) +
-                        slideInVertically(
-                            initialOffsetY = { 20 },
-                            animationSpec = spring(
-                                dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
-                                stiffness = ExpressiveSpring.GENTLE_STIFFNESS
-                            )
-                        )
+                    slideInVertically(
+                        initialOffsetY = { 20 },
+                        animationSpec = spring(
+                            dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
+                            stiffness = ExpressiveSpring.GENTLE_STIFFNESS,
+                        ),
+                    ),
             ) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
 
@@ -93,19 +97,19 @@ fun SharedEmptyState(
             AnimatedVisibility(
                 visible = visible,
                 enter = fadeIn(animationSpec = tween(500, delayMillis = 150)) +
-                        slideInVertically(
-                            initialOffsetY = { 20 },
-                            animationSpec = spring(
-                                dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
-                                stiffness = ExpressiveSpring.GENTLE_STIFFNESS
-                            )
-                        )
+                    slideInVertically(
+                        initialOffsetY = { 20 },
+                        animationSpec = spring(
+                            dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
+                            stiffness = ExpressiveSpring.GENTLE_STIFFNESS,
+                        ),
+                    ),
             ) {
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
 
@@ -114,20 +118,20 @@ fun SharedEmptyState(
                 AnimatedVisibility(
                     visible = visible,
                     enter = fadeIn(animationSpec = tween(500, delayMillis = 200)) +
-                            scaleIn(
-                                initialScale = 0.9f,
-                                animationSpec = spring(
-                                    dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
-                                    stiffness = ExpressiveSpring.GENTLE_STIFFNESS
-                                )
-                            )
+                        scaleIn(
+                            initialScale = 0.9f,
+                            animationSpec = spring(
+                                dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
+                                stiffness = ExpressiveSpring.GENTLE_STIFFNESS,
+                            ),
+                        ),
                 ) {
                     Button(
                         onClick = onPrimaryAction,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                        ),
                     ) {
                         Text(primaryActionLabel)
                     }
@@ -135,12 +139,16 @@ fun SharedEmptyState(
             }
 
             if (secondaryActionLabel != null && onSecondaryAction != null) {
-                if (primaryActionLabel == null) Spacer(modifier = Modifier.height(24.dp)) else Spacer(
-                    modifier = Modifier.height(8.dp)
-                )
+                if (primaryActionLabel == null) {
+                    Spacer(modifier = Modifier.height(24.dp))
+                } else {
+                    Spacer(
+                        modifier = Modifier.height(8.dp),
+                    )
+                }
                 AnimatedVisibility(
                     visible = visible,
-                    enter = fadeIn(animationSpec = tween(500, delayMillis = 250))
+                    enter = fadeIn(animationSpec = tween(500, delayMillis = 250)),
                 ) {
                     TextButton(onClick = onSecondaryAction) {
                         Text(secondaryActionLabel)

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.components
 
 import androidx.compose.animation.core.*
@@ -19,15 +23,15 @@ import androidx.compose.ui.unit.dp
  */
 @Composable
 fun SharedLoadingIndicator(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         CircularProgressIndicator(
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(48.dp)
+            modifier = Modifier.size(48.dp),
         )
     }
 }
@@ -37,7 +41,7 @@ fun SharedLoadingIndicator(
  */
 @Composable
 fun SpinningSyncIcon(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "sync_spin")
     val rotation by infiniteTransition.animateFloat(
@@ -45,15 +49,15 @@ fun SpinningSyncIcon(
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
             animation = tween(1000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
+            repeatMode = RepeatMode.Restart,
         ),
-        label = "rotation"
+        label = "rotation",
     )
 
     Icon(
         imageVector = Icons.Filled.Refresh,
         contentDescription = "Syncing",
         tint = MaterialTheme.colorScheme.primary,
-        modifier = modifier.rotate(rotation)
+        modifier = modifier.rotate(rotation),
     )
 }

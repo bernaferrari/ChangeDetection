@@ -1,13 +1,16 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.background
 
 /**
  * Cross-platform interface for background work scheduling.
- * 
+ *
  * Android: Implemented using WorkManager
  * iOS: Implemented using BGTaskScheduler
  */
 interface BackgroundScheduler {
-
     /**
      * Schedule periodic background sync for all enabled sites.
      * @param intervalMinutes Minimum interval between syncs (min 15 minutes on both platforms)
@@ -15,7 +18,7 @@ interface BackgroundScheduler {
      */
     fun schedulePeriodicSync(
         intervalMinutes: Long,
-        constraints: SyncConstraints = SyncConstraints()
+        constraints: SyncConstraints = SyncConstraints(),
     )
 
     /**
@@ -34,7 +37,10 @@ interface BackgroundScheduler {
      * @param siteIds Sites to monitor
      * @param intervalSeconds Interval between checks (platform may enforce minimums)
      */
-    fun startQuickMonitor(siteIds: List<String>, intervalSeconds: Int = 15)
+    fun startQuickMonitor(
+        siteIds: List<String>,
+        intervalSeconds: Int = 15,
+    )
 
     /**
      * Stop quick monitoring mode.
@@ -55,7 +61,7 @@ data class SyncConstraints(
     val requiresNetwork: Boolean = true,
     val requiresWifi: Boolean = false,
     val requiresCharging: Boolean = false,
-    val requiresBatteryNotLow: Boolean = false
+    val requiresBatteryNotLow: Boolean = false,
 )
 
 /**

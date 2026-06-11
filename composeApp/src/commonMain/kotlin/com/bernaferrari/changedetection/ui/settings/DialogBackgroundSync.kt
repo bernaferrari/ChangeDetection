@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.settings
 
 import androidx.compose.animation.AnimatedVisibility
@@ -81,7 +85,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun BackgroundSyncDialog(
     onDismiss: () -> Unit,
-    viewModel: SettingsViewModel = koinViewModel()
+    viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -106,15 +110,15 @@ fun BackgroundSyncDialog(
                     .width(40.dp)
                     .height(4.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.outlineVariant)
+                    .background(MaterialTheme.colorScheme.outlineVariant),
             )
-        }
+        },
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 32.dp)
+                .padding(bottom = 32.dp),
         ) {
             // Hero Header with gradient
             HeroHeader(
@@ -122,50 +126,50 @@ fun BackgroundSyncDialog(
                 onToggle = {
                     syncEnabled = it
                     viewModel.updateBackgroundSync(it)
-                }
+                },
             )
 
             // Animated content when enabled
             AnimatedVisibility(
                 visible = syncEnabled,
                 enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut()
+                exit = shrinkVertically() + fadeOut(),
             ) {
                 Column(
                     modifier = Modifier.padding(horizontal = 20.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
                     Spacer(modifier = Modifier.height(4.dp))
 
                     // Interval Picker Section
                     SectionCard(
                         icon = Icons.Outlined.Schedule,
-                        title = stringResource(Res.string.settings_sync_interval_label)
+                        title = stringResource(Res.string.settings_sync_interval_label),
                     ) {
                         IntervalInput(
                             currentInterval = intervalValue,
                             onIntervalChanged = { newInterval ->
                                 intervalValue = newInterval
                                 viewModel.updateSyncInterval(newInterval)
-                            }
+                            },
                         )
                     }
 
                     // Sensitivity Section
                     SectionCard(
                         icon = Icons.Outlined.Tune,
-                        title = "Change Sensitivity"
+                        title = "Change Sensitivity",
                     ) {
                         SensitivitySlider(
                             threshold = uiState.minChangeThreshold,
-                            onThresholdChange = { viewModel.updateMinChangeThreshold(it) }
+                            onThresholdChange = { viewModel.updateMinChangeThreshold(it) },
                         )
                     }
 
                     // Constraints Section
                     SectionCard(
                         icon = Icons.Outlined.BatterySaver,
-                        title = stringResource(Res.string.settings_sync_constraints_title)
+                        title = stringResource(Res.string.settings_sync_constraints_title),
                     ) {
                         ConstraintsList(
                             requireWifi = uiState.requireWifi,
@@ -175,7 +179,7 @@ fun BackgroundSyncDialog(
                             onWifiChange = { viewModel.updateWifiConstraint(it) },
                             onChargingChange = { viewModel.updateChargingConstraint(it) },
                             onBatteryChange = { viewModel.updateBatteryNotLowConstraint(it) },
-                            onIdleChange = { viewModel.updateDeviceIdleConstraint(it) }
+                            onIdleChange = { viewModel.updateDeviceIdleConstraint(it) },
                         )
                     }
                 }
@@ -190,12 +194,12 @@ fun BackgroundSyncDialog(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
                     .height(56.dp),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
             ) {
                 Text(
                     text = stringResource(Res.string.done),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
                 )
             }
         }
@@ -205,47 +209,49 @@ fun BackgroundSyncDialog(
 @Composable
 private fun HeroHeader(
     syncEnabled: Boolean,
-    onToggle: (Boolean) -> Unit
+    onToggle: (Boolean) -> Unit,
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .padding(horizontal = 24.dp, vertical = 24.dp)
+            .padding(horizontal = 24.dp, vertical = 24.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 // Animated Icon Container
                 val iconBgColor by animateColorAsState(
-                    targetValue = if (syncEnabled)
+                    targetValue = if (syncEnabled) {
                         MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.surfaceContainerHighest,
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerHighest
+                    },
                     animationSpec = spring(
                         dampingRatio = ExpressiveSpring.BOUNCY_DAMPING,
-                        stiffness = ExpressiveSpring.BOUNCY_STIFFNESS
+                        stiffness = ExpressiveSpring.BOUNCY_STIFFNESS,
                     ),
-                    label = "iconBg"
+                    label = "iconBg",
                 )
 
                 val iconColor by animateColorAsState(
-                    targetValue = if (syncEnabled)
+                    targetValue = if (syncEnabled) {
                         MaterialTheme.colorScheme.onPrimary
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant,
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                     animationSpec = spring(
                         dampingRatio = ExpressiveSpring.BOUNCY_DAMPING,
-                        stiffness = ExpressiveSpring.BOUNCY_STIFFNESS
+                        stiffness = ExpressiveSpring.BOUNCY_STIFFNESS,
                     ),
-                    label = "iconColor"
+                    label = "iconColor",
                 )
 
                 Box(
@@ -253,13 +259,13 @@ private fun HeroHeader(
                         .size(56.dp)
                         .clip(RoundedCornerShape(16.dp))
                         .background(iconBgColor),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Sync,
                         contentDescription = null,
                         tint = iconColor,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(28.dp),
                     )
                 }
 
@@ -268,21 +274,24 @@ private fun HeroHeader(
                         text = stringResource(Res.string.settings_background_sync_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = if (syncEnabled)
+                        color = if (syncEnabled) {
                             MaterialTheme.colorScheme.onPrimaryContainer
-                        else
+                        } else {
                             MaterialTheme.colorScheme.onSurface
+                        },
                     )
                     Text(
-                        text = if (syncEnabled)
+                        text = if (syncEnabled) {
                             stringResource(Res.string.settings_sync_monitoring_in_background)
-                        else
-                            stringResource(Res.string.settings_background_sync_disabled),
+                        } else {
+                            stringResource(Res.string.settings_background_sync_disabled)
+                        },
                         style = MaterialTheme.typography.bodyMedium,
-                        color = if (syncEnabled)
+                        color = if (syncEnabled) {
                             MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                        else
+                        } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
+                        },
                     )
                 }
             }
@@ -292,8 +301,8 @@ private fun HeroHeader(
                 onCheckedChange = onToggle,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = MaterialTheme.colorScheme.primary,
-                    checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
-                )
+                    checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                ),
             )
         }
     }
@@ -303,33 +312,33 @@ private fun HeroHeader(
 private fun SectionCard(
     icon: ImageVector,
     title: String,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        tonalElevation = 1.dp
+        tonalElevation = 1.dp,
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
             content()
@@ -340,13 +349,13 @@ private fun SectionCard(
 private data class IntervalOption(
     val minutes: Long,
     val label: String,
-    val sublabel: String
+    val sublabel: String,
 )
 
 @Composable
 private fun IntervalInput(
     currentInterval: Long,
-    onIntervalChanged: (Long) -> Unit
+    onIntervalChanged: (Long) -> Unit,
 ) {
     var textValue by remember(currentInterval) { mutableStateOf(currentInterval.toString()) }
     var isError by remember { mutableStateOf(false) }
@@ -359,7 +368,7 @@ private fun IntervalInput(
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             OutlinedTextField(
                 value = textValue,
@@ -379,28 +388,30 @@ private fun IntervalInput(
                 isError = isError,
                 supportingText = if (isError) {
                     { Text("Minimum 15 minutes") }
-                } else null,
+                } else {
+                    null
+                },
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
                 ),
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                )
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                ),
             )
 
             // Display formatted time
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.primaryContainer
+                color = MaterialTheme.colorScheme.primaryContainer,
             ) {
                 Text(
                     text = formatInterval(currentInterval),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                 )
             }
         }
@@ -409,12 +420,12 @@ private fun IntervalInput(
         Text(
             text = "Quick presets",
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             presets.take(4).forEach { preset ->
                 PresetChip(
@@ -424,14 +435,14 @@ private fun IntervalInput(
                         textValue = preset.toString()
                         onIntervalChanged(preset)
                     },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             presets.drop(4).forEach { preset ->
                 PresetChip(
@@ -441,7 +452,7 @@ private fun IntervalInput(
                         textValue = preset.toString()
                         onIntervalChanged(preset)
                     },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
             PresetChip(
@@ -451,18 +462,16 @@ private fun IntervalInput(
                     textValue = "1440"
                     onIntervalChanged(1440L)
                 },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
     }
 }
 
-private fun formatInterval(minutes: Long): String {
-    return when {
-        minutes < 60 -> "${minutes}m"
-        minutes < 1440 -> "${minutes / 60}h"
-        else -> "${minutes / 1440}d"
-    }
+private fun formatInterval(minutes: Long): String = when {
+    minutes < 60 -> "${minutes}m"
+    minutes < 1440 -> "${minutes / 60}h"
+    else -> "${minutes / 1440}d"
 }
 
 @Composable
@@ -470,30 +479,32 @@ private fun PresetChip(
     label: String,
     isSelected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val backgroundColor by animateColorAsState(
-        targetValue = if (isSelected)
+        targetValue = if (isSelected) {
             MaterialTheme.colorScheme.primary
-        else
-            MaterialTheme.colorScheme.surfaceContainerHigh,
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHigh
+        },
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
         ),
-        label = "presetBg"
+        label = "presetBg",
     )
 
     val contentColor by animateColorAsState(
-        targetValue = if (isSelected)
+        targetValue = if (isSelected) {
             MaterialTheme.colorScheme.onPrimary
-        else
-            MaterialTheme.colorScheme.onSurfaceVariant,
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
         ),
-        label = "presetContent"
+        label = "presetContent",
     )
 
     Box(
@@ -502,13 +513,13 @@ private fun PresetChip(
             .background(backgroundColor)
             .clickable(onClick = onClick)
             .padding(vertical = 8.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            color = contentColor
+            color = contentColor,
         )
     }
 }
@@ -517,39 +528,41 @@ private fun PresetChip(
 private fun IntervalChip(
     option: IntervalOption,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val backgroundColor by animateColorAsState(
-        targetValue = if (isSelected)
+        targetValue = if (isSelected) {
             MaterialTheme.colorScheme.primary
-        else
-            MaterialTheme.colorScheme.surfaceContainerHigh,
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHigh
+        },
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
         ),
-        label = "chipBg"
+        label = "chipBg",
     )
 
     val contentColor by animateColorAsState(
-        targetValue = if (isSelected)
+        targetValue = if (isSelected) {
             MaterialTheme.colorScheme.onPrimary
-        else
-            MaterialTheme.colorScheme.onSurfaceVariant,
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
         ),
-        label = "chipContent"
+        label = "chipContent",
     )
 
     val scale by animateFloatAsState(
         targetValue = if (isSelected) 1.02f else 1f,
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.BOUNCY_DAMPING,
-            stiffness = ExpressiveSpring.BOUNCY_STIFFNESS
+            stiffness = ExpressiveSpring.BOUNCY_STIFFNESS,
         ),
-        label = "chipScale"
+        label = "chipScale",
     )
 
     Box(
@@ -559,7 +572,7 @@ private fun IntervalChip(
             .background(backgroundColor)
             .clickable(onClick = onClick)
             .padding(vertical = 10.dp, horizontal = 6.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
@@ -567,13 +580,13 @@ private fun IntervalChip(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = contentColor,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             Text(
                 text = option.sublabel,
                 style = MaterialTheme.typography.labelSmall,
                 color = contentColor.copy(alpha = 0.75f),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
         }
     }
@@ -582,29 +595,29 @@ private fun IntervalChip(
 @Composable
 private fun SensitivitySlider(
     threshold: Int,
-    onThresholdChange: (Int) -> Unit
+    onThresholdChange: (Int) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = "Ignore changes smaller than:",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Surface(
                 shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.primaryContainer
+                color = MaterialTheme.colorScheme.primaryContainer,
             ) {
                 Text(
                     text = "$threshold%",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                 )
             }
         }
@@ -617,14 +630,14 @@ private fun SensitivitySlider(
             colors = SliderDefaults.colors(
                 thumbColor = MaterialTheme.colorScheme.primary,
                 activeTrackColor = MaterialTheme.colorScheme.primary,
-                inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-            )
+                inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            ),
         )
 
         Text(
             text = if (threshold == 0) "All changes will be detected" else "Only changes larger than $threshold% will be recorded",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
         )
     }
 }
@@ -638,32 +651,32 @@ private fun ConstraintsList(
     onWifiChange: (Boolean) -> Unit,
     onChargingChange: (Boolean) -> Unit,
     onBatteryChange: (Boolean) -> Unit,
-    onIdleChange: (Boolean) -> Unit
+    onIdleChange: (Boolean) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
         ConstraintRow(
             icon = Icons.Outlined.Wifi,
             title = stringResource(Res.string.settings_sync_constraint_wifi),
             checked = requireWifi,
-            onCheckedChange = onWifiChange
+            onCheckedChange = onWifiChange,
         )
         ConstraintRow(
             icon = Icons.Outlined.BatteryChargingFull,
             title = stringResource(Res.string.settings_sync_constraint_charging),
             checked = requireCharging,
-            onCheckedChange = onChargingChange
+            onCheckedChange = onChargingChange,
         )
         ConstraintRow(
             icon = Icons.Outlined.BatterySaver,
             title = stringResource(Res.string.settings_sync_constraint_battery),
             checked = requireBatteryNotLow,
-            onCheckedChange = onBatteryChange
+            onCheckedChange = onBatteryChange,
         )
         ConstraintRow(
             icon = Icons.Outlined.PhoneAndroid,
             title = stringResource(Res.string.settings_sync_constraint_idle),
             checked = requireDeviceIdle,
-            onCheckedChange = onIdleChange
+            onCheckedChange = onIdleChange,
         )
     }
 }
@@ -673,30 +686,32 @@ private fun ConstraintRow(
     icon: ImageVector,
     title: String,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
 ) {
     val iconBgColor by animateColorAsState(
-        targetValue = if (checked)
+        targetValue = if (checked) {
             MaterialTheme.colorScheme.primaryContainer
-        else
-            MaterialTheme.colorScheme.surfaceContainerHigh,
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHigh
+        },
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
         ),
-        label = "constraintIconBg"
+        label = "constraintIconBg",
     )
 
     val iconColor by animateColorAsState(
-        targetValue = if (checked)
+        targetValue = if (checked) {
             MaterialTheme.colorScheme.onPrimaryContainer
-        else
-            MaterialTheme.colorScheme.onSurfaceVariant,
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
         ),
-        label = "constraintIconColor"
+        label = "constraintIconColor",
     )
 
     Row(
@@ -706,20 +721,20 @@ private fun ConstraintRow(
             .clickable { onCheckedChange(!checked) }
             .padding(vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
             modifier = Modifier
                 .size(36.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .background(iconBgColor),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = iconColor,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
         }
 
@@ -727,20 +742,21 @@ private fun ConstraintRow(
             text = title,
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
 
         // Custom animated checkbox-style indicator
         val checkBgColor by animateColorAsState(
-            targetValue = if (checked)
+            targetValue = if (checked) {
                 MaterialTheme.colorScheme.primary
-            else
-                MaterialTheme.colorScheme.surfaceContainerHighest,
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerHighest
+            },
             animationSpec = spring(
                 dampingRatio = ExpressiveSpring.BOUNCY_DAMPING,
-                stiffness = ExpressiveSpring.BOUNCY_STIFFNESS
+                stiffness = ExpressiveSpring.BOUNCY_STIFFNESS,
             ),
-            label = "checkBg"
+            label = "checkBg",
         )
 
         Box(
@@ -751,20 +767,20 @@ private fun ConstraintRow(
                 .border(
                     width = if (checked) 0.dp else 1.5.dp,
                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
                 ),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             androidx.compose.animation.AnimatedVisibility(
                 visible = checked,
                 enter = fadeIn() + expandVertically(expandFrom = Alignment.CenterVertically),
-                exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.CenterVertically)
+                exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.CenterVertically),
             ) {
                 Icon(
                     imageVector = Icons.Filled.Check,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(18.dp),
                 )
             }
         }

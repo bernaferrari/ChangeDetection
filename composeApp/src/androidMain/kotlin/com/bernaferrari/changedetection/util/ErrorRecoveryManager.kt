@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.util
 
 import android.content.Context
@@ -24,13 +28,12 @@ import java.io.File
  * - Provides user-friendly error messages
  */
 object ErrorRecoveryManager {
-
     /**
      * Check and recover from common error states
      */
     suspend fun checkAndRecoverFromErrors(
         context: Context,
-        dataStore: DataStore<Preferences>
+        dataStore: DataStore<Preferences>,
     ) {
         try {
             Napier.d("🔍 Starting error recovery checks...")
@@ -95,9 +98,10 @@ object ErrorRecoveryManager {
             }
 
             // Check for orphaned or corrupted snapshot files
-            val snapshotFiles = filesDir.listFiles { file ->
-                file.isFile && file.name.matches(Regex("[a-f0-9-]{36}"))
-            }
+            val snapshotFiles =
+                filesDir.listFiles { file ->
+                    file.isFile && file.name.matches(Regex("[a-f0-9-]{36}"))
+                }
 
             val fileCount = snapshotFiles?.size ?: 0
             if (fileCount > 1000) {
@@ -137,9 +141,10 @@ object ErrorRecoveryManager {
     private fun cleanupOrphanedFiles(context: Context) {
         try {
             val filesDir = context.filesDir
-            val snapshotFiles = filesDir.listFiles { file ->
-                file.isFile && file.name.matches(Regex("[a-f0-9-]{36}"))
-            } ?: emptyArray()
+            val snapshotFiles =
+                filesDir.listFiles { file ->
+                    file.isFile && file.name.matches(Regex("[a-f0-9-]{36}"))
+                } ?: emptyArray()
 
             Napier.d("🧹 Checking ${snapshotFiles.size} snapshot files for orphans...")
 
@@ -161,94 +166,89 @@ object ErrorRecoveryManager {
     fun handleSpecificError(
         error: Throwable,
         context: String,
-        onRecovered: (() -> Unit)? = null
-    ): Boolean {
-        return when (error) {
-            // Database errors
-            is android.database.sqlite.SQLiteException -> {
-                Napier.e("❌ Database error in $context: ${error.message}")
-                // Could trigger database repair here
-                false
-            }
+        onRecovered: (() -> Unit)? = null,
+    ): Boolean = when (error) {
+        // Database errors
+        is android.database.sqlite.SQLiteException -> {
+            Napier.e("❌ Database error in $context: ${error.message}")
+            // Could trigger database repair here
+            false
+        }
 
-            // IO errors
-            is java.io.IOException -> {
-                Napier.e("❌ IO error in $context: ${error.message}")
-                // Could clear cache or free space
-                false
-            }
+        // IO errors
+        is java.io.IOException -> {
+            Napier.e("❌ IO error in $context: ${error.message}")
+            // Could clear cache or free space
+            false
+        }
 
-            // Memory errors
-            is OutOfMemoryError -> {
-                Napier.e("❌ Out of memory error in $context")
-                System.gc() // Request garbage collection
-                onRecovered?.invoke()
-                true
-            }
+        // Memory errors
+        is OutOfMemoryError -> {
+            Napier.e("❌ Out of memory error in $context")
+            System.gc() // Request garbage collection
+            onRecovered?.invoke()
+            true
+        }
 
-            else -> {
-                Napier.e("❌ Unknown error in $context: ${error.message}")
-                false
-            }
+        else -> {
+            Napier.e("❌ Unknown error in $context: ${error.message}")
+            false
         }
     }
 
     /**
      * Create a backup of critical data before destructive operations
      */
-    fun createSafetyBackup(context: Context): File? {
-        return try {
-            val dbFile = context.getDatabasePath("Changes2.db")
-            val backupDir = File(context.cacheDir, "backups")
-            backupDir.mkdirs()
+    fun createSafetyBackup(context: Context): File? = try {
+        val dbFile = context.getDatabasePath("Changes2.db")
+        val backupDir = File(context.cacheDir, "backups")
+        backupDir.mkdirs()
 
-            val backupFile = File(backupDir, "db_backup_${System.currentTimeMillis()}.db")
-            dbFile.copyTo(backupFile, overwrite = true)
+        val backupFile = File(backupDir, "db_backup_${System.currentTimeMillis()}.db")
+        dbFile.copyTo(backupFile, overwrite = true)
 
-            Napier.d("✅ Safety backup created: ${backupFile.absolutePath}")
-            backupFile
-        } catch (e: Exception) {
-            Napier.e("❌ Failed to create safety backup: ${e.message}")
-            null
-        }
+        Napier.d("✅ Safety backup created: ${backupFile.absolutePath}")
+        backupFile
+    } catch (e: Exception) {
+        Napier.e("❌ Failed to create safety backup: ${e.message}")
+        null
     }
 
     /**
      * Restore from backup if available
      */
-    fun restoreFromBackup(context: Context, backupFile: File): Boolean {
-        return try {
-            val dbFile = context.getDatabasePath("Changes2.db")
-            backupFile.copyTo(dbFile, overwrite = true)
-            Napier.d("✅ Database restored from backup")
-            true
-        } catch (e: Exception) {
-            Napier.e("❌ Failed to restore from backup: ${e.message}")
-            false
-        }
+    fun restoreFromBackup(
+        context: Context,
+        backupFile: File,
+    ): Boolean = try {
+        val dbFile = context.getDatabasePath("Changes2.db")
+        backupFile.copyTo(dbFile, overwrite = true)
+        Napier.d("✅ Database restored from backup")
+        true
+    } catch (e: Exception) {
+        Napier.e("❌ Failed to restore from backup: ${e.message}")
+        false
     }
 
     /**
      * Clear app cache to free memory
      */
-    fun clearAppCache(context: Context): Long {
-        return try {
-            var freedBytes = 0L
-            val cacheDir = context.cacheDir
-            if (cacheDir.exists()) {
-                cacheDir.walkTopDown().forEach { file ->
-                    if (file.isFile) {
-                        freedBytes += file.length()
-                        file.delete()
-                    }
+    fun clearAppCache(context: Context): Long = try {
+        var freedBytes = 0L
+        val cacheDir = context.cacheDir
+        if (cacheDir.exists()) {
+            cacheDir.walkTopDown().forEach { file ->
+                if (file.isFile) {
+                    freedBytes += file.length()
+                    file.delete()
                 }
             }
-            Napier.d("🧹 Cleared cache - freed ${freedBytes / 1024}KB")
-            freedBytes
-        } catch (e: Exception) {
-            Napier.e("❌ Failed to clear cache: ${e.message}")
-            0L
         }
+        Napier.d("🧹 Cleared cache - freed ${freedBytes / 1024}KB")
+        freedBytes
+    } catch (e: Exception) {
+        Napier.e("❌ Failed to clear cache: ${e.message}")
+        0L
     }
 
     /**

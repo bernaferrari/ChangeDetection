@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.repo
 
 /**
@@ -8,4 +12,7 @@ package com.bernaferrari.changedetection.repo
  * @param contentType the contentType
  * @param count the number of items with the same contentType as defined above
  */
-data class ContentTypeInfo(val contentType: String, val count: Int)
+data class ContentTypeInfo(
+    val contentType: String,
+    val count: Int,
+)

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.logs
 
 import androidx.compose.animation.core.*
@@ -22,14 +26,14 @@ import kotlin.math.*
 
 @Composable
 fun EmptyLogsComponent(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val primary = MaterialTheme.colorScheme.primary
     val secondary = MaterialTheme.colorScheme.secondary
 
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -41,24 +45,24 @@ fun EmptyLogsComponent(
                     MaterialTheme.colorScheme.surfaceContainer,
                     shape = RoundedCornerShape(24.dp),
                 )
-                .padding(32.dp)
+                .padding(32.dp),
         ) {
             // Animated clock with wave effect and floating particles
             Box(
                 modifier = Modifier.size(140.dp),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 val infiniteTransition = rememberInfiniteTransition(label = "clock_animation")
-                
+
                 // Wave animation for background
                 val waveOffset by infiniteTransition.animateFloat(
                     initialValue = 0f,
                     targetValue = 2 * PI.toFloat(),
                     animationSpec = infiniteRepeatable(
                         animation = tween(4000, easing = LinearEasing),
-                        repeatMode = RepeatMode.Restart
+                        repeatMode = RepeatMode.Restart,
                     ),
-                    label = "wave"
+                    label = "wave",
                 )
 
                 // Floating particles animation
@@ -67,9 +71,9 @@ fun EmptyLogsComponent(
                     targetValue = 2 * PI.toFloat(),
                     animationSpec = infiniteRepeatable(
                         animation = tween(6000, easing = LinearEasing),
-                        repeatMode = RepeatMode.Restart
+                        repeatMode = RepeatMode.Restart,
                     ),
-                    label = "particle1"
+                    label = "particle1",
                 )
 
                 val particleOffset2 by infiniteTransition.animateFloat(
@@ -77,9 +81,9 @@ fun EmptyLogsComponent(
                     targetValue = 3 * PI.toFloat(),
                     animationSpec = infiniteRepeatable(
                         animation = tween(8000, easing = LinearEasing),
-                        repeatMode = RepeatMode.Restart
+                        repeatMode = RepeatMode.Restart,
                     ),
-                    label = "particle2"
+                    label = "particle2",
                 )
 
                 // Pulsing scale for center icon
@@ -88,9 +92,9 @@ fun EmptyLogsComponent(
                     targetValue = 1.05f,
                     animationSpec = infiniteRepeatable(
                         animation = tween(3000, easing = FastOutSlowInEasing),
-                        repeatMode = RepeatMode.Reverse
+                        repeatMode = RepeatMode.Reverse,
                     ),
-                    label = "scale"
+                    label = "scale",
                 )
 
                 Canvas(modifier = Modifier.size(140.dp)) {
@@ -105,7 +109,7 @@ fun EmptyLogsComponent(
                             color = primary.copy(alpha = 0.2f - i * 0.05f),
                             radius = waveRadius,
                             center = androidx.compose.ui.geometry.Offset(centerX, centerY),
-                            style = Stroke(width = (2f - i * 0.5f).dp.toPx())
+                            style = Stroke(width = (2f - i * 0.5f).dp.toPx()),
                         )
                     }
 
@@ -114,18 +118,18 @@ fun EmptyLogsComponent(
                         Triple(particleOffset1, 0.6f, 0.3f),
                         Triple(particleOffset1 + PI.toFloat() / 2, 0.75f, 0.25f),
                         Triple(particleOffset2, 0.8f, 0.2f),
-                        Triple(particleOffset2 + PI.toFloat() / 3, 0.65f, 0.28f)
+                        Triple(particleOffset2 + PI.toFloat() / 3, 0.65f, 0.28f),
                     )
 
                     particles.forEach { (offset, radiusMultiplier, alpha) ->
                         val particleRadius = radius * radiusMultiplier
                         val x = centerX + cos(offset) * particleRadius
                         val y = centerY + sin(offset) * particleRadius
-                        
+
                         drawCircle(
                             color = secondary.copy(alpha = alpha),
                             radius = 4.dp.toPx(),
-                            center = androidx.compose.ui.geometry.Offset(x, y)
+                            center = androidx.compose.ui.geometry.Offset(x, y),
                         )
                     }
                 }
@@ -139,19 +143,19 @@ fun EmptyLogsComponent(
                                 colors = listOf(
                                     MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
                                     MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
-                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
+                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                                 ),
-                                radius = 120f
+                                radius = 120f,
                             ),
-                            shape = RoundedCornerShape(50.dp)
+                            shape = RoundedCornerShape(50.dp),
                         ),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Schedule,
                         contentDescription = null,
                         modifier = Modifier.size((56 * scale).dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -162,10 +166,10 @@ fun EmptyLogsComponent(
                 text = "No Changes Yet",
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.Bold,
-                    fontSize = 28.sp
+                    fontSize = 28.sp,
                 ),
                 color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -174,13 +178,13 @@ fun EmptyLogsComponent(
                 text = "Your tracked websites haven't changed recently. We're continuously monitoring them and changes will appear here when detected.",
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontSize = 16.sp,
-                    lineHeight = 24.sp
+                    lineHeight = 24.sp,
                 ),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .alpha(0.9f)
-                    .padding(horizontal = 4.dp)
+                    .padding(horizontal = 4.dp),
             )
 
             Spacer(modifier = Modifier.height(28.dp))
@@ -189,29 +193,29 @@ fun EmptyLogsComponent(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
                 ),
                 shape = RoundedCornerShape(18.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             ) {
                 Row(
                     modifier = Modifier.padding(20.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(
                         modifier = Modifier
                             .size(32.dp)
                             .background(
                                 MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                RoundedCornerShape(8.dp)
+                                RoundedCornerShape(8.dp),
                             ),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Schedule,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                     }
                     Spacer(modifier = Modifier.width(16.dp))
@@ -219,9 +223,9 @@ fun EmptyLogsComponent(
                         text = "We're actively monitoring your sites for changes",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = FontWeight.Medium,
-                            fontSize = 15.sp
+                            fontSize = 15.sp,
                         ),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }

@@ -1,34 +1,28 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection
 
 import android.content.Context
-import androidx.work.CoroutineWorker
-import androidx.work.WorkerParameters
-import com.bernaferrari.changedetection.error.ErrorContext
-import com.bernaferrari.changedetection.error.ErrorHandler
-import com.bernaferrari.changedetection.error.NetworkError
-import com.bernaferrari.changedetection.error.SyncError
-import com.bernaferrari.changedetection.error.toErrorResult
-import com.bernaferrari.changedetection.notifications.NotificationHelper
-import com.bernaferrari.changedetection.repo.Site
-import com.bernaferrari.changedetection.repo.source.SitesRepository
-import com.bernaferrari.changedetection.repo.source.SnapsRepository
-import com.bernaferrari.changedetection.util.ContentHasher
-import io.github.aakira.napier.Napier
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import kotlinx.coroutines.flow.first
-import com.bernaferrari.changedetection.ui.settings.SettingsViewModel
+import androidx.work.CoroutineWorker
+import androidx.work.WorkerParameters
 import com.bernaferrari.changedetection.repo.ComparisonMethod
+import com.bernaferrari.changedetection.repo.source.SitesRepository
+import com.bernaferrari.changedetection.sync.SyncResult
+import com.bernaferrari.changedetection.ui.settings.SettingsViewModel
+import io.github.aakira.napier.Napier
+import kotlinx.coroutines.flow.first
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class SyncWorker(
     context: Context,
-    workerParams: WorkerParameters
-) : CoroutineWorker(context, workerParams), KoinComponent {
-
+    workerParams: WorkerParameters,
+) : CoroutineWorker(context, workerParams),
+    KoinComponent {
     private val syncEngine: com.bernaferrari.changedetection.sync.SyncEngine by inject()
     private val sitesRepository: SitesRepository by inject()
     private val dataStore: DataStore<Preferences> by inject()
@@ -63,11 +57,7 @@ class SyncWorker(
             triggerScreenshotService(siteId)
             Result.success()
         } else {
-            if (syncEngine.syncSite(siteId)) {
-                Result.success()
-            } else {
-                Result.retry()
-            }
+            syncEngine.syncSite(siteId).toWorkResult()
         }
     }
 
@@ -76,9 +66,13 @@ class SyncWorker(
 
         if (comparisonMethod == ComparisonMethod.HTML) {
             // Sync all HTML sites via SyncEngine
-            val successCount = syncEngine.syncAllSites()
+            val (successCount, results) = syncEngine.syncAllSites()
             Napier.d("SyncEngine processed $successCount sites")
-            return Result.success()
+            return if (results.any { it is SyncResult.Failed && it.error.isRetryable }) {
+                Result.retry()
+            } else {
+                Result.success()
+            }
         }
 
         // Screenshot mode: use service for every enabled site
@@ -92,13 +86,21 @@ class SyncWorker(
         return Result.success()
     }
 
+    private fun SyncResult.toWorkResult(): Result = when (this) {
+        is SyncResult.Success -> Result.success()
+        is SyncResult.Skipped -> Result.success()
+        is SyncResult.Failed -> if (error.isRetryable) Result.retry() else Result.failure()
+    }
+
     private fun triggerScreenshotService(siteId: String) {
-        val intent = android.content.Intent(
-            applicationContext,
-            com.bernaferrari.changedetection.sync.ScreenshotService::class.java
-        ).apply {
-            putExtra(com.bernaferrari.changedetection.sync.ScreenshotService.EXTRA_SITE_ID, siteId)
-        }
+        val intent =
+            android.content
+                .Intent(
+                    applicationContext,
+                    com.bernaferrari.changedetection.sync.ScreenshotService::class.java,
+                ).apply {
+                    putExtra(com.bernaferrari.changedetection.sync.ScreenshotService.EXTRA_SITE_ID, siteId)
+                }
 
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             applicationContext.startForegroundService(intent)

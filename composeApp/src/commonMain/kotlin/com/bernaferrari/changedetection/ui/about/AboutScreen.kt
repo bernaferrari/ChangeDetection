@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.about
 
 import androidx.compose.foundation.background
@@ -61,7 +65,7 @@ fun AboutScreen(
     onSocialClick: (String) -> Unit,
     onGitHubClick: (String) -> Unit,
     onContactClick: () -> Unit,
-    onLicenseUrlClick: (String) -> Unit
+    onLicenseUrlClick: (String) -> Unit,
 ) {
     var showLicensesDialog by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -73,7 +77,7 @@ fun AboutScreen(
                 title = {
                     Text(
                         stringResource(Res.string.about_title),
-                        style = MaterialTheme.typography.displaySmall
+                        style = MaterialTheme.typography.displaySmall,
                     )
                 },
                 navigationIcon = {
@@ -84,11 +88,11 @@ fun AboutScreen(
                 scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ),
-                modifier = Modifier.statusBarsPadding()
+                modifier = Modifier.statusBarsPadding(),
             )
-        }
+        },
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -96,7 +100,7 @@ fun AboutScreen(
                 .padding(paddingValues)
                 .padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             item { Spacer(modifier = Modifier.height(16.dp)) }
 
@@ -106,24 +110,24 @@ fun AboutScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer
-                    )
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    ),
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(28.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                        verticalArrangement = Arrangement.spacedBy(20.dp),
                     ) {
                         Text(
                             text = "Change Detection",
                             style = MaterialTheme.typography.headlineMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 28.sp
+                                fontSize = 28.sp,
                             ),
                             color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
                         )
 
                         Text(
@@ -134,14 +138,14 @@ fun AboutScreen(
                                     SpanStyle(
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 20.sp,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
+                                        color = MaterialTheme.colorScheme.primary,
+                                    ),
                                 )
                                 append(stringResource(Res.string.about_developer_name))
                                 pop()
                             },
                             textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge,
                         )
 
                         // Social Links
@@ -150,9 +154,9 @@ fun AboutScreen(
                             modifier = Modifier
                                 .background(
                                     MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                                    RoundedCornerShape(16.dp)
+                                    RoundedCornerShape(16.dp),
                                 )
-                                .padding(16.dp)
+                                .padding(16.dp),
                         ) {
                             SocialLink("GitHub", Res.drawable.github_logo) {
                                 onSocialClick("https://github.com/bernaferrari")
@@ -178,7 +182,7 @@ fun AboutScreen(
                                 .clickable {
                                     onGitHubClick("https://github.com/bernaferrari/ChangeDetection")
                                 }
-                                .alpha(0.9f)
+                                .alpha(0.9f),
                         )
                     }
                 }
@@ -191,10 +195,10 @@ fun AboutScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                             contentDescription = null,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(16.dp),
                         )
                     },
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = 8.dp),
                 )
             }
 
@@ -202,20 +206,20 @@ fun AboutScreen(
             item {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Button(
                         onClick = onContactClick,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
                     ) {
                         Text(
                             text = stringResource(Res.string.about_contact_developer),
                             style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.SemiBold
-                            )
+                                fontWeight = FontWeight.SemiBold,
+                            ),
                         )
                     }
 
@@ -224,17 +228,17 @@ fun AboutScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(16.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Default.Code,
                             contentDescription = null,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(18.dp),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = stringResource(Res.string.about_view_licenses),
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
                         )
                     }
                 }
@@ -247,7 +251,7 @@ fun AboutScreen(
     if (showLicensesDialog) {
         AboutLicensesDialog(
             onDismiss = { showLicensesDialog = false },
-            onUrlClick = onLicenseUrlClick
+            onUrlClick = onLicenseUrlClick,
         )
     }
 }
@@ -256,7 +260,7 @@ fun AboutScreen(
 private fun SocialLink(
     text: String,
     iconRes: org.jetbrains.compose.resources.DrawableResource,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     FilledIconButton(
         onClick = onClick,
@@ -267,12 +271,12 @@ private fun SocialLink(
             contentColor = MaterialTheme.colorScheme.primary,
             disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
             disabledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.12f),
-        )
+        ),
     ) {
         Icon(
             painter = painterResource(iconRes),
             contentDescription = text,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(20.dp),
         )
     }
 }

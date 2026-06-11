@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.settings
 
 import androidx.compose.animation.core.animateDpAsState
@@ -36,7 +40,7 @@ fun ThemeModeToggle(
     themeMode: ThemeMode,
     isSelected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val title = stringResource(themeMode.titleRes)
     val description = stringResource(themeMode.descriptionRes)
@@ -46,9 +50,9 @@ fun ThemeModeToggle(
         targetValue = if (isSelected) 28.dp else 16.dp,
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.BOUNCY_DAMPING,
-            stiffness = ExpressiveSpring.BOUNCY_STIFFNESS
+            stiffness = ExpressiveSpring.BOUNCY_STIFFNESS,
         ),
-        label = "cornerRadius"
+        label = "cornerRadius",
     )
 
     // Animate border width for extra selection feedback
@@ -56,14 +60,14 @@ fun ThemeModeToggle(
         targetValue = if (isSelected) 2.dp else 1.dp,
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
         ),
-        label = "borderWidth"
+        label = "borderWidth",
     )
 
     Column(
         modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         OutlinedCard(
             onClick = onClick,
@@ -74,7 +78,7 @@ fun ThemeModeToggle(
                     MaterialTheme.colorScheme.primaryContainer
                 } else {
                     MaterialTheme.colorScheme.surface
-                }
+                },
             ),
             border = BorderStroke(
                 width = borderWidth,
@@ -82,12 +86,12 @@ fun ThemeModeToggle(
                     MaterialTheme.colorScheme.primary
                 } else {
                     MaterialTheme.colorScheme.outlineVariant
-                }
-            )
+                },
+            ),
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = if (isSelected) themeMode.selectedIcon else themeMode.icon,
@@ -97,7 +101,7 @@ fun ThemeModeToggle(
                         MaterialTheme.colorScheme.onPrimaryContainer
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
-                    }
+                    },
                 )
             }
         }
@@ -114,7 +118,7 @@ fun ThemeModeToggle(
                 MaterialTheme.colorScheme.onSurfaceVariant
             },
             textAlign = TextAlign.Center,
-            maxLines = 1
+            maxLines = 1,
         )
     }
 }

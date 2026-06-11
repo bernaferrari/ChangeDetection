@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.design
 
 import androidx.compose.foundation.background
@@ -42,16 +46,16 @@ fun CanvasHero(
     subtitle: String,
     modifier: Modifier = Modifier,
     badge: String? = null,
-    trailingContent: (@Composable () -> Unit)? = null
+    trailingContent: (@Composable () -> Unit)? = null,
 ) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface
+            contentColor = MaterialTheme.colorScheme.onSurface,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Box(
             modifier = Modifier
@@ -59,50 +63,50 @@ fun CanvasHero(
                     brush = Brush.verticalGradient(
                         listOf(
                             MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
-                        )
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.05f),
+                        ),
                     ),
-                    shape = RoundedCornerShape(32.dp)
+                    shape = RoundedCornerShape(32.dp),
                 )
-                .padding(28.dp)
+                .padding(28.dp),
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.align(Alignment.CenterStart)
+                modifier = Modifier.align(Alignment.CenterStart),
             ) {
                 badge?.let {
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(50))
                             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
                     ) {
                         Text(
                             text = it,
                             style = MaterialTheme.typography.labelMedium.copy(
                                 color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                                fontWeight = FontWeight.SemiBold,
+                            ),
                         )
                     }
                 }
                 Text(
                     text = title,
                     style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold
-                    )
+                        fontWeight = FontWeight.Bold,
+                    ),
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
             trailingContent?.let {
                 Box(
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
+                        .align(Alignment.TopEnd),
                 ) {
                     it()
                 }
@@ -117,54 +121,54 @@ fun InsightCard(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
-    supportingText: String? = null
+    supportingText: String? = null,
 ) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
                     modifier = Modifier
                         .size(36.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.primary,
                     )
                 }
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Text(
                 text = value,
-                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold)
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
             )
             supportingText?.let {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -178,22 +182,22 @@ fun CanvasEmptyState(
     subtitle: String,
     modifier: Modifier = Modifier,
     actionLabel: String? = null,
-    onAction: (() -> Unit)? = null
+    onAction: (() -> Unit)? = null,
 ) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 28.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(18.dp)
+            verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
             Box(
                 modifier = Modifier
@@ -202,32 +206,32 @@ fun CanvasEmptyState(
                         brush = Brush.radialGradient(
                             listOf(
                                 MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
-                                Color.Transparent
-                            )
+                                Color.Transparent,
+                            ),
                         ),
-                        shape = CircleShape
+                        shape = CircleShape,
                     ),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(40.dp),
                 )
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             }
             actionLabel?.let { label ->
@@ -237,8 +241,8 @@ fun CanvasEmptyState(
                         shape = RoundedCornerShape(18.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        )
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
+                        ),
                     ) {
                         Text(text = label)
                     }
@@ -253,33 +257,33 @@ fun CanvasSectionHeader(
     title: String,
     modifier: Modifier = Modifier,
     actionLabel: String? = null,
-    onAction: (() -> Unit)? = null
+    onAction: (() -> Unit)? = null,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
         )
         if (actionLabel != null && onAction != null) {
             Button(
                 onClick = onAction,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
-                    contentColor = MaterialTheme.colorScheme.primary
+                    contentColor = MaterialTheme.colorScheme.primary,
                 ),
                 shape = RoundedCornerShape(14.dp),
                 contentPadding = PaddingValues(
                     horizontal = 16.dp,
-                    vertical = 8.dp
-                )
+                    vertical = 8.dp,
+                ),
             ) {
                 Text(
                     text = actionLabel,
-                    style = MaterialTheme.typography.labelLarge
+                    style = MaterialTheme.typography.labelLarge,
                 )
             }
         }
@@ -290,7 +294,7 @@ fun CanvasSectionHeader(
 fun CanvasPrimaryButton(
     label: String,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Button(
         onClick = onClick,
@@ -298,12 +302,12 @@ fun CanvasPrimaryButton(
         shape = RoundedCornerShape(18.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
-        )
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+        ),
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
         )
     }
 }

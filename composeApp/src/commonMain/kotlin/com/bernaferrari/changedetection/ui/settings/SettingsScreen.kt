@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.settings
 
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -86,7 +90,7 @@ fun SettingsScreen(
     onAboutClick: () -> Unit = {},
     onBackgroundSyncClick: () -> Unit = {},
     onContactClick: () -> Unit = {},
-    onRecreateActivity: () -> Unit = {}
+    onRecreateActivity: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showBackgroundSyncDialog by remember { mutableStateOf(false) }
@@ -100,34 +104,34 @@ fun SettingsScreen(
                 title = {
                     Text(
                         stringResource(Res.string.settings_title),
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleLarge,
                     )
                 },
                 scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ),
-                modifier = Modifier.statusBarsPadding()
+                modifier = Modifier.statusBarsPadding(),
             )
         },
-        contentWindowInsets = WindowInsets(0) // Remove system insets
+        contentWindowInsets = WindowInsets(0), // Remove system insets
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp)
+            contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
         ) {
             item {
                 SectionHeader(
                     title = stringResource(Res.string.settings_section_appearance),
-                    icon = Icons.Outlined.Palette
+                    icon = Icons.Outlined.Palette,
                 )
                 SettingsGroup {
                     ThemeSelector(
                         selectedTheme = uiState.themeMode,
-                        onThemeSelected = { viewModel.updateThemeMode(it) }
+                        onThemeSelected = { viewModel.updateThemeMode(it) },
                     )
                 }
             }
@@ -136,7 +140,7 @@ fun SettingsScreen(
             item {
                 SectionHeader(
                     title = stringResource(Res.string.settings_monitoring_section),
-                    icon = Icons.Outlined.Sync
+                    icon = Icons.Outlined.Sync,
                 )
                 SettingsGroup {
                     ToggleItem(
@@ -152,7 +156,7 @@ fun SettingsScreen(
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             viewModel.updateBackgroundSync(it)
                         },
-                        onClick = { showBackgroundSyncDialog = true }
+                        onClick = { showBackgroundSyncDialog = true },
                     )
                 }
             }
@@ -163,37 +167,118 @@ fun SettingsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         Text(
                             text = stringResource(Res.string.settings_comparison_title),
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
                             text = stringResource(Res.string.settings_comparison_subtitle),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         ComparisonMethodSelector(
                             selectedMethod = uiState.comparisonMethod,
                             onMethodSelected = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 viewModel.updateComparisonMethod(it)
-                            }
+                            },
                         )
                     }
-                    ItemDivider()
-                    ActionItem(
-                        icon = Icons.Outlined.Schedule,
-                        title = stringResource(Res.string.settings_browser_delay_title),
-                        value = formatDelay(uiState.browserDelayMs),
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.updateBrowserDelay(nextDelay(uiState.browserDelayMs))
+                }
+            }
+
+            // Browser delay setting - separate card with explanation
+            item {
+                SettingsGroup {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Schedule,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(Res.string.settings_browser_delay_title),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                Text(
+                                    text = stringResource(Res.string.settings_browser_delay_subtitle),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
-                    )
+
+                        // Tap-to-cycle value buttons
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            val delays = listOf(2000L, 5000L, 10000L, 15000L)
+                            delays.forEach { delay ->
+                                val isSelected = uiState.browserDelayMs == delay
+                                Surface(
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        viewModel.updateBrowserDelay(delay)
+                                    },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (isSelected) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.surfaceVariant
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 12.dp),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Text(
+                                            text = formatDelay(delay),
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                            ),
+                                            color = if (isSelected) {
+                                                MaterialTheme.colorScheme.onPrimary
+                                            } else {
+                                                MaterialTheme.colorScheme.onSurfaceVariant
+                                            },
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -201,13 +286,13 @@ fun SettingsScreen(
             item {
                 SectionHeader(
                     title = stringResource(Res.string.settings_about_section),
-                    icon = Icons.Outlined.Info
+                    icon = Icons.Outlined.Info,
                 )
                 SettingsGroup {
                     ActionItem(
                         icon = Icons.Outlined.Info,
                         title = stringResource(Res.string.settings_about_title),
-                        onClick = onAboutClick
+                        onClick = onAboutClick,
                     )
                     ItemDivider()
                     ActionItem(
@@ -215,13 +300,13 @@ fun SettingsScreen(
                         title = stringResource(Res.string.settings_version),
                         value = "3.0.0",
                         showChevron = false,
-                        onClick = {}
+                        onClick = {},
                     )
                     ItemDivider()
                     ActionItem(
                         icon = Icons.Outlined.Email,
                         title = stringResource(Res.string.settings_action_contact),
-                        onClick = onContactClick
+                        onClick = onContactClick,
                     )
                 }
             }
@@ -232,25 +317,25 @@ fun SettingsScreen(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = "Made with",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Icon(
                         imageVector = Icons.Outlined.Favorite,
                         contentDescription = null,
                         modifier = Modifier.size(14.dp),
-                        tint = Color(0xFFE91E63)
+                        tint = Color(0xFFE91E63),
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "by Bernardo Ferrari",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 Spacer(modifier = Modifier.height(80.dp))
@@ -261,7 +346,7 @@ fun SettingsScreen(
     if (showBackgroundSyncDialog) {
         BackgroundSyncDialog(
             onDismiss = { showBackgroundSyncDialog = false },
-            viewModel = viewModel
+            viewModel = viewModel,
         )
     }
 }
@@ -269,19 +354,19 @@ fun SettingsScreen(
 @Composable
 private fun SectionHeader(
     title: String,
-    icon: ImageVector? = null
+    icon: ImageVector? = null,
 ) {
     Row(
         modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         icon?.let {
             Icon(
                 imageVector = it,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
         }
         Text(
@@ -289,7 +374,7 @@ private fun SectionHeader(
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
-            letterSpacing = 0.5.sp
+            letterSpacing = 0.5.sp,
         )
     }
 }
@@ -301,7 +386,7 @@ private fun SettingsGroup(content: @Composable () -> Unit) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer
+        color = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         Column {
             content()
@@ -312,7 +397,7 @@ private fun SettingsGroup(content: @Composable () -> Unit) {
 @Composable
 private fun ThemeSelector(
     selectedTheme: String,
-    onThemeSelected: (String) -> Unit
+    onThemeSelected: (String) -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
 
@@ -320,7 +405,7 @@ private fun ThemeSelector(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         ThemeMode.entries.forEach { mode ->
             ThemeModeToggle(
@@ -330,7 +415,7 @@ private fun ThemeSelector(
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     onThemeSelected(mode.name)
                 },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
     }
@@ -344,7 +429,7 @@ private fun ToggleItem(
     checked: Boolean,
     iconTint: Color = MaterialTheme.colorScheme.primary,
     onCheckedChange: (Boolean) -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -352,9 +437,9 @@ private fun ToggleItem(
         targetValue = if (isPressed) 0.98f else 1f,
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
         ),
-        label = "toggleScale"
+        label = "toggleScale",
     )
 
     Row(
@@ -364,10 +449,10 @@ private fun ToggleItem(
             .clickable(
                 interactionSource = interactionSource,
                 indication = ripple(),
-                onClick = onClick
+                onClick = onClick,
             )
             .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         // Icon with colored background
         Box(
@@ -375,13 +460,13 @@ private fun ToggleItem(
                 .size(36.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .background(iconTint.copy(alpha = 0.12f)),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = iconTint,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
         }
 
@@ -392,18 +477,18 @@ private fun ToggleItem(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
         Switch(
             checked = checked,
-            onCheckedChange = onCheckedChange
+            onCheckedChange = onCheckedChange,
         )
     }
 }
@@ -415,7 +500,7 @@ private fun ActionItem(
     value: String? = null,
     showChevron: Boolean = true,
     iconTint: Color = MaterialTheme.colorScheme.primary,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -423,9 +508,9 @@ private fun ActionItem(
         targetValue = if (isPressed) 0.98f else 1f,
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
         ),
-        label = "actionScale"
+        label = "actionScale",
     )
 
     Row(
@@ -435,10 +520,10 @@ private fun ActionItem(
             .clickable(
                 interactionSource = interactionSource,
                 indication = ripple(),
-                onClick = onClick
+                onClick = onClick,
             )
             .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         // Icon with colored background
         Box(
@@ -446,13 +531,13 @@ private fun ActionItem(
                 .size(36.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .background(iconTint.copy(alpha = 0.12f)),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = iconTint,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
         }
 
@@ -463,14 +548,14 @@ private fun ActionItem(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
         )
 
         if (value != null) {
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(modifier = Modifier.width(8.dp))
         }
@@ -480,7 +565,7 @@ private fun ActionItem(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
         }
     }
@@ -490,14 +575,14 @@ private fun ActionItem(
 private fun ItemDivider() {
     HorizontalDivider(
         modifier = Modifier.padding(start = 56.dp),
-        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
     )
 }
 
 @Composable
 private fun ComparisonMethodSelector(
     selectedMethod: ComparisonMethod,
-    onMethodSelected: (ComparisonMethod) -> Unit
+    onMethodSelected: (ComparisonMethod) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -506,7 +591,7 @@ private fun ComparisonMethodSelector(
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(12.dp)),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         ComparisonMethod.values().forEach { method ->
             val isSelected = method == selectedMethod
@@ -519,14 +604,14 @@ private fun ComparisonMethodSelector(
                     .clip(RoundedCornerShape(8.dp))
                     .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
                     .clickable { onMethodSelected(method) },
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = method.name.lowercase().replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                     ),
-                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }

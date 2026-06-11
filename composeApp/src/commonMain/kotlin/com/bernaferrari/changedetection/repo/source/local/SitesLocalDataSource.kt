@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.repo.source.local
 
 import com.bernaferrari.changedetection.repo.AppExecutors
@@ -12,12 +16,9 @@ import kotlinx.coroutines.withContext
  */
 class SitesLocalDataSource(
     private val mAppExecutors: AppExecutors,
-    private val mSitesDao: SitesDao
+    private val mSitesDao: SitesDao,
 ) : SitesDataSource {
-
-    override fun getDataWithChanges(): Flow<List<Site>> {
-        return mSitesDao.getDataWithChanges()
-    }
+    override fun getDataWithChanges(): Flow<List<Site>> = mSitesDao.getDataWithChanges()
 
     override suspend fun getSites(): List<Site> = withContext(mAppExecutors.ioContext) {
         mSitesDao.getSitesList()
@@ -27,10 +28,9 @@ class SitesLocalDataSource(
         mSitesDao.getSiteById(siteId)
     }
 
-    override suspend fun getSiteByUrl(siteUrl: String): Site? =
-        withContext(mAppExecutors.ioContext) {
-            mSitesDao.getSiteByUrl(siteUrl)
-        }
+    override suspend fun getSiteByUrl(siteUrl: String): Site? = withContext(mAppExecutors.ioContext) {
+        mSitesDao.getSiteByUrl(siteUrl)
+    }
 
     override suspend fun saveSite(site: Site) = withContext(mAppExecutors.ioContext) {
         mSitesDao.insertSite(site)

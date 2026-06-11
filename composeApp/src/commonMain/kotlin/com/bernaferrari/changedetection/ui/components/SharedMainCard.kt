@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.components
 
 import androidx.compose.animation.core.Animatable
@@ -28,6 +32,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Sync
@@ -50,15 +55,32 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
+import com.bernaferrari.changedetection.shared.generated.resources.Res
+import com.bernaferrari.changedetection.shared.generated.resources.card_site_monitoring_active
+import com.bernaferrari.changedetection.shared.generated.resources.card_last_sync
+import com.bernaferrari.changedetection.shared.generated.resources.card_last_change
+import com.bernaferrari.changedetection.shared.generated.resources.card_sync_failed
+import com.bernaferrari.changedetection.shared.generated.resources.card_refresh_site
+import com.bernaferrari.changedetection.shared.generated.resources.card_syncing
+import org.jetbrains.compose.resources.stringResource
 
 enum class SyncStatus {
-    LOADING, OK, ERROR
+    LOADING,
+    OK,
+    ERROR,
 }
 
 /**
@@ -79,7 +101,7 @@ fun SharedMainCard(
     onClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
     onRefreshClick: (() -> Unit)? = null,
-    onOptionsClick: (() -> Unit)? = null
+    onOptionsClick: (() -> Unit)? = null,
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val isLoading = syncStatus == SyncStatus.LOADING
@@ -90,8 +112,8 @@ fun SharedMainCard(
         label = "card_scale",
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
-            stiffness = ExpressiveSpring.GENTLE_STIFFNESS
-        )
+            stiffness = ExpressiveSpring.GENTLE_STIFFNESS,
+        ),
     )
 
     // Rotation animation that always completes a full rotation
@@ -103,7 +125,7 @@ fun SharedMainCard(
             while (true) {
                 rotationAnimatable.animateTo(
                     targetValue = rotationAnimatable.value + 360f,
-                    animationSpec = tween(800, easing = LinearEasing)
+                    animationSpec = tween(800, easing = LinearEasing),
                 )
             }
         } else {
@@ -117,8 +139,8 @@ fun SharedMainCard(
                     targetValue = targetRotation,
                     animationSpec = tween(
                         durationMillis = ((360f - remainder) / 360f * 800f).toInt(),
-                        easing = LinearEasing
-                    )
+                        easing = LinearEasing,
+                    ),
                 )
             }
         }
@@ -133,7 +155,7 @@ fun SharedMainCard(
         Brush.linearGradient(
             colors = listOf(siteColor, siteColor2),
             start = androidx.compose.ui.geometry.Offset(0f, 0f),
-            end = androidx.compose.ui.geometry.Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+            end = androidx.compose.ui.geometry.Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),
         )
     }
 
@@ -174,14 +196,14 @@ fun SharedMainCard(
                 onLongClick = {
                     onLongClick()
                     onOptionsClick?.invoke()
-                }
+                },
             ),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface,
         ),
         border = BorderStroke(1.dp, borderColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column {
             // Edge-to-edge gradient header with top rounded corners only
@@ -189,18 +211,18 @@ fun SharedMainCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(gradient)
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     // Title + Domain
                     Column(modifier = Modifier.weight(1f)) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             if (isQuickMonitored) {
                                 Box(
@@ -208,13 +230,13 @@ fun SharedMainCard(
                                         .size(22.dp)
                                         .clip(CircleShape)
                                         .background(Color.White.copy(alpha = 0.25f)),
-                                    contentAlignment = Alignment.Center
+                                    contentAlignment = Alignment.Center,
                                 ) {
                                     Icon(
                                         imageVector = Icons.Rounded.Bolt,
                                         contentDescription = "Turbo",
                                         tint = Color.White,
-                                        modifier = Modifier.size(14.dp)
+                                        modifier = Modifier.size(14.dp),
                                     )
                                 }
                             }
@@ -224,7 +246,7 @@ fun SharedMainCard(
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
 
@@ -235,7 +257,7 @@ fun SharedMainCard(
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.White.copy(alpha = 0.7f),
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
 
@@ -248,9 +270,9 @@ fun SharedMainCard(
                                 .background(Color.White.copy(alpha = 0.2f))
                                 .clickable(
                                     enabled = !isLoading,
-                                    onClick = onRefreshClick
+                                    onClick = onRefreshClick,
                                 ),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.Center,
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Refresh,
@@ -258,7 +280,7 @@ fun SharedMainCard(
                                 tint = Color.White,
                                 modifier = Modifier
                                     .size(22.dp)
-                                    .rotate(rotationAnimatable.value)
+                                    .rotate(rotationAnimatable.value),
                             )
                         }
                     }
@@ -269,15 +291,16 @@ fun SharedMainCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
             ) {
                 // Last Sync row
                 MetadataRow(
-                    icon = Icons.Rounded.Sync,
+                    icon = if (syncStatus == SyncStatus.ERROR) Icons.Rounded.Error else Icons.Rounded.Sync,
                     label = "Last Sync",
-                    value = lastSyncValue,
-                    secondaryValue = fileSizeValue.takeIf { it.isNotBlank() },
-                    accentColor = siteColor
+                    value = if (syncStatus == SyncStatus.ERROR) "Sync failed" else lastSyncValue,
+                    secondaryValue = fileSizeValue.takeIf { it.isNotBlank() && syncStatus != SyncStatus.ERROR },
+                    accentColor = if (syncStatus == SyncStatus.ERROR) MaterialTheme.colorScheme.error else siteColor,
+                    isError = syncStatus == SyncStatus.ERROR,
                 )
 
                 // Subtle divider
@@ -286,7 +309,7 @@ fun SharedMainCard(
                         .fillMaxWidth()
                         .padding(vertical = 8.dp, horizontal = 4.dp)
                         .height(1.dp)
-                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
                 )
 
                 // Last Change row
@@ -295,7 +318,7 @@ fun SharedMainCard(
                     label = "Last Change",
                     value = lastChangeValue,
                     secondaryValue = null,
-                    accentColor = siteColor
+                    accentColor = siteColor,
                 )
             }
         }
@@ -312,13 +335,14 @@ private fun MetadataRow(
     value: String,
     secondaryValue: String?,
     accentColor: Color,
-    modifier: Modifier = Modifier
+    isError: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         // Icon with solid accent background and white icon for better contrast
         Box(
@@ -326,13 +350,13 @@ private fun MetadataRow(
                 .size(36.dp)
                 .clip(CircleShape)
                 .background(accentColor),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(18.dp),
             )
         }
 
@@ -344,32 +368,30 @@ private fun MetadataRow(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
             )
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = value,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 if (secondaryValue != null) {
                     Text(
                         text = "·",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     )
                     Text(
                         text = secondaryValue,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
         }
     }
 }
-
-

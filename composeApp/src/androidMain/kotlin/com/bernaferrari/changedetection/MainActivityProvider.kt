@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection
 
 import android.app.Activity
@@ -15,9 +19,7 @@ object MainActivityProvider {
         mainActivityClass = activityClass
     }
 
-    fun getMainActivityClass(): Class<out Activity> {
-        return mainActivityClass ?: throw IllegalStateException(
-            "MainActivityProvider not initialized. Call register() in your Application.onCreate()"
-        )
-    }
+    fun getMainActivityClass(): Class<out Activity> = mainActivityClass ?: throw IllegalStateException(
+        "MainActivityProvider not initialized. Call register() in your Application.onCreate()",
+    )
 }

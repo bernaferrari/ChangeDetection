@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.repo.source
 
 import com.bernaferrari.changedetection.repo.Site
@@ -8,24 +12,15 @@ import kotlinx.coroutines.flow.Flow
  * KMP Version.
  */
 class SitesRepository(
-    private val mSitesLocalDataSource: SitesDataSource
+    private val mSitesLocalDataSource: SitesDataSource,
 ) : SitesDataSource {
+    override fun getDataWithChanges(): Flow<List<Site>> = mSitesLocalDataSource.getDataWithChanges()
 
-    override fun getDataWithChanges(): Flow<List<Site>> {
-        return mSitesLocalDataSource.getDataWithChanges()
-    }
+    override suspend fun getSites(): List<Site> = mSitesLocalDataSource.getSites()
 
-    override suspend fun getSites(): List<Site> {
-        return mSitesLocalDataSource.getSites()
-    }
+    override suspend fun getSiteById(siteId: String): Site? = mSitesLocalDataSource.getSiteById(siteId)
 
-    override suspend fun getSiteById(siteId: String): Site? {
-        return mSitesLocalDataSource.getSiteById(siteId)
-    }
-
-    override suspend fun getSiteByUrl(siteUrl: String): Site? {
-        return mSitesLocalDataSource.getSiteByUrl(siteUrl)
-    }
+    override suspend fun getSiteByUrl(siteUrl: String): Site? = mSitesLocalDataSource.getSiteByUrl(siteUrl)
 
     override suspend fun saveSite(site: Site) {
         mSitesLocalDataSource.saveSite(site)

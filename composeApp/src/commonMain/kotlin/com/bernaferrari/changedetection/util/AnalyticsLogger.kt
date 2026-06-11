@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.util
 
 import io.github.aakira.napier.Napier
@@ -8,7 +12,6 @@ import kotlin.time.TimeSource
  * Migrated to Multiplatform using Napier.
  */
 object AnalyticsLogger {
-
     private val performanceMetrics = mutableMapOf<String, PerformanceMetric>()
 
     /**
@@ -17,7 +20,7 @@ object AnalyticsLogger {
     internal fun <T> logOperation(
         operationName: String,
         tag: String = "OPERATION",
-        block: () -> T
+        block: () -> T,
     ): T {
         val mark = TimeSource.Monotonic.markNow()
         val startMemory = getMemoryUsage()
@@ -44,16 +47,17 @@ object AnalyticsLogger {
     fun logDatabaseQuery(
         queryName: String,
         durationMs: Long,
-        resultCount: Int = 0
+        resultCount: Int = 0,
     ) {
-        val performanceLevel = when {
-            durationMs < 10 -> "⚡ FAST"
-            durationMs < 50 -> "✅ NORMAL"
-            durationMs < 200 -> "⚠️  SLOW"
-            else -> "❌ VERY SLOW"
-        }
+        val performanceLevel =
+            when {
+                durationMs < 10 -> "⚡ FAST"
+                durationMs < 50 -> "✅ NORMAL"
+                durationMs < 200 -> "⚠️  SLOW"
+                else -> "❌ VERY SLOW"
+            }
 
-        Napier.d("$performanceLevel DB: $queryName took ${durationMs}ms (${resultCount} results)", tag = "Database")
+        Napier.d("$performanceLevel DB: $queryName took ${durationMs}ms ($resultCount results)", tag = "Database")
         recordMetric("db_$queryName", durationMs, 0)
     }
 
@@ -64,14 +68,15 @@ object AnalyticsLogger {
         url: String,
         statusCode: Int,
         durationMs: Long,
-        sizeBytes: Long = 0
+        sizeBytes: Long = 0,
     ) {
-        val statusEmoji = when {
-            statusCode < 300 -> "✅"
-            statusCode < 400 -> "ℹ️"
-            statusCode < 500 -> "⚠️"
-            else -> "❌"
-        }
+        val statusEmoji =
+            when {
+                statusCode < 300 -> "✅"
+                statusCode < 400 -> "ℹ️"
+                statusCode < 500 -> "⚠️"
+                else -> "❌"
+            }
 
         val sizeText = if (sizeBytes > 0) " (${formatBytes(sizeBytes)})" else ""
         Napier.d("$statusEmoji HTTP $statusCode: ${durationMs}ms$sizeText", tag = "Network")
@@ -84,7 +89,7 @@ object AnalyticsLogger {
     fun logMemorySnapshot(label: String = "Memory") {
         val used = getMemoryUsage() / 1_048_576 // MB
         // Max memory is tricky in common code, omitting percentage for now or need another expect
-        
+
         Napier.d("💾 $label: ${used}MB used", tag = "Memory")
     }
 
@@ -93,7 +98,7 @@ object AnalyticsLogger {
      */
     fun logFeatureUsage(
         featureName: String,
-        metadata: Map<String, Any>? = null
+        metadata: Map<String, Any>? = null,
     ) {
         val metaStr = metadata?.entries?.joinToString(", ") { "${it.key}=${it.value}" } ?: ""
         Napier.d("📊 Feature: $featureName" + (if (metaStr.isNotEmpty()) " [$metaStr]" else ""), tag = "Feature")
@@ -106,12 +111,12 @@ object AnalyticsLogger {
         cacheName: String,
         hitCount: Int,
         missCount: Int,
-        evictionCount: Int = 0
+        evictionCount: Int = 0,
     ) {
         val total = hitCount + missCount
         val hitRate = if (total > 0) (hitCount * 100) / total else 0
 
-        Napier.d("💾 Cache $cacheName: ${hitRate}% hit rate ($hitCount hits, $missCount misses)", tag = "Cache")
+        Napier.d("💾 Cache $cacheName: $hitRate% hit rate ($hitCount hits, $missCount misses)", tag = "Cache")
 
         if (evictionCount > 0) {
             Napier.d("   Evicted $evictionCount entries", tag = "Cache")
@@ -126,7 +131,7 @@ object AnalyticsLogger {
         siteName: String,
         durationMs: Long,
         changeDetected: Boolean,
-        contentSize: Int = 0
+        contentSize: Int = 0,
     ) {
         val changeEmoji = if (changeDetected) "📝" else "✅"
         val sizeText = if (contentSize > 0) " (${formatBytes(contentSize.toLong())})" else ""
@@ -142,7 +147,7 @@ object AnalyticsLogger {
         errorName: String,
         errorMessage: String,
         context: String = "",
-        additionalInfo: Map<String, Any>? = null
+        additionalInfo: Map<String, Any>? = null,
     ) {
         val contextStr = if (context.isNotEmpty()) " in $context" else ""
         val infoStr = additionalInfo?.entries?.joinToString(", ") { "${it.key}=${it.value}" } ?: ""
@@ -180,14 +185,20 @@ object AnalyticsLogger {
     /**
      * Log ANR (Application Not Responding) warning
      */
-    fun logANRWarning(operationName: String, durationMs: Long) {
+    fun logANRWarning(
+        operationName: String,
+        durationMs: Long,
+    ) {
         Napier.e("🚨 ANR WARNING: $operationName took ${durationMs}ms (>5000ms threshold)", tag = "ANR")
     }
 
     /**
      * Log jank detection (frame drops)
      */
-    fun logJankDetected(frameCount: Int, droppedFrames: Int) {
+    fun logJankDetected(
+        frameCount: Int,
+        droppedFrames: Int,
+    ) {
         val jankPercent = (droppedFrames * 100) / frameCount
         if (jankPercent > 10) {
             Napier.w("⚠️  JANK DETECTED: $droppedFrames frames dropped out of $frameCount ($jankPercent%)", tag = "Performance")
@@ -196,7 +207,11 @@ object AnalyticsLogger {
 
     // Private helpers
 
-    internal fun recordMetric(name: String, durationMs: Long, memoryDelta: Long) {
+    internal fun recordMetric(
+        name: String,
+        durationMs: Long,
+        memoryDelta: Long,
+    ) {
         val metric = performanceMetrics[name] ?: PerformanceMetric(name)
         metric.totalDuration += durationMs
         metric.count++
@@ -205,12 +220,10 @@ object AnalyticsLogger {
         performanceMetrics[name] = metric
     }
 
-    internal fun formatMemory(bytes: Long): String {
-        return when {
-            bytes >= 1_048_576 -> "${bytes / 1_048_576}MB"
-            bytes >= 1_024 -> "${bytes / 1_024}KB"
-            else -> "${bytes}B"
-        }
+    internal fun formatMemory(bytes: Long): String = when {
+        bytes >= 1_048_576 -> "${bytes / 1_048_576}MB"
+        bytes >= 1_024 -> "${bytes / 1_024}KB"
+        else -> "${bytes}B"
     }
 
     internal fun formatBytes(bytes: Long): String = formatMemory(bytes)
@@ -223,7 +236,7 @@ object AnalyticsLogger {
         var totalDuration: Long = 0,
         var count: Int = 0,
         var maxDuration: Long = 0,
-        var minDuration: Long = Long.MAX_VALUE
+        var minDuration: Long = Long.MAX_VALUE,
     ) {
         val avgDuration: Long get() = if (count > 0) totalDuration / count else 0
     }
@@ -232,7 +245,10 @@ object AnalyticsLogger {
 /**
  * Extension functions for easier logging
  */
-internal fun <T> logTiming(label: String, block: () -> T): T {
+internal fun <T> logTiming(
+    label: String,
+    block: () -> T,
+): T {
     val mark = TimeSource.Monotonic.markNow()
     return try {
         block().also {
@@ -249,7 +265,10 @@ internal fun <T> logTiming(label: String, block: () -> T): T {
 /**
  * Measure memory allocation
  */
-fun <T> measureMemory(label: String, block: () -> T): T {
+fun <T> measureMemory(
+    label: String,
+    block: () -> T,
+): T {
     val memBefore = getMemoryUsage()
 
     return block().also {

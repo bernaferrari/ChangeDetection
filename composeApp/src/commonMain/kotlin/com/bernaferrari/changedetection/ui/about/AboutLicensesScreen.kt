@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.about
 
 import androidx.compose.animation.*
@@ -33,14 +37,14 @@ data class License(
     val author: String,
     val licenseType: String,
     val url: String? = null,
-    val category: String = "General"
+    val category: String = "General",
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutLicensesDialog(
     onDismiss: () -> Unit,
-    onUrlClick: (String) -> Unit
+    onUrlClick: (String) -> Unit,
 ) {
     val listState = rememberLazyListState()
     var isVisible by remember { mutableStateOf(false) }
@@ -56,78 +60,78 @@ fun AboutLicensesDialog(
             copyright = "2018",
             author = "Google Inc.",
             licenseType = "Apache License 2.0",
-            category = "Android Framework"
+            category = "Android Framework",
         ),
         License(
             name = "Jetpack Compose",
             copyright = "2021",
             author = "Google Inc.",
             licenseType = "Apache License 2.0",
-            category = "Android Framework"
+            category = "Android Framework",
         ),
         License(
             name = "Material 3",
             copyright = "2021",
             author = "Google Inc.",
             licenseType = "Apache License 2.0",
-            category = "Android Framework"
+            category = "Android Framework",
         ),
         License(
             name = "Koin",
             copyright = "2017-2024",
             author = "Kotzilla",
             licenseType = "Apache License 2.0",
-            category = "Dependency Injection"
+            category = "Dependency Injection",
         ),
         License(
             name = "Room",
             copyright = "2017",
             author = "Google Inc.",
             licenseType = "Apache License 2.0",
-            category = "Android Framework"
+            category = "Android Framework",
         ),
         License(
             name = "Kotlin",
             copyright = "2010-2024",
             author = "JetBrains",
             licenseType = "Apache License 2.0",
-            category = "Language & Runtime"
+            category = "Language & Runtime",
         ),
         License(
             name = "Ktor",
             copyright = "2018-2024",
             author = "JetBrains",
             licenseType = "Apache License 2.0",
-            category = "Networking"
+            category = "Networking",
         ),
         License(
             name = "Ksoup",
             copyright = "2024",
             author = "Fleek Soft",
             licenseType = "Apache License 2.0",
-            category = "Networking"
+            category = "Networking",
         ),
         License(
             name = "Coil",
             copyright = "2021",
             author = "Colin White",
             licenseType = "Apache License 2.0",
-            category = "Media & Graphics"
+            category = "Media & Graphics",
         ),
         License(
             name = "fast-kotlin-diff-core",
             copyright = "2024",
             author = "Bernardo Ferrari",
             licenseType = "Apache License 2.0",
-            category = "Utilities"
-        )
+            category = "Utilities",
+        ),
     )
 
     val groupedLicenses = licenses.groupBy { it.category }
 
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Card(
             modifier = Modifier
@@ -136,11 +140,11 @@ fun AboutLicensesDialog(
             shape = RoundedCornerShape(28.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 24.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
+                containerColor = MaterialTheme.colorScheme.surface,
+            ),
         ) {
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             ) {
                 // Minimal Header
                 Row(
@@ -148,20 +152,20 @@ fun AboutLicensesDialog(
                         .fillMaxWidth()
                         .padding(start = 24.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column {
                         Text(
                             text = stringResource(Res.string.about_licenses_title),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
                             text = stringResource(Res.string.about_licenses_subtitle),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 2.dp)
+                            modifier = Modifier.padding(top = 2.dp),
                         )
                     }
 
@@ -169,7 +173,7 @@ fun AboutLicensesDialog(
                         Icon(
                             Icons.Default.Close,
                             contentDescription = "Close",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -179,28 +183,28 @@ fun AboutLicensesDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
                     StatCard(
                         number = "${licenses.size}",
                         label = stringResource(Res.string.about_stat_libraries),
-                        icon = Icons.Default.Book
+                        icon = Icons.Default.Book,
                     )
                     StatCard(
                         number = "${groupedLicenses.size}",
                         label = stringResource(Res.string.about_stat_categories),
-                        icon = Icons.Default.Category
+                        icon = Icons.Default.Category,
                     )
                     StatCard(
                         number = "${licenses.count { it.licenseType == "Apache License 2.0" }}",
                         label = stringResource(Res.string.about_stat_apache),
-                        icon = Icons.Default.Shield
+                        icon = Icons.Default.Shield,
                     )
                 }
 
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 24.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                 )
 
                 // License List
@@ -208,7 +212,7 @@ fun AboutLicensesDialog(
                     state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     groupedLicenses.forEach { (category, categoryLicenses) ->
                         item {
@@ -217,12 +221,12 @@ fun AboutLicensesDialog(
 
                         items(
                             items = categoryLicenses,
-                            key = { it.name }
+                            key = { it.name },
                         ) { license ->
                             AnimatedVisibility(
                                 visible = true,
                                 enter = fadeIn(animationSpec = tween(300)) +
-                                        slideInHorizontally(animationSpec = tween(300))
+                                    slideInHorizontally(animationSpec = tween(300)),
                             ) {
                                 EnhancedLicenseCard(
                                     license = license,
@@ -236,7 +240,7 @@ fun AboutLicensesDialog(
                                         licenseUrl?.let { url ->
                                             onUrlClick(url)
                                         }
-                                    }
+                                    },
                                 )
                             }
                         }
@@ -246,7 +250,6 @@ fun AboutLicensesDialog(
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
-
             }
         }
     }
@@ -256,29 +259,29 @@ fun AboutLicensesDialog(
 private fun StatCard(
     number: String,
     label: String,
-    icon: ImageVector
+    icon: ImageVector,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(8.dp)
+        modifier = Modifier.padding(8.dp),
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(20.dp),
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = number,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -287,18 +290,18 @@ private fun StatCard(
 private fun CategoryHeader(category: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = 8.dp)
+        modifier = Modifier.padding(vertical = 8.dp),
     ) {
         Text(
             text = category,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
         Spacer(modifier = Modifier.width(12.dp))
         HorizontalDivider(
             modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
         )
     }
 }
@@ -306,13 +309,13 @@ private fun CategoryHeader(category: String) {
 @Composable
 private fun EnhancedLicenseCard(
     license: License,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 0.98f else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-        label = "scale"
+        label = "scale",
     )
 
     ElevatedCard(
@@ -325,11 +328,11 @@ private fun EnhancedLicenseCard(
         },
         elevation = CardDefaults.elevatedCardElevation(
             defaultElevation = 6.dp,
-            pressedElevation = 12.dp
+            pressedElevation = 12.dp,
         ),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
-        )
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        ),
     ) {
         LaunchedEffect(isPressed) {
             if (isPressed) {
@@ -343,7 +346,7 @@ private fun EnhancedLicenseCard(
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             // Content
             Column(modifier = Modifier.weight(1f)) {
@@ -351,7 +354,7 @@ private fun EnhancedLicenseCard(
                     text = license.name,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 if (license.copyright.isNotEmpty() && license.author.isNotEmpty()) {
@@ -359,14 +362,14 @@ private fun EnhancedLicenseCard(
                         text = "© ${license.copyright} ${license.author}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 2.dp)
+                        modifier = Modifier.padding(top = 2.dp),
                     )
                 } else if (license.author.isNotEmpty()) {
                     Text(
                         text = license.author,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 2.dp)
+                        modifier = Modifier.padding(top = 2.dp),
                     )
                 }
             }
@@ -374,13 +377,13 @@ private fun EnhancedLicenseCard(
             // License badge - compact
             Surface(
                 shape = RoundedCornerShape(6.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHighest
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
             ) {
                 Text(
                     text = license.licenseType.replace(" License", "").replace(" 2.0", ""),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                 )
             }
 
@@ -389,7 +392,7 @@ private fun EnhancedLicenseCard(
                 imageVector = Icons.AutoMirrored.Filled.OpenInNew,
                 contentDescription = "Open license",
                 tint = MaterialTheme.colorScheme.outline,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(16.dp),
             )
         }
     }

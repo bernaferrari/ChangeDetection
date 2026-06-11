@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.browser
 
 import android.webkit.CookieManager
@@ -81,7 +85,7 @@ actual fun ModernInteractiveBrowserScreen(
     initialUrl: String,
     initialSession: BrowserSessionData?,
     onNavigateUp: () -> Unit,
-    onSaveComplete: (BrowserSessionData) -> Unit
+    onSaveComplete: (BrowserSessionData) -> Unit,
 ) {
     val viewModel: InteractiveBrowserViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -122,21 +126,21 @@ actual fun ModernInteractiveBrowserScreen(
                     Text(
                         text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.library.R.string.configure_site),
                         style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.SemiBold
-                        )
+                            fontWeight = FontWeight.SemiBold,
+                        ),
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null
+                            contentDescription = null,
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ),
             )
 
             // Browser Controls
@@ -152,7 +156,7 @@ actual fun ModernInteractiveBrowserScreen(
                     }
                 },
                 modifier = Modifier
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
             )
 
             // WebView Container
@@ -170,7 +174,7 @@ actual fun ModernInteractiveBrowserScreen(
                             view.loadUrl(uiState.currentUrl)
                         }
                     },
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 )
 
                 DisposableEffect(webView) {
@@ -197,7 +201,7 @@ actual fun ModernInteractiveBrowserScreen(
                             .align(Alignment.TopCenter)
                             .fillMaxWidth(),
                         color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                     )
                 }
 
@@ -209,7 +213,7 @@ actual fun ModernInteractiveBrowserScreen(
                 uiState = uiState,
                 onElementSelectToggle = viewModel::toggleElementSelection,
                 onElementZapToggle = viewModel::toggleElementZapping,
-                onShowZapManager = viewModel::showZapManager
+                onShowZapManager = viewModel::showZapManager,
             )
         }
 
@@ -218,7 +222,7 @@ actual fun ModernInteractiveBrowserScreen(
             uiState = uiState,
             onDismiss = viewModel::showZapManager,
             onRemoveZappedElement = viewModel::removeZappedElement,
-            onClearAllZapped = viewModel::clearAllZappedElements
+            onClearAllZapped = viewModel::clearAllZappedElements,
         )
 
         // Parent selector overlay for refining targets
@@ -229,7 +233,7 @@ actual fun ModernInteractiveBrowserScreen(
                 SelectedElement(
                     selector = parent.selector,
                     description = parent.displayName,
-                    timestamp = parent.index.toLong()
+                    timestamp = parent.index.toLong(),
                 )
             }
             ?: uiState.pendingElementSelector
@@ -238,7 +242,7 @@ actual fun ModernInteractiveBrowserScreen(
                     SelectedElement(
                         selector = it,
                         description = uiState.pendingElementDescription,
-                        timestamp = 0L
+                        timestamp = 0L,
                     )
                 }
 
@@ -249,7 +253,7 @@ actual fun ModernInteractiveBrowserScreen(
             mode = uiState.pendingInteractionMode ?: uiState.interactionMode,
             onDismiss = viewModel::hideParentSelector,
             onSelectLevel = viewModel::selectParentAtIndex,
-            onConfirm = { viewModel.confirmParentSelection() }
+            onConfirm = { viewModel.confirmParentSelection() },
         )
 
         // Floating Action Button for Continue
@@ -259,7 +263,7 @@ actual fun ModernInteractiveBrowserScreen(
             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 112.dp)
+                .padding(end = 16.dp, bottom = 112.dp),
         ) {
             ExtendedFloatingActionButton(
                 onClick = {
@@ -270,30 +274,30 @@ actual fun ModernInteractiveBrowserScreen(
                             cookies = uiState.capturedCookies,
                             userAgent = uiState.userAgent,
                             selectedElements = uiState.selectedElements,
-                            zappedElements = uiState.zappedElements
-                        )
+                            zappedElements = uiState.zappedElements,
+                        ),
                     )
                 },
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                contentColor = MaterialTheme.colorScheme.onPrimary,
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null
+                    contentDescription = null,
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = androidx.compose.ui.res.stringResource(id = com.bernaferrari.changedetection.library.R.string.continue_label),
                     style = MaterialTheme.typography.labelLarge.copy(
-                        fontWeight = FontWeight.SemiBold
-                    )
+                        fontWeight = FontWeight.SemiBold,
+                    ),
                 )
             }
         }
 
         ModeOverlay(
             mode = uiState.interactionMode,
-            isVisible = showModeHint && !uiState.isLoading
+            isVisible = showModeHint && !uiState.isLoading,
         )
     }
 }
@@ -304,7 +308,7 @@ private fun BrowserControlsBar(
     isLoading: Boolean,
     webView: WebView?,
     onUrlSubmit: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var urlText by remember { mutableStateOf(currentUrl) }
     var isUrlEditing by remember { mutableStateOf(false) }
@@ -330,28 +334,28 @@ private fun BrowserControlsBar(
             .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         // Compact navigation buttons
         IconButton(
             onClick = { webView?.let { if (it.canGoBack()) it.goBack() } },
-            modifier = Modifier.size(40.dp)
+            modifier = Modifier.size(40.dp),
         ) {
             Icon(
                 Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
         IconButton(
             onClick = { webView?.let { if (it.canGoForward()) it.goForward() } },
-            modifier = Modifier.size(40.dp)
+            modifier = Modifier.size(40.dp),
         ) {
             Icon(
                 Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = "Forward",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
@@ -361,14 +365,14 @@ private fun BrowserControlsBar(
                 .weight(1f)
                 .height(44.dp),
             shape = RoundedCornerShape(22.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 // Lock/Globe icon
                 if (currentUrl.startsWith("https")) {
@@ -376,14 +380,14 @@ private fun BrowserControlsBar(
                         imageVector = Icons.Default.Lock,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
                     )
                 } else {
                     Icon(
                         Icons.Default.Language,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
                     )
                 }
 
@@ -396,14 +400,14 @@ private fun BrowserControlsBar(
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     ),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
                     keyboardActions = KeyboardActions(
                         onGo = {
                             submitUrl(urlText)
                             isUrlEditing = false
-                        }
+                        },
                     ),
                     decorationBox = { innerTextField ->
                         Box(modifier = Modifier.fillMaxWidth()) {
@@ -411,12 +415,12 @@ private fun BrowserControlsBar(
                                 Text(
                                     text = stringResource(id = R.string.enter_website_url_ellipsis),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                             innerTextField()
                         }
-                    }
+                    },
                 )
 
                 // Show loading or GO button
@@ -424,7 +428,7 @@ private fun BrowserControlsBar(
                     androidx.compose.material3.CircularProgressIndicator(
                         modifier = Modifier.size(16.dp),
                         strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 } else if (urlText != currentUrl && urlText.isNotBlank()) {
                     IconButton(
@@ -432,13 +436,13 @@ private fun BrowserControlsBar(
                             submitUrl(urlText)
                             isUrlEditing = false
                         },
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = "Go",
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(18.dp),
                         )
                     }
                 }
@@ -452,12 +456,12 @@ private fun BrowserControlsBar(
                     if (isLoading) it.stopLoading() else it.reload()
                 }
             },
-            modifier = Modifier.size(40.dp)
+            modifier = Modifier.size(40.dp),
         ) {
             Icon(
                 imageVector = if (isLoading) Icons.Default.Close else Icons.Default.Refresh,
                 contentDescription = if (isLoading) "Stop" else "Refresh",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -466,28 +470,28 @@ private fun BrowserControlsBar(
 @Composable
 private fun BoxScope.ModeOverlay(
     mode: InteractionMode,
-    isVisible: Boolean
+    isVisible: Boolean,
 ) {
     val overlayData = when (mode) {
         InteractionMode.ELEMENT_SELECT -> ModeOverlayData(
             icon = Icons.Default.TouchApp,
             accent = MaterialTheme.colorScheme.primary,
             title = stringResource(id = R.string.browser_mode_select_title),
-            subtitle = stringResource(id = R.string.browser_mode_select_subtitle)
+            subtitle = stringResource(id = R.string.browser_mode_select_subtitle),
         )
 
         InteractionMode.ELEMENT_ZAP -> ModeOverlayData(
             icon = Icons.Default.Block,
             accent = MaterialTheme.colorScheme.error,
             title = stringResource(id = R.string.browser_mode_zap_title),
-            subtitle = stringResource(id = R.string.browser_mode_zap_subtitle)
+            subtitle = stringResource(id = R.string.browser_mode_zap_subtitle),
         )
 
         InteractionMode.LOGIN_CAPTURE -> ModeOverlayData(
             icon = Icons.Default.Info,
             accent = MaterialTheme.colorScheme.tertiary,
             title = stringResource(id = R.string.browser_mode_login_title),
-            subtitle = stringResource(id = R.string.browser_mode_login_subtitle)
+            subtitle = stringResource(id = R.string.browser_mode_login_subtitle),
         )
 
         else -> null
@@ -499,23 +503,23 @@ private fun BoxScope.ModeOverlay(
         exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 }),
         modifier = Modifier
             .align(Alignment.BottomStart)
-            .padding(horizontal = 24.dp, vertical = 24.dp)
+            .padding(horizontal = 24.dp, vertical = 24.dp),
     ) {
         overlayData?.let { data ->
             Surface(
                 shape = RoundedCornerShape(22.dp),
                 tonalElevation = 6.dp,
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f)
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
             ) {
                 Row(
                     modifier = Modifier
                         .padding(horizontal = 18.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = data.accent.copy(alpha = 0.15f)
+                        color = data.accent.copy(alpha = 0.15f),
                     ) {
                         Icon(
                             imageVector = data.icon,
@@ -523,19 +527,19 @@ private fun BoxScope.ModeOverlay(
                             tint = data.accent,
                             modifier = Modifier
                                 .size(40.dp)
-                                .padding(8.dp)
+                                .padding(8.dp),
                         )
                     }
                     Column {
                         Text(
                             text = data.title,
                             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
                             text = data.subtitle,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -548,7 +552,7 @@ private data class ModeOverlayData(
     val icon: ImageVector,
     val accent: Color,
     val title: String,
-    val subtitle: String
+    val subtitle: String,
 )
 
 private fun setupWebView(webView: WebView, viewModel: InteractiveBrowserViewModel) {
@@ -574,7 +578,7 @@ private fun setupWebView(webView: WebView, viewModel: InteractiveBrowserViewMode
         // Add JavaScript interface for element interaction
         addJavascriptInterface(
             ModernElementInteractionInterface(viewModel),
-            "AndroidInterface"
+            "AndroidInterface",
         )
 
         webViewClient = object : WebViewClient() {
@@ -641,8 +645,7 @@ class ModernElementInteractionInterface(private val viewModel: InteractiveBrowse
     }
 }
 
-private fun getModernInteractionJavaScript(): String {
-    return """
+private fun getModernInteractionJavaScript(): String = """
         (function() {
             if (window.changeDetectionListenersAdded) {
                 window.setInteractionMode = setInteractionMode;
@@ -1036,5 +1039,4 @@ private fun getModernInteractionJavaScript(): String {
             addElementInteraction();
             console.log('✅ Change Detection browser integration loaded successfully');
         })();
-    """.trimIndent()
-}
+""".trimIndent()

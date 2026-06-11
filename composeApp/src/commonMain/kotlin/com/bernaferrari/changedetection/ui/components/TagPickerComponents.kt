@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.components
 
 import androidx.compose.foundation.layout.*
@@ -14,18 +18,18 @@ fun TagPickerList(
     tags: List<String>,
     selectedTags: Set<String>,
     onTagToggled: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     LazyRow(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         items(tags) { tag ->
             TagChip(
                 name = tag,
                 isSelected = tag in selectedTags,
-                onClick = { onTagToggled(tag) }
+                onClick = { onTagToggled(tag) },
             )
         }
     }
@@ -37,7 +41,7 @@ fun TagChip(
     name: String,
     isSelected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     FilterChip(
         selected = isSelected,
@@ -52,9 +56,12 @@ fun TagChip(
         border = FilterChipDefaults.filterChipBorder(
             enabled = true,
             selected = isSelected,
-            borderColor = if (isSelected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.outline,
-            selectedBorderColor = MaterialTheme.colorScheme.primary
-        )
+            borderColor = if (isSelected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.outline
+            },
+            selectedBorderColor = MaterialTheme.colorScheme.primary,
+        ),
     )
 }

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.addedit
 
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -12,7 +16,7 @@ fun AddEditScreen(
     selectedUrl: String? = null,
     onNavigateUp: () -> Unit,
     onSaveComplete: () -> Unit,
-    viewModel: AddEditViewModel = koinViewModel { parametersOf(siteId) }
+    viewModel: AddEditViewModel = koinViewModel { parametersOf(siteId) },
 ) {
     // Forward to the new, fully-featured flow for consistency
     AddEditFlow(
@@ -20,6 +24,6 @@ fun AddEditScreen(
         selectedUrl = selectedUrl,
         onNavigateUp = onNavigateUp,
         onSaveComplete = onSaveComplete,
-        viewModel = viewModel
+        viewModel = viewModel,
     )
 }

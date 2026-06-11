@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.repo
 
 import kotlinx.coroutines.Dispatchers
@@ -14,5 +18,5 @@ import kotlin.coroutines.CoroutineContext
  */
 open class AppExecutors constructor(
     val ioContext: CoroutineContext = Dispatchers.Default,
-    val uiContext: CoroutineContext = Dispatchers.Main
+    val uiContext: CoroutineContext = Dispatchers.Main,
 )

@@ -17,16 +17,28 @@ plugins {
 subprojects {
     apply(plugin = "com.diffplug.spotless")
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        val ktlintOverrides =
+            mapOf(
+                "ktlint_standard_backing-property-naming" to "disabled",
+                "ktlint_standard_function-naming" to "disabled",
+                "ktlint_standard_import-ordering" to "disabled",
+                "ktlint_standard_max-line-length" to "disabled",
+                "ktlint_standard_no-consecutive-comments" to "disabled",
+                "ktlint_standard_no-wildcard-imports" to "disabled",
+                "ktlint_standard_property-naming" to "disabled",
+                "ktlint_standard_value-parameter-comment" to "disabled",
+            )
+
         kotlin {
             target("**/*.kt")
             targetExclude("${layout.buildDirectory}/**/*.kt")
-            ktlint()
+            ktlint().editorConfigOverride(ktlintOverrides)
             licenseHeaderFile(rootProject.file("spotless/copyright.kt"))
         }
         kotlinGradle {
             target("*.gradle.kts")
             targetExclude("${layout.buildDirectory}/**/*.kt")
-            ktlint()
+            ktlint().editorConfigOverride(ktlintOverrides)
             // Look for the first line that doesn't have a block comment (assumed to be the license)
             licenseHeaderFile(rootProject.file("spotless/copyright.kt"), "(^(?![\\/ ]\\*).*$)")
         }

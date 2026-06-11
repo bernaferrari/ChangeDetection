@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.repo.source.local
 
 import androidx.paging.PagingSource
@@ -8,15 +12,14 @@ import androidx.room.Query
 import com.bernaferrari.changedetection.repo.Snap
 import kotlinx.coroutines.flow.Flow
 
-
 data class ContentTypeCount(
     val contentType: String,
-    val count: Int
+    val count: Int,
 )
 
 data class ContentDuplicationStats(
     val unique_content: Int,
-    val total_snaps: Int
+    val total_snaps: Int,
 ) {
     val duplicationRate: Float get() = if (total_snaps > 0) 1f - (unique_content.toFloat() / total_snaps) else 0f
 }
@@ -28,7 +31,6 @@ data class ContentDuplicationStats(
  */
 @Dao
 interface SnapsDao {
-
     /**
      * Select all snap metadata (which is everything except for its value) by siteId.
      *
@@ -56,7 +58,6 @@ interface SnapsDao {
     @Query("SELECT contentType FROM snaps WHERE siteId = :siteId GROUP BY contentType")
     suspend fun getContentTypesParams(siteId: String): List<String>
 
-
     /**
      * Select all snap by siteId.
      *
@@ -64,7 +65,10 @@ interface SnapsDao {
      * @return all snaps for the siteId.
      */
     @Query("SELECT * FROM snaps WHERE siteId = :siteId AND contentType = :contentType ORDER BY timestamp DESC")
-    suspend fun getAllSnapsForSiteIdAndContentType(siteId: String, contentType: String): List<Snap>
+    suspend fun getAllSnapsForSiteIdAndContentType(
+        siteId: String,
+        contentType: String,
+    ): List<Snap>
 
     /**
      * Select a snap by url
@@ -74,7 +78,6 @@ interface SnapsDao {
      */
     @Query("SELECT * FROM snaps WHERE snapId = :id")
     suspend fun getSnapById(id: String): Snap?
-
 
     /**
      * Select the most recent snap metadata (which is everything except for its value) by siteId
@@ -86,7 +89,10 @@ interface SnapsDao {
     suspend fun getLastSnapForSiteId(siteId: String): Snap?
 
     @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT :limit")
-    suspend fun getLastNSnapsForSiteId(siteId: String, limit: Int): List<Snap>
+    suspend fun getLastNSnapsForSiteId(
+        siteId: String,
+        limit: Int,
+    ): List<Snap>
 
     /**
      * Select the most recent snap metadata (which is everything except for its value) by siteId
@@ -97,7 +103,6 @@ interface SnapsDao {
     @Query("SELECT contentSize FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 100")
     suspend fun getLastSnapsSize(siteId: String): List<Int>
 
-
     /**
      * Get all snaps
      *
@@ -105,7 +110,6 @@ interface SnapsDao {
      */
     @Query("SELECT * FROM snaps")
     suspend fun getAllSnaps(): List<Snap>
-
 
     /**
      * Delete a snap by url
@@ -115,13 +119,11 @@ interface SnapsDao {
     @Query("DELETE FROM snaps WHERE snapId = :snapId")
     suspend fun deleteSnapById(snapId: String)
 
-
     /**
      * Delete all snaps by siteId.
      */
     @Query("DELETE FROM snaps WHERE siteId = :id")
     suspend fun deleteAllSnapsForSite(id: String)
-
 
     /**
      * Insert a snap in the database. If the snap already exists, replace it.
@@ -131,13 +133,11 @@ interface SnapsDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertSnap(snap: Snap)
 
-
     /**
      * Delete all snaps.
      */
     @Query("DELETE FROM snaps")
     suspend fun deleteTasks()
-
 
     // Optimized: Count snaps for sites with changes (more than 1 snap)
     @Query("SELECT COUNT(*) FROM snaps WHERE siteId IN (SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 1)")
@@ -158,10 +158,9 @@ interface SnapsDao {
             HAVING COUNT(*) > 1
         ) s2 ON s1.siteId = s2.siteId AND s1.timestamp = s2.max_timestamp
         ORDER BY s1.timestamp DESC
-    """
+    """,
     )
     suspend fun getLatestSnapsFromSitesWithChangesList(): List<Snap>
-
 
     /**
      * Select all snap by siteId.
@@ -170,8 +169,10 @@ interface SnapsDao {
      * @return all snaps for the siteId.
      */
     @Query("SELECT * FROM snaps WHERE siteId = :siteId AND contentType LIKE :filter ORDER BY timestamp DESC")
-    fun getSnapsWithChange(siteId: String, filter: String): Flow<List<Snap>>
-
+    fun getSnapsWithChange(
+        siteId: String,
+        filter: String,
+    ): Flow<List<Snap>>
 
     /**
      * Select all snap by siteId.
@@ -182,9 +183,11 @@ interface SnapsDao {
     @Query("SELECT * FROM snaps ORDER BY timestamp DESC")
     suspend fun getSnapsWithChange2(): List<Snap>
 
-
     @Query("SELECT count(*) FROM snaps WHERE siteId = :siteId AND contentType LIKE :filter ORDER BY timestamp DESC")
-    fun countSnapsWithChange(siteId: String, filter: String): Flow<Int>
+    fun countSnapsWithChange(
+        siteId: String,
+        filter: String,
+    ): Flow<Int>
 
     // Fast content comparison using hashes
     @Query("SELECT contentHash FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 1")
@@ -195,7 +198,10 @@ interface SnapsDao {
 
     // Check if content with same hash already exists
     @Query("SELECT COUNT(*) FROM snaps WHERE siteId = :siteId AND contentHash = :hash")
-    suspend fun hasContentWithHash(siteId: String, hash: String): Int
+    suspend fun hasContentWithHash(
+        siteId: String,
+        hash: String,
+    ): Int
 
     // Get snaps with different content hashes (actual changes)
     @Query(
@@ -209,7 +215,7 @@ interface SnapsDao {
             AND s2.timestamp < s1.timestamp
         )
         ORDER BY timestamp DESC
-    """
+    """,
     )
     suspend fun getUniqueContentSnaps(siteId: String): List<Snap>
 
@@ -233,7 +239,7 @@ interface SnapsDao {
             WHERE s2.siteId = s1.siteId
         )
         ORDER BY s1.timestamp DESC
-    """
+    """,
     )
     suspend fun getAllMostRecentSnaps(): List<Snap>
 
@@ -243,5 +249,4 @@ interface SnapsDao {
      */
     @Query("SELECT * FROM snaps WHERE siteId IN (SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 1) ORDER BY timestamp DESC")
     fun getSnapsPagedSource(): PagingSource<Int, Snap>
-
 }

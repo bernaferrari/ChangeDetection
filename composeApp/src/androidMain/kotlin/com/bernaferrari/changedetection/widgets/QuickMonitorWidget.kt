@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.widgets
 
 import android.content.Context
@@ -64,8 +68,11 @@ class QuickMonitorWidget : GlanceAppWidget() {
         val prefs = runBlocking { context.widgetDataStore.data.first() }
         val isActive = prefs[ACTIVE] ?: false
         val siteCount = (prefs[SITE_IDS] ?: "").split(',').filter { it.isNotBlank() }.size
-        val subtitle = if (isActive) context.getString(R.string.quick_monitor_notification_subtitle, siteCount, 15)
-        else context.getString(R.string.empty_add_site_hint)
+        val subtitle = if (isActive) {
+            context.getString(R.string.quick_monitor_notification_subtitle, siteCount, 15)
+        } else {
+            context.getString(R.string.empty_add_site_hint)
+        }
 
         val backgroundColor = if (isActive) ColorProvider(Color(0xFFEEF0FF)) else GlanceTheme.colors.background
         val headerTextColor = if (isActive) ColorProvider(Color(0xFF1D2147)) else GlanceTheme.colors.onBackground
@@ -77,17 +84,17 @@ class QuickMonitorWidget : GlanceAppWidget() {
                 .fillMaxSize()
                 .appWidgetBackground()
                 .background(backgroundColor)
-                .padding(16.dp)
+                .padding(16.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
                     provider = ImageProvider(R.mipmap.ic_launcher),
                     contentDescription = null,
-                    modifier = GlanceModifier.padding(end = 8.dp)
+                    modifier = GlanceModifier.padding(end = 8.dp),
                 )
                 Text(
                     text = context.getString(R.string.quick_monitor_title),
-                    style = TextStyle(fontWeight = FontWeight.Bold, color = headerTextColor)
+                    style = TextStyle(fontWeight = FontWeight.Bold, color = headerTextColor),
                 )
             }
 
@@ -96,7 +103,7 @@ class QuickMonitorWidget : GlanceAppWidget() {
             if (isActive) {
                 Text(
                     text = context.getString(R.string.quick_monitor_banner_live_badge),
-                    style = TextStyle(color = accentColor, fontWeight = FontWeight.Medium)
+                    style = TextStyle(color = accentColor, fontWeight = FontWeight.Medium),
                 )
             }
 
@@ -104,9 +111,9 @@ class QuickMonitorWidget : GlanceAppWidget() {
                 text = subtitle,
                 style = TextStyle(
                     color = subtitleColor,
-                    fontStyle = if (isActive) FontStyle.Normal else FontStyle.Italic
+                    fontStyle = if (isActive) FontStyle.Normal else FontStyle.Italic,
                 ),
-                modifier = GlanceModifier.padding(top = 4.dp, bottom = 12.dp)
+                modifier = GlanceModifier.padding(top = 4.dp, bottom = 12.dp),
             )
 
             Row {
@@ -116,12 +123,12 @@ class QuickMonitorWidget : GlanceAppWidget() {
                         modifier = GlanceModifier
                             .padding(end = 12.dp)
                             .clickable(actionRunCallback<WidgetExtendAction>()),
-                        style = TextStyle(color = accentColor, fontWeight = FontWeight.Medium)
+                        style = TextStyle(color = accentColor, fontWeight = FontWeight.Medium),
                     )
                     Text(
                         text = context.getString(R.string.action_stop_monitoring),
                         modifier = GlanceModifier.clickable(actionRunCallback<WidgetStopAction>()),
-                        style = TextStyle(color = GlanceTheme.colors.error, fontWeight = FontWeight.Medium)
+                        style = TextStyle(color = GlanceTheme.colors.error, fontWeight = FontWeight.Medium),
                     )
                 } else {
                     Text(
@@ -130,11 +137,11 @@ class QuickMonitorWidget : GlanceAppWidget() {
                             actionStartActivity(
                                 Intent(
                                     context,
-                                    MainActivityProvider.getMainActivityClass()
-                                )
-                            )
+                                    MainActivityProvider.getMainActivityClass(),
+                                ),
+                            ),
                         ),
-                        style = TextStyle(color = accentColor, fontWeight = FontWeight.Medium)
+                        style = TextStyle(color = accentColor, fontWeight = FontWeight.Medium),
                     )
                 }
             }
