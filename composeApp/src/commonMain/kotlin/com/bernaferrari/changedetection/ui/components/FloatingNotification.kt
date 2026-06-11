@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
@@ -38,9 +42,9 @@ fun FloatingNotification(
     modifier: Modifier = Modifier,
     shape: Shape = CircleShape,
     containerColor: Color = MaterialTheme.colorScheme.inverseSurface,
-    contentColor: Color = MaterialTheme.colorScheme.inverseOnSurface
+    contentColor: Color = MaterialTheme.colorScheme.inverseOnSurface,
 ) {
-    // Note: SnackbarHost handles the visibility/animation usually, 
+    // Note: SnackbarHost handles the visibility/animation usually,
     // but if we want custom entrance, we wraps it.
     // However, SnackbarHost usually fades in/out the content.
     // We'll rely on SnackbarHost's placement but style the box.
@@ -52,19 +56,19 @@ fun FloatingNotification(
                 elevation = 8.dp,
                 shape = shape,
                 spotColor = Color.Black.copy(alpha = 0.2f),
-                ambientColor = Color.Black.copy(alpha = 0.2f)
+                ambientColor = Color.Black.copy(alpha = 0.2f),
             )
             .background(containerColor, shape)
-            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = Icons.Default.Info, // Could use visuals.actionLabel to determine icon?
                 contentDescription = null,
                 tint = contentColor,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -72,7 +76,7 @@ fun FloatingNotification(
             Text(
                 text = snackbarData.visuals.message,
                 color = contentColor,
-                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium)
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
             )
         }
     }

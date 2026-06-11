@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.onboarding
 
 import androidx.compose.foundation.background
@@ -63,7 +67,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun OnboardingScreen(
     onOnboardingComplete: () -> Unit,
-    onSkip: () -> Unit
+    onSkip: () -> Unit,
 ) {
     val pagerState = rememberPagerState(pageCount = { onboardingPages.size })
     val haptic = LocalHapticFeedback.current
@@ -76,21 +80,21 @@ fun OnboardingScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 24.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.End,
             ) {
                 TextButton(
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onSkip()
-                    }
+                    },
                 ) {
                     Text(
                         text = stringResource(Res.string.skip),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
             }
@@ -101,13 +105,13 @@ fun OnboardingScreen(
                 badge = stringResource(
                     Res.string.onboarding_badge_step,
                     currentPage + 1,
-                    onboardingPages.size
+                    onboardingPages.size,
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             CanvasSectionHeader(
-                title = stringResource(Res.string.onboarding_section_title)
+                title = stringResource(Res.string.onboarding_section_title),
             )
 
             HorizontalPager(
@@ -115,20 +119,20 @@ fun OnboardingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                contentPadding = PaddingValues(vertical = 8.dp)
+                contentPadding = PaddingValues(vertical = 8.dp),
             ) { pageIndex ->
                 OnboardingPage(page = onboardingPages[pageIndex])
             }
 
             OnboardingIndicators(
                 total = onboardingPages.size,
-                current = currentPage
+                current = currentPage,
             )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (currentPage > 0) {
                     TextButton(
@@ -137,11 +141,11 @@ fun OnboardingScreen(
                             scope.launch {
                                 pagerState.animateScrollToPage(currentPage - 1)
                             }
-                        }
+                        },
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null
+                            contentDescription = null,
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(text = stringResource(Res.string.back))
@@ -161,7 +165,7 @@ fun OnboardingScreen(
                                 pagerState.animateScrollToPage(currentPage + 1)
                             }
                         }
-                    }
+                    },
                 )
             }
         }
@@ -170,7 +174,7 @@ fun OnboardingScreen(
 
 @Composable
 private fun OnboardingPage(
-    page: OnboardingPageData
+    page: OnboardingPageData,
 ) {
     Card(
         modifier = Modifier
@@ -178,39 +182,39 @@ private fun OnboardingPage(
             .padding(vertical = 8.dp),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
-        )
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
+        ),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             Box(
                 modifier = Modifier
                     .size(72.dp)
                     .clip(CircleShape)
                     .background(page.iconBackgroundColor.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = page.icon,
                     contentDescription = null,
                     tint = page.iconBackgroundColor,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(32.dp),
                 )
             }
 
             Text(
                 text = stringResource(page.titleRes),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             )
 
             Text(
                 text = stringResource(page.descriptionRes),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             // Highlights feature removed - stringArrayResource type mismatch
@@ -224,26 +228,26 @@ private fun HighlightRow(text: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Box(
             modifier = Modifier
                 .size(32.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(16.dp),
             )
         }
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -253,7 +257,7 @@ private fun OnboardingIndicators(total: Int, current: Int) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         repeat(total) { index ->
             val isActive = index == current
@@ -268,7 +272,7 @@ private fun OnboardingIndicators(total: Int, current: Int) {
                     .height(6.dp)
                     .width(width)
                     .clip(RoundedCornerShape(3.dp))
-                    .background(color)
+                    .background(color),
             )
         }
     }
@@ -277,10 +281,10 @@ private fun OnboardingIndicators(total: Int, current: Int) {
 @Composable
 private fun OnboardingActionButton(
     isLastPage: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val buttonText = stringResource(
-        if (isLastPage) Res.string.onboarding_button_get_started else Res.string.continue_label
+        if (isLastPage) Res.string.onboarding_button_get_started else Res.string.continue_label,
     )
     val buttonIcon = if (isLastPage) Icons.Default.RocketLaunch else Icons.AutoMirrored.Filled.ArrowForward
 
@@ -292,18 +296,18 @@ private fun OnboardingActionButton(
         shape = RoundedCornerShape(28.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
-        )
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+        ),
     ) {
         Icon(
             imageVector = buttonIcon,
             contentDescription = null,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(20.dp),
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = buttonText,
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold)
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
         )
     }
 }
@@ -314,7 +318,7 @@ data class OnboardingPageData(
     val iconBackgroundColor: Color,
     val titleRes: StringResource,
     val descriptionRes: StringResource,
-    val highlightsRes: StringResource? = null // Using StringResource since array resource support varies in KMP libraries, but Compose Multiplatform Resource supports arrays? Checking... Actually `stringArrayResource` takes a StringResource in newer versions or specific array resource type. Let's assume generic StringResource for now or check imports.
+    val highlightsRes: StringResource? = null, // Using StringResource since array resource support varies in KMP libraries, but Compose Multiplatform Resource supports arrays? Checking... Actually `stringArrayResource` takes a StringResource in newer versions or specific array resource type. Let's assume generic StringResource for now or check imports.
     // Wait, `stringArrayResource` usually takes `StringResource` which points to an array. Let's verify.
 )
 
@@ -359,34 +363,34 @@ val onboardingPages = listOf(
         iconColor = Color.White,
         iconBackgroundColor = Color(0xFF4CAF50),
         titleRes = Res.string.onboarding_title_element_selection,
-        descriptionRes = Res.string.onboarding_description_element_selection
+        descriptionRes = Res.string.onboarding_description_element_selection,
     ),
     OnboardingPageData(
         icon = Icons.Default.Block,
         iconColor = Color.White,
         iconBackgroundColor = Color(0xFFFF5722),
         titleRes = Res.string.onboarding_title_zap,
-        descriptionRes = Res.string.onboarding_description_zap
+        descriptionRes = Res.string.onboarding_description_zap,
     ),
     OnboardingPageData(
         icon = Icons.Default.Bolt,
         iconColor = Color.White,
         iconBackgroundColor = Color(0xFFFF9800),
         titleRes = Res.string.onboarding_title_turbo,
-        descriptionRes = Res.string.onboarding_description_turbo
+        descriptionRes = Res.string.onboarding_description_turbo,
     ),
     OnboardingPageData(
         icon = Icons.Default.Analytics,
         iconColor = Color.White,
         iconBackgroundColor = Color(0xFF9C27B0),
         titleRes = Res.string.onboarding_title_analytics,
-        descriptionRes = Res.string.onboarding_description_analytics
+        descriptionRes = Res.string.onboarding_description_analytics,
     ),
     OnboardingPageData(
         icon = Icons.Default.RocketLaunch,
         iconColor = Color.White,
         iconBackgroundColor = Color(0xFF673AB7),
         titleRes = Res.string.onboarding_title_ready,
-        descriptionRes = Res.string.onboarding_description_ready
-    )
+        descriptionRes = Res.string.onboarding_description_ready,
+    ),
 )

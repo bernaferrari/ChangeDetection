@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.logs
 
 import androidx.lifecycle.ViewModel
@@ -25,54 +29,65 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 sealed class LogUiModel {
-    data class Item(val snap: Snap) : LogUiModel()
-    data class Header(val date: String) : LogUiModel()
+    data class Item(
+        val snap: Snap,
+    ) : LogUiModel()
+
+    data class Header(
+        val date: String,
+    ) : LogUiModel()
 }
 
 class LogsViewModel(
     private val sitesDao: SitesDao,
-    private val snapsDao: SnapsDao
+    private val snapsDao: SnapsDao,
 ) : ViewModel() {
-
-    val siteMap: StateFlow<Map<String, Site>> = flow<Map<String, Site>> {
-        emit(withContext(Dispatchers.IO) {
-            sitesDao.getSitesList().associateBy { it.id }
-        })
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyMap()
-    )
-
-    val versionsCount: StateFlow<Int> = snapsDao.countNumberOfChanges()
-        .stateIn(
+    val siteMap: StateFlow<Map<String, Site>> =
+        flow<Map<String, Site>> {
+            emit(
+                withContext(Dispatchers.IO) {
+                    sitesDao.getSitesList().associateBy { it.id }
+                },
+            )
+        }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = 0
+            initialValue = emptyMap(),
         )
 
-    val pagedSnaps: Flow<PagingData<LogUiModel>> = Pager(
-        config = PagingConfig(
-            pageSize = 20,
-            prefetchDistance = 10,
-            enablePlaceholders = false
-        ),
-        pagingSourceFactory = { snapsDao.getSnapsPagedSource() }
-    ).flow
-        .map { pagingData ->
-            pagingData.map { LogUiModel.Item(it) }
-                .insertSeparators { before: LogUiModel.Item?, after: LogUiModel.Item? ->
-                    val beforeDate = before?.snap?.timestamp?.let { formatTimestamp(it) }
-                    val afterDate = after?.snap?.timestamp?.let { formatTimestamp(it) }
+    val versionsCount: StateFlow<Int> =
+        snapsDao
+            .countNumberOfChanges()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = 0,
+            )
 
-                    if (afterDate != null && beforeDate != afterDate) {
-                        LogUiModel.Header(afterDate)
-                    } else {
-                        null
+    val pagedSnaps: Flow<PagingData<LogUiModel>> =
+        Pager(
+            config =
+            PagingConfig(
+                pageSize = 20,
+                prefetchDistance = 10,
+                enablePlaceholders = false,
+            ),
+            pagingSourceFactory = { snapsDao.getSnapsPagedSource() },
+        ).flow
+            .map { pagingData ->
+                pagingData
+                    .map { LogUiModel.Item(it) }
+                    .insertSeparators { before: LogUiModel.Item?, after: LogUiModel.Item? ->
+                        val beforeDate = before?.snap?.timestamp?.let { formatTimestamp(it) }
+                        val afterDate = after?.snap?.timestamp?.let { formatTimestamp(it) }
+
+                        if (afterDate != null && beforeDate != afterDate) {
+                            LogUiModel.Header(afterDate)
+                        } else {
+                            null
+                        }
                     }
-                }
-        }
-        .cachedIn(viewModelScope)
+            }.cachedIn(viewModelScope)
 
     fun removeSnap(snapId: String) {
         viewModelScope.launch(Dispatchers.IO) {

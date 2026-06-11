@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.platform
 
 import android.content.Context
@@ -6,47 +10,60 @@ import androidx.core.content.FileProvider
 import io.github.aakira.napier.Napier
 import java.io.File
 
-class AndroidShareManager(private val context: Context) : ShareManager {
-
-    override fun shareText(text: String, title: String) {
+class AndroidShareManager(
+    private val context: Context,
+) : ShareManager {
+    override fun shareText(
+        text: String,
+        title: String,
+    ) {
         try {
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(Intent.EXTRA_TEXT, text)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            val chooser = Intent.createChooser(intent, title).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
+            val intent =
+                Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, text)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            val chooser =
+                Intent.createChooser(intent, title).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
             context.startActivity(chooser)
         } catch (e: Exception) {
             Napier.e("Failed to share text: ${e.message}")
         }
     }
 
-    override fun shareFile(fileName: String, text: String, title: String) {
+    override fun shareFile(
+        fileName: String,
+        text: String,
+        title: String,
+    ) {
         try {
             val cacheDir = File(context.cacheDir, "shares")
             cacheDir.mkdirs()
             val file = File(cacheDir, fileName)
             file.writeText(text)
 
-            val uri = FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.provider",
-                file
-            )
+            val uri =
+                FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.provider",
+                    file,
+                )
 
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(Intent.EXTRA_STREAM, uri)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
+            val intent =
+                Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
 
-            val chooser = Intent.createChooser(intent, title).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
+            val chooser =
+                Intent.createChooser(intent, title).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
             context.startActivity(chooser)
         } catch (e: Exception) {
             Napier.e("Failed to share file: ${e.message}")

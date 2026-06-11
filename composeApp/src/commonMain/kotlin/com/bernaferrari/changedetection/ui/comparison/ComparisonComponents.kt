@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.comparison
 
 import androidx.compose.foundation.background
@@ -40,11 +44,14 @@ data class ChangeStats(
     val added: Int,
     val removed: Int,
     val modified: Int,
-    val unchanged: Int
+    val unchanged: Int,
 )
 
 enum class DiffLineType {
-    UNCHANGED, ADDED, REMOVED, MODIFIED
+    UNCHANGED,
+    ADDED,
+    REMOVED,
+    MODIFIED,
 }
 
 fun formatBytes(bytes: Int): String {
@@ -58,18 +65,18 @@ fun formatBytes(bytes: Int): String {
 @Composable
 fun ComparisonStatsRow(
     stats: ChangeStats,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (stats.added > 0) {
             ChangeStatChip(
                 count = stats.added,
                 label = "+",
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.primary
+                contentColor = MaterialTheme.colorScheme.primary,
             )
         }
         if (stats.removed > 0) {
@@ -77,7 +84,7 @@ fun ComparisonStatsRow(
                 count = stats.removed,
                 label = "-",
                 containerColor = MaterialTheme.colorScheme.errorContainer,
-                contentColor = MaterialTheme.colorScheme.error
+                contentColor = MaterialTheme.colorScheme.error,
             )
         }
         if (stats.modified > 0) {
@@ -85,7 +92,7 @@ fun ComparisonStatsRow(
                 count = stats.modified,
                 label = "~",
                 containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                contentColor = MaterialTheme.colorScheme.tertiary
+                contentColor = MaterialTheme.colorScheme.tertiary,
             )
         }
     }
@@ -96,16 +103,16 @@ fun ChangeStatChip(
     count: Int,
     label: String,
     containerColor: Color,
-    contentColor: Color
+    contentColor: Color,
 ) {
     SuggestionChip(
         onClick = { },
         label = { Text("$label$count") },
         colors = SuggestionChipDefaults.suggestionChipColors(
             containerColor = containerColor,
-            labelColor = contentColor
+            labelColor = contentColor,
         ),
-        border = null
+        border = null,
     )
 }
 
@@ -122,7 +129,7 @@ fun calculateChangeStats(oldLines: List<String>, newLines: List<String>): Change
         added = added,
         removed = removed,
         modified = modified,
-        unchanged = unchanged
+        unchanged = unchanged,
     )
 }
 
@@ -132,26 +139,29 @@ fun ComparisonPairCard(
     snap2: Snap,
     pairIndex: Int,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
     ) {
         Column(
             modifier = Modifier
                 .background(
-                    if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                    else Color.Transparent
+                    if (isSelected) {
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                    } else {
+                        Color.Transparent
+                    },
                 )
-                .padding(16.dp)
+                .padding(16.dp),
         ) {
             Text(
                 text = stringResource(Res.string.comparison_pair_title, pairIndex + 1, pairIndex + 2),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
             Spacer(modifier = Modifier.height(4.dp))
             val diff = kotlin.math.abs(snap1.timestamp - snap2.timestamp)
@@ -168,33 +178,33 @@ fun ComparisonPairCard(
             Text(
                 text = stringResource(Res.string.comparison_pair_time_diff, diffStr),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Column {
                     Text(
                         text = stringResource(Res.string.older_label, formatTimestamp(snap2.timestamp)),
-                        style = MaterialTheme.typography.labelSmall
+                        style = MaterialTheme.typography.labelSmall,
                     )
                     Text(
                         text = formatBytes(snap2.contentSize),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = stringResource(Res.string.newer_label, formatTimestamp(snap1.timestamp)),
-                        style = MaterialTheme.typography.labelSmall
+                        style = MaterialTheme.typography.labelSmall,
                     )
                     Text(
                         text = formatBytes(snap1.contentSize),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
             }
@@ -205,52 +215,52 @@ fun ComparisonPairCard(
 @Composable
 fun SnapshotCard(
     snap: Snap,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Box(
                 modifier = Modifier
                     .size(40.dp)
                     .background(
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                        shape = CircleShape
+                        shape = CircleShape,
                     ),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Default.Schedule,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = formatTimestamp(snap.timestamp),
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
                         text = stringResource(Res.string.type_label, snap.contentType),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
                         text = stringResource(Res.string.size_label, formatBytes(snap.contentSize)),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -263,31 +273,31 @@ fun DiffLine(
     lineNumber: Int,
     content: String,
     type: DiffLineType,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val (prefix, backgroundColor, textColor) = when (type) {
         DiffLineType.UNCHANGED -> Triple(
             "  ",
             Color.Transparent,
-            MaterialTheme.colorScheme.onSurfaceVariant
+            MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         DiffLineType.ADDED -> Triple(
             "+ ",
             MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-            MaterialTheme.colorScheme.primary
+            MaterialTheme.colorScheme.primary,
         )
 
         DiffLineType.REMOVED -> Triple(
             "- ",
             MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
-            MaterialTheme.colorScheme.error
+            MaterialTheme.colorScheme.error,
         )
 
         DiffLineType.MODIFIED -> Triple(
             "~ ",
             MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
-            MaterialTheme.colorScheme.tertiary
+            MaterialTheme.colorScheme.tertiary,
         )
     }
 
@@ -296,16 +306,16 @@ fun DiffLine(
             .fillMaxWidth()
             .background(backgroundColor)
             .padding(horizontal = 4.dp, vertical = 2.dp),
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.Top,
     ) {
         // Line number
         Text(
             text = lineNumber.toString().padStart(4),
             style = MaterialTheme.typography.bodySmall.copy(
-                fontFamily = FontFamily.Monospace
+                fontFamily = FontFamily.Monospace,
             ),
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-            modifier = Modifier.padding(end = 8.dp)
+            modifier = Modifier.padding(end = 8.dp),
         )
 
         // Prefix indicator
@@ -313,19 +323,19 @@ fun DiffLine(
             text = prefix,
             style = MaterialTheme.typography.bodySmall.copy(
                 fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             ),
             color = textColor,
-            modifier = Modifier.padding(end = 4.dp)
+            modifier = Modifier.padding(end = 4.dp),
         )
 
         // Content
         Text(
             text = content,
             style = MaterialTheme.typography.bodySmall.copy(
-                fontFamily = FontFamily.Monospace
+                fontFamily = FontFamily.Monospace,
             ),
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.sync
 
 import android.app.Notification
@@ -33,7 +37,9 @@ import java.io.ByteArrayOutputStream
  * in an active Activity or a Foreground Service (with some caveats),
  * and they require the Main Thread.
  */
-class ScreenshotService : Service(), KoinComponent {
+class ScreenshotService :
+    Service(),
+    KoinComponent {
 
     private val syncEngine: SyncEngine by inject()
     private val sitesDao: SitesDao by inject()
@@ -135,7 +141,7 @@ class ScreenshotService : Service(), KoinComponent {
             override fun onReceivedError(
                 view: WebView?,
                 request: android.webkit.WebResourceRequest?,
-                error: android.webkit.WebResourceError?
+                error: android.webkit.WebResourceError?,
             ) {
                 val description = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     error?.description?.toString() ?: "Unknown error"
@@ -198,7 +204,6 @@ class ScreenshotService : Service(), KoinComponent {
                     processNext()
                 }
             }
-
         } catch (e: Exception) {
             Napier.e("Failed to capture screenshot", e)
             handleError(site, e.message ?: "Unknown capture error")

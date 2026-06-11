@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection
 
 import android.Manifest
@@ -19,12 +23,12 @@ import com.bernaferrari.changedetection.ui.main.MainViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 class MainActivity : ComponentActivity() {
-
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        // Permission granted or denied - notifications will work if granted
-    }
+    private val requestPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission(),
+        ) { isGranted: Boolean ->
+            // Permission granted or denied - notifications will work if granted
+        }
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,7 +42,7 @@ class MainActivity : ComponentActivity() {
             when {
                 ContextCompat.checkSelfPermission(
                     this,
-                    Manifest.permission.POST_NOTIFICATIONS
+                    Manifest.permission.POST_NOTIFICATIONS,
                 ) == PackageManager.PERMISSION_GRANTED -> {
                     // Permission already granted
                 }
@@ -50,11 +54,12 @@ class MainActivity : ComponentActivity() {
         }
 
         // Read deep link extras from notification
-        val initialSiteId = if (intent.getBooleanExtra("openComparison", false)) {
-            intent.getStringExtra("siteId")
-        } else {
-            null
-        }
+        val initialSiteId =
+            if (intent.getBooleanExtra("openComparison", false)) {
+                intent.getStringExtra("siteId")
+            } else {
+                null
+            }
 
         setContent {
             val windowSizeClass = calculateWindowSizeClass(this)
@@ -63,7 +68,8 @@ class MainActivity : ComponentActivity() {
 
             ChangeDetectionRootApp(
                 windowSizeClass = windowSizeClass,
-                platformActions = PlatformActions(
+                platformActions =
+                PlatformActions(
                     openUrl = { url -> openUrl(context, url) },
                     openEmail = { email, subject -> openEmail(context, email, subject) },
                     startTurbo = { siteIds, intervalSeconds ->
@@ -72,15 +78,18 @@ class MainActivity : ComponentActivity() {
                     stopTurbo = {
                         QuickMonitorService.stop(context)
                         mainViewModel.stopQuickMonitor()
-                    }
+                    },
                 ),
-                initialSiteId = initialSiteId
+                initialSiteId = initialSiteId,
             )
         }
     }
 }
 
-private fun openUrl(context: android.content.Context, url: String) {
+private fun openUrl(
+    context: android.content.Context,
+    url: String,
+) {
     try {
         val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
         context.startActivity(intent)
@@ -89,11 +98,16 @@ private fun openUrl(context: android.content.Context, url: String) {
     }
 }
 
-private fun openEmail(context: android.content.Context, email: String, subject: String) {
+private fun openEmail(
+    context: android.content.Context,
+    email: String,
+    subject: String,
+) {
     try {
-        val intent = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
-            data = "mailto:$email?subject=${android.net.Uri.encode(subject)}".toUri()
-        }
+        val intent =
+            android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
+                data = "mailto:$email?subject=${android.net.Uri.encode(subject)}".toUri()
+            }
         context.startActivity(intent)
     } catch (e: Exception) {
         // Handle error

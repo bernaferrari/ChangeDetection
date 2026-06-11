@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.addedit
 
 import androidx.compose.animation.AnimatedVisibility
@@ -88,19 +92,19 @@ fun BeautifulUrlInputStep(
     urlError: String?,
     onUrlChange: (String) -> Unit,
     onNavigateUp: () -> Unit,
-    onContinue: () -> Unit
+    onContinue: () -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val haptic = LocalHapticFeedback.current
     val clipboard: Clipboard = LocalClipboard.current
     val focusManager = LocalFocusManager.current
     val scope = androidx.compose.runtime.rememberCoroutineScope()
-    
+
     // Web view state
     var currentWebUrl by remember { mutableStateOf(url) }
     var urlBarText by remember { mutableStateOf(url) }
     var isFocused by remember { mutableStateOf(false) }
-    
+
     // Sync URL bar when external URL changes
     LaunchedEffect(url) {
         if (url != urlBarText && url.isNotBlank()) {
@@ -116,14 +120,12 @@ fun BeautifulUrlInputStep(
         keyboardController?.show()
     }
 
-    suspend fun readClipboardText(): String? {
-        return clipboard.readText()
-    }
+    suspend fun readClipboardText(): String? = clipboard.readText()
 
     val isValid = remember(url, urlError) {
         url.isNotBlank() && url.isValidUrl() && urlError == null
     }
-    
+
     // Show WebView only when URL is valid
     val showPreview = url.isNotBlank() && url.isValidUrl()
 
@@ -134,45 +136,45 @@ fun BeautifulUrlInputStep(
             Surface(
                 color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 2.dp,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .statusBarsPadding()
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         // Close button
                         IconButton(
                             onClick = onNavigateUp,
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(40.dp),
                         ) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
-                                tint = MaterialTheme.colorScheme.onSurface
+                                tint = MaterialTheme.colorScheme.onSurface,
                             )
                         }
-                        
+
                         // URL input field - pill shaped
                         Surface(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(44.dp),
                             shape = RoundedCornerShape(22.dp),
-                            color = MaterialTheme.colorScheme.surfaceContainerHigh
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .padding(horizontal = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
                                 // Lock/Globe icon
                                 if (url.startsWith("https")) {
@@ -180,17 +182,17 @@ fun BeautifulUrlInputStep(
                                         imageVector = Icons.Default.Lock,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(16.dp)
+                                        modifier = Modifier.size(16.dp),
                                     )
                                 } else {
                                     Icon(
                                         Icons.Default.Language,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(16.dp)
+                                        modifier = Modifier.size(16.dp),
                                     )
                                 }
-                                
+
                                 BasicTextField(
                                     value = urlBarText,
                                     onValueChange = { newValue ->
@@ -205,11 +207,11 @@ fun BeautifulUrlInputStep(
                                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                                     singleLine = true,
                                     textStyle = MaterialTheme.typography.bodyMedium.copy(
-                                        color = MaterialTheme.colorScheme.onSurface
+                                        color = MaterialTheme.colorScheme.onSurface,
                                     ),
                                     keyboardOptions = KeyboardOptions(
                                         imeAction = ImeAction.Go,
-                                        keyboardType = KeyboardType.Uri
+                                        keyboardType = KeyboardType.Uri,
                                     ),
                                     keyboardActions = KeyboardActions(
                                         onGo = {
@@ -225,7 +227,7 @@ fun BeautifulUrlInputStep(
                                             // Update currentWebUrl BEFORE loading to prevent race condition
                                             currentWebUrl = finalUrl
                                             // WebView will update reactively via launch effect if using navigator loadUrl
-                                        }
+                                        },
                                     ),
                                     decorationBox = { innerTextField ->
                                         Box(modifier = Modifier.fillMaxWidth()) {
@@ -233,14 +235,14 @@ fun BeautifulUrlInputStep(
                                                 Text(
                                                     text = "Enter website URL",
                                                     style = MaterialTheme.typography.bodyMedium,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 )
                                             }
                                             innerTextField()
                                         }
-                                    }
+                                    },
                                 )
-                                
+
                                 // Clear button
                                 AnimatedVisibility(visible = urlBarText.isNotEmpty()) {
                                     IconButton(
@@ -249,22 +251,22 @@ fun BeautifulUrlInputStep(
                                             onUrlChange("")
                                             focusRequester.requestFocus()
                                         },
-                                        modifier = Modifier.size(20.dp)
+                                        modifier = Modifier.size(20.dp),
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Close,
                                             contentDescription = "Clear",
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.size(16.dp)
+                                            modifier = Modifier.size(16.dp),
                                         )
                                     }
                                 }
-                                
+
                                 // Loading indicator
                                 // This will need access to WebView state, defined below
                             }
                         }
-                        
+
                         // Paste button (compact)
                         IconButton(
                             onClick = {
@@ -283,12 +285,12 @@ fun BeautifulUrlInputStep(
                                     }
                                 }
                             },
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(40.dp),
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ContentPaste,
                                 contentDescription = "Paste",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
@@ -299,21 +301,21 @@ fun BeautifulUrlInputStep(
             AnimatedVisibility(
                 visible = true,
                 enter = slideInVertically { it } + fadeIn(),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Surface(
                     color = MaterialTheme.colorScheme.surface,
                     tonalElevation = 3.dp,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .imePadding()
+                        .imePadding(),
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .navigationBarsPadding()
                             .padding(horizontal = 16.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.End
+                        horizontalArrangement = Arrangement.End,
                     ) {
                         Button(
                             onClick = {
@@ -328,32 +330,32 @@ fun BeautifulUrlInputStep(
                             },
                             enabled = isValid,
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp)
+                            shape = RoundedCornerShape(16.dp),
                         ) {
-                Text(text = stringResource(Res.string.continue_label))
+                            Text(text = stringResource(Res.string.continue_label))
                         }
                     }
                 }
             }
-        }
+        },
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(innerPadding),
         ) {
             if (showPreview) {
                 // Live WebView preview using multiplatform library
                 val initialUrl = if (!url.startsWith("http")) "https://$url" else url
                 val navigator = rememberWebViewNavigator()
                 val webViewState = rememberWebViewState(url = initialUrl)
-                
+
                 LaunchedEffect(currentWebUrl) {
-                     if (currentWebUrl != webViewState.lastLoadedUrl && currentWebUrl.isValidUrl()) {
-                         navigator.loadUrl(currentWebUrl)
-                     }
+                    if (currentWebUrl != webViewState.lastLoadedUrl && currentWebUrl.isValidUrl()) {
+                        navigator.loadUrl(currentWebUrl)
+                    }
                 }
-                
+
                 // Keep URL bar synced with WebView navigation
                 LaunchedEffect(webViewState.lastLoadedUrl) {
                     webViewState.lastLoadedUrl?.let { newUrl ->
@@ -366,22 +368,21 @@ fun BeautifulUrlInputStep(
                         }
                     }
                 }
-                
+
                 // Loading indicator overlay (since we can't easily put it in the URL bar row from here)
                 // Actually we can pass loading state up if we restructure, but let's keep it simple for now
                 if (webViewState.loadingState is LoadingState.Loading) {
-                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                         // Optional: show a linear progress bar at top of webview
-                     }
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                        // Optional: show a linear progress bar at top of webview
+                    }
                 }
-                
+
                 WebView(
                     state = webViewState,
                     navigator = navigator,
                     captureBackPresses = false,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 )
-
             } else {
                 // Empty state - show hint to enter URL
                 Column(
@@ -389,40 +390,40 @@ fun BeautifulUrlInputStep(
                         .fillMaxSize()
                         .padding(32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Center,
                 ) {
                     Surface(
                         modifier = Modifier.size(80.dp),
                         shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Default.Language,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(40.dp)
+                                modifier = Modifier.size(40.dp),
                             )
                         }
                     }
-                    
+
                     Spacer(modifier = Modifier.height(24.dp))
-                    
+
                     Text(
                         text = "Enter a website URL",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
-                    
+
                     Spacer(modifier = Modifier.height(8.dp))
-                    
+
                     Text(
                         text = "Type or paste a URL above to see a preview",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
                     )
-                    
+
                     // Show error if any
                     urlError?.let { error ->
                         Spacer(modifier = Modifier.height(16.dp))
@@ -430,7 +431,7 @@ fun BeautifulUrlInputStep(
                             text = error,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
                         )
                     }
                 }
@@ -442,11 +443,11 @@ fun BeautifulUrlInputStep(
 @Composable
 fun SuccessDialog(
     accentColors: Pair<Int, Int>,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Surface(
             modifier = Modifier
@@ -454,14 +455,14 @@ fun SuccessDialog(
                 .padding(horizontal = 32.dp),
             shape = RoundedCornerShape(28.dp),
             tonalElevation = 8.dp,
-            color = MaterialTheme.colorScheme.surface
+            color = MaterialTheme.colorScheme.surface,
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 28.dp, vertical = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
                 Box(
                     modifier = Modifier
@@ -470,12 +471,12 @@ fun SuccessDialog(
                             brush = Brush.radialGradient(
                                 colors = listOf(
                                     Color(accentColors.first).copy(alpha = 0.2f),
-                                    Color.Transparent
-                                )
+                                    Color.Transparent,
+                                ),
                             ),
-                            shape = CircleShape
+                            shape = CircleShape,
                         ),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Box(
                         modifier = Modifier
@@ -484,36 +485,36 @@ fun SuccessDialog(
                                 brush = Brush.linearGradient(
                                     listOf(
                                         Color(accentColors.first),
-                                        Color(accentColors.second)
-                                    )
+                                        Color(accentColors.second),
+                                    ),
                                 ),
-                                shape = CircleShape
+                                shape = CircleShape,
                             ),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(42.dp)
+                            modifier = Modifier.size(42.dp),
                         )
                     }
                 }
 
                 Text(
                     text = stringResource(Res.string.success_title),
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 )
                 Text(
                     text = stringResource(Res.string.site_added_successfully),
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
                 FilledTonalButton(
                     onClick = onDismiss,
-                    shape = RoundedCornerShape(18.dp)
+                    shape = RoundedCornerShape(18.dp),
                 ) {
                     Text(text = stringResource(Res.string.done))
                 }

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.browser
 
 import androidx.lifecycle.ViewModel
@@ -11,64 +15,62 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.lang.ref.WeakReference
 
-
-
 class InteractiveBrowserViewModel : ViewModel() {
-    
+
     private val _uiState = MutableStateFlow(InteractiveBrowserUiState())
     val uiState: StateFlow<InteractiveBrowserUiState> = _uiState.asStateFlow()
-    
+
     // Add WebView reference for JavaScript communication - using WeakReference to prevent memory leaks
     private var webViewRef: WeakReference<android.webkit.WebView>? = null
-    
+
     fun setWebView(webView: android.webkit.WebView) {
         this.webViewRef = WeakReference(webView)
     }
-    
+
     fun setInitialUrl(url: String) {
         val normalized = url.normalizeUrl() ?: url
         _uiState.value = _uiState.value.copy(
             currentUrl = normalized,
-            hasSessionData = normalized.isNotBlank()
+            hasSessionData = normalized.isNotBlank(),
         )
     }
-    
+
     fun applyZappedElements(zappedElements: List<ZappedElement>) {
         if (zappedElements.isNotEmpty()) {
             val selectors = zappedElements.map { "\"${it.selector}\"" }.joinToString(",")
             webViewRef?.get()?.post {
                 webViewRef?.get()?.evaluateJavascript(
                     "window.applyZappedElements([$selectors]);",
-                    null
+                    null,
                 )
             }
         }
     }
-    
+
     fun setCurrentUrl(url: String) {
         val normalized = url.normalizeUrl() ?: url
         _uiState.value = _uiState.value.copy(currentUrl = normalized)
     }
-    
+
     fun setPageTitle(title: String) {
         _uiState.value = _uiState.value.copy(pageTitle = title)
     }
-    
+
     fun setLoading(isLoading: Boolean) {
         _uiState.value = _uiState.value.copy(isLoading = isLoading)
     }
-    
+
     fun setCapturedCookies(cookies: String) {
         _uiState.value = _uiState.value.copy(
             capturedCookies = cookies,
-            hasSessionData = cookies.isNotBlank() || _uiState.value.currentUrl.isNotBlank()
+            hasSessionData = cookies.isNotBlank() || _uiState.value.currentUrl.isNotBlank(),
         )
     }
-    
+
     fun setUserAgent(userAgent: String) {
         _uiState.value = _uiState.value.copy(userAgent = userAgent)
     }
-    
+
     fun hydrateFromSession(session: BrowserSessionData) {
         val normalizedUrl = session.url.ifBlank { _uiState.value.currentUrl }
         val hasMeaningfulSessionData = session.selectedElements.isNotEmpty() ||
@@ -83,13 +85,12 @@ class InteractiveBrowserViewModel : ViewModel() {
             userAgent = session.userAgent,
             selectedElements = session.selectedElements,
             zappedElements = session.zappedElements,
-            hasSessionData = hasMeaningfulSessionData
+            hasSessionData = hasMeaningfulSessionData,
         )
 
         applyZappedElements(session.zappedElements)
     }
 
-    
     fun toggleLoginCapture() {
         val currentMode = _uiState.value.interactionMode
         val newMode = if (currentMode == InteractionMode.LOGIN_CAPTURE) {
@@ -97,15 +98,15 @@ class InteractiveBrowserViewModel : ViewModel() {
         } else {
             InteractionMode.LOGIN_CAPTURE
         }
-        
+
         _uiState.value = _uiState.value.copy(
-            interactionMode = newMode
+            interactionMode = newMode,
         )
-        
+
         // Set JavaScript interaction mode
         setJavaScriptMode(newMode)
     }
-    
+
     fun toggleElementSelection() {
         val currentMode = _uiState.value.interactionMode
         val newMode = if (currentMode == InteractionMode.ELEMENT_SELECT) {
@@ -113,14 +114,14 @@ class InteractiveBrowserViewModel : ViewModel() {
         } else {
             InteractionMode.ELEMENT_SELECT
         }
-        
+
         _uiState.value = _uiState.value.copy(
-            interactionMode = newMode
+            interactionMode = newMode,
         )
-        
+
         setJavaScriptMode(newMode)
     }
-    
+
     fun toggleElementZapping() {
         val currentMode = _uiState.value.interactionMode
         val newMode = if (currentMode == InteractionMode.ELEMENT_ZAP) {
@@ -128,14 +129,14 @@ class InteractiveBrowserViewModel : ViewModel() {
         } else {
             InteractionMode.ELEMENT_ZAP
         }
-        
+
         _uiState.value = _uiState.value.copy(
-            interactionMode = newMode
+            interactionMode = newMode,
         )
-        
+
         setJavaScriptMode(newMode)
     }
-    
+
     fun reapplyInteractionMode() {
         setJavaScriptMode(_uiState.value.interactionMode)
     }
@@ -147,7 +148,7 @@ class InteractiveBrowserViewModel : ViewModel() {
             InteractionMode.ELEMENT_ZAP -> "zap"
             InteractionMode.NORMAL -> "normal"
         }
-        
+
         // Actually execute JavaScript to set the interaction mode
         webViewRef?.get()?.post {
             webViewRef?.get()?.evaluateJavascript(
@@ -161,11 +162,11 @@ class InteractiveBrowserViewModel : ViewModel() {
                     console.log('Interaction mode set to: $jsMode');
                 })();
                 """.trimIndent(),
-                null
+                null,
             )
         }
     }
-    
+
     fun handleElementInteraction(selector: String, elementInfoJson: String) {
         viewModelScope.launch {
             try {
@@ -191,7 +192,7 @@ class InteractiveBrowserViewModel : ViewModel() {
                         showParentSelector = true,
                         pendingElementSelector = selector,
                         pendingElementDescription = description,
-                        pendingInteractionMode = mode
+                        pendingInteractionMode = mode,
                     )
                     previewParentAtIndex(0)
                 }
@@ -200,21 +201,21 @@ class InteractiveBrowserViewModel : ViewModel() {
             }
         }
     }
-    
+
     fun handleLoginDetection(formDataJson: String) {
         viewModelScope.launch {
             try {
                 // Parse form data and capture login information
                 _uiState.value = _uiState.value.copy(
                     hasLoginData = true,
-                    hasSessionData = true
+                    hasSessionData = true,
                 )
             } catch (e: Exception) {
                 // Handle parsing error
             }
         }
     }
-    
+
     private fun commitElementChange(mode: InteractionMode, selector: String, description: String) {
         val currentState = _uiState.value
         when (mode) {
@@ -228,8 +229,8 @@ class InteractiveBrowserViewModel : ViewModel() {
                         SelectedElement(
                             selector = selector,
                             description = description,
-                            timestamp = System.currentTimeMillis()
-                        )
+                            timestamp = System.currentTimeMillis(),
+                        ),
                     )
                 }
                 _uiState.value = currentState.copy(
@@ -237,7 +238,7 @@ class InteractiveBrowserViewModel : ViewModel() {
                     hasSessionData = true,
                     pendingInteractionMode = null,
                     pendingElementSelector = null,
-                    pendingElementDescription = ""
+                    pendingElementDescription = "",
                 )
             }
 
@@ -252,8 +253,8 @@ class InteractiveBrowserViewModel : ViewModel() {
                         ZappedElement(
                             selector = selector,
                             description = description,
-                            timestamp = System.currentTimeMillis()
-                        )
+                            timestamp = System.currentTimeMillis(),
+                        ),
                     )
                     hideElement(selector)
                 }
@@ -262,7 +263,7 @@ class InteractiveBrowserViewModel : ViewModel() {
                     hasSessionData = true,
                     pendingInteractionMode = null,
                     pendingElementSelector = null,
-                    pendingElementDescription = ""
+                    pendingElementDescription = "",
                 )
             }
 
@@ -270,20 +271,18 @@ class InteractiveBrowserViewModel : ViewModel() {
         }
     }
 
-    private fun extractElementDescription(elementJson: JSONObject): String {
-        return try {
-            val text = elementJson.optString("text").trim()
-            val tagName = elementJson.optString("tagName").ifBlank { "element" }
-            val className = elementJson.optString("className")
+    private fun extractElementDescription(elementJson: JSONObject): String = try {
+        val text = elementJson.optString("text").trim()
+        val tagName = elementJson.optString("tagName").ifBlank { "element" }
+        val className = elementJson.optString("className")
 
-            when {
-                text.isNotBlank() && text.length > 3 -> text.take(60)
-                className.isNotBlank() -> "$tagName.$className"
-                else -> tagName.lowercase()
-            }
-        } catch (_: Exception) {
-            "element"
+        when {
+            text.isNotBlank() && text.length > 3 -> text.take(60)
+            className.isNotBlank() -> "$tagName.$className"
+            else -> tagName.lowercase()
         }
+    } catch (_: Exception) {
+        "element"
     }
 
     private fun hideElement(selector: String) {
@@ -309,7 +308,7 @@ class InteractiveBrowserViewModel : ViewModel() {
                     console.error('Failed to hide element', e);
                 }
                 """.trimIndent(),
-                null
+                null,
             )
         }
     }
@@ -332,7 +331,7 @@ class InteractiveBrowserViewModel : ViewModel() {
                     console.error('Failed to restore element', e);
                 }
                 """.trimIndent(),
-                null
+                null,
             )
         }
     }
@@ -349,8 +348,8 @@ class InteractiveBrowserViewModel : ViewModel() {
                     tagName = parent.optString("tagName"),
                     className = parent.optString("className"),
                     id = parent.optString("id"),
-                    index = parent.optInt("index", i)
-                )
+                    index = parent.optInt("index", i),
+                ),
             )
         }
         return items
@@ -360,7 +359,7 @@ class InteractiveBrowserViewModel : ViewModel() {
         webViewRef?.get()?.post {
             webViewRef?.get()?.evaluateJavascript(
                 "window.previewParentAtIndex($index);",
-                null
+                null,
             )
         }
     }
@@ -369,7 +368,7 @@ class InteractiveBrowserViewModel : ViewModel() {
         webViewRef?.get()?.post {
             webViewRef?.get()?.evaluateJavascript(
                 "window.clearPreviewHighlight();",
-                null
+                null,
             )
         }
     }
@@ -380,13 +379,13 @@ class InteractiveBrowserViewModel : ViewModel() {
             val parent = currentState.parentChain[index]
             _uiState.value = currentState.copy(
                 selectedParentIndex = index,
-                pendingElementDescription = parent.displayName
+                pendingElementDescription = parent.displayName,
             )
-            
+
             previewParentAtIndex(index)
         }
     }
-    
+
     fun hideParentSelector() {
         _uiState.value = _uiState.value.copy(
             showParentSelector = false,
@@ -394,11 +393,11 @@ class InteractiveBrowserViewModel : ViewModel() {
             selectedParentIndex = 0,
             pendingElementSelector = null,
             pendingElementDescription = "",
-            pendingInteractionMode = null
+            pendingInteractionMode = null,
         )
         clearPreviewHighlight()
     }
-    
+
     fun confirmParentSelection() {
         val currentState = _uiState.value
         if (currentState.parentChain.isNotEmpty() && currentState.selectedParentIndex < currentState.parentChain.size) {
@@ -407,23 +406,23 @@ class InteractiveBrowserViewModel : ViewModel() {
             val mode = currentState.pendingInteractionMode ?: currentState.interactionMode
             commitElementChange(mode, selectedParent.selector, selectedParent.displayName)
         }
-        
+
         hideParentSelector()
     }
 
     fun showZapManager() {
         _uiState.value = _uiState.value.copy(
-            showZapManager = !_uiState.value.showZapManager
+            showZapManager = !_uiState.value.showZapManager,
         )
     }
-    
+
     fun clearAllZappedElements() {
         val current = _uiState.value
         _uiState.value = current.copy(
             zappedElements = emptyList(),
-            hasSessionData = current.selectedElements.isNotEmpty() || current.capturedCookies.isNotBlank()
+            hasSessionData = current.selectedElements.isNotEmpty() || current.capturedCookies.isNotBlank(),
         )
-        
+
         // Clear visual zapping from webpage
         webViewRef?.get()?.post {
             webViewRef?.get()?.evaluateJavascript(
@@ -447,11 +446,11 @@ class InteractiveBrowserViewModel : ViewModel() {
                     console.error('Failed to clear zapped elements:', e);
                 }
                 """.trimIndent(),
-                null
+                null,
             )
         }
     }
-    
+
     fun removeZappedElement(selector: String) {
         val currentElements = _uiState.value.zappedElements.toMutableList()
         currentElements.removeAll { it.selector == selector }
@@ -459,9 +458,9 @@ class InteractiveBrowserViewModel : ViewModel() {
         val current = _uiState.value
         _uiState.value = current.copy(
             zappedElements = currentElements,
-            hasSessionData = current.selectedElements.isNotEmpty() || currentElements.isNotEmpty() || current.capturedCookies.isNotBlank()
+            hasSessionData = current.selectedElements.isNotEmpty() || currentElements.isNotEmpty() || current.capturedCookies.isNotBlank(),
         )
-        
+
         // Restore element in webpage
         webViewRef?.get()?.post {
             webViewRef?.get()?.evaluateJavascript(
@@ -486,7 +485,7 @@ class InteractiveBrowserViewModel : ViewModel() {
                     console.error('Failed to restore element:', e);
                 }
                 """.trimIndent(),
-                null
+                null,
             )
         }
     }
@@ -516,7 +515,5 @@ data class InteractiveBrowserUiState(
     val pendingElementSelector: String? = null,
     val pendingElementDescription: String = "",
     val pendingInteractionMode: InteractionMode? = null,
-    val showZapManager: Boolean = false
+    val showZapManager: Boolean = false,
 )
-
-

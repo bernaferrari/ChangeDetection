@@ -1,16 +1,19 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.comparison
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.background.MonitoringManager
+import com.bernaferrari.changedetection.platform.ShareManager
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
-import com.bernaferrari.changedetection.util.decodeByteArray
-import com.bernaferrari.changedetection.platform.ShareManager
 import com.bernaferrari.changedetection.util.UnifiedDiffUtils
-import kotlin.time.Clock
+import com.bernaferrari.changedetection.util.decodeByteArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.time.Clock
 
 data class ComparisonUiState(
     val isLoading: Boolean = true,
@@ -29,38 +33,45 @@ data class ComparisonUiState(
     val snapContent2: String? = null,
     val singleSnapContent: String? = null,
     val isLoadingDiff: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
 )
 
 class ComparisonViewModel(
     private val sitesRepository: SitesRepository,
     private val snapsRepository: SnapsRepository,
     private val monitoringManager: MonitoringManager,
-    private val shareManager: ShareManager
+    private val shareManager: ShareManager,
 ) : ViewModel() {
-    
     // ... (existing code)
 
-    fun shareDiff(snap1: Snap, snap2: Snap, content1: String, content2: String) {
+    fun shareDiff(
+        snap1: Snap,
+        snap2: Snap,
+        content1: String,
+        content2: String,
+    ) {
         viewModelScope.launch(Dispatchers.Default) {
-             val oldLines = content1.lines()
-             val newLines = content2.lines()
-             // Assuming DiffUtils is available in commonMain (it should be if fast-kotlin-diff-core is KMP)
-             val patch = com.bernaferrari.difflib.DiffUtils.diff(oldLines, newLines)
-             val diff = UnifiedDiffUtils.generateUnifiedDiff(
-                 originalFileName = "v${snap1.timestamp}",
-                 revisedFileName = "v${snap2.timestamp}",
-                 originalLines = oldLines,
-                 patch = patch,
-                 contextSize = 3
-             )
-             val diffText = diff.joinToString("\n")
-             val shareText = "Diff generated at ${kotlin.time.Clock.System.now().toEpochMilliseconds()}"
-             val fileName = "diff_${kotlin.time.Clock.System.now().toEpochMilliseconds()}.diff"
-             
-             withContext(Dispatchers.Main) {
-                 shareManager.shareFile(fileName, diffText, shareText)
-             }
+            val oldLines = content1.lines()
+            val newLines = content2.lines()
+            // Assuming DiffUtils is available in commonMain (it should be if fast-kotlin-diff-core is KMP)
+            val patch =
+                com.bernaferrari.difflib.DiffUtils
+                    .diff(oldLines, newLines)
+            val diff =
+                UnifiedDiffUtils.generateUnifiedDiff(
+                    originalFileName = "v${snap1.timestamp}",
+                    revisedFileName = "v${snap2.timestamp}",
+                    originalLines = oldLines,
+                    patch = patch,
+                    contextSize = 3,
+                )
+            val diffText = diff.joinToString("\n")
+            val shareText = "Diff generated at ${kotlin.time.Clock.System.now().toEpochMilliseconds()}"
+            val fileName = "diff_${kotlin.time.Clock.System.now().toEpochMilliseconds()}.diff"
+
+            withContext(Dispatchers.Main) {
+                shareManager.shareFile(fileName, diffText, shareText)
+            }
         }
     }
 
@@ -73,14 +84,17 @@ class ComparisonViewModel(
 
             try {
                 val site = sitesRepository.getSiteById(siteId)
-                val snaps = snapsRepository.getAllSnapsForSite(siteId)
-                    .sortedByDescending { it.timestamp } // Most recent first
+                val snaps =
+                    snapsRepository
+                        .getAllSnapsForSite(siteId)
+                        .sortedByDescending { it.timestamp } // Most recent first
 
-                _uiState.value = ComparisonUiState(
-                    isLoading = false,
-                    site = site,
-                    snaps = snaps
-                )
+                _uiState.value =
+                    ComparisonUiState(
+                        isLoading = false,
+                        site = site,
+                        snaps = snaps,
+                    )
 
                 // If only one snapshot, load its content directly
                 if (snaps.size == 1) {
@@ -92,10 +106,11 @@ class ComparisonViewModel(
                     selectPairForComparison(0)
                 }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = e.message ?: "Unknown error occurred"
-                )
+                _uiState.value =
+                    _uiState.value.copy(
+                        isLoading = false,
+                        error = e.message ?: "Unknown error occurred",
+                    )
             }
         }
     }
@@ -113,32 +128,36 @@ class ComparisonViewModel(
         loadSnapContents(snap1, snap2)
     }
 
-    private fun loadSnapContents(snap1: Snap, snap2: Snap) {
+    private fun loadSnapContents(
+        snap1: Snap,
+        snap2: Snap,
+    ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingDiff = true, error = null) }
 
             try {
-                val (content1, content2) = withContext(Dispatchers.IO) {
-                    val first = snapsRepository.getSnapContent(snap1.snapId)
-                    val second = snapsRepository.getSnapContent(snap2.snapId)
+                val (content1, content2) =
+                    withContext(Dispatchers.IO) {
+                        val first = snapsRepository.getSnapContent(snap1.snapId)
+                        val second = snapsRepository.getSnapContent(snap2.snapId)
 
-                    // Use SharedStringUtils to decode with charset support
-                    decodeByteArray(first, snap1.contentCharset) to
+                        // Use SharedStringUtils to decode with charset support
+                        decodeByteArray(first, snap1.contentCharset) to
                             decodeByteArray(second, snap2.contentCharset)
-                }
+                    }
 
                 _uiState.update {
                     it.copy(
                         snapContent1 = content1,
                         snapContent2 = content2,
-                        isLoadingDiff = false
+                        isLoadingDiff = false,
                     )
                 }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         isLoadingDiff = false,
-                        error = "Failed to load content: ${e.message}"
+                        error = "Failed to load content: ${e.message}",
                     )
                 }
             }
@@ -150,22 +169,23 @@ class ComparisonViewModel(
             _uiState.update { it.copy(isLoadingDiff = true, error = null) }
 
             try {
-                val content = withContext(Dispatchers.IO) {
-                    val bytes = snapsRepository.getSnapContent(snap.snapId)
-                    decodeByteArray(bytes, snap.contentCharset)
-                }
+                val content =
+                    withContext(Dispatchers.IO) {
+                        val bytes = snapsRepository.getSnapContent(snap.snapId)
+                        decodeByteArray(bytes, snap.contentCharset)
+                    }
 
                 _uiState.update {
                     it.copy(
                         singleSnapContent = content,
-                        isLoadingDiff = false
+                        isLoadingDiff = false,
                     )
                 }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         isLoadingDiff = false,
-                        error = "Failed to load content: ${e.message}"
+                        error = "Failed to load content: ${e.message}",
                     )
                 }
             }
@@ -192,8 +212,10 @@ class ComparisonViewModel(
         viewModelScope.launch {
             snapsRepository.pruneSnaps(site.id)
             // Refresh snaps list after pruning
-            val snaps = snapsRepository.getAllSnapsForSite(site.id)
-                .sortedByDescending { it.timestamp }
+            val snaps =
+                snapsRepository
+                    .getAllSnapsForSite(site.id)
+                    .sortedByDescending { it.timestamp }
             _uiState.update { it.copy(snaps = snaps) }
         }
     }
@@ -203,7 +225,7 @@ class ComparisonViewModel(
             it.copy(
                 selectedPairIndex = null,
                 snapContent1 = null,
-                snapContent2 = null
+                snapContent2 = null,
             )
         }
     }

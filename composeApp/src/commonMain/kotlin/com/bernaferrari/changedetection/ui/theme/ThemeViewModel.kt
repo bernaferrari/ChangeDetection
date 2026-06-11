@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -21,30 +25,33 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class ThemeViewModel(
-    private val dataStore: DataStore<Preferences>
+    private val dataStore: DataStore<Preferences>,
 ) : ViewModel() {
-
     companion object {
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
         val DYNAMIC_COLOR_KEY = booleanPreferencesKey("dynamic_color")
     }
 
-    val themeMode: StateFlow<ThemeMode> = dataStore.data.map { preferences ->
-        val modeString = preferences[THEME_MODE_KEY] ?: ThemeMode.SYSTEM.name
-        ThemeMode.entries.find { it.name == modeString } ?: ThemeMode.SYSTEM
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = ThemeMode.SYSTEM
-    )
+    val themeMode: StateFlow<ThemeMode> =
+        dataStore.data
+            .map { preferences ->
+                val modeString = preferences[THEME_MODE_KEY] ?: ThemeMode.SYSTEM.name
+                ThemeMode.entries.find { it.name == modeString } ?: ThemeMode.SYSTEM
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = ThemeMode.SYSTEM,
+            )
 
-    val dynamicColor: StateFlow<Boolean> = dataStore.data.map { preferences ->
-        preferences[DYNAMIC_COLOR_KEY] ?: true
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = true
-    )
+    val dynamicColor: StateFlow<Boolean> =
+        dataStore.data
+            .map { preferences ->
+                preferences[DYNAMIC_COLOR_KEY] ?: true
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = true,
+            )
 
     fun updateThemeMode(mode: ThemeMode) {
         viewModelScope.launch {

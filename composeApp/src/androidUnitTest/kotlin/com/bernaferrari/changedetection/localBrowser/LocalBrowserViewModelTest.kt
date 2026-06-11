@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.localBrowser
 
 import androidx.lifecycle.LiveData
@@ -8,8 +12,8 @@ import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.Result
 import com.bernaferrari.changedetection.repo.source.SnapsDataSource
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -34,14 +38,15 @@ class LocalBrowserViewModelTest {
         val originalHtml = "Olá, mundo ç à"
         val bytes = originalHtml.toByteArray(Charset.forName(charsetName))
 
-        val snap = Snap(
-            snapId = "snap-1",
-            siteId = "site",
-            timestamp = 0L,
-            contentType = "text/html; charset=$charsetName",
-            contentCharset = charsetName,
-            contentSize = bytes.size
-        )
+        val snap =
+            Snap(
+                snapId = "snap-1",
+                siteId = "site",
+                timestamp = 0L,
+                contentType = "text/html; charset=$charsetName",
+                contentCharset = charsetName,
+                contentSize = bytes.size,
+            )
 
         val repository = SnapsRepository(FakeSnapsDataSource(snap, bytes))
         assertEquals(snap, repository.getSnapById("snap-1"))
@@ -64,7 +69,7 @@ class LocalBrowserViewModelTest {
 
     private class FakeSnapsDataSource(
         private val snap: Snap?,
-        private val content: ByteArray
+        private val content: ByteArray,
     ) : SnapsDataSource {
         override suspend fun getContentTypeInfo(siteId: String): List<ContentTypeInfo> = emptyList()
 
@@ -72,38 +77,48 @@ class LocalBrowserViewModelTest {
 
         override suspend fun getAllMostRecentSnaps(): Map<String, Snap> = emptyMap()
 
-        override suspend fun getSnaps(siteId: String): LiveData<List<Snap>> =
-            MutableLiveData(emptyList())
+        override suspend fun getSnaps(siteId: String): LiveData<List<Snap>> = MutableLiveData(emptyList())
 
-        override suspend fun getSnapsFiltered(siteId: String, filter: String): LiveData<List<Snap>> =
-            MutableLiveData(emptyList())
+        override suspend fun getSnapsFiltered(
+            siteId: String,
+            filter: String,
+        ): LiveData<List<Snap>> = MutableLiveData(emptyList())
 
         override suspend fun getAllSnapsForSite(siteId: String): List<Snap> = emptyList()
 
-        override fun getSnapForPaging(siteId: String, filter: String): PagingSource<Int, Snap> =
-            throw UnsupportedOperationException("Not needed for test")
+        override fun getSnapForPaging(
+            siteId: String,
+            filter: String,
+        ): PagingSource<Int, Snap> = throw UnsupportedOperationException("Not needed for test")
 
-        override suspend fun getSnapById(snapId: String): Snap? =
-            snap?.takeIf { it.snapId == snapId }
+        override suspend fun getSnapById(snapId: String): Snap? = snap?.takeIf { it.snapId == snapId }
 
         override fun getSnapContent(snapId: String): ByteArray = content
 
-        override suspend fun getLastNSnapsForSiteId(siteId: String, limit: Int): List<Snap>? = emptyList()
+        override suspend fun getLastNSnapsForSiteId(
+            siteId: String,
+            limit: Int,
+        ): List<Snap>? = emptyList()
 
         override fun getSnapPair(
             originalId: String,
-            newId: String
-        ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>> =
-            throw UnsupportedOperationException("Not needed for test")
+            newId: String,
+        ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>> = throw UnsupportedOperationException("Not needed for test")
 
-        override suspend fun saveSnap(snap: Snap, content: ByteArray, threshold: Int): Result<Snap> =
-            Result.Error()
+        override suspend fun saveSnap(
+            snap: Snap,
+            content: ByteArray,
+            threshold: Int,
+        ): Result<Snap> = Result.Error()
 
         override suspend fun deleteAllSnaps(siteId: String) = Unit
 
         override suspend fun deleteSnap(snapId: String) = Unit
 
-        override suspend fun deleteSnapsForSiteIdAndContentType(siteId: String, contentType: String) = Unit
+        override suspend fun deleteSnapsForSiteIdAndContentType(
+            siteId: String,
+            contentType: String,
+        ) = Unit
 
         override suspend fun pruneSnaps(siteId: String) = Unit
 
@@ -115,7 +130,7 @@ class LocalBrowserViewModelTest {
     }
 
     class MainDispatcherRule(
-        val dispatcher: TestDispatcher = kotlinx.coroutines.test.StandardTestDispatcher()
+        val dispatcher: TestDispatcher = kotlinx.coroutines.test.StandardTestDispatcher(),
     ) : TestWatcher() {
         override fun starting(description: Description) {
             Dispatchers.setMain(dispatcher)

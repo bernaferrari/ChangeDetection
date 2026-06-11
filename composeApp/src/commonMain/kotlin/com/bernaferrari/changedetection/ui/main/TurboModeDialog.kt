@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.main
 
 import androidx.compose.foundation.BorderStroke
@@ -67,7 +71,7 @@ fun TurboModeDialog(
     intervalSeconds: Int,
     onDismiss: () -> Unit,
     onIntervalChange: (Int) -> Unit,
-    onConfirm: (List<String>) -> Unit
+    onConfirm: (List<String>) -> Unit,
 ) {
     var selectedSiteIds by remember {
         mutableStateOf(
@@ -76,7 +80,7 @@ fun TurboModeDialog(
                 lastSelectedSiteIds.filter { it in validIds }.toSet()
             } else {
                 sites.take(3).map { it.id }.toSet()
-            }
+            },
         )
     }
 
@@ -88,39 +92,39 @@ fun TurboModeDialog(
                 .wrapContentHeight()
                 .padding(16.dp),
             tonalElevation = 3.dp,
-            shape = RoundedCornerShape(28.dp)
+            shape = RoundedCornerShape(28.dp),
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
                 TurboHeroSection(
                     intervalSeconds = intervalSeconds,
                     selectedCount = selectedSiteIds.size,
-                    visuals = visuals
+                    visuals = visuals,
                 )
 
                 TurboWarningCard(intervalSeconds = intervalSeconds)
 
                 IntervalSelectorRow(
                     selectedInterval = intervalSeconds,
-                    onIntervalChange = onIntervalChange
+                    onIntervalChange = onIntervalChange,
                 )
 
                 Text(
                     text = pluralStringResource(
                         resource = Res.plurals.turbo_mode_selected_sites,
                         quantity = selectedSiteIds.size,
-                        selectedSiteIds.size
+                        selectedSiteIds.size,
                     ),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                 )
 
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = 320.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     items(sites) { site ->
                         TurboSiteRow(
@@ -132,7 +136,7 @@ fun TurboModeDialog(
                                 } else {
                                     selectedSiteIds + site.id
                                 }
-                            }
+                            },
                         )
                     }
                 }
@@ -140,20 +144,20 @@ fun TurboModeDialog(
                 Text(
                     text = stringResource(Res.string.turbo_mode_duration_hint),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TextButton(onClick = onDismiss) {
                         Text(stringResource(Res.string.cancel))
                     }
                     Button(
                         onClick = { onConfirm(selectedSiteIds.toList()) },
-                        enabled = selectedSiteIds.isNotEmpty()
+                        enabled = selectedSiteIds.isNotEmpty(),
                     ) {
                         Text(text = stringResource(Res.string.turbo_mode_button_start))
                     }
@@ -168,7 +172,7 @@ fun TurboModeDialog(
 private fun TurboSiteRow(
     site: Site,
     isSelected: Boolean,
-    onToggle: () -> Unit
+    onToggle: () -> Unit,
 ) {
     Surface(
         onClick = onToggle,
@@ -181,16 +185,19 @@ private fun TurboSiteRow(
         tonalElevation = if (isSelected) 3.dp else 1.dp,
         border = BorderStroke(
             1.dp,
-            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
-            else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
-        )
+            if (isSelected) {
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+            } else {
+                MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
+            },
+        ),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Checkbox(
                 checked = isSelected,
@@ -198,18 +205,18 @@ private fun TurboSiteRow(
                 colors = CheckboxDefaults.colors(
                     checkedColor = MaterialTheme.colorScheme.primary,
                     uncheckedColor = MaterialTheme.colorScheme.outline,
-                    checkmarkColor = MaterialTheme.colorScheme.onPrimary
-                )
+                    checkmarkColor = MaterialTheme.colorScheme.onPrimary,
+                ),
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = site.title ?: site.url,
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium)
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
                 )
                 Text(
                     text = site.url,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -220,30 +227,30 @@ private fun TurboSiteRow(
 private fun TurboHeroSection(
     intervalSeconds: Int,
     selectedCount: Int,
-    visuals: QuickMonitorVisuals
+    visuals: QuickMonitorVisuals,
 ) {
     Surface(
         shape = RoundedCornerShape(26.dp),
-        border = BorderStroke(1.dp, visuals.onGradient.copy(alpha = 0.25f))
+        border = BorderStroke(1.dp, visuals.onGradient.copy(alpha = 0.25f)),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(visuals.gradient)
                 .padding(horizontal = 24.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
                     modifier = Modifier.size(48.dp),
                     shape = CircleShape,
-                    color = visuals.onGradient.copy(alpha = 0.18f)
+                    color = visuals.onGradient.copy(alpha = 0.18f),
                 ) {
                     Icon(
                         imageVector = Icons.Default.FlashOn,
                         contentDescription = null,
                         tint = visuals.onGradient,
-                        modifier = Modifier.padding(12.dp)
+                        modifier = Modifier.padding(12.dp),
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
@@ -251,12 +258,12 @@ private fun TurboHeroSection(
                     Text(
                         text = stringResource(Res.string.turbo_mode_header),
                         style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                        color = visuals.onGradient
+                        color = visuals.onGradient,
                     )
                     Text(
                         text = stringResource(Res.string.turbo_mode_subheader),
                         style = MaterialTheme.typography.`bodyMedium`,
-                        color = visuals.onGradient.copy(alpha = 0.85f)
+                        color = visuals.onGradient.copy(alpha = 0.85f),
                     )
                 }
             }
@@ -265,24 +272,24 @@ private fun TurboHeroSection(
                     Text(
                         text = "${intervalSeconds}s",
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = visuals.onGradient
+                        color = visuals.onGradient,
                     )
                     Text(
                         text = stringResource(Res.string.label_interval),
                         style = MaterialTheme.typography.bodySmall,
-                        color = visuals.onGradient.copy(alpha = 0.85f)
+                        color = visuals.onGradient.copy(alpha = 0.85f),
                     )
                 }
                 Column {
                     Text(
                         text = selectedCount.toString(),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = visuals.onGradient
+                        color = visuals.onGradient,
                     )
                     Text(
                         text = stringResource(Res.string.quick_monitor_sites_selected_label),
                         style = MaterialTheme.typography.bodySmall,
-                        color = visuals.onGradient.copy(alpha = 0.85f)
+                        color = visuals.onGradient.copy(alpha = 0.85f),
                     )
                 }
             }
@@ -295,18 +302,18 @@ private fun TurboWarningCard(intervalSeconds: Int) {
     Surface(
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.35f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.25f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.25f)),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(18.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.Top,
         ) {
             Surface(
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.error.copy(alpha = 0.12f)
+                color = MaterialTheme.colorScheme.error.copy(alpha = 0.12f),
             ) {
                 Icon(
                     imageVector = Icons.Default.Warning,
@@ -314,20 +321,20 @@ private fun TurboWarningCard(intervalSeconds: Int) {
                     modifier = Modifier
                         .padding(8.dp)
                         .size(20.dp),
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MaterialTheme.colorScheme.error,
                 )
             }
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = stringResource(Res.string.turbo_mode_dialog_warning_title),
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
                 Text(
                     text = stringResource(Res.string.turbo_mode_dialog_warning_body, intervalSeconds),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.9f),
-                    lineHeight = 16.sp
+                    lineHeight = 16.sp,
                 )
             }
         }
@@ -338,17 +345,17 @@ private fun TurboWarningCard(intervalSeconds: Int) {
 @Composable
 private fun IntervalSelectorRow(
     selectedInterval: Int,
-    onIntervalChange: (Int) -> Unit
+    onIntervalChange: (Int) -> Unit,
 ) {
     val options = listOf(15, 30, 60, 120, 180)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(Res.string.label_interval),
-            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold)
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
         )
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             options.forEach { option ->
                 FilterChip(
@@ -359,14 +366,16 @@ private fun IntervalSelectorRow(
                         {
                             Icon(
                                 imageVector = Icons.Default.Check,
-                                contentDescription = null
+                                contentDescription = null,
                             )
                         }
-                    } else null,
+                    } else {
+                        null
+                    },
                     shape = RoundedCornerShape(20.dp),
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                    )
+                        selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                    ),
                 )
             }
         }

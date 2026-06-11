@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection
 
 import androidx.compose.animation.slideInHorizontally
@@ -49,14 +53,14 @@ data class PlatformActions(
     val openUrl: (String) -> Unit = {},
     val openEmail: (email: String, subject: String) -> Unit = { _, _ -> },
     val startTurbo: (siteIds: Set<String>, intervalSeconds: Int) -> Unit = { _, _ -> },
-    val stopTurbo: () -> Unit = {}
+    val stopTurbo: () -> Unit = {},
 )
 
 @Composable
 fun ChangeDetectionRootApp(
     windowSizeClass: WindowSizeClass,
     platformActions: PlatformActions = PlatformActions(),
-    initialSiteId: String? = null
+    initialSiteId: String? = null,
 ) {
     val themeViewModel: ThemeViewModel = koinViewModel()
 
@@ -66,12 +70,12 @@ fun ChangeDetectionRootApp(
     ) {
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
+            color = MaterialTheme.colorScheme.background,
         ) {
             ChangeDetectionApp(
                 windowSizeClass = windowSizeClass,
                 platformActions = platformActions,
-                initialSiteId = initialSiteId
+                initialSiteId = initialSiteId,
             )
         }
     }
@@ -82,7 +86,7 @@ fun ChangeDetectionRootApp(
 fun ChangeDetectionApp(
     windowSizeClass: WindowSizeClass,
     platformActions: PlatformActions,
-    initialSiteId: String? = null
+    initialSiteId: String? = null,
 ) {
     val backStack = rememberNavBackStack(MainDestination)
     val mainViewModel: MainViewModel = koinViewModel()
@@ -97,7 +101,7 @@ fun ChangeDetectionApp(
 
     ChangeDetectionBottomNavigation(
         backStack = backStack,
-        useNavigationRail = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
+        useNavigationRail = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded,
     ) {
         NavDisplay(
             backStack = backStack,
@@ -105,7 +109,7 @@ fun ChangeDetectionApp(
             sceneStrategy = listDetailStrategy,
             entryDecorators = listOf(
                 rememberSaveableStateHolderNavEntryDecorator(),
-                rememberViewModelStoreNavEntryDecorator()
+                rememberViewModelStoreNavEntryDecorator(),
             ),
             entryProvider = entryProvider {
                 entry<MainDestination>(
@@ -114,14 +118,14 @@ fun ChangeDetectionApp(
                             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                                 Text("Select a site to view details")
                             }
-                        }
-                    )
+                        },
+                    ),
                 ) {
                     MainScreen(
                         viewModel = mainViewModel,
                         onAddSite = { backStack.add(AddEditDestination) },
                         onSiteClick = { site -> backStack.add(ComparisonDestination(siteId = site.id)) },
-                        onSiteEdit = { site -> backStack.add(EditSiteDestination(siteId = site.id)) }
+                        onSiteEdit = { site -> backStack.add(EditSiteDestination(siteId = site.id)) },
                     )
                 }
 
@@ -138,7 +142,7 @@ fun ChangeDetectionApp(
                         },
                         onStopTurbo = {
                             platformActions.stopTurbo()
-                        }
+                        },
                     )
                 }
 
@@ -147,13 +151,13 @@ fun ChangeDetectionApp(
                         onNavigateUp = { backStack.removeLastOrNull() },
                         onSnapClick = { snapId, url ->
                             backStack.add(BrowserDestination(snapId = snapId, url = url))
-                        }
+                        },
                     )
                 }
 
                 entry<SettingsDestination> {
                     SettingsScreen(
-                        onAboutClick = { backStack.add(AboutDestination) }
+                        onAboutClick = { backStack.add(AboutDestination) },
                     )
                 }
 
@@ -161,42 +165,42 @@ fun ChangeDetectionApp(
                 entry<AddEditDestination>(
                     metadata = NavDisplay.transitionSpec {
                         slideInVertically(initialOffsetY = { it }) togetherWith
-                                slideOutVertically(targetOffsetY = { it })
+                            slideOutVertically(targetOffsetY = { it })
                     } + NavDisplay.popTransitionSpec {
                         slideInVertically(initialOffsetY = { -it }) togetherWith
-                                slideOutVertically(targetOffsetY = { it })
-                    }
+                            slideOutVertically(targetOffsetY = { it })
+                    },
                 ) {
                     AddEditFlow(
                         onNavigateUp = { backStack.removeLastOrNull() },
-                        onSaveComplete = { backStack.removeLastOrNull() }
+                        onSaveComplete = { backStack.removeLastOrNull() },
                     )
                 }
 
                 entry<EditSiteDestination>(
                     metadata = NavDisplay.transitionSpec {
                         slideInHorizontally(initialOffsetX = { it }) togetherWith
-                                slideOutHorizontally(targetOffsetX = { -it })
+                            slideOutHorizontally(targetOffsetX = { -it })
                     } + NavDisplay.popTransitionSpec {
                         slideInHorizontally(initialOffsetX = { -it }) togetherWith
-                                slideOutHorizontally(targetOffsetX = { it })
-                    }
+                            slideOutHorizontally(targetOffsetX = { it })
+                    },
                 ) { key ->
                     AddEditFlow(
                         siteId = key.siteId,
                         onNavigateUp = { backStack.removeLastOrNull() },
-                        onSaveComplete = { backStack.removeLastOrNull() }
+                        onSaveComplete = { backStack.removeLastOrNull() },
                     )
                 }
 
                 entry<AboutDestination>(
                     metadata = NavDisplay.transitionSpec {
                         slideInHorizontally(initialOffsetX = { it }) togetherWith
-                                slideOutHorizontally(targetOffsetX = { -it })
+                            slideOutHorizontally(targetOffsetX = { -it })
                     } + NavDisplay.popTransitionSpec {
                         slideInHorizontally(initialOffsetX = { -it }) togetherWith
-                                slideOutHorizontally(targetOffsetX = { it })
-                    }
+                            slideOutHorizontally(targetOffsetX = { it })
+                    },
                 ) {
                     AboutScreen(
                         onBack = { backStack.removeLastOrNull() },
@@ -211,61 +215,61 @@ fun ChangeDetectionApp(
                         },
                         onLicenseUrlClick = { url ->
                             platformActions.openUrl(url)
-                        }
+                        },
                     )
                 }
 
                 entry<HowItWorksDestination>(
                     metadata = NavDisplay.transitionSpec {
                         slideInHorizontally(initialOffsetX = { it }) togetherWith
-                                slideOutHorizontally(targetOffsetX = { -it })
+                            slideOutHorizontally(targetOffsetX = { -it })
                     } + NavDisplay.popTransitionSpec {
                         slideInHorizontally(initialOffsetX = { -it }) togetherWith
-                                slideOutHorizontally(targetOffsetX = { it })
-                    }
+                            slideOutHorizontally(targetOffsetX = { it })
+                    },
                 ) {
                     HowItWorksScreen(
-                        onBackClick = { backStack.removeLastOrNull() }
+                        onBackClick = { backStack.removeLastOrNull() },
                     )
                 }
 
                 entry<BrowserDestination>(
                     metadata = NavDisplay.transitionSpec {
                         slideInVertically(initialOffsetY = { it }) togetherWith
-                                slideOutVertically(targetOffsetY = { it })
+                            slideOutVertically(targetOffsetY = { it })
                     } + NavDisplay.popTransitionSpec {
                         slideInVertically(initialOffsetY = { -it }) togetherWith
-                                slideOutVertically(targetOffsetY = { it })
-                    }
+                            slideOutVertically(targetOffsetY = { it })
+                    },
                 ) { key ->
                     LocalBrowserScreen(
                         snapId = key.snapId,
                         url = key.url.ifEmpty { "https://google.com" },
-                        onDismiss = { backStack.removeLastOrNull() }
+                        onDismiss = { backStack.removeLastOrNull() },
                     )
                 }
 
                 entry<ComparisonDestination>(
                     metadata = ListDetailSceneStrategy.detailPane() + NavDisplay.transitionSpec {
                         slideInHorizontally(initialOffsetX = { it }) togetherWith
-                                slideOutHorizontally(targetOffsetX = { -it })
+                            slideOutHorizontally(targetOffsetX = { -it })
                     } + NavDisplay.popTransitionSpec {
                         slideInHorizontally(initialOffsetX = { -it }) togetherWith
-                                slideOutHorizontally(targetOffsetX = { it })
-                    }
+                            slideOutHorizontally(targetOffsetX = { it })
+                    },
                 ) { key ->
                     ComparisonScreen(
                         siteId = key.siteId,
                         onNavigateUp = { backStack.removeLastOrNull() },
                         onSiteEdit = { id -> backStack.add(EditSiteDestination(siteId = id)) },
-                        onSiteDelete = { backStack.removeLastOrNull() }
+                        onSiteDelete = { backStack.removeLastOrNull() },
                     )
                 }
             },
             transitionSpec = {
                 androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(300)) togetherWith
-                        androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(300))
-            }
+                    androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(300))
+            },
         )
     }
 }

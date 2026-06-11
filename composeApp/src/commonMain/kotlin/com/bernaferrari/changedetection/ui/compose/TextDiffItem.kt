@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.compose
 
 import androidx.compose.foundation.background
@@ -19,12 +23,12 @@ import androidx.compose.ui.unit.dp
 fun TextDiffItem(
     title: String,
     index: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     // Parse the diff format: +TEXTADDED this text was added TEXTADDED
     val tokens = title.split("TEXTADDED|TEXTREMOVED".toRegex())
     val firstChar = title.firstOrNull() ?: ' '
-    
+
     val (backgroundColor, highlightColor, numberBackgroundColor, textAlign) = when (firstChar) {
         '+' -> {
             val bgColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
@@ -42,12 +46,12 @@ fun TextDiffItem(
             Quadruple(Color.Transparent, Color.Transparent, Color.Transparent, TextAlign.Center)
         }
     }
-    
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .background(backgroundColor),
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.Top,
     ) {
         // Line number
         Box(
@@ -55,22 +59,22 @@ fun TextDiffItem(
                 .width(48.dp)
                 .background(numberBackgroundColor)
                 .padding(vertical = 8.dp),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = index.toString(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = textAlign,
-                fontFamily = FontFamily.Monospace
+                fontFamily = FontFamily.Monospace,
             )
         }
-        
+
         // Diff content
         Text(
             text = buildAnnotatedString {
                 var currentIndex = 0
-                
+
                 tokens.forEachIndexed { tokenIndex, token ->
                     if (tokenIndex % 2 != 0 && highlightColor != Color.Transparent) {
                         // Highlighted text (added/removed)
@@ -89,7 +93,7 @@ fun TextDiffItem(
                 .padding(horizontal = 8.dp, vertical = 8.dp),
             style = MaterialTheme.typography.bodySmall,
             fontFamily = FontFamily.Monospace,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -98,7 +102,7 @@ private data class Quadruple<A, B, C, D>(
     val first: A,
     val second: B,
     val third: C,
-    val fourth: D
+    val fourth: D,
 )
 
 /*

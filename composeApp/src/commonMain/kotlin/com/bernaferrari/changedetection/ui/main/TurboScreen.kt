@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.main
 
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -116,7 +120,7 @@ fun TurboScreen(
     quickMonitorState: QuickMonitorState,
     isLoading: Boolean = false,
     onStartTurbo: (siteIds: Set<String>, intervalSeconds: Int) -> Unit,
-    onStopTurbo: () -> Unit
+    onStopTurbo: () -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
     val isRunning = quickMonitorState.isActive
@@ -180,7 +184,7 @@ fun TurboScreen(
                 Icon(
                     imageVector = Icons.Rounded.Bolt,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             },
             title = { Text(stringResource(Res.string.turbo_help_title)) },
@@ -213,7 +217,7 @@ fun TurboScreen(
                 TextButton(onClick = { showHelpDialog = false }) {
                     Text(stringResource(Res.string.got_it))
                 }
-            }
+            },
         )
     }
 
@@ -224,7 +228,7 @@ fun TurboScreen(
                 title = {
                     Text(
                         stringResource(Res.string.turbo_mode),
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleLarge,
                     )
                 },
                 actions = {
@@ -232,20 +236,20 @@ fun TurboScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
                             contentDescription = stringResource(Res.string.how_it_works),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 },
                 scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ),
-                modifier = Modifier.statusBarsPadding()
+                modifier = Modifier.statusBarsPadding(),
             )
         },
         floatingActionButton = {},
-        contentWindowInsets = WindowInsets(0)
+        contentWindowInsets = WindowInsets(0),
     ) { padding ->
         when {
             isLoading -> {
@@ -253,7 +257,7 @@ fun TurboScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator()
                 }
@@ -264,7 +268,7 @@ fun TurboScreen(
                     icon = Icons.Rounded.Bolt,
                     title = stringResource(Res.string.no_sites_yet),
                     description = stringResource(Res.string.add_sites_to_monitor),
-                    modifier = Modifier.padding(padding)
+                    modifier = Modifier.padding(padding),
                 )
             }
 
@@ -273,7 +277,7 @@ fun TurboScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding),
-                    contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp)
+                    contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp),
                 ) {
                     // Hero section with circular progress
                     item {
@@ -294,7 +298,7 @@ fun TurboScreen(
                                     onStartTurbo(selectedIds, intervalSeconds)
                                 }
                             },
-                            canToggle = isRunning || selectedIds.isNotEmpty()
+                            canToggle = isRunning || selectedIds.isNotEmpty(),
                         )
                     }
 
@@ -307,7 +311,7 @@ fun TurboScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 24.dp, vertical = 8.dp)
+                                .padding(horizontal = 24.dp, vertical = 8.dp),
                         )
                     }
 
@@ -342,7 +346,7 @@ fun TurboScreen(
                                         val newIds = selectedIds.toMutableSet()
                                         if (isSelected) newIds.remove(siteAndSnap.site.id) else newIds.add(siteAndSnap.site.id)
                                         selectedIds = newIds
-                                    }
+                                    },
                                 )
                             }
                         }
@@ -361,7 +365,7 @@ private fun SiteRowCard(
     isSyncing: Boolean,
     isFirst: Boolean,
     isLast: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val siteColor = remember(site.colors.first) { Color(site.colors.first) }
     val siteColor2 = remember(site.colors.second) { Color(site.colors.second) }
@@ -372,49 +376,62 @@ private fun SiteRowCard(
 
     // Background color when selected
     val backgroundColor by animateColorAsState(
-        targetValue = if (isSelected)
+        targetValue = if (isSelected) {
             siteColor.copy(alpha = 0.12f)
-        else
-            MaterialTheme.colorScheme.surfaceContainerLow,
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerLow
+        },
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
         ),
-        label = "rowBg"
+        label = "rowBg",
     )
 
     // Animate corner radii
     val animationSpec = spring<Dp>(
         dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-        stiffness = ExpressiveSpring.QUICK_STIFFNESS
+        stiffness = ExpressiveSpring.QUICK_STIFFNESS,
     )
 
     val topRadius by animateDpAsState(
-        targetValue = if (isSelected) CornerRadius.largePlus else if (isFirst) CornerRadius.medium else CornerRadius.xs,
+        targetValue = if (isSelected) {
+            CornerRadius.largePlus
+        } else if (isFirst) {
+            CornerRadius.medium
+        } else {
+            CornerRadius.xs
+        },
         animationSpec = animationSpec,
-        label = "topRadius"
+        label = "topRadius",
     )
 
     val bottomRadius by animateDpAsState(
-        targetValue = if (isSelected) CornerRadius.largePlus else if (isLast) CornerRadius.medium else CornerRadius.xs,
+        targetValue = if (isSelected) {
+            CornerRadius.largePlus
+        } else if (isLast) {
+            CornerRadius.medium
+        } else {
+            CornerRadius.xs
+        },
         animationSpec = animationSpec,
-        label = "bottomRadius"
+        label = "bottomRadius",
     )
 
     val shape = RoundedCornerShape(
         topStart = topRadius,
         topEnd = topRadius,
         bottomStart = bottomRadius,
-        bottomEnd = bottomRadius
+        bottomEnd = bottomRadius,
     )
 
     val scale by animateFloatAsState(
         targetValue = if (isSelected) 1.02f else 1f,
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.BOUNCY_DAMPING,
-            stiffness = ExpressiveSpring.BOUNCY_STIFFNESS
+            stiffness = ExpressiveSpring.BOUNCY_STIFFNESS,
         ),
-        label = "scale"
+        label = "scale",
     )
 
     Surface(
@@ -425,12 +442,12 @@ private fun SiteRowCard(
             .animateContentSize(
                 animationSpec = spring(
                     dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-                    stiffness = ExpressiveSpring.QUICK_STIFFNESS
-                )
+                    stiffness = ExpressiveSpring.QUICK_STIFFNESS,
+                ),
             ),
         shape = shape,
         color = backgroundColor,
-        tonalElevation = if (isSelected) 3.dp else 0.dp
+        tonalElevation = if (isSelected) 3.dp else 0.dp,
     ) {
         Row(
             modifier = Modifier
@@ -439,11 +456,11 @@ private fun SiteRowCard(
                     interactionSource = interactionSource,
                     indication = ripple(),
                     enabled = enabled,
-                    onClick = onClick
+                    onClick = onClick,
                 )
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             // Gradient color indicator
             Box(
@@ -451,26 +468,26 @@ private fun SiteRowCard(
                     .size(40.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(gradient),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 AnimatedContent(
                     targetState = isSyncing,
                     transitionSpec = {
                         fadeIn(tween(200)) togetherWith fadeOut(tween(200))
                     },
-                    label = "sync_indicator"
+                    label = "sync_indicator",
                 ) { syncing ->
                     if (syncing) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
                             color = Color.White,
-                            strokeWidth = 2.5.dp
+                            strokeWidth = 2.5.dp,
                         )
                     } else {
                         Text(
                             text = site.title?.firstOrNull()?.uppercase() ?: "W",
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                            color = Color.White
+                            color = Color.White,
                         )
                     }
                 }
@@ -484,14 +501,14 @@ private fun SiteRowCard(
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = site.url.replace(Regex("^https?://"), ""),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
 
@@ -500,12 +517,11 @@ private fun SiteRowCard(
                 isSelected = isSelected,
                 enabled = enabled,
                 color = siteColor,
-                onClick = onClick
+                onClick = onClick,
             )
         }
     }
 }
-
 
 @Composable
 private fun TurboHero(
@@ -515,19 +531,20 @@ private fun TurboHero(
     countdownSeconds: Int,
     onIntervalChange: (Int) -> Unit,
     onToggle: () -> Unit,
-    canToggle: Boolean
+    canToggle: Boolean,
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val containerColor by animateColorAsState(
-        targetValue = if (isRunning)
+        targetValue = if (isRunning) {
             MaterialTheme.colorScheme.primaryContainer
-        else
-            MaterialTheme.colorScheme.surfaceContainerHighest,
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHighest
+        },
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
-            stiffness = ExpressiveSpring.GENTLE_STIFFNESS
+            stiffness = ExpressiveSpring.GENTLE_STIFFNESS,
         ),
-        label = "containerColor"
+        label = "containerColor",
     )
 
     // Add pulse animation when running
@@ -537,11 +554,11 @@ private fun TurboHero(
             while (true) {
                 pulseScale.animateTo(
                     targetValue = 1.05f,
-                    animationSpec = tween(1000)
+                    animationSpec = tween(1000),
                 )
                 pulseScale.animateTo(
                     targetValue = 1f,
-                    animationSpec = tween(1000)
+                    animationSpec = tween(1000),
                 )
             }
         } else {
@@ -556,7 +573,7 @@ private fun TurboHero(
         modifier = Modifier
             .fillMaxWidth()
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         // Outer Hero Container - Entire 120.dp area is now clickable
         Box(
@@ -566,14 +583,18 @@ private fun TurboHero(
                 .clip(CircleShape)
                 .background(containerColor)
                 .then(
-                    if (!isRunning) Modifier.clickable {
-                        // Entire circle is now clickable
-                        val currentIndex = intervalOptions.indexOfFirst { it.seconds == intervalSeconds }
-                        val nextIndex = (currentIndex + 1) % intervalOptions.size
-                        onIntervalChange(intervalOptions[nextIndex].seconds)
-                    } else Modifier
+                    if (!isRunning) {
+                        Modifier.clickable {
+                            // Entire circle is now clickable
+                            val currentIndex = intervalOptions.indexOfFirst { it.seconds == intervalSeconds }
+                            val nextIndex = (currentIndex + 1) % intervalOptions.size
+                            onIntervalChange(intervalOptions[nextIndex].seconds)
+                        }
+                    } else {
+                        Modifier
+                    },
                 ),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             if (isRunning && !isSyncing) {
                 // Circular progress indicator
@@ -585,7 +606,7 @@ private fun TurboHero(
                     color = primaryColor,
                     trackColor = primaryColor.copy(alpha = 0.2f),
                     strokeWidth = 4.dp,
-                    strokeCap = StrokeCap.Round
+                    strokeCap = StrokeCap.Round,
                 )
             }
 
@@ -595,18 +616,18 @@ private fun TurboHero(
                     .size(80.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 if (isSyncing) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(32.dp),
                         color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 3.dp
+                        strokeWidth = 3.dp,
                     )
                 } else if (isRunning) {
                     AnimatedDigitCounter(
                         count = countdownSeconds,
-                        textColor = MaterialTheme.colorScheme.onPrimary
+                        textColor = MaterialTheme.colorScheme.onPrimary,
                     )
                 } else {
                     // Animated interval display
@@ -614,15 +635,15 @@ private fun TurboHero(
                         targetState = currentLabel,
                         transitionSpec = {
                             slideInVertically { -it } + fadeIn() togetherWith
-                                    slideOutVertically { it } + fadeOut()
+                                slideOutVertically { it } + fadeOut()
                         },
-                        label = "interval_animation"
+                        label = "interval_animation",
                     ) { label ->
                         Text(
                             text = label,
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onPrimary,
                         )
                     }
                 }
@@ -635,7 +656,7 @@ private fun TurboHero(
         StartStopFab(
             isRunning = isRunning,
             enabled = canToggle,
-            onClick = onToggle
+            onClick = onToggle,
         )
     }
 }
@@ -644,7 +665,7 @@ private fun TurboHero(
 private fun StartStopFab(
     isRunning: Boolean,
     enabled: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     if (isRunning) {
         // Outlined style for Stop
@@ -654,25 +675,25 @@ private fun StartStopFab(
                 .width(160.dp)
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
-            border = BorderStroke(2.dp, MaterialTheme.colorScheme.error)
+            border = BorderStroke(2.dp, MaterialTheme.colorScheme.error),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Stop,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MaterialTheme.colorScheme.error,
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = stringResource(Res.string.stop),
                     style = MaterialTheme.typography.labelLarge.copy(
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     ),
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
         }
@@ -682,12 +703,12 @@ private fun StartStopFab(
             onClick = onClick,
             containerColor = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh,
             contentColor = if (enabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(160.dp)
+            modifier = Modifier.width(160.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(horizontal = 24.dp)
+                modifier = Modifier.padding(horizontal = 24.dp),
             ) {
                 Icon(Icons.Default.Bolt, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
@@ -695,8 +716,8 @@ private fun StartStopFab(
                     text = stringResource(Res.string.start),
                     style = MaterialTheme.typography.labelLarge.copy(
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                        fontWeight = FontWeight.Bold,
+                    ),
                 )
             }
         }
@@ -709,7 +730,7 @@ private fun EmptyState(modifier: Modifier = Modifier) {
         icon = Icons.Rounded.Bolt,
         title = stringResource(Res.string.no_sites_yet),
         description = stringResource(Res.string.add_sites_to_monitor),
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -719,11 +740,11 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 @Composable
 private fun AnimatedDigitCounter(
     count: Int,
-    textColor: Color
+    textColor: Color,
 ) {
     Row(
         horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         val countText = count.toString()
         countText.forEach { digit ->
@@ -732,25 +753,25 @@ private fun AnimatedDigitCounter(
                 transitionSpec = {
                     // Slide down when decreasing
                     slideInVertically { -it } + fadeIn() togetherWith
-                            slideOutVertically { it } + fadeOut()
+                        slideOutVertically { it } + fadeOut()
                 },
-                label = "digit_$digit"
+                label = "digit_$digit",
             ) { targetDigit ->
                 Text(
                     text = targetDigit.toString(),
                     style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     ),
-                    color = textColor
+                    color = textColor,
                 )
             }
         }
         Text(
             text = "s",
             style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
             ),
-            color = textColor.copy(alpha = 0.8f)
+            color = textColor.copy(alpha = 0.8f),
         )
     }
 }
@@ -763,33 +784,33 @@ private fun CircularCheckIndicator(
     isSelected: Boolean,
     enabled: Boolean,
     color: Color,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val backgroundColor by animateColorAsState(
         targetValue = if (isSelected) color else Color.Transparent,
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
         ),
-        label = "circleBg"
+        label = "circleBg",
     )
 
     val borderColor by animateColorAsState(
         targetValue = if (isSelected) color else MaterialTheme.colorScheme.outline,
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
         ),
-        label = "circleBorder"
+        label = "circleBorder",
     )
 
     val scale by animateFloatAsState(
         targetValue = if (isSelected) 1f else 0.85f,
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
         ),
-        label = "circleScale"
+        label = "circleScale",
     )
 
     Box(
@@ -802,9 +823,11 @@ private fun CircularCheckIndicator(
                 if (!isSelected) {
                     Modifier.background(
                         color = Color.Transparent,
-                        shape = CircleShape
+                        shape = CircleShape,
                     )
-                } else Modifier
+                } else {
+                    Modifier
+                },
             )
             .clickable(enabled = enabled, onClick = onClick)
             .then(
@@ -812,11 +835,13 @@ private fun CircularCheckIndicator(
                     Modifier.padding(2.dp)
                         .background(
                             color = Color.Transparent,
-                            shape = CircleShape
+                            shape = CircleShape,
                         )
-                } else Modifier
+                } else {
+                    Modifier
+                },
             ),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         if (!isSelected) {
             // Empty circle border
@@ -825,13 +850,13 @@ private fun CircularCheckIndicator(
                     .size(24.dp)
                     .clip(CircleShape)
                     .background(Color.Transparent)
-                    .padding(2.dp)
+                    .padding(2.dp),
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(CircleShape)
-                        .background(borderColor.copy(alpha = 0.3f))
+                        .background(borderColor.copy(alpha = 0.3f)),
                 )
             }
         } else {
@@ -840,7 +865,7 @@ private fun CircularCheckIndicator(
                 imageVector = Icons.Default.Check,
                 contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(16.dp),
             )
         }
     }

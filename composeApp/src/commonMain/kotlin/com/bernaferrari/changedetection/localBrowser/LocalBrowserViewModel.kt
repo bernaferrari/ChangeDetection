@@ -1,10 +1,13 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.localBrowser
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
-
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,17 +18,16 @@ import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-
 data class BrowserState(
     val content: String = "",
     val isLoading: Boolean = false,
     val mimeType: String = "text/html",
-    val charset: String = "UTF-8"
+    val charset: String = "UTF-8",
 )
 
-
-class LocalBrowserViewModel : ViewModel(), KoinComponent {
-
+class LocalBrowserViewModel :
+    ViewModel(),
+    KoinComponent {
     private val snapsRepository: SnapsRepository by inject()
 
     private val _state = MutableStateFlow(BrowserState())
@@ -40,28 +42,31 @@ class LocalBrowserViewModel : ViewModel(), KoinComponent {
             _state.value = _state.value.copy(isLoading = true)
 
             try {
-                val snapshotInfo = withContext(Dispatchers.IO) {
-                    val snap = snapsRepository.getSnapById(snapId)
-                    val bytes = snapsRepository.getSnapContent(snapId)
-                    Triple(snap, bytes, resolveEncoding(snap))
-                }
+                val snapshotInfo =
+                    withContext(Dispatchers.IO) {
+                        val snap = snapsRepository.getSnapById(snapId)
+                        val bytes = snapsRepository.getSnapContent(snapId)
+                        Triple(snap, bytes, resolveEncoding(snap))
+                    }
 
                 val (snap, bytes, encoding) = snapshotInfo
                 val (mimeType, charsetName) = encoding
 
                 val decodedContent = bytes.decodeToString()
 
-                _state.value = BrowserState(
-                    content = decodedContent,
-                    isLoading = false,
-                    mimeType = mimeType,
-                    charset = charsetName
-                )
+                _state.value =
+                    BrowserState(
+                        content = decodedContent,
+                        isLoading = false,
+                        mimeType = mimeType,
+                        charset = charsetName,
+                    )
             } catch (e: Exception) {
-                _state.value = BrowserState(
-                    content = "",
-                    isLoading = false
-                )
+                _state.value =
+                    BrowserState(
+                        content = "",
+                        isLoading = false,
+                    )
             }
         }
     }
@@ -74,23 +79,26 @@ class LocalBrowserViewModel : ViewModel(), KoinComponent {
             return fallbackMime to fallbackCharset
         }
 
-        val mimeType = snap.contentType
-            .substringBefore(';')
-            .ifBlank { fallbackMime }
+        val mimeType =
+            snap.contentType
+                .substringBefore(';')
+                .ifBlank { fallbackMime }
 
-        val charsetFromType = snap.contentType
-            .split(';')
-            .drop(1)
-            .firstOrNull { it.trim().startsWith("charset", ignoreCase = true) }
-            ?.substringAfter('=', fallbackCharset)
-            ?.trim()
-            ?.trim('"', '\'')
-            ?.ifBlank { null }
+        val charsetFromType =
+            snap.contentType
+                .split(';')
+                .drop(1)
+                .firstOrNull { it.trim().startsWith("charset", ignoreCase = true) }
+                ?.substringAfter('=', fallbackCharset)
+                ?.trim()
+                ?.trim('"', '\'')
+                ?.ifBlank { null }
 
-        val charset = snap.contentCharset
-            .takeIf { it.isNotBlank() }
-            ?: charsetFromType
-            ?: fallbackCharset
+        val charset =
+            snap.contentCharset
+                .takeIf { it.isNotBlank() }
+                ?: charsetFromType
+                ?: fallbackCharset
 
         return mimeType to charset
     }

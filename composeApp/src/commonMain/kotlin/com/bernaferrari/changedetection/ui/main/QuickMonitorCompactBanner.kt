@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.main
 
 import androidx.compose.animation.AnimatedContent
@@ -62,12 +66,12 @@ fun QuickMonitorCompactBanner(
     sitesCount: Int,
     intervalSeconds: Int,
     onStop: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     AnimatedVisibility(
         visible = isActive,
         enter = fadeIn() + expandVertically(),
-        exit = fadeOut() + shrinkVertically()
+        exit = fadeOut() + shrinkVertically(),
     ) {
         val hapticFeedback = LocalHapticFeedback.current
 
@@ -96,31 +100,31 @@ fun QuickMonitorCompactBanner(
         val animatedProgress by animateFloatAsState(
             targetValue = progress.coerceIn(0f, 1f),
             animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
-            label = "quick_monitor_compact_progress"
+            label = "quick_monitor_compact_progress",
         )
 
         Surface(
             modifier = modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.primaryContainer,
-            tonalElevation = 2.dp
+            tonalElevation = 2.dp,
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Bolt,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(20.dp),
                     )
 
                     AnimatedContent(
@@ -128,24 +132,24 @@ fun QuickMonitorCompactBanner(
                         transitionSpec = {
                             if (targetState < initialState) {
                                 slideInVertically { height -> height } + fadeIn() togetherWith
-                                        slideOutVertically { height -> -height } + fadeOut()
+                                    slideOutVertically { height -> -height } + fadeOut()
                             } else {
                                 slideInVertically { height -> -height } + fadeIn() togetherWith
-                                        slideOutVertically { height -> height } + fadeOut()
+                                    slideOutVertically { height -> height } + fadeOut()
                             }.using(
-                                SizeTransform(clip = false)
+                                SizeTransform(clip = false),
                             )
                         },
-                        label = "timer_tick"
+                        label = "timer_tick",
                     ) { seconds ->
                         Text(
                             text = stringResource(
                                 Res.string.quick_monitor_next_check_in,
-                                seconds
+                                seconds,
                             ),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                     }
                 }
@@ -158,13 +162,13 @@ fun QuickMonitorCompactBanner(
                     modifier = Modifier.size(32.dp),
                     colors = IconButtonDefaults.filledTonalIconButtonColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.onErrorContainer
-                    )
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    ),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = stringResource(Res.string.turbo_mode_button_stop),
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(18.dp),
                     )
                 }
             }
@@ -176,7 +180,7 @@ fun QuickMonitorCompactBanner(
                     .padding(top = 44.dp)
                     .clip(RoundedCornerShape(bottomStart = 0.dp, bottomEnd = 0.dp)),
                 color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
             )
         }
     }

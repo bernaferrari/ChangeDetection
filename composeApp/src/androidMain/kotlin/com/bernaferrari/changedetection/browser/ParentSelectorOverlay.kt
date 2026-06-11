@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.browser
 
 import androidx.compose.animation.AnimatedVisibility
@@ -57,13 +61,13 @@ fun ParentSelectorOverlay(
     onDismiss: () -> Unit,
     onSelectLevel: (Int) -> Unit,
     onConfirm: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     AnimatedVisibility(
         visible = isVisible && selectedElement != null,
         enter = fadeIn(),
         exit = fadeOut(),
-        modifier = modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize(),
     ) {
         selectedElement?.let { element ->
             val interactionSource = remember { MutableInteractionSource() }
@@ -74,8 +78,8 @@ fun ParentSelectorOverlay(
                         .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.45f))
                         .clickable(
                             indication = null,
-                            interactionSource = interactionSource
-                        ) { onDismiss() }
+                            interactionSource = interactionSource,
+                        ) { onDismiss() },
                 )
 
                 AnimatedVisibility(
@@ -84,30 +88,34 @@ fun ParentSelectorOverlay(
                         initialOffsetY = { it },
                         animationSpec = spring(
                             dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
-                            stiffness = ExpressiveSpring.GENTLE_STIFFNESS
-                        )
+                            stiffness = ExpressiveSpring.GENTLE_STIFFNESS,
+                        ),
                     ) + fadeIn(animationSpec = tween(300)),
                     exit = slideOutVertically(
                         targetOffsetY = { it },
                         animationSpec = spring(
                             dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
-                            stiffness = ExpressiveSpring.GENTLE_STIFFNESS
-                        )
+                            stiffness = ExpressiveSpring.GENTLE_STIFFNESS,
+                        ),
                     ) + fadeOut(animationSpec = tween(300)),
-                    modifier = Modifier.align(Alignment.BottomCenter)
+                    modifier = Modifier.align(Alignment.BottomCenter),
                 ) {
                     ParentSelectorContent(
                         element = element,
-                        parentChain = if (parentChain.isNotEmpty()) parentChain else listOf(
-                            ParentElement(
-                                selector = element.selector,
-                                displayName = element.description,
-                                tagName = element.selector.substringBefore(' ').ifBlank { "element" },
-                                className = "",
-                                id = "",
-                                index = 0
+                        parentChain = if (parentChain.isNotEmpty()) {
+                            parentChain
+                        } else {
+                            listOf(
+                                ParentElement(
+                                    selector = element.selector,
+                                    displayName = element.description,
+                                    tagName = element.selector.substringBefore(' ').ifBlank { "element" },
+                                    className = "",
+                                    id = "",
+                                    index = 0,
+                                ),
                             )
-                        ),
+                        },
                         mode = mode,
                         onDismiss = onDismiss,
                         onSelectLevel = onSelectLevel,
@@ -115,7 +123,7 @@ fun ParentSelectorOverlay(
                         modifier = Modifier
                             .fillMaxWidth()
                             .fillMaxHeight(0.6f)
-                            .padding(horizontal = 16.dp, vertical = 24.dp)
+                            .padding(horizontal = 16.dp, vertical = 24.dp),
                     )
                 }
             }
@@ -131,7 +139,7 @@ private fun ParentSelectorContent(
     onDismiss: () -> Unit,
     onSelectLevel: (Int) -> Unit,
     onConfirm: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     var selectedLevel by remember { mutableStateOf(0) }
@@ -147,28 +155,28 @@ private fun ParentSelectorContent(
         modifier = modifier,
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface,
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         ) {
             // Header
             ParentSelectorHeader(
                 mode = mode,
-                onClose = onDismiss
+                onClose = onDismiss,
             )
 
             HorizontalDivider(
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
             )
 
             // Main Content
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .weight(1f)
+                    .weight(1f),
             ) {
                 // Slider Section
                 ParentLevelSlider(
@@ -178,18 +186,18 @@ private fun ParentSelectorContent(
                         hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                         selectedLevel = level
                         onSelectLevel(level)
-                    }
+                    },
                 )
 
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 24.dp),
-                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
                 )
 
                 // Preview Section
                 ElementPreview(
                     selectedElement = parentChain.getOrNull(selectedLevel),
-                    mode = mode
+                    mode = mode,
                 )
 
                 // Hierarchy Visualization
@@ -200,7 +208,7 @@ private fun ParentSelectorContent(
                         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                         selectedLevel = level
                         onSelectLevel(level)
-                    }
+                    },
                 )
             }
 
@@ -212,7 +220,7 @@ private fun ParentSelectorContent(
                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                     onConfirm(parentChain.getOrNull(selectedLevel)?.selector ?: element.selector)
                     onDismiss()
-                }
+                },
             )
         }
     }
@@ -221,7 +229,7 @@ private fun ParentSelectorContent(
 @Composable
 private fun ParentSelectorHeader(
     mode: InteractionMode,
-    onClose: () -> Unit
+    onClose: () -> Unit,
 ) {
     val accent = if (mode == InteractionMode.ELEMENT_ZAP) {
         MaterialTheme.colorScheme.error
@@ -233,7 +241,7 @@ private fun ParentSelectorHeader(
             R.string.browser_parent_title_block
         } else {
             R.string.browser_parent_title_monitor
-        }
+        },
     )
     val subtitle = stringResource(id = R.string.browser_parent_subtitle)
 
@@ -244,17 +252,17 @@ private fun ParentSelectorHeader(
                 brush = Brush.horizontalGradient(
                     listOf(
                         accent.copy(alpha = 0.15f),
-                        accent.copy(alpha = 0.04f)
-                    )
-                )
+                        accent.copy(alpha = 0.04f),
+                    ),
+                ),
             )
             .padding(24.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Icon(
                 imageVector = if (mode == InteractionMode.ELEMENT_ZAP) {
@@ -264,20 +272,20 @@ private fun ParentSelectorHeader(
                 },
                 contentDescription = null,
                 tint = accent,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(28.dp),
             )
             Column {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
                     ),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -287,13 +295,13 @@ private fun ParentSelectorHeader(
             modifier = Modifier
                 .background(
                     MaterialTheme.colorScheme.surfaceVariant,
-                    CircleShape
-                )
+                    CircleShape,
+                ),
         ) {
             Icon(
                 Icons.Default.Close,
                 contentDescription = stringResource(id = R.string.close),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -303,7 +311,7 @@ private fun ParentSelectorHeader(
 private fun ParentLevelSlider(
     currentLevel: Int,
     maxLevel: Int,
-    onLevelChange: (Int) -> Unit
+    onLevelChange: (Int) -> Unit,
 ) {
     val safeMax = maxLevel.coerceAtLeast(0)
     var sliderValue by remember { mutableFloatStateOf(currentLevel.toFloat()) }
@@ -316,22 +324,22 @@ private fun ParentLevelSlider(
         modifier = Modifier
             .fillMaxWidth()
             .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         // Labels
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
                 text = stringResource(id = R.string.browser_parent_slider_label_narrow),
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 text = stringResource(id = R.string.browser_parent_slider_label_broad),
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
@@ -348,8 +356,8 @@ private fun ParentLevelSlider(
                 activeTrackColor = MaterialTheme.colorScheme.primary,
                 inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
                 activeTickColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-                inactiveTickColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-            )
+                inactiveTickColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+            ),
         )
     }
 }
@@ -357,7 +365,7 @@ private fun ParentLevelSlider(
 @Composable
 private fun ElementPreview(
     selectedElement: ParentElement?,
-    mode: InteractionMode
+    mode: InteractionMode,
 ) {
     selectedElement?.let { element ->
         val accentColor = if (mode == InteractionMode.ELEMENT_ZAP) {
@@ -381,7 +389,7 @@ private fun ElementPreview(
                     MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)
                 } else {
                     MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
-                }
+                },
             ),
             border = BorderStroke(
                 1.dp,
@@ -389,18 +397,18 @@ private fun ElementPreview(
                     MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
                 } else {
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                }
-            )
+                },
+            ),
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Icon(
                         imageVector = if (mode == InteractionMode.ELEMENT_ZAP) {
@@ -410,21 +418,21 @@ private fun ElementPreview(
                         },
                         contentDescription = null,
                         tint = accentColor,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(18.dp),
                     )
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleSmall.copy(
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
                         ),
-                        color = accentColor
+                        color = accentColor,
                     )
                 }
 
                 // Tag and attributes
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TagChip(element.tagName)
 
@@ -444,34 +452,34 @@ private fun ElementPreview(
                     Text(
                         text = stringResource(id = R.string.browser_parent_preview_selector_label),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
                         text = element.selector,
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            fontFamily = FontFamily.Monospace
+                            fontFamily = FontFamily.Monospace,
                         ),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                 }
 
                 // Text preview if available
                 element.displayName.takeIf { it.isNotBlank() }?.let { text ->
                     HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
                     )
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
                             text = stringResource(id = R.string.browser_parent_preview_text_label),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
                             text = text,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 3,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }
@@ -484,16 +492,16 @@ private fun ElementPreview(
 private fun TagChip(tag: String) {
     Surface(
         shape = RoundedCornerShape(4.dp),
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
     ) {
         Text(
             text = tag.lowercase(),
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelSmall.copy(
                 fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             ),
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
     }
 }
@@ -502,15 +510,15 @@ private fun TagChip(tag: String) {
 private fun AttributeChip(text: String, color: Color) {
     Surface(
         shape = RoundedCornerShape(4.dp),
-        color = color.copy(alpha = 0.2f)
+        color = color.copy(alpha = 0.2f),
     ) {
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             style = MaterialTheme.typography.labelSmall.copy(
-                fontFamily = FontFamily.Monospace
+                fontFamily = FontFamily.Monospace,
             ),
-            color = color
+            color = color,
         )
     }
 }
@@ -519,39 +527,39 @@ private fun AttributeChip(text: String, color: Color) {
 private fun HierarchyVisualization(
     hierarchy: List<ParentElement>,
     selectedLevel: Int,
-    onSelectLevel: (Int) -> Unit
+    onSelectLevel: (Int) -> Unit,
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
             text = stringResource(id = R.string.browser_parent_hierarchy_title),
             style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.SemiBold
-            )
+                fontWeight = FontWeight.SemiBold,
+            ),
         )
 
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
             ),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 hierarchy.forEachIndexed { index, element ->
                     HierarchyItem(
                         element = element,
                         isSelected = index == selectedLevel,
                         depth = element.index,
-                        onClick = { onSelectLevel(index) }
+                        onClick = { onSelectLevel(index) },
                     )
                 }
             }
@@ -564,7 +572,7 @@ private fun HierarchyItem(
     element: ParentElement,
     isSelected: Boolean,
     depth: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val backgroundColor by animateColorAsState(
         targetValue = if (isSelected) {
@@ -574,15 +582,15 @@ private fun HierarchyItem(
         },
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
         ),
-        label = "hierarchyBackground"
+        label = "hierarchyBackground",
     )
 
     Surface(
         onClick = onClick,
         color = backgroundColor,
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(8.dp),
     ) {
         Row(
             modifier = Modifier
@@ -591,10 +599,10 @@ private fun HierarchyItem(
                     start = (16 + depth * 16).dp,
                     top = 8.dp,
                     end = 8.dp,
-                    bottom = 8.dp
+                    bottom = 8.dp,
                 ),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             // Connector line
             if (depth > 0) {
@@ -602,7 +610,7 @@ private fun HierarchyItem(
                     Icons.Default.SubdirectoryArrowRight,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                    tint = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
                 )
             }
 
@@ -623,25 +631,25 @@ private fun HierarchyItem(
                 },
                 style = MaterialTheme.typography.bodySmall.copy(
                     fontFamily = FontFamily.Monospace,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                 ),
                 color = if (isSelected) {
                     MaterialTheme.colorScheme.primary
                 } else {
                     MaterialTheme.colorScheme.onSurfaceVariant
-                }
+                },
             )
 
             if (element.index == 0) {
                 Surface(
                     shape = RoundedCornerShape(4.dp),
-                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f)
+                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
                 ) {
                     Text(
                         text = stringResource(id = R.string.browser_parent_badge_target).uppercase(),
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.tertiary
+                        color = MaterialTheme.colorScheme.tertiary,
                     )
                 }
             }
@@ -653,22 +661,22 @@ private fun HierarchyItem(
 private fun BottomActionBar(
     mode: InteractionMode,
     onCancel: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 8.dp
+        tonalElevation = 8.dp,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             OutlinedButton(
                 onClick = onCancel,
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
             ) {
                 Text(text = stringResource(id = R.string.browser_parent_action_cancel))
             }
@@ -682,8 +690,8 @@ private fun BottomActionBar(
                         MaterialTheme.colorScheme.error
                     } else {
                         MaterialTheme.colorScheme.primary
-                    }
-                )
+                    },
+                ),
             ) {
                 Icon(
                     imageVector = if (mode == InteractionMode.ELEMENT_ZAP) {
@@ -692,7 +700,7 @@ private fun BottomActionBar(
                         Icons.Default.Visibility
                     },
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
@@ -702,8 +710,8 @@ private fun BottomActionBar(
                         stringResource(id = R.string.browser_parent_action_monitor)
                     },
                     style = MaterialTheme.typography.labelLarge.copy(
-                        fontWeight = FontWeight.Bold
-                    )
+                        fontWeight = FontWeight.Bold,
+                    ),
                 )
             }
         }

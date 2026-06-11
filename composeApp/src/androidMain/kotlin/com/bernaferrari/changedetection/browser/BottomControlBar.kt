@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.browser
 
 import androidx.compose.animation.AnimatedVisibility
@@ -39,7 +43,7 @@ fun BottomControlBar(
     uiState: InteractiveBrowserUiState,
     onElementSelectToggle: () -> Unit,
     onElementZapToggle: () -> Unit,
-    onShowZapManager: () -> Unit
+    onShowZapManager: () -> Unit,
 ) {
     val monitoredCount = uiState.selectedElements.size
     val zappedCount = uiState.zappedElements.size
@@ -57,17 +61,17 @@ fun BottomControlBar(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         shape = RoundedCornerShape(26.dp),
         tonalElevation = 8.dp,
-        color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp)
+        color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 ModeButton(
                     icon = Icons.Default.TouchApp,
@@ -78,7 +82,7 @@ fun BottomControlBar(
                     activeColor = MaterialTheme.colorScheme.primary,
                     enabled = isPageReady,
                     onClick = onElementSelectToggle,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
 
                 ModeButton(
@@ -90,7 +94,7 @@ fun BottomControlBar(
                     activeColor = MaterialTheme.colorScheme.error,
                     enabled = isPageReady,
                     onClick = onElementZapToggle,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
 
@@ -100,17 +104,17 @@ fun BottomControlBar(
                         text = stringResource(
                             id = R.string.browser_monitored_zapped_counts,
                             monitoredCount,
-                            zappedCount
+                            zappedCount,
                         ),
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 
                 Text(
                     text = statusText,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -118,19 +122,19 @@ fun BottomControlBar(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TextButton(onClick = onShowZapManager) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ListAlt,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = stringResource(id = R.string.browser_manage_elements),
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.labelLarge,
                         )
                     }
                 }
@@ -149,7 +153,7 @@ private fun ModeButton(
     activeColor: Color,
     enabled: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val targetContainerColor = when {
         !enabled -> MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
@@ -185,37 +189,37 @@ private fun ModeButton(
         shape = RoundedCornerShape(18.dp),
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = containerColor
+            containerColor = containerColor,
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isActive) 8.dp else 2.dp
-        )
+            defaultElevation = if (isActive) 8.dp else 2.dp,
+        ),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = description,
                 tint = iconColor,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(24.dp),
             )
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelMedium.copy(
-                    fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium
+                    fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
                 ),
-                color = textColor
+                color = textColor,
             )
             AnimatedVisibility(visible = count > 0) {
                 Text(
                     text = count.toString(),
                     style = MaterialTheme.typography.labelSmall,
-                    color = countColor
+                    color = countColor,
                 )
             }
         }

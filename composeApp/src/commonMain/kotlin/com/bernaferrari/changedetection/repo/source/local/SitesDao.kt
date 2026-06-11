@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.repo.source.local
 
 import androidx.room.*
@@ -19,7 +23,6 @@ interface SitesDao {
     @Query("SELECT * FROM sites")
     suspend fun getSitesList(): List<Site>
 
-
     @Query("SELECT * FROM sites")
     fun getDataWithChanges(): Flow<List<Site>>
 
@@ -40,7 +43,6 @@ interface SitesDao {
      */
     @Query("SELECT * FROM sites WHERE url = :siteUrl")
     suspend fun getSiteByUrl(siteUrl: String): Site?
-
 
     /**
      * Insert a site in the database. If the site already exists, replace it.

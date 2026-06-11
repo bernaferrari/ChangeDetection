@@ -1,11 +1,15 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.repo.source.local
 
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.Site
+import com.bernaferrari.changedetection.repo.Snap
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -25,7 +29,6 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class SnapsDaoTest {
-
     private lateinit var database: AppDatabase
     private lateinit var snapsDao: SnapsDao
     private lateinit var sitesDao: SitesDao
@@ -33,9 +36,11 @@ class SnapsDaoTest {
     @Before
     fun setup() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        database = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
-            .allowMainThreadQueries()
-            .build()
+        database =
+            Room
+                .inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+                .allowMainThreadQueries()
+                .build()
         snapsDao = database.snapsDao()
         sitesDao = database.sitesDao()
     }
@@ -109,18 +114,18 @@ class SnapsDaoTest {
         sitesDao.insertSite(createSite("site-3", "https://github.com"))
 
         // Insert in non-chronological order
-        snapsDao.insertSnap(createSnap("snap-2", "site-2", 2000L))  // Middle
-        snapsDao.insertSnap(createSnap("snap-3", "site-3", 3000L))  // Latest
-        snapsDao.insertSnap(createSnap("snap-1", "site-1", 1000L))  // Oldest
+        snapsDao.insertSnap(createSnap("snap-2", "site-2", 2000L)) // Middle
+        snapsDao.insertSnap(createSnap("snap-3", "site-3", 3000L)) // Latest
+        snapsDao.insertSnap(createSnap("snap-1", "site-1", 1000L)) // Oldest
 
         // Act
         val results = snapsDao.getAllMostRecentSnaps()
 
         // Assert: Results should be ordered by timestamp DESC
         assertEquals(3, results.size)
-        assertEquals("snap-3", results[0].snapId)  // 3000L (latest)
-        assertEquals("snap-2", results[1].snapId)  // 2000L
-        assertEquals("snap-1", results[2].snapId)  // 1000L (oldest)
+        assertEquals("snap-3", results[0].snapId) // 3000L (latest)
+        assertEquals("snap-2", results[1].snapId) // 2000L
+        assertEquals("snap-1", results[2].snapId) // 1000L (oldest)
     }
 
     @Test
@@ -205,16 +210,17 @@ class SnapsDaoTest {
         // Arrange: Create snap with detailed content information
         sitesDao.insertSite(createSite("site-1", "https://example.com"))
 
-        val snap = Snap(
-            snapId = "snap-1",
-            siteId = "site-1",
-            timestamp = 1000L,
-            contentType = "application/json",
-            contentCharset = "ISO-8859-1",
-            contentSize = 999,
-            contentHash = "custom-hash-abc123",
-            processedContentHash = "processed-hash-def456"
-        )
+        val snap =
+            Snap(
+                snapId = "snap-1",
+                siteId = "site-1",
+                timestamp = 1000L,
+                contentType = "application/json",
+                contentCharset = "ISO-8859-1",
+                contentSize = 999,
+                contentHash = "custom-hash-abc123",
+                processedContentHash = "processed-hash-def456",
+            )
         snapsDao.insertSnap(snap)
 
         // Act
@@ -305,16 +311,17 @@ class SnapsDaoTest {
 
     // ========== Helper Methods ==========
 
-    private fun createSite(id: String, url: String): Site {
-        return Site(
-            id = id,
-            title = "Test Site $id",
-            url = url,
-            timestamp = System.currentTimeMillis(),
-            isSuccessful = true,
-            isSyncEnabled = true
-        )
-    }
+    private fun createSite(
+        id: String,
+        url: String,
+    ): Site = Site(
+        id = id,
+        title = "Test Site $id",
+        url = url,
+        timestamp = System.currentTimeMillis(),
+        isSuccessful = true,
+        isSyncEnabled = true,
+    )
 
     private fun createSnap(
         snapId: String,
@@ -324,17 +331,15 @@ class SnapsDaoTest {
         contentCharset: String = "UTF-8",
         contentSize: Int = 1024,
         contentHash: String = "hash-$snapId",
-        processedContentHash: String = "processed-$snapId"
-    ): Snap {
-        return Snap(
-            snapId = snapId,
-            siteId = siteId,
-            timestamp = timestamp,
-            contentType = contentType,
-            contentCharset = contentCharset,
-            contentSize = contentSize,
-            contentHash = contentHash,
-            processedContentHash = processedContentHash
-        )
-    }
+        processedContentHash: String = "processed-$snapId",
+    ): Snap = Snap(
+        snapId = snapId,
+        siteId = siteId,
+        timestamp = timestamp,
+        contentType = contentType,
+        contentCharset = contentCharset,
+        contentSize = contentSize,
+        contentHash = contentHash,
+        processedContentHash = processedContentHash,
+    )
 }

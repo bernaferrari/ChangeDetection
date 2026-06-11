@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.repo.source.local
 
 import com.bernaferrari.changedetection.repo.AppExecutors
@@ -19,14 +23,12 @@ import kotlin.math.abs
 class SnapsLocalDataSource constructor(
     private val mAppExecutors: AppExecutors,
     private val mSnapsDao: SnapsDao,
-    private val fileStorage: FileStorage
+    private val fileStorage: FileStorage,
 ) : SnapsDataSource {
-
-    override suspend fun pruneSnaps(siteId: String) =
-        withContext(mAppExecutors.ioContext) {
-            // Use optimized database-level pruning instead of loading all data into memory
-            pruneSnapsOptimized(siteId)
-        }
+    override suspend fun pruneSnaps(siteId: String) = withContext(mAppExecutors.ioContext) {
+        // Use optimized database-level pruning instead of loading all data into memory
+        pruneSnapsOptimized(siteId)
+    }
 
     private suspend fun pruneSnapsOptimized(siteId: String) {
         // First, get content duplication stats to determine pruning strategy
@@ -55,7 +57,10 @@ class SnapsLocalDataSource constructor(
         }
     }
 
-    private suspend fun pruneOldSnaps(siteId: String, keepCount: Int) {
+    private suspend fun pruneOldSnaps(
+        siteId: String,
+        keepCount: Int,
+    ) {
         val oldSnaps = mSnapsDao.getAllSnapsForSiteId(siteId).drop(keepCount)
         oldSnaps.forEach { snap ->
             fileStorage.deleteFile(snap.snapId)
@@ -71,22 +76,20 @@ class SnapsLocalDataSource constructor(
         }
     }
 
-    override suspend fun deleteSnap(snapId: String) =
-        withContext(mAppExecutors.ioContext) {
-            fileStorage.deleteFile(snapId)
-            mSnapsDao.deleteSnapById(snapId)
-        }
+    override suspend fun deleteSnap(snapId: String) = withContext(mAppExecutors.ioContext) {
+        fileStorage.deleteFile(snapId)
+        mSnapsDao.deleteSnapById(snapId)
+    }
 
-    override fun getSnaps(siteId: String): Flow<List<Snap>> =
-        mSnapsDao.getAllSnapsForSiteIdWithFlow(siteId)
+    override fun getSnaps(siteId: String): Flow<List<Snap>> = mSnapsDao.getAllSnapsForSiteIdWithFlow(siteId)
 
-    override fun getSnapsFiltered(siteId: String, filter: String): Flow<List<Snap>> =
-        mSnapsDao.getSnapsWithChange(siteId, filter)
+    override fun getSnapsFiltered(
+        siteId: String,
+        filter: String,
+    ): Flow<List<Snap>> = mSnapsDao.getSnapsWithChange(siteId, filter)
 
-    override suspend fun getAllSnapsForSite(siteId: String): List<Snap> {
-        return withContext(mAppExecutors.ioContext) {
-            mSnapsDao.getAllSnapsForSiteId(siteId)
-        }
+    override suspend fun getAllSnapsForSite(siteId: String): List<Snap> = withContext(mAppExecutors.ioContext) {
+        mSnapsDao.getAllSnapsForSiteId(siteId)
     }
 
     override suspend fun getSnapById(snapId: String): Snap? = withContext(mAppExecutors.ioContext) {
@@ -97,10 +100,13 @@ class SnapsLocalDataSource constructor(
         fileStorage.readBytes(snapId)
     }
 
-    override suspend fun saveSnap(snap: Snap, content: ByteArray, threshold: Int): Result<Snap> =
-        withContext(mAppExecutors.ioContext) {
-
-            val lastSnapValue = mSnapsDao.getLastSnapForSiteId(snap.siteId).let { previousValue ->
+    override suspend fun saveSnap(
+        snap: Snap,
+        content: ByteArray,
+        threshold: Int,
+    ): Result<Snap> = withContext(mAppExecutors.ioContext) {
+        val lastSnapValue =
+            mSnapsDao.getLastSnapForSiteId(snap.siteId).let { previousValue ->
                 if (previousValue != null && fileStorage.fileExists(previousValue.snapId)) {
                     fileStorage.readBytes(previousValue.snapId)
                 } else {
@@ -108,60 +114,61 @@ class SnapsLocalDataSource constructor(
                 }
             }
 
-            val belowThresh = threshold <= abs(lastSnapValue.size - content.size)
+        val belowThresh = threshold <= abs(lastSnapValue.size - content.size)
 
-            if (belowThresh && ContentHasher.contentChanged(
-                    content,
-                    lastSnapValue,
-                    snap.contentType
-                )
-            ) {
-                Napier.d("Difference detected! Size went from ${lastSnapValue.size} to ${content.size}")
-                mSnapsDao.insertSnap(snap)
-                fileStorage.writeBytes(snap.snapId, content)
-                Result.Success(snap)
-            } else {
-                Napier.d("No difference detected!")
-                Result.Error()
-            }
+        if (belowThresh &&
+            ContentHasher.contentChanged(
+                content,
+                lastSnapValue,
+                snap.contentType,
+            )
+        ) {
+            Napier.d("Difference detected! Size went from ${lastSnapValue.size} to ${content.size}")
+            mSnapsDao.insertSnap(snap)
+            fileStorage.writeBytes(snap.snapId, content)
+            Result.Success(snap)
+        } else {
+            Napier.d("No difference detected!")
+            Result.Error()
         }
+    }
 
-    override suspend fun deleteSnapsForSiteIdAndContentType(siteId: String, contentType: String) =
-        withContext(mAppExecutors.ioContext) {
-            mSnapsDao.getAllSnapsForSiteIdAndContentType(siteId, contentType).forEach {
-                fileStorage.deleteFile(it.snapId)
-                mSnapsDao.deleteSnapById(it.snapId)
-            }
+    override suspend fun deleteSnapsForSiteIdAndContentType(
+        siteId: String,
+        contentType: String,
+    ) = withContext(mAppExecutors.ioContext) {
+        mSnapsDao.getAllSnapsForSiteIdAndContentType(siteId, contentType).forEach {
+            fileStorage.deleteFile(it.snapId)
+            mSnapsDao.deleteSnapById(it.snapId)
         }
+    }
 
-    override suspend fun getContentTypeInfo(siteId: String): List<ContentTypeInfo> =
-        withContext(mAppExecutors.ioContext) {
-            mSnapsDao.getContentTypesWithCount(siteId).map {
-                ContentTypeInfo(it.contentType, it.count)
-            }
+    override suspend fun getContentTypeInfo(siteId: String): List<ContentTypeInfo> = withContext(mAppExecutors.ioContext) {
+        mSnapsDao.getContentTypesWithCount(siteId).map {
+            ContentTypeInfo(it.contentType, it.count)
         }
+    }
 
-    override suspend fun getMostRecentSnap(siteId: String): Snap? =
-        withContext(mAppExecutors.ioContext) {
-            mSnapsDao.getLastSnapForSiteId(siteId)
-        }
+    override suspend fun getMostRecentSnap(siteId: String): Snap? = withContext(mAppExecutors.ioContext) {
+        mSnapsDao.getLastSnapForSiteId(siteId)
+    }
 
-    override suspend fun getAllMostRecentSnaps(): Map<String, Snap> =
-        withContext(mAppExecutors.ioContext) {
-            val allSnapshots = mSnapsDao.getAllMostRecentSnaps()
-            allSnapshots.associateBy { it.siteId }
-        }
+    override suspend fun getAllMostRecentSnaps(): Map<String, Snap> = withContext(mAppExecutors.ioContext) {
+        val allSnapshots = mSnapsDao.getAllMostRecentSnaps()
+        allSnapshots.associateBy { it.siteId }
+    }
 
-    override suspend fun getLastNSnapsForSiteId(siteId: String, limit: Int): List<Snap> =
-        withContext(mAppExecutors.ioContext) {
-            mSnapsDao.getLastNSnapsForSiteId(siteId, limit)
-        }
+    override suspend fun getLastNSnapsForSiteId(
+        siteId: String,
+        limit: Int,
+    ): List<Snap> = withContext(mAppExecutors.ioContext) {
+        mSnapsDao.getLastNSnapsForSiteId(siteId, limit)
+    }
 
     override suspend fun getSnapPair(
         originalId: String,
-        newId: String
+        newId: String,
     ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>>? = withContext(mAppExecutors.ioContext) {
-
         val originalSnap = mSnapsDao.getSnapById(originalId)
         val newSnap = mSnapsDao.getSnapById(newId)
 
@@ -185,13 +192,11 @@ class SnapsLocalDataSource constructor(
         fileStorage.readBytes(id)
     }
 
-    override suspend fun getLastContentHash(siteId: String): String? =
-        withContext(mAppExecutors.ioContext) {
-            mSnapsDao.getLastContentHash(siteId)
-        }
+    override suspend fun getLastContentHash(siteId: String): String? = withContext(mAppExecutors.ioContext) {
+        mSnapsDao.getLastContentHash(siteId)
+    }
 
-    override suspend fun getLastProcessedContentHash(siteId: String): String? =
-        withContext(mAppExecutors.ioContext) {
-            mSnapsDao.getLastProcessedContentHash(siteId)
-        }
+    override suspend fun getLastProcessedContentHash(siteId: String): String? = withContext(mAppExecutors.ioContext) {
+        mSnapsDao.getLastProcessedContentHash(siteId)
+    }
 }

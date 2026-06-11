@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.repo
 
 import androidx.room.*
@@ -10,11 +14,11 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Entity(
     tableName = "sites",
-    indices = [(Index(value = ["siteId"], unique = true))]
+    indices = [(Index(value = ["siteId"], unique = true))],
 )
 @TypeConverters(
     Site.ConstraintsConverter::class,
-    Site.PairConverter::class
+    Site.PairConverter::class,
 )
 data class Site(
     val title: String?,
@@ -31,7 +35,7 @@ data class Site(
     val isNotificationEnabled: Boolean,
     val notes: String,
     val colors: ColorGroup,
-    val constraints: ConstraintsRequired // reserved for future use
+    val constraints: ConstraintsRequired, // reserved for future use
 ) {
 
     @Ignore
@@ -42,7 +46,7 @@ data class Site(
         tags: String,
         id: String,
         colors: Pair<Int, Int>,
-        threshold: Int = 0
+        threshold: Int = 0,
     ) : this(
         title,
         url,
@@ -56,7 +60,7 @@ data class Site(
         true,
         tags,
         colors,
-        ConstraintsRequired(false, false, false, false)
+        ConstraintsRequired(false, false, false, false),
     )
 
     @Ignore
@@ -68,7 +72,7 @@ data class Site(
         colors: ColorGroup,
         isSyncEnabled: Boolean,
         isNotificationEnabled: Boolean,
-        threshold: Int = 0
+        threshold: Int = 0,
     ) : this(
         title,
         url,
@@ -82,7 +86,7 @@ data class Site(
         isNotificationEnabled,
         "",
         colors,
-        ConstraintsRequired(false, false, false, false)
+        ConstraintsRequired(false, false, false, false),
     )
 
     @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
@@ -94,7 +98,7 @@ data class Site(
         tags: String,
         colors: ColorGroup,
         isBrowser: Boolean,
-        threshold: Int = 0
+        threshold: Int = 0,
     ) : this(
         title,
         url,
@@ -108,12 +112,10 @@ data class Site(
         true,
         tags,
         colors,
-        ConstraintsRequired(false, false, false, false)
+        ConstraintsRequired(false, false, false, false),
     )
 
-    override fun toString(): String {
-        return "Site: $title | url: $url | tags: $notes | timestamp: $timestamp"
-    }
+    override fun toString(): String = "Site: $title | url: $url | tags: $notes | timestamp: $timestamp"
 
     internal class ConstraintsConverter {
         @TypeConverter
@@ -143,8 +145,6 @@ data class Site(
         }
 
         @TypeConverter
-        fun pairToStoredString(pair: Pair<Int, Int>): String {
-            return "${pair.first},${pair.second}"
-        }
+        fun pairToStoredString(pair: Pair<Int, Int>): String = "${pair.first},${pair.second}"
     }
 }

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,7 +16,7 @@ val Shapes = Shapes(
     small = RoundedCornerShape(12.dp),
     medium = RoundedCornerShape(16.dp),
     large = RoundedCornerShape(24.dp),
-    extraLarge = RoundedCornerShape(32.dp)
+    extraLarge = RoundedCornerShape(32.dp),
 )
 
 // Primary seed color for dynamic theming - Vibrant Coral/Salmon
@@ -28,5 +32,5 @@ internal val SeedColor = Color(0xFF0D28E3) // Coral - warm, friendly, distinctiv
 expect fun ChangeDetectionTheme(
     darkTheme: Boolean,
     dynamicColor: Boolean,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 )

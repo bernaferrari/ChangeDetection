@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.animations
 
 import androidx.compose.animation.*
@@ -21,25 +25,25 @@ import androidx.compose.ui.unit.dp
 fun Modifier.bounceClick(
     enabled: Boolean = true,
     scaleDown: Float = 0.95f,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
 ): Modifier = composed {
     val haptic = LocalHapticFeedback.current
     var isPressed by remember { mutableStateOf(false) }
-    
+
     val scale by animateFloatAsState(
         targetValue = if (isPressed) scaleDown else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            stiffness = Spring.StiffnessMedium,
         ),
-        label = "bounce_scale"
+        label = "bounce_scale",
     )
-    
+
     this
         .scale(scale)
         .pointerInput(enabled) {
             if (!enabled) return@pointerInput
-            
+
             detectTapGestures(
                 onPress = {
                     isPressed = true
@@ -49,7 +53,7 @@ fun Modifier.bounceClick(
                 },
                 onTap = {
                     onClick()
-                }
+                },
             )
         }
 }
@@ -61,7 +65,7 @@ fun Modifier.bounceClick(
 fun rememberPulseAnimation(
     minScale: Float = 0.97f,
     maxScale: Float = 1.03f,
-    durationMillis: Int = 1200
+    durationMillis: Int = 1200,
 ): Float {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     return infiniteTransition.animateFloat(
@@ -69,9 +73,9 @@ fun rememberPulseAnimation(
         targetValue = maxScale,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
+            repeatMode = RepeatMode.Reverse,
         ),
-        label = "pulse_scale"
+        label = "pulse_scale",
     ).value
 }
 
@@ -86,9 +90,9 @@ fun rememberShimmerAnimation(): Float {
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(1500, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
+            repeatMode = RepeatMode.Restart,
         ),
-        label = "shimmer_progress"
+        label = "shimmer_progress",
     ).value
 }
 
@@ -98,23 +102,21 @@ fun rememberShimmerAnimation(): Float {
 fun <T> slideInOutTransitionSpec(): AnimatedContentTransitionScope<T>.() -> ContentTransform = {
     val enterAnim = slideInVertically(
         initialOffsetY = { it / 2 },
-        animationSpec = tween(300, easing = FastOutSlowInEasing)
+        animationSpec = tween(300, easing = FastOutSlowInEasing),
     ) + fadeIn(animationSpec = tween(300))
-    
+
     val exitAnim = slideOutVertically(
         targetOffsetY = { -it / 2 },
-        animationSpec = tween(200, easing = FastOutLinearInEasing)
+        animationSpec = tween(200, easing = FastOutLinearInEasing),
     ) + fadeOut(animationSpec = tween(200))
-    
+
     enterAnim togetherWith exitAnim
 }
 
 /**
  * Stagger animation for list items
  */
-fun staggeredDelay(index: Int, delayMillis: Int = 50): Int {
-    return (index * delayMillis).coerceAtMost(500)
-}
+fun staggeredDelay(index: Int, delayMillis: Int = 50): Int = (index * delayMillis).coerceAtMost(500)
 
 /**
  * Animated visibility with custom specs
@@ -125,20 +127,20 @@ fun EnhancedAnimatedVisibility(
     modifier: Modifier = Modifier,
     enter: EnterTransition = slideInVertically(
         initialOffsetY = { it / 4 },
-        animationSpec = tween(300, easing = FastOutSlowInEasing)
+        animationSpec = tween(300, easing = FastOutSlowInEasing),
     ) + fadeIn(animationSpec = tween(300)),
     exit: ExitTransition = slideOutVertically(
         targetOffsetY = { -it / 4 },
-        animationSpec = tween(200)
+        animationSpec = tween(200),
     ) + fadeOut(animationSpec = tween(200)),
-    content: @Composable AnimatedVisibilityScope.() -> Unit
+    content: @Composable AnimatedVisibilityScope.() -> Unit,
 ) {
     AnimatedVisibility(
         visible = visible,
         modifier = modifier,
         enter = enter,
         exit = exit,
-        content = content
+        content = content,
     )
 }
 
@@ -148,7 +150,7 @@ fun EnhancedAnimatedVisibility(
 @Composable
 fun rememberRotationAnimation(
     durationMillis: Int = 1000,
-    enabled: Boolean = true
+    enabled: Boolean = true,
 ): Float {
     val infiniteTransition = rememberInfiniteTransition(label = "rotation")
     return if (enabled) {
@@ -157,9 +159,9 @@ fun rememberRotationAnimation(
             targetValue = 360f,
             animationSpec = infiniteRepeatable(
                 animation = tween(durationMillis, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart
+                repeatMode = RepeatMode.Restart,
             ),
-            label = "rotation_degrees"
+            label = "rotation_degrees",
         ).value
     } else {
         0f
@@ -172,7 +174,7 @@ fun rememberRotationAnimation(
 @Composable
 fun Modifier.shake(trigger: Int): Modifier = composed {
     var shake by remember { mutableStateOf(0f) }
-    
+
     LaunchedEffect(trigger) {
         if (trigger > 0) {
             for (i in 0..8) {
@@ -186,7 +188,7 @@ fun Modifier.shake(trigger: Int): Modifier = composed {
             shake = 0f
         }
     }
-    
+
     this.graphicsLayer {
         translationX = shake
     }
@@ -198,19 +200,19 @@ fun Modifier.shake(trigger: Int): Modifier = composed {
 @Composable
 fun Modifier.pressAndHoldScale(
     pressedScale: Float = 0.96f,
-    unpressedScale: Float = 1f
+    unpressedScale: Float = 1f,
 ): Modifier = composed {
     var isPressed by remember { mutableStateOf(false) }
-    
+
     val scale by animateFloatAsState(
         targetValue = if (isPressed) pressedScale else unpressedScale,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessHigh
+            stiffness = Spring.StiffnessHigh,
         ),
-        label = "press_scale"
+        label = "press_scale",
     )
-    
+
     this
         .scale(scale)
         .pointerInput(Unit) {
@@ -219,7 +221,7 @@ fun Modifier.pressAndHoldScale(
                     isPressed = true
                     tryAwaitRelease()
                     isPressed = false
-                }
+                },
             )
         }
 }
@@ -231,7 +233,7 @@ fun Modifier.pressAndHoldScale(
 fun rememberBreatheAnimation(
     minAlpha: Float = 0.6f,
     maxAlpha: Float = 1f,
-    durationMillis: Int = 2000
+    durationMillis: Int = 2000,
 ): Float {
     val infiniteTransition = rememberInfiniteTransition(label = "breathe")
     return infiniteTransition.animateFloat(
@@ -239,9 +241,9 @@ fun rememberBreatheAnimation(
         targetValue = maxAlpha,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
+            repeatMode = RepeatMode.Reverse,
         ),
-        label = "breathe_alpha"
+        label = "breathe_alpha",
     ).value
 }
 
@@ -250,14 +252,12 @@ fun rememberBreatheAnimation(
  */
 @Composable
 fun animateElevationAsState(
-    targetElevation: Float
-): State<Float> {
-    return animateFloatAsState(
-        targetValue = targetElevation,
-        animationSpec = tween(
-            durationMillis = 150,
-            easing = FastOutSlowInEasing
-        ),
-        label = "elevation"
-    )
-}
+    targetElevation: Float,
+): State<Float> = animateFloatAsState(
+    targetValue = targetElevation,
+    animationSpec = tween(
+        durationMillis = 150,
+        easing = FastOutSlowInEasing,
+    ),
+    label = "elevation",
+)

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.comparison
 
 import androidx.compose.foundation.background
@@ -48,7 +52,7 @@ import com.multiplatform.webview.web.rememberWebViewStateWithHTMLData
 fun VisualDiffView(
     oldContent: String,
     newContent: String,
-    modifier: Modifier
+    modifier: Modifier,
 ) {
     BoxWithConstraints(modifier = modifier) {
         val maxWidth = constraints.maxWidth.toFloat()
@@ -61,18 +65,18 @@ fun VisualDiffView(
         // Bottom: Old Content
         WebContent(
             content = oldContent,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         )
 
         // Top: New Content (Clipped)
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .clip(HorizontalSplitShape(dragOffset))
+                .clip(HorizontalSplitShape(dragOffset)),
         ) {
             WebContent(
                 content = newContent,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             )
         }
 
@@ -85,8 +89,8 @@ fun VisualDiffView(
                 .background(MaterialTheme.colorScheme.primary)
                 .draggable(
                     state = draggableState,
-                    orientation = Orientation.Horizontal
-                )
+                    orientation = Orientation.Horizontal,
+                ),
         )
 
         // Handle Thumb (Vertical Pill)
@@ -95,16 +99,16 @@ fun VisualDiffView(
                 .offset {
                     IntOffset(
                         dragOffset.roundToInt() - 12.dp.toPx().toInt(),
-                        0
+                        0,
                     )
                 } // Center horizontally on the line
                 .fillMaxHeight()
                 .width(24.dp) // Touch target width
                 .draggable(
                     state = draggableState,
-                    orientation = Orientation.Horizontal
+                    orientation = Orientation.Horizontal,
                 ),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             // The visible Pill
             Box(
@@ -113,7 +117,7 @@ fun VisualDiffView(
                     .height(48.dp)
                     .clip(RoundedCornerShape(50))
                     .background(Color.White)
-                    .border(1.dp, Color.Black.copy(alpha = 0.1f), RoundedCornerShape(50))
+                    .border(1.dp, Color.Black.copy(alpha = 0.1f), RoundedCornerShape(50)),
             )
             // Arrows icon for affordance (optional, or just the pill)
             Box(
@@ -121,13 +125,13 @@ fun VisualDiffView(
                     .size(24.dp)
                     .background(MaterialTheme.colorScheme.primary, CircleShape)
                     .border(2.dp, Color.White, CircleShape),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.CompareArrows,
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(14.dp)
+                    modifier = Modifier.size(14.dp),
                 )
             }
         }
@@ -137,15 +141,15 @@ fun VisualDiffView(
 @Composable
 private fun WebContent(
     content: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val state = rememberWebViewStateWithHTMLData(
-        data = content
+        data = content,
     )
-    
+
     WebView(
         state = state,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -153,15 +157,13 @@ class HorizontalSplitShape(private val splitX: Float) : Shape {
     override fun createOutline(
         size: Size,
         layoutDirection: LayoutDirection,
-        density: Density
-    ): Outline {
-        return Outline.Rectangle(
-            Rect(
-                left = splitX,
-                top = 0f,
-                right = size.width,
-                bottom = size.height
-            )
-        )
-    }
+        density: Density,
+    ): Outline = Outline.Rectangle(
+        Rect(
+            left = splitX,
+            top = 0f,
+            right = size.width,
+            bottom = size.height,
+        ),
+    )
 }

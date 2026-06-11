@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.components
 
 import androidx.compose.animation.animateColorAsState
@@ -45,12 +49,12 @@ fun ColorPickerList(
     currentColors: ColorGroup,
     gradientList: List<ColorGroup>,
     onColorSelected: (ColorGroup) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     LazyRow(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         itemsIndexed(gradientList) { index, colorGroup ->
             ColorPickerButton(
@@ -58,7 +62,7 @@ fun ColorPickerList(
                 isSelected = currentColors == colorGroup,
                 onClick = { _ ->
                     onColorSelected(colorGroup)
-                }
+                },
             )
         }
     }
@@ -81,9 +85,9 @@ fun ColorPickerButton(
         targetValue = if (isSelected) 8.dp else 24.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            stiffness = Spring.StiffnessMedium,
         ),
-        label = "cornerRadius"
+        label = "cornerRadius",
     )
 
     // Elevation animation
@@ -91,9 +95,9 @@ fun ColorPickerButton(
         targetValue = if (isSelected) 6.dp else 2.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            stiffness = Spring.StiffnessMedium,
         ),
-        label = "elevation"
+        label = "elevation",
     )
 
     // Border animation progress
@@ -101,9 +105,9 @@ fun ColorPickerButton(
         targetValue = if (isSelected) 1f else 0f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            stiffness = Spring.StiffnessMedium,
         ),
-        label = "borderProgress"
+        label = "borderProgress",
     )
 
     // Calculate border properties with smooth interpolation
@@ -112,9 +116,9 @@ fun ColorPickerButton(
         targetValue = if (isSelected) MaterialTheme.colorScheme.surfaceContainerHighest else Color.Transparent,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            stiffness = Spring.StiffnessMedium,
         ),
-        label = "borderColor"
+        label = "borderColor",
     )
 
     // Rotation animation for selected state
@@ -122,9 +126,9 @@ fun ColorPickerButton(
         targetValue = if (isSelected) 0f else 45f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
+            stiffness = Spring.StiffnessLow,
         ),
-        label = "rotation"
+        label = "rotation",
     )
 
     val density = LocalDensity.current
@@ -153,25 +157,25 @@ fun ColorPickerButton(
             .shadow(
                 elevation = elevation,
                 shape = RoundedCornerShape(cornerRadius),
-                clip = false
+                clip = false,
             )
             .clip(RoundedCornerShape(cornerRadius))
             .background(
                 brush = Brush.linearGradient(
                     colors = listOf(
                         Color(colorGroup.first),
-                        Color(colorGroup.second)
+                        Color(colorGroup.second),
                     ),
                     start = gradientStart,
-                    end = gradientEnd
+                    end = gradientEnd,
                 ),
-                shape = RoundedCornerShape(cornerRadius)
+                shape = RoundedCornerShape(cornerRadius),
             )
             .padding(borderWidth)
             .clip(RoundedCornerShape((cornerRadius - borderWidth).coerceAtLeast(0.dp)))
             .background(
                 color = borderColor,
-                shape = RoundedCornerShape((cornerRadius - borderWidth).coerceAtLeast(0.dp))
+                shape = RoundedCornerShape((cornerRadius - borderWidth).coerceAtLeast(0.dp)),
             )
             .padding(2.dp)
             .clip(RoundedCornerShape((cornerRadius - borderWidth - 2.dp).coerceAtLeast(0.dp)))
@@ -179,12 +183,12 @@ fun ColorPickerButton(
                 brush = Brush.linearGradient(
                     colors = listOf(
                         Color(colorGroup.first),
-                        Color(colorGroup.second)
+                        Color(colorGroup.second),
                     ),
                     start = gradientStart,
-                    end = gradientEnd
+                    end = gradientEnd,
                 ),
-                shape = RoundedCornerShape((cornerRadius - borderWidth - 2.dp).coerceAtLeast(0.dp))
+                shape = RoundedCornerShape((cornerRadius - borderWidth - 2.dp).coerceAtLeast(0.dp)),
             )
             .clickable {
                 if (!isSelected || allowReselection) {
@@ -196,6 +200,6 @@ fun ColorPickerButton(
                         isPressed = false
                     }
                 }
-            }
+            },
     )
 }

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.main
 
 import androidx.activity.ComponentActivity
@@ -13,7 +17,6 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class QuickMonitorUiTest {
-
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
@@ -29,7 +32,7 @@ class QuickMonitorUiTest {
                 intervalSeconds = 30,
                 onToggle = {},
                 startTime = null,
-                deadlineTime = null
+                deadlineTime = null,
             )
         }
 
@@ -50,7 +53,7 @@ class QuickMonitorUiTest {
                 intervalSeconds = 45,
                 onStart = {},
                 onStop = {},
-                onExtend = {}
+                onExtend = {},
             )
         }
 
@@ -60,13 +63,14 @@ class QuickMonitorUiTest {
 
     @Test
     fun bannerProgressUpdatesWithTick() {
-        val contentDesc = composeTestRule.activity.getString(
-            R.string.quick_monitor_banner_active_details,
-            1,
-            30,
-            "--:--",
-            "--:--"
-        )
+        val contentDesc =
+            composeTestRule.activity.getString(
+                R.string.quick_monitor_banner_active_details,
+                1,
+                30,
+                "--:--",
+                "--:--",
+            )
 
         composeTestRule.setContent {
             QuickMonitorBanner(
@@ -75,7 +79,7 @@ class QuickMonitorUiTest {
                 intervalSeconds = 30,
                 onToggle = {},
                 startTime = null,
-                deadlineTime = null
+                deadlineTime = null,
             )
         }
 

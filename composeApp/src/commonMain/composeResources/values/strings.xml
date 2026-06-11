@@ -151,6 +151,7 @@
     <string name="settings_comparison_title">Comparison method</string>
     <string name="settings_comparison_subtitle">Applies to all monitored sites</string>
     <string name="settings_browser_delay_title">Browser delay</string>
+    <string name="settings_browser_delay_subtitle">Wait time before capturing page content</string>
 
     <!-- About -->
     <string name="about_title">About</string>
@@ -255,4 +256,77 @@
     <!-- LocalBrowser -->
     <string name="local_browser_title_snapshot">Snapshot View</string>
     <string name="local_browser_title_live">Live Browser</string>
+
+    <!-- Delete Confirmation -->
+    <string name="delete_site_title">Delete site?</string>
+    <string name="delete_site_message">This will permanently delete \"%s\" and all its snapshots.</string>
+    <string name="site_deleted">Site deleted</string>
+    <string name="undo">Undo</string>
+    
+    <!-- Version Selector -->
+    <string name="version_count">%d versions</string>
+    <string name="version_pair_format">%s → %s</string>
+    <string name="version_latest">Latest</string>
+    <string name="version_previous">Previous</string>
+    <string name="version_older">Older</string>
+    <string name="compare_versions">Compare</string>
+    
+    <!-- Sync Status -->
+    <string name="sync_error">Sync failed</string>
+    <string name="sync_success">Synced</string>
+    <string name="sync_in_progress">Syncing…</string>
+    <string name="site_sync_failed">Failed to sync</string>
+    
+    <!-- Success Feedback -->
+    <string name="changes_detected">Changes detected!</string>
+    <string name="site_saved">Site saved</string>
+    <string name="settings_updated">Settings updated</string>
+    <string name="pruned_snapshots">Removed old snapshots</string>
+    
+    <!-- Accessibility -->
+    <string name="card_site_monitoring_active">Monitoring active</string>
+    <string name="card_last_sync">Last sync: %s</string>
+    <string name="card_last_change">Last change: %s</string>
+    <string name="card_sync_failed">Sync failed</string>
+    <string name="card_refresh_site">Refresh site</string>
+    <string name="card_syncing">Syncing</string>
+    <string name="card_site_item">Site: %s</string>
+    <string name="card_more_options">More options for %s</string>
+    <string name="a11y_site_card_content">%s. Last sync: %s. Last change: %s.</string>
+    <string name="a11y_site_card_syncing">%s. Currently syncing.</string>
+    <string name="a11y_site_card_error">%s. Sync failed. Tap to retry.</string>
+    <string name="a11y_refresh_button">Refresh %s</string>
+    <string name="a11y_turbo_indicator">Turbo mode active for this site</string>
+    <string name="a11y_color_theme">Color theme: %s</string>
+    <string name="a11y_selected">Selected</string>
+    <string name="a11y_not_selected">Not selected</string>
+    <string name="a11y_expanded">Expanded</string>
+    <string name="a11y_collapsed">Collapsed</string>
+    <string name="a11y_navigate_back">Navigate back</string>
+    <string name="a11y_navigate_up">Navigate up</string>
+    <string name="a11y_close">Close</string>
+    <string name="a11y_open_menu">Open menu</string>
+    <string name="a11y_add_site">Add new site to monitor</string>
+    <string name="a11y_delete_site">Delete site</string>
+    <string name="a11y_edit_site">Edit site</string>
+    <string name="a11y_site_url">URL: %s</string>
+    <string name="a11y_file_size">Size: %s</string>
+    <string name="a11y_version">Version %d of %d</string>
+    <string name="a11y_comparison_slider">Comparison overlay. Drag to blend between old and new versions.</string>
+    <string name="a11y_diff_mode">Diff mode: %s</string>
+    <string name="a11y_no_changes">No changes detected between versions</string>
+    
+    <!-- Export/Import -->
+    <string name="export_sites">Export sites</string>
+    <string name="import_sites">Import sites</string>
+    <string name="export_success">Exported %d sites</string>
+    <string name="import_success">Imported %d sites</string>
+    <string name="import_error">Failed to import sites</string>
+    <string name="export_error">Failed to export sites</string>
+    <string name="no_sites_to_export">No sites to export</string>
+    
+    <!-- Offline -->
+    <string name="offline_mode">Offline mode</string>
+    <string name="offline_queued">Queued for sync when online</string>
+    <string name="pending_sync">Pending sync</string>
 </resources>

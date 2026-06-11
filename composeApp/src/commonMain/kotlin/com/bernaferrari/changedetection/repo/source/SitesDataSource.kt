@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.repo.source
 
 import com.bernaferrari.changedetection.repo.Site
@@ -8,7 +12,6 @@ import kotlinx.coroutines.flow.Flow
  * Inspired from Architecture Components MVVM sample app
  */
 interface SitesDataSource {
-
     suspend fun getSites(): List<Site>
 
     fun getDataWithChanges(): Flow<List<Site>>

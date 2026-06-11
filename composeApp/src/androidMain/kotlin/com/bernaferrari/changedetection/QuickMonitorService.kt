@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection
 
 import com.bernaferrari.changedetection.library.R
@@ -32,7 +36,9 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class QuickMonitorService : Service(), KoinComponent {
+class QuickMonitorService :
+    Service(),
+    KoinComponent {
 
     private val workerHelper: WorkerHelper by inject()
     private val dataStore: DataStore<Preferences> by inject()
@@ -120,7 +126,7 @@ class QuickMonitorService : Service(), KoinComponent {
                 startForeground(
                     NOTIFICATION_ID,
                     notification,
-                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
                 )
             } else {
                 startForeground(NOTIFICATION_ID, notification)
@@ -212,14 +218,18 @@ class QuickMonitorService : Service(), KoinComponent {
             action = ACTION_STOP
         }
         val stopPendingIntent = PendingIntent.getService(
-            this, 0, stopIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            this,
+            0,
+            stopIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
         val mainIntent = Intent(this, MainActivityProvider.getMainActivityClass())
         val mainPendingIntent = PendingIntent.getActivity(
-            this, 0, mainIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            this,
+            0,
+            mainIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
         // Minimal notification
@@ -246,7 +256,7 @@ class QuickMonitorService : Service(), KoinComponent {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 "Quick Monitor",
-                NotificationManager.IMPORTANCE_HIGH
+                NotificationManager.IMPORTANCE_HIGH,
             ).apply {
                 description = "Real-time monitoring notifications"
                 setShowBadge(true)

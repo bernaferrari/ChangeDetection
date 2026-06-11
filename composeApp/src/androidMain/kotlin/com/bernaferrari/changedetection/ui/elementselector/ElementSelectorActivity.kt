@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.elementselector
 
 import android.content.Context
@@ -56,8 +60,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import com.bernaferrari.changedetection.ui.theme.ChangeDetectionTheme
 
-
-
 class ElementSelectorActivity : ComponentActivity() {
 
     companion object {
@@ -67,11 +69,9 @@ class ElementSelectorActivity : ComponentActivity() {
         const val RESULT_XPATH = "xpath"
         const val RESULT_ELEMENT_TEXT = "element_text"
 
-        fun createIntent(context: Context, url: String, siteId: String): Intent {
-            return Intent(context, ElementSelectorActivity::class.java).apply {
-                putExtra(EXTRA_URL, url)
-                putExtra(EXTRA_SITE_ID, siteId)
-            }
+        fun createIntent(context: Context, url: String, siteId: String): Intent = Intent(context, ElementSelectorActivity::class.java).apply {
+            putExtra(EXTRA_URL, url)
+            putExtra(EXTRA_SITE_ID, siteId)
         }
     }
 
@@ -97,7 +97,7 @@ class ElementSelectorActivity : ComponentActivity() {
                     onCancel = {
                         setResult(RESULT_CANCELED)
                         finish()
-                    }
+                    },
                 )
             }
         }
@@ -109,7 +109,7 @@ class ElementSelectorActivity : ComponentActivity() {
 fun ElementSelectorScreen(
     url: String,
     onElementSelected: (cssSelector: String, xpath: String, elementText: String) -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
 ) {
     var isLoading by remember { mutableStateOf(true) }
     var selectedElement by remember { mutableStateOf<ElementInfo?>(null) }
@@ -142,13 +142,13 @@ fun ElementSelectorScreen(
                         Text(
                             text = "Select Element",
                             style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold
-                            )
+                                fontWeight = FontWeight.Bold,
+                            ),
                         )
                         Text(
                             text = "Choose what to monitor",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 },
@@ -159,11 +159,11 @@ fun ElementSelectorScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = { showInstructions = true }
+                        onClick = { showInstructions = true },
                     ) {
                         Icon(Icons.AutoMirrored.Filled.Help, contentDescription = "Help")
                     }
-                }
+                },
             )
         },
         bottomBar = {
@@ -175,7 +175,7 @@ fun ElementSelectorScreen(
                         selectedIndex = index
                         webView?.evaluateJavascript(
                             "highlightElementByIndex($index)",
-                            null
+                            null,
                         )
                     },
                     onConfirm = {
@@ -188,15 +188,15 @@ fun ElementSelectorScreen(
                         selectedElement = null
                         elementHierarchy = emptyList()
                         webView?.evaluateJavascript("clearHighlights()", null)
-                    }
+                    },
                 )
             }
-        }
+        },
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(paddingValues),
         ) {
             AndroidView(
                 factory = { context ->
@@ -207,16 +207,19 @@ fun ElementSelectorScreen(
                         settings.builtInZoomControls = true
                         settings.displayZoomControls = false
 
-                        addJavascriptInterface(object {
-                            @JavascriptInterface
-                            fun onElementSelected(hierarchyJson: String) {
-                                // Parse hierarchy JSON and update UI
-                                val elements = parseElementHierarchy(hierarchyJson)
-                                elementHierarchy = elements
-                                selectedElement = elements.firstOrNull()
-                                selectedIndex = 0
-                            }
-                        }, "Android")
+                        addJavascriptInterface(
+                            object {
+                                @JavascriptInterface
+                                fun onElementSelected(hierarchyJson: String) {
+                                    // Parse hierarchy JSON and update UI
+                                    val elements = parseElementHierarchy(hierarchyJson)
+                                    elementHierarchy = elements
+                                    selectedElement = elements.firstOrNull()
+                                    selectedIndex = 0
+                                }
+                            },
+                            "Android",
+                        )
 
                         webViewClient = object : WebViewClient() {
                             override fun onPageFinished(view: WebView?, url: String?) {
@@ -232,23 +235,23 @@ fun ElementSelectorScreen(
                         webView = this
                     }
                 },
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             )
 
             if (isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
                         CircularProgressIndicator()
                         Text(
                             text = "Loading page...",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -258,7 +261,7 @@ fun ElementSelectorScreen(
 
     if (showInstructions) {
         InstructionsDialog(
-            onDismiss = { showInstructions = false }
+            onDismiss = { showInstructions = false },
         )
     }
 }
@@ -269,29 +272,29 @@ private fun ElementSelectionBottomBar(
     selectedIndex: Int,
     onIndexChanged: (Int) -> Unit,
     onConfirm: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 8.dp
+        shadowElevation = 8.dp,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Element hierarchy slider
             if (elementHierarchy.size > 1) {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
                         text = "Adjust Selection (${selectedIndex + 1}/${elementHierarchy.size})",
                         style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.SemiBold,
                         ),
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
                     )
 
                     Slider(
@@ -301,8 +304,8 @@ private fun ElementSelectionBottomBar(
                         steps = elementHierarchy.size - 2,
                         colors = SliderDefaults.colors(
                             thumbColor = MaterialTheme.colorScheme.primary,
-                            activeTrackColor = MaterialTheme.colorScheme.primary
-                        )
+                            activeTrackColor = MaterialTheme.colorScheme.primary,
+                        ),
                     )
                 }
             }
@@ -312,31 +315,31 @@ private fun ElementSelectionBottomBar(
             if (selectedElement != null) {
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
                 ) {
                     Column(
                         modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Text(
                             text = selectedElement.tagName.uppercase(),
                             style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
                             ),
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
                         )
                         if (selectedElement.text.isNotBlank()) {
                             Text(
                                 text = selectedElement.text.take(100) +
-                                        if (selectedElement.text.length > 100) "..." else "",
+                                    if (selectedElement.text.length > 100) "..." else "",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                         }
                         Text(
                             text = selectedElement.cssSelector,
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -345,11 +348,11 @@ private fun ElementSelectionBottomBar(
             // Action buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 OutlinedButton(
                     onClick = onCancel,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Text("Cancel")
                 }
@@ -358,13 +361,13 @@ private fun ElementSelectionBottomBar(
                     onClick = onConfirm,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
+                        containerColor = MaterialTheme.colorScheme.primary,
+                    ),
                 ) {
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(16.dp),
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Monitor This")
@@ -376,61 +379,61 @@ private fun ElementSelectionBottomBar(
 
 @Composable
 private fun InstructionsDialog(
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
+                containerColor = MaterialTheme.colorScheme.surface,
+            ),
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.TouchApp,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
                     )
                     Text(
                         text = "How to Select Elements",
                         style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold
-                        )
+                            fontWeight = FontWeight.Bold,
+                        ),
                     )
                 }
 
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     InstructionStep(
                         number = "1",
                         title = "Tap any element",
-                        description = "Click on the content you want to monitor"
+                        description = "Click on the content you want to monitor",
                     )
                     InstructionStep(
                         number = "2",
                         title = "Adjust selection",
-                        description = "Use the slider to select parent elements for broader monitoring"
+                        description = "Use the slider to select parent elements for broader monitoring",
                     )
                     InstructionStep(
                         number = "3",
                         title = "Confirm choice",
-                        description = "Tap 'Monitor This' when you're happy with the selection"
+                        description = "Tap 'Monitor This' when you're happy with the selection",
                     )
                 }
 
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
                 ) {
                     Text("Got it!")
                 }
@@ -443,44 +446,44 @@ private fun InstructionsDialog(
 private fun InstructionStep(
     number: String,
     title: String,
-    description: String
+    description: String,
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.Top,
     ) {
         Box(
             modifier = Modifier
                 .size(24.dp)
                 .background(
                     MaterialTheme.colorScheme.primary,
-                    RoundedCornerShape(12.dp)
+                    RoundedCornerShape(12.dp),
                 ),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = number,
                 style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 ),
-                color = Color.White
+                color = Color.White,
             )
         }
 
         Column(
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
                 ),
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -501,8 +504,8 @@ private fun parseElementHierarchy(hierarchyJson: String): List<ElementInfo> {
                     xpath = "//div[@id='main-content']",
                     text = "Main content area",
                     className = "content",
-                    id = "main-content"
-                )
+                    id = "main-content",
+                ),
             )
         }
     } catch (e: Exception) {
@@ -516,7 +519,7 @@ data class ElementInfo(
     val xpath: String,
     val text: String,
     val className: String = "",
-    val id: String = ""
+    val id: String = "",
 )
 
 private val elementSelectionScript = """

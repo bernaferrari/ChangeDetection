@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.repo.source.local
 
 import androidx.room.ConstructedBy
@@ -15,11 +19,10 @@ import com.bernaferrari.changedetection.repo.Snap
 @Database(entities = [Site::class, Snap::class], version = 3, exportSchema = false)
 @TypeConverters(
     Site.ConstraintsConverter::class,
-    Site.PairConverter::class
+    Site.PairConverter::class,
 )
 @ConstructedBy(ChangeDatabaseConstructor::class)
 abstract class ChangeDatabase : RoomDatabase() {
-
     abstract fun siteDao(): SitesDao
 
     abstract fun snapsDao(): SnapsDao

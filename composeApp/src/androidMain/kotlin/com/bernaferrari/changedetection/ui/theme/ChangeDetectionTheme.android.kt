@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.theme
 
 import android.os.Build
@@ -19,7 +23,7 @@ import com.materialkolor.rememberDynamicColorScheme
 actual fun ChangeDetectionTheme(
     darkTheme: Boolean,
     dynamicColor: Boolean,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
         // Use native Android dynamic colors on Android 12+ (Material You)
@@ -32,7 +36,7 @@ actual fun ChangeDetectionTheme(
             rememberDynamicColorScheme(
                 seedColor = SeedColor,
                 isDark = darkTheme,
-                style = PaletteStyle.Expressive
+                style = PaletteStyle.Expressive,
             )
         }
     }
@@ -41,7 +45,7 @@ actual fun ChangeDetectionTheme(
         colorScheme = colorScheme,
         shapes = Shapes,
         typography = Typography,
-        content = content
+        content = content,
     )
 }
 
@@ -50,11 +54,11 @@ actual fun ChangeDetectionTheme(
  */
 @Composable
 fun ChangeDetectionTheme(
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     ChangeDetectionTheme(
         darkTheme = isSystemInDarkTheme(),
         dynamicColor = true,
-        content = content
+        content = content,
     )
 }

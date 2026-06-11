@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.comparison
 
 import androidx.compose.animation.animateColorAsState
@@ -48,10 +52,13 @@ fun ComparisonScreen(
     onNavigateUp: () -> Unit,
     onSiteEdit: (String) -> Unit,
     onSiteDelete: () -> Unit,
-    viewModel: ComparisonViewModel = koinViewModel()
+    viewModel: ComparisonViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    // Delete confirmation state
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(siteId) {
         viewModel.loadSiteAndSnaps(siteId)
@@ -73,14 +80,14 @@ fun ComparisonScreen(
                         Text(
                             text = uiState.site?.title?.takeIf { it.isNotBlank() }
                                 ?: stringResource(Res.string.app_name),
-                            style = MaterialTheme.typography.titleLarge
+                            style = MaterialTheme.typography.titleLarge,
                         )
                         uiState.site?.url?.let { url ->
                             Text(
                                 text = url,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1
+                                maxLines = 1,
                             )
                         }
                     }
@@ -89,7 +96,7 @@ fun ComparisonScreen(
                     IconButton(onClick = onNavigateUp) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Back",
                         )
                     }
                 },
@@ -99,13 +106,13 @@ fun ComparisonScreen(
                     IconButton(onClick = { showMenu = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
-                            contentDescription = "More options"
+                            contentDescription = "More options",
                         )
                     }
 
                     DropdownMenu(
                         expanded = showMenu,
-                        onDismissRequest = { showMenu = false }
+                        onDismissRequest = { showMenu = false },
                     ) {
                         DropdownMenuItem(
                             text = { Text("Reload") },
@@ -113,7 +120,7 @@ fun ComparisonScreen(
                                 viewModel.reloadSite()
                                 showMenu = false
                             },
-                            leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null) }
+                            leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null) },
                         )
                         DropdownMenuItem(
                             text = { Text("Edit") },
@@ -121,7 +128,7 @@ fun ComparisonScreen(
                                 onSiteEdit(siteId)
                                 showMenu = false
                             },
-                            leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) }
+                            leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
                         )
                         DropdownMenuItem(
                             text = { Text("Prune") },
@@ -129,37 +136,36 @@ fun ComparisonScreen(
                                 viewModel.pruneSite()
                                 showMenu = false
                             },
-                            leadingIcon = { Icon(Icons.Default.CleaningServices, contentDescription = null) }
+                            leadingIcon = { Icon(Icons.Default.CleaningServices, contentDescription = null) },
                         )
                         HorizontalDivider()
                         DropdownMenuItem(
                             text = { Text("Delete") },
                             onClick = {
-                                viewModel.deleteSite()
-                                onSiteDelete()
+                                showDeleteDialog = true
                                 showMenu = false
                             },
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Delete,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.error
+                                    tint = MaterialTheme.colorScheme.error,
                                 )
                             },
                             colors = MenuDefaults.itemColors(
-                                textColor = MaterialTheme.colorScheme.error
-                            )
+                                textColor = MaterialTheme.colorScheme.error,
+                            ),
                         )
                     }
                 },
                 scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ),
-                modifier = Modifier.statusBarsPadding()
+                modifier = Modifier.statusBarsPadding(),
             )
-        }
+        },
     ) { paddingValues ->
         when {
             uiState.isLoading -> {
@@ -167,7 +173,7 @@ fun ComparisonScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
                 }
@@ -178,12 +184,12 @@ fun ComparisonScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = "Site not found",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
             }
@@ -192,7 +198,7 @@ fun ComparisonScreen(
                 EmptySnapshotState(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues)
+                        .padding(paddingValues),
                 )
             }
 
@@ -203,7 +209,7 @@ fun ComparisonScreen(
                     isLoadingContent = uiState.isLoadingDiff,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues)
+                        .padding(paddingValues),
                 )
             }
 
@@ -222,16 +228,36 @@ fun ComparisonScreen(
                                 snap1 = uiState.snaps[idx],
                                 snap2 = uiState.snaps[idx + 1],
                                 content1 = uiState.snapContent1!!,
-                                content2 = uiState.snapContent2!!
+                                content2 = uiState.snapContent2!!,
                             )
                         }
                     },
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues)
+                        .padding(paddingValues),
                 )
             }
         }
+    }
+
+    // Delete confirmation dialog
+    if (showDeleteDialog) {
+        com.bernaferrari.changedetection.ui.components.ConfirmDialog(
+            visible = true,
+            onDismiss = { showDeleteDialog = false },
+            onConfirm = {
+                viewModel.deleteSite()
+                onSiteDelete()
+            },
+            title = stringResource(Res.string.delete_site_title),
+            message = stringResource(
+                Res.string.delete_site_message,
+                uiState.site?.title?.takeIf { it.isNotBlank() } ?: uiState.site?.url ?: "this site",
+            ),
+            icon = Icons.Default.Delete,
+            confirmText = stringResource(Res.string.delete),
+            isDestructive = true,
+        )
     }
 }
 
@@ -241,7 +267,7 @@ private fun EmptySnapshotState(modifier: Modifier = Modifier) {
         icon = Icons.Default.Schedule,
         title = stringResource(Res.string.comparison_empty_title),
         description = stringResource(Res.string.comparison_empty_subtitle),
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -251,7 +277,7 @@ private fun SingleSnapshotState(
     snap: Snap,
     content: String?,
     isLoadingContent: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     if (content != null) {
         val isHtml = remember(snap.contentType) {
@@ -261,24 +287,24 @@ private fun SingleSnapshotState(
         Box(modifier = modifier) {
             if (isHtml) {
                 val webViewState = rememberWebViewStateWithHTMLData(
-                    data = content
+                    data = content,
                 )
                 WebView(
                     state = webViewState,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 )
             } else {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
-                        .padding(bottom = 16.dp)
+                        .padding(bottom = 16.dp),
                 ) {
                     Text(
                         text = content,
                         style = MaterialTheme.typography.bodyMedium,
                         fontFamily = FontFamily.Monospace,
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(16.dp),
                     )
                 }
             }
@@ -290,64 +316,64 @@ private fun SingleSnapshotState(
                     .padding(bottom = 32.dp),
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.9f),
-                tonalElevation = 4.dp
+                tonalElevation = 4.dp,
             ) {
                 Text(
                     text = formatTimestamp(snap.timestamp),
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         }
     } else if (isLoadingContent) {
         Box(
             modifier = modifier,
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             CircularProgressIndicator()
         }
     } else {
         Box(
             modifier = modifier,
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(48.dp)
+                modifier = Modifier.padding(48.dp),
             ) {
                 Box(
                     modifier = Modifier
                         .size(80.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(40.dp),
                     )
                 }
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
                     text = "1 snapshot captured",
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = stringResource(Res.string.comparison_single_snapshot_hint),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = formatTimestamp(snap.timestamp),
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         }
@@ -363,14 +389,14 @@ private fun DiffFirstContent(
     isLoadingDiff: Boolean,
     onSelectPair: (Int) -> Unit,
     onShare: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
         // Version selector - horizontal scrollable chips
         VersionSelector(
             snaps = snaps,
             selectedIndex = selectedPairIndex,
-            onSelectPair = onSelectPair
+            onSelectPair = onSelectPair,
         )
 
         // Diff mode selector
@@ -379,17 +405,17 @@ private fun DiffFirstContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             FilterChip(
                 selected = mode == "TEXT",
                 onClick = { mode = "TEXT" },
-                label = { Text(stringResource(Res.string.text_diff)) }
+                label = { Text(stringResource(Res.string.text_diff)) },
             )
             FilterChip(
                 selected = mode == "HTML",
                 onClick = { mode = "HTML" },
-                label = { Text(stringResource(Res.string.rendered_html)) }
+                label = { Text(stringResource(Res.string.rendered_html)) },
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -406,7 +432,7 @@ private fun DiffFirstContent(
         if (isLoadingDiff) {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp))
             }
@@ -416,7 +442,7 @@ private fun DiffFirstContent(
                     SimpleDiffView(
                         oldContent = content1,
                         newContent = content2,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
 
@@ -424,18 +450,18 @@ private fun DiffFirstContent(
                     RenderedHtmlComparison(
                         oldContent = content1,
                         newContent = content2,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
             }
         } else {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = stringResource(Res.string.failed_to_load_content),
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
         }
@@ -446,7 +472,7 @@ private fun DiffFirstContent(
 private fun VersionSelector(
     snaps: List<Snap>,
     selectedIndex: Int,
-    onSelectPair: (Int) -> Unit
+    onSelectPair: (Int) -> Unit,
 ) {
     val scrollState = rememberScrollState()
 
@@ -454,30 +480,41 @@ private fun VersionSelector(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceContainerLow)
-            .padding(vertical = 12.dp)
+            .padding(vertical = 12.dp),
     ) {
         Text(
-            text = "${snaps.size} versions",
+            text = stringResource(Res.string.version_count, snaps.size),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
         )
 
         Row(
             modifier = Modifier
                 .horizontalScroll(scrollState)
                 .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             for (i in 0 until snaps.size - 1) {
                 val isSelected = i == selectedIndex
-                val snap1 = snaps[i]
+                val olderSnap = snaps[i]
+                val newerSnap = snaps[i + 1]
 
                 VersionChip(
-                    label = "v${snaps.size - i} → v${snaps.size - i - 1}",
-                    subtitle = formatTimestamp(snap1.timestamp),
+                    olderLabel = if (i == 0) {
+                        stringResource(Res.string.version_older)
+                    } else {
+                        stringResource(Res.string.version_previous)
+                    },
+                    newerLabel = if (i == snaps.size - 2) {
+                        stringResource(Res.string.version_latest)
+                    } else {
+                        stringResource(Res.string.version_previous)
+                    },
+                    olderTime = formatTimestamp(olderSnap.timestamp),
+                    newerTime = formatTimestamp(newerSnap.timestamp),
                     isSelected = isSelected,
-                    onClick = { onSelectPair(i) }
+                    onClick = { onSelectPair(i) },
                 )
             }
         }
@@ -486,48 +523,56 @@ private fun VersionSelector(
 
 @Composable
 private fun VersionChip(
-    label: String,
-    subtitle: String,
+    olderLabel: String,
+    newerLabel: String,
+    olderTime: String,
+    newerTime: String,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val containerColor by animateColorAsState(
-        targetValue = if (isSelected)
+        targetValue = if (isSelected) {
             MaterialTheme.colorScheme.primaryContainer
-        else
-            MaterialTheme.colorScheme.surfaceContainer,
+        } else {
+            MaterialTheme.colorScheme.surfaceContainer
+        },
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS
+            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
         ),
-        label = "chipColor"
+        label = "chipColor",
     )
 
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
-        color = containerColor
+        color = containerColor,
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            // Show comparison label
             Text(
-                text = label,
+                text = "$olderLabel → $newerLabel",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (isSelected)
+                color = if (isSelected) {
                     MaterialTheme.colorScheme.onPrimaryContainer
-                else
+                } else {
                     MaterialTheme.colorScheme.onSurface
+                },
             )
+            Spacer(modifier = Modifier.height(2.dp))
+            // Show timestamp of newer version
             Text(
-                text = subtitle,
+                text = newerTime,
                 style = MaterialTheme.typography.labelSmall,
-                color = if (isSelected)
+                color = if (isSelected) {
                     MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                else
+                } else {
                     MaterialTheme.colorScheme.onSurfaceVariant
+                },
             )
         }
     }
@@ -537,7 +582,7 @@ private fun VersionChip(
 private fun SimpleDiffView(
     oldContent: String,
     newContent: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
     var showOnlyChanges by remember { mutableStateOf(false) }
@@ -554,7 +599,7 @@ private fun SimpleDiffView(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(scrollState)
-                .padding(16.dp)
+                .padding(16.dp),
         ) {
             // Stats and filter row
             Row(
@@ -562,7 +607,7 @@ private fun SimpleDiffView(
                     .fillMaxWidth()
                     .padding(bottom = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 ComparisonStatsRow(stats = changeStats)
 
@@ -570,12 +615,12 @@ private fun SimpleDiffView(
                     FilterChip(
                         selected = !showOnlyChanges,
                         onClick = { showOnlyChanges = false },
-                        label = { Text("All") }
+                        label = { Text("All") },
                     )
                     FilterChip(
                         selected = showOnlyChanges,
                         onClick = { showOnlyChanges = true },
-                        label = { Text("Changes") }
+                        label = { Text("Changes") },
                     )
                 }
             }
@@ -586,7 +631,7 @@ private fun SimpleDiffView(
                     icon = Icons.Default.CheckCircle,
                     title = stringResource(Res.string.comparison_no_changes_title),
                     description = stringResource(Res.string.comparison_no_changes_text),
-                    modifier = Modifier.fillMaxSize().padding(32.dp)
+                    modifier = Modifier.fillMaxSize().padding(32.dp),
                 )
             } else {
                 for (i in 0 until maxLines) {
@@ -622,7 +667,7 @@ private fun SimpleDiffView(
             modifier = Modifier
                 .width(6.dp)
                 .fillMaxHeight()
-                .padding(top = 16.dp, bottom = 16.dp, end = 8.dp)
+                .padding(top = 16.dp, bottom = 16.dp, end = 8.dp),
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val total = maxLines.coerceAtLeast(1)
@@ -637,11 +682,13 @@ private fun SimpleDiffView(
                         oldLine.isNotEmpty() && newLine.isNotEmpty() -> addedLineColor
                         else -> primaryLineColor
                     }
-                    if (color.alpha > 0f) drawLine(
-                        color = color,
-                        start = Offset(0f, y),
-                        end = Offset(size.width, y)
-                    )
+                    if (color.alpha > 0f) {
+                        drawLine(
+                            color = color,
+                            start = Offset(0f, y),
+                            end = Offset(size.width, y),
+                        )
+                    }
                     y += step
                 }
             }
@@ -653,7 +700,7 @@ private fun SimpleDiffView(
 private fun RenderedHtmlComparison(
     oldContent: String,
     newContent: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var overlayOpacity by remember { mutableFloatStateOf(0.5f) }
 
@@ -676,14 +723,14 @@ private fun RenderedHtmlComparison(
         // Similarity indicator at top
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surfaceContainerLow
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 val similarityColor = when {
                     similarityPercent >= 90 -> MaterialTheme.colorScheme.tertiary
@@ -696,17 +743,17 @@ private fun RenderedHtmlComparison(
                     text = "${100 - similarityPercent}% changed",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = similarityColor
+                    color = similarityColor,
                 )
                 Text(
                     text = " • ",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    text = "${similarityPercent}% similar",
+                    text = "$similarityPercent% similar",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -715,31 +762,31 @@ private fun RenderedHtmlComparison(
         Box(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxWidth()
+                .fillMaxWidth(),
         ) {
             if (similarityPercent == 100) {
                 SharedEmptyState(
                     icon = Icons.Default.CheckCircle,
                     title = stringResource(Res.string.comparison_no_changes_title),
                     description = stringResource(Res.string.comparison_no_changes_html),
-                    modifier = Modifier.fillMaxSize().padding(32.dp)
+                    modifier = Modifier.fillMaxSize().padding(32.dp),
                 )
             } else {
                 // Base layer: Old content (always fully visible as background)
                 WebView(
                     state = oldWebViewState,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 )
 
                 // Overlay layer: New content with adjustable opacity
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .graphicsLayer { alpha = overlayOpacity }
+                        .graphicsLayer { alpha = overlayOpacity },
                 ) {
                     WebView(
                         state = newWebViewState,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
             }
@@ -749,14 +796,14 @@ private fun RenderedHtmlComparison(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 2.dp
+            tonalElevation = 2.dp,
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 // Old button
                 FilterChip(
@@ -765,7 +812,9 @@ private fun RenderedHtmlComparison(
                     label = { Text("Old") },
                     leadingIcon = if (overlayOpacity == 0f) {
                         { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                    } else null
+                    } else {
+                        null
+                    },
                 )
 
                 // Blend slider
@@ -776,8 +825,8 @@ private fun RenderedHtmlComparison(
                     colors = SliderDefaults.colors(
                         thumbColor = MaterialTheme.colorScheme.primary,
                         activeTrackColor = MaterialTheme.colorScheme.primary,
-                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                    )
+                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    ),
                 )
 
                 // New button
@@ -787,7 +836,9 @@ private fun RenderedHtmlComparison(
                     label = { Text("New") },
                     leadingIcon = if (overlayOpacity == 1f) {
                         { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                    } else null
+                    } else {
+                        null
+                    },
                 )
             }
         }
@@ -827,7 +878,7 @@ private fun extractChangedKeywords(oldHtml: String, newHtml: String): Pair<List<
             "the", "and", "with", "from", "that", "this", "have", "has", "for",
             "you", "your", "are", "was", "were", "will", "been", "into", "about",
             "over", "under", "more", "less", "only", "very", "also", "http",
-            "https", "www", "com"
+            "https", "www", "com",
         )
         val text = s.replace(Regex("<[^>]+>"), " ")
         return text.split(Regex("[\\s\\p{Punct}]+"))
@@ -864,5 +915,3 @@ private fun buildHighlighterJs(): String = """
 """.trimIndent()
 
 // Use calculateChangeStats and ComparisonStatsRow from ComparisonComponents.kt
-
-

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.addedit
 
 import androidx.compose.animation.AnimatedContent
@@ -27,7 +31,7 @@ enum class AddEditStep {
     LOADING,
     URL_INPUT,
     BROWSER_SETUP,
-    CONFIRM_DETAILS
+    CONFIRM_DETAILS,
 }
 
 @Composable
@@ -36,7 +40,7 @@ fun AddEditFlow(
     selectedUrl: String? = null,
     onNavigateUp: () -> Unit,
     onSaveComplete: () -> Unit,
-    viewModel: AddEditViewModel = koinViewModel { parametersOf(siteId) }
+    viewModel: AddEditViewModel = koinViewModel { parametersOf(siteId) },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var currentStep by remember {
@@ -95,13 +99,13 @@ fun AddEditFlow(
             transitionSpec = {
                 if (targetState.ordinal > initialState.ordinal) {
                     (slideInHorizontally { it } + fadeIn()) togetherWith
-                            (slideOutHorizontally { -it } + fadeOut())
+                        (slideOutHorizontally { -it } + fadeOut())
                 } else {
                     (slideInHorizontally { -it } + fadeIn()) togetherWith
-                            (slideOutHorizontally { it } + fadeOut())
+                        (slideOutHorizontally { it } + fadeOut())
                 }
             },
-            label = "step_transition"
+            label = "step_transition",
         ) { step ->
             when (step) {
                 AddEditStep.URL_INPUT -> {
@@ -116,7 +120,7 @@ fun AddEditFlow(
                             } else {
                                 AddEditStep.CONFIRM_DETAILS
                             }
-                        }
+                        },
                     )
                 }
 
@@ -131,7 +135,7 @@ fun AddEditFlow(
                                 viewModel.setTitle(data.title)
                                 viewModel.setBrowserData(data)
                                 currentStep = AddEditStep.CONFIRM_DETAILS
-                            }
+                            },
                         )
                     }
                 }
@@ -157,20 +161,19 @@ fun AddEditFlow(
                                 AddEditStep.URL_INPUT
                             }
                         },
-                        onSave = viewModel::saveSite
+                        onSave = viewModel::saveSite,
                     )
                 }
 
                 AddEditStep.LOADING -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = androidx.compose.ui.Alignment.Center
+                        contentAlignment = androidx.compose.ui.Alignment.Center,
                     ) {
                         androidx.compose.material3.CircularProgressIndicator()
                     }
                 }
             }
         }
-
     }
 }

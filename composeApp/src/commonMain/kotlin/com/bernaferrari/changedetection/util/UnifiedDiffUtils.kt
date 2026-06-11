@@ -1,10 +1,14 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.util
 
+import com.bernaferrari.difflib.DiffUtils
 import com.bernaferrari.difflib.patch.AbstractDelta
 import com.bernaferrari.difflib.patch.ChangeDelta
 import com.bernaferrari.difflib.patch.Chunk
 import com.bernaferrari.difflib.patch.Patch
-import com.bernaferrari.difflib.DiffUtils
 
 object UnifiedDiffUtils {
     private val UNIFIED_DIFF_CHUNK_REGEXP =
@@ -62,7 +66,7 @@ object UnifiedDiffUtils {
         rawChunk: MutableList<Array<String>>,
         patch: Patch<String>,
         oldLn: Int,
-        newLn: Int
+        newLn: Int,
     ) {
         if (rawChunk.isEmpty()) {
             return
@@ -96,8 +100,8 @@ object UnifiedDiffUtils {
         patch.addDelta(
             ChangeDelta(
                 Chunk(oldLn - 1, oldChunkLines, removePosition),
-                Chunk(newLn - 1, newChunkLines, addPosition)
-            )
+                Chunk(newLn - 1, newChunkLines, addPosition),
+            ),
         )
         rawChunk.clear()
     }
@@ -107,7 +111,7 @@ object UnifiedDiffUtils {
         revisedFileName: String?,
         originalLines: List<String>,
         patch: Patch<String>,
-        contextSize: Int
+        contextSize: Int,
     ): List<String> {
         if (patch.deltas.isEmpty()) {
             return emptyList()
@@ -141,8 +145,8 @@ object UnifiedDiffUtils {
                 originalLines,
                 deltas,
                 contextSize,
-                patchDeltas.size == 1 && originalFileName == null
-            )
+                patchDeltas.size == 1 && originalFileName == null,
+            ),
         )
         return result
     }
@@ -151,21 +155,22 @@ object UnifiedDiffUtils {
         origLines: List<String>,
         deltas: List<AbstractDelta<String>>,
         contextSize: Int,
-        newFile: Boolean
+        newFile: Boolean,
     ): List<String> {
         val buffer = mutableListOf<String>()
         var origTotal = 0
         var revTotal = 0
         var curDelta = deltas[0]
-        var origStart = if (newFile) {
-            0
-        } else {
-            var start = curDelta.source.position + 1 - contextSize
-            if (start < 1) {
-                start = 1
+        var origStart =
+            if (newFile) {
+                0
+            } else {
+                var start = curDelta.source.position + 1 - contextSize
+                if (start < 1) {
+                    start = 1
+                }
+                start
             }
-            start
-        }
 
         var revStart = curDelta.target.position + 1 - contextSize
         if (revStart < 1) {
@@ -232,7 +237,7 @@ object UnifiedDiffUtils {
         original: List<String>,
         revised: List<String>,
         originalFileName: String? = null,
-        revisedFileName: String? = null
+        revisedFileName: String? = null,
     ): List<String> {
         val originalName = originalFileName ?: "original"
         val revisedName = revisedFileName ?: "revised"
@@ -252,7 +257,10 @@ object UnifiedDiffUtils {
         return insertOrig(originalWithPrefix, unifiedDiff)
     }
 
-    private fun insertOrig(original: List<String>, unifiedDiff: List<String>): List<String> {
+    private fun insertOrig(
+        original: List<String>,
+        unifiedDiff: List<String>,
+    ): List<String> {
         val result = mutableListOf<String>()
         val diffList = mutableListOf<List<String>>()
         val diff = mutableListOf<String>()
@@ -276,7 +284,11 @@ object UnifiedDiffUtils {
         return result
     }
 
-    private fun insertOrig(diffList: List<List<String>>, result: MutableList<String>, original: List<String>) {
+    private fun insertOrig(
+        diffList: List<List<String>>,
+        result: MutableList<String>,
+        original: List<String>,
+    ) {
         for (i in diffList.indices) {
             val diff = diffList[i]
             val nextDiff = if (i == diffList.size - 1) null else diffList[i + 1]
@@ -300,7 +312,10 @@ object UnifiedDiffUtils {
         }
     }
 
-    private fun insert(result: MutableList<String>, content: List<String>) {
+    private fun insert(
+        result: MutableList<String>,
+        content: List<String>,
+    ) {
         result.addAll(content)
     }
 
@@ -329,7 +344,11 @@ object UnifiedDiffUtils {
         return map
     }
 
-    private fun getOrigList(original: List<String>, start: Int, end: Int): List<String> {
+    private fun getOrigList(
+        original: List<String>,
+        start: Int,
+        end: Int,
+    ): List<String> {
         val list = mutableListOf<String>()
         if (original.isNotEmpty() && start <= end && end < original.size) {
             for (index in start..end) {

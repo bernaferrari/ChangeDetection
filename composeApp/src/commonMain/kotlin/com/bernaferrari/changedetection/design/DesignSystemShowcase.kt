@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.design
 
 import androidx.compose.foundation.layout.*
@@ -12,14 +16,14 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Design System Showcase
- * 
+ *
  * This screen demonstrates the Material Design 3 components used throughout the app.
  */
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DesignSystemShowcase(
-    onNavigateUp: () -> Unit = {}
+    onNavigateUp: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -27,37 +31,37 @@ fun DesignSystemShowcase(
                 title = {
                     Text(
                         text = "Design System",
-                        style = MaterialTheme.typography.titleLarge
+                        style = MaterialTheme.typography.titleLarge,
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Back",
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             // Typography Section
             item {
                 TypographyShowcase()
             }
-            
+
             // Colors Section
             item {
                 ColorsShowcase()
             }
-            
+
             // Buttons Section
             item {
                 ButtonsShowcase()
@@ -69,43 +73,43 @@ fun DesignSystemShowcase(
 @Composable
 private fun TypographyShowcase() {
     Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
             text = "Typography",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
-        
+
         Text(
             text = "Display Large",
             style = MaterialTheme.typography.displayLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
             text = "Headline Large - Main headlines",
             style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
             text = "Title Large - Section headers",
             style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
             text = "Body Large - Main content text",
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
             text = "Body Medium - Secondary content",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
             text = "Label Small - Captions and labels",
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -113,19 +117,19 @@ private fun TypographyShowcase() {
 @Composable
 private fun ColorsShowcase() {
     Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
             text = "Material Design 3 Colors",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
-        
+
         // Color swatches would go here if needed
         Text(
             text = "Using Material You dynamic colors",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -133,29 +137,29 @@ private fun ColorsShowcase() {
 @Composable
 private fun ButtonsShowcase() {
     Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
             text = "Buttons",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
-        
+
         Button(onClick = { }) {
             Text("Filled Button")
         }
-        
+
         OutlinedButton(onClick = { }) {
             Text("Outlined Button")
         }
-        
+
         TextButton(onClick = { }) {
             Text("Text Button")
         }
-        
+
         Button(
             onClick = { },
-            enabled = false
+            enabled = false,
         ) {
             Text("Disabled Button")
         }

@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.util
 
 import com.fleeksoft.ksoup.Ksoup
@@ -8,11 +12,13 @@ import kotlinx.serialization.json.Json
  * Comprehensive input validation and data integrity checking utility.
  */
 object ValidationHelper {
-
     /**
      * Validate URL format and protocol
      */
-    fun isValidUrl(url: String, allowHttp: Boolean = true): Pair<Boolean, String?> {
+    fun isValidUrl(
+        url: String,
+        allowHttp: Boolean = true,
+    ): Pair<Boolean, String?> {
         return try {
             if (url.isBlank()) {
                 return Pair(false, "URL cannot be empty")
@@ -21,7 +27,8 @@ object ValidationHelper {
             val trimmedUrl = url.trim()
 
             // Check for valid protocols
-            val hasValidProtocol = trimmedUrl.startsWith("http://") ||
+            val hasValidProtocol =
+                trimmedUrl.startsWith("http://") ||
                     trimmedUrl.startsWith("https://") ||
                     trimmedUrl.startsWith("ftp://")
 
@@ -154,22 +161,26 @@ object ValidationHelper {
     /**
      * Validate credentials format
      */
-    fun isValidCredentials(username: String, password: String): Pair<Boolean, String?> {
-        return when {
-            username.isBlank() -> Pair(false, "Username cannot be empty")
-            username.length < 1 -> Pair(false, "Username too short")
-            username.length > 255 -> Pair(false, "Username too long")
-            password.isBlank() -> Pair(false, "Password cannot be empty")
-            password.length < 1 -> Pair(false, "Password too short")
-            password.length > 1000 -> Pair(false, "Password too long")
-            else -> Pair(true, null)
-        }
+    fun isValidCredentials(
+        username: String,
+        password: String,
+    ): Pair<Boolean, String?> = when {
+        username.isBlank() -> Pair(false, "Username cannot be empty")
+        username.length < 1 -> Pair(false, "Username too short")
+        username.length > 255 -> Pair(false, "Username too long")
+        password.isBlank() -> Pair(false, "Password cannot be empty")
+        password.length < 1 -> Pair(false, "Password too short")
+        password.length > 1000 -> Pair(false, "Password too long")
+        else -> Pair(true, null)
     }
 
     /**
      * Validate content size
      */
-    fun isValidContentSize(sizeBytes: Long, maxMB: Int = 100): Pair<Boolean, String?> {
+    fun isValidContentSize(
+        sizeBytes: Long,
+        maxMB: Int = 100,
+    ): Pair<Boolean, String?> {
         val maxBytes = maxMB * 1_048_576L
 
         return when {
@@ -183,25 +194,21 @@ object ValidationHelper {
     /**
      * Validate site name/title
      */
-    fun isValidSiteName(name: String): Pair<Boolean, String?> {
-        return when {
-            name.isBlank() -> Pair(false, "Site name cannot be empty")
-            name.length < 3 -> Pair(false, "Site name too short (minimum 3 characters)")
-            name.length > 255 -> Pair(false, "Site name too long (maximum 255 characters)")
-            name.contains(Regex("[<>\"'/]")) -> Pair(false, "Site name contains invalid characters")
-            else -> Pair(true, null)
-        }
+    fun isValidSiteName(name: String): Pair<Boolean, String?> = when {
+        name.isBlank() -> Pair(false, "Site name cannot be empty")
+        name.length < 3 -> Pair(false, "Site name too short (minimum 3 characters)")
+        name.length > 255 -> Pair(false, "Site name too long (maximum 255 characters)")
+        name.contains(Regex("[<>\"'/]")) -> Pair(false, "Site name contains invalid characters")
+        else -> Pair(true, null)
     }
 
     /**
      * Validate sync interval
      */
-    fun isValidSyncInterval(intervalMinutes: Int): Pair<Boolean, String?> {
-        return when {
-            intervalMinutes < 5 -> Pair(false, "Sync interval must be at least 5 minutes")
-            intervalMinutes > 10080 -> Pair(false, "Sync interval must be at most 7 days (10080 minutes)")
-            else -> Pair(true, null)
-        }
+    fun isValidSyncInterval(intervalMinutes: Int): Pair<Boolean, String?> = when {
+        intervalMinutes < 5 -> Pair(false, "Sync interval must be at least 5 minutes")
+        intervalMinutes > 10080 -> Pair(false, "Sync interval must be at most 7 days (10080 minutes)")
+        else -> Pair(true, null)
     }
 
     /**
@@ -230,16 +237,17 @@ object ValidationHelper {
     /**
      * Validate HTTP header
      */
-    fun isValidHttpHeader(headerName: String, headerValue: String): Pair<Boolean, String?> {
-        return when {
-            headerName.isBlank() -> Pair(false, "Header name cannot be empty")
-            headerValue.isBlank() -> Pair(false, "Header value cannot be empty")
-            headerName.contains(":") -> Pair(false, "Header name cannot contain colon")
-            headerValue.contains("\n") || headerValue.contains("\r") ->
-                Pair(false, "Header value cannot contain line breaks")
+    fun isValidHttpHeader(
+        headerName: String,
+        headerValue: String,
+    ): Pair<Boolean, String?> = when {
+        headerName.isBlank() -> Pair(false, "Header name cannot be empty")
+        headerValue.isBlank() -> Pair(false, "Header value cannot be empty")
+        headerName.contains(":") -> Pair(false, "Header name cannot contain colon")
+        headerValue.contains("\n") || headerValue.contains("\r") ->
+            Pair(false, "Header value cannot contain line breaks")
 
-            else -> Pair(true, null)
-        }
+        else -> Pair(true, null)
     }
 
     /**
@@ -249,7 +257,7 @@ object ValidationHelper {
         url: String,
         title: String,
         selector: String = "",
-        xpath: String = ""
+        xpath: String = "",
     ): List<String> {
         val errors = mutableListOf<String>()
 
@@ -278,7 +286,11 @@ object ValidationHelper {
     /**
      * Log validation result
      */
-    fun logValidationResult(fieldName: String, isValid: Boolean, errorMessage: String? = null) {
+    fun logValidationResult(
+        fieldName: String,
+        isValid: Boolean,
+        errorMessage: String? = null,
+    ) {
         if (isValid) {
             Napier.d("✅ Validation: $fieldName is valid")
         } else {
@@ -293,7 +305,7 @@ object ValidationHelper {
 inline fun <T> validateAndLog(
     label: String,
     value: T,
-    validator: (T) -> Pair<Boolean, String?>
+    validator: (T) -> Pair<Boolean, String?>,
 ): Boolean {
     val (isValid, errorMessage) = validator(value)
     ValidationHelper.logValidationResult(label, isValid, errorMessage)

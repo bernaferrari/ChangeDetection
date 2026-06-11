@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.repo
 
 import androidx.room.*
@@ -18,17 +22,18 @@ import kotlinx.serialization.Serializable
         (Index(value = ["siteId", "contentType", "timestamp"], name = "index_snaps_composite")),
         (Index(value = ["contentHash"], name = "index_snaps_contentHash")),
         (Index(value = ["processedContentHash"], name = "index_snaps_processedContentHash")),
-        (Index(value = ["siteId", "contentHash"], name = "index_snaps_siteId_contentHash"))
+        (Index(value = ["siteId", "contentHash"], name = "index_snaps_siteId_contentHash")),
     ],
-    foreignKeys = [(
+    foreignKeys = [
+        (
             ForeignKey(
                 entity = Site::class,
                 parentColumns = arrayOf("siteId"),
                 childColumns = arrayOf("siteId"),
-                onDelete = CASCADE
+                onDelete = CASCADE,
             )
-            )
-    ]
+            ),
+    ],
 )
 /**
  * Snap is short for Snapshot. A snapshot will be a downloaded website which is different from
@@ -50,7 +55,7 @@ data class Snap(
     val contentCharset: String,
     val contentSize: Int,
     val contentHash: String = "", // SHA-256 hash for fast comparison
-    val processedContentHash: String = "" // Hash of processed/cleaned content
+    val processedContentHash: String = "", // Hash of processed/cleaned content
 ) {
     @OptIn(ExperimentalUuidApi::class)
     @Ignore
@@ -61,7 +66,7 @@ data class Snap(
         contentCharset: String,
         contentSize: Int,
         contentHash: String = "",
-        processedContentHash: String = ""
+        processedContentHash: String = "",
     ) : this(
         Uuid.random().toString(),
         siteId,
@@ -70,6 +75,6 @@ data class Snap(
         contentCharset,
         contentSize,
         contentHash,
-        processedContentHash
+        processedContentHash,
     )
 }

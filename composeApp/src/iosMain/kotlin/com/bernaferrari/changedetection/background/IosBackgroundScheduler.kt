@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.background
 
 import io.github.aakira.napier.Napier
@@ -9,14 +13,13 @@ import platform.Foundation.dateByAddingTimeInterval
 
 /**
  * iOS implementation using BGTaskScheduler.
- * 
+ *
  * IMPORTANT: iOS app must:
  * 1. Enable "Background fetch" and "Background processing" capabilities in Xcode
  * 2. Add task identifiers to Info.plist under BGTaskSchedulerPermittedIdentifiers
  * 3. Call registerBackgroundTasks() in AppDelegate.applicationDidFinishLaunching
  */
 class IosBackgroundScheduler : BackgroundScheduler {
-
     companion object {
         const val PERIODIC_SYNC_TASK_ID = "com.bernaferrari.changedetection.periodicSync"
         const val QUICK_MONITOR_TASK_ID = "com.bernaferrari.changedetection.quickMonitor"
@@ -31,7 +34,7 @@ class IosBackgroundScheduler : BackgroundScheduler {
     @OptIn(ExperimentalForeignApi::class)
     override fun schedulePeriodicSync(
         intervalMinutes: Long,
-        constraints: SyncConstraints
+        constraints: SyncConstraints,
     ) {
         this.periodicIntervalMinutes = intervalMinutes
         this.periodicConstraints = constraints
@@ -64,7 +67,10 @@ class IosBackgroundScheduler : BackgroundScheduler {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    override fun startQuickMonitor(siteIds: List<String>, intervalSeconds: Int) {
+    override fun startQuickMonitor(
+        siteIds: List<String>,
+        intervalSeconds: Int,
+    ) {
         // iOS doesn't support rapid polling in background
         Napier.i("Scheduling iOS quick monitor task", tag = "BackgroundScheduler")
 
@@ -90,10 +96,10 @@ class IosBackgroundScheduler : BackgroundScheduler {
 
     /**
      * Must be called from AppDelegate to register background task handlers.
-     * 
+     *
      * Usage in Swift:
      * ```swift
-     * func application(_ application: UIApplication, 
+     * func application(_ application: UIApplication,
      *                  didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
      *     IosBackgroundScheduler.Companion.shared.registerBackgroundTasks()
      *     return true
@@ -104,7 +110,7 @@ class IosBackgroundScheduler : BackgroundScheduler {
         Napier.i("Registering iOS background task handlers", tag = "BackgroundScheduler")
         BGTaskScheduler.sharedScheduler.registerForTaskWithIdentifier(
             identifier = PERIODIC_SYNC_TASK_ID,
-            usingQueue = null
+            usingQueue = null,
         ) { task ->
             Napier.i("Executing iOS periodic sync task", tag = "BackgroundScheduler")
             // Handle the background task
@@ -119,7 +125,7 @@ class IosBackgroundScheduler : BackgroundScheduler {
 
         BGTaskScheduler.sharedScheduler.registerForTaskWithIdentifier(
             identifier = QUICK_MONITOR_TASK_ID,
-            usingQueue = null
+            usingQueue = null,
         ) { task ->
             Napier.i("Executing iOS quick monitor task", tag = "BackgroundScheduler")
             if (task != null) {
@@ -131,6 +137,4 @@ class IosBackgroundScheduler : BackgroundScheduler {
 }
 
 // Provide the factory function for iOS
-actual fun createBackgroundScheduler(): BackgroundScheduler {
-    return IosBackgroundScheduler()
-}
+actual fun createBackgroundScheduler(): BackgroundScheduler = IosBackgroundScheduler()

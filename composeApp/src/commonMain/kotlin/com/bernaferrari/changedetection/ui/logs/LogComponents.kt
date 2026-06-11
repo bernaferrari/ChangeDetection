@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.logs
 
 import androidx.compose.animation.animateColorAsState
@@ -39,34 +43,32 @@ import org.jetbrains.compose.resources.stringResource
  * First items get top corners rounded, last items get bottom corners rounded.
  */
 enum class ListItemPosition {
-    FIRST,      // First item - rounded top corners
-    MIDDLE,     // Middle items - no rounded corners
-    LAST,       // Last item - rounded bottom corners  
-    SINGLE      // Only item - all corners rounded
+    FIRST, // First item - rounded top corners
+    MIDDLE, // Middle items - no rounded corners
+    LAST, // Last item - rounded bottom corners
+    SINGLE, // Only item - all corners rounded
 }
 
 /**
  * Gets the appropriate corner shape based on item position.
  */
-fun getListItemShape(position: ListItemPosition): RoundedCornerShape {
-    return when (position) {
-        ListItemPosition.FIRST -> RoundedCornerShape(
-            topStart = 24.dp,
-            topEnd = 24.dp,
-            bottomStart = 4.dp,
-            bottomEnd = 4.dp
-        )
+fun getListItemShape(position: ListItemPosition): RoundedCornerShape = when (position) {
+    ListItemPosition.FIRST -> RoundedCornerShape(
+        topStart = 24.dp,
+        topEnd = 24.dp,
+        bottomStart = 4.dp,
+        bottomEnd = 4.dp,
+    )
 
-        ListItemPosition.MIDDLE -> RoundedCornerShape(4.dp)
-        ListItemPosition.LAST -> RoundedCornerShape(
-            topStart = 4.dp,
-            topEnd = 4.dp,
-            bottomStart = 24.dp,
-            bottomEnd = 24.dp
-        )
+    ListItemPosition.MIDDLE -> RoundedCornerShape(4.dp)
+    ListItemPosition.LAST -> RoundedCornerShape(
+        topStart = 4.dp,
+        topEnd = 4.dp,
+        bottomStart = 24.dp,
+        bottomEnd = 24.dp,
+    )
 
-        ListItemPosition.SINGLE -> RoundedCornerShape(24.dp)
-    }
+    ListItemPosition.SINGLE -> RoundedCornerShape(24.dp)
 }
 
 @Composable
@@ -75,7 +77,7 @@ fun LogItem(
     site: Site,
     position: ListItemPosition = ListItemPosition.MIDDLE,
     onClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
 ) {
     val siteColor = remember(site.colors.first) { Color(site.colors.first) }
     val siteColor2 = remember(site.colors.second) { Color(site.colors.second) }
@@ -92,18 +94,18 @@ fun LogItem(
         targetValue = if (isPressed) 0.97f else 1f,
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.BOUNCY_DAMPING,
-            stiffness = ExpressiveSpring.BOUNCY_STIFFNESS
+            stiffness = ExpressiveSpring.BOUNCY_STIFFNESS,
         ),
-        label = "logItemScale"
+        label = "logItemScale",
     )
 
     val backgroundColor by animateColorAsState(
         targetValue = siteColor.copy(alpha = 0.08f),
         animationSpec = spring(
             dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
-            stiffness = ExpressiveSpring.GENTLE_STIFFNESS
+            stiffness = ExpressiveSpring.GENTLE_STIFFNESS,
         ),
-        label = "logItemBg"
+        label = "logItemBg",
     )
 
     Surface(
@@ -115,14 +117,14 @@ fun LogItem(
         color = backgroundColor,
         shape = shape,
         onClick = onClick,
-        interactionSource = interactionSource
+        interactionSource = interactionSource,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             // Gradient color indicator - larger and more prominent
             Box(
@@ -130,12 +132,12 @@ fun LogItem(
                     .size(44.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(gradient),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = getTitle(site).firstOrNull()?.uppercase() ?: "W",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color.White
+                    color = Color.White,
                 )
             }
 
@@ -147,29 +149,29 @@ fun LogItem(
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
 
                 Spacer(modifier = Modifier.height(2.dp))
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = timeLabel,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
                         text = "•",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     )
                     Text(
                         text = snap.contentSize.toLong().readableFileSize(),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -181,13 +183,13 @@ fun LogItem(
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f))
                     .clickable(onClick = onDeleteClick),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Delete,
                     contentDescription = "Delete",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(18.dp),
                 )
             }
         }
@@ -197,7 +199,7 @@ fun LogItem(
 @Composable
 fun LogsHeader(
     versionsCount: Int,
-    siteCount: Int
+    siteCount: Int,
 ) {
     Surface(
         modifier = Modifier
@@ -205,27 +207,27 @@ fun LogsHeader(
             .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        tonalElevation = 2.dp
+        tonalElevation = 2.dp,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Box(
                 modifier = Modifier
                     .size(56.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Rounded.History,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(28.dp),
                 )
             }
 
@@ -234,12 +236,12 @@ fun LogsHeader(
                     text = stringResource(Res.string.logs_hero_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
                     text = stringResource(Res.string.logs_hero_subtitle, versionsCount, siteCount),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -251,7 +253,7 @@ fun LogsEmptyState() {
     SharedEmptyState(
         icon = Icons.Rounded.History,
         title = stringResource(Res.string.logs_empty_title),
-        description = stringResource(Res.string.logs_empty_subtitle)
+        description = stringResource(Res.string.logs_empty_subtitle),
     )
 }
 
@@ -264,19 +266,19 @@ fun DateHeader(date: String) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(12.dp))
                 .background(MaterialTheme.colorScheme.primaryContainer)
-                .padding(horizontal = 14.dp, vertical = 6.dp)
+                .padding(horizontal = 14.dp, vertical = 6.dp),
         ) {
             Text(
                 text = date,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
     }

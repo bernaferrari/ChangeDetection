@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.theme
 
 import androidx.compose.ui.unit.dp
@@ -77,13 +81,14 @@ object AnimationDuration {
 }
 
 // ==================== M3 EXPRESSIVE SPRING SPECS ====================
+
 /**
  * Material 3 Expressive spring animation specifications.
  * These provide natural, bouncy feel recommended by M3 Expressive guidelines.
  */
 object ExpressiveSpring {
     // Standard interactive spring - for button presses, card touches
-    const val INTERACTIVE_DAMPING = 0.7f  // Low bounce, responsive
+    const val INTERACTIVE_DAMPING = 0.7f // Low bounce, responsive
     const val INTERACTIVE_STIFFNESS = 400f
 
     // Bouncy spring - for emphasized transitions, FAB, chips
@@ -101,10 +106,10 @@ object ExpressiveSpring {
 
 // ==================== OPACITY/ALPHA CONSTANTS ====================
 object Alpha {
-    const val FULL = 1.0f              // 100%
-    const val HIGH = 0.87f             // Material Design high emphasis text
-    const val MEDIUM = 0.60f           // Material Design medium emphasis
-    const val DISABLED = 0.38f         // Material Design disabled
+    const val FULL = 1.0f // 100%
+    const val HIGH = 0.87f // Material Design high emphasis text
+    const val MEDIUM = 0.60f // Material Design medium emphasis
+    const val DISABLED = 0.38f // Material Design disabled
 
     // Component-specific alphas
     const val CARD_OVERLAY = 0.18f
