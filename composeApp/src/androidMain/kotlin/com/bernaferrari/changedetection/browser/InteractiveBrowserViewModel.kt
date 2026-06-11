@@ -4,10 +4,10 @@
  */
 package com.bernaferrari.changedetection.browser
 
+import android.webkit.WebView
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.extensions.normalizeUrl
-
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,10 +21,17 @@ class InteractiveBrowserViewModel : ViewModel() {
     val uiState: StateFlow<InteractiveBrowserUiState> = _uiState.asStateFlow()
 
     // Add WebView reference for JavaScript communication - using WeakReference to prevent memory leaks
-    private var webViewRef: WeakReference<android.webkit.WebView>? = null
+    private var webViewRef: WeakReference<WebView>? = null
 
-    fun setWebView(webView: android.webkit.WebView) {
+    fun setWebView(webView: WebView) {
         this.webViewRef = WeakReference(webView)
+    }
+
+    private fun evaluateInPage(script: String) {
+        val webView = webViewRef?.get() ?: return
+        webView.post {
+            webViewRef?.get()?.evaluateJavascriptSafely(script)
+        }
     }
 
     fun setInitialUrl(url: String) {
@@ -37,13 +44,8 @@ class InteractiveBrowserViewModel : ViewModel() {
 
     fun applyZappedElements(zappedElements: List<ZappedElement>) {
         if (zappedElements.isNotEmpty()) {
-            val selectors = zappedElements.map { "\"${it.selector}\"" }.joinToString(",")
-            webViewRef?.get()?.post {
-                webViewRef?.get()?.evaluateJavascript(
-                    "window.applyZappedElements([$selectors]);",
-                    null,
-                )
-            }
+            val selectors = zappedElements.joinToString(",") { JSONObject.quote(it.selector) }
+            evaluateInPage("window.applyZappedElements([$selectors]);")
         }
     }
 
@@ -150,9 +152,8 @@ class InteractiveBrowserViewModel : ViewModel() {
         }
 
         // Actually execute JavaScript to set the interaction mode
-        webViewRef?.get()?.post {
-            webViewRef?.get()?.evaluateJavascript(
-                """
+        evaluateInPage(
+            """
                 (function() {
                     if (typeof window.setInteractionMode === 'function') {
                         window.setInteractionMode('$jsMode');
@@ -161,10 +162,8 @@ class InteractiveBrowserViewModel : ViewModel() {
                     }
                     console.log('Interaction mode set to: $jsMode');
                 })();
-                """.trimIndent(),
-                null,
-            )
-        }
+            """.trimIndent(),
+        )
     }
 
     fun handleElementInteraction(selector: String, elementInfoJson: String) {
@@ -286,11 +285,11 @@ class InteractiveBrowserViewModel : ViewModel() {
     }
 
     private fun hideElement(selector: String) {
-        webViewRef?.get()?.post {
-            webViewRef?.get()?.evaluateJavascript(
-                """
+        val quotedSelector = JSONObject.quote(selector)
+        evaluateInPage(
+            """
                 try {
-                    const element = document.querySelector('$selector');
+                    const element = document.querySelector($quotedSelector);
                     if (element) {
                         if (typeof window.removeZapHighlight === 'function') {
                             window.removeZapHighlight(element);
@@ -301,39 +300,35 @@ class InteractiveBrowserViewModel : ViewModel() {
                         element.style.display = 'none';
                         element.setAttribute('data-zapped', 'true');
                         if (window.zappedElements) {
-                            window.zappedElements.add('$selector');
+                            window.zappedElements.add($quotedSelector);
                         }
                     }
                 } catch (e) {
                     console.error('Failed to hide element', e);
                 }
-                """.trimIndent(),
-                null,
-            )
-        }
+            """.trimIndent(),
+        )
     }
 
     private fun restoreElement(selector: String) {
-        webViewRef?.get()?.post {
-            webViewRef?.get()?.evaluateJavascript(
-                """
+        val quotedSelector = JSONObject.quote(selector)
+        evaluateInPage(
+            """
                 try {
-                    const element = document.querySelector('$selector');
+                    const element = document.querySelector($quotedSelector);
                     if (element) {
                         if (typeof window.removeZapHighlight === 'function') {
                             window.removeZapHighlight(element);
                         }
                     }
                     if (window.zappedElements) {
-                        window.zappedElements.delete('$selector');
+                        window.zappedElements.delete($quotedSelector);
                     }
                 } catch (e) {
                     console.error('Failed to restore element', e);
                 }
-                """.trimIndent(),
-                null,
-            )
-        }
+            """.trimIndent(),
+        )
     }
 
     private fun parseParentChain(elementJson: JSONObject): List<ParentElement> {
@@ -356,21 +351,11 @@ class InteractiveBrowserViewModel : ViewModel() {
     }
 
     private fun previewParentAtIndex(index: Int) {
-        webViewRef?.get()?.post {
-            webViewRef?.get()?.evaluateJavascript(
-                "window.previewParentAtIndex($index);",
-                null,
-            )
-        }
+        evaluateInPage("window.previewParentAtIndex($index);")
     }
 
     private fun clearPreviewHighlight() {
-        webViewRef?.get()?.post {
-            webViewRef?.get()?.evaluateJavascript(
-                "window.clearPreviewHighlight();",
-                null,
-            )
-        }
+        evaluateInPage("window.clearPreviewHighlight();")
     }
 
     fun selectParentAtIndex(index: Int) {
@@ -424,9 +409,8 @@ class InteractiveBrowserViewModel : ViewModel() {
         )
 
         // Clear visual zapping from webpage
-        webViewRef?.get()?.post {
-            webViewRef?.get()?.evaluateJavascript(
-                """
+        evaluateInPage(
+            """
                 try {
                     if (typeof window.removeZapHighlight === 'function') {
                         document.querySelectorAll('[data-zapped="true"]').forEach(element => {
@@ -445,10 +429,8 @@ class InteractiveBrowserViewModel : ViewModel() {
                 } catch (e) {
                     console.error('Failed to clear zapped elements:', e);
                 }
-                """.trimIndent(),
-                null,
-            )
-        }
+            """.trimIndent(),
+        )
     }
 
     fun removeZappedElement(selector: String) {
@@ -461,12 +443,13 @@ class InteractiveBrowserViewModel : ViewModel() {
             hasSessionData = current.selectedElements.isNotEmpty() || currentElements.isNotEmpty() || current.capturedCookies.isNotBlank(),
         )
 
+        val quotedSelector = JSONObject.quote(selector)
+
         // Restore element in webpage
-        webViewRef?.get()?.post {
-            webViewRef?.get()?.evaluateJavascript(
-                """
+        evaluateInPage(
+            """
                 try {
-                    const element = document.querySelector('$selector');
+                    const element = document.querySelector($quotedSelector);
                     if (element) {
                         if (typeof window.removeZapHighlight === 'function') {
                             window.removeZapHighlight(element);
@@ -477,17 +460,15 @@ class InteractiveBrowserViewModel : ViewModel() {
                             element.style.display = '';
                         }
                         if (window.zappedElements) {
-                            window.zappedElements.delete('$selector');
+                            window.zappedElements.delete($quotedSelector);
                         }
-                        console.log('Element restored: $selector');
+                        console.log('Element restored: ' + $quotedSelector);
                     }
                 } catch (e) {
                     console.error('Failed to restore element:', e);
                 }
-                """.trimIndent(),
-                null,
-            )
-        }
+            """.trimIndent(),
+        )
     }
 
     override fun onCleared() {

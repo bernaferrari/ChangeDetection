@@ -58,7 +58,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
+import com.bernaferrari.changedetection.browser.configureChangeDetectionWebView
+import com.bernaferrari.changedetection.browser.destroySafely
+import com.bernaferrari.changedetection.browser.evaluateJavascriptSafely
 import com.bernaferrari.changedetection.ui.theme.ChangeDetectionTheme
+import org.json.JSONArray
 
 class ElementSelectorActivity : ComponentActivity() {
 
@@ -121,16 +125,8 @@ fun ElementSelectorScreen(
     // Cleanup WebView and JavaScript interface when activity finishes
     androidx.compose.runtime.DisposableEffect(Unit) {
         onDispose {
-            try {
-                webView?.stopLoading()
-                webView?.removeJavascriptInterface("Android")
-                webView?.clearHistory()
-                webView?.clearCache(true)
-                webView?.destroy()
-                webView = null
-            } catch (e: Exception) {
-                io.github.aakira.napier.Napier.e("❌ Error cleaning up ElementSelectorActivity WebView: ${e.message}")
-            }
+            webView?.destroySafely("Android")
+            webView = null
         }
     }
 
@@ -173,10 +169,7 @@ fun ElementSelectorScreen(
                     selectedIndex = selectedIndex,
                     onIndexChanged = { index ->
                         selectedIndex = index
-                        webView?.evaluateJavascript(
-                            "highlightElementByIndex($index)",
-                            null,
-                        )
+                        webView?.evaluateJavascriptSafely("highlightElementByIndex($index)")
                     },
                     onConfirm = {
                         val element = elementHierarchy.getOrNull(selectedIndex)
@@ -187,7 +180,7 @@ fun ElementSelectorScreen(
                     onCancel = {
                         selectedElement = null
                         elementHierarchy = emptyList()
-                        webView?.evaluateJavascript("clearHighlights()", null)
+                        webView?.evaluateJavascriptSafely("clearHighlights()")
                     },
                 )
             }
@@ -201,11 +194,10 @@ fun ElementSelectorScreen(
             AndroidView(
                 factory = { context ->
                     WebView(context).apply {
-                        settings.javaScriptEnabled = true
-                        settings.domStorageEnabled = true
-                        settings.setSupportZoom(true)
-                        settings.builtInZoomControls = true
-                        settings.displayZoomControls = false
+                        configureChangeDetectionWebView(
+                            enableZoom = true,
+                            overviewMode = true,
+                        )
 
                         addJavascriptInterface(
                             object {
@@ -227,7 +219,7 @@ fun ElementSelectorScreen(
                                 isLoading = false
 
                                 // Inject element selection JavaScript
-                                view?.evaluateJavascript(elementSelectionScript, null)
+                                view?.evaluateJavascriptSafely(elementSelectionScript)
                             }
                         }
 
@@ -489,28 +481,31 @@ private fun InstructionStep(
     }
 }
 
-private fun parseElementHierarchy(hierarchyJson: String): List<ElementInfo> {
-    // Basic parsing implementation - in a real app this would use a proper JSON parser
-    return try {
-        if (hierarchyJson.isBlank()) {
-            emptyList()
-        } else {
-            // For now, return a mock element structure
-            // In practice, this would parse actual HTML element hierarchy
-            listOf(
-                ElementInfo(
-                    tagName = "div",
-                    cssSelector = "#main-content",
-                    xpath = "//div[@id='main-content']",
-                    text = "Main content area",
-                    className = "content",
-                    id = "main-content",
-                ),
-            )
-        }
-    } catch (e: Exception) {
+private fun parseElementHierarchy(hierarchyJson: String): List<ElementInfo> = try {
+    if (hierarchyJson.isBlank()) {
         emptyList()
+    } else {
+        val hierarchy = JSONArray(hierarchyJson)
+        buildList {
+            for (index in 0 until hierarchy.length()) {
+                val item = hierarchy.optJSONObject(index) ?: continue
+                val cssSelector = item.optString("cssSelector")
+                if (cssSelector.isBlank()) continue
+                add(
+                    ElementInfo(
+                        tagName = item.optString("tagName", "element"),
+                        cssSelector = cssSelector,
+                        xpath = item.optString("xpath"),
+                        text = item.optString("text"),
+                        className = item.optString("className"),
+                        id = item.optString("id"),
+                    ),
+                )
+            }
+        }
     }
+} catch (_: Exception) {
+    emptyList()
 }
 
 data class ElementInfo(
