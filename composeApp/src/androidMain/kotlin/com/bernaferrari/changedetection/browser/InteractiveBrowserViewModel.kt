@@ -4,7 +4,6 @@
  */
 package com.bernaferrari.changedetection.browser
 
-import android.webkit.WebView
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.extensions.normalizeUrl
@@ -13,24 +12,34 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import java.lang.ref.WeakReference
 
 class InteractiveBrowserViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(InteractiveBrowserUiState())
     val uiState: StateFlow<InteractiveBrowserUiState> = _uiState.asStateFlow()
 
-    // Add WebView reference for JavaScript communication - using WeakReference to prevent memory leaks
-    private var webViewRef: WeakReference<WebView>? = null
+    private var browserSession: AndroidWebwrightSession? = null
 
-    fun setWebView(webView: WebView) {
-        this.webViewRef = WeakReference(webView)
+    fun setBrowserSession(session: AndroidWebwrightSession) {
+        browserSession = session
+        val currentUrl = _uiState.value.currentUrl
+        if (currentUrl.isNotBlank()) {
+            navigateTo(currentUrl)
+        }
+    }
+
+    fun clearBrowserSession(session: AndroidWebwrightSession? = null) {
+        val current = browserSession
+        if (session == null || session === current) {
+            current?.close()
+            browserSession = null
+        }
     }
 
     private fun evaluateInPage(script: String) {
-        val webView = webViewRef?.get() ?: return
-        webView.post {
-            webViewRef?.get()?.evaluateJavascriptSafely(script)
+        val session = browserSession ?: return
+        viewModelScope.launch {
+            runCatching { session.evaluate(script) }
         }
     }
 
@@ -40,6 +49,9 @@ class InteractiveBrowserViewModel : ViewModel() {
             currentUrl = normalized,
             hasSessionData = normalized.isNotBlank(),
         )
+        if (normalized.isNotBlank() && browserSession != null) {
+            navigateTo(normalized)
+        }
     }
 
     fun applyZappedElements(zappedElements: List<ZappedElement>) {
@@ -49,9 +61,57 @@ class InteractiveBrowserViewModel : ViewModel() {
         }
     }
 
+    fun installInteractionJavaScript(script: String) {
+        evaluateInPage(script)
+    }
+
     fun setCurrentUrl(url: String) {
         val normalized = url.normalizeUrl() ?: url
         _uiState.value = _uiState.value.copy(currentUrl = normalized)
+    }
+
+    fun navigateTo(url: String) {
+        val normalized = url.normalizeUrl() ?: url
+        if (normalized.isBlank()) return
+
+        _uiState.value = _uiState.value.copy(
+            currentUrl = normalized,
+            isLoading = true,
+        )
+
+        val session = browserSession ?: return
+        viewModelScope.launch {
+            val result = runCatching { session.goto(normalized) }
+            if (result.isFailure) {
+                _uiState.value = _uiState.value.copy(isLoading = false)
+            }
+        }
+    }
+
+    fun goBack() {
+        val session = browserSession ?: return
+        viewModelScope.launch {
+            runCatching { session.back() }
+        }
+    }
+
+    fun goForward() {
+        val session = browserSession ?: return
+        viewModelScope.launch {
+            runCatching { session.forward() }
+        }
+    }
+
+    fun reload() {
+        val session = browserSession ?: return
+        viewModelScope.launch {
+            runCatching { session.reload() }
+        }
+    }
+
+    fun stopLoading() {
+        browserSession?.stopLoading()
+        setLoading(false)
     }
 
     fun setPageTitle(title: String) {
@@ -71,6 +131,20 @@ class InteractiveBrowserViewModel : ViewModel() {
 
     fun setUserAgent(userAgent: String) {
         _uiState.value = _uiState.value.copy(userAgent = userAgent)
+    }
+
+    fun refreshBrowserSessionData() {
+        val session = browserSession ?: return
+        viewModelScope.launch {
+            runCatching { session.cookieHeader() }
+                .getOrNull()
+                ?.let(::setCapturedCookies)
+
+            val userAgent = session.userAgent()
+            if (userAgent.isNotBlank()) {
+                setUserAgent(userAgent)
+            }
+        }
     }
 
     fun hydrateFromSession(session: BrowserSessionData) {
@@ -473,9 +547,7 @@ class InteractiveBrowserViewModel : ViewModel() {
 
     override fun onCleared() {
         super.onCleared()
-        // Clear the WebView reference to prevent memory leaks
-        webViewRef?.clear()
-        webViewRef = null
+        clearBrowserSession()
     }
 }
 

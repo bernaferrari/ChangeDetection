@@ -17,15 +17,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.bernaferrari.changedetection.browser.configureChangeDetectionWebView
+import com.bernaferrari.changedetection.browser.AndroidWebwrightSession
 import com.bernaferrari.changedetection.browser.destroySafely
-import com.bernaferrari.changedetection.browser.evaluateJavascriptSafely
+import kotlinx.coroutines.launch
 
 @Composable
 actual fun ElementSelectorDialog(
@@ -33,14 +32,17 @@ actual fun ElementSelectorDialog(
     onDismiss: () -> Unit,
     onElementSelected: (cssSelector: String, elementPreview: String) -> Unit,
 ) {
-    val context = LocalContext.current
     var isLoading by remember { mutableStateOf(true) }
     var selectedElement by remember { mutableStateOf<ElementInfo?>(null) }
     var webView by remember { mutableStateOf<WebView?>(null) }
+    var browserSession by remember { mutableStateOf<AndroidWebwrightSession?>(null) }
+    val scope = rememberCoroutineScope()
 
     // Cleanup WebView and JavaScript interface when dialog is dismissed
     DisposableEffect(Unit) {
         onDispose {
+            browserSession?.close()
+            browserSession = null
             webView?.destroySafely("Android")
             webView = null
         }
@@ -133,8 +135,6 @@ actual fun ElementSelectorDialog(
                     AndroidView(
                         factory = { context ->
                             WebView(context).apply {
-                                configureChangeDetectionWebView(overviewMode = false)
-
                                 // Add JavaScript interface for element selection
                                 addJavascriptInterface(
                                     object {
@@ -150,18 +150,34 @@ actual fun ElementSelectorDialog(
                                     "Android",
                                 )
 
-                                webViewClient = object : WebViewClient() {
+                                val delegateWebViewClient = object : WebViewClient() {
                                     override fun onPageFinished(view: WebView?, url: String?) {
                                         super.onPageFinished(view, url)
                                         isLoading = false
 
                                         // Inject element selection JavaScript
-                                        view?.evaluateJavascriptSafely(elementSelectionScript)
+                                        browserSession?.let { session ->
+                                            scope.launch {
+                                                runCatching { session.evaluate(elementSelectionScript) }
+                                            }
+                                        }
                                     }
                                 }
 
-                                loadUrl(url)
+                                val session = AndroidWebwrightSession.attach(
+                                    context = context,
+                                    webView = this,
+                                    overviewMode = false,
+                                    delegateWebViewClient = delegateWebViewClient,
+                                )
                                 webView = this
+                                browserSession = session
+                                scope.launch {
+                                    val result = runCatching { session.goto(url) }
+                                    if (result.isFailure) {
+                                        isLoading = false
+                                    }
+                                }
                             }
                         },
                         modifier = Modifier.fillMaxSize(),
