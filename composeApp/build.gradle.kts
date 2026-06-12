@@ -137,6 +137,7 @@ kotlin {
 
             // Browser
             implementation(libs.androidx.browser)
+            implementation(libs.webwright.core)
 
             // Web scraping and networking
             implementation(libs.jsoup)
