@@ -19,7 +19,7 @@ import android.webkit.WebViewClient
 import androidx.core.app.NotificationCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import com.bernaferrari.changedetection.browser.captureFullPageWebp
+import com.bernaferrari.changedetection.browser.captureFullPagePng
 import com.bernaferrari.changedetection.browser.configureChangeDetectionWebView
 import com.bernaferrari.changedetection.browser.destroySafely
 import com.bernaferrari.changedetection.repo.Site
@@ -158,9 +158,8 @@ class ScreenshotService :
 
         serviceScope.launch {
             try {
-                val screenshot = wv.captureFullPageWebp(
+                val screenshot = wv.captureFullPagePng(
                     maxHeightPixels = MAX_HEIGHT_PIXELS,
-                    quality = WEBP_QUALITY,
                 )
                 val result = SyncEngine.FetchResult.Success(screenshot.contentType, screenshot.bytes)
                 syncEngine.processFetchResult(site, result)
@@ -222,7 +221,6 @@ class ScreenshotService :
         const val EXTRA_SITE_ID = "site_id"
         private const val NOTIFICATION_ID = 1234
         private const val MAX_HEIGHT_PIXELS = 15000 // Cap at ~15k pixels height to prevent crashes
-        private const val WEBP_QUALITY = 80
         private const val VIEWPORT_WIDTH = 1080
         private const val VIEWPORT_HEIGHT = 1920
     }

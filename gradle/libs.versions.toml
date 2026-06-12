@@ -158,6 +158,7 @@ sqlite-bundled = "androidx.sqlite:sqlite-bundled:2.6.2"
 subsampling-scale-imageview = { module = "com.davemorrissey.labs:subsampling-scale-image-view", version.ref = "subsamplingScaleImageView" }
 timeago = { module = "com.github.marlonlom:timeago", version.ref = "timeAgo" }
 webview-multiplatform = "io.github.kevinnzou:compose-webview-multiplatform:2.0.3"
+webwright-core = { module = "com.webwright:webwright-core", version = "1.3.0" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
