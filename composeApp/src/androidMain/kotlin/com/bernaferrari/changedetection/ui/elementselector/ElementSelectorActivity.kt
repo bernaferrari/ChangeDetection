@@ -50,6 +50,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,10 +59,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
-import com.bernaferrari.changedetection.browser.configureChangeDetectionWebView
+import com.bernaferrari.changedetection.browser.AndroidWebwrightSession
 import com.bernaferrari.changedetection.browser.destroySafely
-import com.bernaferrari.changedetection.browser.evaluateJavascriptSafely
 import com.bernaferrari.changedetection.ui.theme.ChangeDetectionTheme
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 
 class ElementSelectorActivity : ComponentActivity() {
@@ -83,7 +84,6 @@ class ElementSelectorActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val url = intent.getStringExtra(EXTRA_URL) ?: ""
-        val siteId = intent.getStringExtra(EXTRA_SITE_ID) ?: ""
 
         setContent {
             ChangeDetectionTheme {
@@ -120,11 +120,15 @@ fun ElementSelectorScreen(
     var elementHierarchy by remember { mutableStateOf<List<ElementInfo>>(emptyList()) }
     var selectedIndex by remember { mutableIntStateOf(0) }
     var webView by remember { mutableStateOf<WebView?>(null) }
+    var browserSession by remember { mutableStateOf<AndroidWebwrightSession?>(null) }
     var showInstructions by remember { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
 
     // Cleanup WebView and JavaScript interface when activity finishes
     androidx.compose.runtime.DisposableEffect(Unit) {
         onDispose {
+            browserSession?.close()
+            browserSession = null
             webView?.destroySafely("Android")
             webView = null
         }
@@ -169,7 +173,11 @@ fun ElementSelectorScreen(
                     selectedIndex = selectedIndex,
                     onIndexChanged = { index ->
                         selectedIndex = index
-                        webView?.evaluateJavascriptSafely("highlightElementByIndex($index)")
+                        browserSession?.let { session ->
+                            scope.launch {
+                                runCatching { session.evaluate("highlightElementByIndex($index)") }
+                            }
+                        }
                     },
                     onConfirm = {
                         val element = elementHierarchy.getOrNull(selectedIndex)
@@ -180,7 +188,11 @@ fun ElementSelectorScreen(
                     onCancel = {
                         selectedElement = null
                         elementHierarchy = emptyList()
-                        webView?.evaluateJavascriptSafely("clearHighlights()")
+                        browserSession?.let { session ->
+                            scope.launch {
+                                runCatching { session.evaluate("clearHighlights()") }
+                            }
+                        }
                     },
                 )
             }
@@ -194,11 +206,6 @@ fun ElementSelectorScreen(
             AndroidView(
                 factory = { context ->
                     WebView(context).apply {
-                        configureChangeDetectionWebView(
-                            enableZoom = true,
-                            overviewMode = true,
-                        )
-
                         addJavascriptInterface(
                             object {
                                 @JavascriptInterface
@@ -213,18 +220,35 @@ fun ElementSelectorScreen(
                             "Android",
                         )
 
-                        webViewClient = object : WebViewClient() {
+                        val delegateWebViewClient = object : WebViewClient() {
                             override fun onPageFinished(view: WebView?, url: String?) {
                                 super.onPageFinished(view, url)
                                 isLoading = false
 
                                 // Inject element selection JavaScript
-                                view?.evaluateJavascriptSafely(elementSelectionScript)
+                                browserSession?.let { session ->
+                                    scope.launch {
+                                        runCatching { session.evaluate(elementSelectionScript) }
+                                    }
+                                }
                             }
                         }
 
-                        loadUrl(url)
+                        val session = AndroidWebwrightSession.attach(
+                            context = context,
+                            webView = this,
+                            enableZoom = true,
+                            overviewMode = true,
+                            delegateWebViewClient = delegateWebViewClient,
+                        )
                         webView = this
+                        browserSession = session
+                        scope.launch {
+                            val result = runCatching { session.goto(url) }
+                            if (result.isFailure) {
+                                isLoading = false
+                            }
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxSize(),

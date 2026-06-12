@@ -4,6 +4,7 @@
  */
 package com.bernaferrari.changedetection.browser
 
+import android.content.Context
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebView
@@ -91,6 +92,7 @@ actual fun ModernInteractiveBrowserScreen(
     val context = LocalContext.current
 
     var webView by remember { mutableStateOf<WebView?>(null) }
+    var browserSession by remember { mutableStateOf<AndroidWebwrightSession?>(null) }
 
     LaunchedEffect(initialUrl) {
         if (initialUrl.isNotBlank()) {
@@ -146,14 +148,11 @@ actual fun ModernInteractiveBrowserScreen(
             BrowserControlsBar(
                 currentUrl = uiState.currentUrl,
                 isLoading = uiState.isLoading,
-                webView = webView,
-                onUrlSubmit = { url ->
-                    val normalized = url.normalizeUrl()
-                    val finalUrl = normalized ?: url.trim()
-                    if (finalUrl.isNotBlank()) {
-                        viewModel.setCurrentUrl(finalUrl)
-                    }
-                },
+                onBack = viewModel::goBack,
+                onForward = viewModel::goForward,
+                onReload = viewModel::reload,
+                onStopLoading = viewModel::stopLoading,
+                onUrlSubmit = viewModel::navigateTo,
                 modifier = Modifier
                     .padding(horizontal = 24.dp, vertical = 16.dp),
             )
@@ -164,20 +163,19 @@ actual fun ModernInteractiveBrowserScreen(
                     factory = { context ->
                         WebView(context).apply {
                             webView = this
-                            viewModel.setWebView(this)
-                            setupWebView(this, viewModel)
+                            browserSession = setupWebView(context, this, viewModel)
                         }
                     },
                     update = { view ->
-                        if (uiState.currentUrl.isNotBlank() && view.url != uiState.currentUrl) {
-                            view.loadUrl(uiState.currentUrl)
-                        }
+                        webView = view
                     },
                     modifier = Modifier.fillMaxSize(),
                 )
 
                 DisposableEffect(webView) {
                     onDispose {
+                        viewModel.clearBrowserSession(browserSession)
+                        browserSession = null
                         webView?.destroySafely()
                         webView = null
                     }
@@ -294,7 +292,10 @@ actual fun ModernInteractiveBrowserScreen(
 private fun BrowserControlsBar(
     currentUrl: String,
     isLoading: Boolean,
-    webView: WebView?,
+    onBack: () -> Unit,
+    onForward: () -> Unit,
+    onReload: () -> Unit,
+    onStopLoading: () -> Unit,
     onUrlSubmit: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -326,7 +327,7 @@ private fun BrowserControlsBar(
     ) {
         // Compact navigation buttons
         IconButton(
-            onClick = { webView?.let { if (it.canGoBack()) it.goBack() } },
+            onClick = onBack,
             modifier = Modifier.size(40.dp),
         ) {
             Icon(
@@ -337,7 +338,7 @@ private fun BrowserControlsBar(
         }
 
         IconButton(
-            onClick = { webView?.let { if (it.canGoForward()) it.goForward() } },
+            onClick = onForward,
             modifier = Modifier.size(40.dp),
         ) {
             Icon(
@@ -440,9 +441,7 @@ private fun BrowserControlsBar(
         // Reload button
         IconButton(
             onClick = {
-                webView?.let {
-                    if (isLoading) it.stopLoading() else it.reload()
-                }
+                if (isLoading) onStopLoading() else onReload()
             },
             modifier = Modifier.size(40.dp),
         ) {
@@ -543,70 +542,66 @@ private data class ModeOverlayData(
     val subtitle: String,
 )
 
-private fun setupWebView(webView: WebView, viewModel: InteractiveBrowserViewModel) {
-    webView.apply {
-        configureChangeDetectionWebView(
-            enableZoom = true,
-            overviewMode = true,
-            acceptThirdPartyCookies = true,
-        )
+private fun setupWebView(
+    context: Context,
+    webView: WebView,
+    viewModel: InteractiveBrowserViewModel,
+): AndroidWebwrightSession {
+    val webViewClient = object : WebViewClient() {
+        override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+            super.onPageStarted(view, url, favicon)
+            viewModel.setLoading(true)
+            url?.let { viewModel.setCurrentUrl(it) }
+        }
 
+        override fun onPageFinished(view: WebView?, url: String?) {
+            super.onPageFinished(view, url)
+            viewModel.setLoading(false)
+
+            // Extract page title
+            view?.title?.let { title ->
+                if (title.isNotBlank() && title != url) {
+                    viewModel.setPageTitle(title)
+                }
+            }
+
+            viewModel.refreshBrowserSessionData()
+
+            // Inject interaction JavaScript
+            viewModel.installInteractionJavaScript(getModernInteractionJavaScript())
+            viewModel.applyZappedElements(viewModel.uiState.value.zappedElements)
+            viewModel.reapplyInteractionMode()
+        }
+    }
+
+    val webChromeClient = object : WebChromeClient() {
+        override fun onReceivedTitle(view: WebView?, title: String?) {
+            super.onReceivedTitle(view, title)
+            title?.let {
+                if (it.isNotBlank()) {
+                    viewModel.setPageTitle(it)
+                }
+            }
+        }
+    }
+
+    webView.apply {
         // Add JavaScript interface for element interaction
         addJavascriptInterface(
             ModernElementInteractionInterface(viewModel),
             "AndroidInterface",
         )
-
-        webViewClient = object : WebViewClient() {
-            override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
-                super.onPageStarted(view, url, favicon)
-                viewModel.setLoading(true)
-                url?.let { viewModel.setCurrentUrl(it) }
-            }
-
-            override fun onPageFinished(view: WebView?, url: String?) {
-                super.onPageFinished(view, url)
-                viewModel.setLoading(false)
-
-                // Extract page title
-                view?.title?.let { title ->
-                    if (title.isNotBlank() && title != url) {
-                        viewModel.setPageTitle(title)
-                    }
-                }
-
-                // Auto-capture and persist cookies globally
-                url?.let {
-                    viewModel.setCapturedCookies(readCookiesForUrl(it))
-                }
-
-                // Capture user agent from WebView settings
-                try {
-                    val ua = view?.settings?.userAgentString ?: ""
-                    if (ua.isNotBlank()) {
-                        viewModel.setUserAgent(ua)
-                    }
-                } catch (_: Exception) {
-                }
-
-                // Inject interaction JavaScript
-                view?.evaluateJavascriptSafely(getModernInteractionJavaScript())
-                viewModel.applyZappedElements(viewModel.uiState.value.zappedElements)
-                viewModel.reapplyInteractionMode()
-            }
-        }
-
-        webChromeClient = object : WebChromeClient() {
-            override fun onReceivedTitle(view: WebView?, title: String?) {
-                super.onReceivedTitle(view, title)
-                title?.let {
-                    if (it.isNotBlank()) {
-                        viewModel.setPageTitle(it)
-                    }
-                }
-            }
-        }
     }
+
+    return AndroidWebwrightSession.attach(
+        context = context,
+        webView = webView,
+        enableZoom = true,
+        overviewMode = true,
+        acceptThirdPartyCookies = true,
+        delegateWebViewClient = webViewClient,
+        delegateWebChromeClient = webChromeClient,
+    ).also(viewModel::setBrowserSession)
 }
 
 class ModernElementInteractionInterface(private val viewModel: InteractiveBrowserViewModel) {

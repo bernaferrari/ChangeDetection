@@ -11,16 +11,12 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.core.app.NotificationCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import com.bernaferrari.changedetection.browser.captureFullPagePng
-import com.bernaferrari.changedetection.browser.configureChangeDetectionWebView
+import com.bernaferrari.changedetection.browser.AndroidWebwrightSession
 import com.bernaferrari.changedetection.browser.destroySafely
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.source.local.SitesDao
@@ -49,9 +45,9 @@ class ScreenshotService :
     private val queue = ArrayDeque<String>()
     private var isProcessing = false
     private var webView: WebView? = null
+    private var webwrightSession: AndroidWebwrightSession? = null
 
     private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private val handler = Handler(Looper.getMainLooper())
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -65,12 +61,15 @@ class ScreenshotService :
             // ContextThemeWrapper is often needed for WebView in Service
             // But we use application context wrapped effectively by Service context
             webView = WebView(this).apply {
-                configureChangeDetectionWebView(overviewMode = true)
-
                 // Set a fixed width for consistent rendering (e.g. mobile view)
                 // 1080px width, height will grow
                 layout(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)
             }
+            webwrightSession = AndroidWebwrightSession.attach(
+                context = this,
+                webView = requireNotNull(webView),
+                overviewMode = true,
+            )
         } catch (e: Exception) {
             Napier.e("Failed to initialize WebView", e)
             stopSelf()
@@ -121,44 +120,33 @@ class ScreenshotService :
         }
     }
 
-    private fun processSite(site: Site, delayMs: Long) {
+    private suspend fun processSite(site: Site, delayMs: Long) {
         // Must be on Main Thread for WebView
         Napier.i("Loading URL: ${site.url}")
-
-        webView?.webViewClient = object : WebViewClient() {
-            override fun onPageFinished(view: WebView?, url: String?) {
-                super.onPageFinished(view, url)
-
-                // Wait for dynamic content to load (user configured delay)
-                handler.postDelayed({
-                    captureSnapshot(site)
-                }, delayMs)
-            }
-
-            override fun onReceivedError(
-                view: WebView?,
-                request: android.webkit.WebResourceRequest?,
-                error: android.webkit.WebResourceError?,
-            ) {
-                val description = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    error?.description?.toString() ?: "Unknown error"
-                } else {
-                    "Unknown error"
-                }
-                Napier.e("WebView error: $description")
-                handleError(site, "WebView error: $description")
-            }
+        val session = webwrightSession
+        if (session == null) {
+            handleError(site, "Browser session is not initialized")
+            return
         }
 
-        webView?.loadUrl(site.url)
+        try {
+            val navigation = session.goto(site.url)
+            if (!navigation.ok) {
+                handleError(site, navigation.error ?: "HTTP ${navigation.status}")
+                return
+            }
+            session.waitForPageToSettle(delayMs)
+            captureSnapshot(site, session)
+        } catch (e: Exception) {
+            Napier.e("Webwright navigation failed", e)
+            handleError(site, e.message ?: "Unknown browser navigation error")
+        }
     }
 
-    private fun captureSnapshot(site: Site) {
-        val wv = webView ?: return
-
+    private fun captureSnapshot(site: Site, session: AndroidWebwrightSession) {
         serviceScope.launch {
             try {
-                val screenshot = wv.captureFullPagePng(
+                val screenshot = session.captureFullPagePng(
                     maxHeightPixels = MAX_HEIGHT_PIXELS,
                 )
                 val result = SyncEngine.FetchResult.Success(screenshot.contentType, screenshot.bytes)
@@ -213,6 +201,8 @@ class ScreenshotService :
 
     override fun onDestroy() {
         super.onDestroy()
+        webwrightSession?.close()
+        webwrightSession = null
         webView?.destroySafely(clearCache = false)
         serviceScope.cancel()
     }
