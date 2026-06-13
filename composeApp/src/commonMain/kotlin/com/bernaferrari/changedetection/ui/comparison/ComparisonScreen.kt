@@ -18,8 +18,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 
@@ -34,15 +34,12 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.util.formatTimestamp
 import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
-import io.github.aakira.napier.Napier
 import org.koin.compose.viewmodel.koinViewModel
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewStateWithHTMLData
-import com.multiplatform.webview.web.LoadingState
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -206,6 +203,7 @@ fun ComparisonScreen(
                 SingleSnapshotState(
                     snap = uiState.snaps.first(),
                     content = uiState.singleSnapContent,
+                    bytes = uiState.singleSnapBytes,
                     isLoadingContent = uiState.isLoadingDiff,
                     modifier = Modifier
                         .fillMaxSize()
@@ -219,11 +217,29 @@ fun ComparisonScreen(
                     selectedPairIndex = uiState.selectedPairIndex ?: 0,
                     content1 = uiState.snapContent1,
                     content2 = uiState.snapContent2,
+                    bytes1 = uiState.snapBytes1,
+                    bytes2 = uiState.snapBytes2,
+                    imageDiff = uiState.imageDiff,
                     isLoadingDiff = uiState.isLoadingDiff,
                     onSelectPair = { viewModel.selectPairForComparison(it) },
                     onShare = {
                         val idx = uiState.selectedPairIndex ?: 0
-                        if (idx + 1 < uiState.snaps.size && uiState.snapContent1 != null && uiState.snapContent2 != null) {
+                        val newerSnap = uiState.snaps.getOrNull(idx)
+                        val olderSnap = uiState.snaps.getOrNull(idx + 1)
+                        val imageDiff = uiState.imageDiff
+                        if (
+                            newerSnap != null &&
+                            olderSnap != null &&
+                            newerSnap.isImageSnapshot() &&
+                            olderSnap.isImageSnapshot() &&
+                            imageDiff != null
+                        ) {
+                            viewModel.shareImageDiff(
+                                newerSnap = newerSnap,
+                                olderSnap = olderSnap,
+                                imageDiff = imageDiff,
+                            )
+                        } else if (idx + 1 < uiState.snaps.size && uiState.snapContent1 != null && uiState.snapContent2 != null) {
                             viewModel.shareDiff(
                                 snap1 = uiState.snaps[idx],
                                 snap2 = uiState.snaps[idx + 1],
@@ -276,12 +292,28 @@ private fun EmptySnapshotState(modifier: Modifier = Modifier) {
 private fun SingleSnapshotState(
     snap: Snap,
     content: String?,
+    bytes: ByteArray?,
     isLoadingContent: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    if (content != null) {
+    if (snap.isImageSnapshot() && bytes != null) {
+        Box(modifier = modifier) {
+            ImageViewport(
+                bytes = bytes,
+                label = null,
+                modifier = Modifier.fillMaxSize(),
+            )
+
+            SnapshotTimestampLabel(
+                timestamp = snap.timestamp,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 32.dp),
+            )
+        }
+    } else if (content != null) {
         val isHtml = remember(snap.contentType) {
-            snap.contentType.contains("html", ignoreCase = true)
+            snap.isHtmlSnapshot()
         }
 
         Box(modifier = modifier) {
@@ -309,22 +341,12 @@ private fun SingleSnapshotState(
                 }
             }
 
-            // Floating label for timestamp
-            Surface(
+            SnapshotTimestampLabel(
+                timestamp = snap.timestamp,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 32.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.9f),
-                tonalElevation = 4.dp,
-            ) {
-                Text(
-                    text = formatTimestamp(snap.timestamp),
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
+            )
         }
     } else if (isLoadingContent) {
         Box(
@@ -381,16 +403,59 @@ private fun SingleSnapshotState(
 }
 
 @Composable
+private fun SnapshotTimestampLabel(
+    timestamp: Long,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier,
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.9f),
+        tonalElevation = 4.dp,
+    ) {
+        Text(
+            text = formatTimestamp(timestamp),
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            color = MaterialTheme.colorScheme.primary,
+        )
+    }
+}
+
+@Composable
 private fun DiffFirstContent(
     snaps: List<Snap>,
     selectedPairIndex: Int,
     content1: String?,
     content2: String?,
+    bytes1: ByteArray?,
+    bytes2: ByteArray?,
+    imageDiff: SnapshotImageDiff?,
     isLoadingDiff: Boolean,
     onSelectPair: (Int) -> Unit,
     onShare: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val newerSnap = snaps.getOrNull(selectedPairIndex)
+    val olderSnap = snaps.getOrNull(selectedPairIndex + 1)
+    val isImagePair =
+        newerSnap?.isImageSnapshot() == true && olderSnap?.isImageSnapshot() == true
+    var mode by remember(selectedPairIndex, isImagePair) {
+        mutableStateOf(if (isImagePair) ComparisonMode.ImageDiff else ComparisonMode.Html)
+    }
+    val modes = remember(isImagePair) {
+        if (isImagePair) {
+            listOf(
+                ComparisonMode.ImageDiff,
+                ComparisonMode.ImageSwipe,
+                ComparisonMode.ImageBefore,
+                ComparisonMode.ImageAfter,
+            )
+        } else {
+            listOf(ComparisonMode.Text, ComparisonMode.Html)
+        }
+    }
+
     Column(modifier = modifier) {
         // Version selector - horizontal scrollable chips
         VersionSelector(
@@ -400,28 +465,25 @@ private fun DiffFirstContent(
         )
 
         // Diff mode selector
-        var mode by remember { mutableStateOf("HTML") }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            FilterChip(
-                selected = mode == "TEXT",
-                onClick = { mode = "TEXT" },
-                label = { Text(stringResource(Res.string.text_diff)) },
-            )
-            FilterChip(
-                selected = mode == "HTML",
-                onClick = { mode = "HTML" },
-                label = { Text(stringResource(Res.string.rendered_html)) },
-            )
+            modes.forEach { option ->
+                FilterChip(
+                    selected = mode == option,
+                    onClick = { mode = option },
+                    label = { Text(option.label()) },
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
             // Share button
-            if (content1 != null && content2 != null) {
+            if ((isImagePair && imageDiff != null) || (content1 != null && content2 != null)) {
                 IconButton(onClick = onShare) {
                     Icon(Icons.Default.Share, contentDescription = "Share diff")
                 }
@@ -436,9 +498,19 @@ private fun DiffFirstContent(
             ) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp))
             }
+        } else if (isImagePair) {
+            ImageComparisonContent(
+                beforeSnap = olderSnap,
+                afterSnap = newerSnap,
+                beforeBytes = bytes2,
+                afterBytes = bytes1,
+                imageDiff = imageDiff,
+                mode = mode,
+                modifier = Modifier.fillMaxSize(),
+            )
         } else if (content1 != null && content2 != null) {
             when (mode) {
-                "TEXT" -> {
+                ComparisonMode.Text -> {
                     SimpleDiffView(
                         oldContent = content1,
                         newContent = content2,
@@ -446,13 +518,15 @@ private fun DiffFirstContent(
                     )
                 }
 
-                "HTML" -> {
+                ComparisonMode.Html -> {
                     RenderedHtmlComparison(
                         oldContent = content1,
                         newContent = content2,
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
+
+                else -> Unit
             }
         } else {
             Box(
@@ -497,16 +571,16 @@ private fun VersionSelector(
         ) {
             for (i in 0 until snaps.size - 1) {
                 val isSelected = i == selectedIndex
-                val olderSnap = snaps[i]
-                val newerSnap = snaps[i + 1]
+                val newerSnap = snaps[i]
+                val olderSnap = snaps[i + 1]
 
                 VersionChip(
-                    olderLabel = if (i == 0) {
+                    olderLabel = if (i == snaps.size - 2) {
                         stringResource(Res.string.version_older)
                     } else {
                         stringResource(Res.string.version_previous)
                     },
-                    newerLabel = if (i == snaps.size - 2) {
+                    newerLabel = if (i == 0) {
                         stringResource(Res.string.version_latest)
                     } else {
                         stringResource(Res.string.version_previous)
