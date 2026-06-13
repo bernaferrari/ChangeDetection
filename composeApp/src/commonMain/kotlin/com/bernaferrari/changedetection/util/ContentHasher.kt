@@ -8,28 +8,13 @@ import com.bernaferrari.changedetection.extensions.cleanUpHtml
 
 object ContentHasher {
     private val htmlCleanupCache = SynchronizedCache<String, String>(MAX_CACHE_SIZE)
-    private val hashCache = SynchronizedCache<String, String>(MAX_CACHE_SIZE)
 
     private const val MAX_CACHE_SIZE = 500 // Reduced since LRU is more efficient
 
     /**
      * Generate SHA-256 hash for raw content
      */
-    fun hashContent(content: ByteArray): String {
-        val contentString = content.decodeToString()
-
-        // Check cache first
-        val cachedHash = hashCache[contentString]
-        if (cachedHash != null) {
-            return cachedHash
-        }
-
-        val hash = CryptoUtils.sha256(content)
-
-        // Cache the result
-        hashCache[contentString] = hash
-        return hash
-    }
+    fun hashContent(content: ByteArray): String = CryptoUtils.sha256(content)
 
     /**
      * Generate hash for HTML content after cleanup
@@ -105,7 +90,6 @@ object ContentHasher {
      */
     fun clearCaches() {
         htmlCleanupCache.clear()
-        hashCache.clear()
     }
 }
 

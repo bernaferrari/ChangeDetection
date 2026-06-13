@@ -71,7 +71,7 @@ fun ConfirmDialog(
         label = "iconBackgroundColor",
     )
 
-    AlertDialog(
+    BasicAlertDialog(
         onDismissRequest = onDismiss,
         modifier = modifier,
     ) {

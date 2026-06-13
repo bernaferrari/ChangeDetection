@@ -19,7 +19,7 @@ kotlin {
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 
-    androidLibrary {
+    android {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
@@ -27,7 +27,7 @@ kotlin {
             enable = true
         }
         namespace = "com.bernaferrari.changedetection.library"
-        compileSdk = 36
+        compileSdk = 37
         minSdk = 30
         packaging {
             resources {
@@ -68,12 +68,12 @@ kotlin {
             // Date/Time (KMP)
             implementation(libs.kotlinx.datetime)
             // Compose Multiplatform UI
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.materialIconsExtended)
+            implementation(libs.jetbrains.compose.runtime)
+            implementation(libs.jetbrains.compose.foundation)
+            implementation(libs.jetbrains.compose.material3)
+            implementation(libs.jetbrains.compose.ui)
+            implementation(libs.jetbrains.compose.components.resources)
+            implementation(libs.jetbrains.compose.material.icons.extended)
             implementation(libs.androidx.graphics.shapes)
 
             // Logging (Napier)
@@ -108,6 +108,9 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.koin.workmanager)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.core)
+            implementation(libs.coil.network.ktor3)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.androidx.activity.compose)
@@ -123,10 +126,6 @@ kotlin {
             // Compose (already provided by compose multiplatform in commonMain)
             implementation(libs.androidx.compose.ui.tooling.preview)
             implementation(libs.androidx.compose.material3.window.size)
-
-            // Coil for image loading
-            implementation(libs.coil.compose)
-            implementation(libs.coil.core)
 
             // DataStore for Preferences
             implementation(libs.androidx.datastore.preferences)
