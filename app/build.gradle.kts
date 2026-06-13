@@ -15,12 +15,12 @@ plugins {
 
 android {
     namespace = "com.bernaferrari.changedetection"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.bernaferrari.changedetection"
         minSdk = 30
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 34
         versionName = "2.31"
     }

@@ -4,11 +4,9 @@
  */
 package com.bernaferrari.changedetection.ui.main
 
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,67 +14,68 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.unit.dp
-import com.bernaferrari.changedetection.repo.Site
-import com.bernaferrari.changedetection.repo.SiteAndLastSnap
-import com.bernaferrari.changedetection.ui.components.ConfirmDialog
-import com.bernaferrari.changedetection.ui.components.ErrorBanner
-import com.bernaferrari.changedetection.ui.components.SharedMainCard
-import com.bernaferrari.changedetection.ui.components.SyncStatus
-import com.bernaferrari.changedetection.util.readableFileSize
-import com.bernaferrari.changedetection.shared.generated.resources.Res
-import com.bernaferrari.changedetection.shared.generated.resources.app_name
-import com.bernaferrari.changedetection.shared.generated.resources.refresh_all
-import com.bernaferrari.changedetection.shared.generated.resources.add_site
-import com.bernaferrari.changedetection.util.getRelativeTimeLabel
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import org.jetbrains.compose.resources.stringResource
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.background.SyncState
-import androidx.compose.material.icons.rounded.Bolt
+import com.bernaferrari.changedetection.repo.Site
+import com.bernaferrari.changedetection.repo.SiteAndLastSnap
+import com.bernaferrari.changedetection.shared.generated.resources.Res
+import com.bernaferrari.changedetection.shared.generated.resources.add_first_site
+import com.bernaferrari.changedetection.shared.generated.resources.add_site
+import com.bernaferrari.changedetection.shared.generated.resources.app_name
+import com.bernaferrari.changedetection.shared.generated.resources.connection_error
+import com.bernaferrari.changedetection.shared.generated.resources.delete
+import com.bernaferrari.changedetection.shared.generated.resources.delete_site_message
+import com.bernaferrari.changedetection.shared.generated.resources.delete_site_title
+import com.bernaferrari.changedetection.shared.generated.resources.refresh_all
+import com.bernaferrari.changedetection.shared.generated.resources.site_deleted
 import com.bernaferrari.changedetection.shared.generated.resources.start_monitoring
 import com.bernaferrari.changedetection.shared.generated.resources.start_monitoring_description
-import com.bernaferrari.changedetection.shared.generated.resources.add_first_site
-import com.bernaferrari.changedetection.shared.generated.resources.delete_site_title
-import com.bernaferrari.changedetection.shared.generated.resources.delete_site_message
-import com.bernaferrari.changedetection.shared.generated.resources.delete
-import com.bernaferrari.changedetection.shared.generated.resources.site_deleted
 import com.bernaferrari.changedetection.shared.generated.resources.undo
-import com.bernaferrari.changedetection.shared.generated.resources.connection_error
-import com.bernaferrari.changedetection.shared.generated.resources.changes_detected
-import com.bernaferrari.changedetection.shared.generated.resources.site_saved
+import com.bernaferrari.changedetection.ui.components.ConfirmDialog
+import com.bernaferrari.changedetection.ui.components.ErrorBanner
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MainScreen(
     viewModel: MainViewModel,
@@ -205,7 +204,9 @@ fun MainScreen(
                     .padding(paddingValues),
                 contentAlignment = Alignment.Center,
             ) {
-                androidx.compose.material3.CircularProgressIndicator()
+                LoadingIndicator(
+                    modifier = Modifier.padding(24.dp),
+                )
             }
         } else if (sites!!.isEmpty()) {
             SharedEmptyState(
@@ -303,50 +304,61 @@ private fun SitesList(
     onSiteDelete: (SiteAndLastSnap) -> Unit,
 ) {
     var showOptionsFor by remember { mutableStateOf<SiteAndLastSnap?>(null) }
+    val haptic = LocalHapticFeedback.current
 
-    LazyColumn(
+    BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        items(
-            items = sites,
-            key = { it.site.id },
-        ) { siteAndSnap ->
-            val isLoadingSite = loadingSites.contains(siteAndSnap.site.id)
-            val isQuickMonitored = quickMonitorSiteIds.contains(siteAndSnap.site.id)
-            val hasError = syncErrors.contains(siteAndSnap.site.id)
-
-            val syncStatus = when {
-                isLoadingSite || siteAndSnap.isSyncing -> SyncStatus.LOADING
-                hasError -> SyncStatus.ERROR
-                else -> SyncStatus.OK
+        if (maxWidth >= 840.dp) {
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 360.dp),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(
+                    items = sites,
+                    key = { it.site.id },
+                ) { siteAndSnap ->
+                    SiteRowItem(
+                        siteAndSnap = siteAndSnap,
+                        isQuickMonitored = quickMonitorSiteIds.contains(siteAndSnap.site.id),
+                        isLoadingSite = loadingSites.contains(siteAndSnap.site.id),
+                        hasError = syncErrors.contains(siteAndSnap.site.id),
+                        onClick = { onSiteClick(siteAndSnap) },
+                        onLongClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            showOptionsFor = siteAndSnap
+                        },
+                        modifier = Modifier.animateItem(),
+                    )
+                }
             }
-
-            val lastSyncValue = siteAndSnap.site.timestamp.takeIf { it > 0 }?.let {
-                getRelativeTimeLabel(it)
-            } ?: "-"
-
-            val lastChangeValue = siteAndSnap.snap?.timestamp?.let {
-                getRelativeTimeLabel(it)
-            } ?: "-"
-
-            val fileSizeValue = siteAndSnap.snap?.contentSize?.takeIf { it > 0 }?.let {
-                it.toLong().readableFileSize()
-            } ?: ""
-
-            SharedMainCard(
-                site = siteAndSnap.site,
-                lastSnap = siteAndSnap.snap,
-                syncStatus = syncStatus,
-                isQuickMonitored = isQuickMonitored,
-                lastSyncValue = lastSyncValue,
-                lastChangeValue = lastChangeValue,
-                fileSizeValue = fileSizeValue,
-                onClick = { onSiteClick(siteAndSnap) },
-                onRefreshClick = { onSiteRefresh(siteAndSnap) },
-                onOptionsClick = { showOptionsFor = siteAndSnap },
-            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(
+                    items = sites,
+                    key = { it.site.id },
+                ) { siteAndSnap ->
+                    SiteRowItem(
+                        siteAndSnap = siteAndSnap,
+                        isQuickMonitored = quickMonitorSiteIds.contains(siteAndSnap.site.id),
+                        isLoadingSite = loadingSites.contains(siteAndSnap.site.id),
+                        hasError = syncErrors.contains(siteAndSnap.site.id),
+                        onClick = { onSiteClick(siteAndSnap) },
+                        onLongClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            showOptionsFor = siteAndSnap
+                        },
+                        modifier = Modifier.animateItem(),
+                    )
+                }
+            }
         }
     }
 
@@ -369,4 +381,27 @@ private fun SitesList(
             },
         )
     }
+}
+
+@Composable
+private fun SiteRowItem(
+    siteAndSnap: SiteAndLastSnap,
+    isQuickMonitored: Boolean,
+    isLoadingSite: Boolean,
+    hasError: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    SiteRow(
+        site = siteAndSnap.site,
+        status = siteAndSnap.toSiteStatus(
+            isLoading = isLoadingSite,
+            hasError = hasError,
+        ),
+        isQuickMonitored = isQuickMonitored,
+        onClick = onClick,
+        onLongClick = onLongClick,
+        modifier = modifier,
+    )
 }

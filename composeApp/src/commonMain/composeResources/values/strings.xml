@@ -290,6 +290,10 @@
     <string name="card_sync_failed">Sync failed</string>
     <string name="card_refresh_site">Refresh site</string>
     <string name="card_syncing">Syncing</string>
+    <string name="site_status_checking">Checking</string>
+    <string name="site_status_error">Error</string>
+    <string name="site_status_changed">Changed %s</string>
+    <string name="site_status_unchanged">Checked %s</string>
     <string name="card_site_item">Site: %s</string>
     <string name="card_more_options">More options for %s</string>
     <string name="a11y_site_card_content">%s. Last sync: %s. Last change: %s.</string>

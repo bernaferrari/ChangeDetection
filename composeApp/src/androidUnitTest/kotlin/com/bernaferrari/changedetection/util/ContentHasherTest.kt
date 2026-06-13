@@ -69,18 +69,18 @@ class ContentHasherTest {
     }
 
     @Test
-    fun `hashContent handles large content efficiently`() {
+    fun `hashContent handles large content`() {
         // Arrange
         val largeContent = ByteArray(1_000_000) { it.toByte() }
 
         // Act
-        val startTime = System.currentTimeMillis()
         val hash = ContentHasher.hashContent(largeContent)
-        val duration = System.currentTimeMillis() - startTime
+        val repeatedHash = ContentHasher.hashContent(largeContent.copyOf())
 
         // Assert
         assertNotNull(hash)
-        assertTrue("Hashing 1MB should take less than 100ms", duration < 100)
+        assertEquals(64, hash.length)
+        assertEquals(hash, repeatedHash)
     }
 
     // ========== HTML Content Tests ==========

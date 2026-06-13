@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-// Expressive Shapes with larger corner radii for modern look
+// Material shapes used by the expressive theme on every platform.
 val Shapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
     small = RoundedCornerShape(12.dp),
@@ -19,9 +19,8 @@ val Shapes = Shapes(
     extraLarge = RoundedCornerShape(32.dp),
 )
 
-// Primary seed color for dynamic theming - Vibrant Coral/Salmon
-// This single color generates beautiful harmonious light and dark schemes via MaterialKolor
-internal val SeedColor = Color(0xFF0D28E3) // Coral - warm, friendly, distinctive
+// Primary seed color for MaterialKolor fallback schemes.
+internal val SeedColor = Color(0xFF0D28E3)
 
 /**
  * ChangeDetection app theme with platform-specific dynamic color support.
