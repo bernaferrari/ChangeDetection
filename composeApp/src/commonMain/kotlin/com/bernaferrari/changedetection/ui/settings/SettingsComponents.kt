@@ -180,8 +180,8 @@ internal fun SettingsPreferenceBlock(
 
 @Composable
 internal fun ThemeSelector(
-    selectedTheme: String,
-    onThemeSelected: (String) -> Unit,
+    selectedTheme: ThemeMode,
+    onThemeSelected: (ThemeMode) -> Unit,
 ) {
     val spacing = MaterialTheme.spacing
     Column(
@@ -196,8 +196,8 @@ internal fun ThemeSelector(
                 rowModes.forEach { mode ->
                     ThemeModeToggle(
                         themeMode = mode,
-                        isSelected = selectedTheme == mode.name,
-                        onClick = { onThemeSelected(mode.name) },
+                        isSelected = selectedTheme == mode,
+                        onClick = { onThemeSelected(mode) },
                         modifier = Modifier.weight(1f),
                     )
                 }

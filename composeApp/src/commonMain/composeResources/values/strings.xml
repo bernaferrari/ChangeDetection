@@ -319,6 +319,19 @@
     <string name="site_saved">Site saved</string>
     <string name="settings_updated">Settings updated</string>
     <string name="pruned_snapshots">Removed old snapshots</string>
+
+    <!-- Image comparison -->
+    <string name="image_comparison_unavailable">Image unavailable</string>
+    <string name="image_diff_unavailable">Image diff unavailable</string>
+    <string name="image_diff_preparing">Preparing</string>
+    <string name="image_diff_status_unavailable">Unavailable</string>
+    <string name="image_diff_changed">Changed</string>
+    <string name="image_diff_pixels">Pixels</string>
+    <string name="image_diff_waiting">Waiting</string>
+    <string name="image_diff_pixel_identical">The captured screenshots are pixel-identical.</string>
+    <string name="image_diff_missing_output">The screenshots were decoded, but no visual diff image was generated.</string>
+    <string name="image_diff_changed_pixels">Changed pixels</string>
+    <string name="image_diff_size_changed">Screenshot size changed: %1$d × %2$d → %3$d × %4$d</string>
     
     <!-- Accessibility -->
     <string name="card_site_monitoring_active">Monitoring active</string>

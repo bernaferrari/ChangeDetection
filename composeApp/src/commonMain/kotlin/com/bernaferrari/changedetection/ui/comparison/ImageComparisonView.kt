@@ -48,19 +48,30 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.shared.generated.resources.Res
+import com.bernaferrari.changedetection.shared.generated.resources.a11y_drag_screenshot_comparison
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_after
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_before
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_pixel_diff
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_rendered
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_swipe
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_text
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_no_changes_title
 import com.bernaferrari.changedetection.shared.generated.resources.failed_to_load_content
-import com.bernaferrari.changedetection.shared.generated.resources.a11y_drag_screenshot_comparison
+import com.bernaferrari.changedetection.shared.generated.resources.image_comparison_unavailable
+import com.bernaferrari.changedetection.shared.generated.resources.image_diff_changed
+import com.bernaferrari.changedetection.shared.generated.resources.image_diff_changed_pixels
+import com.bernaferrari.changedetection.shared.generated.resources.image_diff_missing_output
+import com.bernaferrari.changedetection.shared.generated.resources.image_diff_pixel_identical
+import com.bernaferrari.changedetection.shared.generated.resources.image_diff_pixels
+import com.bernaferrari.changedetection.shared.generated.resources.image_diff_preparing
+import com.bernaferrari.changedetection.shared.generated.resources.image_diff_size_changed
+import com.bernaferrari.changedetection.shared.generated.resources.image_diff_status_unavailable
+import com.bernaferrari.changedetection.shared.generated.resources.image_diff_unavailable
+import com.bernaferrari.changedetection.shared.generated.resources.image_diff_waiting
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
 import com.bernaferrari.changedetection.util.formatTimestamp
-import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.StringResource
-import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_text
-import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_rendered
-import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_pixel_diff
-import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_swipe
-import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_before
-import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_after
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
 internal enum class ComparisonMode {
@@ -101,7 +112,7 @@ internal fun ImageComparisonContent(
         if (beforeBytes == null || afterBytes == null) {
             SharedEmptyState(
                 icon = Icons.Default.Warning,
-                title = "Image unavailable",
+                title = stringResource(Res.string.image_comparison_unavailable),
                 description = stringResource(Res.string.failed_to_load_content),
                 modifier = Modifier.fillMaxSize().padding(32.dp),
             )
@@ -129,7 +140,7 @@ internal fun ImageComparisonContent(
             ComparisonMode.ImageBefore -> {
                 ImageViewport(
                     bytes = beforeBytes,
-                    label = "Before",
+                    label = stringResource(Res.string.comparison_mode_before),
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                 )
             }
@@ -137,7 +148,7 @@ internal fun ImageComparisonContent(
             ComparisonMode.ImageAfter -> {
                 ImageViewport(
                     bytes = afterBytes,
-                    label = "After",
+                    label = stringResource(Res.string.comparison_mode_after),
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                 )
             }
@@ -166,13 +177,13 @@ private fun ImageDiffSummary(
         ) {
             val changedText =
                 when {
-                    imageDiff == null -> "Preparing"
-                    imageDiff.error != null -> "Unavailable"
+                    imageDiff == null -> stringResource(Res.string.image_diff_preparing)
+                    imageDiff.error != null -> stringResource(Res.string.image_diff_status_unavailable)
                     else -> formatImagePercent(imageDiff.mismatchPercentage)
                 }
 
             ImageStat(
-                label = "Changed",
+                label = stringResource(Res.string.image_diff_changed),
                 value = changedText,
                 tone = when {
                     imageDiff?.error != null -> MaterialTheme.colorScheme.error
@@ -181,18 +192,18 @@ private fun ImageDiffSummary(
                 },
             )
             ImageStat(
-                label = "Pixels",
+                label = stringResource(Res.string.image_diff_pixels),
                 value = imageDiff?.let {
                     "${formatPixelCount(it.differentPixels)} / ${formatPixelCount(it.totalPixels)}"
-                } ?: "Waiting",
+                } ?: stringResource(Res.string.image_diff_waiting),
             )
             ImageStat(
-                label = "Before",
+                label = stringResource(Res.string.comparison_mode_before),
                 value = imageDiff?.let { "${it.beforeWidth} x ${it.beforeHeight}" }
                     ?: formatTimestamp(beforeSnap.timestamp),
             )
             ImageStat(
-                label = "After",
+                label = stringResource(Res.string.comparison_mode_after),
                 value = imageDiff?.let { "${it.afterWidth} x ${it.afterHeight}" }
                     ?: formatTimestamp(afterSnap.timestamp),
             )
@@ -245,7 +256,7 @@ private fun ImageDiffPanel(
         imageDiff.error != null -> {
             SharedEmptyState(
                 icon = Icons.Default.Warning,
-                title = "Image diff unavailable",
+                title = stringResource(Res.string.image_diff_unavailable),
                 description = imageDiff.error,
                 modifier = modifier.padding(32.dp),
             )
@@ -264,7 +275,7 @@ private fun ImageDiffPanel(
             SharedEmptyState(
                 icon = Icons.Default.CheckCircle,
                 title = stringResource(Res.string.comparison_no_changes_title),
-                description = "The captured screenshots are pixel-identical.",
+                description = stringResource(Res.string.image_diff_pixel_identical),
                 modifier = modifier.padding(32.dp),
             )
         }
@@ -272,7 +283,7 @@ private fun ImageDiffPanel(
         imageDiff.diffImagePng != null -> {
             ImageViewport(
                 bytes = imageDiff.diffImagePng,
-                label = "Changed pixels",
+                label = stringResource(Res.string.image_diff_changed_pixels),
                 modifier = modifier,
             )
         }
@@ -280,8 +291,8 @@ private fun ImageDiffPanel(
         else -> {
             SharedEmptyState(
                 icon = Icons.Default.Warning,
-                title = "Image diff unavailable",
-                description = "The screenshots were decoded, but no visual diff image was generated.",
+                title = stringResource(Res.string.image_diff_unavailable),
+                description = stringResource(Res.string.image_diff_missing_output),
                 modifier = modifier.padding(32.dp),
             )
         }
@@ -311,9 +322,13 @@ private fun DimensionMismatchPanel(
                     tint = MaterialTheme.colorScheme.onErrorContainer,
                 )
                 Text(
-                    text = "Screenshot size changed: " +
-                        "${mismatch.beforeWidth} x ${mismatch.beforeHeight} -> " +
-                        "${mismatch.afterWidth} x ${mismatch.afterHeight}",
+                    text = stringResource(
+                        Res.string.image_diff_size_changed,
+                        mismatch.beforeWidth,
+                        mismatch.beforeHeight,
+                        mismatch.afterWidth,
+                        mismatch.afterHeight,
+                    ),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onErrorContainer,
                 )
@@ -325,12 +340,12 @@ private fun DimensionMismatchPanel(
         ) {
             ImageViewport(
                 bytes = beforeBytes,
-                label = "Before",
+                label = stringResource(Res.string.comparison_mode_before),
                 modifier = Modifier.weight(1f).fillMaxHeight(),
             )
             ImageViewport(
                 bytes = afterBytes,
-                label = "After",
+                label = stringResource(Res.string.comparison_mode_after),
                 modifier = Modifier.weight(1f).fillMaxHeight(),
             )
         }
@@ -376,8 +391,8 @@ private fun ImageSwipeComparison(
                 .padding(12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            ImagePillLabel("Before")
-            ImagePillLabel("After")
+            ImagePillLabel(stringResource(Res.string.comparison_mode_before))
+            ImagePillLabel(stringResource(Res.string.comparison_mode_after))
         }
 
         Box(

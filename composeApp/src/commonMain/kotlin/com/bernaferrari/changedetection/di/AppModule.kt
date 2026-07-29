@@ -66,9 +66,6 @@ val appModule: Module = module {
     // Sync Engine with all dependencies
     single { SyncEngine(get<HttpClient>(), get<SitesDao>(), get<SnapsDao>(), get<FileStorage>(), get<ErrorHandler>()) }
 
-    // Smart Monitoring Engine
-    single { com.bernaferrari.changedetection.monitoring.SmartMonitoringEngine() }
-
     // ViewModels
     viewModelOf(::MainViewModel)
     viewModelOf(::SettingsViewModel)

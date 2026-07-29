@@ -31,6 +31,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.repo.ColorGroup
+import com.bernaferrari.changedetection.shared.generated.resources.Res
+import com.bernaferrari.changedetection.shared.generated.resources.a11y_color_theme
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * A calm, touch-sized swatch picker. Selection is communicated by both a border and check mark;
@@ -49,12 +52,13 @@ fun ColorPickerList(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         itemsIndexed(colorGroups) { index, colorGroup ->
+            val colorThemeDescription = stringResource(Res.string.a11y_color_theme, index + 1)
             ColorPickerButton(
                 colorGroup = colorGroup,
                 isSelected = currentColors == colorGroup,
                 onClick = { onColorSelected(colorGroup) },
                 modifier = Modifier.semantics {
-                    contentDescription = "Color theme ${index + 1}"
+                    contentDescription = colorThemeDescription
                 },
             )
         }
