@@ -32,6 +32,17 @@ fun formatTimestamp(timestamp: Long): String {
     return "$month $day, $hour:$minute"
 }
 
+/** Formats the calendar day used to group history entries without splitting every timestamp. */
+fun formatDate(timestamp: Long): String {
+    val localDateTime = Instant.fromEpochMilliseconds(timestamp)
+        .toLocalDateTime(TimeZone.currentSystemDefault())
+    val monthNames = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+    val month = monthNames[localDateTime.month.ordinal]
+    val day = localDateTime.day.toString().padStart(2, '0')
+
+    return "$month $day"
+}
+
 @Composable
 fun getRelativeTimeLabel(timestamp: Long): String {
     val now =

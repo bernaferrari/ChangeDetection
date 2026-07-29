@@ -8,7 +8,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
@@ -25,6 +24,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -34,6 +35,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
 import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
+import com.bernaferrari.changedetection.ui.theme.spacing
 import com.bernaferrari.changedetection.util.getRelativeTimeLabel
 import com.bernaferrari.changedetection.util.readableFileSize
 import org.jetbrains.compose.resources.stringResource
@@ -79,6 +81,8 @@ fun LogItem(
     onClick: () -> Unit,
     onDeleteClick: () -> Unit,
 ) {
+    val spacing = MaterialTheme.spacing
+    val haptic = LocalHapticFeedback.current
     val siteColor = remember(site.colors.first) { Color(site.colors.first) }
     val siteColor2 = remember(site.colors.second) { Color(site.colors.second) }
     val gradient = remember(siteColor, siteColor2) {
@@ -116,15 +120,18 @@ fun LogItem(
             .padding(vertical = 2.dp),
         color = backgroundColor,
         shape = shape,
-        onClick = onClick,
+        onClick = {
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            onClick()
+        },
         interactionSource = interactionSource,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp),
+                .padding(spacing.sm),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
         ) {
             // Gradient color indicator - larger and more prominent
             Box(
@@ -176,19 +183,20 @@ fun LogItem(
                 }
             }
 
-            // Delete button with subtle background
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f))
-                    .clickable(onClick = onDeleteClick),
-                contentAlignment = Alignment.Center,
+            IconButton(
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onDeleteClick()
+                },
+                modifier = Modifier.size(spacing.touchTarget),
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Delete,
                     contentDescription = stringResource(Res.string.delete_snapshot_title),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp),
                 )
             }
