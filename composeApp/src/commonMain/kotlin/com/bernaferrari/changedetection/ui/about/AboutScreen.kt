@@ -4,38 +4,33 @@
  */
 package com.bernaferrari.changedetection.ui.about
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Code
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,16 +38,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.shared.generated.resources.Res
-import com.bernaferrari.changedetection.shared.generated.resources.*
+import com.bernaferrari.changedetection.shared.generated.resources.a11y_navigate_back
+import com.bernaferrari.changedetection.shared.generated.resources.about_contact_developer
+import com.bernaferrari.changedetection.shared.generated.resources.about_developer_name
+import com.bernaferrari.changedetection.shared.generated.resources.about_designed_by
+import com.bernaferrari.changedetection.shared.generated.resources.about_open_source_disclaimer
+import com.bernaferrari.changedetection.shared.generated.resources.about_title
+import com.bernaferrari.changedetection.shared.generated.resources.about_view_licenses
+import com.bernaferrari.changedetection.shared.generated.resources.about_view_on_github
+import com.bernaferrari.changedetection.shared.generated.resources.app_name
 import com.bernaferrari.changedetection.ui.theme.spacing
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * Product information follows the same grouped, action-first structure as Settings. It avoids
+ * turning a maintenance screen into a promotional landing page while keeping the useful links
+ * easy to find and comfortable on wide screens.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
@@ -62,155 +69,128 @@ fun AboutScreen(
     onContactClick: () -> Unit,
     onLicenseUrlClick: (String) -> Unit,
 ) {
-    val spacing = MaterialTheme.spacing
     var showLicensesDialog by remember { mutableStateOf(false) }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val spacing = MaterialTheme.spacing
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
-                title = {
-                    Text(
-                        stringResource(Res.string.about_title),
-                        style = MaterialTheme.typography.displaySmall,
-                    )
-                },
+            TopAppBar(
+                title = { Text(stringResource(Res.string.about_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(Res.string.a11y_navigate_back),
                         )
                     }
                 },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                ),
             )
         },
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(spacing.lg),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .padding(paddingValues),
         ) {
-            item { Spacer(modifier = Modifier.height(spacing.md)) }
-
-            // App Info Section
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.large,
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    ),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(spacing.lg),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(spacing.md),
-                    ) {
+            LazyColumn(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .widthIn(max = 600.dp)
+                    .fillMaxWidth(),
+                contentPadding = PaddingValues(
+                    horizontal = spacing.lg,
+                    vertical = spacing.lg,
+                ),
+                verticalArrangement = Arrangement.spacedBy(spacing.lg),
+            ) {
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
                         Text(
                             text = stringResource(Res.string.app_name),
                             style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                            textAlign = TextAlign.Center,
-                        )
-
-                        Text(
-                            text = "${stringResource(Res.string.about_designed_by)}\n" +
-                                stringResource(Res.string.about_developer_name),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.SemiBold,
                         )
+                        Text(
+                            text = "${stringResource(Res.string.about_designed_by)} ${stringResource(Res.string.about_developer_name)}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
 
-                        // Social Links
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-                            modifier = Modifier
-                                .background(
-                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                                    MaterialTheme.shapes.medium,
-                                )
-                                .padding(spacing.md),
-                        ) {
-                            SocialLink("GitHub", Res.drawable.github_logo) {
-                                onSocialClick("https://github.com/bernaferrari")
-                            }
-                            SocialLink("X", Res.drawable.x_logo) {
-                                onSocialClick("https://x.com/bernaferrari")
-                            }
-                            SocialLink("Reddit", Res.drawable.reddit_logo) {
-                                onSocialClick("https://www.reddit.com/user/bernaferrari")
-                            }
-                            SocialLink("LinkedIn", Res.drawable.linkedin_logo) {
-                                onSocialClick("https://www.linkedin.com/in/bernaferrari")
-                            }
-                        }
-
-                        AboutOpenSourceLink(
-                            label = stringResource(Res.string.about_open_source_disclaimer),
+                item {
+                    AboutActionGroup {
+                        AboutActionRow(
+                            icon = Icons.Default.Code,
+                            title = stringResource(Res.string.about_view_on_github),
+                            subtitle = stringResource(Res.string.about_open_source_disclaimer),
+                            trailingIcon = Icons.AutoMirrored.Filled.OpenInNew,
                             onClick = {
                                 onGitHubClick("https://github.com/bernaferrari/ChangeDetection")
                             },
                         )
-                    }
-                }
-            }
-
-            // Action Buttons
-            item {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(spacing.sm),
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Button(
-                        onClick = onContactClick,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(spacing.touchTarget),
-                        shape = MaterialTheme.shapes.medium,
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.about_contact_developer),
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.SemiBold,
-                            ),
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        AboutActionRow(
+                            icon = Icons.Default.Email,
+                            title = stringResource(Res.string.about_contact_developer),
+                            trailingIcon = Icons.AutoMirrored.Filled.OpenInNew,
+                            onClick = onContactClick,
                         )
-                    }
-
-                    OutlinedButton(
-                        onClick = { showLicensesDialog = true },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(spacing.touchTarget),
-                        shape = MaterialTheme.shapes.medium,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Code,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(modifier = Modifier.width(spacing.xs))
-                        Text(
-                            text = stringResource(Res.string.about_view_licenses),
-                            style = MaterialTheme.typography.titleMedium,
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        AboutActionRow(
+                            icon = Icons.AutoMirrored.Filled.OpenInNew,
+                            title = stringResource(Res.string.about_view_licenses),
+                            onClick = { showLicensesDialog = true },
                         )
                     }
                 }
-            }
 
-            item { Spacer(modifier = Modifier.height(spacing.md)) }
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
+                        Text(
+                            text = stringResource(Res.string.about_developer_name),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+                            ) {
+                                SocialLink(
+                                    label = "GitHub",
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    onSocialClick("https://github.com/bernaferrari")
+                                }
+                                SocialLink(
+                                    label = "X",
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    onSocialClick("https://x.com/bernaferrari")
+                                }
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+                            ) {
+                                SocialLink(
+                                    label = "Reddit",
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    onSocialClick("https://www.reddit.com/user/bernaferrari")
+                                }
+                                SocialLink(
+                                    label = "LinkedIn",
+                                    modifier = Modifier.weight(1f),
+                                ) {
+                                    onSocialClick("https://www.linkedin.com/in/bernaferrari")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -223,34 +203,56 @@ fun AboutScreen(
 }
 
 @Composable
-private fun AboutOpenSourceLink(
-    label: String,
+private fun AboutActionGroup(content: @Composable () -> Unit) {
+    Surface(
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Column { content() }
+    }
+}
+
+@Composable
+private fun AboutActionRow(
+    icon: ImageVector,
+    title: String,
     onClick: () -> Unit,
+    subtitle: String? = null,
+    trailingIcon: ImageVector = Icons.AutoMirrored.Filled.ArrowForward,
 ) {
-    val spacing = MaterialTheme.spacing
     Surface(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = MaterialTheme.spacing.touchTarget),
+        color = Color.Transparent,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = spacing.md, vertical = spacing.sm),
+            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.md, vertical = MaterialTheme.spacing.sm),
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
         ) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp),
             )
-            Text(
-                text = label,
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Start,
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = title, style = MaterialTheme.typography.bodyLarge)
+                subtitle?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            Icon(
+                imageVector = trailingIcon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp),
             )
         }
     }
@@ -258,23 +260,21 @@ private fun AboutOpenSourceLink(
 
 @Composable
 private fun SocialLink(
-    text: String,
-    iconRes: org.jetbrains.compose.resources.DrawableResource,
+    label: String,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    FilledIconButton(
+    Surface(
         onClick = onClick,
-        modifier = Modifier.size(48.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = IconButtonDefaults.filledIconButtonColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            contentColor = MaterialTheme.colorScheme.primary,
-        ),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = modifier.heightIn(min = MaterialTheme.spacing.touchTarget),
     ) {
-        Icon(
-            painter = painterResource(iconRes),
-            contentDescription = text,
-            modifier = Modifier.size(20.dp),
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(text = label, style = MaterialTheme.typography.labelLarge)
+        }
     }
 }

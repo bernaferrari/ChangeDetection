@@ -71,7 +71,7 @@ fun AddEditFlow(
 
     when (currentStep) {
         AddEditStep.URL_INPUT -> {
-            BeautifulUrlInputStep(
+            UrlInputStep(
                 url = uiState.url,
                 urlError = uiState.urlError,
                 onUrlChange = viewModel::setUrl,

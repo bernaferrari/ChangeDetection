@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentPaste
@@ -58,7 +59,7 @@ import org.jetbrains.compose.resources.stringResource
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BeautifulUrlInputStep(
+fun UrlInputStep(
     url: String,
     urlError: String?,
     onUrlChange: (String) -> Unit,
@@ -99,66 +100,73 @@ fun BeautifulUrlInputStep(
             }
         },
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = MaterialTheme.spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
+                .padding(padding),
         ) {
-            Box(
+            Column(
                 modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .widthIn(max = 600.dp)
                     .fillMaxWidth()
-                    .padding(top = MaterialTheme.spacing.xl),
+                    .padding(horizontal = MaterialTheme.spacing.lg),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
             ) {
-                Icon(
-                    imageVector = Icons.Default.Language,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(32.dp),
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = MaterialTheme.spacing.xl),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Language,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp),
+                    )
+                }
+                Text(
+                    text = stringResource(Res.string.enter_website_url),
+                    style = MaterialTheme.typography.headlineSmall,
+                )
+                Text(
+                    text = stringResource(Res.string.add_edit_url_description),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                OutlinedTextField(
+                    value = url,
+                    onValueChange = onUrlChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(Res.string.website_url)) },
+                    placeholder = { Text(stringResource(Res.string.website_url_placeholder)) },
+                    singleLine = true,
+                    isError = urlError != null,
+                    supportingText = urlError?.let { message -> { Text(message) } },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Uri,
+                        imeAction = ImeAction.Done,
+                    ),
+                    keyboardActions = KeyboardActions(onDone = { if (isValid) onContinue() }),
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                scope.launch {
+                                    clipboard.readText()
+                                        ?.trim()
+                                        ?.takeIf { it.isNotBlank() }
+                                        ?.let(onUrlChange)
+                                }
+                            },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ContentPaste,
+                                contentDescription = stringResource(Res.string.paste),
+                            )
+                        }
+                    },
                 )
             }
-            Text(
-                text = stringResource(Res.string.enter_website_url),
-                style = MaterialTheme.typography.headlineSmall,
-            )
-            Text(
-                text = stringResource(Res.string.add_edit_url_description),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            OutlinedTextField(
-                value = url,
-                onValueChange = onUrlChange,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(Res.string.website_url)) },
-                placeholder = { Text(stringResource(Res.string.website_url_placeholder)) },
-                singleLine = true,
-                isError = urlError != null,
-                supportingText = urlError?.let { message -> { Text(message) } },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Uri,
-                    imeAction = ImeAction.Next,
-                ),
-                keyboardActions = KeyboardActions(onNext = { if (isValid) onContinue() }),
-                trailingIcon = {
-                    IconButton(
-                        onClick = {
-                            scope.launch {
-                                clipboard.readText()
-                                    ?.trim()
-                                    ?.takeIf { it.isNotBlank() }
-                                    ?.let(onUrlChange)
-                            }
-                        },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ContentPaste,
-                            contentDescription = stringResource(Res.string.paste),
-                        )
-                    }
-                },
-            )
         }
     }
 }
