@@ -5,11 +5,11 @@
 package com.bernaferrari.changedetection.ui.comparison
 
 import android.graphics.Bitmap
-import com.webwright.core.DiffOptions
-import com.webwright.core.RgbaImage
-import com.webwright.core.ScreenshotResult
-import com.webwright.core.VisualDiff
-import com.webwright.core.toRgbaImage
+import com.bernaferrari.kmpwright.core.DiffOptions
+import com.bernaferrari.kmpwright.core.RgbaImage
+import com.bernaferrari.kmpwright.core.ScreenshotResult
+import com.bernaferrari.kmpwright.core.VisualDiff
+import com.bernaferrari.kmpwright.core.toRgbaImage
 import java.io.ByteArrayOutputStream
 
 internal actual object PlatformImageDiff {

@@ -16,8 +16,7 @@ dependencyResolutionManagement {
 
 includeBuild("../../kotlin/webwright") {
     dependencySubstitution {
-        substitute(module("com.webwright:webwright-core")).using(project(":webwright-core"))
-        substitute(module("com.webwright:webwright-compose")).using(project(":webwright-compose"))
+        substitute(module("com.bernaferrari.kmpwright:kmpwright-core")).using(project(":kmpwright-core"))
     }
 }
 

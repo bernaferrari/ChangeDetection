@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Image from "next/image";
 import { Bell, Github, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ProductPreview } from "@/components/product-preview";
 
 export function Hero() {
   return (
@@ -92,7 +92,7 @@ export function Hero() {
             Android & iOS (coming soon) · Built with Kotlin Multiplatform
           </motion.p>
 
-          {/* Phone Mockup */}
+          {/* Product illustration: deliberately synthetic, never a stale screenshot. */}
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -101,14 +101,9 @@ export function Hero() {
           >
             <div className="phone-mockup">
               <div className="phone-screen aspect-[9/19.5]">
-                <Image
-                  src="/assets/main-screen.png"
-                  alt="Change Detection - Main Interface showing tracked websites"
-                  width={400}
-                  height={867}
-                  priority
-                  className="w-full h-full object-cover object-top"
-                />
+                <div className="flex h-full items-center bg-background p-3 pt-8">
+                  <ProductPreview variant="monitoring" compact />
+                </div>
               </div>
             </div>
 

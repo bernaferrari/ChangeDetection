@@ -1,9 +1,35 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
 package com.bernaferrari.changedetection.ui.comparison
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ComparisonDiffTest {
+    @Test
+    fun renderedSimilarityIgnoresHtmlAndWhitespace() {
+        assertEquals(
+            100,
+            calculateRenderedSimilarity("<p>Garden   store</p>", "Garden store"),
+        )
+    }
+
+    @Test
+    fun renderedSimilarityUsesSharedWords() {
+        assertEquals(
+            33,
+            calculateRenderedSimilarity("price dropped", "price updated"),
+        )
+    }
+
+    @Test
+    fun renderedSimilarityHandlesEmptyContent() {
+        assertEquals(100, calculateRenderedSimilarity("", ""))
+        assertEquals(0, calculateRenderedSimilarity("content", ""))
+    }
+
     @Test
     fun insertedLineDoesNotMarkFollowingLinesAsChanged() {
         val rows = calculateDiffRows(

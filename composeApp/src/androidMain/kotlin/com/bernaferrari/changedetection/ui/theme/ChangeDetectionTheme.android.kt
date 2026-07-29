@@ -12,6 +12,7 @@ import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
 import com.materialkolor.PaletteStyle
 import com.materialkolor.rememberDynamicColorScheme
@@ -49,8 +50,11 @@ actual fun ChangeDetectionTheme(
         motionScheme = MotionScheme.expressive(),
         shapes = Shapes,
         typography = Typography,
-        content = content,
-    )
+    ) {
+        CompositionLocalProvider(LocalAppSpacing provides AppSpacing()) {
+            content()
+        }
+    }
 }
 
 /**

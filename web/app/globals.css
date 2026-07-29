@@ -101,6 +101,10 @@ html {
   scroll-behavior: smooth;
 }
 
+[id] {
+  scroll-margin-top: 5rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -124,7 +128,15 @@ html {
 }
 
 body {
-  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
 }
 
 /* Hero gradient - teal themed */
@@ -155,7 +167,7 @@ body {
   background-clip: text;
 }
 
-/* Animated gradient text */
+/* Hero-only gradient. Product surfaces intentionally stay calm and literal. */
 .text-gradient-animated {
   background: linear-gradient(
     270deg,
@@ -168,12 +180,6 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: gradient-shift 8s ease infinite;
-}
-
-@keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
 }
 
 /* Screenshot/Phone mockup container */
@@ -258,21 +264,6 @@ body {
   @apply bg-card/80 backdrop-blur-sm border border-border rounded-xl transition-all duration-300;
 }
 
-.glass:hover {
-  border-color: oklch(0.65 0.15 175 / 0.4);
-  box-shadow: 0 0 20px -5px oklch(0.65 0.15 175 / 0.15);
-}
-
-/* Feature card */
-.feature-card {
-  @apply transition-all duration-300;
-}
-
-.feature-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px -8px oklch(0.65 0.15 175 / 0.15);
-}
-
 /* Glow effect */
 .glow {
   position: relative;
@@ -290,8 +281,15 @@ body {
   z-index: -1;
 }
 
-.glow:hover::after {
-  opacity: 1;
+@media (hover: hover) {
+  .glass:hover {
+    border-color: oklch(0.65 0.15 175 / 0.4);
+    box-shadow: 0 0 20px -5px oklch(0.65 0.15 175 / 0.15);
+  }
+
+  .glow:hover::after {
+    opacity: 1;
+  }
 }
 
 /* Pulse animation for notification indicator */

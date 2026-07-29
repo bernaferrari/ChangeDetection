@@ -9,16 +9,16 @@ import android.webkit.CookieManager
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import com.webwright.core.AndroidPlatformContext
-import com.webwright.core.AndroidScreenshotController
-import com.webwright.core.Browser
-import com.webwright.core.GotoOptions
-import com.webwright.core.LoadState
-import com.webwright.core.Page
-import com.webwright.core.ReloadOptions
-import com.webwright.core.ScreenshotOptions
-import com.webwright.core.Viewport
-import com.webwright.core.WebwrightConfig
+import com.bernaferrari.kmpwright.core.AndroidPlatformContext
+import com.bernaferrari.kmpwright.core.AndroidScreenshotController
+import com.bernaferrari.kmpwright.core.Browser
+import com.bernaferrari.kmpwright.core.GotoOptions
+import com.bernaferrari.kmpwright.core.KmpwrightConfig
+import com.bernaferrari.kmpwright.core.LoadState
+import com.bernaferrari.kmpwright.core.Page
+import com.bernaferrari.kmpwright.core.ReloadOptions
+import com.bernaferrari.kmpwright.core.ScreenshotOptions
+import com.bernaferrari.kmpwright.core.Viewport
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -34,7 +34,7 @@ class AndroidWebwrightSession private constructor(
     private val webView: WebView,
     private val browser: Browser,
     val page: Page,
-    private val config: WebwrightConfig,
+    private val config: KmpwrightConfig,
 ) {
     suspend fun goto(url: String) = page.goto(
         url,
@@ -118,7 +118,7 @@ class AndroidWebwrightSession private constructor(
             )
             webView.ensureLaidOut()
 
-            val config = WebwrightConfig(
+            val config = KmpwrightConfig(
                 viewport = Viewport(
                     width = webView.width.takeIf { it > 0 } ?: DEFAULT_VIEWPORT_WIDTH,
                     height = webView.height.takeIf { it > 0 } ?: DEFAULT_VIEWPORT_HEIGHT,

@@ -136,7 +136,7 @@ kotlin {
 
             // Browser
             implementation(libs.androidx.browser)
-            implementation(libs.webwright.core)
+            implementation(libs.kmpwright.core)
 
             // Web scraping and networking
             implementation(libs.jsoup)
@@ -164,6 +164,7 @@ kotlin {
                 "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/error",
                 "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/monitoring",
                 "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/sync",
+                "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/ui/comparison",
                 "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/util",
             )
             dependencies {
