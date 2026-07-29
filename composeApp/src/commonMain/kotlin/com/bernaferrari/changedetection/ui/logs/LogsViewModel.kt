@@ -16,17 +16,15 @@ import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.local.SitesDao
 import com.bernaferrari.changedetection.repo.source.local.SnapsDao
-import com.bernaferrari.changedetection.util.formatTimestamp
+import com.bernaferrari.changedetection.util.formatDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 sealed class LogUiModel {
     data class Item(
@@ -43,17 +41,14 @@ class LogsViewModel(
     private val snapsDao: SnapsDao,
 ) : ViewModel() {
     val siteMap: StateFlow<Map<String, Site>> =
-        flow<Map<String, Site>> {
-            emit(
-                withContext(Dispatchers.IO) {
-                    sitesDao.getSitesList().associateBy { it.id }
-                },
+        sitesDao
+            .getDataWithChanges()
+            .map { sites -> sites.associateBy { it.id } }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyMap(),
             )
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyMap(),
-        )
 
     val versionsCount: StateFlow<Int> =
         snapsDao
@@ -78,8 +73,8 @@ class LogsViewModel(
                 pagingData
                     .map { LogUiModel.Item(it) }
                     .insertSeparators { before: LogUiModel.Item?, after: LogUiModel.Item? ->
-                        val beforeDate = before?.snap?.timestamp?.let { formatTimestamp(it) }
-                        val afterDate = after?.snap?.timestamp?.let { formatTimestamp(it) }
+                        val beforeDate = before?.snap?.timestamp?.let(::formatDate)
+                        val afterDate = after?.snap?.timestamp?.let(::formatDate)
 
                         if (afterDate != null && beforeDate != afterDate) {
                             LogUiModel.Header(afterDate)
