@@ -22,8 +22,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -111,15 +110,17 @@ fun ChangeStatChip(
     containerColor: Color,
     contentColor: Color,
 ) {
-    SuggestionChip(
-        onClick = { },
-        label = { Text("$label$count") },
-        colors = SuggestionChipDefaults.suggestionChipColors(
-            containerColor = containerColor,
-            labelColor = contentColor,
-        ),
-        border = null,
-    )
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = containerColor,
+        contentColor = contentColor,
+    ) {
+        Text(
+            text = "$label$count",
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+        )
+    }
 }
 
 fun calculateChangeStats(oldLines: List<String>, newLines: List<String>): ChangeStats {
@@ -374,6 +375,8 @@ fun DiffLine(
                 fontFamily = FontFamily.Monospace,
             ),
             color = MaterialTheme.colorScheme.onSurface,
+            softWrap = false,
+            maxLines = 1,
         )
     }
 }
