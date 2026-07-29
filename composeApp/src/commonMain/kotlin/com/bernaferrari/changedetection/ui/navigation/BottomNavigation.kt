@@ -7,7 +7,6 @@ package com.bernaferrari.changedetection.ui.navigation
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -21,7 +20,6 @@ import androidx.navigation3.runtime.NavKey
 import com.bernaferrari.changedetection.navigation.LogsDestination
 import com.bernaferrari.changedetection.navigation.MainDestination
 import com.bernaferrari.changedetection.navigation.SettingsDestination
-import com.bernaferrari.changedetection.navigation.TurboDestination
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -36,7 +34,6 @@ data class BottomNavItem(
 
 private val bottomNavItems = listOf(
     BottomNavItem(MainDestination, Res.string.nav_home, Icons.Default.Home),
-    BottomNavItem(TurboDestination, Res.string.home_stats_quick_monitor_label, Icons.Filled.Bolt),
     BottomNavItem(LogsDestination, Res.string.nav_logs, Icons.AutoMirrored.Filled.List),
     BottomNavItem(SettingsDestination, Res.string.nav_settings, Icons.Default.Settings),
 )
@@ -49,7 +46,6 @@ fun ChangeDetectionBottomNavigation(
 ) {
     val currentDestination = backStack.lastOrNull()
     val isTabDestination = currentDestination is MainDestination ||
-        currentDestination is TurboDestination ||
         currentDestination is LogsDestination ||
         currentDestination is SettingsDestination
 
@@ -103,7 +99,6 @@ private fun BottomNavigationLayout(
             bottomNavItems.forEach { item ->
                 val isSelected = when (item.destination) {
                     is MainDestination -> currentDestination is MainDestination
-                    is TurboDestination -> currentDestination is TurboDestination
                     is LogsDestination -> currentDestination is LogsDestination
                     is SettingsDestination -> currentDestination is SettingsDestination
                     else -> false
@@ -163,7 +158,7 @@ private fun NavigationRailLayout(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Bolt,
+                        imageVector = Icons.Default.Home,
                         contentDescription = null,
                         tint = colorScheme.primary,
                         modifier = Modifier.size(24.dp),
@@ -174,7 +169,6 @@ private fun NavigationRailLayout(
             bottomNavItems.forEach { item ->
                 val isSelected = when (item.destination) {
                     is MainDestination -> currentDestination is MainDestination
-                    is TurboDestination -> currentDestination is TurboDestination
                     is LogsDestination -> currentDestination is LogsDestination
                     is SettingsDestination -> currentDestination is SettingsDestination
                     else -> false
@@ -212,7 +206,7 @@ private fun NavigationRailLayout(
 private fun navigateToTab(backStack: NavBackStack<NavKey>, destination: NavKey) {
     // Find the index of the first tab destination
     val tabIndex = backStack.indexOfFirst {
-        it is MainDestination || it is TurboDestination || it is LogsDestination || it is SettingsDestination
+        it is MainDestination || it is LogsDestination || it is SettingsDestination
     }
 
     if (tabIndex >= 0) {

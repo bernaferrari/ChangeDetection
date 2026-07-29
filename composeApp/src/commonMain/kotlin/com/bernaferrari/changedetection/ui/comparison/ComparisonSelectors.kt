@@ -21,8 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.share_comparison
 import com.bernaferrari.changedetection.ui.theme.spacing
@@ -38,7 +36,6 @@ internal fun ComparisonModeSelector(
     onShare: () -> Unit,
 ) {
     val spacing = MaterialTheme.spacing
-    val haptic = LocalHapticFeedback.current
     val scrollState = rememberScrollState()
 
     Row(
@@ -57,10 +54,7 @@ internal fun ComparisonModeSelector(
                 FilterChip(
                     selected = selectedMode == option,
                     modifier = Modifier.heightIn(min = spacing.touchTarget),
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onModeSelected(option)
-                    },
+                    onClick = { onModeSelected(option) },
                     label = { Text(stringResource(option.labelResource())) },
                 )
             }

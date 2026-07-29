@@ -4,45 +4,38 @@
  */
 package com.bernaferrari.changedetection.ui.main.components
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.label_interval
 import com.bernaferrari.changedetection.shared.generated.resources.start
 import com.bernaferrari.changedetection.shared.generated.resources.stop
 import com.bernaferrari.changedetection.shared.generated.resources.turbo_active_sites
 import com.bernaferrari.changedetection.shared.generated.resources.turbo_mode_selected_sites
-import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
 import com.bernaferrari.changedetection.ui.theme.spacing
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
@@ -56,7 +49,7 @@ private val intervalOptions = listOf(
     IntervalOption(120, "2m"),
 )
 
-/** Turbo controls are rendered from state supplied by [TurboScreen], without owning that state. */
+/** Turbo's control surface: one clear status, one interval choice, and one primary action. */
 @Composable
 internal fun TurboHero(
     isRunning: Boolean,
@@ -68,177 +61,107 @@ internal fun TurboHero(
     canToggle: Boolean,
 ) {
     val spacing = MaterialTheme.spacing
-    val containerColor by animateColorAsState(
-        targetValue = if (isRunning) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
-        animationSpec = spring(
-            dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
-            stiffness = ExpressiveSpring.GENTLE_STIFFNESS,
-        ),
-        label = "turboHeroContainer",
-    )
-    val currentLabel = intervalOptions.find { it.seconds == intervalSeconds }?.label ?: "15s"
+    val intervalLabel = intervalOptions.firstOrNull { it.seconds == intervalSeconds }?.label ?: intervalOptions.first().label
+    val statusLabel = if (isRunning) {
+        pluralStringResource(Res.plurals.turbo_active_sites, selectedCount, selectedCount, intervalLabel)
+    } else {
+        pluralStringResource(Res.plurals.turbo_mode_selected_sites, selectedCount, selectedCount)
+    }
 
-    Column(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(spacing.lg),
-        horizontalAlignment = Alignment.CenterHorizontally,
+            .padding(horizontal = spacing.lg, vertical = spacing.md),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = if (isRunning) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerLow
+        },
     ) {
-        Box(
-            modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape)
-                .background(containerColor),
-            contentAlignment = Alignment.Center,
+        Column(
+            modifier = Modifier.padding(spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(spacing.md),
         ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary),
-                contentAlignment = Alignment.Center,
-            ) {
-                when {
-                    isSyncing -> CircularProgressIndicator(
-                        modifier = Modifier.size(32.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        strokeWidth = 3.dp,
-                    )
-                    isRunning -> Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(36.dp),
-                    )
-                    else -> AnimatedContent(
-                        targetState = currentLabel,
-                        transitionSpec = {
-                            slideInVertically { -it } + fadeIn() togetherWith
-                                slideOutVertically { it } + fadeOut()
-                        },
-                        label = "turboInterval",
-                    ) { label ->
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimary,
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier.size(44.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (isSyncing) {
+                        CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 2.dp)
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Bolt,
+                            contentDescription = null,
+                            tint = if (isRunning) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.primary
+                            },
+                            modifier = Modifier.size(28.dp),
                         )
                     }
                 }
+                Spacer(modifier = Modifier.width(spacing.sm))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = if (isRunning) stringResource(Res.string.stop) else stringResource(Res.string.start),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = statusLabel,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(spacing.lg))
-        Text(
-            text = if (isRunning) {
-                pluralStringResource(
-                    Res.plurals.turbo_active_sites,
-                    selectedCount,
-                    selectedCount,
-                    currentLabel,
-                )
-            } else {
-                pluralStringResource(
-                    Res.plurals.turbo_mode_selected_sites,
-                    selectedCount,
-                    selectedCount,
-                )
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(modifier = Modifier.height(spacing.md))
-        Text(
-            text = stringResource(Res.string.label_interval),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(modifier = Modifier.height(spacing.xs))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(spacing.xs),
-        ) {
-            intervalOptions.forEach { option ->
-                val selected = intervalSeconds == option.seconds
-                Surface(
-                    onClick = { onIntervalChange(option.seconds) },
-                    enabled = !isRunning,
-                    shape = RoundedCornerShape(spacing.sm),
-                    color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
-                    contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Box(
-                        modifier = Modifier.padding(vertical = spacing.sm),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(option.label, style = MaterialTheme.typography.labelLarge)
+            if (!isRunning) {
+                Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+                    Text(
+                        text = stringResource(Res.string.label_interval),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(spacing.xs)) {
+                        intervalOptions.forEach { option ->
+                            val selected = option.seconds == intervalSeconds
+                            if (selected) {
+                                Button(
+                                    onClick = { onIntervalChange(option.seconds) },
+                                    contentPadding = ButtonDefaults.ContentPadding,
+                                ) {
+                                    Text(option.label)
+                                }
+                            } else {
+                                OutlinedButton(
+                                    onClick = { onIntervalChange(option.seconds) },
+                                    contentPadding = ButtonDefaults.ContentPadding,
+                                ) {
+                                    Text(option.label)
+                                }
+                            }
+                        }
                     }
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(spacing.md + spacing.xxs))
-        TurboStartStopButton(
-            isRunning = isRunning,
-            enabled = canToggle,
-            onClick = onToggle,
-        )
-    }
-}
-
-@Composable
-private fun TurboStartStopButton(
-    isRunning: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit,
-) {
-    val spacing = MaterialTheme.spacing
-    if (isRunning) {
-        OutlinedButton(
-            onClick = onClick,
-            modifier = Modifier
-                .width(160.dp)
-                .height(spacing.touchTarget + spacing.xs),
-            shape = RoundedCornerShape(28.dp),
-            border = BorderStroke(2.dp, MaterialTheme.colorScheme.error),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
+            FilledTonalButton(
+                onClick = onToggle,
+                enabled = canToggle,
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                Icon(
-                    imageVector = Icons.Rounded.Stop,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
-                )
-                Spacer(modifier = Modifier.width(spacing.xs))
-                Text(
-                    text = stringResource(Res.string.stop),
-                    style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-        }
-    } else {
-        FloatingActionButton(
-            onClick = onClick,
-            containerColor = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh,
-            contentColor = if (enabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(160.dp),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(horizontal = spacing.lg),
-            ) {
-                Icon(Icons.Default.Bolt, contentDescription = null)
-                Spacer(modifier = Modifier.width(spacing.xs))
-                Text(
-                    text = stringResource(Res.string.start),
-                    style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold),
-                )
+                if (isRunning) {
+                    Icon(
+                        imageVector = Icons.Rounded.Stop,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.width(spacing.xs))
+                }
+                Text(stringResource(if (isRunning) Res.string.stop else Res.string.start))
             }
         }
     }

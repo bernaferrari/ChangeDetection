@@ -263,16 +263,19 @@ object ErrorRecoveryManager {
                 suggestions.add("Try: Settings → Clear Cache")
                 suggestions.add("If problem persists: Reinstall the app")
             }
+
             is java.io.IOException -> {
                 suggestions.add("Storage access issue detected")
                 suggestions.add("Check: Device storage space")
                 suggestions.add("Check: App permissions for storage")
             }
+
             is OutOfMemoryError -> {
                 suggestions.add("App is running out of memory")
                 suggestions.add("Close other apps")
                 suggestions.add("Reduce number of monitored sites")
             }
+
             else -> {
                 suggestions.add("An unexpected error occurred")
                 suggestions.add("Please restart the app")

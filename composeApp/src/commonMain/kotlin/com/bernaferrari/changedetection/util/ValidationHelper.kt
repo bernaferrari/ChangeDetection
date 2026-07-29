@@ -242,8 +242,11 @@ object ValidationHelper {
         headerValue: String,
     ): Pair<Boolean, String?> = when {
         headerName.isBlank() -> Pair(false, "Header name cannot be empty")
+
         headerValue.isBlank() -> Pair(false, "Header value cannot be empty")
+
         headerName.contains(":") -> Pair(false, "Header name cannot contain colon")
+
         headerValue.contains("\n") || headerValue.contains("\r") ->
             Pair(false, "Header value cannot contain line breaks")
 

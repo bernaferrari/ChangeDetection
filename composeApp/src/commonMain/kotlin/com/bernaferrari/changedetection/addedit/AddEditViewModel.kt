@@ -7,11 +7,9 @@ package com.bernaferrari.changedetection.addedit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.background.MonitoringManager
-import com.bernaferrari.changedetection.browser.BrowserSessionData
 import com.bernaferrari.changedetection.extensions.normalizeUrl
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.source.SitesRepository
-import com.bernaferrari.changedetection.util.FeatureFlags
 import io.ktor.http.Url
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,10 +28,6 @@ data class AddEditUiState(
     val urlError: String? = null,
     val saveError: String? = null,
     val saveComplete: Boolean = false,
-    val browserData: BrowserSessionData? = null,
-    val useCookies: Boolean = false,
-    val cookieBytes: Long = 0L,
-    val hasCapturedCookies: Boolean = false,
 )
 
 @OptIn(ExperimentalUuidApi::class)
@@ -65,10 +59,6 @@ class AddEditViewModel(
                         title = site.title ?: "",
                         selectedColors = site.colors,
                         isLoading = false,
-                        browserData = null,
-                        useCookies = false,
-                        cookieBytes = 0L,
-                        hasCapturedCookies = false,
                     )
                 }
             }
@@ -118,44 +108,6 @@ class AddEditViewModel(
         _uiState.update { it.copy(selectedColors = colors) }
     }
 
-    fun setBrowserData(data: BrowserSessionData) {
-        if (!FeatureFlags.BROWSER_SESSION) return
-
-        _uiState.update {
-            val cookies = data.cookies.orEmpty()
-            val newCookieBytes =
-                if (FeatureFlags.COOKIES) {
-                    cookies.encodeToByteArray().size.toLong()
-                } else {
-                    0L
-                }
-            val previousBytes = it.cookieBytes
-            val resolvedUseCookies =
-                if (FeatureFlags.COOKIES) {
-                    when {
-                        newCookieBytes == 0L -> false
-                        previousBytes == 0L -> true
-                        else -> it.useCookies
-                    }
-                } else {
-                    false
-                }
-            it.copy(
-                title = data.title,
-                browserData = data,
-                useCookies = resolvedUseCookies,
-                cookieBytes = newCookieBytes,
-                hasCapturedCookies = newCookieBytes > 0 || it.hasCapturedCookies,
-            )
-        }
-    }
-
-    fun setUseCookies(enabled: Boolean) {
-        if (FeatureFlags.COOKIES) {
-            _uiState.update { it.copy(useCookies = enabled) }
-        }
-    }
-
     fun saveSite() {
         val state = _uiState.value
         val normalizedUrl = state.url.normalizeUrl()
@@ -168,8 +120,6 @@ class AddEditViewModel(
             _uiState.update { it.copy(isSaving = true, saveError = null) }
 
             try {
-                val browserData = if (FeatureFlags.BROWSER_SESSION) state.browserData else null
-
                 val resolvedTitle =
                     state.title.ifBlank {
                         try {
@@ -195,7 +145,7 @@ class AddEditViewModel(
                         url = normalizedUrl,
                         title = resolvedTitle,
                         colors = state.selectedColors,
-                        isBrowser = browserData != null,
+                        isBrowser = false,
                         isSyncEnabled = true,
                         isNotificationEnabled = true,
                         timestamp =
@@ -215,18 +165,10 @@ class AddEditViewModel(
                         ),
                     )
 
-                var updatedSite = baseSite
-
-                if (browserData != null) {
-                    updatedSite = updatedSite.copy(isBrowser = true)
-                }
-
-                val site = updatedSite
-
-                sitesRepository.saveSite(site)
+                sitesRepository.saveSite(baseSite)
 
                 // Trigger initial sync to populate first snapshot
-                monitoringManager.reloadSite(site)
+                monitoringManager.reloadSite(baseSite)
 
                 _uiState.update { current ->
                     current.copy(isSaving = false, saveComplete = true)

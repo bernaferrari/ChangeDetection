@@ -36,12 +36,14 @@ fun TextDiffItem(
             val numBg = MaterialTheme.colorScheme.primaryContainer
             Quadruple(bgColor, highlightColor, numBg, TextAlign.End)
         }
+
         '-' -> {
             val bgColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
             val highlightColor = MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
             val numBg = MaterialTheme.colorScheme.errorContainer
             Quadruple(bgColor, highlightColor, numBg, TextAlign.Start)
         }
+
         else -> {
             Quadruple(Color.Transparent, Color.Transparent, Color.Transparent, TextAlign.Center)
         }

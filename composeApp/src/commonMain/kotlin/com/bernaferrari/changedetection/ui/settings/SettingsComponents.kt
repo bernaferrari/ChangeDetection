@@ -31,8 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -186,7 +184,6 @@ internal fun ThemeSelector(
     onThemeSelected: (String) -> Unit,
 ) {
     val spacing = MaterialTheme.spacing
-    val haptic = LocalHapticFeedback.current
     Column(
         modifier = Modifier.padding(spacing.md),
         verticalArrangement = Arrangement.spacedBy(spacing.md),
@@ -200,10 +197,7 @@ internal fun ThemeSelector(
                     ThemeModeToggle(
                         themeMode = mode,
                         isSelected = selectedTheme == mode.name,
-                        onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onThemeSelected(mode.name)
-                        },
+                        onClick = { onThemeSelected(mode.name) },
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -218,7 +212,6 @@ internal fun ComparisonMethodSelector(
     onMethodSelected: (ComparisonMethod) -> Unit,
 ) {
     val spacing = MaterialTheme.spacing
-    val haptic = LocalHapticFeedback.current
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
@@ -245,10 +238,7 @@ internal fun ComparisonMethodSelector(
                         .selectable(
                             selected = isSelected,
                             role = Role.RadioButton,
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onMethodSelected(method)
-                            },
+                            onClick = { onMethodSelected(method) },
                         ),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -261,7 +251,7 @@ internal fun ComparisonMethodSelector(
                             },
                         ),
                         style = MaterialTheme.typography.labelLarge,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        fontWeight = FontWeight.Medium,
                         color = if (isSelected) {
                             MaterialTheme.colorScheme.onPrimary
                         } else {

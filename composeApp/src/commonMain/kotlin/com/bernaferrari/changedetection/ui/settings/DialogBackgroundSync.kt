@@ -4,11 +4,6 @@
  */
 package com.bernaferrari.changedetection.ui.settings
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -87,11 +82,7 @@ fun BackgroundSyncDialog(
                 onToggle = viewModel::updateBackgroundSync,
             )
 
-            AnimatedVisibility(
-                visible = uiState.backgroundSync,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut(),
-            ) {
+            if (uiState.backgroundSync) {
                 Column(
                     modifier = Modifier.padding(horizontal = spacing.md),
                     verticalArrangement = Arrangement.spacedBy(spacing.md),

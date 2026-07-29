@@ -4,12 +4,6 @@
  */
 package com.bernaferrari.changedetection
 
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -47,7 +41,10 @@ import com.bernaferrari.changedetection.ui.theme.ChangeDetectionTheme
 import com.bernaferrari.changedetection.ui.theme.ThemeViewModel
 import com.bernaferrari.changedetection.platform.openEmail
 import com.bernaferrari.changedetection.platform.openUrl
+import com.bernaferrari.changedetection.shared.generated.resources.Res
+import com.bernaferrari.changedetection.shared.generated.resources.select_site_to_view_details
 import org.koin.compose.viewmodel.koinViewModel
+import org.jetbrains.compose.resources.stringResource
 import platform.UIKit.UIViewController
 
 /**
@@ -90,7 +87,7 @@ private fun IosNavigationApp() {
         NavDisplay(
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
-            sceneStrategy = listDetailStrategy,
+            sceneStrategies = listOf(listDetailStrategy),
             entryDecorators = listOf(
                 rememberSaveableStateHolderNavEntryDecorator(),
             ),
@@ -99,7 +96,7 @@ private fun IosNavigationApp() {
                     metadata = ListDetailSceneStrategy.listPane(
                         detailPlaceholder = {
                             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                                Text("Select a site to view details")
+                                Text(stringResource(Res.string.select_site_to_view_details))
                             }
                         },
                     ),
@@ -107,6 +104,7 @@ private fun IosNavigationApp() {
                     MainScreen(
                         viewModel = mainViewModel,
                         onAddSite = { backStack.add(AddEditDestination()) },
+                        onOpenTurbo = { backStack.add(TurboDestination) },
                         onLearnHowItWorks = { backStack.add(HowItWorksDestination) },
                         onSiteClick = { site -> backStack.add(ComparisonDestination(siteId = site.id)) },
                         onSiteEdit = { site -> backStack.add(EditSiteDestination(siteId = site.id)) },
@@ -122,6 +120,7 @@ private fun IosNavigationApp() {
                         quickMonitorState = quickMonitorState,
                         isLoading = sites == null,
                         onAddSite = { backStack.add(AddEditDestination()) },
+                        onNavigateUp = { backStack.removeLastOrNull() },
                         onStartTurbo = { selectedUrl, interval ->
                             mainViewModel.startQuickMonitor(selectedUrl, interval)
                         },
@@ -155,15 +154,7 @@ private fun IosNavigationApp() {
                 }
 
                 // Full-screen destinations
-                entry<AddEditDestination>(
-                    metadata = NavDisplay.transitionSpec {
-                        slideInVertically(initialOffsetY = { it }) togetherWith
-                            slideOutVertically(targetOffsetY = { it })
-                    } + NavDisplay.popTransitionSpec {
-                        slideInVertically(initialOffsetY = { -it }) togetherWith
-                            slideOutVertically(targetOffsetY = { it })
-                    },
-                ) { key ->
+                entry<AddEditDestination> { key ->
                     AddEditFlow(
                         selectedUrl = key.initialUrl,
                         onNavigateUp = { backStack.removeLastOrNull() },
@@ -171,15 +162,7 @@ private fun IosNavigationApp() {
                     )
                 }
 
-                entry<EditSiteDestination>(
-                    metadata = NavDisplay.transitionSpec {
-                        slideInHorizontally(initialOffsetX = { it }) togetherWith
-                            slideOutHorizontally(targetOffsetX = { -it })
-                    } + NavDisplay.popTransitionSpec {
-                        slideInHorizontally(initialOffsetX = { -it }) togetherWith
-                            slideOutHorizontally(targetOffsetX = { it })
-                    },
-                ) { key ->
+                entry<EditSiteDestination> { key ->
                     AddEditFlow(
                         siteId = key.siteId,
                         onNavigateUp = { backStack.removeLastOrNull() },
@@ -187,15 +170,7 @@ private fun IosNavigationApp() {
                     )
                 }
 
-                entry<AboutDestination>(
-                    metadata = NavDisplay.transitionSpec {
-                        slideInHorizontally(initialOffsetX = { it }) togetherWith
-                            slideOutHorizontally(targetOffsetX = { -it })
-                    } + NavDisplay.popTransitionSpec {
-                        slideInHorizontally(initialOffsetX = { -it }) togetherWith
-                            slideOutHorizontally(targetOffsetX = { it })
-                    },
-                ) {
+                entry<AboutDestination> {
                     AboutScreen(
                         onBack = { backStack.removeLastOrNull() },
                         onSocialClick = ::openUrl,
@@ -207,43 +182,19 @@ private fun IosNavigationApp() {
                     )
                 }
 
-                entry<HowItWorksDestination>(
-                    metadata = NavDisplay.transitionSpec {
-                        slideInHorizontally(initialOffsetX = { it }) togetherWith
-                            slideOutHorizontally(targetOffsetX = { -it })
-                    } + NavDisplay.popTransitionSpec {
-                        slideInHorizontally(initialOffsetX = { -it }) togetherWith
-                            slideOutHorizontally(targetOffsetX = { it })
-                    },
-                ) {
+                entry<HowItWorksDestination> {
                     HowItWorksScreen(onBackClick = { backStack.removeLastOrNull() })
                 }
 
-                entry<BrowserDestination>(
-                    metadata = NavDisplay.transitionSpec {
-                        slideInVertically(initialOffsetY = { it }) togetherWith
-                            slideOutVertically(targetOffsetY = { it })
-                    } + NavDisplay.popTransitionSpec {
-                        slideInVertically(initialOffsetY = { -it }) togetherWith
-                            slideOutVertically(targetOffsetY = { it })
-                    },
-                ) { key ->
+                entry<BrowserDestination> { key ->
                     LocalBrowserScreen(
                         snapId = key.snapId,
-                        url = key.url.ifEmpty { "https://google.com" },
+                        url = key.url,
                         onDismiss = { backStack.removeLastOrNull() },
                     )
                 }
 
-                entry<ComparisonDestination>(
-                    metadata = ListDetailSceneStrategy.detailPane() + NavDisplay.transitionSpec {
-                        slideInHorizontally(initialOffsetX = { it }) togetherWith
-                            slideOutHorizontally(targetOffsetX = { -it })
-                    } + NavDisplay.popTransitionSpec {
-                        slideInHorizontally(initialOffsetX = { -it }) togetherWith
-                            slideOutHorizontally(targetOffsetX = { it })
-                    },
-                ) { key ->
+                entry<ComparisonDestination>(metadata = ListDetailSceneStrategy.detailPane()) { key ->
                     ComparisonScreen(
                         siteId = key.siteId,
                         onNavigateUp = { backStack.removeLastOrNull() },
@@ -251,10 +202,6 @@ private fun IosNavigationApp() {
                         onSiteDelete = { backStack.removeLastOrNull() },
                     )
                 }
-            },
-            transitionSpec = {
-                androidx.compose.animation.fadeIn(tween(300)) togetherWith
-                    androidx.compose.animation.fadeOut(tween(300))
             },
         )
     }

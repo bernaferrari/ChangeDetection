@@ -10,6 +10,17 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlinx.serialization.Serializable
 
+/**
+ * Snap is short for Snapshot. A snapshot will be a downloaded website which is different from
+ * the one before it.
+ *
+ * @param snapId the unique snap url
+ * @param siteId the unique site url
+ * @param timestamp recorded in milliseconds
+ * @param contentType the mime type as retrieved from the header on the request
+ * @param contentSize content size in bytes
+ * @param contentCharset content charset
+ */
 @Serializable
 @Entity(
     tableName = "snaps",
@@ -35,17 +46,6 @@ import kotlinx.serialization.Serializable
             ),
     ],
 )
-/**
- * Snap is short for Snapshot. A snapshot will be a downloaded website which is different from
- * the one before it.
- *
- * @param snapId the unique snap url
- * @param siteId the unique site url
- * @param timestamp recorded in milliseconds
- * @param contentType the mime type as retrieved from the header on the request
- * @param contentSize content size in bytes
- * @param contentCharset content charset
- */
 data class Snap(
     @PrimaryKey
     val snapId: String,

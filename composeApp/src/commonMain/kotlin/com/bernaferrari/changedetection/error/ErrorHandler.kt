@@ -62,19 +62,27 @@ class ErrorHandler {
     ): ErrorResult = when (error) {
         // Ktor HTTP errors
         is ClientRequestException -> handleClientError(error)
+
         is ServerResponseException -> handleServerError(error)
 
         // Custom app errors
         is NetworkError -> handleNetworkError(error.code)
+
         is ValidationError -> handleValidationError(error)
+
         is DatabaseError -> handleDatabaseError(error)
+
         is SyncError -> handleSyncError(error)
+
         is AuthenticationError -> handleAuthenticationError(error)
+
         is ContentError -> handleContentError(error)
 
         // Network connectivity
         is IOException -> handleConnectivityError(error)
+
         is ConnectTimeoutException -> handleTimeoutError()
+
         is SocketTimeoutException -> handleTimeoutError()
 
         // Fallback
@@ -92,6 +100,7 @@ class ErrorHandler {
                     isRetryable = false,
                     recoveryAction = RecoveryAction.CHECK_URL,
                 )
+
             401 ->
                 ErrorResult(
                     type = ErrorType.AUTHENTICATION,
@@ -100,6 +109,7 @@ class ErrorHandler {
                     isRetryable = true,
                     recoveryAction = RecoveryAction.LOGIN_REQUIRED,
                 )
+
             403 ->
                 ErrorResult(
                     type = ErrorType.NETWORK,
@@ -110,6 +120,7 @@ class ErrorHandler {
                     suggestedActions = listOf("Try a different URL", "The site may require login"),
                     recoveryAction = RecoveryAction.CHECK_URL,
                 )
+
             404 ->
                 ErrorResult(
                     type = ErrorType.NETWORK,
@@ -119,6 +130,7 @@ class ErrorHandler {
                     suggestedActions = listOf("Check if the URL is correct", "The page may have been moved"),
                     recoveryAction = RecoveryAction.CHECK_URL,
                 )
+
             429 ->
                 ErrorResult(
                     type = ErrorType.RATE_LIMITED,
@@ -128,6 +140,7 @@ class ErrorHandler {
                     isRetryable = true,
                     recoveryAction = RecoveryAction.WAIT_AND_RETRY,
                 )
+
             else ->
                 ErrorResult(
                     type = ErrorType.NETWORK,
@@ -166,6 +179,7 @@ class ErrorHandler {
                 isRetryable = true,
                 recoveryAction = RecoveryAction.LOGIN_REQUIRED,
             )
+
         403 ->
             ErrorResult(
                 type = ErrorType.NETWORK,
@@ -176,6 +190,7 @@ class ErrorHandler {
                 suggestedActions = listOf("Try a different URL", "The site may require login"),
                 recoveryAction = RecoveryAction.CHECK_URL,
             )
+
         404 ->
             ErrorResult(
                 type = ErrorType.NETWORK,
@@ -185,6 +200,7 @@ class ErrorHandler {
                 suggestedActions = listOf("Check if the URL is correct", "The page may have been moved"),
                 recoveryAction = RecoveryAction.CHECK_URL,
             )
+
         429 ->
             ErrorResult(
                 type = ErrorType.RATE_LIMITED,
@@ -194,6 +210,7 @@ class ErrorHandler {
                 isRetryable = true,
                 recoveryAction = RecoveryAction.WAIT_AND_RETRY,
             )
+
         in 500..599 ->
             ErrorResult(
                 type = ErrorType.NETWORK,
@@ -203,6 +220,7 @@ class ErrorHandler {
                 isRetryable = true,
                 recoveryAction = RecoveryAction.RETRY_LATER,
             )
+
         else ->
             ErrorResult(
                 type = ErrorType.NETWORK,
@@ -262,6 +280,7 @@ class ErrorHandler {
                 isRetryable = true,
                 recoveryAction = RecoveryAction.WAIT_AND_RETRY,
             )
+
         SyncError.Reason.CONTENT_TOO_LARGE ->
             ErrorResult(
                 type = ErrorType.CONTENT,
@@ -272,6 +291,7 @@ class ErrorHandler {
                 suggestedActions = listOf("Use element selection", "Choose a smaller page section"),
                 recoveryAction = RecoveryAction.SELECT_ELEMENT,
             )
+
         SyncError.Reason.NO_CHANGES ->
             ErrorResult(
                 type = ErrorType.INFO,
@@ -279,6 +299,7 @@ class ErrorHandler {
                 severity = ErrorSeverity.INFO,
                 isRetryable = false,
             )
+
         SyncError.Reason.SITE_DISABLED ->
             ErrorResult(
                 type = ErrorType.INFO,
@@ -286,6 +307,7 @@ class ErrorHandler {
                 severity = ErrorSeverity.INFO,
                 isRetryable = false,
             )
+
         else ->
             ErrorResult(
                 type = ErrorType.SYNC,
@@ -332,6 +354,7 @@ class ErrorHandler {
                     suggestedActions = listOf("Check the URL", "Check your internet connection"),
                     recoveryAction = RecoveryAction.CHECK_CONNECTION,
                 )
+
             errorName.contains("SSL", ignoreCase = true) ->
                 ErrorResult(
                     type = ErrorType.CONNECTIVITY,
@@ -342,6 +365,7 @@ class ErrorHandler {
                     suggestedActions = listOf("The site may have certificate issues"),
                     recoveryAction = RecoveryAction.CHECK_URL,
                 )
+
             else ->
                 ErrorResult(
                     type = ErrorType.CONNECTIVITY,

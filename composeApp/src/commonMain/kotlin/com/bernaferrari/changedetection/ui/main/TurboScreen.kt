@@ -4,9 +4,6 @@
  */
 package com.bernaferrari.changedetection.ui.main
 
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,7 +17,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material3.AlertDialog
@@ -52,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.add_sites_to_monitor
+import com.bernaferrari.changedetection.shared.generated.resources.a11y_navigate_back
 import com.bernaferrari.changedetection.shared.generated.resources.add_first_site
 import com.bernaferrari.changedetection.shared.generated.resources.got_it
 import com.bernaferrari.changedetection.shared.generated.resources.how_it_works
@@ -75,10 +75,10 @@ fun TurboScreen(
     quickMonitorState: QuickMonitorState,
     isLoading: Boolean = false,
     onAddSite: () -> Unit,
+    onNavigateUp: () -> Unit,
     onStartTurbo: (siteIds: Set<String>, intervalSeconds: Int) -> Unit,
     onStopTurbo: () -> Unit,
 ) {
-    val haptic = LocalHapticFeedback.current
     val isRunning = quickMonitorState.isActive
     var selectedIds by remember {
         mutableStateOf(quickMonitorState.siteIds.ifEmpty { sites.mapTo(mutableSetOf()) { it.site.id } })
@@ -164,6 +164,14 @@ fun TurboScreen(
                         style = MaterialTheme.typography.titleLarge,
                     )
                 },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateUp) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(Res.string.a11y_navigate_back),
+                        )
+                    }
+                },
                 actions = {
                     IconButton(onClick = { showHelpDialog = true }) {
                         Icon(
@@ -221,11 +229,9 @@ fun TurboScreen(
                             intervalSeconds = intervalSeconds,
                             selectedCount = selectedIds.size,
                             onIntervalChange = {
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 intervalSeconds = it
                             },
                             onToggle = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 if (isRunning) {
                                     onStopTurbo()
                                 } else if (selectedIds.isNotEmpty()) {
@@ -271,41 +277,25 @@ fun TurboScreen(
                         }
                     }
 
-                    // Sites list with individual row styling
-                    item {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                        ) {
-                            val visibleSites = if (isRunning) {
-                                sites.filter { selectedIds.contains(it.site.id) }
-                            } else {
-                                sites
-                            }
-
-                            visibleSites.forEachIndexed { index, siteAndSnap ->
-                                val isSelected = selectedIds.contains(siteAndSnap.site.id)
-                                val enabled = !isRunning
-                                val isFirst = index == 0
-                                val isLast = index == visibleSites.size - 1
-
-                                TurboSiteRow(
-                                    site = siteAndSnap.site,
-                                    isSelected = isSelected,
-                                    enabled = enabled,
-                                    isSyncing = isRunning && siteAndSnap.isSyncing,
-                                    isFirst = isFirst,
-                                    isLast = isLast,
-                                    onClick = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                        val newIds = selectedIds.toMutableSet()
-                                        if (isSelected) newIds.remove(siteAndSnap.site.id) else newIds.add(siteAndSnap.site.id)
-                                        selectedIds = newIds
-                                    },
-                                )
-                            }
-                        }
+                    val visibleSites = if (isRunning) {
+                        sites.filter { selectedIds.contains(it.site.id) }
+                    } else {
+                        sites
+                    }
+                    items(visibleSites, key = { it.site.id }) { siteAndSnap ->
+                        val isSelected = selectedIds.contains(siteAndSnap.site.id)
+                        TurboSiteRow(
+                            site = siteAndSnap.site,
+                            isSelected = isSelected,
+                            enabled = !isRunning,
+                            isSyncing = isRunning && siteAndSnap.isSyncing,
+                            onClick = {
+                                val newIds = selectedIds.toMutableSet()
+                                if (isSelected) newIds.remove(siteAndSnap.site.id) else newIds.add(siteAndSnap.site.id)
+                                selectedIds = newIds
+                            },
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
                     }
                 }
             }

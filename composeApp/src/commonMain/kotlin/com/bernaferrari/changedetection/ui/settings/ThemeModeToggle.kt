@@ -4,8 +4,6 @@
  */
 package com.bernaferrari.changedetection.ui.settings
 
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,28 +11,21 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.model.ThemeMode
-import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
 import org.jetbrains.compose.resources.stringResource
 
-/**
- * 🎨 Beautiful Theme Mode Toggle Card
- * Features animated corner radius morph (rounded → circular) and
- * smooth border width transitions for delightful micro-interactions.
- */
+/** A stable, labelled theme choice that keeps selection obvious without motion. */
 @Composable
 fun ThemeModeToggle(
     themeMode: ThemeMode,
@@ -44,26 +35,8 @@ fun ThemeModeToggle(
 ) {
     val title = stringResource(themeMode.titleRes)
     val description = stringResource(themeMode.descriptionRes)
-
-    // Animate corner radius: 16.dp (rounded) → 28.dp (more circular) when selected
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isSelected) 28.dp else 16.dp,
-        animationSpec = spring(
-            dampingRatio = ExpressiveSpring.BOUNCY_DAMPING,
-            stiffness = ExpressiveSpring.BOUNCY_STIFFNESS,
-        ),
-        label = "cornerRadius",
-    )
-
-    // Animate border width for extra selection feedback
-    val borderWidth by animateDpAsState(
-        targetValue = if (isSelected) 2.dp else 1.dp,
-        animationSpec = spring(
-            dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
-        ),
-        label = "borderWidth",
-    )
+    val containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+    val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
 
     Column(
         modifier = modifier,
@@ -72,21 +45,11 @@ fun ThemeModeToggle(
         OutlinedCard(
             onClick = onClick,
             modifier = Modifier.height(64.dp),
-            shape = RoundedCornerShape(cornerRadius),
-            colors = CardDefaults.outlinedCardColors(
-                containerColor = if (isSelected) {
-                    MaterialTheme.colorScheme.primaryContainer
-                } else {
-                    MaterialTheme.colorScheme.surface
-                },
-            ),
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.outlinedCardColors(containerColor = containerColor),
             border = BorderStroke(
-                width = borderWidth,
-                color = if (isSelected) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.outlineVariant
-                },
+                width = if (isSelected) 2.dp else 1.dp,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
             ),
         ) {
             Box(
@@ -97,26 +60,16 @@ fun ThemeModeToggle(
                     imageVector = if (isSelected) themeMode.selectedIcon else themeMode.icon,
                     contentDescription = title,
                     modifier = Modifier.size(24.dp),
-                    tint = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
+                    tint = contentColor,
                 )
             }
         }
-
         Spacer(modifier = Modifier.height(8.dp))
-
         Text(
             text = title,
             style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = if (isSelected) {
-                MaterialTheme.colorScheme.onSurface
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
-            },
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             maxLines = 1,
         )

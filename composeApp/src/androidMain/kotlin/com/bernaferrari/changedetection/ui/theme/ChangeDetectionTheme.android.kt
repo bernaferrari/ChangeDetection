@@ -35,6 +35,7 @@ actual fun ChangeDetectionTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
+
         // All other cases: generate from SeedColor using MaterialKolor
         else -> {
             rememberDynamicColorScheme(

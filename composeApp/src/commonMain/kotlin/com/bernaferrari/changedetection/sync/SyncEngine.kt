@@ -173,6 +173,7 @@ class SyncEngine(
             is FetchResult.Success -> {
                 processSuccessResult(site, result, threshold)
             }
+
             is FetchResult.Error -> {
                 processErrorResult(site, result)
             }
@@ -203,7 +204,7 @@ class SyncEngine(
             (lastSnap?.contentSize ?: 0) - result.data.size,
         )
 
-        if (hasContentChanged && meetsThreshold || lastSnap == null) {
+        if ((hasContentChanged && meetsThreshold) || lastSnap == null) {
             return saveNewSnap(site, result, contentHash, lastSnap == null)
         } else {
             // No changes - update timestamp only

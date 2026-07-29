@@ -4,13 +4,10 @@
  */
 package com.bernaferrari.changedetection.ui.components
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,7 +15,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
+import com.bernaferrari.changedetection.ui.theme.spacing
 
 @Composable
 fun SharedEmptyState(
@@ -31,10 +28,7 @@ fun SharedEmptyState(
     secondaryActionLabel: String? = null,
     onSecondaryAction: (() -> Unit)? = null,
 ) {
-    var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        visible = true
-    }
+    val spacing = MaterialTheme.spacing
 
     Box(
         modifier = modifier.fillMaxSize(),
@@ -42,117 +36,69 @@ fun SharedEmptyState(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(32.dp),
+            modifier = Modifier.padding(spacing.xl),
         ) {
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn(animationSpec = tween(500)) + scaleIn(
-                    initialScale = 0.8f,
-                    animationSpec = spring(
-                        dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
-                        stiffness = ExpressiveSpring.GENTLE_STIFFNESS,
-                    ),
-                ),
+            Box(
+                modifier = Modifier
+                    .size(88.dp)
+                    .clip(MaterialTheme.shapes.extraLarge)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                contentAlignment = Alignment.Center,
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(96.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(48.dp),
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn(animationSpec = tween(500, delayMillis = 100)) +
-                    slideInVertically(
-                        initialOffsetY = { 20 },
-                        animationSpec = spring(
-                            dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
-                            stiffness = ExpressiveSpring.GENTLE_STIFFNESS,
-                        ),
-                    ),
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Center,
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(spacing.touchTarget),
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(spacing.lg))
 
-            AnimatedVisibility(
-                visible = visible,
-                enter = fadeIn(animationSpec = tween(500, delayMillis = 150)) +
-                    slideInVertically(
-                        initialOffsetY = { 20 },
-                        animationSpec = spring(
-                            dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
-                            stiffness = ExpressiveSpring.GENTLE_STIFFNESS,
-                        ),
-                    ),
-            ) {
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
-            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(modifier = Modifier.height(spacing.xs))
+
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
 
             if (primaryActionLabel != null && onPrimaryAction != null) {
-                Spacer(modifier = Modifier.height(24.dp))
-                AnimatedVisibility(
-                    visible = visible,
-                    enter = fadeIn(animationSpec = tween(500, delayMillis = 200)) +
-                        scaleIn(
-                            initialScale = 0.9f,
-                            animationSpec = spring(
-                                dampingRatio = ExpressiveSpring.GENTLE_DAMPING,
-                                stiffness = ExpressiveSpring.GENTLE_STIFFNESS,
-                            ),
-                        ),
+                Spacer(modifier = Modifier.height(spacing.lg))
+                Button(
+                    onClick = onPrimaryAction,
+                    modifier = Modifier.heightIn(min = spacing.touchTarget),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
                 ) {
-                    Button(
-                        onClick = onPrimaryAction,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                        ),
-                    ) {
-                        Text(primaryActionLabel)
-                    }
+                    Text(primaryActionLabel)
                 }
             }
 
             if (secondaryActionLabel != null && onSecondaryAction != null) {
                 if (primaryActionLabel == null) {
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(spacing.lg))
                 } else {
                     Spacer(
-                        modifier = Modifier.height(8.dp),
+                        modifier = Modifier.height(spacing.xs),
                     )
                 }
-                AnimatedVisibility(
-                    visible = visible,
-                    enter = fadeIn(animationSpec = tween(500, delayMillis = 250)),
+                TextButton(
+                    onClick = onSecondaryAction,
+                    modifier = Modifier.heightIn(min = spacing.touchTarget),
                 ) {
-                    TextButton(onClick = onSecondaryAction) {
-                        Text(secondaryActionLabel)
-                    }
+                    Text(secondaryActionLabel)
                 }
             }
         }

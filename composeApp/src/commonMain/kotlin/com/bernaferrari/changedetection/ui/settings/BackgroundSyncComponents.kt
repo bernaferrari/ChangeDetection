@@ -4,8 +4,6 @@
  */
 package com.bernaferrari.changedetection.ui.settings
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,8 +42,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -62,7 +58,6 @@ import com.bernaferrari.changedetection.shared.generated.resources.settings_sync
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_constraint_idle
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_constraint_wifi
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_monitoring_in_background
-import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
 import com.bernaferrari.changedetection.ui.theme.spacing
 import org.jetbrains.compose.resources.stringResource
 
@@ -72,35 +67,8 @@ internal fun BackgroundSyncHeader(
     onToggle: (Boolean) -> Unit,
 ) {
     val spacing = MaterialTheme.spacing
-    val haptic = LocalHapticFeedback.current
-    val iconBackground by animateColorAsState(
-        targetValue = if (syncEnabled) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHighest
-        },
-        animationSpec = spring(
-            dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
-        ),
-        label = "backgroundSyncIconBackground",
-    )
-    val iconColor by animateColorAsState(
-        targetValue = if (syncEnabled) {
-            MaterialTheme.colorScheme.onPrimary
-        } else {
-            MaterialTheme.colorScheme.onSurfaceVariant
-        },
-        animationSpec = spring(
-            dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
-        ),
-        label = "backgroundSyncIconColor",
-    )
-    val toggle = { checked: Boolean ->
-        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-        onToggle(checked)
-    }
+    val iconBackground = if (syncEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest
+    val iconColor = if (syncEnabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
 
     Row(
         modifier = Modifier
@@ -110,7 +78,7 @@ internal fun BackgroundSyncHeader(
             .toggleable(
                 value = syncEnabled,
                 role = Role.Switch,
-                onValueChange = toggle,
+                onValueChange = onToggle,
             )
             .padding(horizontal = spacing.lg, vertical = spacing.md),
         horizontalArrangement = Arrangement.spacedBy(spacing.md),
@@ -310,31 +278,8 @@ private fun PresetChip(
     modifier: Modifier = Modifier,
 ) {
     val spacing = MaterialTheme.spacing
-    val haptic = LocalHapticFeedback.current
-    val backgroundColor by animateColorAsState(
-        targetValue = if (isSelected) {
-            MaterialTheme.colorScheme.primary
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        },
-        animationSpec = spring(
-            dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
-        ),
-        label = "syncPresetBackground",
-    )
-    val contentColor by animateColorAsState(
-        targetValue = if (isSelected) {
-            MaterialTheme.colorScheme.onPrimary
-        } else {
-            MaterialTheme.colorScheme.onSurfaceVariant
-        },
-        animationSpec = spring(
-            dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
-        ),
-        label = "syncPresetContent",
-    )
+    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh
+    val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
 
     Box(
         modifier = modifier
@@ -344,17 +289,14 @@ private fun PresetChip(
             .selectable(
                 selected = isSelected,
                 role = Role.RadioButton,
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onClick()
-                },
+                onClick = onClick,
             ),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+            fontWeight = FontWeight.Medium,
             color = contentColor,
         )
     }
@@ -407,35 +349,8 @@ private fun SyncConstraintRow(
     onCheckedChange: (Boolean) -> Unit,
 ) {
     val spacing = MaterialTheme.spacing
-    val haptic = LocalHapticFeedback.current
-    val iconBackground by animateColorAsState(
-        targetValue = if (checked) {
-            MaterialTheme.colorScheme.primaryContainer
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        },
-        animationSpec = spring(
-            dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
-        ),
-        label = "syncConstraintIconBackground",
-    )
-    val iconColor by animateColorAsState(
-        targetValue = if (checked) {
-            MaterialTheme.colorScheme.onPrimaryContainer
-        } else {
-            MaterialTheme.colorScheme.onSurfaceVariant
-        },
-        animationSpec = spring(
-            dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
-        ),
-        label = "syncConstraintIconColor",
-    )
-    val toggle = { value: Boolean ->
-        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-        onCheckedChange(value)
-    }
+    val iconBackground = if (checked) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh
+    val iconColor = if (checked) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
 
     Row(
         modifier = Modifier
@@ -444,7 +359,7 @@ private fun SyncConstraintRow(
             .toggleable(
                 value = checked,
                 role = Role.Switch,
-                onValueChange = toggle,
+                onValueChange = onCheckedChange,
             )
             .padding(vertical = spacing.xs),
         horizontalArrangement = Arrangement.spacedBy(spacing.sm),

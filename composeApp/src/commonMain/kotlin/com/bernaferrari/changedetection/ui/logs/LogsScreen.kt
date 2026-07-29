@@ -18,8 +18,10 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import androidx.paging.LoadState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.outlined.Delete
 import com.bernaferrari.changedetection.ui.components.ConfirmDialog
+import com.bernaferrari.changedetection.ui.components.SharedEmptyState
 import org.koin.compose.viewmodel.koinViewModel
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.*
@@ -65,21 +67,14 @@ fun LogsScreen(
                 CircularProgressIndicator()
             }
         } else if (pagedItems.loadState.refresh is LoadState.Error && pagedItems.itemCount == 0) {
-            Box(
+            SharedEmptyState(
+                icon = Icons.Default.ErrorOutline,
+                title = stringResource(Res.string.logs_load_failed),
+                description = (pagedItems.loadState.refresh as LoadState.Error).error.message.orEmpty(),
                 modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = stringResource(Res.string.logs_load_failed),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Button(onClick = { pagedItems.retry() }) {
-                        Text(stringResource(Res.string.retry))
-                    }
-                }
-            }
+                primaryActionLabel = stringResource(Res.string.retry),
+                onPrimaryAction = pagedItems::retry,
+            )
         } else if (pagedItems.itemCount == 0) {
             Box(
                 modifier = Modifier
@@ -126,7 +121,6 @@ fun LogsScreen(
                                 LogItem(
                                     snap = item.snap,
                                     site = site,
-                                    position = ListItemPosition.SINGLE,
                                     onClick = { onSnapClick(item.snap.snapId, site.url) },
                                     onDeleteClick = { snapPendingDeletion = item.snap.snapId },
                                 )

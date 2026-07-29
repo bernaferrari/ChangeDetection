@@ -1,59 +1,60 @@
 [versions]
-activityCompose = "1.12.2"
+activityCompose = "1.13.0"
+# Matches the local Webwright composite, which shares the native browser implementation.
 androidGradlePlugin = "9.2.1"
 androidx-test = "1.7.0"
-browser = "1.9.0"
+browser = "1.10.0"
 coil = "3.5.0"
 commonsText = "1.15.0"
-composeBom = "2026.01.00"
-coroutines = "1.10.2"
-datastore = "1.2.0"
+composeBom = "2026.06.01"
+coroutines = "1.11.0"
+datastore = "1.2.1"
 fastKotlinDiffCore = "1.0.0"
 glance = "1.1.1"
-gradle-versions = "0.53.0"
+gradle-versions = "0.56.0"
 graphicsShapes = "1.1.0"
-hilt = "2.58"
-hilt-android = "1.3.0"
-jetbrainsAndroidxLifecycle = "2.9.6"
-jetbrainsAndroidxNavigation = "2.9.4"
-jetbrainsAndroidxNavigation3Ui = "1.0.0-alpha05"
-jetbrainsCompose = "1.12.0-alpha01"
-jetbrainsComposeAdaptive = "1.3.0-alpha03"
+hilt = "2.60.1"
+hilt-android = "1.4.0"
+jetbrainsAndroidxLifecycle = "2.11.0"
+jetbrainsAndroidxNavigation = "2.9.2"
+jetbrainsAndroidxNavigation3Ui = "1.1.1"
 jetbrainsAndroidxSavedState = "1.4.0"
 jetbrainsAndroidxWindow = "1.5.1"
-jsoup = "1.22.1"
+jetbrainsCompose = "1.12.0-beta03"
+jetbrainsComposeAdaptive = "1.3.0-beta02"
+jsoup = "1.22.2"
 junit = "4.13.2"
-koin = "4.1.1"
-kotlin = "2.3.0"
-kotlinxDatetime = "0.7.1"
-kotlinxSerializationJson = "1.9.0"
-ksp = "2.3.4"
-ktor = "3.3.3"
-ktx = "1.17.0"
+koin = "4.2.2"
+kotlin = "2.4.10"
+kotlinxDatetime = "0.8.0"
+kotlinxSerializationJson = "1.11.0"
+ksp = "2.3.10"
+ktor = "3.5.1"
+ktx = "1.19.0"
 leakcanary = "2.14"
-lifecycle = "2.10.0"
-material3 = "1.5.0-alpha12"
-material3AdaptiveNav3 = "1.3.0-alpha06"
-materialKolor = "4.1.0"
-mockito = "5.21.0"
-mockito-kotlin = "6.2.1"
+lifecycle = "2.11.0"
+material3 = "1.5.0-alpha25"
+material3AdaptiveNav3 = "1.3.0-rc01"
+materialKolor = "5.0.0"
+mockito = "5.23.0"
+mockito-kotlin = "6.3.0"
 napier = "2.7.1"
-nav3 = "1.1.0-alpha02"
-nav3Lifecycle = "2.10.0"
-navigation = "2.9.6"
-okhttp = "5.3.2"
-okio = "3.16.4"
-paging = "3.4.0-rc01"
+nav3 = "1.1.5"
+nav3Lifecycle = "2.11.0"
+navigation = "2.9.8"
+okhttp = "5.4.0"
+okio = "3.18.1"
+paging = "3.5.0"
 paletteKtx = "1.0.0"
 room = "2.8.4"
-spotless = "8.1.0"
-sqldelight = "2.2.1"
+spotless = "8.9.0"
+sqldelight = "2.3.2"
 startup = "1.2.0"
 subsamplingScaleImageView = "3.10.0"
-timeAgo = "4.2.0"
-ui = "1.10.1"
-version-catalog-update = "1.0.1"
-work = "2.11.0"
+timeAgo = "4.3.0"
+ui = "1.11.4"
+version-catalog-update = "1.1.0"
+work = "2.11.2"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -109,20 +110,20 @@ hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hilt-an
 hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hilt-android" }
 hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "hilt-android" }
 jetbrains-androidx-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "jetbrainsAndroidxLifecycle" }
-jetbrains-androidx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "jetbrainsAndroidxLifecycle" }
 jetbrains-androidx-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel", version.ref = "jetbrainsAndroidxLifecycle" }
+jetbrains-androidx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "jetbrainsAndroidxLifecycle" }
 jetbrains-androidx-lifecycle-viewmodel-savedstate = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate", version.ref = "jetbrainsAndroidxLifecycle" }
 jetbrains-androidx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "jetbrainsAndroidxNavigation" }
 jetbrains-androidx-navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "jetbrainsAndroidxNavigation3Ui" }
+jetbrains-androidx-savedstate = { module = "org.jetbrains.androidx.savedstate:savedstate", version.ref = "jetbrainsAndroidxSavedState" }
+jetbrains-androidx-window-core = { module = "org.jetbrains.androidx.window:window-core", version.ref = "jetbrainsAndroidxWindow" }
 jetbrains-compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "jetbrainsCompose" }
 jetbrains-compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "jetbrainsCompose" }
 jetbrains-compose-material-icons-extended = "org.jetbrains.compose.material:material-icons-extended:1.7.3"
-jetbrains-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "jetbrainsCompose" }
+jetbrains-compose-material3 = "org.jetbrains.compose.material3:material3:1.12.0-alpha03"
 jetbrains-compose-material3-adaptive-navigation3 = { module = "org.jetbrains.compose.material3.adaptive:adaptive-navigation3", version.ref = "jetbrainsComposeAdaptive" }
 jetbrains-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "jetbrainsCompose" }
 jetbrains-compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "jetbrainsCompose" }
-jetbrains-androidx-savedstate = { module = "org.jetbrains.androidx.savedstate:savedstate", version.ref = "jetbrainsAndroidxSavedState" }
-jetbrains-androidx-window-core = { module = "org.jetbrains.androidx.window:window-core", version.ref = "jetbrainsAndroidxWindow" }
 # Additional migrated dependencies
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 junit = { module = "junit:junit", version.ref = "junit" }
@@ -138,7 +139,7 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-ksoup = "com.fleeksoft.ksoup:ksoup:0.2.5"
+ksoup = "com.fleeksoft.ksoup:ksoup:0.2.6"
 ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 # Ktor Client (Multiplatform)
@@ -162,7 +163,7 @@ sqldelight-native-driver = { module = "app.cash.sqldelight:native-driver", versi
 # SQLDelight (Multiplatform Database)
 sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
 sqldelight-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
-sqlite-bundled = "androidx.sqlite:sqlite-bundled:2.6.2"
+sqlite-bundled = "androidx.sqlite:sqlite-bundled:2.7.0"
 subsampling-scale-imageview = { module = "com.davemorrissey.labs:subsampling-scale-image-view", version.ref = "subsamplingScaleImageView" }
 timeago = { module = "com.github.marlonlom:timeago", version.ref = "timeAgo" }
 webview-multiplatform = "io.github.kevinnzou:compose-webview-multiplatform:2.0.3"
@@ -175,7 +176,7 @@ android-library = { id = "com.android.library", version.ref = "androidGradlePlug
 android-test = { id = "com.android.test", version.ref = "androidGradlePlugin" }
 androidx-room = { id = "androidx.room", version.ref = "room" }
 compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-gradle-versions = { id = "com.github.ben-manes.versions", version.ref = "gradle-versions" }
+gradle-versions = { id = "io.github.ben-manes.versions", version.ref = "gradle-versions" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 jetbrains-compose = { id = "org.jetbrains.compose", version.ref = "jetbrainsCompose" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

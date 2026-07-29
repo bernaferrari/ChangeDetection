@@ -21,10 +21,13 @@ internal fun SiteAndLastSnap.toSiteStatus(
     hasError: Boolean,
 ): SiteStatus = when {
     isLoading || isSyncing -> SiteStatus.Checking
+
     hasError -> SiteStatus.Error
+
     snap != null && snap.timestamp >= site.timestamp - RECENT_CHANGE_WINDOW_MS -> SiteStatus.Changed(
         ago = getRelativeTimeLabel(snap.timestamp),
     )
+
     else -> SiteStatus.Unchanged(
         lastCheck = site.timestamp.takeIf { it > 0 }?.let { timestamp ->
             getRelativeTimeLabel(timestamp)
