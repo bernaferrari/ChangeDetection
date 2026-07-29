@@ -4,8 +4,6 @@
  */
 package com.bernaferrari.changedetection.ui.comparison
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -19,11 +17,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
@@ -34,7 +29,6 @@ import com.bernaferrari.changedetection.shared.generated.resources.version_count
 import com.bernaferrari.changedetection.shared.generated.resources.version_latest
 import com.bernaferrari.changedetection.shared.generated.resources.version_older
 import com.bernaferrari.changedetection.shared.generated.resources.version_previous
-import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
 import com.bernaferrari.changedetection.ui.theme.spacing
 import com.bernaferrari.changedetection.util.formatTimestamp
 import org.jetbrains.compose.resources.stringResource
@@ -99,25 +93,10 @@ private fun VersionChip(
     onClick: () -> Unit,
 ) {
     val spacing = MaterialTheme.spacing
-    val haptic = LocalHapticFeedback.current
-    val containerColor by animateColorAsState(
-        targetValue = if (isSelected) {
-            MaterialTheme.colorScheme.primaryContainer
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        },
-        animationSpec = spring(
-            dampingRatio = ExpressiveSpring.QUICK_DAMPING,
-            stiffness = ExpressiveSpring.QUICK_STIFFNESS,
-        ),
-        label = "versionChipColor",
-    )
+    val containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh
 
     Surface(
-        onClick = {
-            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-            onClick()
-        },
+        onClick = onClick,
         modifier = Modifier
             .heightIn(min = spacing.touchTarget)
             .semantics {

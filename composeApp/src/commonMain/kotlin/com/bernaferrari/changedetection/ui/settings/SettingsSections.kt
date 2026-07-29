@@ -27,8 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import com.bernaferrari.changedetection.repo.ComparisonMethod
@@ -159,7 +157,6 @@ private fun BrowserDelaySelector(
     onDelaySelected: (Long) -> Unit,
 ) {
     val spacing = MaterialTheme.spacing
-    val haptic = LocalHapticFeedback.current
     val delays = listOf(2000L, 5000L, 10000L, 15000L)
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -185,17 +182,14 @@ private fun BrowserDelaySelector(
                         .selectable(
                             selected = isSelected,
                             role = Role.RadioButton,
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onDelaySelected(delay)
-                            },
+                            onClick = { onDelaySelected(delay) },
                         ),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = formatDelay(delay),
                         style = MaterialTheme.typography.labelLarge,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        fontWeight = FontWeight.Medium,
                         color = if (isSelected) {
                             MaterialTheme.colorScheme.onPrimary
                         } else {

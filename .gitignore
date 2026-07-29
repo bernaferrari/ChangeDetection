@@ -83,6 +83,7 @@ lint/tmp/
 # Secrets and API keys (CRITICAL - NEVER COMMIT)
 *.json
 !gradle/libs.versions.toml
+!package.json
 secrets.properties
 api-*.json
 *-keystore.*
@@ -121,3 +122,4 @@ fabric.properties
 
 # Compose Multiplatform
 compose-resources/build/
+kotlin-js-store/

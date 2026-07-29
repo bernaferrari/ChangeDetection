@@ -13,7 +13,6 @@ import com.bernaferrari.changedetection.SyncWorker
 import com.bernaferrari.changedetection.WorkerHelper
 import com.bernaferrari.changedetection.addedit.AddEditViewModel
 import com.bernaferrari.changedetection.background.MonitoringManager
-import com.bernaferrari.changedetection.browser.InteractiveBrowserViewModel
 import com.bernaferrari.changedetection.error.ErrorHandler
 import com.bernaferrari.changedetection.localBrowser.LocalBrowserViewModel
 import com.bernaferrari.changedetection.notifications.NotificationHelper
@@ -78,7 +77,6 @@ val androidModule: Module =
         viewModel { ThemeViewModel(get()) }
         viewModel { MainViewModel(get(), get(), get(), get(), get()) }
         viewModelOf(::LocalBrowserViewModel)
-        viewModelOf(::InteractiveBrowserViewModel)
         viewModel { (siteId: String?) -> AddEditViewModel(siteId, get(), get()) }
 
         // SettingsViewModel with dependencies

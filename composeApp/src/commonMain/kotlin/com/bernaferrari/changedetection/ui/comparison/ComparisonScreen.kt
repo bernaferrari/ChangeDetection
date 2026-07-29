@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.changedetection.ui.components.SharedEmptyState
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -152,31 +153,20 @@ fun ComparisonScreen(
                 }
             }
 
-            uiState.site == null -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    Text(
-                        text = if (uiState.error != null) {
-                            stringResource(Res.string.comparison_load_failed)
-                        } else {
-                            stringResource(Res.string.site_not_found)
-                        },
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                    if (uiState.error != null) {
-                        Spacer(Modifier.height(12.dp))
-                        Button(onClick = { viewModel.loadSiteAndSnaps(siteId) }) {
-                            Text(stringResource(Res.string.retry))
-                        }
-                    }
-                }
-            }
+            uiState.site == null -> SharedEmptyState(
+                icon = Icons.Default.ErrorOutline,
+                title = if (uiState.error != null) {
+                    stringResource(Res.string.comparison_load_failed)
+                } else {
+                    stringResource(Res.string.site_not_found)
+                },
+                description = uiState.error.orEmpty(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                primaryActionLabel = if (uiState.error != null) stringResource(Res.string.retry) else null,
+                onPrimaryAction = if (uiState.error != null) ({ viewModel.loadSiteAndSnaps(siteId) }) else null,
+            )
 
             uiState.snaps.isEmpty() -> {
                 EmptySnapshotState(

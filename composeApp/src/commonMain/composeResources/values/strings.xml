@@ -24,6 +24,7 @@
     </plurals>
     <string name="select_sites_to_monitor">Select sites below to monitor</string>
     <string name="select_sites">Select sites</string>
+    <string name="select_site_to_view_details">Select a site to view its history</string>
     <string name="monitoring">Monitoring</string>
     <string name="select_all">Select all</string>
     <string name="clear_all">Clear all</string>

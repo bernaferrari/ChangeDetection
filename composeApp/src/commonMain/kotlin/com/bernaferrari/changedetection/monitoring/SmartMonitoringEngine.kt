@@ -392,6 +392,7 @@ class SmartMonitoringEngine {
         // Extract specific content types
         return when (contentType.lowercase()) {
             "text" -> content.replace(Regex("<[^>]+>"), "")
+
             "links" ->
                 Regex("<a[^>]*href\\s*=\\s*[\"']([^\"']*)[\"'][^>]*>([^<]*)</a>")
                     .findAll(content)
@@ -554,10 +555,18 @@ class SmartMonitoringEngine {
         // Simplified language detection based on common words
         val lowerContent = content.lowercase()
         return when {
-            lowerContent.contains("el") && lowerContent.contains("en") && lowerContent.contains("la") -> "es" // Spanish
-            lowerContent.contains("le") && lowerContent.contains("de") && lowerContent.contains("et") -> "fr" // French
-            lowerContent.contains("der") && lowerContent.contains("die") && lowerContent.contains("das") -> "de" // German
-            lowerContent.contains("o") && lowerContent.contains("e") && lowerContent.contains("a") -> "pt" // Portuguese
+            lowerContent.contains("el") && lowerContent.contains("en") && lowerContent.contains("la") -> "es"
+
+            // Spanish
+            lowerContent.contains("le") && lowerContent.contains("de") && lowerContent.contains("et") -> "fr"
+
+            // French
+            lowerContent.contains("der") && lowerContent.contains("die") && lowerContent.contains("das") -> "de"
+
+            // German
+            lowerContent.contains("o") && lowerContent.contains("e") && lowerContent.contains("a") -> "pt"
+
+            // Portuguese
             else -> "en" // Default to English
         }
     }

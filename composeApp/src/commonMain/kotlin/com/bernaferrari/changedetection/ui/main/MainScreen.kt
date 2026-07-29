@@ -48,9 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.background.SyncState
 import com.bernaferrari.changedetection.repo.Site
@@ -68,6 +66,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.refresh_all
 import com.bernaferrari.changedetection.shared.generated.resources.site_deleted
 import com.bernaferrari.changedetection.shared.generated.resources.start_monitoring
 import com.bernaferrari.changedetection.shared.generated.resources.start_monitoring_description
+import com.bernaferrari.changedetection.shared.generated.resources.turbo_mode
 import com.bernaferrari.changedetection.shared.generated.resources.undo
 import com.bernaferrari.changedetection.ui.components.ConfirmDialog
 import com.bernaferrari.changedetection.ui.components.ErrorBanner
@@ -82,6 +81,7 @@ import org.jetbrains.compose.resources.stringResource
 fun MainScreen(
     viewModel: MainViewModel,
     onAddSite: () -> Unit,
+    onOpenTurbo: () -> Unit,
     onLearnHowItWorks: () -> Unit,
     onSiteClick: (Site) -> Unit,
     onSiteEdit: (Site) -> Unit,
@@ -92,7 +92,6 @@ fun MainScreen(
     val loadingSites by viewModel.loadingSites.collectAsState()
     val syncStatus by viewModel.syncStatusFlow.collectAsState(initial = emptyList())
     val currentError by viewModel.currentError.collectAsState()
-    val haptic = LocalHapticFeedback.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -120,6 +119,7 @@ fun MainScreen(
                         duration = SnackbarDuration.Short,
                     )
                 }
+
                 is UiMessage.Error -> {
                     snackbarHostState.showSnackbar(
                         message = message.message,
@@ -179,10 +179,15 @@ fun MainScreen(
                 },
                 actions = {
                     if (!sites.isNullOrEmpty()) {
-                        IconButton(onClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.refreshAllSites()
-                        }) {
+                        IconButton(
+                            onClick = onOpenTurbo,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Bolt,
+                                contentDescription = stringResource(Res.string.turbo_mode),
+                            )
+                        }
+                        IconButton(onClick = viewModel::refreshAllSites) {
                             Icon(
                                 imageVector = Icons.Default.Refresh,
                                 contentDescription = stringResource(Res.string.refresh_all),
@@ -200,10 +205,7 @@ fun MainScreen(
         floatingActionButton = {
             if (!sites.isNullOrEmpty()) {
                 FloatingActionButton(
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onAddSite()
-                    },
+                    onClick = onAddSite,
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 ) {
@@ -257,10 +259,7 @@ fun MainScreen(
                         loadingSites = loadingSites,
                         syncErrors = syncStatus.filter { it.state == SyncState.FAILED }.map { it.tags }.flatten().toSet(),
                         onSiteClick = { siteAndSnap -> onSiteClick(siteAndSnap.site) },
-                        onSiteRefresh = { siteAndSnap ->
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.reloadSite(siteAndSnap.site)
-                        },
+                        onSiteRefresh = { siteAndSnap -> viewModel.reloadSite(siteAndSnap.site) },
                         onSiteEdit = { siteAndSnap -> onSiteEdit(siteAndSnap.site) },
                         onSiteDelete = { siteAndSnap ->
                             siteToDelete = siteAndSnap
@@ -330,7 +329,6 @@ private fun SitesList(
 ) {
     val spacing = MaterialTheme.spacing
     var showOptionsFor by remember { mutableStateOf<SiteAndLastSnap?>(null) }
-    val haptic = LocalHapticFeedback.current
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
@@ -353,12 +351,8 @@ private fun SitesList(
                         isLoadingSite = loadingSites.contains(siteAndSnap.site.id),
                         hasError = syncErrors.contains(siteAndSnap.site.id),
                         onClick = { onSiteClick(siteAndSnap) },
-                        onLongClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            showOptionsFor = siteAndSnap
-                        },
+                        onLongClick = { showOptionsFor = siteAndSnap },
                         onMoreClick = { showOptionsFor = siteAndSnap },
-                        modifier = Modifier.animateItem(),
                     )
                 }
             }
@@ -378,12 +372,8 @@ private fun SitesList(
                         isLoadingSite = loadingSites.contains(siteAndSnap.site.id),
                         hasError = syncErrors.contains(siteAndSnap.site.id),
                         onClick = { onSiteClick(siteAndSnap) },
-                        onLongClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            showOptionsFor = siteAndSnap
-                        },
+                        onLongClick = { showOptionsFor = siteAndSnap },
                         onMoreClick = { showOptionsFor = siteAndSnap },
-                        modifier = Modifier.animateItem(),
                     )
                 }
             }
