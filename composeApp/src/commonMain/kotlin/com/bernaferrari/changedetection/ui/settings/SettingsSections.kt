@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import com.bernaferrari.changedetection.model.ThemeMode
 import com.bernaferrari.changedetection.repo.ComparisonMethod
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.how_it_works
@@ -50,8 +51,8 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun AppearanceSettingsSection(
-    selectedTheme: String,
-    onThemeSelected: (String) -> Unit,
+    selectedTheme: ThemeMode,
+    onThemeSelected: (ThemeMode) -> Unit,
 ) {
     SettingsSectionHeader(
         title = stringResource(Res.string.settings_section_appearance),

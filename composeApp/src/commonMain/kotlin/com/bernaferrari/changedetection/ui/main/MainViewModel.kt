@@ -17,10 +17,10 @@ import com.bernaferrari.changedetection.background.MonitoringManager
 import com.bernaferrari.changedetection.background.SyncState
 import com.bernaferrari.changedetection.error.ErrorEvent
 import com.bernaferrari.changedetection.error.ErrorHandler
+import com.bernaferrari.changedetection.error.ErrorContext
 import com.bernaferrari.changedetection.repo.ContentTypeInfo
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
-import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import io.github.aakira.napier.Napier
@@ -40,12 +40,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
 
-/**
- * Sealed class for UI messages (success/error feedback)
- */
 sealed class UiMessage {
-    data class Success(val message: String) : UiMessage()
-    data class Error(val message: String) : UiMessage()
+    data object SnapshotsPruned : UiMessage()
 }
 
 @OptIn(ExperimentalUuidApi::class)
@@ -56,8 +52,6 @@ class MainViewModel(
     private val dataStore: DataStore<Preferences>,
     private val errorHandler: ErrorHandler,
 ) : ViewModel() {
-
-    internal var shouldSyncWhenAppOpen = true
 
     val syncStatusFlow = monitoringManager.getSyncStatusFlow()
 
@@ -80,44 +74,36 @@ class MainViewModel(
         _pendingDeletionSiteIds.update { it - site.id }
     }
 
-    fun onConfirmDeleteSite(site: Site) = viewModelScope.launch {
-        _pendingDeletionSiteIds.update { it - site.id }
-        runCatching {
-            mSnapsRepository.deleteAllSnaps(site.id)
-            mSitesRepository.deleteSite(site.id)
-        }.onFailure { error ->
-            _currentError.value = errorHandler.handleError(
-                error,
-                com.bernaferrari.changedetection.error.ErrorContext.DELETE_SITE,
-                "delete_site_${site.id}",
-                site.id,
-            ).let { result ->
-                ErrorEvent(
-                    id = kotlin.uuid.Uuid.random().toString(),
-                    type = result.type,
-                    severity = result.severity,
-                    message = result.userMessage,
-                    description = result.description,
-                    context = com.bernaferrari.changedetection.error.ErrorContext.DELETE_SITE,
-                    userAction = "delete_site",
+    fun onConfirmDeleteSite(site: Site) {
+        viewModelScope.launch {
+            _pendingDeletionSiteIds.update { it - site.id }
+            runCatching {
+                mSnapsRepository.deleteAllSnaps(site.id)
+                mSitesRepository.deleteSite(site.id)
+            }.onFailure { error ->
+                showError(
+                    error = error,
+                    context = ErrorContext.DELETE_SITE,
                     siteId = site.id,
-                    timestamp = Clock.System.now().toEpochMilliseconds(),
-                    isRetryable = result.isRetryable,
-                    recoveryAction = result.recoveryAction,
-                    suggestedActions = result.suggestedActions,
+                    retryAction = { onConfirmDeleteSite(site) },
                 )
             }
         }
     }
 
-    fun removeSite(site: Site) = onConfirmDeleteSite(site) // Legacy/Direct delete if needed
-
-    fun pruneSite(siteId: String) = viewModelScope.launch {
-        runCatching {
-            mSnapsRepository.pruneSnaps(siteId)
-            _uiMessage.tryEmit(UiMessage.Success("Old snapshots removed"))
-        }.onFailure { error ->
-            showError(error, com.bernaferrari.changedetection.error.ErrorContext.GENERAL, siteId)
+    fun pruneSite(siteId: String) {
+        viewModelScope.launch {
+            runCatching {
+                mSnapsRepository.pruneSnaps(siteId)
+                _uiMessage.tryEmit(UiMessage.SnapshotsPruned)
+            }.onFailure { error ->
+                showError(
+                    error = error,
+                    context = ErrorContext.GENERAL,
+                    siteId = siteId,
+                    retryAction = { pruneSite(siteId) },
+                )
+            }
         }
     }
 
@@ -125,30 +111,44 @@ class MainViewModel(
         runCatching {
             mSnapsRepository.deleteSnapsForSiteIdAndContentType(siteId, contentType)
         }.onFailure { error ->
-            showError(error, com.bernaferrari.changedetection.error.ErrorContext.GENERAL, siteId)
+            showError(error, ErrorContext.GENERAL, siteId)
         }
     }
 
-    fun saveSite(site: Site) = viewModelScope.launch {
-        runCatching {
-            mSitesRepository.saveSite(site)
-        }.onFailure { error ->
-            showError(error, com.bernaferrari.changedetection.error.ErrorContext.ADD_SITE, site.id)
+    fun saveSite(site: Site) {
+        viewModelScope.launch {
+            runCatching {
+                mSitesRepository.saveSite(site)
+            }.onFailure { error ->
+                showError(
+                    error = error,
+                    context = ErrorContext.ADD_SITE,
+                    siteId = site.id,
+                    retryAction = { saveSite(site) },
+                )
+            }
         }
     }
 
     suspend fun getRecentContentTypes(siteId: String): List<ContentTypeInfo> = runCatching {
         mSnapsRepository.getContentTypeInfo(siteId)
     }.getOrElse { error ->
-        showError(error, com.bernaferrari.changedetection.error.ErrorContext.GENERAL, siteId)
+        showError(error, ErrorContext.GENERAL, siteId)
         emptyList()
     }
 
-    fun updateSite(site: Site) = viewModelScope.launch {
-        runCatching {
-            mSitesRepository.updateSite(site)
-        }.onFailure { error ->
-            showError(error, com.bernaferrari.changedetection.error.ErrorContext.EDIT_SITE, site.id)
+    fun updateSite(site: Site) {
+        viewModelScope.launch {
+            runCatching {
+                mSitesRepository.updateSite(site)
+            }.onFailure { error ->
+                showError(
+                    error = error,
+                    context = ErrorContext.EDIT_SITE,
+                    siteId = site.id,
+                    retryAction = { updateSite(site) },
+                )
+            }
         }
     }
 
@@ -159,9 +159,6 @@ class MainViewModel(
     // StateFlow for tracking sites pending deletion (Undo feature)
     private val _pendingDeletionSiteIds = MutableStateFlow<Set<String>>(emptySet())
 
-    /**
-     * OPTIMIZATION: Efficiently combines sites with their most recent snapshots.
-     */
     val sitesFlow: StateFlow<List<SiteAndLastSnap>?> = combine(
         mSitesRepository.getDataWithChanges(),
         _loadingSites.asStateFlow(),
@@ -263,12 +260,6 @@ class MainViewModel(
         }
     }
 
-    private suspend fun getLastSnap(siteId: String): Snap? = mSnapsRepository.getMostRecentSnap(siteId)
-
-    suspend fun getAllSites(): List<Site> = mSitesRepository.getSites()
-
-    suspend fun isAlreadyMonitoringSite(id: String, url: String): Boolean = mSitesRepository.getSiteByUrl(url) != null || mSitesRepository.getSiteById(id) != null
-
     fun reloadSite(site: Site) {
         viewModelScope.launch {
             scheduleSiteReload(site)
@@ -277,7 +268,15 @@ class MainViewModel(
 
     fun refreshAllSites() {
         viewModelScope.launch {
-            val sites = runCatching { mSitesRepository.getSites() }.getOrDefault(emptyList())
+            val sites = runCatching { mSitesRepository.getSites() }
+                .onFailure { error ->
+                    showError(
+                        error = error,
+                        context = ErrorContext.GENERAL,
+                        retryAction = ::refreshAllSites,
+                    )
+                }.getOrNull()
+                ?: return@launch
             if (sites.isEmpty()) return@launch
 
             sites.forEach { site ->
@@ -303,8 +302,13 @@ class MainViewModel(
             // Monitor work completion without blocking caller
             monitorSiteWorkCompletionAsync(site.id)
         } catch (e: Exception) {
-            // Remove from loading state on error
             _loadingSites.update { it - site.id }
+            showError(
+                error = e,
+                context = ErrorContext.GENERAL,
+                siteId = site.id,
+                retryAction = { reloadSite(site) },
+            )
         }
     }
 
@@ -336,10 +340,9 @@ class MainViewModel(
         }
     }
 
-    // Quick Monitor functions - simple, fast monitoring
     fun startQuickMonitor(siteIds: Set<String>, intervalSeconds: Int = 15) {
         viewModelScope.launch {
-            Napier.d("🚀 MainViewModel: Starting Quick Monitor for ${siteIds.size} sites: $siteIds")
+            Napier.d("Starting quick monitor for ${siteIds.size} sites")
 
             dataStore.edit { preferences ->
                 preferences[QUICK_MONITOR_ACTIVE_KEY] = true
@@ -347,17 +350,13 @@ class MainViewModel(
                 preferences[QUICK_MONITOR_START_TIME_KEY] = getNow()
                 preferences[QUICK_MONITOR_INTERVAL_KEY] = intervalSeconds
             }
-            Napier.d("💾 MainViewModel: Quick Monitor state saved to DataStore")
-
-            // Start quick monitoring with selected interval
             monitoringManager.startQuickMonitor(siteIds.toList(), intervalSeconds = intervalSeconds)
-            Napier.d("⚡ MainViewModel: monitoringManager.startQuickMonitor called")
         }
     }
 
     fun stopQuickMonitor() {
         viewModelScope.launch {
-            Napier.d("⏹️ MainViewModel: Stopping Quick Monitor")
+            Napier.d("Stopping quick monitor")
 
             dataStore.edit { preferences ->
                 preferences[QUICK_MONITOR_ACTIVE_KEY] = false
@@ -365,10 +364,7 @@ class MainViewModel(
                 preferences[QUICK_MONITOR_START_TIME_KEY] = 0L
                 preferences[QUICK_MONITOR_INTERVAL_KEY] = 15
             }
-            Napier.d("💾 MainViewModel: Quick Monitor state cleared from DataStore")
-
             monitoringManager.stopQuickMonitor()
-            Napier.d("⏹️ MainViewModel: monitoringManager.stopQuickMonitor called")
         }
     }
 
@@ -379,10 +375,12 @@ class MainViewModel(
      */
     private fun showError(
         error: Throwable,
-        context: com.bernaferrari.changedetection.error.ErrorContext,
+        context: ErrorContext,
         siteId: String? = null,
+        retryAction: (() -> Unit)? = null,
     ) {
         val result = errorHandler.handleError(error, context, siteId = siteId)
+        pendingRetryAction = retryAction?.takeIf { result.isRetryable }
         _currentError.value = ErrorEvent(
             id = kotlin.uuid.Uuid.random().toString(),
             type = result.type,
@@ -393,7 +391,7 @@ class MainViewModel(
             userAction = null,
             siteId = siteId,
             timestamp = Clock.System.now().toEpochMilliseconds(),
-            isRetryable = result.isRetryable,
+            isRetryable = pendingRetryAction != null,
             recoveryAction = result.recoveryAction,
             suggestedActions = result.suggestedActions,
         )
@@ -411,15 +409,9 @@ class MainViewModel(
      * Retry the last failed action.
      */
     fun retryLastAction() {
-        pendingRetryAction?.invoke()
+        val retryAction = pendingRetryAction ?: return
         dismissError()
-    }
-
-    /**
-     * Set a pending retry action for error recovery.
-     */
-    fun setPendingRetry(action: () -> Unit) {
-        pendingRetryAction = action
+        retryAction()
     }
 }
 

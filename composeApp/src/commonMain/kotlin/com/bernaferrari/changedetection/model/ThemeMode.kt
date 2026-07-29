@@ -17,10 +17,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import org.jetbrains.compose.resources.StringResource
 
-/**
- * 🎨 Beautiful Theme Mode Options - The Perfect Visual Experience!
- * Supports Material You dynamic theming with gorgeous fallbacks.
- */
+/** Theme choices shared by Settings and the application theme. */
 enum class ThemeMode(
     val titleRes: StringResource,
     val descriptionRes: StringResource,
@@ -51,4 +48,10 @@ enum class ThemeMode(
         icon = Icons.Outlined.DarkMode,
         selectedIcon = Icons.Filled.DarkMode,
     ),
+
+    ;
+
+    companion object {
+        fun fromStoredName(value: String?): ThemeMode = entries.firstOrNull { it.name == value } ?: SYSTEM
+    }
 }

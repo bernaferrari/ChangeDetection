@@ -63,6 +63,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.delete
 import com.bernaferrari.changedetection.shared.generated.resources.delete_site_message
 import com.bernaferrari.changedetection.shared.generated.resources.delete_site_title
 import com.bernaferrari.changedetection.shared.generated.resources.refresh_all
+import com.bernaferrari.changedetection.shared.generated.resources.pruned_snapshots
 import com.bernaferrari.changedetection.shared.generated.resources.site_deleted
 import com.bernaferrari.changedetection.shared.generated.resources.start_monitoring
 import com.bernaferrari.changedetection.shared.generated.resources.start_monitoring_description
@@ -87,6 +88,7 @@ fun MainScreen(
     modifier: Modifier = Modifier,
 ) {
     val sites by viewModel.sitesFlow.collectAsState()
+    val siteItems = sites
     val quickMonitorState by viewModel.quickMonitorState.collectAsState()
     val loadingSites by viewModel.loadingSites.collectAsState()
     val syncStatus by viewModel.syncStatusFlow.collectAsState(initial = emptyList())
@@ -97,6 +99,7 @@ fun MainScreen(
 
     // Pre-compute string resources for use in coroutines
     val connectionErrorString = stringResource(Res.string.connection_error)
+    val snapshotsPrunedString = stringResource(Res.string.pruned_snapshots)
     val siteDeletedString = stringResource(Res.string.site_deleted)
     val undoString = stringResource(Res.string.undo)
 
@@ -112,17 +115,10 @@ fun MainScreen(
     LaunchedEffect(Unit) {
         viewModel.uiMessage.collect { message ->
             when (message) {
-                is UiMessage.Success -> {
+                UiMessage.SnapshotsPruned -> {
                     snackbarHostState.showSnackbar(
-                        message = message.message,
+                        message = snapshotsPrunedString,
                         duration = SnackbarDuration.Short,
-                    )
-                }
-
-                is UiMessage.Error -> {
-                    snackbarHostState.showSnackbar(
-                        message = message.message,
-                        duration = SnackbarDuration.Long,
                     )
                 }
             }
@@ -153,7 +149,7 @@ fun MainScreen(
                     )
                 },
                 actions = {
-                    if (!sites.isNullOrEmpty()) {
+                    if (!siteItems.isNullOrEmpty()) {
                         IconButton(
                             onClick = onOpenTurbo,
                         ) {
@@ -178,7 +174,7 @@ fun MainScreen(
             )
         },
         floatingActionButton = {
-            if (!sites.isNullOrEmpty()) {
+            if (!siteItems.isNullOrEmpty()) {
                 FloatingActionButton(
                     onClick = onAddSite,
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -195,7 +191,7 @@ fun MainScreen(
             SnackbarHost(hostState = snackbarHostState)
         },
     ) { paddingValues ->
-        if (sites == null) {
+        if (siteItems == null) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -206,7 +202,7 @@ fun MainScreen(
                     modifier = Modifier.padding(24.dp),
                 )
             }
-        } else if (sites!!.isEmpty()) {
+        } else if (siteItems.isEmpty()) {
             SharedEmptyState(
                 icon = Icons.Rounded.Bolt,
                 title = stringResource(Res.string.start_monitoring),
@@ -229,7 +225,7 @@ fun MainScreen(
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     SitesList(
-                        sites = sites!!,
+                        sites = siteItems,
                         quickMonitorSiteIds = quickMonitorState.siteIds,
                         loadingSites = loadingSites,
                         syncErrors = syncStatus.filter { it.state == SyncState.FAILED }.map { it.tags }.flatten().toSet(),
@@ -257,8 +253,8 @@ fun MainScreen(
     }
 
     // Delete confirmation dialog
-    if (showDeleteDialog && siteToDelete != null) {
-        val site = siteToDelete!!.site
+    siteToDelete?.takeIf { showDeleteDialog }?.let { siteAndSnap ->
+        val site = siteAndSnap.site
         ConfirmDialog(
             visible = true,
             onDismiss = {

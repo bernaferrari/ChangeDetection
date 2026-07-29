@@ -15,6 +15,11 @@ object UnifiedDiffUtils {
         Regex("^@@\\s+-(\\d+)(?:,(\\d+))?\\s+\\+(\\d+)(?:,(\\d+))?\\s+@@.*$")
     private const val NULL_FILE_INDICATOR = "/dev/null"
 
+    private data class DiffRange(
+        val originalStart: Int,
+        val originalCount: Int,
+    )
+
     fun parseUnifiedDiff(diff: List<String>): Patch<String> {
         var inPrelude = true
         val rawChunk = mutableListOf<Array<String>>()
@@ -294,54 +299,30 @@ object UnifiedDiffUtils {
             val nextDiff = if (i == diffList.size - 1) null else diffList[i + 1]
             val simb = (if (i == 0) diff.getOrNull(2) else diff.firstOrNull()) ?: continue
             val nextSimb = nextDiff?.firstOrNull()
-            insert(result, diff)
-            val map = getRowMap(simb)
-            if (nextSimb != null) {
-                val nextMap = getRowMap(nextSimb)
-                var start = if (map["orgRow"] != 0) map["orgRow"]!! + map["orgDel"]!! - 1 else 0
-                val end = nextMap["revRow"]!! - 2
-                insert(result, getOrigList(original, start, end))
+            result.addAll(diff)
+            val range = parseDiffRange(simb) ?: continue
+            val nextRange = nextSimb?.let(::parseDiffRange)
+            if (nextRange != null) {
+                val start = if (range.originalStart != 0) range.originalStart + range.originalCount - 1 else 0
+                val end = nextRange.originalStart - 2
+                result.addAll(getOrigList(original, start, end))
             }
-            var start = map["orgRow"]!! + map["orgDel"]!! - 1
+            var start = range.originalStart + range.originalCount - 1
             if (start == -1) start = 0
-            if (simb.contains("@@ -1,") && nextSimb == null && map["orgDel"] != original.size) {
-                insert(result, getOrigList(original, start, original.size - 1))
+            if (simb.contains("@@ -1,") && nextSimb == null && range.originalCount != original.size) {
+                result.addAll(getOrigList(original, start, original.size - 1))
             } else if (nextSimb == null && start < original.size) {
-                insert(result, getOrigList(original, start, original.size - 1))
+                result.addAll(getOrigList(original, start, original.size - 1))
             }
         }
     }
 
-    private fun insert(
-        result: MutableList<String>,
-        content: List<String>,
-    ) {
-        result.addAll(content)
-    }
-
-    private fun getRowMap(header: String): Map<String, Int> {
-        val map = HashMap<String, Int>()
-        if (header.startsWith("@@")) {
-            val sections = header.split(" ")
-            val org = sections[1]
-            val orgSplit = org.split(",")
-            // orgSplit[0] is like -1 or -34. substring(1) removes -?
-            // "@@ -1,3 +1,4 @@"
-            // org = "-1,3"
-            // orgSplit[0] = "-1". substring(1) -> "1".
-            map["orgRow"] = orgSplit[0].substring(1).toInt()
-            map["orgDel"] = orgSplit.getOrNull(1)?.toInt() ?: 1 // Handle missing count?
-            // Original code: map["orgDel"] = orgSplit[1].toInt()
-            // Was original code assuming comma always exists?
-            // The regex allows optional comma. If split gives size 1, index 1 fails.
-            // I should handle it. Unified diff defaults to 1 if missing.
-
-            val rev = sections[2]
-            val revSplit = rev.split(",")
-            map["revRow"] = revSplit[0].substring(1).toInt() // +1 comes as "+1" -> substring(1) -> "1"
-            map["revAdd"] = revSplit.getOrNull(1)?.toInt() ?: 1
-        }
-        return map
+    private fun parseDiffRange(header: String): DiffRange? {
+        val match = UNIFIED_DIFF_CHUNK_REGEXP.matchEntire(header) ?: return null
+        val originalStart = match.groups[1]?.value?.toIntOrNull() ?: return null
+        val originalCount = match.groups[2]?.value?.toIntOrNull() ?: 1
+        if (match.groups[3]?.value?.toIntOrNull() == null) return null
+        return DiffRange(originalStart, originalCount)
     }
 
     private fun getOrigList(

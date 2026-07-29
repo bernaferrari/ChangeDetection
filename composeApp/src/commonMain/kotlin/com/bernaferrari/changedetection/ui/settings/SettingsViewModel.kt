@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.background.MonitoringManager
 import com.bernaferrari.changedetection.repo.ComparisonMethod
+import com.bernaferrari.changedetection.model.ThemeMode
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -27,7 +28,7 @@ data class SettingsUiState(
     val requireCharging: Boolean = false,
     val requireBatteryNotLow: Boolean = false,
     val requireDeviceIdle: Boolean = false,
-    val themeMode: String = "MATERIAL_YOU",
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val comparisonMethod: ComparisonMethod = ComparisonMethod.HTML,
     val browserDelayMs: Long = 5000,
 )
@@ -58,7 +59,9 @@ class SettingsViewModel(
                     requireCharging = preferences[REQUIRE_CHARGING_KEY] ?: false,
                     requireBatteryNotLow = preferences[REQUIRE_BATTERY_NOT_LOW_KEY] ?: false,
                     requireDeviceIdle = preferences[REQUIRE_DEVICE_IDLE_KEY] ?: false,
-                    themeMode = preferences[THEME_MODE_KEY] ?: "MATERIAL_YOU",
+                    themeMode = preferences[THEME_MODE_KEY]
+                        ?.let(ThemeMode::fromStoredName)
+                        ?: ThemeMode.SYSTEM,
                     comparisonMethod =
                     runCatching {
                         ComparisonMethod.valueOf(preferences[COMPARISON_METHOD_KEY] ?: ComparisonMethod.HTML.name)
@@ -122,10 +125,10 @@ class SettingsViewModel(
         }
     }
 
-    fun updateThemeMode(themeMode: String) {
+    fun updateThemeMode(themeMode: ThemeMode) {
         viewModelScope.launch {
             dataStore.edit { preferences ->
-                preferences[THEME_MODE_KEY] = themeMode
+                preferences[THEME_MODE_KEY] = themeMode.name
             }
         }
     }
