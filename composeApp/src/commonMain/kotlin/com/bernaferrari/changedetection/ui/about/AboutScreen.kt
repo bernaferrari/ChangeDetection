@@ -5,7 +5,6 @@
 package com.bernaferrari.changedetection.ui.about
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Code
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,11 +28,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -45,16 +43,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.*
+import com.bernaferrari.changedetection.ui.theme.spacing
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -67,6 +62,7 @@ fun AboutScreen(
     onContactClick: () -> Unit,
     onLicenseUrlClick: (String) -> Unit,
 ) {
+    val spacing = MaterialTheme.spacing
     var showLicensesDialog by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -100,17 +96,17 @@ fun AboutScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+                .padding(horizontal = spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(spacing.lg),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            item { Spacer(modifier = Modifier.height(16.dp)) }
+            item { Spacer(modifier = Modifier.height(spacing.md)) }
 
             // App Info Section
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
+                    shape = MaterialTheme.shapes.large,
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer,
                     ),
@@ -118,47 +114,35 @@ fun AboutScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(28.dp),
+                            .padding(spacing.lg),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(spacing.md),
                     ) {
                         Text(
-                            text = "Change Detection",
-                            style = MaterialTheme.typography.headlineMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 28.sp,
-                            ),
+                            text = stringResource(Res.string.app_name),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary,
                             textAlign = TextAlign.Center,
                         )
 
                         Text(
-                            text = buildAnnotatedString {
-                                append(stringResource(Res.string.about_designed_by))
-                                append("\n")
-                                pushStyle(
-                                    SpanStyle(
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 20.sp,
-                                        color = MaterialTheme.colorScheme.primary,
-                                    ),
-                                )
-                                append(stringResource(Res.string.about_developer_name))
-                                pop()
-                            },
+                            text = "${stringResource(Res.string.about_designed_by)}\n" +
+                                stringResource(Res.string.about_developer_name),
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold,
                         )
 
                         // Social Links
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
                             modifier = Modifier
                                 .background(
                                     MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                                    RoundedCornerShape(16.dp),
+                                    MaterialTheme.shapes.medium,
                                 )
-                                .padding(16.dp),
+                                .padding(spacing.md),
                         ) {
                             SocialLink("GitHub", Res.drawable.github_logo) {
                                 onSocialClick("https://github.com/bernaferrari")
@@ -174,48 +158,28 @@ fun AboutScreen(
                             }
                         }
 
-                        Text(
-                            text = buildAnnotatedString {
-                                append(stringResource(Res.string.about_open_source_disclaimer))
+                        AboutOpenSourceLink(
+                            label = stringResource(Res.string.about_open_source_disclaimer),
+                            onClick = {
+                                onGitHubClick("https://github.com/bernaferrari/ChangeDetection")
                             },
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .clickable {
-                                    onGitHubClick("https://github.com/bernaferrari/ChangeDetection")
-                                }
-                                .alpha(0.9f),
                         )
                     }
                 }
-                AssistChip(
-                    onClick = {
-                        onGitHubClick("https://github.com/bernaferrari/ChangeDetection")
-                    },
-                    label = { Text(stringResource(Res.string.about_view_on_github)) },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                        )
-                    },
-                    modifier = Modifier.padding(top = 8.dp),
-                )
             }
 
             // Action Buttons
             item {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(spacing.sm),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Button(
                         onClick = onContactClick,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(52.dp),
-                        shape = RoundedCornerShape(16.dp),
+                            .height(spacing.touchTarget),
+                        shape = MaterialTheme.shapes.medium,
                     ) {
                         Text(
                             text = stringResource(Res.string.about_contact_developer),
@@ -229,15 +193,15 @@ fun AboutScreen(
                         onClick = { showLicensesDialog = true },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(52.dp),
-                        shape = RoundedCornerShape(16.dp),
+                            .height(spacing.touchTarget),
+                        shape = MaterialTheme.shapes.medium,
                     ) {
                         Icon(
                             imageVector = Icons.Default.Code,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(spacing.xs))
                         Text(
                             text = stringResource(Res.string.about_view_licenses),
                             style = MaterialTheme.typography.titleMedium,
@@ -246,7 +210,7 @@ fun AboutScreen(
                 }
             }
 
-            item { Spacer(modifier = Modifier.height(16.dp)) }
+            item { Spacer(modifier = Modifier.height(spacing.md)) }
         }
     }
 
@@ -255,6 +219,40 @@ fun AboutScreen(
             onDismiss = { showLicensesDialog = false },
             onUrlClick = onLicenseUrlClick,
         )
+    }
+}
+
+@Composable
+private fun AboutOpenSourceLink(
+    label: String,
+    onClick: () -> Unit,
+) {
+    val spacing = MaterialTheme.spacing
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = spacing.md, vertical = spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp),
+            )
+            Text(
+                text = label,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Start,
+            )
+        }
     }
 }
 
@@ -268,11 +266,9 @@ private fun SocialLink(
         onClick = onClick,
         modifier = Modifier.size(48.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = IconButtonColors(
+        colors = IconButtonDefaults.filledIconButtonColors(
             containerColor = MaterialTheme.colorScheme.background,
             contentColor = MaterialTheme.colorScheme.primary,
-            disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-            disabledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.12f),
         ),
     ) {
         Icon(
