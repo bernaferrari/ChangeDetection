@@ -25,7 +25,7 @@ const steps = [
     icon: Bell,
     title: "Get Notified",
     description:
-      "The moment something changes, you get a notification. Open the app to see exactly what's different.",
+      "When a check detects an update, you get a notification. Open the app to see exactly what’s different.",
     color: "from-amber-500/20 to-amber-500/5",
   },
 ];
@@ -56,7 +56,7 @@ export function HowItWorks() {
             <span className="text-gradient">1-2-3</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            Set it up once and forget about it. We handle the monitoring so you don't have to.
+            Set it up once and forget about it. We handle the monitoring so you don’t have to.
           </p>
         </motion.div>
 

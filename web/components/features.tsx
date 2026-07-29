@@ -9,7 +9,6 @@ import {
   History,
   Wifi,
   Palette,
-  MousePointer2,
   FileText,
   ImageIcon,
   Sparkles,
@@ -27,10 +26,10 @@ const categories = [
 const features = {
   monitoring: [
     {
-      icon: MousePointer2,
-      title: "Element Selector",
+      icon: Shield,
+      title: "On-device Monitoring",
       description:
-        "Focus on what matters. Select specific page elements instead of monitoring the entire page.",
+        "Checks, snapshots, and comparisons stay on your device. No account or cloud service required.",
     },
     {
       icon: Zap,
@@ -48,9 +47,9 @@ const features = {
   notifications: [
     {
       icon: Bell,
-      title: "Instant Notifications",
+      title: "Change Notifications",
       description:
-        "Get notified the moment any tracked website changes. Never miss an important update.",
+        "Get notified when a scheduled or Turbo check detects a website update.",
     },
     {
       icon: Wifi,
@@ -62,7 +61,7 @@ const features = {
       icon: Clock,
       title: "Flexible Scheduling",
       description:
-        "Set custom sync intervals per website. From minutes to days, you're in control.",
+        "Choose a background sync interval, or start a short Turbo session when seconds matter.",
     },
   ],
   comparison: [
@@ -119,13 +118,13 @@ export function Features() {
 
         {/* Category Tabs */}
         <div className="flex justify-center mb-12">
-          <div className="inline-flex p-1 rounded-xl bg-muted/50 border border-border">
+          <div className="grid w-full max-w-md grid-cols-3 p-1 rounded-xl bg-muted/50 border border-border">
             {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setActiveCategory(category.id)}
                 className={cn(
-                  "relative flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-300",
+                  "relative flex items-center justify-center gap-2 px-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300",
                   activeCategory === category.id
                     ? "text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -188,7 +187,7 @@ export function Features() {
           </div>
           <div className="flex items-center gap-2">
             <Shield size={16} className="text-primary" />
-            <span>100% local & private</span>
+            <span>Local snapshots & history</span>
           </div>
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-primary" />

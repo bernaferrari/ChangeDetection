@@ -10,7 +10,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -22,8 +21,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,7 +59,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -74,7 +71,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -84,12 +80,15 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.Role
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.add_sites_to_monitor
+import com.bernaferrari.changedetection.shared.generated.resources.add_first_site
 import com.bernaferrari.changedetection.shared.generated.resources.got_it
 import com.bernaferrari.changedetection.shared.generated.resources.how_it_works
+import com.bernaferrari.changedetection.shared.generated.resources.label_interval
 import com.bernaferrari.changedetection.shared.generated.resources.monitoring
 import com.bernaferrari.changedetection.shared.generated.resources.no_sites_yet
 import com.bernaferrari.changedetection.shared.generated.resources.select_sites
@@ -98,11 +97,15 @@ import com.bernaferrari.changedetection.shared.generated.resources.stop
 import com.bernaferrari.changedetection.shared.generated.resources.turbo_help_text
 import com.bernaferrari.changedetection.shared.generated.resources.turbo_help_title
 import com.bernaferrari.changedetection.shared.generated.resources.turbo_mode
+import com.bernaferrari.changedetection.shared.generated.resources.clear_all
+import com.bernaferrari.changedetection.shared.generated.resources.select_all
+import com.bernaferrari.changedetection.shared.generated.resources.turbo_active_sites
+import com.bernaferrari.changedetection.shared.generated.resources.turbo_mode_selected_sites
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
 import com.bernaferrari.changedetection.ui.theme.CornerRadius
 import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
-import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.pluralStringResource
 
 private data class IntervalOption(val seconds: Int, val label: String)
 
@@ -119,13 +122,14 @@ fun TurboScreen(
     sites: List<SiteAndLastSnap>,
     quickMonitorState: QuickMonitorState,
     isLoading: Boolean = false,
+    onAddSite: () -> Unit,
     onStartTurbo: (siteIds: Set<String>, intervalSeconds: Int) -> Unit,
     onStopTurbo: () -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
     val isRunning = quickMonitorState.isActive
     var selectedIds by remember {
-        mutableStateOf(quickMonitorState.siteIds)
+        mutableStateOf(quickMonitorState.siteIds.ifEmpty { sites.mapTo(mutableSetOf()) { it.site.id } })
     }
 
     // Sync selectedIds when turbo starts (but don't clear when it stops)
@@ -134,48 +138,25 @@ fun TurboScreen(
             selectedIds = quickMonitorState.siteIds
         }
     }
-    var intervalSeconds by remember { mutableIntStateOf(15) }
+    LaunchedEffect(sites, isRunning) {
+        if (!isRunning && selectedIds.isEmpty()) {
+            selectedIds = sites.mapTo(mutableSetOf()) { it.site.id }
+        }
+    }
+    var intervalSeconds by remember { mutableIntStateOf(quickMonitorState.intervalSeconds) }
     var showHelpDialog by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    // Countdown timer state
-    var countdownSeconds by remember { mutableIntStateOf(intervalSeconds) }
+    LaunchedEffect(isRunning, quickMonitorState.intervalSeconds) {
+        if (isRunning) {
+            intervalSeconds = quickMonitorState.intervalSeconds
+        }
+    }
 
     // Derived state: Is any selected site currently syncing?
     val isNetworkSyncing = remember(sites, selectedIds) {
         sites.any { selectedIds.contains(it.site.id) && it.isSyncing }
     }
-
-    // Track previous sync state to unblock timer on completion
-    var wasSyncing by remember { mutableStateOf(false) }
-
-    // Timer logic
-    LaunchedEffect(isRunning, isNetworkSyncing, intervalSeconds) {
-        if (!isRunning) return@LaunchedEffect
-
-        if (isNetworkSyncing) {
-            // Network is officially syncing
-            wasSyncing = true
-            // Ensure we are at 0 visually (or keep current if we want to show it stopped)
-            // But usually we want to show loading, so countdownSeconds is less relevant
-        } else {
-            // Network is NOT syncing
-            if (wasSyncing) {
-                // Falling edge: Sync just finished -> Reset timer
-                countdownSeconds = intervalSeconds
-                wasSyncing = false
-            }
-
-            // Countdown loop
-            while (!isNetworkSyncing && countdownSeconds > 0) {
-                delay(1000)
-                countdownSeconds--
-            }
-        }
-    }
-
-    // Visual state: Syncing if network says so OR if we are waiting at 0
-    val showLoading = isRunning && (isNetworkSyncing || countdownSeconds == 0)
 
     if (showHelpDialog) {
         AlertDialog(
@@ -245,7 +226,6 @@ fun TurboScreen(
                     containerColor = MaterialTheme.colorScheme.surface,
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ),
-                modifier = Modifier.statusBarsPadding(),
             )
         },
         floatingActionButton = {},
@@ -269,6 +249,8 @@ fun TurboScreen(
                     title = stringResource(Res.string.no_sites_yet),
                     description = stringResource(Res.string.add_sites_to_monitor),
                     modifier = Modifier.padding(padding),
+                    primaryActionLabel = stringResource(Res.string.add_first_site),
+                    onPrimaryAction = onAddSite,
                 )
             }
 
@@ -283,9 +265,9 @@ fun TurboScreen(
                     item {
                         TurboHero(
                             isRunning = isRunning,
-                            isSyncing = showLoading,
+                            isSyncing = isNetworkSyncing,
                             intervalSeconds = intervalSeconds,
-                            countdownSeconds = countdownSeconds,
+                            selectedCount = selectedIds.size,
                             onIntervalChange = {
                                 haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                 intervalSeconds = it
@@ -304,15 +286,37 @@ fun TurboScreen(
 
                     // Sites section header
                     item {
-                        Text(
-                            text = if (isRunning) stringResource(Res.string.monitoring) else stringResource(Res.string.select_sites),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 24.dp, vertical = 8.dp),
-                        )
+                                .padding(start = 24.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = if (isRunning) stringResource(Res.string.monitoring) else stringResource(Res.string.select_sites),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(1f),
+                            )
+                            if (!isRunning) {
+                                TextButton(
+                                    onClick = {
+                                        selectedIds = if (selectedIds.size == sites.size) {
+                                            emptySet()
+                                        } else {
+                                            sites.mapTo(mutableSetOf()) { it.site.id }
+                                        }
+                                    },
+                                ) {
+                                    Text(
+                                        stringResource(
+                                            if (selectedIds.size == sites.size) Res.string.clear_all else Res.string.select_all,
+                                        ),
+                                    )
+                                }
+                            }
+                        }
                     }
 
                     // Sites list with individual row styling
@@ -338,7 +342,7 @@ fun TurboScreen(
                                     site = siteAndSnap.site,
                                     isSelected = isSelected,
                                     enabled = enabled,
-                                    isSyncing = showLoading,
+                                    isSyncing = isRunning && siteAndSnap.isSyncing,
                                     isFirst = isFirst,
                                     isLast = isLast,
                                     onClick = {
@@ -372,7 +376,6 @@ private fun SiteRowCard(
     val gradient = remember(siteColor, siteColor2) {
         androidx.compose.ui.graphics.Brush.linearGradient(listOf(siteColor, siteColor2))
     }
-    val interactionSource = remember { MutableInteractionSource() }
 
     // Background color when selected
     val backgroundColor by animateColorAsState(
@@ -452,11 +455,11 @@ private fun SiteRowCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = ripple(),
+                .toggleable(
+                    value = isSelected,
                     enabled = enabled,
-                    onClick = onClick,
+                    role = Role.Checkbox,
+                    onValueChange = { onClick() },
                 )
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -515,9 +518,7 @@ private fun SiteRowCard(
             // Circular selection indicator
             CircularCheckIndicator(
                 isSelected = isSelected,
-                enabled = enabled,
                 color = siteColor,
-                onClick = onClick,
             )
         }
     }
@@ -528,12 +529,11 @@ private fun TurboHero(
     isRunning: Boolean,
     isSyncing: Boolean,
     intervalSeconds: Int,
-    countdownSeconds: Int,
+    selectedCount: Int,
     onIntervalChange: (Int) -> Unit,
     onToggle: () -> Unit,
     canToggle: Boolean,
 ) {
-    val primaryColor = MaterialTheme.colorScheme.primary
     val containerColor by animateColorAsState(
         targetValue = if (isRunning) {
             MaterialTheme.colorScheme.primaryContainer
@@ -546,25 +546,6 @@ private fun TurboHero(
         ),
         label = "containerColor",
     )
-
-    // Add pulse animation when running
-    val pulseScale by remember(isRunning) { mutableStateOf(Animatable(1f)) }
-    LaunchedEffect(isRunning) {
-        if (isRunning) {
-            while (true) {
-                pulseScale.animateTo(
-                    targetValue = 1.05f,
-                    animationSpec = tween(1000),
-                )
-                pulseScale.animateTo(
-                    targetValue = 1f,
-                    animationSpec = tween(1000),
-                )
-            }
-        } else {
-            pulseScale.snapTo(1f)
-        }
-    }
 
     // Current interval label
     val currentLabel = intervalOptions.find { it.seconds == intervalSeconds }?.label ?: "15s"
@@ -579,37 +560,10 @@ private fun TurboHero(
         Box(
             modifier = Modifier
                 .size(120.dp)
-                .scale(if (isRunning) pulseScale.value else 1f)
                 .clip(CircleShape)
-                .background(containerColor)
-                .then(
-                    if (!isRunning) {
-                        Modifier.clickable {
-                            // Entire circle is now clickable
-                            val currentIndex = intervalOptions.indexOfFirst { it.seconds == intervalSeconds }
-                            val nextIndex = (currentIndex + 1) % intervalOptions.size
-                            onIntervalChange(intervalOptions[nextIndex].seconds)
-                        }
-                    } else {
-                        Modifier
-                    },
-                ),
+                .background(containerColor),
             contentAlignment = Alignment.Center,
         ) {
-            if (isRunning && !isSyncing) {
-                // Circular progress indicator
-                val progress = if (intervalSeconds > 0) countdownSeconds.toFloat() / intervalSeconds.toFloat() else 0f
-
-                CircularProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier.size(110.dp),
-                    color = primaryColor,
-                    trackColor = primaryColor.copy(alpha = 0.2f),
-                    strokeWidth = 4.dp,
-                    strokeCap = StrokeCap.Round,
-                )
-            }
-
             // Inner container (Circle-in-circle effect)
             Box(
                 modifier = Modifier
@@ -625,9 +579,11 @@ private fun TurboHero(
                         strokeWidth = 3.dp,
                     )
                 } else if (isRunning) {
-                    AnimatedDigitCounter(
-                        count = countdownSeconds,
-                        textColor = MaterialTheme.colorScheme.onPrimary,
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(36.dp),
                     )
                 } else {
                     // Animated interval display
@@ -651,6 +607,58 @@ private fun TurboHero(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = if (isRunning) {
+                pluralStringResource(
+                    Res.plurals.turbo_active_sites,
+                    selectedCount,
+                    selectedCount,
+                    currentLabel,
+                )
+            } else {
+                pluralStringResource(
+                    Res.plurals.turbo_mode_selected_sites,
+                    selectedCount,
+                    selectedCount,
+                )
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = stringResource(Res.string.label_interval),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            intervalOptions.forEach { option ->
+                val selected = intervalSeconds == option.seconds
+                Surface(
+                    onClick = { onIntervalChange(option.seconds) },
+                    enabled = !isRunning,
+                    shape = RoundedCornerShape(12.dp),
+                    color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
+                    contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Box(
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(option.label, style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
 
         // Start/Stop button
         StartStopFab(
@@ -735,56 +743,12 @@ private fun EmptyState(modifier: Modifier = Modifier) {
 }
 
 /**
- * Digit-by-digit animated counter - only changed digits animate.
- */
-@Composable
-private fun AnimatedDigitCounter(
-    count: Int,
-    textColor: Color,
-) {
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        val countText = count.toString()
-        countText.forEach { digit ->
-            AnimatedContent(
-                targetState = digit,
-                transitionSpec = {
-                    // Slide down when decreasing
-                    slideInVertically { -it } + fadeIn() togetherWith
-                        slideOutVertically { it } + fadeOut()
-                },
-                label = "digit_$digit",
-            ) { targetDigit ->
-                Text(
-                    text = targetDigit.toString(),
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                    ),
-                    color = textColor,
-                )
-            }
-        }
-        Text(
-            text = "s",
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Medium,
-            ),
-            color = textColor.copy(alpha = 0.8f),
-        )
-    }
-}
-
-/**
  * Circular check indicator - replaces checkbox with a more expressive circle.
  */
 @Composable
 private fun CircularCheckIndicator(
     isSelected: Boolean,
-    enabled: Boolean,
     color: Color,
-    onClick: () -> Unit,
 ) {
     val backgroundColor by animateColorAsState(
         targetValue = if (isSelected) color else Color.Transparent,
@@ -829,7 +793,6 @@ private fun CircularCheckIndicator(
                     Modifier
                 },
             )
-            .clickable(enabled = enabled, onClick = onClick)
             .then(
                 if (!isSelected) {
                     Modifier.padding(2.dp)

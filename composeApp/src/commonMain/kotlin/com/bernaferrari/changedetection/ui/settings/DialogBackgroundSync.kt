@@ -43,7 +43,6 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Sync
-import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -52,8 +51,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -152,17 +149,6 @@ fun BackgroundSyncDialog(
                                 intervalValue = newInterval
                                 viewModel.updateSyncInterval(newInterval)
                             },
-                        )
-                    }
-
-                    // Sensitivity Section
-                    SectionCard(
-                        icon = Icons.Outlined.Tune,
-                        title = "Change Sensitivity",
-                    ) {
-                        SensitivitySlider(
-                            threshold = uiState.minChangeThreshold,
-                            onThresholdChange = { viewModel.updateMinChangeThreshold(it) },
                         )
                     }
 
@@ -383,11 +369,11 @@ private fun IntervalInput(
                     }
                 },
                 modifier = Modifier.weight(1f),
-                label = { Text("Interval (minutes)") },
+                label = { Text(stringResource(Res.string.settings_interval_minutes)) },
                 singleLine = true,
                 isError = isError,
                 supportingText = if (isError) {
-                    { Text("Minimum 15 minutes") }
+                    { Text(stringResource(Res.string.settings_interval_minimum)) }
                 } else {
                     null
                 },
@@ -418,7 +404,7 @@ private fun IntervalInput(
 
         // Quick presets
         Text(
-            text = "Quick presets",
+            text = stringResource(Res.string.settings_quick_presets),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -456,7 +442,7 @@ private fun IntervalInput(
                 )
             }
             PresetChip(
-                label = "24 hrs",
+                label = stringResource(Res.string.settings_24_hours),
                 isSelected = currentInterval == 1440L,
                 onClick = {
                     textValue = "1440"
@@ -589,56 +575,6 @@ private fun IntervalChip(
                 textAlign = TextAlign.Center,
             )
         }
-    }
-}
-
-@Composable
-private fun SensitivitySlider(
-    threshold: Int,
-    onThresholdChange: (Int) -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = "Ignore changes smaller than:",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.primaryContainer,
-            ) {
-                Text(
-                    text = "$threshold%",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                )
-            }
-        }
-
-        Slider(
-            value = threshold.toFloat(),
-            onValueChange = { onThresholdChange(it.toInt()) },
-            valueRange = 0f..10f,
-            steps = 9,
-            colors = SliderDefaults.colors(
-                thumbColor = MaterialTheme.colorScheme.primary,
-                activeTrackColor = MaterialTheme.colorScheme.primary,
-                inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-            ),
-        )
-
-        Text(
-            text = if (threshold == 0) "All changes will be detected" else "Only changes larger than $threshold% will be recorded",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-        )
     }
 }
 

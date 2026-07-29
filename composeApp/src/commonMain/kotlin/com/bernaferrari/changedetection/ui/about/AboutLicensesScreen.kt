@@ -172,7 +172,7 @@ fun AboutLicensesDialog(
                     IconButton(onClick = onDismiss) {
                         Icon(
                             Icons.Default.Close,
-                            contentDescription = "Close",
+                            contentDescription = stringResource(Res.string.a11y_close),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -390,7 +390,7 @@ private fun EnhancedLicenseCard(
             // Arrow indicator
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                contentDescription = "Open license",
+                contentDescription = stringResource(Res.string.a11y_open_license),
                 tint = MaterialTheme.colorScheme.outline,
                 modifier = Modifier.size(16.dp),
             )

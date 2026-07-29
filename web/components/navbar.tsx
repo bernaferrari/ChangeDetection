@@ -16,7 +16,7 @@ export function Navbar() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -40,9 +40,10 @@ export function Navbar() {
           <div className="w-8 h-8 rounded-lg overflow-hidden">
             <Image
               src="/assets/logo.png"
-              alt="Change Detection"
+              alt=""
               width={32}
               height={32}
+              priority
               className="w-full h-full object-cover"
             />
           </div>
@@ -65,9 +66,11 @@ export function Navbar() {
         {/* Right side actions */}
         <div className="flex items-center gap-2">
           <a
-            href="https://github.com/niceperson/changedetection"
+            href="https://github.com/bernaferrari/ChangeDetection"
             target="_blank"
-            className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+            rel="noreferrer"
+            aria-label="Open Change Detection on GitHub"
+            className="p-3 text-muted-foreground hover:text-foreground transition-colors"
           >
             <Github size={18} />
           </a>
@@ -76,7 +79,9 @@ export function Navbar() {
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
+            className="md:hidden p-3 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -86,6 +91,7 @@ export function Navbar() {
             <a
               href="https://play.google.com/store/apps/details?id=com.bernaferrari.changedetection"
               target="_blank"
+              rel="noreferrer"
             >
               Download
             </a>
@@ -112,6 +118,7 @@ export function Navbar() {
                 <a
                   href="https://play.google.com/store/apps/details?id=com.bernaferrari.changedetection"
                   target="_blank"
+                  rel="noreferrer"
                 >
                   Download App
                 </a>

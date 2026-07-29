@@ -56,7 +56,7 @@ export default function DocsPage() {
                       Download Change Detection
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Available on Google Play · Android 8.0+
+                      Available on Google Play · Android 11+
                     </p>
                   </div>
                   <Button asChild>
@@ -70,7 +70,7 @@ export default function DocsPage() {
 
               <p>
                 Change Detection is free, open source, and requires no account.
-                Simply install the app, add your first website, and you're ready
+                Simply install the app, add your first website, and you’re ready
                 to go.
               </p>
             </section>
@@ -84,18 +84,17 @@ export default function DocsPage() {
               </div>
 
               <p>
-                There are two ways to add a website to monitor:
+                Add a public website in two quick steps:
               </p>
 
               <ol className="space-y-2">
                 <li>
-                  <strong>Paste URL:</strong> Simply paste any URL and we'll start
-                  tracking the entire page content.
+                  <strong>Enter the URL:</strong> Paste the address and preview the
+                  public page you want to monitor.
                 </li>
                 <li>
-                  <strong>Use Browser Mode:</strong> Open our built-in browser,
-                  navigate to the page, and optionally select specific elements
-                  to monitor using the element selector.
+                  <strong>Name and save it:</strong> Give the site a recognizable
+                  name and choose its color. The first snapshot starts immediately.
                 </li>
               </ol>
 
@@ -106,13 +105,12 @@ export default function DocsPage() {
                 />
                 <div>
                   <h4 className="font-semibold text-foreground mb-1">
-                    Pro Tip: Element Selector
+                    Tip: Choose a stable URL
                   </h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Instead of monitoring an entire page, use the element
-                    selector to focus on specific content like a price, status
-                    message, or table. This reduces false positives from ads or
-                    timestamps changing.
+                    Change Detection currently compares the complete public page.
+                    Prefer a focused product, result, or article URL to reduce
+                    unrelated changes from navigation and rotating content.
                   </p>
                 </div>
               </div>
@@ -165,13 +163,13 @@ export default function DocsPage() {
               </div>
 
               <p>
-                When a change is detected, you'll receive a notification with:
+                When a change is detected, you’ll receive a notification with:
               </p>
 
               <ul className="space-y-2">
                 <li>The website name and URL</li>
                 <li>When the change was detected</li>
-                <li>A summary of what changed (additions/removals)</li>
+                <li>The site whose content changed</li>
               </ul>
 
               <p>
@@ -209,13 +207,13 @@ export default function DocsPage() {
                 <div className="p-4 rounded-lg border border-border bg-card">
                   <span className="text-sm font-bold">Device Idle</span>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Only sync when you're not using the device
+                    Only sync when you’re not using the device
                   </p>
                 </div>
                 <div className="p-4 rounded-lg border border-border bg-card">
                   <span className="text-sm font-bold">Battery Level</span>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Only sync above a certain battery percentage
+                    Pause when Android reports the battery is low
                   </p>
                 </div>
               </div>
@@ -230,8 +228,8 @@ export default function DocsPage() {
                     Does it work with login-required pages?
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Yes! Use the built-in browser to log in to the website. Your
-                    session cookies will be preserved for monitoring.
+                    Not currently. Monitoring supports public pages; authenticated
+                    sessions and saved cookies are not included in this release.
                   </p>
                 </div>
 
@@ -240,7 +238,7 @@ export default function DocsPage() {
                     How much battery does it use?
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Very little for normal use. The app uses Android's WorkManager
+                    Very little for normal use. The app uses Android’s WorkManager
                     for efficient background scheduling. Turbo Mode uses more
                     battery but is designed for short-term intensive monitoring.
                   </p>
@@ -252,7 +250,7 @@ export default function DocsPage() {
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     Absolutely. All monitoring happens locally on your device.
-                    We don't have servers, we don't collect data, and we don't
+                    We don’t have servers, we don’t collect data, and we don’t
                     track you. The app is 100% open source.
                   </p>
                 </div>

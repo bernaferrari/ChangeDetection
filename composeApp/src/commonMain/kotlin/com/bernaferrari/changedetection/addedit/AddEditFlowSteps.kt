@@ -78,6 +78,10 @@ import com.bernaferrari.changedetection.shared.generated.resources.continue_labe
 import com.bernaferrari.changedetection.shared.generated.resources.done
 import com.bernaferrari.changedetection.shared.generated.resources.site_added_successfully
 import com.bernaferrari.changedetection.shared.generated.resources.success_title
+import com.bernaferrari.changedetection.shared.generated.resources.a11y_navigate_back
+import com.bernaferrari.changedetection.shared.generated.resources.clear
+import com.bernaferrari.changedetection.shared.generated.resources.enter_website_url
+import com.bernaferrari.changedetection.shared.generated.resources.paste
 import com.bernaferrari.changedetection.extensions.isValidUrl
 import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
@@ -152,11 +156,11 @@ fun BeautifulUrlInputStep(
                         // Close button
                         IconButton(
                             onClick = onNavigateUp,
-                            modifier = Modifier.size(40.dp),
+                            modifier = Modifier.size(48.dp),
                         ) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
+                                contentDescription = stringResource(Res.string.a11y_navigate_back),
                                 tint = MaterialTheme.colorScheme.onSurface,
                             )
                         }
@@ -165,7 +169,7 @@ fun BeautifulUrlInputStep(
                         Surface(
                             modifier = Modifier
                                 .weight(1f)
-                                .height(44.dp),
+                                .height(48.dp),
                             shape = RoundedCornerShape(22.dp),
                             color = MaterialTheme.colorScheme.surfaceContainerHigh,
                         ) {
@@ -233,7 +237,7 @@ fun BeautifulUrlInputStep(
                                         Box(modifier = Modifier.fillMaxWidth()) {
                                             if (urlBarText.isEmpty()) {
                                                 Text(
-                                                    text = "Enter website URL",
+                                                    text = stringResource(Res.string.enter_website_url),
                                                     style = MaterialTheme.typography.bodyMedium,
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 )
@@ -251,11 +255,11 @@ fun BeautifulUrlInputStep(
                                             onUrlChange("")
                                             focusRequester.requestFocus()
                                         },
-                                        modifier = Modifier.size(20.dp),
+                                        modifier = Modifier.size(48.dp),
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Close,
-                                            contentDescription = "Clear",
+                                            contentDescription = stringResource(Res.string.clear),
                                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(16.dp),
                                         )
@@ -285,11 +289,11 @@ fun BeautifulUrlInputStep(
                                     }
                                 }
                             },
-                            modifier = Modifier.size(40.dp),
+                            modifier = Modifier.size(48.dp),
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ContentPaste,
-                                contentDescription = "Paste",
+                                contentDescription = stringResource(Res.string.paste),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }

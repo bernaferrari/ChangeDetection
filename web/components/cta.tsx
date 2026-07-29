@@ -29,23 +29,23 @@ export function CTA() {
           </h2>
 
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            Join thousands of users who've automated their website monitoring.
-            Free, open source, and respects your privacy.
+            Monitor public pages without an account, ads, or a cloud service.
+            Free, open source, and designed to keep your data on your device.
           </p>
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4 max-w-lg mx-auto mb-10">
             <div className="glass p-4 stats-card">
-              <div className="text-2xl md:text-3xl font-bold text-primary">10K+</div>
-              <div className="text-xs text-muted-foreground">Downloads</div>
+              <div className="text-lg md:text-xl font-bold text-primary">On-device</div>
+              <div className="text-xs text-muted-foreground">Monitoring</div>
             </div>
             <div className="glass p-4 stats-card">
-              <div className="text-2xl md:text-3xl font-bold text-primary">4.5</div>
-              <div className="text-xs text-muted-foreground">Rating</div>
+              <div className="text-lg md:text-xl font-bold text-primary">No account</div>
+              <div className="text-xs text-muted-foreground">Required</div>
             </div>
             <div className="glass p-4 stats-card">
-              <div className="text-2xl md:text-3xl font-bold text-primary">100%</div>
-              <div className="text-xs text-muted-foreground">Free</div>
+              <div className="text-lg md:text-xl font-bold text-primary">Apache 2.0</div>
+              <div className="text-xs text-muted-foreground">Open source</div>
             </div>
           </div>
 
@@ -55,6 +55,7 @@ export function CTA() {
               <a
                 href="https://play.google.com/store/apps/details?id=com.bernaferrari.changedetection"
                 target="_blank"
+                rel="noreferrer"
               >
                 <Smartphone className="mr-2" size={18} />
                 Get it on Google Play
@@ -62,8 +63,9 @@ export function CTA() {
             </Button>
             <Button variant="outline" size="lg" className="min-w-[200px]" asChild>
               <a
-                href="https://github.com/niceperson/changedetection"
+                href="https://github.com/bernaferrari/ChangeDetection"
                 target="_blank"
+                rel="noreferrer"
               >
                 <Github className="mr-2" size={18} />
                 Star on GitHub

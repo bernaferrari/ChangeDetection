@@ -50,9 +50,17 @@ import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_no_changes_title
 import com.bernaferrari.changedetection.shared.generated.resources.failed_to_load_content
+import com.bernaferrari.changedetection.shared.generated.resources.a11y_drag_screenshot_comparison
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
 import com.bernaferrari.changedetection.util.formatTimestamp
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.StringResource
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_text
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_rendered
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_pixel_diff
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_swipe
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_before
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_after
 import kotlin.math.roundToInt
 
 internal enum class ComparisonMode {
@@ -64,13 +72,13 @@ internal enum class ComparisonMode {
     ImageAfter,
 }
 
-internal fun ComparisonMode.label(): String = when (this) {
-    ComparisonMode.Text -> "Text"
-    ComparisonMode.Html -> "Rendered"
-    ComparisonMode.ImageDiff -> "Pixel diff"
-    ComparisonMode.ImageSwipe -> "Swipe"
-    ComparisonMode.ImageBefore -> "Before"
-    ComparisonMode.ImageAfter -> "After"
+internal fun ComparisonMode.labelResource(): StringResource = when (this) {
+    ComparisonMode.Text -> Res.string.comparison_mode_text
+    ComparisonMode.Html -> Res.string.comparison_mode_rendered
+    ComparisonMode.ImageDiff -> Res.string.comparison_mode_pixel_diff
+    ComparisonMode.ImageSwipe -> Res.string.comparison_mode_swipe
+    ComparisonMode.ImageBefore -> Res.string.comparison_mode_before
+    ComparisonMode.ImageAfter -> Res.string.comparison_mode_after
 }
 
 @Composable
@@ -408,7 +416,7 @@ private fun ImageSwipeComparison(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.CompareArrows,
-                    contentDescription = "Drag to compare screenshots",
+                    contentDescription = stringResource(Res.string.a11y_drag_screenshot_comparison),
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.padding(8.dp).size(20.dp),
                 )

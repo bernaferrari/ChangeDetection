@@ -30,6 +30,10 @@ import com.bernaferrari.changedetection.error.ErrorType
 import com.bernaferrari.changedetection.error.RecoveryAction
 import kotlinx.coroutines.delay
 import kotlin.uuid.ExperimentalUuidApi
+import com.bernaferrari.changedetection.shared.generated.resources.Res
+import com.bernaferrari.changedetection.shared.generated.resources.a11y_close
+import com.bernaferrari.changedetection.shared.generated.resources.retry
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Snackbar-style error banner that appears at the bottom of the screen.
@@ -130,16 +134,16 @@ private fun ErrorBannerContent(
                             contentColor = colors.actionColor,
                         ),
                     ) {
-                        Text("Retry")
+                        Text(stringResource(Res.string.retry))
                     }
                 }
                 IconButton(
                     onClick = onDismiss,
-                    modifier = Modifier.size(36.dp),
+                    modifier = Modifier.size(48.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Dismiss",
+                        contentDescription = stringResource(Res.string.a11y_close),
                         tint = colors.textColor.copy(alpha = 0.7f),
                         modifier = Modifier.size(18.dp),
                     )
@@ -223,7 +227,7 @@ fun ErrorStateView(
                         modifier = Modifier.size(18.dp),
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Try Again")
+                    Text(stringResource(Res.string.retry))
                 }
             }
 

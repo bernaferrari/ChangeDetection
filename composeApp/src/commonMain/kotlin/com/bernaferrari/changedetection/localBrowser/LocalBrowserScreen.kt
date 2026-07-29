@@ -32,7 +32,7 @@ fun LocalBrowserScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val isLocalSnapshot = snapId.isNotBlank()
-    val safeUrl = remember(url) { if (url.isNotBlank()) url else "https://google.com" }
+    val safeUrl = remember(url) { url.trim() }
 
     LaunchedEffect(snapId) {
         if (isLocalSnapshot) {
@@ -53,11 +53,21 @@ fun LocalBrowserScreen(
                 } else {
                     Res.string.local_browser_title_live
                 }
-                Text(stringResource(titleRes))
+                Column {
+                    Text(stringResource(titleRes))
+                    if (safeUrl.isNotBlank()) {
+                        Text(
+                            text = safeUrl.removePrefix("https://").removePrefix("http://").substringBefore("/"),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                        )
+                    }
+                }
             },
             navigationIcon = {
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Close")
+                    Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.a11y_close))
                 }
             },
         )
@@ -66,7 +76,29 @@ fun LocalBrowserScreen(
         Box(
             modifier = Modifier.fillMaxSize(),
         ) {
-            if (isLocalSnapshot && state.isLoading) {
+            if ((isLocalSnapshot && state.hasError) || (!isLocalSnapshot && safeUrl.isBlank())) {
+                Column(
+                    modifier = Modifier.align(Alignment.Center).padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = stringResource(Res.string.local_browser_error_title),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(Res.string.local_browser_error_body),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    if (isLocalSnapshot) {
+                        Spacer(Modifier.height(16.dp))
+                        Button(onClick = { viewModel.fetchData(snapId) }) {
+                            Text(stringResource(Res.string.retry))
+                        }
+                    }
+                }
+            } else if (isLocalSnapshot && state.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
                 )
@@ -86,6 +118,12 @@ fun LocalBrowserScreen(
                         WebView(
                             state = webViewState,
                             modifier = Modifier.fillMaxSize(),
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(Res.string.local_browser_empty_snapshot),
+                            modifier = Modifier.align(Alignment.Center).padding(32.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 } else {

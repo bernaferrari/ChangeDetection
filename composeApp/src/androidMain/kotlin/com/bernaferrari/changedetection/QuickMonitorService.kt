@@ -277,7 +277,6 @@ class QuickMonitorService :
         Napier.d("Stopping Quick Monitor Service")
         monitoringJob?.cancel()
         autoStopJob?.cancel()
-        workerHelper.stopQuickMonitor()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
         // Ensure UI banner state is cleared

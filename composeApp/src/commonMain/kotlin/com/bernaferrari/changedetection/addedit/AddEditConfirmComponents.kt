@@ -67,6 +67,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.save
 import com.bernaferrari.changedetection.shared.generated.resources.site_name
 import com.bernaferrari.changedetection.shared.generated.resources.site_name_placeholder
 import com.bernaferrari.changedetection.shared.generated.resources.start_monitoring
+import com.bernaferrari.changedetection.shared.generated.resources.a11y_navigate_back
 import com.bernaferrari.changedetection.repo.ColorGroup
 import com.bernaferrari.changedetection.ui.components.ColorPickerList
 import io.ktor.http.Url
@@ -80,7 +81,7 @@ fun AddEditConfirmScreen(
     isEditing: Boolean = false,
     selectedColors: Pair<Int, Int>,
     isSaving: Boolean,
-    saveError: String?, // Keep parameter for API compatibility, though unused in specific UI logic here
+    saveError: String?,
     browserData: BrowserSessionData?, // Keep param for compatibility
     useCookies: Boolean, // Keep param for compatibility
     cookieBytes: Long, // Keep param for compatibility
@@ -110,7 +111,10 @@ fun AddEditConfirmScreen(
                         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
                         onNavigateUp()
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(Res.string.a11y_navigate_back),
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -231,6 +235,14 @@ fun AddEditConfirmScreen(
                     unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                 ),
             )
+
+            saveError?.let { message ->
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
 
             // Color Theme Section - Pill-style selector
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {

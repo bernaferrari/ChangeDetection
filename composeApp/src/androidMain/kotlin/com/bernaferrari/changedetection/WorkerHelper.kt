@@ -149,6 +149,7 @@ class WorkerHelper(
                 .setInputData(workDataOf("id" to siteId, "isSingle" to true))
                 .addTag(siteId)
                 .addTag(UNIQUEWORK)
+                .addTag("quick_monitor")
                 .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .build()
 

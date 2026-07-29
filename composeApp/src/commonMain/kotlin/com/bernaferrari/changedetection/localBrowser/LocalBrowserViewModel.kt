@@ -21,6 +21,7 @@ import org.koin.core.component.inject
 data class BrowserState(
     val content: String = "",
     val isLoading: Boolean = false,
+    val hasError: Boolean = false,
     val mimeType: String = "text/html",
     val charset: String = "UTF-8",
 )
@@ -66,6 +67,7 @@ class LocalBrowserViewModel :
                     BrowserState(
                         content = "",
                         isLoading = false,
+                        hasError = true,
                     )
             }
         }

@@ -116,7 +116,7 @@ private fun BottomNavigationLayout(
                         Text(
                             text = label,
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
                         )
                     },
                     selected = isSelected,

@@ -24,6 +24,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.hour
 import com.bernaferrari.changedetection.shared.generated.resources.hours
 import com.bernaferrari.changedetection.shared.generated.resources.min
 import com.bernaferrari.changedetection.ui.theme.ExpressiveSpring
+import com.bernaferrari.changedetection.shared.generated.resources.cancel
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -133,7 +134,7 @@ fun ConfirmDialog(
                         modifier = Modifier.weight(1f),
                     ) {
                         Text(
-                            text = "Cancel",
+                            text = stringResource(Res.string.cancel),
                             fontWeight = FontWeight.Medium,
                         )
                     }

@@ -41,6 +41,7 @@ import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Schedule
@@ -88,9 +89,11 @@ import org.koin.compose.viewmodel.koinViewModel
 fun SettingsScreen(
     viewModel: SettingsViewModel = koinViewModel(),
     onAboutClick: () -> Unit = {},
+    onHowItWorksClick: () -> Unit = {},
     onBackgroundSyncClick: () -> Unit = {},
     onContactClick: () -> Unit = {},
     onRecreateActivity: () -> Unit = {},
+    appVersion: String = "",
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showBackgroundSyncDialog by remember { mutableStateOf(false) }
@@ -112,7 +115,6 @@ fun SettingsScreen(
                     containerColor = MaterialTheme.colorScheme.surface,
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ),
-                modifier = Modifier.statusBarsPadding(),
             )
         },
         contentWindowInsets = WindowInsets(0), // Remove system insets
@@ -143,25 +145,20 @@ fun SettingsScreen(
                     icon = Icons.Outlined.Sync,
                 )
                 SettingsGroup {
-                    ToggleItem(
+                    ActionItem(
                         icon = Icons.Outlined.Sync,
                         title = stringResource(Res.string.settings_background_sync_title),
-                        subtitle = if (uiState.backgroundSync) {
-                            stringResource(Res.string.settings_sync_monitoring_in_background)
+                        value = if (uiState.backgroundSync) {
+                            stringResource(Res.string.settings_background_sync_every, uiState.syncInterval.toInt())
                         } else {
                             stringResource(Res.string.settings_background_sync_disabled)
-                        },
-                        checked = uiState.backgroundSync,
-                        onCheckedChange = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            viewModel.updateBackgroundSync(it)
                         },
                         onClick = { showBackgroundSyncDialog = true },
                     )
                 }
             }
 
-            item {
+            if (uiState.comparisonMethod == ComparisonMethod.SCREENSHOT) item {
                 SettingsGroup {
                     Column(
                         modifier = Modifier
@@ -290,6 +287,12 @@ fun SettingsScreen(
                 )
                 SettingsGroup {
                     ActionItem(
+                        icon = Icons.AutoMirrored.Outlined.HelpOutline,
+                        title = stringResource(Res.string.how_it_works),
+                        onClick = onHowItWorksClick,
+                    )
+                    ItemDivider()
+                    ActionItem(
                         icon = Icons.Outlined.Info,
                         title = stringResource(Res.string.settings_about_title),
                         onClick = onAboutClick,
@@ -298,7 +301,7 @@ fun SettingsScreen(
                     ActionItem(
                         icon = Icons.Outlined.Code,
                         title = stringResource(Res.string.settings_version),
-                        value = "3.0.0",
+                        value = appVersion.ifBlank { "—" },
                         showChevron = false,
                         onClick = {},
                     )
@@ -311,33 +314,7 @@ fun SettingsScreen(
                 }
             }
 
-            // Footer
             item {
-                Spacer(modifier = Modifier.height(32.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "Made with",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Icon(
-                        imageVector = Icons.Outlined.Favorite,
-                        contentDescription = null,
-                        modifier = Modifier.size(14.dp),
-                        tint = Color(0xFFE91E63),
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "by Bernardo Ferrari",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
                 Spacer(modifier = Modifier.height(80.dp))
             }
         }
@@ -401,22 +378,29 @@ private fun ThemeSelector(
 ) {
     val haptic = LocalHapticFeedback.current
 
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        ThemeMode.entries.forEach { mode ->
-            ThemeModeToggle(
-                themeMode = mode,
-                isSelected = selectedTheme == mode.name,
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onThemeSelected(mode.name)
-                },
-                modifier = Modifier.weight(1f),
-            )
+        ThemeMode.entries.chunked(2).forEach { rowModes ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                rowModes.forEach { mode ->
+                    ThemeModeToggle(
+                        themeMode = mode,
+                        isSelected = selectedTheme == mode.name,
+                        onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onThemeSelected(mode.name)
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
         }
     }
 }
@@ -587,7 +571,7 @@ private fun ComparisonMethodSelector(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(56.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(12.dp)),
@@ -607,7 +591,13 @@ private fun ComparisonMethodSelector(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = method.name.lowercase().replaceFirstChar { it.uppercase() },
+                    text = stringResource(
+                        if (method == ComparisonMethod.HTML) {
+                            Res.string.settings_comparison_page_text
+                        } else {
+                            Res.string.settings_comparison_screenshots
+                        },
+                    ),
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                     ),

@@ -17,6 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.changedetection.shared.generated.resources.Res
+import com.bernaferrari.changedetection.shared.generated.resources.sync_in_progress
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Shared loading state component for KMP.
@@ -56,7 +59,7 @@ fun SpinningSyncIcon(
 
     Icon(
         imageVector = Icons.Filled.Refresh,
-        contentDescription = "Syncing",
+        contentDescription = stringResource(Res.string.sync_in_progress),
         tint = MaterialTheme.colorScheme.primary,
         modifier = modifier.rotate(rotation),
     )
