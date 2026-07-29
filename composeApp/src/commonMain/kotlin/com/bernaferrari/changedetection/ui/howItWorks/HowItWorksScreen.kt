@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -115,63 +117,71 @@ fun HowItWorksScreen(onBackClick: () -> Unit) {
             )
         },
     ) { padding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(
-                start = MaterialTheme.spacing.lg,
-                top = MaterialTheme.spacing.md,
-                end = MaterialTheme.spacing.lg,
-                bottom = MaterialTheme.spacing.xl,
-            ),
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
         ) {
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)) {
-                    Text(
-                        text = stringResource(Res.string.how_it_works_hero_subtitle),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(modifier = Modifier.size(MaterialTheme.spacing.sm))
-                    Text(
-                        text = stringResource(Res.string.how_it_works_steps_header),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                    )
+            LazyColumn(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .widthIn(max = 680.dp)
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+                contentPadding = PaddingValues(
+                    start = MaterialTheme.spacing.lg,
+                    top = MaterialTheme.spacing.md,
+                    end = MaterialTheme.spacing.lg,
+                    bottom = MaterialTheme.spacing.xl,
+                ),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+            ) {
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)) {
+                        Text(
+                            text = stringResource(Res.string.how_it_works_hero_subtitle),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(modifier = Modifier.size(MaterialTheme.spacing.sm))
+                        Text(
+                            text = stringResource(Res.string.how_it_works_steps_header),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
                 }
-            }
-            itemsIndexed(steps) { index, step ->
-                HowItWorksStepCard(number = index + 1, step = step)
-            }
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = MaterialTheme.spacing.lg),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
-                ) {
-                    Text(
-                        text = stringResource(Res.string.how_it_works_footer_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        textAlign = TextAlign.Center,
-                    )
-                    Text(
-                        text = stringResource(Res.string.how_it_works_footer_description),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                    FilledTonalButton(
-                        onClick = onBackClick,
+                itemsIndexed(steps) { index, step ->
+                    HowItWorksStepCard(number = index + 1, step = step)
+                }
+                item {
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = MaterialTheme.spacing.xs),
+                            .padding(top = MaterialTheme.spacing.lg),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
                     ) {
-                        Text(stringResource(Res.string.how_it_works_primary_cta))
+                        Text(
+                            text = stringResource(Res.string.how_it_works_footer_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Center,
+                        )
+                        Text(
+                            text = stringResource(Res.string.how_it_works_footer_description),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                        )
+                        FilledTonalButton(
+                            onClick = onBackClick,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = MaterialTheme.spacing.xs),
+                        ) {
+                            Text(stringResource(Res.string.how_it_works_primary_cta))
+                        }
                     }
                 }
             }

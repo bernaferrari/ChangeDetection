@@ -72,7 +72,6 @@ import com.bernaferrari.changedetection.ui.components.ConfirmDialog
 import com.bernaferrari.changedetection.ui.components.ErrorBanner
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
 import com.bernaferrari.changedetection.ui.theme.spacing
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -101,9 +100,9 @@ fun MainScreen(
     val siteDeletedString = stringResource(Res.string.site_deleted)
     val undoString = stringResource(Res.string.undo)
 
-    // Pull-to-refresh state
-    var isRefreshing by remember { mutableStateOf(false) }
-    var refreshObservedWork by remember { mutableStateOf(false) }
+    // The progress affordance follows actual monitor work. A timer-based refresh indicator can
+    // outlive a fast no-op refresh and makes the screen look stuck.
+    val isRefreshing = loadingSites.isNotEmpty()
 
     // Delete confirmation state
     var siteToDelete by remember { mutableStateOf<SiteAndLastSnap?>(null) }
@@ -140,30 +139,6 @@ fun MainScreen(
                 duration = SnackbarDuration.Short,
             )
         }
-    }
-
-    LaunchedEffect(loadingSites, isRefreshing) {
-        if (isRefreshing && loadingSites.isNotEmpty()) {
-            refreshObservedWork = true
-        } else if (isRefreshing && refreshObservedWork && loadingSites.isEmpty()) {
-            isRefreshing = false
-            refreshObservedWork = false
-        }
-    }
-
-    LaunchedEffect(isRefreshing) {
-        if (isRefreshing) {
-            delay(30_000)
-            isRefreshing = false
-            refreshObservedWork = false
-        }
-    }
-
-    // Handle pull-to-refresh
-    fun onRefresh() {
-        isRefreshing = true
-        refreshObservedWork = false
-        viewModel.refreshAllSites()
     }
 
     Scaffold(
@@ -250,7 +225,7 @@ fun MainScreen(
                 // Pull-to-refresh wrapper around the list
                 PullToRefreshBox(
                     isRefreshing = isRefreshing,
-                    onRefresh = { onRefresh() },
+                    onRefresh = viewModel::refreshAllSites,
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     SitesList(

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -51,6 +53,7 @@ import com.bernaferrari.changedetection.extensions.normalizeUrl
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.color_theme
 import com.bernaferrari.changedetection.shared.generated.resources.complete_setup
+import com.bernaferrari.changedetection.shared.generated.resources.edit
 import com.bernaferrari.changedetection.shared.generated.resources.save
 import com.bernaferrari.changedetection.shared.generated.resources.site_name
 import com.bernaferrari.changedetection.shared.generated.resources.site_name_placeholder
@@ -83,7 +86,13 @@ fun AddEditConfirmScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(Res.string.complete_setup)) },
+                title = {
+                    Text(
+                        stringResource(
+                            if (isEditing) Res.string.edit else Res.string.complete_setup,
+                        ),
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = {
                         onNavigateUp()
@@ -138,59 +147,67 @@ fun AddEditConfirmScreen(
             }
         },
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(scrollState)
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(28.dp),
+                .padding(paddingValues),
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .widthIn(max = 600.dp)
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(28.dp),
+            ) {
+                Spacer(modifier = Modifier.height(8.dp))
 
-            SitePreviewCard(
-                title = title,
-                domain = domain,
-                selectedColors = selectedColors,
-            )
-
-            OutlinedTextField(
-                value = title,
-                onValueChange = onTitleChange,
-                label = { Text(stringResource(Res.string.site_name)) },
-                placeholder = { Text(stringResource(Res.string.site_name_placeholder)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(selectedColors.first),
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                ),
-            )
-
-            saveError?.let { message ->
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    text = stringResource(Res.string.color_theme),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-
-                ColorThemeSelector(
+                SitePreviewCard(
+                    title = title,
+                    domain = domain,
                     selectedColors = selectedColors,
-                    availableColors = defaultAvailableColors,
-                    onColorChange = { colors -> onColorChange(colors.first to colors.second) },
                 )
-            }
 
-            Spacer(modifier = Modifier.height(80.dp))
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = onTitleChange,
+                    label = { Text(stringResource(Res.string.site_name)) },
+                    placeholder = { Text(stringResource(Res.string.site_name_placeholder)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(selectedColors.first),
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+                    ),
+                )
+
+                saveError?.let { message ->
+                    Text(
+                        text = message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = stringResource(Res.string.color_theme),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+
+                    ColorThemeSelector(
+                        selectedColors = selectedColors,
+                        availableColors = defaultAvailableColors,
+                        onColorChange = { colors -> onColorChange(colors.first to colors.second) },
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(80.dp))
+            }
         }
     }
 }

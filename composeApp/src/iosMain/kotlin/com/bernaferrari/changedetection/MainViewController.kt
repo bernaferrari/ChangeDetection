@@ -4,11 +4,11 @@
  */
 package com.bernaferrari.changedetection
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
@@ -29,6 +29,7 @@ import com.bernaferrari.changedetection.di.initKoinIos
 import com.bernaferrari.changedetection.localBrowser.LocalBrowserScreen
 import com.bernaferrari.changedetection.navigation.*
 import com.bernaferrari.changedetection.ui.comparison.ComparisonScreen
+import com.bernaferrari.changedetection.ui.components.SharedEmptyState
 import com.bernaferrari.changedetection.ui.about.AboutScreen
 import com.bernaferrari.changedetection.ui.howItWorks.HowItWorksScreen
 import com.bernaferrari.changedetection.ui.logs.LogsScreen
@@ -43,6 +44,7 @@ import com.bernaferrari.changedetection.platform.openEmail
 import com.bernaferrari.changedetection.platform.openUrl
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.select_site_to_view_details
+import com.bernaferrari.changedetection.shared.generated.resources.select_sites
 import org.koin.compose.viewmodel.koinViewModel
 import org.jetbrains.compose.resources.stringResource
 import platform.UIKit.UIViewController
@@ -95,9 +97,12 @@ private fun IosNavigationApp() {
                 entry<MainDestination>(
                     metadata = ListDetailSceneStrategy.listPane(
                         detailPlaceholder = {
-                            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                                Text(stringResource(Res.string.select_site_to_view_details))
-                            }
+                            SharedEmptyState(
+                                icon = Icons.Outlined.Visibility,
+                                title = stringResource(Res.string.select_sites),
+                                description = stringResource(Res.string.select_site_to_view_details),
+                                modifier = Modifier.fillMaxSize(),
+                            )
                         },
                     ),
                 ) {

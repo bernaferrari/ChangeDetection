@@ -31,6 +31,10 @@ fun ComparisonScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val siteTitle = uiState.site?.title?.takeIf { it.isNotBlank() }
+        ?: uiState.site?.url?.displayDomain()
+        ?: stringResource(Res.string.app_name)
+    val showUrlSubtitle = uiState.site?.title?.isNotBlank() == true
 
     // Delete confirmation state
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -53,11 +57,10 @@ fun ComparisonScreen(
                 title = {
                     Column {
                         Text(
-                            text = uiState.site?.title?.takeIf { it.isNotBlank() }
-                                ?: stringResource(Res.string.app_name),
+                            text = siteTitle,
                             style = MaterialTheme.typography.titleLarge,
                         )
-                        uiState.site?.url?.let { url ->
+                        uiState.site?.url?.takeIf { showUrlSubtitle }?.let { url ->
                             Text(
                                 text = url,
                                 style = MaterialTheme.typography.bodySmall,
@@ -258,3 +261,9 @@ fun ComparisonScreen(
         )
     }
 }
+
+private fun String.displayDomain(): String = removePrefix("https://")
+    .removePrefix("http://")
+    .removePrefix("www.")
+    .substringBefore("/")
+    .ifBlank { this }
