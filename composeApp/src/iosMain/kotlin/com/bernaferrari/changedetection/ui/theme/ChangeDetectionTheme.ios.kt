@@ -9,6 +9,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import com.materialkolor.PaletteStyle
 import com.materialkolor.rememberDynamicColorScheme
 
@@ -27,7 +28,7 @@ actual fun ChangeDetectionTheme(
     val colorScheme = rememberDynamicColorScheme(
         seedColor = SeedColor,
         isDark = darkTheme,
-        style = PaletteStyle.TonalSpot,
+        style = PaletteStyle.Expressive,
     )
 
     MaterialExpressiveTheme(
@@ -35,8 +36,11 @@ actual fun ChangeDetectionTheme(
         motionScheme = MotionScheme.expressive(),
         shapes = Shapes,
         typography = Typography,
-        content = content,
-    )
+    ) {
+        CompositionLocalProvider(LocalAppSpacing provides AppSpacing()) {
+            content()
+        }
+    }
 }
 
 /**

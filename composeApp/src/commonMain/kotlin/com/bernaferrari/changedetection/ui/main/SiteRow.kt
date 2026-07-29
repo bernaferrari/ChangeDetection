@@ -47,6 +47,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.site_status_c
 import com.bernaferrari.changedetection.shared.generated.resources.site_status_checking
 import com.bernaferrari.changedetection.shared.generated.resources.site_status_error
 import com.bernaferrari.changedetection.shared.generated.resources.site_status_unchanged
+import com.bernaferrari.changedetection.ui.theme.spacing
 import com.bernaferrari.changedetection.shared.generated.resources.card_more_options
 import org.jetbrains.compose.resources.stringResource
 
@@ -61,6 +62,7 @@ fun SiteRow(
     onMoreClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val spacing = MaterialTheme.spacing
     val title = remember(site.title, site.url) { site.displayTitle() }
     val domain = remember(site.url) { site.displayDomain() }
 
@@ -78,24 +80,24 @@ fun SiteRow(
     ) {
         Row(
             modifier = Modifier
-                .defaultMinSize(minHeight = 64.dp)
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                .defaultMinSize(minHeight = spacing.touchTarget + spacing.md)
+                .padding(horizontal = spacing.sm, vertical = spacing.xs + spacing.xxs / 2),
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             SiteFavicon(
                 site = site,
                 title = title,
                 domain = domain,
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(spacing.lg + spacing.md),
             )
 
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
+                verticalArrangement = Arrangement.spacedBy(spacing.xxs / 2),
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(spacing.xxs + spacing.xxs / 2),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
@@ -111,7 +113,7 @@ fun SiteRow(
                             imageVector = Icons.Rounded.Bolt,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.tertiary,
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(spacing.md),
                         )
                     }
                 }
@@ -129,7 +131,7 @@ fun SiteRow(
 
             IconButton(
                 onClick = onMoreClick,
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(spacing.touchTarget),
             ) {
                 Icon(
                     imageVector = Icons.Rounded.MoreVert,

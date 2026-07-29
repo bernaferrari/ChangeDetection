@@ -7,10 +7,10 @@ package com.bernaferrari.changedetection.ui.theme
 import androidx.compose.ui.unit.dp
 
 /**
- * Shared design tokens that are still used across screens.
+ * Legacy design tokens that remain while complex screens are migrated.
  *
- * New UI should prefer MaterialTheme typography, shapes, and component defaults. The spring and
- * radius objects remain temporarily while older screens are migrated screen by screen.
+ * New product UI uses MaterialTheme plus [AppSpacing]. The spring and radius objects stay here
+ * only for legacy custom-shape animations, which are intentionally being retired screen by screen.
  */
 object Spacing {
     val xs = 2.dp

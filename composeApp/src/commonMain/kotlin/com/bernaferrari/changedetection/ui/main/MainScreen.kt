@@ -72,6 +72,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.undo
 import com.bernaferrari.changedetection.ui.components.ConfirmDialog
 import com.bernaferrari.changedetection.ui.components.ErrorBanner
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
+import com.bernaferrari.changedetection.ui.theme.spacing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -327,6 +328,7 @@ private fun SitesList(
     onSiteEdit: (SiteAndLastSnap) -> Unit,
     onSiteDelete: (SiteAndLastSnap) -> Unit,
 ) {
+    val spacing = MaterialTheme.spacing
     var showOptionsFor by remember { mutableStateOf<SiteAndLastSnap?>(null) }
     val haptic = LocalHapticFeedback.current
 
@@ -337,9 +339,9 @@ private fun SitesList(
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 360.dp),
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = spacing.md, vertical = spacing.sm),
+                horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+                verticalArrangement = Arrangement.spacedBy(spacing.xs),
             ) {
                 items(
                     items = sites,
@@ -363,8 +365,8 @@ private fun SitesList(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = spacing.md, vertical = spacing.sm),
+                verticalArrangement = Arrangement.spacedBy(spacing.xs),
             ) {
                 items(
                     items = sites,

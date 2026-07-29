@@ -34,22 +34,19 @@ The active app architecture is Kotlin Multiplatform with Compose Multiplatform, 
 
 ## Build and test
 
-This checkout currently substitutes the Webwright browser libraries from `../../kotlin/webwright`, as declared in `settings.gradle.kts`. Ensure that sibling checkout is present before building.
+This checkout uses the Webwright browser libraries from the sibling `../../kotlin/webwright` checkout, as declared in `settings.gradle.kts`. Ensure that checkout is present before building.
 
-```bash
-./gradlew :app:assembleDebug
-./gradlew :composeApp:testAndroidHostTest
-./gradlew :composeApp:compileKotlinIosSimulatorArm64
-```
+| Check | Command | Coverage |
+| --- | --- | --- |
+| Android host tests | `./gradlew :composeApp:testAndroidHostTest` | Domain behavior and pure comparison UI logic using synthetic local data. |
+| Android device-test compile | `./gradlew :composeApp:compileAndroidDeviceTest` | Current Room, browser, and Compose semantic test sources. No device is required for compilation. |
+| Android debug app | `./gradlew :app:assembleDebug` | Android integration, browser adapter, and packaging. |
+| iOS shared code | `./gradlew :composeApp:compileKotlinIosSimulatorArm64` | iOS implementation of the shared KMP surface. |
+| Kotlin formatting | `./gradlew :composeApp:spotlessCheck` | Kotlin formatting and copyright headers for the Compose module. |
+| Website lint | `cd web && pnpm lint` | TypeScript and React static analysis. |
+| Website production build | `cd web && pnpm build` | Type checking and static rendering of `/` and `/docs`. |
 
-For the website:
-
-```bash
-cd web
-pnpm install
-pnpm lint
-pnpm build
-```
+Tests and preview data must stay local and synthetic: do not make a verification command depend on a live monitored URL, saved browsing content, or credentials.
 
 ## Privacy
 

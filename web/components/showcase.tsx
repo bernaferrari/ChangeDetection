@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Image from "next/image";
 import { Plus, Minus, ArrowLeftRight } from "lucide-react";
+import { ProductPreview } from "@/components/product-preview";
 
 export function Showcase() {
   return (
@@ -98,13 +98,13 @@ export function Showcase() {
           </div>
         </motion.div>
 
-        {/* App Screenshots Grid */}
+        {/* Capability previews use synthetic data so the site never ships stale product screenshots. */}
         <div className="grid md:grid-cols-2 gap-6">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="glass overflow-hidden group"
+            className="glass overflow-hidden"
           >
             <div className="p-4 border-b border-border">
               <h3 className="font-semibold">Dashboard View</h3>
@@ -113,17 +113,7 @@ export function Showcase() {
               </p>
             </div>
             <div className="p-3 bg-muted/30">
-              <div className="screenshot-container">
-                <div className="screenshot-inner">
-                  <Image
-                    src="/assets/main-screen.png"
-                    alt="Change Detection Dashboard"
-                    width={600}
-                    height={400}
-                    className="w-full h-auto group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-              </div>
+              <ProductPreview variant="monitoring" />
             </div>
           </motion.div>
 
@@ -132,26 +122,14 @@ export function Showcase() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="glass overflow-hidden group"
+            className="glass overflow-hidden"
           >
             <div className="p-4 border-b border-border">
               <h3 className="font-semibold">Version History</h3>
-              <p className="text-sm text-muted-foreground">
-                Browse through all captured snapshots
-              </p>
+                <p className="text-sm text-muted-foreground">Browse through every captured snapshot</p>
             </div>
             <div className="p-3 bg-muted/30">
-              <div className="screenshot-container">
-                <div className="screenshot-inner">
-                  <Image
-                    src="/assets/header.png"
-                    alt="Change Detection Version History"
-                    width={600}
-                    height={400}
-                    className="w-full h-auto group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-              </div>
+              <ProductPreview variant="history" />
             </div>
           </motion.div>
         </div>

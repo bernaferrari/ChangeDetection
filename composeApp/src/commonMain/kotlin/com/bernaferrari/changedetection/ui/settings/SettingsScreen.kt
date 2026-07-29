@@ -158,32 +158,34 @@ fun SettingsScreen(
                 }
             }
 
-            if (uiState.comparisonMethod == ComparisonMethod.SCREENSHOT) item {
-                SettingsGroup {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.settings_comparison_title),
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(
-                            text = stringResource(Res.string.settings_comparison_subtitle),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        ComparisonMethodSelector(
-                            selectedMethod = uiState.comparisonMethod,
-                            onMethodSelected = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                viewModel.updateComparisonMethod(it)
-                            },
-                        )
+            if (uiState.comparisonMethod == ComparisonMethod.SCREENSHOT) {
+                item {
+                    SettingsGroup {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Text(
+                                text = stringResource(Res.string.settings_comparison_title),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Text(
+                                text = stringResource(Res.string.settings_comparison_subtitle),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            ComparisonMethodSelector(
+                                selectedMethod = uiState.comparisonMethod,
+                                onMethodSelected = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    viewModel.updateComparisonMethod(it)
+                                },
+                            )
+                        }
                     }
                 }
             }

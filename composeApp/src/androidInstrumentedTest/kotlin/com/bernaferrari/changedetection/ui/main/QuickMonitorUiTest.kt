@@ -6,84 +6,60 @@ package com.bernaferrari.changedetection.ui.main
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.bernaferrari.changedetection.library.R
+import com.bernaferrari.changedetection.repo.ConstraintsRequired
+import com.bernaferrari.changedetection.repo.Site
+import com.bernaferrari.changedetection.ui.theme.ChangeDetectionTheme
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+/** Semantic regression tests for the reusable main-list surface. */
 @RunWith(AndroidJUnit4::class)
 class QuickMonitorUiTest {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun bannerDisplaysLiveBadgeAndStopAction() {
-        val liveBadge = composeTestRule.activity.getString(R.string.quick_monitor_banner_live_badge)
-        val stopLabel = composeTestRule.activity.getString(R.string.action_stop_monitoring)
+    fun siteRowExposesStatusAndMoreAction() {
+        val title = "Synthetic price watch"
+        val moreOptions = "More options for $title"
+        val changed = "Updated just now"
 
         composeTestRule.setContent {
-            QuickMonitorBanner(
-                isActive = true,
-                sitesCount = 3,
-                intervalSeconds = 30,
-                onToggle = {},
-                startTime = null,
-                deadlineTime = null,
-            )
+            ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
+                SiteRow(
+                    site = syntheticSite(title),
+                    status = SiteStatus.Changed("just now"),
+                    isQuickMonitored = true,
+                    onClick = {},
+                    onLongClick = {},
+                    onMoreClick = {},
+                )
+            }
         }
 
-        composeTestRule.onNodeWithText(liveBadge).assertIsDisplayed()
-        composeTestRule.onNodeWithText(stopLabel).assertIsDisplayed()
+        composeTestRule.onNodeWithText(title).assertIsDisplayed()
+        composeTestRule.onNodeWithText(changed).assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription(moreOptions).assertIsDisplayed()
     }
 
-    @Test
-    fun cardShowsStopAndForegroundStateWhenActive() {
-        val stopTurbo = composeTestRule.activity.getString(R.string.turbo_mode_button_stop)
-        val foregroundLabel = composeTestRule.activity.getString(R.string.quick_monitor_alert_state_on)
-
-        composeTestRule.setContent {
-            QuickMonitorCard(
-                isActive = true,
-                sitesCount = 2,
-                totalSitesCount = 5,
-                intervalSeconds = 45,
-                onStart = {},
-                onStop = {},
-                onExtend = {},
-            )
-        }
-
-        composeTestRule.onNodeWithText(stopTurbo).assertIsDisplayed()
-        composeTestRule.onNodeWithText(foregroundLabel).assertIsDisplayed()
-    }
-
-    @Test
-    fun bannerProgressUpdatesWithTick() {
-        val contentDesc =
-            composeTestRule.activity.getString(
-                R.string.quick_monitor_banner_active_details,
-                1,
-                30,
-                "--:--",
-                "--:--",
-            )
-
-        composeTestRule.setContent {
-            QuickMonitorBanner(
-                isActive = true,
-                sitesCount = 1,
-                intervalSeconds = 30,
-                onToggle = {},
-                startTime = null,
-                deadlineTime = null,
-            )
-        }
-
-        composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithContentDescription(contentDesc).assertExists()
-    }
+    private fun syntheticSite(title: String) = Site(
+        title = title,
+        url = "https://example.test/price",
+        timestamp = 0,
+        id = "synthetic-price-watch",
+        isSuccessful = true,
+        isBrowser = false,
+        threshold = 0,
+        isRead = false,
+        isSyncEnabled = true,
+        isNotificationEnabled = true,
+        notes = "",
+        colors = 0xFF00897B.toInt() to 0xFF26A69A.toInt(),
+        constraints = ConstraintsRequired(false, false, false, false),
+    )
 }
