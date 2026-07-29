@@ -166,13 +166,15 @@ private fun SiteFavicon(
             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
             color = Color.White,
         )
-        PlatformFaviconImage(
-            model = "https://www.google.com/s2/favicons?sz=128&domain_url=$domain",
-            contentDescription = null,
-            modifier = Modifier
-                .matchParentSize()
-                .clip(CircleShape),
-        )
+        if (LocalRemoteFaviconLoading.current) {
+            PlatformFaviconImage(
+                model = "https://www.google.com/s2/favicons?sz=128&domain_url=$domain",
+                contentDescription = null,
+                modifier = Modifier
+                    .matchParentSize()
+                    .clip(CircleShape),
+            )
+        }
     }
 }
 
