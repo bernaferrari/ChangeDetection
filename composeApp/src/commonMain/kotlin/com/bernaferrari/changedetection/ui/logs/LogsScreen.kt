@@ -16,6 +16,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
+import androidx.paging.LoadState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
+import com.bernaferrari.changedetection.ui.components.ConfirmDialog
 import org.koin.compose.viewmodel.koinViewModel
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.*
@@ -32,6 +36,7 @@ fun LogsScreen(
     val siteMap by viewModel.siteMap.collectAsStateWithLifecycle()
     val versionsCount by viewModel.versionsCount.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    var snapPendingDeletion by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -48,12 +53,34 @@ fun LogsScreen(
                     containerColor = MaterialTheme.colorScheme.surface,
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ),
-                modifier = Modifier.statusBarsPadding(),
             )
         },
         contentWindowInsets = WindowInsets(0),
     ) { padding ->
-        if (pagedItems.itemCount == 0) {
+        if (pagedItems.loadState.refresh is LoadState.Loading && pagedItems.itemCount == 0) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (pagedItems.loadState.refresh is LoadState.Error && pagedItems.itemCount == 0) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = stringResource(Res.string.logs_load_failed),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Button(onClick = { pagedItems.retry() }) {
+                        Text(stringResource(Res.string.retry))
+                    }
+                }
+            }
+        } else if (pagedItems.itemCount == 0) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -96,18 +123,12 @@ fun LogsScreen(
                         is LogUiModel.Item -> {
                             val site = siteMap[item.snap.siteId]
                             if (site != null) {
-                                val position = when {
-                                    pagedItems.itemCount == 1 -> ListItemPosition.SINGLE
-                                    index == 0 -> ListItemPosition.FIRST
-                                    index == pagedItems.itemCount - 1 -> ListItemPosition.LAST
-                                    else -> ListItemPosition.MIDDLE
-                                }
                                 LogItem(
                                     snap = item.snap,
                                     site = site,
-                                    position = position,
+                                    position = ListItemPosition.SINGLE,
                                     onClick = { onSnapClick(item.snap.snapId, site.url) },
-                                    onDeleteClick = { viewModel.removeSnap(item.snap.snapId) },
+                                    onDeleteClick = { snapPendingDeletion = item.snap.snapId },
                                 )
                             }
                         }
@@ -119,7 +140,31 @@ fun LogsScreen(
                         null -> {} // Loading state placeholder
                     }
                 }
+
+                if (pagedItems.loadState.append is LoadState.Loading) {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(24.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        }
+                    }
+                }
             }
         }
+    }
+
+    snapPendingDeletion?.let { snapId ->
+        ConfirmDialog(
+            visible = true,
+            onDismiss = { snapPendingDeletion = null },
+            onConfirm = { viewModel.removeSnap(snapId) },
+            title = stringResource(Res.string.delete_snapshot_title),
+            message = stringResource(Res.string.delete_snapshot_message),
+            icon = Icons.Outlined.Delete,
+            confirmText = stringResource(Res.string.delete),
+            isDestructive = true,
+        )
     }
 }

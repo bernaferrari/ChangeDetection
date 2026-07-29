@@ -54,6 +54,8 @@ data class PlatformActions(
     val openEmail: (email: String, subject: String) -> Unit = { _, _ -> },
     val startTurbo: (siteIds: Set<String>, intervalSeconds: Int) -> Unit = { _, _ -> },
     val stopTurbo: () -> Unit = {},
+    val requestNotifications: () -> Unit = {},
+    val appVersion: String = "",
 )
 
 @Composable
@@ -61,6 +63,8 @@ fun ChangeDetectionRootApp(
     windowSizeClass: WindowSizeClass,
     platformActions: PlatformActions = PlatformActions(),
     initialSiteId: String? = null,
+    initialUrl: String? = null,
+    onInitialUrlHandled: () -> Unit = {},
 ) {
     val themeViewModel: ThemeViewModel = koinViewModel()
 
@@ -76,6 +80,8 @@ fun ChangeDetectionRootApp(
                 windowSizeClass = windowSizeClass,
                 platformActions = platformActions,
                 initialSiteId = initialSiteId,
+                initialUrl = initialUrl,
+                onInitialUrlHandled = onInitialUrlHandled,
             )
         }
     }
@@ -87,6 +93,8 @@ fun ChangeDetectionApp(
     windowSizeClass: WindowSizeClass,
     platformActions: PlatformActions,
     initialSiteId: String? = null,
+    initialUrl: String? = null,
+    onInitialUrlHandled: () -> Unit = {},
 ) {
     val backStack = rememberNavBackStack(MainDestination)
     val mainViewModel: MainViewModel = koinViewModel()
@@ -95,6 +103,12 @@ fun ChangeDetectionApp(
     androidx.compose.runtime.LaunchedEffect(initialSiteId) {
         if (initialSiteId != null) {
             backStack.add(ComparisonDestination(siteId = initialSiteId))
+        }
+    }
+    androidx.compose.runtime.LaunchedEffect(initialUrl) {
+        if (!initialUrl.isNullOrBlank()) {
+            backStack.add(AddEditDestination(initialUrl = initialUrl))
+            onInitialUrlHandled()
         }
     }
     val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
@@ -123,7 +137,8 @@ fun ChangeDetectionApp(
                 ) {
                     MainScreen(
                         viewModel = mainViewModel,
-                        onAddSite = { backStack.add(AddEditDestination) },
+                        onAddSite = { backStack.add(AddEditDestination()) },
+                        onLearnHowItWorks = { backStack.add(HowItWorksDestination) },
                         onSiteClick = { site -> backStack.add(ComparisonDestination(siteId = site.id)) },
                         onSiteEdit = { site -> backStack.add(EditSiteDestination(siteId = site.id)) },
                     )
@@ -137,6 +152,7 @@ fun ChangeDetectionApp(
                         sites = sites ?: emptyList(),
                         quickMonitorState = quickMonitorState,
                         isLoading = sites == null,
+                        onAddSite = { backStack.add(AddEditDestination()) },
                         onStartTurbo = { selectedUrl, interval ->
                             platformActions.startTurbo(selectedUrl, interval)
                         },
@@ -158,6 +174,11 @@ fun ChangeDetectionApp(
                 entry<SettingsDestination> {
                     SettingsScreen(
                         onAboutClick = { backStack.add(AboutDestination) },
+                        onHowItWorksClick = { backStack.add(HowItWorksDestination) },
+                        onContactClick = {
+                            platformActions.openEmail("bernaferrari2@gmail.com", "Change Detection Feedback")
+                        },
+                        appVersion = platformActions.appVersion,
                     )
                 }
 
@@ -170,10 +191,14 @@ fun ChangeDetectionApp(
                         slideInVertically(initialOffsetY = { -it }) togetherWith
                             slideOutVertically(targetOffsetY = { it })
                     },
-                ) {
+                ) { key ->
                     AddEditFlow(
+                        selectedUrl = key.initialUrl,
                         onNavigateUp = { backStack.removeLastOrNull() },
-                        onSaveComplete = { backStack.removeLastOrNull() },
+                        onSaveComplete = {
+                            platformActions.requestNotifications()
+                            backStack.removeLastOrNull()
+                        },
                     )
                 }
 

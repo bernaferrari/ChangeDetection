@@ -93,7 +93,7 @@ fun ComparisonScreen(
                     IconButton(onClick = onNavigateUp) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(Res.string.a11y_navigate_back),
                         )
                     }
                 },
@@ -103,7 +103,7 @@ fun ComparisonScreen(
                     IconButton(onClick = { showMenu = true }) {
                         Icon(
                             imageVector = Icons.Default.MoreVert,
-                            contentDescription = "More options",
+                            contentDescription = stringResource(Res.string.more_options),
                         )
                     }
 
@@ -112,7 +112,7 @@ fun ComparisonScreen(
                         onDismissRequest = { showMenu = false },
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Reload") },
+                            text = { Text(stringResource(Res.string.refresh)) },
                             onClick = {
                                 viewModel.reloadSite()
                                 showMenu = false
@@ -120,7 +120,7 @@ fun ComparisonScreen(
                             leadingIcon = { Icon(Icons.Default.Refresh, contentDescription = null) },
                         )
                         DropdownMenuItem(
-                            text = { Text("Edit") },
+                            text = { Text(stringResource(Res.string.edit)) },
                             onClick = {
                                 onSiteEdit(siteId)
                                 showMenu = false
@@ -128,7 +128,7 @@ fun ComparisonScreen(
                             leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
                         )
                         DropdownMenuItem(
-                            text = { Text("Prune") },
+                            text = { Text(stringResource(Res.string.prune_history)) },
                             onClick = {
                                 viewModel.pruneSite()
                                 showMenu = false
@@ -137,7 +137,7 @@ fun ComparisonScreen(
                         )
                         HorizontalDivider()
                         DropdownMenuItem(
-                            text = { Text("Delete") },
+                            text = { Text(stringResource(Res.string.delete)) },
                             onClick = {
                                 showDeleteDialog = true
                                 showMenu = false
@@ -160,7 +160,6 @@ fun ComparisonScreen(
                     containerColor = MaterialTheme.colorScheme.surface,
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ),
-                modifier = Modifier.statusBarsPadding(),
             )
         },
     ) { paddingValues ->
@@ -177,17 +176,28 @@ fun ComparisonScreen(
             }
 
             uiState.site == null -> {
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
-                    contentAlignment = Alignment.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
                 ) {
                     Text(
-                        text = "Site not found",
+                        text = if (uiState.error != null) {
+                            stringResource(Res.string.comparison_load_failed)
+                        } else {
+                            stringResource(Res.string.site_not_found)
+                        },
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.error,
                     )
+                    if (uiState.error != null) {
+                        Spacer(Modifier.height(12.dp))
+                        Button(onClick = { viewModel.loadSiteAndSnaps(siteId) }) {
+                            Text(stringResource(Res.string.retry))
+                        }
+                    }
                 }
             }
 
@@ -205,6 +215,8 @@ fun ComparisonScreen(
                     content = uiState.singleSnapContent,
                     bytes = uiState.singleSnapBytes,
                     isLoadingContent = uiState.isLoadingDiff,
+                    hasError = uiState.error != null,
+                    onRetry = { viewModel.loadSiteAndSnaps(siteId) },
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
@@ -222,6 +234,9 @@ fun ComparisonScreen(
                     imageDiff = uiState.imageDiff,
                     isLoadingDiff = uiState.isLoadingDiff,
                     onSelectPair = { viewModel.selectPairForComparison(it) },
+                    onRetry = {
+                        viewModel.selectPairForComparison(uiState.selectedPairIndex ?: 0)
+                    },
                     onShare = {
                         val idx = uiState.selectedPairIndex ?: 0
                         val newerSnap = uiState.snaps.getOrNull(idx)
@@ -241,10 +256,10 @@ fun ComparisonScreen(
                             )
                         } else if (idx + 1 < uiState.snaps.size && uiState.snapContent1 != null && uiState.snapContent2 != null) {
                             viewModel.shareDiff(
-                                snap1 = uiState.snaps[idx],
-                                snap2 = uiState.snaps[idx + 1],
-                                content1 = uiState.snapContent1!!,
-                                content2 = uiState.snapContent2!!,
+                                snap1 = uiState.snaps[idx + 1],
+                                snap2 = uiState.snaps[idx],
+                                content1 = uiState.snapContent2!!,
+                                content2 = uiState.snapContent1!!,
                             )
                         }
                     },
@@ -294,6 +309,8 @@ private fun SingleSnapshotState(
     content: String?,
     bytes: ByteArray?,
     isLoadingContent: Boolean,
+    hasError: Boolean,
+    onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     if (snap.isImageSnapshot() && bytes != null) {
@@ -355,6 +372,18 @@ private fun SingleSnapshotState(
         ) {
             CircularProgressIndicator()
         }
+    } else if (hasError) {
+        Column(
+            modifier = modifier.padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(stringResource(Res.string.failed_to_load_content))
+            Spacer(Modifier.height(12.dp))
+            Button(onClick = onRetry) {
+                Text(stringResource(Res.string.retry))
+            }
+        }
     } else {
         Box(
             modifier = modifier,
@@ -380,7 +409,7 @@ private fun SingleSnapshotState(
                 }
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = "1 snapshot captured",
+                    text = stringResource(Res.string.comparison_single_snapshot_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -433,6 +462,7 @@ private fun DiffFirstContent(
     imageDiff: SnapshotImageDiff?,
     isLoadingDiff: Boolean,
     onSelectPair: (Int) -> Unit,
+    onRetry: () -> Unit,
     onShare: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -476,7 +506,7 @@ private fun DiffFirstContent(
                 FilterChip(
                     selected = mode == option,
                     onClick = { mode = option },
-                    label = { Text(option.label()) },
+                    label = { Text(stringResource(option.labelResource())) },
                 )
             }
 
@@ -485,7 +515,7 @@ private fun DiffFirstContent(
             // Share button
             if ((isImagePair && imageDiff != null) || (content1 != null && content2 != null)) {
                 IconButton(onClick = onShare) {
-                    Icon(Icons.Default.Share, contentDescription = "Share diff")
+                    Icon(Icons.Default.Share, contentDescription = stringResource(Res.string.share_comparison))
                 }
             }
         }
@@ -512,16 +542,16 @@ private fun DiffFirstContent(
             when (mode) {
                 ComparisonMode.Text -> {
                     SimpleDiffView(
-                        oldContent = content1,
-                        newContent = content2,
+                        oldContent = content2,
+                        newContent = content1,
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
 
                 ComparisonMode.Html -> {
                     RenderedHtmlComparison(
-                        oldContent = content1,
-                        newContent = content2,
+                        oldContent = content2,
+                        newContent = content1,
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
@@ -529,14 +559,19 @@ private fun DiffFirstContent(
                 else -> Unit
             }
         } else {
-            Box(
+            Column(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
                 Text(
                     text = stringResource(Res.string.failed_to_load_content),
                     color = MaterialTheme.colorScheme.error,
                 )
+                Spacer(Modifier.height(12.dp))
+                Button(onClick = onRetry) {
+                    Text(stringResource(Res.string.retry))
+                }
             }
         }
     }
@@ -663,8 +698,15 @@ private fun SimpleDiffView(
 
     val oldLines = remember(oldContent) { oldContent.lines() }
     val newLines = remember(newContent) { newContent.lines() }
-    val maxLines = remember(oldLines, newLines) { maxOf(oldLines.size, newLines.size) }
-    val changeStats = remember(oldLines, newLines) { calculateChangeStats(oldLines, newLines) }
+    val diffRows = remember(oldLines, newLines) { calculateDiffRows(oldLines, newLines) }
+    val changeStats = remember(diffRows) {
+        ChangeStats(
+            added = diffRows.count { it.type == DiffLineType.ADDED },
+            removed = diffRows.count { it.type == DiffLineType.REMOVED },
+            modified = 0,
+            unchanged = diffRows.count { it.type == DiffLineType.UNCHANGED },
+        )
+    }
     val primaryLineColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
     val addedLineColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f)
 
@@ -689,12 +731,12 @@ private fun SimpleDiffView(
                     FilterChip(
                         selected = !showOnlyChanges,
                         onClick = { showOnlyChanges = false },
-                        label = { Text("All") },
+                        label = { Text(stringResource(Res.string.show_all)) },
                     )
                     FilterChip(
                         selected = showOnlyChanges,
                         onClick = { showOnlyChanges = true },
-                        label = { Text("Changes") },
+                        label = { Text(stringResource(Res.string.show_changes)) },
                     )
                 }
             }
@@ -708,31 +750,11 @@ private fun SimpleDiffView(
                     modifier = Modifier.fillMaxSize().padding(32.dp),
                 )
             } else {
-                for (i in 0 until maxLines) {
-                    val oldLine = oldLines.getOrNull(i) ?: ""
-                    val newLine = newLines.getOrNull(i) ?: ""
-
-                    if (!showOnlyChanges || oldLine != newLine) {
-                        when {
-                            oldLine == newLine -> {
-                                DiffLine(i + 1, oldLine, DiffLineType.UNCHANGED)
-                            }
-
-                            oldLine.isNotEmpty() && newLine.isNotEmpty() -> {
-                                DiffLine(i + 1, oldLine, DiffLineType.REMOVED)
-                                DiffLine(i + 1, newLine, DiffLineType.ADDED)
-                            }
-
-                            oldLine.isNotEmpty() -> {
-                                DiffLine(i + 1, oldLine, DiffLineType.REMOVED)
-                            }
-
-                            newLine.isNotEmpty() -> {
-                                DiffLine(i + 1, newLine, DiffLineType.ADDED)
-                            }
-                        }
+                diffRows
+                    .filter { !showOnlyChanges || it.type != DiffLineType.UNCHANGED }
+                    .forEach { row ->
+                        DiffLine(row.lineNumber, row.content, row.type)
                     }
-                }
             }
         }
 
@@ -744,17 +766,15 @@ private fun SimpleDiffView(
                 .padding(top = 16.dp, bottom = 16.dp, end = 8.dp),
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
-                val total = maxLines.coerceAtLeast(1)
+                val total = diffRows.size.coerceAtLeast(1)
                 val h = size.height
                 val step = h / total
                 var y = 0f
-                for (idx in 0 until total) {
-                    val oldLine = oldLines.getOrNull(idx) ?: ""
-                    val newLine = newLines.getOrNull(idx) ?: ""
-                    val color = when {
-                        oldLine == newLine -> Color.Transparent
-                        oldLine.isNotEmpty() && newLine.isNotEmpty() -> addedLineColor
-                        else -> primaryLineColor
+                diffRows.forEach { row ->
+                    val color = when (row.type) {
+                        DiffLineType.UNCHANGED -> Color.Transparent
+                        DiffLineType.ADDED -> addedLineColor
+                        DiffLineType.REMOVED, DiffLineType.MODIFIED -> primaryLineColor
                     }
                     if (color.alpha > 0f) {
                         drawLine(
@@ -883,7 +903,7 @@ private fun RenderedHtmlComparison(
                 FilterChip(
                     selected = overlayOpacity == 0f,
                     onClick = { overlayOpacity = 0f },
-                    label = { Text("Old") },
+                    label = { Text(stringResource(Res.string.older)) },
                     leadingIcon = if (overlayOpacity == 0f) {
                         { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
                     } else {
@@ -907,7 +927,7 @@ private fun RenderedHtmlComparison(
                 FilterChip(
                     selected = overlayOpacity == 1f,
                     onClick = { overlayOpacity = 1f },
-                    label = { Text("New") },
+                    label = { Text(stringResource(Res.string.newer)) },
                     leadingIcon = if (overlayOpacity == 1f) {
                         { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
                     } else {

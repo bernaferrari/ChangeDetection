@@ -49,8 +49,8 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
           >
-            Stop refreshing websites endlessly. Change Detection monitors any webpage
-            and notifies you the instant something changes. Track prices, grades,
+            Stop refreshing websites endlessly. Change Detection checks the pages you choose
+            and notifies you when it detects an update. Track prices, grades,
             job postings, news & more.
           </motion.p>
 
@@ -65,6 +65,7 @@ export function Hero() {
               <a
                 href="https://play.google.com/store/apps/details?id=com.bernaferrari.changedetection"
                 target="_blank"
+                rel="noreferrer"
               >
                 <Smartphone className="mr-2" size={18} />
                 Get it on Google Play
@@ -72,8 +73,9 @@ export function Hero() {
             </Button>
             <Button variant="outline" size="lg" asChild>
               <a
-                href="https://github.com/niceperson/changedetection"
+                href="https://github.com/bernaferrari/ChangeDetection"
                 target="_blank"
+                rel="noreferrer"
               >
                 <Github className="mr-2" size={18} />
                 View on GitHub

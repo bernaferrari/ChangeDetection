@@ -17,7 +17,7 @@ export function Footer() {
               <div className="w-8 h-8 rounded-lg overflow-hidden">
                 <Image
                   src="/assets/logo.png"
-                  alt="Change Detection"
+                  alt=""
                   width={32}
                   height={32}
                   className="w-full h-full object-cover"
@@ -26,13 +26,15 @@ export function Footer() {
               <span className="font-semibold text-lg">Change Detection</span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-sm mb-4">
-              Stop refreshing websites manually. Get notified instantly when any
+              Stop refreshing websites manually. Get notified when a monitored
               webpage changes. Free, open source, and privacy-focused.
             </p>
             <div className="flex items-center gap-4">
               <a
-                href="https://github.com/niceperson/changedetection"
+                href="https://github.com/bernaferrari/ChangeDetection"
                 target="_blank"
+                rel="noreferrer"
+                aria-label="Open Change Detection on GitHub"
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Github size={20} />
@@ -63,6 +65,7 @@ export function Footer() {
                 <a
                   href="https://play.google.com/store/apps/details?id=com.bernaferrari.changedetection"
                   target="_blank"
+                  rel="noreferrer"
                   className="hover:text-foreground transition-colors"
                 >
                   Google Play
@@ -76,8 +79,9 @@ export function Footer() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <a
-                  href="https://github.com/niceperson/changedetection"
+                  href="https://github.com/bernaferrari/ChangeDetection"
                   target="_blank"
+                  rel="noreferrer"
                   className="hover:text-foreground transition-colors"
                 >
                   GitHub
@@ -85,8 +89,9 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://github.com/niceperson/changedetection/releases"
+                  href="https://github.com/bernaferrari/ChangeDetection/releases"
                   target="_blank"
+                  rel="noreferrer"
                   className="hover:text-foreground transition-colors"
                 >
                   Releases
@@ -94,8 +99,9 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://github.com/niceperson/changedetection/issues"
+                  href="https://github.com/bernaferrari/ChangeDetection/issues"
                   target="_blank"
+                  rel="noreferrer"
                   className="hover:text-foreground transition-colors"
                 >
                   Report Issue
@@ -103,8 +109,9 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://github.com/niceperson/changedetection/blob/main/LICENSE"
+                  href="https://github.com/bernaferrari/ChangeDetection/blob/master/LICENSE"
                   target="_blank"
+                  rel="noreferrer"
                   className="hover:text-foreground transition-colors"
                 >
                   License

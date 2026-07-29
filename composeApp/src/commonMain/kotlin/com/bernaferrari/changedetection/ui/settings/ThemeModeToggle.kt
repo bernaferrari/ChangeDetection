@@ -111,7 +111,7 @@ fun ThemeModeToggle(
         Text(
             text = title,
             style = MaterialTheme.typography.labelMedium,
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            fontWeight = FontWeight.SemiBold,
             color = if (isSelected) {
                 MaterialTheme.colorScheme.onSurface
             } else {
@@ -119,6 +119,14 @@ fun ThemeModeToggle(
             },
             textAlign = TextAlign.Center,
             maxLines = 1,
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = description,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            maxLines = 2,
         )
     }
 }

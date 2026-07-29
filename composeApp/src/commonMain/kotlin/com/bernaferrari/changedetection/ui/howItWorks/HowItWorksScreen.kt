@@ -88,7 +88,10 @@ fun HowItWorksScreen(
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(Res.string.a11y_navigate_back),
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

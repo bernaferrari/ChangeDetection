@@ -28,7 +28,7 @@ data object SettingsDestination : NavKey
 
 // Full-screen destinations
 @Serializable
-data object AddEditDestination : NavKey
+data class AddEditDestination(val initialUrl: String? = null) : NavKey
 
 @Serializable
 data class EditSiteDestination(val siteId: String) : NavKey

@@ -60,6 +60,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.add_first_sit
 import com.bernaferrari.changedetection.shared.generated.resources.add_site
 import com.bernaferrari.changedetection.shared.generated.resources.app_name
 import com.bernaferrari.changedetection.shared.generated.resources.connection_error
+import com.bernaferrari.changedetection.shared.generated.resources.learn_how_it_works
 import com.bernaferrari.changedetection.shared.generated.resources.delete
 import com.bernaferrari.changedetection.shared.generated.resources.delete_site_message
 import com.bernaferrari.changedetection.shared.generated.resources.delete_site_title
@@ -80,6 +81,7 @@ import org.jetbrains.compose.resources.stringResource
 fun MainScreen(
     viewModel: MainViewModel,
     onAddSite: () -> Unit,
+    onLearnHowItWorks: () -> Unit,
     onSiteClick: (Site) -> Unit,
     onSiteEdit: (Site) -> Unit,
     modifier: Modifier = Modifier,
@@ -101,6 +103,7 @@ fun MainScreen(
 
     // Pull-to-refresh state
     var isRefreshing by remember { mutableStateOf(false) }
+    var refreshObservedWork by remember { mutableStateOf(false) }
 
     // Delete confirmation state
     var siteToDelete by remember { mutableStateOf<SiteAndLastSnap?>(null) }
@@ -138,14 +141,28 @@ fun MainScreen(
         }
     }
 
+    LaunchedEffect(loadingSites, isRefreshing) {
+        if (isRefreshing && loadingSites.isNotEmpty()) {
+            refreshObservedWork = true
+        } else if (isRefreshing && refreshObservedWork && loadingSites.isEmpty()) {
+            isRefreshing = false
+            refreshObservedWork = false
+        }
+    }
+
+    LaunchedEffect(isRefreshing) {
+        if (isRefreshing) {
+            delay(30_000)
+            isRefreshing = false
+            refreshObservedWork = false
+        }
+    }
+
     // Handle pull-to-refresh
     fun onRefresh() {
-        scope.launch {
-            isRefreshing = true
-            viewModel.refreshAllSites()
-            delay(1500)
-            isRefreshing = false
-        }
+        isRefreshing = true
+        refreshObservedWork = false
+        viewModel.refreshAllSites()
     }
 
     Scaffold(
@@ -160,14 +177,16 @@ fun MainScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        viewModel.refreshAllSites()
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = stringResource(Res.string.refresh_all),
-                        )
+                    if (!sites.isNullOrEmpty()) {
+                        IconButton(onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            viewModel.refreshAllSites()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = stringResource(Res.string.refresh_all),
+                            )
+                        }
                     }
                 },
                 scrollBehavior = scrollBehavior,
@@ -175,22 +194,23 @@ fun MainScreen(
                     containerColor = MaterialTheme.colorScheme.surface,
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ),
-                modifier = Modifier.statusBarsPadding(),
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onAddSite()
-                },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = stringResource(Res.string.add_site),
-                )
+            if (!sites.isNullOrEmpty()) {
+                FloatingActionButton(
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onAddSite()
+                    },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = stringResource(Res.string.add_site),
+                    )
+                }
             }
         },
         snackbarHost = {
@@ -218,6 +238,8 @@ fun MainScreen(
                     .padding(paddingValues),
                 primaryActionLabel = stringResource(Res.string.add_first_site),
                 onPrimaryAction = onAddSite,
+                secondaryActionLabel = stringResource(Res.string.learn_how_it_works),
+                onSecondaryAction = onLearnHowItWorks,
             )
         } else {
             // Box to allow ErrorBanner to align to bottom
@@ -269,6 +291,8 @@ fun MainScreen(
                 siteToDelete = null
             },
             onConfirm = {
+                showDeleteDialog = false
+                siteToDelete = null
                 viewModel.onDeleteSite(site)
                 scope.launch {
                     val result = snackbarHostState.showSnackbar(
@@ -331,6 +355,7 @@ private fun SitesList(
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             showOptionsFor = siteAndSnap
                         },
+                        onMoreClick = { showOptionsFor = siteAndSnap },
                         modifier = Modifier.animateItem(),
                     )
                 }
@@ -355,6 +380,7 @@ private fun SitesList(
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             showOptionsFor = siteAndSnap
                         },
+                        onMoreClick = { showOptionsFor = siteAndSnap },
                         modifier = Modifier.animateItem(),
                     )
                 }
@@ -391,6 +417,7 @@ private fun SiteRowItem(
     hasError: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    onMoreClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     SiteRow(
@@ -402,6 +429,7 @@ private fun SiteRowItem(
         isQuickMonitored = isQuickMonitored,
         onClick = onClick,
         onLongClick = onLongClick,
+        onMoreClick = onMoreClick,
         modifier = modifier,
     )
 }

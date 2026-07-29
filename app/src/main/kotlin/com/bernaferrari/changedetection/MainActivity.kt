@@ -9,6 +9,7 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -16,6 +17,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
@@ -23,6 +27,7 @@ import com.bernaferrari.changedetection.ui.main.MainViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 class MainActivity : ComponentActivity() {
+    private var incomingUrl by mutableStateOf<String?>(null)
     private val requestPermissionLauncher =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission(),
@@ -37,21 +42,7 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.colorMode = ActivityInfo.COLOR_MODE_WIDE_COLOR_GAMUT
 
-        // Request notification permission for Android 13+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            when {
-                ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS,
-                ) == PackageManager.PERMISSION_GRANTED -> {
-                    // Permission already granted
-                }
-
-                else -> {
-                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                }
-            }
-        }
+        incomingUrl = intent.extractSharedUrl()
 
         // Read deep link extras from notification
         val initialSiteId =
@@ -73,17 +64,45 @@ class MainActivity : ComponentActivity() {
                     openUrl = { url -> openUrl(context, url) },
                     openEmail = { email, subject -> openEmail(context, email, subject) },
                     startTurbo = { siteIds, intervalSeconds ->
+                        requestNotificationPermissionIfNeeded()
                         mainViewModel.startQuickMonitor(siteIds, intervalSeconds)
                     },
                     stopTurbo = {
-                        QuickMonitorService.stop(context)
                         mainViewModel.stopQuickMonitor()
                     },
+                    requestNotifications = ::requestNotificationPermissionIfNeeded,
+                    appVersion = BuildConfig.VERSION_NAME,
                 ),
                 initialSiteId = initialSiteId,
+                initialUrl = incomingUrl,
+                onInitialUrlHandled = { incomingUrl = null },
             )
         }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        incomingUrl = intent.extractSharedUrl()
+    }
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+}
+
+private fun Intent.extractSharedUrl(): String? = when (action) {
+    Intent.ACTION_VIEW -> dataString
+    Intent.ACTION_SEND -> getStringExtra(Intent.EXTRA_TEXT)
+        ?.lineSequence()
+        ?.flatMap { it.splitToSequence(' ', '\t') }
+        ?.map { it.trim().trimEnd('.', ',', ')', ']') }
+        ?.firstOrNull { it.startsWith("http://") || it.startsWith("https://") }
+    else -> null
 }
 
 private fun openUrl(

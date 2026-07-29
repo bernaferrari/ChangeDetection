@@ -35,6 +35,8 @@ import com.bernaferrari.changedetection.di.initKoinIos
 import com.bernaferrari.changedetection.localBrowser.LocalBrowserScreen
 import com.bernaferrari.changedetection.navigation.*
 import com.bernaferrari.changedetection.ui.comparison.ComparisonScreen
+import com.bernaferrari.changedetection.ui.about.AboutScreen
+import com.bernaferrari.changedetection.ui.howItWorks.HowItWorksScreen
 import com.bernaferrari.changedetection.ui.logs.LogsScreen
 import com.bernaferrari.changedetection.ui.main.MainScreen
 import com.bernaferrari.changedetection.ui.main.MainViewModel
@@ -43,6 +45,8 @@ import com.bernaferrari.changedetection.ui.navigation.ChangeDetectionBottomNavig
 import com.bernaferrari.changedetection.ui.settings.SettingsScreen
 import com.bernaferrari.changedetection.ui.theme.ChangeDetectionTheme
 import com.bernaferrari.changedetection.ui.theme.ThemeViewModel
+import com.bernaferrari.changedetection.platform.openEmail
+import com.bernaferrari.changedetection.platform.openUrl
 import org.koin.compose.viewmodel.koinViewModel
 import platform.UIKit.UIViewController
 
@@ -102,7 +106,8 @@ private fun IosNavigationApp() {
                 ) {
                     MainScreen(
                         viewModel = mainViewModel,
-                        onAddSite = { backStack.add(AddEditDestination) },
+                        onAddSite = { backStack.add(AddEditDestination()) },
+                        onLearnHowItWorks = { backStack.add(HowItWorksDestination) },
                         onSiteClick = { site -> backStack.add(ComparisonDestination(siteId = site.id)) },
                         onSiteEdit = { site -> backStack.add(EditSiteDestination(siteId = site.id)) },
                     )
@@ -116,6 +121,7 @@ private fun IosNavigationApp() {
                         sites = sites ?: emptyList(),
                         quickMonitorState = quickMonitorState,
                         isLoading = sites == null,
+                        onAddSite = { backStack.add(AddEditDestination()) },
                         onStartTurbo = { selectedUrl, interval ->
                             mainViewModel.startQuickMonitor(selectedUrl, interval)
                         },
@@ -137,6 +143,14 @@ private fun IosNavigationApp() {
                 entry<SettingsDestination> {
                     SettingsScreen(
                         onAboutClick = { backStack.add(AboutDestination) },
+                        onHowItWorksClick = { backStack.add(HowItWorksDestination) },
+                        onContactClick = {
+                            openEmail("bernaferrari2@gmail.com", "Change Detection Feedback")
+                        },
+                        appVersion = platform.Foundation.NSBundle.mainBundle
+                            .objectForInfoDictionaryKey("CFBundleShortVersionString")
+                            ?.toString()
+                            .orEmpty(),
                     )
                 }
 
@@ -149,8 +163,9 @@ private fun IosNavigationApp() {
                         slideInVertically(initialOffsetY = { -it }) togetherWith
                             slideOutVertically(targetOffsetY = { it })
                     },
-                ) {
+                ) { key ->
                     AddEditFlow(
+                        selectedUrl = key.initialUrl,
                         onNavigateUp = { backStack.removeLastOrNull() },
                         onSaveComplete = { backStack.removeLastOrNull() },
                     )
@@ -181,14 +196,27 @@ private fun IosNavigationApp() {
                             slideOutHorizontally(targetOffsetX = { it })
                     },
                 ) {
-                    // AboutScreen is currently Android-only with platform-specific actions
-                    // Show a simple about view for iOS
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text("Change Detection - iOS")
-                    }
+                    AboutScreen(
+                        onBack = { backStack.removeLastOrNull() },
+                        onSocialClick = ::openUrl,
+                        onGitHubClick = ::openUrl,
+                        onContactClick = {
+                            openEmail("bernaferrari2@gmail.com", "Change Detection Feedback")
+                        },
+                        onLicenseUrlClick = ::openUrl,
+                    )
+                }
+
+                entry<HowItWorksDestination>(
+                    metadata = NavDisplay.transitionSpec {
+                        slideInHorizontally(initialOffsetX = { it }) togetherWith
+                            slideOutHorizontally(targetOffsetX = { -it })
+                    } + NavDisplay.popTransitionSpec {
+                        slideInHorizontally(initialOffsetX = { -it }) togetherWith
+                            slideOutHorizontally(targetOffsetX = { it })
+                    },
+                ) {
+                    HowItWorksScreen(onBackClick = { backStack.removeLastOrNull() })
                 }
 
                 entry<BrowserDestination>(

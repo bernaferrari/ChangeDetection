@@ -28,7 +28,7 @@ export function Showcase() {
           </h2>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
             Our intelligent diff engine highlights additions, removals, and modifications
-            so you can instantly understand what's different.
+            so you can instantly understand what’s different.
           </p>
         </motion.div>
 

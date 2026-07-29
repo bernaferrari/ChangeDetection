@@ -16,7 +16,7 @@ const useCases = [
     title: "Exam Results & Grades",
     description:
       "Students and teachers can stop refreshing university portals. Get notified when grades are posted or schedules change.",
-    example: "\"I got notified about my exam results 2 hours before my classmates!\"",
+    example: "Track a results page during the expected publication window.",
   },
   {
     icon: TrendingDown,
@@ -37,7 +37,7 @@ const useCases = [
     title: "Event Tickets",
     description:
       "Never miss ticket releases or restocks. Monitor ticket pages for concerts, sports, or limited events.",
-    example: "Got Taylor Swift tickets because I knew the moment they went on sale.",
+    example: "Use Turbo around a known ticket release or restock window.",
   },
   {
     icon: Newspaper,
@@ -79,7 +79,7 @@ export function UseCases() {
           </h2>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
             From students to shoppers, professionals to hobbyists — everyone has
-            a website they're tired of refreshing.
+            a website they’re tired of refreshing.
           </p>
         </motion.div>
 

@@ -4,17 +4,17 @@
     <string name="add_site">Add site</string>
     <string name="refresh">Refresh</string>
     <string name="delete">Delete</string>
-    <string name="last_sync">Last sync: %s</string>
-    <string name="last_change">Last change: %s</string>
+    <string name="last_sync">Last sync: %1$s</string>
+    <string name="last_change">Last change: %1$s</string>
     <string name="connection_error">Connection error</string>
     <string name="more_options">More options</string>
     <string name="loading">Loading…</string>
     <string name="ok">OK</string>
     <string name="error">Error</string>
-    <string name="turbo_mode">Turbo Mode</string>
+    <string name="turbo_mode">Turbo</string>
     <string name="how_it_works">How it works</string>
-    <string name="turbo_help_title">How Turbo Mode works</string>
-    <string name="turbo_help_text">Turbo Mode monitors your selected sites at **high frequency**.\n\nDue to Android battery optimization, the system automatically stops background tasks after approximately **3 hours**. You'll need to re-enable Turbo Mode when this happens.\n\n**Tip:** Keep the app open or disable battery optimization for longer monitoring.</string>
+    <string name="turbo_help_title">How Turbo works</string>
+    <string name="turbo_help_text">Turbo checks only the sites you select, as often as every **15 seconds**. A persistent notification shows when it is active.\n\nTurbo stops automatically after **3 hours** to protect battery life. Start a new session whenever timing matters.</string>
     <string name="got_it">Got it</string>
     <string name="status_active">Active</string>
     <string name="status_inactive">Inactive</string>
@@ -25,11 +25,17 @@
     <string name="select_sites_to_monitor">Select sites below to monitor</string>
     <string name="select_sites">Select sites</string>
     <string name="monitoring">Monitoring</string>
-    <string name="every_label">Every %s</string>
+    <string name="select_all">Select all</string>
+    <string name="clear_all">Clear all</string>
+    <plurals name="turbo_active_sites">
+        <item quantity="one">%1$d site · every %2$s</item>
+        <item quantity="other">%1$d sites · every %2$s</item>
+    </plurals>
+    <string name="every_label">Every %1$s</string>
     <string name="no_sites_yet">No sites yet</string>
     <string name="add_sites_to_monitor">Add sites to start monitoring</string>
-    <string name="start">START</string>
-    <string name="stop">STOP</string>
+    <string name="start">Start Turbo</string>
+    <string name="stop">Stop Turbo</string>
     <string name="edit">Edit</string>
     <string name="open_in_browser">Open in browser</string>
     <string name="sync_disable">Disable syncing</string>
@@ -125,7 +131,7 @@
     <string name="comparison_hero_badge">Live insights</string>
     <string name="comparison_stats_snapshots_label">Snapshots</string>
     <string name="comparison_stats_latest_label">Latest change</string>
-    <string name="comparison_stats_latest_supporting">Updated %s</string>
+    <string name="comparison_stats_latest_supporting">Updated %1$s</string>
     <string name="comparison_stats_unavailable">No changes yet</string>
     <string name="comparison_stats_scope_label">Focus</string>
     <string name="comparison_stats_scope_element">Selected elements</string>
@@ -135,23 +141,44 @@
     <string name="comparison_empty_subtitle">Capture your first snapshot to start comparing.</string>
     <string name="comparison_quick_tip">Tap a version pair to open the diff.</string>
     <string name="comparison_pair_title">Version %d → %d</string>
-    <string name="comparison_pair_time_diff">%s apart</string>
+    <string name="comparison_pair_time_diff">%1$s apart</string>
     <string name="comparison_single_snapshot_hint">We need at least two snapshots to compare changes.</string>
-    <string name="type_label">Type: %s</string>
-    <string name="size_label">Size: %s</string>
+    <string name="comparison_single_snapshot_title">1 snapshot captured</string>
+    <string name="site_not_found">Site not found</string>
+    <string name="prune_history">Remove old snapshots</string>
+    <string name="share_comparison">Share comparison</string>
+    <string name="show_all">All</string>
+    <string name="show_changes">Changes</string>
+    <string name="older">Older</string>
+    <string name="newer">Newer</string>
+    <string name="comparison_mode_text">Text</string>
+    <string name="comparison_mode_rendered">Rendered</string>
+    <string name="comparison_mode_pixel_diff">Pixel diff</string>
+    <string name="comparison_mode_swipe">Swipe</string>
+    <string name="comparison_mode_before">Before</string>
+    <string name="comparison_mode_after">After</string>
+    <string name="type_label">Type: %1$s</string>
+    <string name="size_label">Size: %1$s</string>
     <string name="diff_comparison">Compare snapshots</string>
-    <string name="older_label">Older • %s</string>
-    <string name="newer_label">Newer • %s</string>
+    <string name="older_label">Older • %1$s</string>
+    <string name="newer_label">Newer • %1$s</string>
     <string name="text_diff">Text diff</string>
     <string name="rendered_html">Rendered HTML</string>
     <string name="failed_to_load_content">Failed to load content</string>
+    <string name="comparison_load_failed">Couldn’t load this site</string>
     <string name="comparison_no_changes_title">No differences found</string>
     <string name="comparison_no_changes_text">The text content of both snapshots is identical.</string>
     <string name="comparison_no_changes_html">The visual content of both snapshots is identical.</string>
     <string name="settings_comparison_title">Comparison method</string>
-    <string name="settings_comparison_subtitle">Applies to all monitored sites</string>
+    <string name="settings_comparison_subtitle">Page text is lightweight; screenshots preserve the visual layout.</string>
+    <string name="settings_comparison_page_text">Page text</string>
+    <string name="settings_comparison_screenshots">Screenshots</string>
     <string name="settings_browser_delay_title">Browser delay</string>
     <string name="settings_browser_delay_subtitle">Wait time before capturing page content</string>
+    <string name="settings_interval_minutes">Interval (minutes)</string>
+    <string name="settings_interval_minimum">Minimum 15 minutes</string>
+    <string name="settings_quick_presets">Quick presets</string>
+    <string name="settings_24_hours">24 hrs</string>
 
     <!-- About -->
     <string name="about_title">About</string>
@@ -170,21 +197,21 @@
     <!-- How It Works -->
     <string name="how_it_works_title">How it works</string>
     <string name="how_it_works_hero_badge">Product tour</string>
-    <string name="how_it_works_hero_title">Eyes on every launch.</string>
-    <string name="how_it_works_hero_subtitle">See how ChangeDetection keeps tabs on the entire web in four modern steps.</string>
+    <string name="how_it_works_hero_title">Know when a page changes.</string>
+    <string name="how_it_works_hero_subtitle">Change Detection checks the pages you choose and keeps a local history you can compare.</string>
     <string name="how_it_works_steps_header">The flow</string>
     <string name="how_it_works_step_add_title">Add any website</string>
-    <string name="how_it_works_step_add_description">Paste a link or share from your browser. Name it and you're tracking.</string>
-    <string name="how_it_works_step_add_highlight">Share sheet &amp; imports make setup instant.</string>
-    <string name="how_it_works_step_monitor_title">We monitor constantly</string>
-    <string name="how_it_works_step_monitor_description">Cloud + on-device checks keep every source fresh without draining battery.</string>
-    <string name="how_it_works_step_monitor_highlight">Adaptive scheduling prioritises your critical sources.</string>
-    <string name="how_it_works_step_focus_title">Focus on what matters</string>
-    <string name="how_it_works_step_focus_description">Use the interactive browser to monitor prices, text, media, or zap distractions.</string>
-    <string name="how_it_works_step_focus_highlight">Visual selection + zapping keeps signals clean.</string>
-    <string name="how_it_works_step_alerts_title">Get confident alerts</string>
-    <string name="how_it_works_step_alerts_description">Smart diffing and push notifications let you act instantly.</string>
-    <string name="how_it_works_step_alerts_highlight">Rich notifications ship with context and diffs.</string>
+    <string name="how_it_works_step_add_description">Paste a link or share one from your browser, then give it a recognizable name.</string>
+    <string name="how_it_works_step_add_highlight">The first snapshot is captured as soon as you save.</string>
+    <string name="how_it_works_step_monitor_title">Choose how often to check</string>
+    <string name="how_it_works_step_monitor_description">Use battery-friendly background checks for everyday tracking.</string>
+    <string name="how_it_works_step_monitor_highlight">You control the interval and network or power requirements.</string>
+    <string name="how_it_works_step_focus_title">Use Turbo when timing matters</string>
+    <string name="how_it_works_step_focus_description">Select specific sites and check them every 15 seconds to 2 minutes for up to 3 hours.</string>
+    <string name="how_it_works_step_focus_highlight">A persistent notification makes every Turbo session visible.</string>
+    <string name="how_it_works_step_alerts_title">Review exactly what changed</string>
+    <string name="how_it_works_step_alerts_description">Open a site to compare saved versions as text, rendered pages, or screenshots.</string>
+    <string name="how_it_works_step_alerts_highlight">Your snapshots and change history stay on your device.</string>
     <string name="how_it_works_footer_title">Ready when you are</string>
     <string name="how_it_works_footer_description">Jump back to your sites or launch a Turbo session whenever drop times get close.</string>
     <string name="how_it_works_primary_cta">Back to app</string>
@@ -234,6 +261,8 @@
     <string name="website_url">Website URL</string>
     <string name="enter_website_url">Enter website URL</string>
     <string name="website_url_placeholder">https://example.com</string>
+    <string name="clear">Clear</string>
+    <string name="paste">Paste</string>
     <string name="add_edit_url_description">Enter the exact address you want to monitor.</string>
     <string name="add_edit_details_title">Details</string>
     <string name="add_edit_details_description">Add context so future alerts are easy to understand.</string>
@@ -251,21 +280,28 @@
     <string name="add_edit_threshold_apply">Apply</string>
     <string name="add_edit_color_theme_description">Pick a gradient to highlight future change cards.</string>
     <string name="add_edit_compare_versions">Compare versions</string>
-    <string name="add_edit_threshold_value_bytes">%s bytes</string>
+    <string name="add_edit_threshold_value_bytes">%1$s bytes</string>
 
     <!-- LocalBrowser -->
     <string name="local_browser_title_snapshot">Snapshot View</string>
     <string name="local_browser_title_live">Live Browser</string>
+    <string name="local_browser_error_title">Couldn’t open this page</string>
+    <string name="local_browser_error_body">The snapshot may no longer be available.</string>
+    <string name="local_browser_empty_snapshot">This snapshot has no displayable content.</string>
 
     <!-- Delete Confirmation -->
     <string name="delete_site_title">Delete site?</string>
-    <string name="delete_site_message">This will permanently delete \"%s\" and all its snapshots.</string>
+    <string name="delete_site_message">This will permanently delete \"%1$s\" and all its snapshots.</string>
+    <string name="delete_snapshot_title">Delete snapshot?</string>
+    <string name="delete_snapshot_message">This version will be permanently removed.</string>
+    <string name="logs_load_failed">Couldn’t load history</string>
+    <string name="retry">Retry</string>
     <string name="site_deleted">Site deleted</string>
     <string name="undo">Undo</string>
     
     <!-- Version Selector -->
     <string name="version_count">%d versions</string>
-    <string name="version_pair_format">%s → %s</string>
+    <string name="version_pair_format">%1$s → %2$s</string>
     <string name="version_latest">Latest</string>
     <string name="version_previous">Previous</string>
     <string name="version_older">Older</string>
@@ -285,23 +321,23 @@
     
     <!-- Accessibility -->
     <string name="card_site_monitoring_active">Monitoring active</string>
-    <string name="card_last_sync">Last sync: %s</string>
-    <string name="card_last_change">Last change: %s</string>
+    <string name="card_last_sync">Last sync: %1$s</string>
+    <string name="card_last_change">Last change: %1$s</string>
     <string name="card_sync_failed">Sync failed</string>
     <string name="card_refresh_site">Refresh site</string>
     <string name="card_syncing">Syncing</string>
     <string name="site_status_checking">Checking</string>
     <string name="site_status_error">Error</string>
-    <string name="site_status_changed">Changed %s</string>
-    <string name="site_status_unchanged">Checked %s</string>
-    <string name="card_site_item">Site: %s</string>
-    <string name="card_more_options">More options for %s</string>
-    <string name="a11y_site_card_content">%s. Last sync: %s. Last change: %s.</string>
-    <string name="a11y_site_card_syncing">%s. Currently syncing.</string>
-    <string name="a11y_site_card_error">%s. Sync failed. Tap to retry.</string>
-    <string name="a11y_refresh_button">Refresh %s</string>
+    <string name="site_status_changed">Updated %1$s</string>
+    <string name="site_status_unchanged">Checked %1$s</string>
+    <string name="card_site_item">Site: %1$s</string>
+    <string name="card_more_options">More options for %1$s</string>
+    <string name="a11y_site_card_content">%1$s. Last sync: %2$s. Last change: %3$s.</string>
+    <string name="a11y_site_card_syncing">%1$s. Currently syncing.</string>
+    <string name="a11y_site_card_error">%1$s. Sync failed. Tap to retry.</string>
+    <string name="a11y_refresh_button">Refresh %1$s</string>
     <string name="a11y_turbo_indicator">Turbo mode active for this site</string>
-    <string name="a11y_color_theme">Color theme: %s</string>
+    <string name="a11y_color_theme">Color theme: %1$s</string>
     <string name="a11y_selected">Selected</string>
     <string name="a11y_not_selected">Not selected</string>
     <string name="a11y_expanded">Expanded</string>
@@ -313,11 +349,13 @@
     <string name="a11y_add_site">Add new site to monitor</string>
     <string name="a11y_delete_site">Delete site</string>
     <string name="a11y_edit_site">Edit site</string>
-    <string name="a11y_site_url">URL: %s</string>
-    <string name="a11y_file_size">Size: %s</string>
+    <string name="a11y_site_url">URL: %1$s</string>
+    <string name="a11y_file_size">Size: %1$s</string>
     <string name="a11y_version">Version %d of %d</string>
     <string name="a11y_comparison_slider">Comparison overlay. Drag to blend between old and new versions.</string>
-    <string name="a11y_diff_mode">Diff mode: %s</string>
+    <string name="a11y_drag_screenshot_comparison">Drag to compare screenshots</string>
+    <string name="a11y_open_license">Open license</string>
+    <string name="a11y_diff_mode">Diff mode: %1$s</string>
     <string name="a11y_no_changes">No changes detected between versions</string>
     
     <!-- Export/Import -->

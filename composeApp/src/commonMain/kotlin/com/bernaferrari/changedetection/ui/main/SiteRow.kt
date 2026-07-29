@@ -22,9 +22,11 @@ import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -45,6 +47,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.site_status_c
 import com.bernaferrari.changedetection.shared.generated.resources.site_status_checking
 import com.bernaferrari.changedetection.shared.generated.resources.site_status_error
 import com.bernaferrari.changedetection.shared.generated.resources.site_status_unchanged
+import com.bernaferrari.changedetection.shared.generated.resources.card_more_options
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -55,6 +58,7 @@ fun SiteRow(
     isQuickMonitored: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    onMoreClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val title = remember(site.title, site.url) { site.displayTitle() }
@@ -122,6 +126,16 @@ fun SiteRow(
             }
 
             StatusBadge(status)
+
+            IconButton(
+                onClick = onMoreClick,
+                modifier = Modifier.size(48.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.MoreVert,
+                    contentDescription = stringResource(Res.string.card_more_options, title),
+                )
+            }
         }
     }
 }

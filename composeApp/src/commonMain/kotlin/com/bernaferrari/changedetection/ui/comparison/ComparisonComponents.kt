@@ -47,6 +47,12 @@ data class ChangeStats(
     val unchanged: Int,
 )
 
+data class DiffRowModel(
+    val lineNumber: Int,
+    val content: String,
+    val type: DiffLineType,
+)
+
 enum class DiffLineType {
     UNCHANGED,
     ADDED,
@@ -117,20 +123,52 @@ fun ChangeStatChip(
 }
 
 fun calculateChangeStats(oldLines: List<String>, newLines: List<String>): ChangeStats {
-    val oldSet = oldLines.toSet()
-    val newSet = newLines.toSet()
-
-    val added = newSet.minus(oldSet).size
-    val removed = oldSet.minus(newSet).size
-    val unchanged = oldSet.intersect(newSet).size
-    val modified = maxOf(0, (oldLines.size + newLines.size - added - removed - unchanged * 2) / 2)
+    val rows = calculateDiffRows(oldLines, newLines)
 
     return ChangeStats(
-        added = added,
-        removed = removed,
-        modified = modified,
-        unchanged = unchanged,
+        added = rows.count { it.type == DiffLineType.ADDED },
+        removed = rows.count { it.type == DiffLineType.REMOVED },
+        modified = 0,
+        unchanged = rows.count { it.type == DiffLineType.UNCHANGED },
     )
+}
+
+fun calculateDiffRows(oldLines: List<String>, newLines: List<String>): List<DiffRowModel> {
+    val patch = com.bernaferrari.difflib.DiffUtils.diff(oldLines, newLines)
+    if (patch.deltas.isEmpty()) {
+        return oldLines.mapIndexed { index, line ->
+            DiffRowModel(index + 1, line, DiffLineType.UNCHANGED)
+        }
+    }
+
+    val rows = mutableListOf<DiffRowModel>()
+    var oldCursor = 0
+    var newCursor = 0
+
+    patch.deltas.sortedBy { it.source.position }.forEach { delta ->
+        while (oldCursor < delta.source.position && newCursor < delta.target.position) {
+            rows += DiffRowModel(newCursor + 1, oldLines[oldCursor], DiffLineType.UNCHANGED)
+            oldCursor++
+            newCursor++
+        }
+
+        delta.source.lines.forEachIndexed { index, line ->
+            rows += DiffRowModel(delta.source.position + index + 1, line, DiffLineType.REMOVED)
+        }
+        delta.target.lines.forEachIndexed { index, line ->
+            rows += DiffRowModel(delta.target.position + index + 1, line, DiffLineType.ADDED)
+        }
+
+        oldCursor = delta.source.position + delta.source.lines.size
+        newCursor = delta.target.position + delta.target.lines.size
+    }
+
+    while (oldCursor < oldLines.size && newCursor < newLines.size) {
+        rows += DiffRowModel(newCursor + 1, newLines[newCursor], DiffLineType.UNCHANGED)
+        oldCursor++
+        newCursor++
+    }
+    return rows
 }
 
 @Composable
