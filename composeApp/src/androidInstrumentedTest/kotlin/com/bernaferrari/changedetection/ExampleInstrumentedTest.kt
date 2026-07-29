@@ -15,6 +15,6 @@ class ExampleInstrumentedTest {
     @Test
     fun useAppContext() {
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.bernaferrari.changedetection", appContext.packageName)
+        assertEquals("com.bernaferrari.changedetection.library.test", appContext.packageName)
     }
 }

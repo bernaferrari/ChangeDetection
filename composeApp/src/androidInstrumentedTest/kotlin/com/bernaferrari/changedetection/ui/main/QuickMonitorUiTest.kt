@@ -5,6 +5,7 @@
 package com.bernaferrari.changedetection.ui.main
 
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -31,14 +32,16 @@ class QuickMonitorUiTest {
 
         composeTestRule.setContent {
             ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
-                SiteRow(
-                    site = syntheticSite(title),
-                    status = SiteStatus.Changed("just now"),
-                    isQuickMonitored = true,
-                    onClick = {},
-                    onLongClick = {},
-                    onMoreClick = {},
-                )
+                CompositionLocalProvider(LocalRemoteFaviconLoading provides false) {
+                    SiteRow(
+                        site = syntheticSite(title),
+                        status = SiteStatus.Changed("just now"),
+                        isQuickMonitored = true,
+                        onClick = {},
+                        onLongClick = {},
+                        onMoreClick = {},
+                    )
+                }
             }
         }
 
