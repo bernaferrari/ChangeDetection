@@ -6,28 +6,21 @@ package com.bernaferrari.changedetection
 
 import android.app.Application
 import androidx.work.Configuration
-import com.bernaferrari.changedetection.di.androidModule
-import com.bernaferrari.changedetection.di.appModule
 import com.bernaferrari.changedetection.di.initKoin
-import com.bernaferrari.changedetection.di.platformModule
-import io.github.aakira.napier.DebugAntilog
-import io.github.aakira.napier.Napier
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.androidx.workmanager.koin.workManagerFactory
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
+import org.koin.androidx.workmanager.factory.KoinWorkerFactory
 
 class App :
     Application(),
-    Configuration.Provider,
-    KoinComponent {
-    private val workerHelper: WorkerHelper by inject()
+    Configuration.Provider {
 
     override val workManagerConfiguration: Configuration
         get() =
             Configuration
                 .Builder()
+                .setWorkerFactory(KoinWorkerFactory())
                 .setMinimumLoggingLevel(android.util.Log.DEBUG)
                 .build()
 
@@ -37,19 +30,10 @@ class App :
         // Register MainActivity with the library's provider
         MainActivityProvider.register(MainActivity::class.java)
 
-        // Initialize Napier for logging
-        Napier.base(DebugAntilog())
-
-        // Initialize Koin for all dependencies
         initKoin {
             androidLogger()
             androidContext(this@App)
             workManagerFactory()
-            modules(
-                appModule,
-                platformModule,
-                androidModule,
-            )
         }
     }
 }

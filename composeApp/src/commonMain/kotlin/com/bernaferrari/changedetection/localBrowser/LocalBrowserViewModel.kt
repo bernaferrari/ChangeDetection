@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
+import com.bernaferrari.changedetection.util.decodeByteArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,8 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
+import org.koin.core.annotation.KoinViewModel
 
 data class BrowserState(
     val content: String = "",
@@ -26,10 +26,10 @@ data class BrowserState(
     val charset: String = "UTF-8",
 )
 
-class LocalBrowserViewModel :
-    ViewModel(),
-    KoinComponent {
-    private val snapsRepository: SnapsRepository by inject()
+@KoinViewModel
+class LocalBrowserViewModel(
+    private val snapsRepository: SnapsRepository,
+) : ViewModel() {
 
     private val _state = MutableStateFlow(BrowserState())
     val state: StateFlow<BrowserState> = _state.asStateFlow()
@@ -53,7 +53,7 @@ class LocalBrowserViewModel :
                 val (snap, bytes, encoding) = snapshotInfo
                 val (mimeType, charsetName) = encoding
 
-                val decodedContent = bytes.decodeToString()
+                val decodedContent = decodeByteArray(bytes, charsetName)
 
                 _state.value =
                     BrowserState(

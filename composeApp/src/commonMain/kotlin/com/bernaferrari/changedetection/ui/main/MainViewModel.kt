@@ -39,12 +39,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
+import org.koin.core.annotation.KoinViewModel
 
 sealed class UiMessage {
     data object SnapshotsPruned : UiMessage()
 }
 
 @OptIn(ExperimentalUuidApi::class)
+@KoinViewModel
 class MainViewModel(
     private val mSnapsRepository: SnapsRepository,
     private val mSitesRepository: SitesRepository,

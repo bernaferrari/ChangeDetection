@@ -8,18 +8,16 @@ import com.bernaferrari.changedetection.sync.SyncEngine
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
 import org.koin.core.KoinApplication
-import org.koin.core.context.startKoin
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.mp.KoinPlatformTools
+import org.koin.plugin.module.dsl.startKoin
+
+private var koinApplication: KoinApplication? = null
 
 fun initKoin(appDeclaration: KoinAppDeclaration = {}): KoinApplication {
-    // Initialize Napier
     Napier.base(DebugAntilog())
 
-    return startKoin {
-        appDeclaration()
-        modules(appModule, platformModule)
-    }
+    return koinApplication ?: startKoin<ChangeDetectionKoinApp> { appDeclaration() }.also { koinApplication = it }
 }
 
 // Helper for iOS to get SyncEngine

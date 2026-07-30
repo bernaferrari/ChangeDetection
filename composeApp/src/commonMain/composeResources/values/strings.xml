@@ -293,6 +293,7 @@
     <!-- Delete Confirmation -->
     <string name="delete_site_title">Delete site?</string>
     <string name="delete_site_message">This will permanently delete \"%1$s\" and all its snapshots.</string>
+    <string name="site_unnamed">this site</string>
     <string name="delete_snapshot_title">Delete snapshot?</string>
     <string name="delete_snapshot_message">This version will be permanently removed.</string>
     <string name="logs_load_failed">Couldn’t load history</string>

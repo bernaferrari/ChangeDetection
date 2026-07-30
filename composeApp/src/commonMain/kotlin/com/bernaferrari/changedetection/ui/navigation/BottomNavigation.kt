@@ -7,8 +7,11 @@ package com.bernaferrari.changedetection.ui.navigation
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,13 +32,14 @@ private enum class NavigationLayout { BottomBar, Rail }
 data class BottomNavItem(
     val destination: NavKey,
     val labelRes: StringResource,
-    val icon: ImageVector,
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector,
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem(MainDestination, Res.string.nav_home, Icons.Default.Home),
-    BottomNavItem(LogsDestination, Res.string.nav_logs, Icons.AutoMirrored.Filled.List),
-    BottomNavItem(SettingsDestination, Res.string.nav_settings, Icons.Default.Settings),
+    BottomNavItem(MainDestination, Res.string.nav_home, Icons.Default.Home, Icons.Outlined.Home),
+    BottomNavItem(LogsDestination, Res.string.nav_logs, Icons.AutoMirrored.Filled.List, Icons.AutoMirrored.Outlined.List),
+    BottomNavItem(SettingsDestination, Res.string.nav_settings, Icons.Default.Settings, Icons.Outlined.Settings),
 )
 
 @Composable
@@ -106,7 +110,12 @@ private fun BottomNavigationLayout(
                 val label = stringResource(item.labelRes)
 
                 NavigationBarItem(
-                    icon = { Icon(imageVector = item.icon, contentDescription = null) },
+                    icon = {
+                        Icon(
+                            imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
+                            contentDescription = null,
+                        )
+                    },
                     label = {
                         Text(
                             text = label,
@@ -150,21 +159,6 @@ private fun NavigationRailLayout(
                 .statusBarsPadding(),
             containerColor = colorScheme.surfaceContainer,
             contentColor = colorScheme.onSurfaceVariant,
-            header = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Home,
-                        contentDescription = null,
-                        tint = colorScheme.primary,
-                        modifier = Modifier.size(24.dp),
-                    )
-                }
-            },
         ) {
             bottomNavItems.forEach { item ->
                 val isSelected = when (item.destination) {
@@ -176,7 +170,12 @@ private fun NavigationRailLayout(
                 val label = stringResource(item.labelRes)
 
                 NavigationRailItem(
-                    icon = { Icon(imageVector = item.icon, contentDescription = label) },
+                    icon = {
+                        Icon(
+                            imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
+                            contentDescription = null,
+                        )
+                    },
                     label = { Text(text = label) },
                     selected = isSelected,
                     onClick = {

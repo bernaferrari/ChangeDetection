@@ -11,21 +11,21 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.bernaferrari.changedetection.repo.ComparisonMethod
 import com.bernaferrari.changedetection.repo.source.SitesRepository
+import com.bernaferrari.changedetection.sync.SyncEngine
 import com.bernaferrari.changedetection.sync.SyncResult
 import com.bernaferrari.changedetection.ui.settings.SettingsViewModel
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.first
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
+import org.koin.android.annotation.KoinWorker
 
+@KoinWorker
 class SyncWorker(
     context: Context,
     workerParams: WorkerParameters,
-) : CoroutineWorker(context, workerParams),
-    KoinComponent {
-    private val syncEngine: com.bernaferrari.changedetection.sync.SyncEngine by inject()
-    private val sitesRepository: SitesRepository by inject()
-    private val dataStore: DataStore<Preferences> by inject()
+    private val syncEngine: SyncEngine,
+    private val sitesRepository: SitesRepository,
+    private val dataStore: DataStore<Preferences>,
+) : CoroutineWorker(context, workerParams) {
 
     init {
         Napier.d("SyncWorker created successfully with Koin")

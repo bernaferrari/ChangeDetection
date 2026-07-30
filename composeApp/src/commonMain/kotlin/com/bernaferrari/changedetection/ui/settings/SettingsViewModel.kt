@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.KoinViewModel
 
 data class SettingsUiState(
     val backgroundSync: Boolean = false,
@@ -33,6 +34,7 @@ data class SettingsUiState(
     val browserDelayMs: Long = 5000,
 )
 
+@KoinViewModel
 class SettingsViewModel(
     private val dataStore: DataStore<Preferences>,
     private val monitoringManager: MonitoringManager,

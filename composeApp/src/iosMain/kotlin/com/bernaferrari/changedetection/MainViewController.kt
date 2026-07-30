@@ -13,12 +13,12 @@ import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.ComposeUIViewController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -117,8 +117,8 @@ private fun IosNavigationApp() {
                 }
 
                 entry<TurboDestination> {
-                    val sites by mainViewModel.sitesFlow.collectAsState()
-                    val quickMonitorState by mainViewModel.quickMonitorState.collectAsState()
+                    val sites by mainViewModel.sitesFlow.collectAsStateWithLifecycle()
+                    val quickMonitorState by mainViewModel.quickMonitorState.collectAsStateWithLifecycle()
 
                     TurboScreen(
                         sites = sites ?: emptyList(),

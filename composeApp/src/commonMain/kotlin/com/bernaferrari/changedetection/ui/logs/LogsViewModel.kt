@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.KoinViewModel
 
 sealed class LogUiModel {
     data class Item(
@@ -36,6 +37,7 @@ sealed class LogUiModel {
     ) : LogUiModel()
 }
 
+@KoinViewModel
 class LogsViewModel(
     private val sitesDao: SitesDao,
     private val snapsDao: SnapsDao,

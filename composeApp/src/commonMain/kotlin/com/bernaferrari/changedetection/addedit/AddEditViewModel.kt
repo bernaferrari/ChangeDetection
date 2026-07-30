@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinViewModel
 
 data class AddEditUiState(
     val url: String = "",
@@ -31,8 +33,9 @@ data class AddEditUiState(
 )
 
 @OptIn(ExperimentalUuidApi::class)
+@KoinViewModel
 class AddEditViewModel(
-    private val siteId: String?,
+    @InjectedParam private val siteId: String?,
     private val sitesRepository: SitesRepository,
     private val monitoringManager: MonitoringManager,
 ) : ViewModel() {

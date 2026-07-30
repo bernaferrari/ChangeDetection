@@ -15,11 +15,11 @@ import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneSt
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -149,8 +149,8 @@ fun ChangeDetectionApp(
                 }
 
                 entry<TurboDestination> {
-                    val sites by mainViewModel.sitesFlow.collectAsState()
-                    val quickMonitorState by mainViewModel.quickMonitorState.collectAsState()
+                    val sites by mainViewModel.sitesFlow.collectAsStateWithLifecycle()
+                    val quickMonitorState by mainViewModel.quickMonitorState.collectAsStateWithLifecycle()
 
                     TurboScreen(
                         sites = sites ?: emptyList(),

@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.compose) // Kotlin Compose plugin required for Kotlin 2.0+
     alias(libs.plugins.jetbrains.compose)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.koin.compiler)
     alias(libs.plugins.androidx.room)
 }
 
@@ -53,8 +54,11 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.kotlin.stdlib)
             implementation(libs.koin.core)
+            implementation(libs.koin.annotations)
+            implementation(libs.koin.core.viewmodel)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.androidx.room.runtime)
@@ -140,7 +144,6 @@ kotlin {
 
             // Web scraping and networking
             implementation(libs.jsoup)
-            implementation(libs.okhttp)
             implementation(libs.okio)
 
             // Text processing
@@ -162,6 +165,7 @@ kotlin {
         val androidHostTest by getting {
             kotlin.srcDirs(
                 "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/error",
+                "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/localBrowser",
                 "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/monitoring",
                 "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/sync",
                 "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/ui/comparison",

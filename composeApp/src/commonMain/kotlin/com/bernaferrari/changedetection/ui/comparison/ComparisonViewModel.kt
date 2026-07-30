@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
+import org.koin.core.annotation.KoinViewModel
 
 data class ComparisonUiState(
     val isLoading: Boolean = true,
@@ -40,6 +41,7 @@ data class ComparisonUiState(
     val error: String? = null,
 )
 
+@KoinViewModel
 class ComparisonViewModel(
     private val sitesRepository: SitesRepository,
     private val snapsRepository: SnapsRepository,
