@@ -19,12 +19,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.Refresh
@@ -39,6 +39,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -51,6 +53,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -62,11 +67,60 @@ fun DemoScaffold(
     selectedSiteId: String,
     isChecking: Boolean,
     lastCheckLabel: String,
+    useNavigationRail: Boolean,
     onDestinationChange: (DemoDestination) -> Unit,
     onSiteSelected: (String) -> Unit,
     onCheckAll: () -> Unit,
 ) {
+    if (useNavigationRail) {
+        Row(modifier = Modifier.fillMaxSize()) {
+            DemoNavigationRail(
+                destination = destination,
+                onDestinationChange = onDestinationChange,
+            )
+            DemoContentScaffold(
+                modifier = Modifier.fillMaxHeight().weight(1f),
+                destination = destination,
+                selectedSiteId = selectedSiteId,
+                lastCheckLabel = lastCheckLabel,
+                isChecking = isChecking,
+                onSiteSelected = onSiteSelected,
+                onCheckAll = onCheckAll,
+            )
+        }
+    } else {
+        DemoContentScaffold(
+            modifier = Modifier.fillMaxSize(),
+            destination = destination,
+            selectedSiteId = selectedSiteId,
+            lastCheckLabel = lastCheckLabel,
+            isChecking = isChecking,
+            onSiteSelected = onSiteSelected,
+            onCheckAll = onCheckAll,
+            bottomBar = {
+                DemoNavigationBar(
+                    destination = destination,
+                    onDestinationChange = onDestinationChange,
+                )
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DemoContentScaffold(
+    destination: DemoDestination,
+    selectedSiteId: String,
+    isChecking: Boolean,
+    lastCheckLabel: String,
+    onSiteSelected: (String) -> Unit,
+    onCheckAll: () -> Unit,
+    modifier: Modifier,
+    bottomBar: @Composable () -> Unit = {},
+) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = {
@@ -90,7 +144,9 @@ fun DemoScaffold(
                     ) {
                         if (isChecking) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .semantics { contentDescription = "Checking all monitored sites" },
                                 strokeWidth = 2.dp,
                             )
                         } else {
@@ -107,27 +163,7 @@ fun DemoScaffold(
                 ),
             )
         },
-        bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                tonalElevation = 0.dp,
-            ) {
-                DemoDestination.entries.forEach { item ->
-                    val label = item.label()
-                    NavigationBarItem(
-                        selected = destination == item,
-                        onClick = { onDestinationChange(item) },
-                        icon = {
-                            Icon(
-                                imageVector = item.icon(),
-                                contentDescription = label,
-                            )
-                        },
-                        label = { Text(label) },
-                    )
-                }
-            }
-        },
+        bottomBar = bottomBar,
     ) { padding ->
         when (destination) {
             DemoDestination.MONITORING -> MonitoringContent(
@@ -145,6 +181,56 @@ fun DemoScaffold(
 }
 
 @Composable
+private fun DemoNavigationBar(
+    destination: DemoDestination,
+    onDestinationChange: (DemoDestination) -> Unit,
+) {
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = 0.dp,
+    ) {
+        DemoDestination.entries.forEach { item ->
+            NavigationBarItem(
+                selected = destination == item,
+                onClick = { onDestinationChange(item) },
+                icon = {
+                    Icon(
+                        imageVector = item.icon(),
+                        contentDescription = null,
+                    )
+                },
+                label = { Text(item.label()) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun DemoNavigationRail(
+    destination: DemoDestination,
+    onDestinationChange: (DemoDestination) -> Unit,
+) {
+    NavigationRail(
+        modifier = Modifier.fillMaxHeight(),
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+    ) {
+        DemoDestination.entries.forEach { item ->
+            NavigationRailItem(
+                selected = destination == item,
+                onClick = { onDestinationChange(item) },
+                icon = {
+                    Icon(
+                        imageVector = item.icon(),
+                        contentDescription = null,
+                    )
+                },
+                label = { Text(item.label()) },
+            )
+        }
+    }
+}
+
+@Composable
 private fun MonitoringContent(
     selectedSiteId: String,
     lastCheckLabel: String,
@@ -153,31 +239,53 @@ private fun MonitoringContent(
 ) {
     val selectedSite = demoSites.first { it.id == selectedSiteId }
 
-    LazyColumn(
+    DemoContentFrame(modifier) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item {
+                MonitoringSummary(lastCheckLabel = lastCheckLabel)
+            }
+            item {
+                Text(
+                    text = "Monitored sites",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+            items(demoSites, key = { it.id }) { site ->
+                SiteCard(
+                    site = site,
+                    selected = site.id == selectedSiteId,
+                    onClick = { onSiteSelected(site.id) },
+                )
+            }
+            item {
+                LatestChangeCard(site = selectedSite)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DemoContentFrame(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Box(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentAlignment = Alignment.TopCenter,
     ) {
-        item {
-            MonitoringSummary(lastCheckLabel = lastCheckLabel)
-        }
-        item {
-            Text(
-                text = "Monitored sites",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-        }
-        items(demoSites, key = { it.id }) { site ->
-            SiteCard(
-                site = site,
-                selected = site.id == selectedSiteId,
-                onClick = { onSiteSelected(site.id) },
-            )
-        }
-        item {
-            LatestChangeCard(site = selectedSite)
+        Box(
+            modifier = Modifier
+                .widthIn(max = 720.dp)
+                .fillMaxWidth()
+                .fillMaxHeight(),
+        ) {
+            content()
         }
     }
 }
@@ -210,7 +318,7 @@ private fun MonitoringSummary(lastCheckLabel: String) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "3 sites are being watched",
+                    text = "3 sites monitored",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -238,6 +346,7 @@ private fun SiteCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .semantics { this.selected = selected }
             .clickable(role = Role.Button, onClick = onClick),
         shape = MaterialTheme.shapes.large,
         border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
@@ -297,6 +406,7 @@ private fun SiteCard(
 @Composable
 private fun LatestChangeCard(site: DemoSite) {
     Card(
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         shape = MaterialTheme.shapes.extraLarge,
     ) {
@@ -358,50 +468,52 @@ private fun DiffLine(prefix: String, text: String, color: Color) {
 
 @Composable
 private fun HistoryContent(modifier: Modifier = Modifier) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        item {
-            Text(
-                text = "Recent activity",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "A concise record of the changes your demo sites observed.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        items(demoSites.filter { it.changeDescription != null }, key = { it.id }) { site ->
-            Card(shape = MaterialTheme.shapes.large) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Surface(
-                        modifier = Modifier.size(40.dp),
-                        shape = CircleShape,
-                        color = site.accent.copy(alpha = 0.2f),
-                        contentColor = site.accent,
+    DemoContentFrame(modifier) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item {
+                Text(
+                    text = "Recent activity",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "A concise record of the changes your demo sites observed.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            items(demoSites.filter { it.changeDescription != null }, key = { it.id }) { site ->
+                Card(shape = MaterialTheme.shapes.large) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.History,
-                            contentDescription = null,
-                            modifier = Modifier.padding(10.dp),
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(site.name, fontWeight = FontWeight.SemiBold)
-                        Text(
-                            text = site.changeDescription.orEmpty(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        Surface(
+                            modifier = Modifier.size(40.dp),
+                            shape = CircleShape,
+                            color = site.accent.copy(alpha = 0.2f),
+                            contentColor = site.accent,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.History,
+                                contentDescription = null,
+                                modifier = Modifier.padding(10.dp),
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(site.name, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                text = site.changeDescription.orEmpty(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 }
             }
@@ -411,32 +523,41 @@ private fun HistoryContent(modifier: Modifier = Modifier) {
 
 @Composable
 private fun SettingsContent(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .fillMaxHeight()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Text(
-            text = "Demo settings",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Text(
-            text = "This web build uses synthetic data only. It does not request pages, store credentials, or send analytics.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        DemoSettingRow(
-            icon = Icons.Default.VerifiedUser,
-            title = "Private by design",
-            summary = "No account or tracking in this demo",
-        )
-        DemoSettingRow(
-            icon = Icons.AutoMirrored.Filled.OpenInNew,
-            title = "Try the Android app",
-            summary = "The full product monitors public pages on-device",
-        )
+    DemoContentFrame(modifier) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item {
+                Text(
+                    text = "Demo settings",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+            item {
+                Text(
+                    text = "This web build uses synthetic data only. It does not request pages, store credentials, or send analytics.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            item {
+                DemoSettingRow(
+                    icon = Icons.Default.VerifiedUser,
+                    title = "Private by design",
+                    summary = "No account or tracking in this demo",
+                )
+            }
+            item {
+                DemoSettingRow(
+                    icon = Icons.Default.MonitorHeart,
+                    title = "Full Android app",
+                    summary = "Monitor your own public pages on-device",
+                )
+            }
+        }
     }
 }
 
@@ -446,7 +567,10 @@ private fun DemoSettingRow(
     title: String,
     summary: String,
 ) {
-    Card(shape = MaterialTheme.shapes.large) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+    ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
