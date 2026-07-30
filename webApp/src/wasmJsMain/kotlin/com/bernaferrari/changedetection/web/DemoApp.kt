@@ -4,6 +4,7 @@
  */
 package com.bernaferrari.changedetection.web
 
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -17,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
 private val DemoColorScheme = darkColorScheme(
@@ -61,15 +63,18 @@ fun ChangeDetectionDemo() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background,
         ) {
-            DemoScaffold(
-                destination = destination,
-                selectedSiteId = selectedSiteId,
-                isChecking = isChecking,
-                lastCheckLabel = if (checkCount == 0) "Updated a few seconds ago" else "Checked just now",
-                onDestinationChange = { destination = it },
-                onSiteSelected = { selectedSiteId = it },
-                onCheckAll = { isChecking = true },
-            )
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                DemoScaffold(
+                    destination = destination,
+                    selectedSiteId = selectedSiteId,
+                    isChecking = isChecking,
+                    lastCheckLabel = if (checkCount == 0) "Updated a few seconds ago" else "Checked just now",
+                    useNavigationRail = maxWidth >= 840.dp,
+                    onDestinationChange = { destination = it },
+                    onSiteSelected = { selectedSiteId = it },
+                    onCheckAll = { isChecking = true },
+                )
+            }
         }
     }
 }
