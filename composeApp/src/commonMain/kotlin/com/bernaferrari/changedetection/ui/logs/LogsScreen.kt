@@ -85,63 +85,68 @@ fun LogsScreen(
                 LogsEmptyState()
             }
         } else {
-            LazyColumn(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
-                contentPadding = PaddingValues(top = 8.dp, bottom = 100.dp),
+                contentAlignment = Alignment.TopCenter,
             ) {
-                item {
-                    LogsHeader(
-                        versionsCount = versionsCount,
-                        siteCount = siteMap.size,
-                    )
-                }
-
-                items(
-                    count = pagedItems.itemCount,
-                    key = pagedItems.itemKey { item ->
-                        when (item) {
-                            is LogUiModel.Item -> item.snap.snapId
-                            is LogUiModel.Header -> item.date
-                        }
-                    },
-                    contentType = pagedItems.itemContentType { item ->
-                        when (item) {
-                            is LogUiModel.Item -> "item"
-                            is LogUiModel.Header -> "header"
-                        }
-                    },
-                ) { index ->
-                    val item = pagedItems[index]
-                    when (item) {
-                        is LogUiModel.Item -> {
-                            val site = siteMap[item.snap.siteId]
-                            if (site != null) {
-                                LogItem(
-                                    snap = item.snap,
-                                    site = site,
-                                    onClick = { onSnapClick(item.snap.snapId, site.url) },
-                                    onDeleteClick = { snapPendingDeletion = item.snap.snapId },
-                                )
-                            }
-                        }
-
-                        is LogUiModel.Header -> {
-                            DateHeader(date = item.date)
-                        }
-
-                        null -> {} // Loading state placeholder
-                    }
-                }
-
-                if (pagedItems.loadState.append is LoadState.Loading) {
+                LazyColumn(
+                    modifier = Modifier
+                        .widthIn(max = 720.dp)
+                        .fillMaxWidth()
+                        .fillMaxHeight(),
+                    contentPadding = PaddingValues(top = 8.dp, bottom = 100.dp),
+                ) {
                     item {
-                        Box(
-                            modifier = Modifier.fillMaxWidth().padding(24.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        LogsHeader(
+                            versionsCount = versionsCount,
+                            siteCount = siteMap.size,
+                        )
+                    }
+
+                    items(
+                        count = pagedItems.itemCount,
+                        key = pagedItems.itemKey { item ->
+                            when (item) {
+                                is LogUiModel.Item -> item.snap.snapId
+                                is LogUiModel.Header -> item.date
+                            }
+                        },
+                        contentType = pagedItems.itemContentType { item ->
+                            when (item) {
+                                is LogUiModel.Item -> "item"
+                                is LogUiModel.Header -> "header"
+                            }
+                        },
+                    ) { index ->
+                        when (val item = pagedItems[index]) {
+                            is LogUiModel.Item -> {
+                                val site = siteMap[item.snap.siteId]
+                                if (site != null) {
+                                    LogItem(
+                                        snap = item.snap,
+                                        site = site,
+                                        onClick = { onSnapClick(item.snap.snapId, site.url) },
+                                        onDeleteClick = { snapPendingDeletion = item.snap.snapId },
+                                    )
+                                }
+                            }
+
+                            is LogUiModel.Header -> DateHeader(date = item.date)
+
+                            null -> Unit
+                        }
+                    }
+
+                    if (pagedItems.loadState.append is LoadState.Loading) {
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth().padding(24.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                            }
                         }
                     }
                 }

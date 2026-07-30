@@ -88,6 +88,7 @@ android {
 }
 
 dependencies {
+    implementation(platform(libs.koin.bom))
     implementation(project(":composeApp"))
     implementation(platform(libs.androidx.compose.bom))
 

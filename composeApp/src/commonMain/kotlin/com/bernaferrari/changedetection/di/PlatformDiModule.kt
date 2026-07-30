@@ -4,6 +4,8 @@
  */
 package com.bernaferrari.changedetection.di
 
-import org.koin.core.module.Module
+import org.koin.core.annotation.Module
 
-expect val platformModule: Module
+/** Platform services supplied by each native target. */
+@Module
+expect class PlatformDiModule

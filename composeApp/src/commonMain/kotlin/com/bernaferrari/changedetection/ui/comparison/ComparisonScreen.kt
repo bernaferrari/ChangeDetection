@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -29,7 +30,7 @@ fun ComparisonScreen(
     onSiteDelete: () -> Unit,
     viewModel: ComparisonViewModel = koinViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val siteTitle = uiState.site?.title?.takeIf { it.isNotBlank() }
         ?: uiState.site?.url?.displayDomain()
@@ -253,7 +254,9 @@ fun ComparisonScreen(
             title = stringResource(Res.string.delete_site_title),
             message = stringResource(
                 Res.string.delete_site_message,
-                uiState.site?.title?.takeIf { it.isNotBlank() } ?: uiState.site?.url ?: "this site",
+                uiState.site?.title?.takeIf { it.isNotBlank() }
+                    ?: uiState.site?.url
+                    ?: stringResource(Res.string.site_unnamed),
             ),
             icon = Icons.Default.Delete,
             confirmText = stringResource(Res.string.delete),

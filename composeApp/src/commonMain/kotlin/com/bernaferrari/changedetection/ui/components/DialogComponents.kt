@@ -36,7 +36,7 @@ fun ConfirmDialog(
     title: String,
     message: String,
     icon: ImageVector? = null,
-    confirmText: String = "Delete",
+    confirmText: String,
     isDestructive: Boolean = true,
     modifier: Modifier = Modifier,
 ) {

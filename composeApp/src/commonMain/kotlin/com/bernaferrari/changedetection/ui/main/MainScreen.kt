@@ -9,9 +9,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -40,7 +43,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bernaferrari.changedetection.background.SyncState
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
@@ -87,12 +90,12 @@ fun MainScreen(
     onSiteEdit: (Site) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val sites by viewModel.sitesFlow.collectAsState()
+    val sites by viewModel.sitesFlow.collectAsStateWithLifecycle()
     val siteItems = sites
-    val quickMonitorState by viewModel.quickMonitorState.collectAsState()
-    val loadingSites by viewModel.loadingSites.collectAsState()
-    val syncStatus by viewModel.syncStatusFlow.collectAsState(initial = emptyList())
-    val currentError by viewModel.currentError.collectAsState()
+    val quickMonitorState by viewModel.quickMonitorState.collectAsStateWithLifecycle()
+    val loadingSites by viewModel.loadingSites.collectAsStateWithLifecycle()
+    val syncStatus by viewModel.syncStatusFlow.collectAsStateWithLifecycle(initialValue = emptyList())
+    val currentError by viewModel.currentError.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -279,7 +282,10 @@ fun MainScreen(
                 }
             },
             title = stringResource(Res.string.delete_site_title),
-            message = stringResource(Res.string.delete_site_message, site.title ?: site.url),
+            message = stringResource(
+                Res.string.delete_site_message,
+                site.title?.takeIf { it.isNotBlank() } ?: site.url,
+            ),
             icon = Icons.Outlined.Delete,
             confirmText = stringResource(Res.string.delete),
             isDestructive = true,
@@ -303,11 +309,15 @@ private fun SitesList(
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter,
     ) {
         if (maxWidth >= 840.dp) {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 360.dp),
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .widthIn(max = 960.dp)
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
                 contentPadding = PaddingValues(horizontal = spacing.md, vertical = spacing.sm),
                 horizontalArrangement = Arrangement.spacedBy(spacing.sm),
                 verticalArrangement = Arrangement.spacedBy(spacing.xs),
@@ -329,7 +339,10 @@ private fun SitesList(
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .widthIn(max = 720.dp)
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
                 contentPadding = PaddingValues(horizontal = spacing.md, vertical = spacing.sm),
                 verticalArrangement = Arrangement.spacedBy(spacing.xs),
             ) {

@@ -6,13 +6,13 @@ package com.bernaferrari.changedetection.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.model.ThemeMode
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,7 +20,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.KoinViewModel
 
+@KoinViewModel
 class ThemeViewModel(
     private val dataStore: DataStore<Preferences>,
 ) : ViewModel() {
@@ -48,11 +50,11 @@ class ThemeViewModel(
 
     /**
      * Returns whether dark theme should be used.
-     * Uses collectAsState() to ensure the UI recomposes when theme changes.
+     * Uses lifecycle-aware collection so inactive screens do not keep observing preferences.
      */
     @Composable
     fun shouldUseDarkTheme(): Boolean {
-        val mode by themeMode.collectAsState()
+        val mode by themeMode.collectAsStateWithLifecycle()
         return when (mode) {
             ThemeMode.LIGHT -> false
             ThemeMode.DARK -> true
@@ -66,7 +68,7 @@ class ThemeViewModel(
      */
     @Composable
     fun shouldUseDynamicColor(): Boolean {
-        val mode by themeMode.collectAsState()
+        val mode by themeMode.collectAsStateWithLifecycle()
         // MATERIAL_YOU mode always uses dynamic colors
         return mode == ThemeMode.MATERIAL_YOU
     }

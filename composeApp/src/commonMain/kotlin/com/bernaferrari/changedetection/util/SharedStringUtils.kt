@@ -5,15 +5,11 @@
 package com.bernaferrari.changedetection.util
 
 /**
- * Decodes a ByteArray to a String.
- * Note: In KMP commonMain, only UTF-8 is reliably supported.
- * Non-UTF-8 charsets require platform-specific implementations.
+ * Decodes snapshot bytes with the charset recorded at capture time.
+ *
+ * Platforms fall back to UTF-8 when the supplied label is unknown or the payload is malformed.
  */
-fun decodeByteArray(
+expect fun decodeByteArray(
     bytes: ByteArray,
     charsetName: String,
-): String {
-    // In common code, we can only reliably use UTF-8
-    // If specific charset handling is needed, use expect/actual pattern
-    return bytes.decodeToString()
-}
+): String

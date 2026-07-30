@@ -4,9 +4,6 @@
  */
 package com.bernaferrari.changedetection.localBrowser
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.paging.PagingSource
 import com.bernaferrari.changedetection.repo.ContentTypeInfo
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.Result
@@ -19,6 +16,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Rule
@@ -77,33 +75,28 @@ class LocalBrowserViewModelTest {
 
         override suspend fun getAllMostRecentSnaps(): Map<String, Snap> = emptyMap()
 
-        override suspend fun getSnaps(siteId: String): LiveData<List<Snap>> = MutableLiveData(emptyList())
+        override fun getSnaps(siteId: String) = flowOf(emptyList<Snap>())
 
-        override suspend fun getSnapsFiltered(
+        override fun getSnapsFiltered(
             siteId: String,
             filter: String,
-        ): LiveData<List<Snap>> = MutableLiveData(emptyList())
+        ) = flowOf(emptyList<Snap>())
 
         override suspend fun getAllSnapsForSite(siteId: String): List<Snap> = emptyList()
 
-        override fun getSnapForPaging(
-            siteId: String,
-            filter: String,
-        ): PagingSource<Int, Snap> = throw UnsupportedOperationException("Not needed for test")
-
         override suspend fun getSnapById(snapId: String): Snap? = snap?.takeIf { it.snapId == snapId }
 
-        override fun getSnapContent(snapId: String): ByteArray = content
+        override suspend fun getSnapContent(snapId: String): ByteArray = content
 
         override suspend fun getLastNSnapsForSiteId(
             siteId: String,
             limit: Int,
         ): List<Snap>? = emptyList()
 
-        override fun getSnapPair(
+        override suspend fun getSnapPair(
             originalId: String,
             newId: String,
-        ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>> = throw UnsupportedOperationException("Not needed for test")
+        ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>>? = null
 
         override suspend fun saveSnap(
             snap: Snap,
@@ -122,7 +115,7 @@ class LocalBrowserViewModelTest {
 
         override suspend fun pruneSnaps(siteId: String) = Unit
 
-        override fun getSingleSnapPair(id: String): ByteArray = ByteArray(0)
+        override suspend fun getSingleSnapPair(id: String): ByteArray = ByteArray(0)
 
         override suspend fun getLastContentHash(siteId: String): String? = null
 
