@@ -153,7 +153,9 @@ class WorkerHelper(
                 .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .build()
 
-        WorkManager.getInstance(context).enqueue(work)
+        WorkManager
+            .getInstance(context)
+            .enqueueUniqueWork("quick_monitor_$siteId", ExistingWorkPolicy.KEEP, work)
     }
 
     override fun startQuickMonitor(
@@ -170,12 +172,6 @@ class WorkerHelper(
 
             QuickMonitorService.start(context, siteIds, intervalSeconds)
             Napier.d("QuickMonitorService.start() called successfully")
-
-            // Also trigger immediate work for the sites
-            siteIds.forEach { siteId ->
-                Napier.d("Scheduling immediate work for site: $siteId")
-                scheduleOneTimeWork(siteId)
-            }
         } catch (e: Exception) {
             Napier.e("Failed to start QuickMonitorService: ${e.message}")
         }

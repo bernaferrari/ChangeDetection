@@ -4,7 +4,7 @@
  */
 package com.bernaferrari.changedetection.repo.source.local
 
-import androidx.room.*
+import androidx.room3.*
 import com.bernaferrari.changedetection.repo.Site
 import kotlinx.coroutines.flow.Flow
 

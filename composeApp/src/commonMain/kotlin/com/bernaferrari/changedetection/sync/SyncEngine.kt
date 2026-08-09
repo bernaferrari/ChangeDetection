@@ -208,7 +208,13 @@ class SyncEngine(
             return saveNewSnap(site, result, contentHash, lastSnap == null)
         } else {
             // No changes - update timestamp only
-            sitesDao.updateSite(site.copy(timestamp = currentTimeMillis(), isSuccessful = true))
+            sitesDao.updateSite(
+                site.copy(
+                    timestamp = currentTimeMillis(),
+                    isSuccessful = true,
+                    isBrowser = result.contentType.contains("image", ignoreCase = true),
+                ),
+            )
             Napier.d("No changes for ${site.url}")
             return SyncResult.Success(site.id, hadChanges = false)
         }
@@ -244,7 +250,11 @@ class SyncEngine(
 
             // Step 3: Update site status
             sitesDao.updateSite(
-                site.copy(timestamp = currentTimeMillis(), isSuccessful = true),
+                site.copy(
+                    timestamp = currentTimeMillis(),
+                    isSuccessful = true,
+                    isBrowser = result.contentType.contains("image", ignoreCase = true),
+                ),
             )
 
             val changeReason = if (isFirstSnap) "Initial snapshot" else "Content changed"

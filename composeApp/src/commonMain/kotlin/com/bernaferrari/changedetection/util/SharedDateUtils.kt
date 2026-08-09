@@ -6,13 +6,14 @@ package com.bernaferrari.changedetection.util
 
 import androidx.compose.runtime.Composable
 import com.bernaferrari.changedetection.shared.generated.resources.Res
-import com.bernaferrari.changedetection.shared.generated.resources.logs_day_ago
+import com.bernaferrari.changedetection.shared.generated.resources.logs_days_ago
 import com.bernaferrari.changedetection.shared.generated.resources.logs_hr_ago
 import com.bernaferrari.changedetection.shared.generated.resources.logs_just_now
 import com.bernaferrari.changedetection.shared.generated.resources.logs_min_ago
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.pluralStringResource
 import kotlin.time.Instant
 
 fun formatTimestamp(timestamp: Long): String {
@@ -59,7 +60,7 @@ fun getRelativeTimeLabel(timestamp: Long): String {
         seconds < 60 -> stringResource(Res.string.logs_just_now)
         minutes < 60 -> stringResource(Res.string.logs_min_ago, minutes)
         hours < 24 -> stringResource(Res.string.logs_hr_ago, hours)
-        else -> stringResource(Res.string.logs_day_ago, days)
+        else -> pluralStringResource(Res.plurals.logs_days_ago, days.toInt(), days)
     }
 }
 

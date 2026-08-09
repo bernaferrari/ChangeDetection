@@ -13,9 +13,11 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.materialkolor.PaletteStyle
-import com.materialkolor.rememberDynamicColorScheme
+import com.materialkolor.dynamicColorScheme
+import com.materialkolor.dynamiccolor.ColorSpec
 
 /**
  * ChangeDetection Android theme with Material You dynamic colors where available.
@@ -27,6 +29,7 @@ import com.materialkolor.rememberDynamicColorScheme
 actual fun ChangeDetectionTheme(
     darkTheme: Boolean,
     dynamicColor: Boolean,
+    seedColor: Color,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
@@ -38,10 +41,11 @@ actual fun ChangeDetectionTheme(
 
         // All other cases: generate from SeedColor using MaterialKolor
         else -> {
-            rememberDynamicColorScheme(
-                seedColor = SeedColor,
+            dynamicColorScheme(
+                seedColor = seedColor,
                 isDark = darkTheme,
-                style = PaletteStyle.Expressive,
+                style = PaletteStyle.TonalSpot,
+                specVersion = ColorSpec.SpecVersion.SPEC_2025,
             )
         }
     }
@@ -49,7 +53,6 @@ actual fun ChangeDetectionTheme(
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
         motionScheme = MotionScheme.expressive(),
-        shapes = Shapes,
         typography = Typography,
     ) {
         CompositionLocalProvider(LocalAppSpacing provides AppSpacing()) {
@@ -68,6 +71,7 @@ fun ChangeDetectionTheme(
     ChangeDetectionTheme(
         darkTheme = isSystemInDarkTheme(),
         dynamicColor = true,
+        seedColor = SeedColor,
         content = content,
     )
 }

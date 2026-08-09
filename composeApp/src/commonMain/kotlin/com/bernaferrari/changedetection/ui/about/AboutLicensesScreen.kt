@@ -58,9 +58,10 @@ private val licenses = listOf(
     License("Koin", "Kotzilla", "Apache License 2.0", "Core"),
     License("Kotlin", "JetBrains", "Apache License 2.0", "Core"),
     License("Ktor", "JetBrains", "Apache License 2.0", "Core"),
-    License("SQLDelight", "Cash App", "Apache License 2.0", "Data"),
+    License("Room 3", "Android Open Source Project", "Apache License 2.0", "Data"),
+    License("AndroidX SQLite", "Android Open Source Project", "Apache License 2.0", "Data"),
     License("Ksoup", "Fleek Soft", "Apache License 2.0", "Networking"),
-    License("fast-kotlin-diff-core", "Bernardo Ferrari", "Apache License 2.0", "Utilities"),
+    License("MaterialKolor", "Jordond", "Apache License 2.0", "UI"),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

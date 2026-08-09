@@ -4,11 +4,11 @@
  */
 package com.bernaferrari.changedetection.repo.source.local
 
-import androidx.room.ConstructedBy
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import androidx.room.RoomDatabaseConstructor
-import androidx.room.TypeConverters
+import androidx.room3.ConstructedBy
+import androidx.room3.Database
+import androidx.room3.RoomDatabase
+import androidx.room3.RoomDatabaseConstructor
+import androidx.room3.ColumnTypeConverters
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
 
@@ -17,7 +17,7 @@ import com.bernaferrari.changedetection.repo.Snap
  * Inspired from Architecture Components MVVM sample app
  */
 @Database(entities = [Site::class, Snap::class], version = 3, exportSchema = false)
-@TypeConverters(
+@ColumnTypeConverters(
     Site.ConstraintsConverter::class,
     Site.PairConverter::class,
 )

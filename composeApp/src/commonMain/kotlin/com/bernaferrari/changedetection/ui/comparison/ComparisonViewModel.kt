@@ -15,7 +15,7 @@ import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.util.UnifiedDiffUtils
 import com.bernaferrari.changedetection.util.decodeByteArray
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -48,6 +48,7 @@ class ComparisonViewModel(
     private val monitoringManager: MonitoringManager,
     private val shareManager: ShareManager,
 ) : ViewModel() {
+    private var contentLoadJob: Job? = null
     // ... (existing code)
 
     fun shareDiff(
@@ -59,7 +60,6 @@ class ComparisonViewModel(
         viewModelScope.launch(Dispatchers.Default) {
             val oldLines = content1.lines()
             val newLines = content2.lines()
-            // Assuming DiffUtils is available in commonMain (it should be if fast-kotlin-diff-core is KMP)
             val patch =
                 com.bernaferrari.difflib.DiffUtils
                     .diff(oldLines, newLines)
@@ -162,14 +162,16 @@ class ComparisonViewModel(
         val snap2 = snaps[pairIndex + 1]
 
         _uiState.update { it.copy(selectedPairIndex = pairIndex, error = null) }
-        loadSnapContents(snap1, snap2)
+        loadSnapContents(pairIndex, snap1, snap2)
     }
 
     private fun loadSnapContents(
+        pairIndex: Int,
         snap1: Snap,
         snap2: Snap,
     ) {
-        viewModelScope.launch {
+        contentLoadJob?.cancel()
+        contentLoadJob = viewModelScope.launch {
             _uiState.update {
                 it.copy(
                     isLoadingDiff = true,
@@ -184,7 +186,7 @@ class ComparisonViewModel(
 
             try {
                 val (firstBytes, secondBytes) =
-                    withContext(Dispatchers.IO) {
+                    withContext(Dispatchers.Default) {
                         val first = snapsRepository.getSnapContent(snap1.snapId)
                         val second = snapsRepository.getSnapContent(snap2.snapId)
                         first to second
@@ -216,8 +218,9 @@ class ComparisonViewModel(
                         Triple(firstContent, secondContent, visualDiff)
                     }
 
-                _uiState.update {
-                    it.copy(
+                _uiState.update { current ->
+                    if (current.selectedPairIndex != pairIndex) return@update current
+                    current.copy(
                         snapContent1 = content1,
                         snapContent2 = content2,
                         snapBytes1 = firstBytes,
@@ -227,8 +230,9 @@ class ComparisonViewModel(
                     )
                 }
             } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
+                _uiState.update { current ->
+                    if (current.selectedPairIndex != pairIndex) return@update current
+                    current.copy(
                         isLoadingDiff = false,
                         error = "Failed to load content: ${e.message}",
                     )
@@ -250,7 +254,7 @@ class ComparisonViewModel(
 
             try {
                 val bytes =
-                    withContext(Dispatchers.IO) {
+                    withContext(Dispatchers.Default) {
                         snapsRepository.getSnapContent(snap.snapId)
                     }
                 val content =

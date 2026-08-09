@@ -6,10 +6,8 @@ package com.bernaferrari.changedetection.ui.comparison
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -47,8 +45,8 @@ internal fun RenderedHtmlComparison(
     val similarityPercent = remember(oldContent, newContent) {
         calculateRenderedSimilarity(oldContent, newContent)
     }
-    val sanitizedOldContent = remember(oldContent) { HtmlSanitizer.sanitize(oldContent) }
-    val sanitizedNewContent = remember(newContent) { HtmlSanitizer.sanitize(newContent) }
+    val sanitizedOldContent = remember(oldContent) { renderedDocument(HtmlSanitizer.sanitize(oldContent)) }
+    val sanitizedNewContent = remember(newContent) { renderedDocument(HtmlSanitizer.sanitize(newContent)) }
     val oldWebViewState = rememberWebViewStateWithHTMLData(data = sanitizedOldContent)
     val newWebViewState = rememberWebViewStateWithHTMLData(data = sanitizedNewContent)
 
@@ -129,11 +127,6 @@ internal fun RenderedHtmlComparison(
                     selected = overlayOpacity == 0f,
                     onClick = { overlayOpacity = 0f },
                     label = { Text(stringResource(Res.string.older)) },
-                    leadingIcon = if (overlayOpacity == 0f) {
-                        { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                    } else {
-                        null
-                    },
                 )
                 Slider(
                     value = overlayOpacity,
@@ -149,13 +142,30 @@ internal fun RenderedHtmlComparison(
                     selected = overlayOpacity == 1f,
                     onClick = { overlayOpacity = 1f },
                     label = { Text(stringResource(Res.string.newer)) },
-                    leadingIcon = if (overlayOpacity == 1f) {
-                        { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                    } else {
-                        null
-                    },
                 )
             }
         }
     }
 }
+
+private fun renderedDocument(body: String): String = """
+    <!doctype html>
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <style>
+          :root { color-scheme: light; }
+          html, body { min-height: 100%; margin: 0; background: #ffffff; color: #1d1d1f; }
+          body {
+            box-sizing: border-box;
+            padding: 20px;
+            font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            overflow-wrap: anywhere;
+          }
+          img, video, canvas, svg { max-width: 100%; height: auto; }
+          table { max-width: 100%; border-collapse: collapse; }
+        </style>
+      </head>
+      <body>$body</body>
+    </html>
+""".trimIndent()

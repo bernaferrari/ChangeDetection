@@ -2,10 +2,11 @@
  * Copyright (c) 2024 ChangeDetection Contributors
  * Licensed under the Apache License, Version 2.0
  */
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.bernaferrari.changedetection.ui.howItWorks
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,8 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.AddLink
@@ -28,6 +27,7 @@ import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.FlashOn
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +64,8 @@ import com.bernaferrari.changedetection.shared.generated.resources.how_it_works_
 import com.bernaferrari.changedetection.shared.generated.resources.how_it_works_steps_header
 import com.bernaferrari.changedetection.shared.generated.resources.step_number
 import com.bernaferrari.changedetection.ui.theme.spacing
+import com.bernaferrari.changedetection.ui.components.SegmentPosition
+import com.bernaferrari.changedetection.ui.components.segmentShape
 import org.jetbrains.compose.resources.stringResource
 
 private data class HowItWorksStep(
@@ -92,13 +94,13 @@ fun HowItWorksScreen(onBackClick: () -> Unit) {
             title = stringResource(Res.string.how_it_works_step_focus_title),
             description = stringResource(Res.string.how_it_works_step_focus_description),
             detail = stringResource(Res.string.how_it_works_step_focus_highlight),
-            icon = Icons.Rounded.Visibility,
+            icon = Icons.Rounded.FlashOn,
         ),
         HowItWorksStep(
             title = stringResource(Res.string.how_it_works_step_alerts_title),
             description = stringResource(Res.string.how_it_works_step_alerts_description),
             detail = stringResource(Res.string.how_it_works_step_alerts_highlight),
-            icon = Icons.Rounded.FlashOn,
+            icon = Icons.Rounded.Visibility,
         ),
     )
 
@@ -140,7 +142,7 @@ fun HowItWorksScreen(onBackClick: () -> Unit) {
                     Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)) {
                         Text(
                             text = stringResource(Res.string.how_it_works_hero_subtitle),
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Spacer(modifier = Modifier.size(MaterialTheme.spacing.sm))
@@ -151,8 +153,21 @@ fun HowItWorksScreen(onBackClick: () -> Unit) {
                         )
                     }
                 }
-                itemsIndexed(steps) { index, step ->
-                    HowItWorksStepCard(number = index + 1, step = step)
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        steps.forEachIndexed { index, step ->
+                            HowItWorksStepRow(
+                                number = index + 1,
+                                step = step,
+                                position = when {
+                                    steps.size == 1 -> SegmentPosition.Only
+                                    index == 0 -> SegmentPosition.First
+                                    index == steps.lastIndex -> SegmentPosition.Last
+                                    else -> SegmentPosition.Middle
+                                },
+                            )
+                        }
+                    }
                 }
                 item {
                     Column(
@@ -176,6 +191,7 @@ fun HowItWorksScreen(onBackClick: () -> Unit) {
                         )
                         FilledTonalButton(
                             onClick = onBackClick,
+                            shapes = ButtonDefaults.shapes(),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = MaterialTheme.spacing.xs),
@@ -190,9 +206,13 @@ fun HowItWorksScreen(onBackClick: () -> Unit) {
 }
 
 @Composable
-private fun HowItWorksStepCard(number: Int, step: HowItWorksStep) {
+private fun HowItWorksStepRow(
+    number: Int,
+    step: HowItWorksStep,
+    position: SegmentPosition,
+) {
     Surface(
-        shape = MaterialTheme.shapes.large,
+        shape = segmentShape(position),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Row(
@@ -200,22 +220,28 @@ private fun HowItWorksStepCard(number: Int, step: HowItWorksStep) {
             verticalAlignment = Alignment.Top,
         ) {
             Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                modifier = Modifier.size(40.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(
-                    imageVector = step.icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(20.dp),
-                )
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = step.icon,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                }
             }
             Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xxs),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
                     text = stringResource(Res.string.step_number, number),
@@ -229,14 +255,14 @@ private fun HowItWorksStepCard(number: Int, step: HowItWorksStep) {
                 )
                 Text(
                     text = step.description,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
                     text = step.detail,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(top = MaterialTheme.spacing.xxs),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 2.dp),
                 )
             }
         }

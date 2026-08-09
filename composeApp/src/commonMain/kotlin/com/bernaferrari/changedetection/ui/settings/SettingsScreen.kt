@@ -16,10 +16,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,7 +42,7 @@ import org.koin.compose.viewmodel.koinViewModel
  * Settings route. Feature sections own their visual details so the route remains a concise map
  * of the settings experience.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = koinViewModel(),
@@ -52,17 +53,19 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showBackgroundSyncDialog by remember { mutableStateOf(false) }
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    var showBrowserDelayDialog by remember { mutableStateOf(false) }
+    var showComparisonMethodDialog by remember { mutableStateOf(false) }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val spacing = MaterialTheme.spacing
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
+            LargeFlexibleTopAppBar(
                 title = {
                     Text(
                         text = stringResource(Res.string.settings_title),
-                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                     )
                 },
                 scrollBehavior = scrollBehavior,
@@ -90,15 +93,17 @@ fun SettingsScreen(
                 item(key = "appearance") {
                     AppearanceSettingsSection(
                         selectedTheme = uiState.themeMode,
+                        selectedPalette = uiState.appPalette,
                         onThemeSelected = viewModel::updateThemeMode,
+                        onPaletteSelected = viewModel::updateAppPalette,
                     )
                 }
                 item(key = "monitoring") {
                     MonitoringSettingsSection(
                         uiState = uiState,
                         onBackgroundSyncClick = { showBackgroundSyncDialog = true },
-                        onBrowserDelaySelected = viewModel::updateBrowserDelay,
-                        onComparisonMethodSelected = viewModel::updateComparisonMethod,
+                        onBrowserDelayClick = { showBrowserDelayDialog = true },
+                        onComparisonMethodClick = { showComparisonMethodDialog = true },
                     )
                 }
                 item(key = "about") {
@@ -120,6 +125,26 @@ fun SettingsScreen(
         BackgroundSyncDialog(
             onDismiss = { showBackgroundSyncDialog = false },
             viewModel = viewModel,
+        )
+    }
+    if (showBrowserDelayDialog) {
+        BrowserDelayChoiceDialog(
+            selectedDelay = uiState.browserDelayMs,
+            onDismiss = { showBrowserDelayDialog = false },
+            onConfirm = {
+                viewModel.updateBrowserDelay(it)
+                showBrowserDelayDialog = false
+            },
+        )
+    }
+    if (showComparisonMethodDialog) {
+        ComparisonMethodChoiceDialog(
+            selectedMethod = uiState.comparisonMethod,
+            onDismiss = { showComparisonMethodDialog = false },
+            onConfirm = {
+                viewModel.updateComparisonMethod(it)
+                showComparisonMethodDialog = false
+            },
         )
     }
 }

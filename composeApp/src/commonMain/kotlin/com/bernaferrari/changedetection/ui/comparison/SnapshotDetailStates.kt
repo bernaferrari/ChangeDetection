@@ -2,6 +2,8 @@
  * Copyright (c) 2024 ChangeDetection Contributors
  * Licensed under the Apache License, Version 2.0
  */
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.bernaferrari.changedetection.ui.comparison
 
 import androidx.compose.foundation.background
@@ -18,9 +20,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,7 +44,8 @@ import com.bernaferrari.changedetection.shared.generated.resources.comparison_em
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_empty_title
 import com.bernaferrari.changedetection.shared.generated.resources.failed_to_load_content
 import com.bernaferrari.changedetection.shared.generated.resources.retry
-import com.bernaferrari.changedetection.ui.components.SharedEmptyState
+import com.bernaferrari.changedetection.ui.components.SignalEmptyState
+import com.bernaferrari.changedetection.ui.components.AppLoadingIndicator
 import com.bernaferrari.changedetection.ui.theme.spacing
 import com.bernaferrari.changedetection.util.formatTimestamp
 import com.multiplatform.webview.web.WebView
@@ -52,8 +54,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun EmptySnapshotState(modifier: Modifier = Modifier) {
-    SharedEmptyState(
-        icon = Icons.Default.Schedule,
+    SignalEmptyState(
         title = stringResource(Res.string.comparison_empty_title),
         description = stringResource(Res.string.comparison_empty_subtitle),
         modifier = modifier,
@@ -128,7 +129,7 @@ internal fun SingleSnapshotState(
             modifier = modifier,
             contentAlignment = Alignment.Center,
         ) {
-            CircularProgressIndicator()
+            AppLoadingIndicator()
         }
     } else if (hasError) {
         Column(
@@ -138,7 +139,7 @@ internal fun SingleSnapshotState(
         ) {
             Text(stringResource(Res.string.failed_to_load_content))
             Spacer(Modifier.height(spacing.sm))
-            Button(onClick = onRetry) {
+            Button(onClick = onRetry, shapes = ButtonDefaults.shapes()) {
                 Text(stringResource(Res.string.retry))
             }
         }

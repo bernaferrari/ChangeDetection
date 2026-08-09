@@ -10,7 +10,6 @@ import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.util.decodeByteArray
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,7 +43,7 @@ class LocalBrowserViewModel(
 
             try {
                 val snapshotInfo =
-                    withContext(Dispatchers.IO) {
+                    withContext(Dispatchers.Default) {
                         val snap = snapsRepository.getSnapById(snapId)
                         val bytes = snapsRepository.getSnapContent(snapId)
                         Triple(snap, bytes, resolveEncoding(snap))

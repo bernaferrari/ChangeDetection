@@ -42,6 +42,12 @@ kotlin {
         withDeviceTest { }
     }
 
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+        useEsModules()
+    }
+
     listOf(
         iosArm64(),
         iosSimulatorArm64(),
@@ -62,7 +68,6 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.androidx.room.runtime)
-            implementation(libs.sqlite.bundled)
             // Networking (Ktor)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
@@ -92,9 +97,8 @@ kotlin {
             implementation(libs.jetbrains.androidx.lifecycle.viewmodel)
             implementation(libs.jetbrains.androidx.lifecycle.viewmodel.compose)
             implementation(libs.jetbrains.androidx.lifecycle.runtime.compose)
-            implementation(libs.androidx.datastore.preferences)
+            implementation(libs.androidx.datastore.preferences.core)
             implementation(libs.koin.compose.viewmodel)
-            implementation(libs.fast.kotlin.diff.core)
 
             // Navigation 3 (KMP-compatible)
             implementation(libs.jetbrains.androidx.navigation3.ui)
@@ -102,6 +106,7 @@ kotlin {
 
             // Adaptive
             implementation(libs.jetbrains.compose.material3.adaptive.navigation3)
+            implementation(libs.jetbrains.compose.material3.adaptive.navigation.suite)
 
             // Core
             implementation(libs.jetbrains.androidx.savedstate)
@@ -133,6 +138,7 @@ kotlin {
 
             // DataStore for Preferences
             implementation(libs.androidx.datastore.preferences)
+            implementation(libs.sqlite.bundled)
 
             // UI Utils
             implementation(libs.androidx.palette.ktx)
@@ -159,10 +165,16 @@ kotlin {
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
             implementation(libs.material.kolor)
+            implementation(libs.sqlite.bundled)
+        }
+        wasmJsMain.dependencies {
+            implementation(project(":sqliteWasmWorker"))
+            implementation(libs.material.kolor)
+            implementation(libs.okio)
         }
 
         // Host (JVM) tests
-        val androidHostTest by getting {
+        getByName("androidHostTest") {
             kotlin.srcDirs(
                 "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/error",
                 "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/localBrowser",
@@ -181,7 +193,7 @@ kotlin {
         }
 
         // Device (instrumented) tests
-        val androidDeviceTest by getting {
+        getByName("androidDeviceTest") {
             kotlin.srcDir("src/androidInstrumentedTest/kotlin")
             dependencies {
                 implementation(libs.androidx.test.core)
@@ -196,7 +208,7 @@ compose.resources {
     packageOfResClass = "com.bernaferrari.changedetection.shared.generated.resources"
 }
 
-room {
+room3 {
     schemaDirectory("$projectDir/schemas")
 }
 
@@ -204,4 +216,5 @@ dependencies {
     add("kspAndroid", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
+    add("kspWasmJs", libs.androidx.room.compiler)
 }

@@ -13,6 +13,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.background.MonitoringManager
+import com.bernaferrari.changedetection.model.AppPalette
 import com.bernaferrari.changedetection.repo.ComparisonMethod
 import com.bernaferrari.changedetection.model.ThemeMode
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,7 +31,8 @@ data class SettingsUiState(
     val requireBatteryNotLow: Boolean = false,
     val requireDeviceIdle: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
-    val comparisonMethod: ComparisonMethod = ComparisonMethod.HTML,
+    val appPalette: AppPalette = AppPalette.TEAL,
+    val comparisonMethod: ComparisonMethod = ComparisonMethod.SCREENSHOT,
     val browserDelayMs: Long = 5000,
 )
 
@@ -47,6 +49,7 @@ class SettingsViewModel(
         val REQUIRE_BATTERY_NOT_LOW_KEY = booleanPreferencesKey("require_battery_not_low")
         val REQUIRE_DEVICE_IDLE_KEY = booleanPreferencesKey("require_device_idle")
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
+        val APP_PALETTE_KEY = stringPreferencesKey("app_palette")
         val COMPARISON_METHOD_KEY = stringPreferencesKey("comparison_method")
         val BROWSER_DELAY_KEY = longPreferencesKey("browser_delay_ms")
     }
@@ -64,10 +67,11 @@ class SettingsViewModel(
                     themeMode = preferences[THEME_MODE_KEY]
                         ?.let(ThemeMode::fromStoredName)
                         ?: ThemeMode.SYSTEM,
+                    appPalette = AppPalette.fromStoredName(preferences[APP_PALETTE_KEY]),
                     comparisonMethod =
                     runCatching {
-                        ComparisonMethod.valueOf(preferences[COMPARISON_METHOD_KEY] ?: ComparisonMethod.HTML.name)
-                    }.getOrElse { ComparisonMethod.HTML },
+                        ComparisonMethod.valueOf(preferences[COMPARISON_METHOD_KEY] ?: ComparisonMethod.SCREENSHOT.name)
+                    }.getOrElse { ComparisonMethod.SCREENSHOT },
                     browserDelayMs = preferences[BROWSER_DELAY_KEY] ?: 5000,
                 )
             }.stateIn(
@@ -132,6 +136,12 @@ class SettingsViewModel(
             dataStore.edit { preferences ->
                 preferences[THEME_MODE_KEY] = themeMode.name
             }
+        }
+    }
+
+    fun updateAppPalette(palette: AppPalette) {
+        viewModelScope.launch {
+            dataStore.edit { preferences -> preferences[APP_PALETTE_KEY] = palette.name }
         }
     }
 

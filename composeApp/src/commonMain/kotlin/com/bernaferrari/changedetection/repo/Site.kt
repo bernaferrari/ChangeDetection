@@ -4,7 +4,7 @@
  */
 package com.bernaferrari.changedetection.repo
 
-import androidx.room.*
+import androidx.room3.*
 import kotlinx.serialization.Serializable
 
 /**
@@ -16,7 +16,7 @@ import kotlinx.serialization.Serializable
     tableName = "sites",
     indices = [(Index(value = ["siteId"], unique = true))],
 )
-@TypeConverters(
+@ColumnTypeConverters(
     Site.ConstraintsConverter::class,
     Site.PairConverter::class,
 )
@@ -118,14 +118,14 @@ data class Site(
     override fun toString(): String = "Site: $title | url: $url | tags: $notes | timestamp: $timestamp"
 
     internal class ConstraintsConverter {
-        @TypeConverter
+        @ColumnTypeConverter
         fun storedStringToConstraintsRequired(value: String): ConstraintsRequired {
             val langs = value.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toList()
 
             return ConstraintsRequired(langs)
         }
 
-        @TypeConverter
+        @ColumnTypeConverter
         fun constraintsRequiredToStoredString(cl: ConstraintsRequired): String {
             var value = ""
             value += "${cl.batteryNotLow}, "
@@ -138,13 +138,13 @@ data class Site(
     }
 
     internal class PairConverter {
-        @TypeConverter
+        @ColumnTypeConverter
         fun storedStringToPair(value: String): Pair<Int, Int> {
             val langs = value.split(",".toRegex())
             return Pair(langs.getOrNull(0)?.toInt() ?: 0, langs.getOrNull(1)?.toInt() ?: 0)
         }
 
-        @TypeConverter
+        @ColumnTypeConverter
         fun pairToStoredString(pair: Pair<Int, Int>): String = "${pair.first},${pair.second}"
     }
 }

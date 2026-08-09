@@ -4,8 +4,8 @@
  */
 package com.bernaferrari.changedetection.repo
 
-import androidx.room.*
-import androidx.room.ForeignKey.Companion.CASCADE
+import androidx.room3.*
+import androidx.room3.ForeignKey.Companion.CASCADE
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlinx.serialization.Serializable

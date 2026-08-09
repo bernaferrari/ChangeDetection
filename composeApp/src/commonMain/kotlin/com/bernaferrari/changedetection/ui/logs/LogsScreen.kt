@@ -21,33 +21,34 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.outlined.Delete
 import com.bernaferrari.changedetection.ui.components.ConfirmDialog
+import com.bernaferrari.changedetection.ui.components.AppLoadingIndicator
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
+import com.bernaferrari.changedetection.ui.components.SegmentPosition
 import org.koin.compose.viewmodel.koinViewModel
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LogsScreen(
-    onNavigateUp: () -> Unit,
     onSnapClick: (snapId: String, url: String) -> Unit,
     viewModel: LogsViewModel = koinViewModel(),
 ) {
     val pagedItems = viewModel.pagedSnaps.collectAsLazyPagingItems()
     val siteMap by viewModel.siteMap.collectAsStateWithLifecycle()
     val versionsCount by viewModel.versionsCount.collectAsStateWithLifecycle()
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var snapPendingDeletion by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
+            LargeFlexibleTopAppBar(
                 title = {
                     Text(
                         text = stringResource(Res.string.nav_logs),
-                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                     )
                 },
                 scrollBehavior = scrollBehavior,
@@ -60,12 +61,7 @@ fun LogsScreen(
         contentWindowInsets = WindowInsets(0),
     ) { padding ->
         if (pagedItems.loadState.refresh is LoadState.Loading && pagedItems.itemCount == 0) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(padding),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator()
-            }
+            LogsLoadingState(modifier = Modifier.fillMaxSize().padding(padding))
         } else if (pagedItems.loadState.refresh is LoadState.Error && pagedItems.itemCount == 0) {
             SharedEmptyState(
                 icon = Icons.Default.ErrorOutline,
@@ -96,15 +92,15 @@ fun LogsScreen(
                         .widthIn(max = 720.dp)
                         .fillMaxWidth()
                         .fillMaxHeight(),
-                    contentPadding = PaddingValues(top = 8.dp, bottom = 100.dp),
+                    contentPadding = PaddingValues(bottom = 100.dp),
                 ) {
-                    item {
-                        LogsHeader(
+                    item(key = "history-pulse") {
+                        LogsPulse(
                             versionsCount = versionsCount,
                             siteCount = siteMap.size,
+                            modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 8.dp),
                         )
                     }
-
                     items(
                         count = pagedItems.itemCount,
                         key = pagedItems.itemKey { item ->
@@ -124,11 +120,19 @@ fun LogsScreen(
                             is LogUiModel.Item -> {
                                 val site = siteMap[item.snap.siteId]
                                 if (site != null) {
+                                    val previous = if (index > 0) pagedItems.peek(index - 1) else null
+                                    val next = if (index + 1 < pagedItems.itemCount) pagedItems.peek(index + 1) else null
                                     LogItem(
                                         snap = item.snap,
                                         site = site,
                                         onClick = { onSnapClick(item.snap.snapId, site.url) },
                                         onDeleteClick = { snapPendingDeletion = item.snap.snapId },
+                                        position = when {
+                                            previous !is LogUiModel.Item && next !is LogUiModel.Item -> SegmentPosition.Only
+                                            previous !is LogUiModel.Item -> SegmentPosition.First
+                                            next !is LogUiModel.Item -> SegmentPosition.Last
+                                            else -> SegmentPosition.Middle
+                                        },
                                     )
                                 }
                             }
@@ -145,7 +149,7 @@ fun LogsScreen(
                                 modifier = Modifier.fillMaxWidth().padding(24.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                AppLoadingIndicator(size = 24.dp)
                             }
                         }
                     }

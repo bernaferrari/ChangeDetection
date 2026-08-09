@@ -15,6 +15,7 @@ kotlin {
         browser {
             commonWebpackConfig {
                 outputFileName = "changedetection-demo.js"
+                sourceMaps = false
             }
         }
         binaries.executable()
@@ -22,12 +23,15 @@ kotlin {
 
     sourceSets {
         wasmJsMain.dependencies {
+            implementation(project(":composeApp"))
+            implementation(project(":sqliteWasmWorker"))
             implementation(libs.jetbrains.compose.runtime)
             implementation(libs.jetbrains.compose.foundation)
             implementation(libs.jetbrains.compose.material3)
             implementation(libs.jetbrains.compose.ui)
             implementation(libs.jetbrains.compose.material.icons.extended)
             implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.material.kolor)
         }
     }
 }

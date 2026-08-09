@@ -17,6 +17,7 @@ dependencyResolutionManagement {
 
 include(":app")
 include(":composeApp")
+include(":sqliteWasmWorker")
 include(":webApp")
 
 // The Android browser adapter uses the local Webwright development build. Keeping this as a

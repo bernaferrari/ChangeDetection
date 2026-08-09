@@ -4,45 +4,49 @@
  */
 package com.bernaferrari.changedetection.ui.comparison
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.shared.generated.resources.Res
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_before
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_no_changes_text
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_no_changes_title
-import com.bernaferrari.changedetection.shared.generated.resources.show_all
-import com.bernaferrari.changedetection.shared.generated.resources.show_changes
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_now
+import com.bernaferrari.changedetection.shared.generated.resources.show_context
+import com.bernaferrari.changedetection.shared.generated.resources.show_only_changes
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
 import com.bernaferrari.changedetection.ui.theme.spacing
 import org.jetbrains.compose.resources.stringResource
 
-/** The text-diff viewport owns synchronized vertical context and horizontal code-line scrolling. */
+/** Presents text changes as a human before/after story, with source context available on demand. */
 @Composable
 internal fun SimpleDiffView(
     oldContent: String,
@@ -50,104 +54,150 @@ internal fun SimpleDiffView(
     modifier: Modifier = Modifier,
 ) {
     val spacing = MaterialTheme.spacing
-    val verticalScrollState = rememberScrollState()
-    val horizontalScrollState = rememberScrollState()
-    var showOnlyChanges by remember { mutableStateOf(false) }
-    val oldLines = remember(oldContent) { oldContent.lines() }
-    val newLines = remember(newContent) { newContent.lines() }
-    val diffRows = remember(oldLines, newLines) { calculateDiffRows(oldLines, newLines) }
-    val changeStats = remember(diffRows) {
+    var showContext by remember { mutableStateOf(false) }
+    val diffRows = remember(oldContent, newContent) {
+        calculateDiffRows(oldContent.lines(), newContent.lines())
+    }
+    val removedRows = remember(diffRows) { diffRows.filter { it.type == DiffLineType.REMOVED } }
+    val addedRows = remember(diffRows) { diffRows.filter { it.type == DiffLineType.ADDED } }
+    val stats = remember(diffRows) {
         ChangeStats(
-            added = diffRows.count { it.type == DiffLineType.ADDED },
-            removed = diffRows.count { it.type == DiffLineType.REMOVED },
+            added = addedRows.size,
+            removed = removedRows.size,
             modified = 0,
             unchanged = diffRows.count { it.type == DiffLineType.UNCHANGED },
         )
     }
-    val primaryLineColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-    val addedLineColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f)
 
-    Row(modifier = modifier) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(verticalScrollState)
-                .padding(start = spacing.md, top = spacing.md, bottom = spacing.md),
-        ) {
+    Column(
+        modifier = modifier
+            .verticalScroll(rememberScrollState())
+            .padding(spacing.md),
+        verticalArrangement = Arrangement.spacedBy(spacing.md),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            ComparisonStatsRow(stats = stats, modifier = Modifier.weight(1f))
+            TextButton(onClick = { showContext = !showContext }) {
+                Text(stringResource(if (showContext) Res.string.show_only_changes else Res.string.show_context))
+            }
+        }
+
+        if (addedRows.isEmpty() && removedRows.isEmpty()) {
+            SharedEmptyState(
+                icon = Icons.Default.CheckCircle,
+                title = stringResource(Res.string.comparison_no_changes_title),
+                description = stringResource(Res.string.comparison_no_changes_text),
+                modifier = Modifier.fillMaxWidth().padding(spacing.lg),
+            )
+        } else {
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                if (maxWidth >= 620.dp) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        ChangeStoryPanel(
+                            label = stringResource(Res.string.comparison_before),
+                            rows = removedRows,
+                            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.weight(1f),
+                        )
+                        ChangeDirection(horizontal = true)
+                        ChangeStoryPanel(
+                            label = stringResource(Res.string.comparison_now),
+                            rows = addedRows,
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(spacing.sm),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        ChangeStoryPanel(
+                            label = stringResource(Res.string.comparison_before),
+                            rows = removedRows,
+                            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        ChangeDirection(horizontal = false)
+                        ChangeStoryPanel(
+                            label = stringResource(Res.string.comparison_now),
+                            rows = addedRows,
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+            }
+        }
+
+        if (showContext) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(end = spacing.sm, bottom = spacing.sm),
-                verticalArrangement = Arrangement.spacedBy(spacing.xs),
+                    .horizontalScroll(rememberScrollState()),
             ) {
-                ComparisonStatsRow(stats = changeStats)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    FilterChip(
-                        selected = !showOnlyChanges,
-                        modifier = Modifier.heightIn(min = spacing.touchTarget),
-                        onClick = { showOnlyChanges = false },
-                        label = { Text(stringResource(Res.string.show_all)) },
-                    )
-                    Spacer(modifier = Modifier.width(spacing.xs))
-                    FilterChip(
-                        selected = showOnlyChanges,
-                        modifier = Modifier.heightIn(min = spacing.touchTarget),
-                        onClick = { showOnlyChanges = true },
-                        label = { Text(stringResource(Res.string.show_changes)) },
-                    )
-                }
-            }
-
-            if (changeStats.added == 0 && changeStats.removed == 0) {
-                SharedEmptyState(
-                    icon = Icons.Default.CheckCircle,
-                    title = stringResource(Res.string.comparison_no_changes_title),
-                    description = stringResource(Res.string.comparison_no_changes_text),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(spacing.xl),
-                )
-            } else {
-                Column(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
-                    diffRows
-                        .asSequence()
-                        .filter { !showOnlyChanges || it.type != DiffLineType.UNCHANGED }
-                        .forEach { row ->
-                            DiffLine(row.lineNumber, row.content, row.type)
-                        }
-                }
+                diffRows.forEach { row -> DiffLine(row.lineNumber, row.content, row.type) }
             }
         }
+    }
+}
 
-        Box(
-            modifier = Modifier
-                .padding(top = spacing.md, bottom = spacing.md, end = spacing.xs)
-                .width(6.dp)
-                .fillMaxHeight(),
+@Composable
+private fun ChangeStoryPanel(
+    label: String,
+    rows: List<DiffRowModel>,
+    containerColor: Color,
+    contentColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.extraLarge,
+        color = containerColor,
+        contentColor = contentColor,
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val total = diffRows.size.coerceAtLeast(1)
-                val step = size.height / total
-                var y = 0f
-                diffRows.forEach { row ->
-                    val color = when (row.type) {
-                        DiffLineType.UNCHANGED -> Color.Transparent
-                        DiffLineType.ADDED -> addedLineColor
-                        DiffLineType.REMOVED, DiffLineType.MODIFIED -> primaryLineColor
-                    }
-                    if (color.alpha > 0f) {
-                        drawLine(
-                            color = color,
-                            start = Offset(0f, y),
-                            end = Offset(size.width, y),
-                        )
-                    }
-                    y += step
-                }
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = contentColor.copy(alpha = 0.72f),
+            )
+            rows.ifEmpty { listOf(DiffRowModel(0, "—", DiffLineType.UNCHANGED)) }.forEach { row ->
+                Text(
+                    text = row.content.ifBlank { " " },
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun ChangeDirection(horizontal: Boolean) {
+    Surface(
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+    ) {
+        Icon(
+            imageVector = if (horizontal) Icons.AutoMirrored.Filled.ArrowForward else Icons.Default.ArrowDownward,
+            contentDescription = null,
+            modifier = Modifier.padding(9.dp).size(18.dp),
+        )
     }
 }

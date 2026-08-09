@@ -2,6 +2,8 @@
  * Copyright (c) 2024 ChangeDetection Contributors
  * Licensed under the Apache License, Version 2.0
  */
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.bernaferrari.changedetection.ui.components
 
 import androidx.compose.foundation.background
@@ -77,6 +79,7 @@ fun SharedEmptyState(
                 Button(
                     onClick = onPrimaryAction,
                     modifier = Modifier.heightIn(min = spacing.touchTarget),
+                    shapes = ButtonDefaults.shapes(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -97,6 +100,7 @@ fun SharedEmptyState(
                 TextButton(
                     onClick = onSecondaryAction,
                     modifier = Modifier.heightIn(min = spacing.touchTarget),
+                    shapes = ButtonDefaults.shapes(),
                 ) {
                     Text(secondaryActionLabel)
                 }

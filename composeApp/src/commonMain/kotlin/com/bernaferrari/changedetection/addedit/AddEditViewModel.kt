@@ -148,7 +148,7 @@ class AddEditViewModel(
                         url = normalizedUrl,
                         title = resolvedTitle,
                         colors = state.selectedColors,
-                        isBrowser = false,
+                        isBrowser = true,
                         isSyncEnabled = true,
                         isNotificationEnabled = true,
                         timestamp =

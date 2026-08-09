@@ -7,11 +7,9 @@ package com.bernaferrari.changedetection.model
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.LightMode
-import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.bernaferrari.changedetection.shared.generated.resources.*
@@ -29,12 +27,6 @@ enum class ThemeMode(
         descriptionRes = Res.string.theme_system_desc,
         icon = Icons.Outlined.PhoneAndroid,
         selectedIcon = Icons.Filled.PhoneAndroid,
-    ),
-    MATERIAL_YOU(
-        titleRes = Res.string.theme_material_you_title,
-        descriptionRes = Res.string.theme_material_you_desc,
-        icon = Icons.Outlined.Palette,
-        selectedIcon = Icons.Filled.Palette,
     ),
     LIGHT(
         titleRes = Res.string.theme_light_title,

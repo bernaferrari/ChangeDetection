@@ -5,7 +5,8 @@
 package com.bernaferrari.changedetection.repo.source.local
 
 import android.content.Context
-import androidx.room.Room
+import androidx.room3.Room
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.bernaferrari.changedetection.repo.ConstraintsRequired
@@ -29,9 +30,10 @@ class SnapsDaoTest {
     @Before
     fun setUp() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        database = Room.inMemoryDatabaseBuilder(context, ChangeDatabase::class.java)
-            .allowMainThreadQueries()
-            .build()
+        database = getRoomDatabase(
+            Room.inMemoryDatabaseBuilder<ChangeDatabase>(context = context),
+            BundledSQLiteDriver(),
+        )
         snapsDao = database.snapsDao()
         sitesDao = database.siteDao()
     }

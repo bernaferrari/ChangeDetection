@@ -11,6 +11,7 @@ import com.bernaferrari.changedetection.util.getRelativeTimeLabel
 sealed interface SiteStatus {
     data object Checking : SiteStatus
     data object Error : SiteStatus
+    data object Paused : SiteStatus
     data class Changed(val ago: String) : SiteStatus
     data class Unchanged(val lastCheck: String) : SiteStatus
 }
@@ -22,10 +23,12 @@ internal fun SiteAndLastSnap.toSiteStatus(
 ): SiteStatus = when {
     isLoading || isSyncing -> SiteStatus.Checking
 
-    hasError -> SiteStatus.Error
+    hasError || !site.isSuccessful -> SiteStatus.Error
 
-    snap != null && snap.timestamp >= site.timestamp - RECENT_CHANGE_WINDOW_MS -> SiteStatus.Changed(
-        ago = getRelativeTimeLabel(snap.timestamp),
+    !site.isSyncEnabled -> SiteStatus.Paused
+
+    hasDetectedChange() -> SiteStatus.Changed(
+        ago = getRelativeTimeLabel(requireNotNull(snap).timestamp),
     )
 
     else -> SiteStatus.Unchanged(
@@ -34,5 +37,8 @@ internal fun SiteAndLastSnap.toSiteStatus(
         }.orEmpty(),
     )
 }
+
+/** A snapshot written during the latest successful check means that check found new content. */
+internal fun SiteAndLastSnap.hasDetectedChange(): Boolean = site.isSuccessful && snap != null && snap.timestamp >= site.timestamp - RECENT_CHANGE_WINDOW_MS
 
 private const val RECENT_CHANGE_WINDOW_MS = 60_000L

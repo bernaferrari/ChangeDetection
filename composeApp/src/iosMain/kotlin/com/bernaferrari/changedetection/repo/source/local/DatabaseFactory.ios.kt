@@ -4,8 +4,8 @@
  */
 package com.bernaferrari.changedetection.repo.source.local
 
-import androidx.room.Room
-import androidx.room.RoomDatabase
+import androidx.room3.Room
+import androidx.room3.RoomDatabase
 import platform.Foundation.*
 import kotlinx.cinterop.ExperimentalForeignApi
 
