@@ -113,7 +113,7 @@ class SyncWorker(
         val preferences = dataStore.data.first()
         val stored = preferences[SettingsViewModel.COMPARISON_METHOD_KEY]
         return runCatching {
-            ComparisonMethod.valueOf(stored ?: ComparisonMethod.HTML.name)
-        }.getOrElse { ComparisonMethod.HTML }
+            ComparisonMethod.valueOf(stored ?: ComparisonMethod.SCREENSHOT.name)
+        }.getOrElse { ComparisonMethod.SCREENSHOT }
     }
 }

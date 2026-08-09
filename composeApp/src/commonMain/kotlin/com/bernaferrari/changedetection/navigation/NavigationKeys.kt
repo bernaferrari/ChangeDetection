@@ -5,7 +5,11 @@
 package com.bernaferrari.changedetection.navigation
 
 import androidx.navigation3.runtime.NavKey
+import androidx.savedstate.serialization.SavedStateConfiguration
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
 
 /**
  * Navigation keys for Navigation 3.
@@ -47,3 +51,23 @@ data class BrowserDestination(
 
 @Serializable
 data class ComparisonDestination(val siteId: String) : NavKey
+
+/** Serialization contract used by Navigation 3 to restore the complete back stack. */
+val appNavSavedStateConfiguration =
+    SavedStateConfiguration {
+        serializersModule =
+            SerializersModule {
+                polymorphic(NavKey::class) {
+                    subclass(MainDestination::class, MainDestination.serializer())
+                    subclass(TurboDestination::class, TurboDestination.serializer())
+                    subclass(LogsDestination::class, LogsDestination.serializer())
+                    subclass(SettingsDestination::class, SettingsDestination.serializer())
+                    subclass(AddEditDestination::class, AddEditDestination.serializer())
+                    subclass(EditSiteDestination::class, EditSiteDestination.serializer())
+                    subclass(AboutDestination::class, AboutDestination.serializer())
+                    subclass(HowItWorksDestination::class, HowItWorksDestination.serializer())
+                    subclass(BrowserDestination::class, BrowserDestination.serializer())
+                    subclass(ComparisonDestination::class, ComparisonDestination.serializer())
+                }
+            }
+    }

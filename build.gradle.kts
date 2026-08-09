@@ -7,12 +7,10 @@ plugins {
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.kotlin.parcelize) apply false
-    alias(libs.plugins.hilt) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.koin.compiler) apply false
     alias(libs.plugins.compose) apply false
     alias(libs.plugins.spotless) apply false
-    alias(libs.plugins.sqldelight.plugin) apply false
 }
 
 subprojects {

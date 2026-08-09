@@ -5,10 +5,8 @@
 package com.bernaferrari.changedetection.ui.main
 
 import androidx.activity.ComponentActivity
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.bernaferrari.changedetection.repo.ConstraintsRequired
@@ -25,29 +23,24 @@ class QuickMonitorUiTest {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun siteRowExposesStatusAndMoreAction() {
+    fun siteRowExposesStatus() {
         val title = "Synthetic price watch"
-        val moreOptions = "More options for $title"
         val changed = "Updated just now"
 
         composeTestRule.setContent {
             ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
-                CompositionLocalProvider(LocalRemoteFaviconLoading provides false) {
-                    SiteRow(
-                        site = syntheticSite(title),
-                        status = SiteStatus.Changed("just now"),
-                        isQuickMonitored = true,
-                        onClick = {},
-                        onLongClick = {},
-                        onMoreClick = {},
-                    )
-                }
+                SiteRow(
+                    site = syntheticSite(title),
+                    status = SiteStatus.Changed("just now"),
+                    isQuickMonitored = true,
+                    onClick = {},
+                    onLongClick = {},
+                )
             }
         }
 
         composeTestRule.onNodeWithText(title).assertIsDisplayed()
         composeTestRule.onNodeWithText(changed).assertIsDisplayed()
-        composeTestRule.onNodeWithContentDescription(moreOptions).assertIsDisplayed()
     }
 
     private fun syntheticSite(title: String) = Site(

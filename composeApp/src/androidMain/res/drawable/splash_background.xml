@@ -5,10 +5,8 @@
         <color android:color="@color/window_background_dark" />
     </item>
 
-    <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@drawable/splash_icon" />
-    </item>
+    <item
+        android:drawable="@drawable/brand_splash_mark"
+        android:gravity="center" />
 
 </layer-list>

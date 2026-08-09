@@ -14,11 +14,11 @@ import androidx.paging.insertSeparators
 import androidx.paging.map
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
+import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.repo.source.local.SitesDao
 import com.bernaferrari.changedetection.repo.source.local.SnapsDao
 import com.bernaferrari.changedetection.util.formatDate
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -41,6 +41,7 @@ sealed class LogUiModel {
 class LogsViewModel(
     private val sitesDao: SitesDao,
     private val snapsDao: SnapsDao,
+    private val snapsRepository: SnapsRepository,
 ) : ViewModel() {
     val siteMap: StateFlow<Map<String, Site>> =
         sitesDao
@@ -55,6 +56,15 @@ class LogsViewModel(
     val versionsCount: StateFlow<Int> =
         snapsDao
             .countNumberOfChanges()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = 0,
+            )
+
+    val changedSiteCount: StateFlow<Int> =
+        snapsDao
+            .countSitesWithChanges()
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
@@ -87,8 +97,8 @@ class LogsViewModel(
             }.cachedIn(viewModelScope)
 
     fun removeSnap(snapId: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            snapsDao.deleteSnapById(snapId)
+        viewModelScope.launch(Dispatchers.Default) {
+            snapsRepository.deleteSnap(snapId)
         }
     }
 }

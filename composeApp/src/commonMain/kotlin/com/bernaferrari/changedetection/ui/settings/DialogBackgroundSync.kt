@@ -107,11 +107,9 @@ fun BackgroundSyncDialog(
                             requireWifi = uiState.requireWifi,
                             requireCharging = uiState.requireCharging,
                             requireBatteryNotLow = uiState.requireBatteryNotLow,
-                            requireDeviceIdle = uiState.requireDeviceIdle,
                             onWifiChange = viewModel::updateWifiConstraint,
                             onChargingChange = viewModel::updateChargingConstraint,
                             onBatteryChange = viewModel::updateBatteryNotLowConstraint,
-                            onIdleChange = viewModel::updateDeviceIdleConstraint,
                         )
                     }
                 }

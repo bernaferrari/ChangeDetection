@@ -8,7 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -22,13 +21,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.CompareArrows
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Compare
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -60,16 +58,19 @@ import com.bernaferrari.changedetection.shared.generated.resources.failed_to_loa
 import com.bernaferrari.changedetection.shared.generated.resources.image_comparison_unavailable
 import com.bernaferrari.changedetection.shared.generated.resources.image_diff_changed
 import com.bernaferrari.changedetection.shared.generated.resources.image_diff_changed_pixels
+import com.bernaferrari.changedetection.shared.generated.resources.image_diff_drag_supporting
 import com.bernaferrari.changedetection.shared.generated.resources.image_diff_missing_output
 import com.bernaferrari.changedetection.shared.generated.resources.image_diff_pixel_identical
 import com.bernaferrari.changedetection.shared.generated.resources.image_diff_pixels
+import com.bernaferrari.changedetection.shared.generated.resources.image_diff_pixels_different
 import com.bernaferrari.changedetection.shared.generated.resources.image_diff_preparing
+import com.bernaferrari.changedetection.shared.generated.resources.image_diff_same_dimensions
 import com.bernaferrari.changedetection.shared.generated.resources.image_diff_size_changed
 import com.bernaferrari.changedetection.shared.generated.resources.image_diff_status_unavailable
 import com.bernaferrari.changedetection.shared.generated.resources.image_diff_unavailable
 import com.bernaferrari.changedetection.shared.generated.resources.image_diff_waiting
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
-import com.bernaferrari.changedetection.util.formatTimestamp
+import com.bernaferrari.changedetection.ui.components.AppLoadingIndicator
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
@@ -104,8 +105,6 @@ internal fun ImageComparisonContent(
 ) {
     Column(modifier = modifier) {
         ImageDiffSummary(
-            beforeSnap = beforeSnap,
-            afterSnap = afterSnap,
             imageDiff = imageDiff,
         )
 
@@ -160,79 +159,55 @@ internal fun ImageComparisonContent(
 
 @Composable
 private fun ImageDiffSummary(
-    beforeSnap: Snap,
-    afterSnap: Snap,
     imageDiff: SnapshotImageDiff?,
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-    ) {
+    Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f)) {
         Row(
             modifier = Modifier
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val changedText =
-                when {
-                    imageDiff == null -> stringResource(Res.string.image_diff_preparing)
-                    imageDiff.error != null -> stringResource(Res.string.image_diff_status_unavailable)
-                    else -> formatImagePercent(imageDiff.mismatchPercentage)
-                }
-
-            ImageStat(
-                label = stringResource(Res.string.image_diff_changed),
-                value = changedText,
-                tone = when {
-                    imageDiff?.error != null -> MaterialTheme.colorScheme.error
-                    imageDiff?.match == true -> MaterialTheme.colorScheme.tertiary
-                    else -> MaterialTheme.colorScheme.primary
-                },
-            )
-            ImageStat(
-                label = stringResource(Res.string.image_diff_pixels),
-                value = imageDiff?.let {
-                    "${formatPixelCount(it.differentPixels)} / ${formatPixelCount(it.totalPixels)}"
-                } ?: stringResource(Res.string.image_diff_waiting),
-            )
-            ImageStat(
-                label = stringResource(Res.string.comparison_mode_before),
-                value = imageDiff?.let { "${it.beforeWidth} x ${it.beforeHeight}" }
-                    ?: formatTimestamp(beforeSnap.timestamp),
-            )
-            ImageStat(
-                label = stringResource(Res.string.comparison_mode_after),
-                value = imageDiff?.let { "${it.afterWidth} x ${it.afterHeight}" }
-                    ?: formatTimestamp(afterSnap.timestamp),
-            )
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Compare,
+                    contentDescription = null,
+                    modifier = Modifier.padding(12.dp).size(22.dp),
+                )
+            }
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = when {
+                        imageDiff == null -> stringResource(Res.string.image_diff_preparing)
+                        imageDiff.error != null -> stringResource(Res.string.image_diff_status_unavailable)
+                        imageDiff.match -> stringResource(Res.string.comparison_no_changes_title)
+                        else -> "${formatImagePercent(imageDiff.mismatchPercentage)} ${stringResource(Res.string.image_diff_changed).lowercase()}"
+                    },
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+                Text(
+                    text = imageDiff?.takeIf { it.error == null }?.let {
+                        stringResource(Res.string.image_diff_pixels_different, formatPixelCount(it.differentPixels))
+                    } ?: stringResource(Res.string.image_diff_drag_supporting),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f),
+                )
+            }
+            imageDiff?.takeIf { it.beforeWidth == it.afterWidth && it.beforeHeight == it.afterHeight }?.let { diff ->
+                Text(
+                    text = stringResource(Res.string.image_diff_same_dimensions, diff.beforeWidth, diff.beforeHeight),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f),
+                )
+            }
         }
-    }
-}
-
-@Composable
-private fun ImageStat(
-    label: String,
-    value: String,
-    tone: Color = MaterialTheme.colorScheme.onSurface,
-) {
-    Column(
-        modifier = Modifier.widthIn(min = 92.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = tone,
-            maxLines = 1,
-        )
     }
 }
 
@@ -249,16 +224,15 @@ private fun ImageDiffPanel(
                 modifier = modifier,
                 contentAlignment = Alignment.Center,
             ) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                AppLoadingIndicator(size = 24.dp)
             }
         }
 
         imageDiff.error != null -> {
-            SharedEmptyState(
-                icon = Icons.Default.Warning,
-                title = stringResource(Res.string.image_diff_unavailable),
-                description = imageDiff.error,
-                modifier = modifier.padding(32.dp),
+            ImageSwipeComparison(
+                beforeBytes = beforeBytes,
+                afterBytes = afterBytes,
+                modifier = modifier,
             )
         }
 
@@ -289,11 +263,10 @@ private fun ImageDiffPanel(
         }
 
         else -> {
-            SharedEmptyState(
-                icon = Icons.Default.Warning,
-                title = stringResource(Res.string.image_diff_unavailable),
-                description = stringResource(Res.string.image_diff_missing_output),
-                modifier = modifier.padding(32.dp),
+            ImageSwipeComparison(
+                beforeBytes = beforeBytes,
+                afterBytes = afterBytes,
+                modifier = modifier,
             )
         }
     }

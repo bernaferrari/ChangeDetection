@@ -9,12 +9,14 @@ package com.bernaferrari.changedetection.di
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.bernaferrari.changedetection.background.IosMonitoringManager
 import com.bernaferrari.changedetection.background.MonitoringManager
 import com.bernaferrari.changedetection.platform.IosShareManager
 import com.bernaferrari.changedetection.platform.ShareManager
 import com.bernaferrari.changedetection.repo.source.local.ChangeDatabase
 import com.bernaferrari.changedetection.repo.source.local.getDatabaseBuilder
+import com.bernaferrari.changedetection.repo.source.local.getRoomDatabase
 import com.bernaferrari.changedetection.sync.SyncEngine
 import com.bernaferrari.changedetection.util.FileStorage
 import com.bernaferrari.changedetection.util.IosFileStorage
@@ -29,7 +31,7 @@ import platform.Foundation.NSUserDomainMask
 @Module
 actual class PlatformDiModule {
     @Single
-    fun database(): ChangeDatabase = getDatabaseBuilder().build()
+    fun database(): ChangeDatabase = getRoomDatabase(getDatabaseBuilder(), BundledSQLiteDriver())
 
     @Single
     fun dataStore(): DataStore<Preferences> = PreferenceDataStoreFactory.createWithPath(

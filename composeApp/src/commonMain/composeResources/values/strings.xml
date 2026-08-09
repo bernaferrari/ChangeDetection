@@ -1,7 +1,10 @@
 <resources>
     <string name="app_name">Change Detection</string>
+    <string name="brand_tagline">See what changed. Keep it local.</string>
+    <string name="brand_descriptor">Private page monitor</string>
     <string name="refresh_all">Refresh all</string>
-    <string name="add_site">Add site</string>
+    <string name="refresh_site">Check %1$s now</string>
+    <string name="add_site">Add page</string>
     <string name="refresh">Refresh</string>
     <string name="delete">Delete</string>
     <string name="last_sync">Last sync: %1$s</string>
@@ -9,9 +12,15 @@
     <string name="connection_error">Connection error</string>
     <string name="more_options">More options</string>
     <string name="loading">Loading…</string>
+    <string name="saving">Saving…</string>
     <string name="ok">OK</string>
     <string name="error">Error</string>
     <string name="turbo_mode">Turbo</string>
+    <string name="turbo_cadence">Check cadence</string>
+    <string name="turbo_live_label">Turbo is live</string>
+    <string name="turbo_cadence_value">Every %1$s</string>
+    <string name="turbo_select_pages">Pages to check</string>
+    <string name="turbo_select_pages_supporting">Choose what Turbo should watch</string>
     <string name="how_it_works">How it works</string>
     <string name="turbo_help_title">How Turbo works</string>
     <string name="turbo_help_text">Turbo checks only the sites you select, as often as every **15 seconds**. A persistent notification shows when it is active.\n\nTurbo stops automatically after **3 hours** to protect battery life. Start a new session whenever timing matters.</string>
@@ -19,12 +28,12 @@
     <string name="status_active">Active</string>
     <string name="status_inactive">Inactive</string>
     <plurals name="monitoring_sites">
-        <item quantity="one">Monitoring %d site</item>
-        <item quantity="other">Monitoring %d sites</item>
+        <item quantity="one">Monitoring %1$d site</item>
+        <item quantity="other">Monitoring %1$d sites</item>
     </plurals>
     <string name="select_sites_to_monitor">Select sites below to monitor</string>
-    <string name="select_sites">Select sites</string>
-    <string name="select_site_to_view_details">Select a site to view its history</string>
+    <string name="select_sites">Select a monitor</string>
+    <string name="select_site_to_view_details">Choose a monitor to inspect its latest change and history.</string>
     <string name="monitoring">Monitoring</string>
     <string name="select_all">Select all</string>
     <string name="clear_all">Clear all</string>
@@ -52,39 +61,107 @@
     <string name="label_interval">Interval</string>
     <string name="quick_monitor_sites_selected_label">Sites selected</string>
     <string name="turbo_mode_dialog_warning_title">High battery usage</string>
-    <string name="turbo_mode_dialog_warning_body">Turbo checks every %d s and keeps the device awake. Use it when seconds matter.</string>
+    <string name="turbo_mode_dialog_warning_body">Turbo checks every %1$d s and keeps the device awake. Use it when seconds matter.</string>
     <plurals name="turbo_mode_selected_sites">
-        <item quantity="one">%d site selected</item>
-        <item quantity="other">%d sites selected</item>
+        <item quantity="one">%1$d site selected</item>
+        <item quantity="other">%1$d sites selected</item>
     </plurals>
     <plurals name="items">
-        <item quantity="one">%d item</item>
-        <item quantity="other">%d items</item>
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
     </plurals>
     <string name="min">min</string>
     <string name="hour">1 hour</string>
     <string name="hours">hours</string>
-    <string name="start_monitoring">Start Monitoring</string>
+    <string name="start_monitoring">Start monitoring</string>
     <string name="start_monitoring_description">Track changes on any website and get notified when content updates.</string>
-    <string name="add_first_site">Add Your First Site</string>
-    <string name="learn_how_it_works">Learn How It Works</string>
+    <string name="add_first_site">Add your first monitor</string>
+    <string name="learn_how_it_works">Learn how it works</string>
     <string name="quick_monitor_title">Quick Monitor</string>
-    <string name="quick_monitor_next_check_in">Next check in %ds</string>
+    <string name="quick_monitor_next_check_in">Next check in %1$ds</string>
     <string name="turbo_mode_button_stop">Stop</string>
-    <string name="nav_home">Home</string>
+    <string name="nav_home">Watchlist</string>
     <string name="nav_turbo">Turbo</string>
-    <string name="nav_logs">Logs</string>
+    <string name="nav_logs">Changes</string>
     <string name="nav_settings">Settings</string>
     <string name="home_stats_quick_monitor_label">Turbo</string>
+    <string name="home_hero_quiet_title">Everything looks quiet</string>
+    <string name="home_hero_quiet_subtitle">Your watchlist is up to date.</string>
+    <plurals name="home_hero_changes_title">
+        <item quantity="one">%1$d change needs attention</item>
+        <item quantity="other">%1$d changes need attention</item>
+    </plurals>
+    <string name="home_hero_changes_subtitle">Review what changed since the last check.</string>
+    <plurals name="home_hero_errors_title">
+        <item quantity="one">%1$d monitor needs attention</item>
+        <item quantity="other">%1$d monitors need attention</item>
+    </plurals>
+    <string name="home_hero_errors_subtitle">Some pages could not be checked.</string>
+    <string name="home_hero_checking_title">Checking your watchlist</string>
+    <string name="home_hero_checking_subtitle">Fresh results will appear as each page finishes.</string>
+    <string name="home_metric_watching">Watching</string>
+    <string name="home_metric_changed">Changed</string>
+    <string name="home_metric_turbo">Turbo</string>
+    <string name="home_action_check_now">Check now</string>
+    <string name="home_action_checking">Checking…</string>
+    <string name="home_section_attention">Needs attention</string>
+    <string name="home_section_attention_subtitle">Changed pages and checks that need a look</string>
+    <string name="home_section_watching">Watchlist</string>
+    <string name="home_section_watching_subtitle">Pages monitored from this device</string>
+    <string name="home_search_monitors">Search monitors</string>
+    <string name="home_search_clear">Clear search</string>
+    <string name="home_search_close">Close search</string>
+    <string name="home_search_empty_title">No matching monitors</string>
+    <string name="home_search_empty_subtitle">Try another name or website address.</string>
+    <string name="monitor_watchlist">Your pages</string>
+    <string name="monitor_watchlist_supporting">Changes and problems appear first</string>
+    <string name="monitor_review_changes">Review changes</string>
+    <string name="monitor_review_error">Review</string>
+    <string name="monitor_error_attention">%1$d check needs attention</string>
+    <string name="monitor_filter_paused">Paused</string>
+    <string name="monitor_filter_errors">Errors</string>
+    <string name="monitor_filter_new">New</string>
+    <string name="monitor_signal_label">Latest activity</string>
+    <string name="monitor_summary_checking">Listening for changes</string>
+    <string name="monitor_summary_checking_supporting">Fresh signals appear as each page finishes.</string>
+    <plurals name="monitor_summary_error">
+        <item quantity="one">%1$d check missed</item>
+        <item quantity="other">%1$d checks missed</item>
+    </plurals>
+    <string name="monitor_summary_error_supporting">One of your pages could not answer this time.</string>
+    <plurals name="monitor_summary_updated">
+        <item quantity="one">%1$d page changed</item>
+        <item quantity="other">%1$d pages changed</item>
+    </plurals>
+    <string name="monitor_summary_updated_supporting">See what changed when you’re ready.</string>
+    <string name="monitor_summary_quiet">All quiet</string>
+    <string name="monitor_summary_quiet_supporting">Nothing moved across your %1$d monitors.</string>
+    <string name="turbo_active_title">Turbo is active</string>
+    <string name="turbo_summary">%1$d sites · every %2$d seconds</string>
+    <string name="turbo_card_title">Turbo checks</string>
+    <string name="turbo_card_subtitle">Check selected sites as often as every 15 seconds when timing matters.</string>
+    <string name="site_status_paused">Paused</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_accent_color">Accent color</string>
+    <string name="palette_dynamic">Device</string>
+    <string name="palette_orange">Orange</string>
+    <string name="palette_indigo">Indigo</string>
+    <string name="palette_teal">Teal</string>
+    <string name="palette_amber">Amber</string>
+    <string name="palette_lime">Lime</string>
+    <string name="palette_green">Green</string>
+    <string name="palette_cyan">Cyan</string>
+    <string name="palette_blue">Blue</string>
+    <string name="palette_purple">Purple</string>
+    <string name="palette_pink">Pink</string>
     <string name="settings_monitoring_section">Monitoring</string>
     <string name="settings_background_sync_title">Background sync</string>
     <string name="settings_background_sync_enable">Enable background sync</string>
     <string name="settings_background_sync_disabled">Disabled</string>
-    <string name="settings_background_sync_every">Every %d minutes</string>
+    <string name="settings_background_sync_every">Every %1$d minutes</string>
     <string name="settings_about_section">About</string>
     <string name="settings_about_title">About ChangeDetection</string>
     <string name="settings_action_contact">Contact developer</string>
@@ -106,28 +183,27 @@
     <string name="settings_sync_monitoring_in_background">Monitoring in background</string>
     <string name="settings_sync_not_syncing">Not syncing in background</string>
     <string name="settings_sync_constraints_description">Sync only when these conditions are met</string>
-    <string name="step_number">Step %d</string>
+    <string name="settings_background_sync_summary">Check sites automatically</string>
+    <string name="step_number">Step %1$d</string>
 
     <string name="theme_system_title">System</string>
     <string name="theme_system_desc">Match your device settings</string>
-    <string name="theme_material_you_title">For You</string>
-    <string name="theme_material_you_desc">Dynamic colors from your wallpaper</string>
     <string name="theme_light_title">Light</string>
     <string name="theme_light_desc">Always use light theme</string>
     <string name="theme_dark_title">Dark</string>
     <string name="theme_dark_desc">Always use dark theme</string>
 
     <plurals name="settings_sync_every_minutes">
-        <item quantity="one">Sync every %d minute</item>
-        <item quantity="other">Sync every %d minutes</item>
+        <item quantity="one">Sync every %1$d minute</item>
+        <item quantity="other">Sync every %1$d minutes</item>
     </plurals>
     <plurals name="settings_sync_every_hours">
-        <item quantity="one">Sync every %d hour</item>
-        <item quantity="other">Sync every %d hours</item>
+        <item quantity="one">Sync every %1$d hour</item>
+        <item quantity="other">Sync every %1$d hours</item>
     </plurals>
     <plurals name="settings_sync_every_days">
-        <item quantity="one">Sync every %d day</item>
-        <item quantity="other">Sync every %d days</item>
+        <item quantity="one">Sync every %1$d day</item>
+        <item quantity="other">Sync every %1$d days</item>
     </plurals>
     <string name="comparison_hero_badge">Live insights</string>
     <string name="comparison_stats_snapshots_label">Snapshots</string>
@@ -138,10 +214,19 @@
     <string name="comparison_stats_scope_element">Selected elements</string>
     <string name="comparison_stats_scope_page">Full page</string>
     <string name="comparison_section_snapshots">Version history</string>
+    <string name="comparison_change_title">Page changed</string>
+    <string name="comparison_change_supporting">Review what changed in the latest captured version.</string>
+    <string name="comparison_choose_older">Older</string>
+    <string name="comparison_selected">Selected</string>
+    <string name="comparison_monitoring_section">Monitoring</string>
+    <string name="comparison_monitoring_supporting">How this page is checked</string>
+    <string name="comparison_monitoring_status">Status</string>
+    <string name="comparison_monitoring_versions">Saved history</string>
+    <string name="comparison_monitoring_capture">Capture method</string>
     <string name="comparison_empty_title">No versions yet</string>
     <string name="comparison_empty_subtitle">Capture your first snapshot to start comparing.</string>
     <string name="comparison_quick_tip">Tap a version pair to open the diff.</string>
-    <string name="comparison_pair_title">Version %d → %d</string>
+    <string name="comparison_pair_title">Version %1$d → %2$d</string>
     <string name="comparison_pair_time_diff">%1$s apart</string>
     <string name="comparison_single_snapshot_hint">We need at least two snapshots to compare changes.</string>
     <string name="comparison_single_snapshot_title">1 snapshot captured</string>
@@ -150,12 +235,16 @@
     <string name="share_comparison">Share comparison</string>
     <string name="show_all">All</string>
     <string name="show_changes">Changes</string>
+    <string name="show_context">Show context</string>
+    <string name="show_only_changes">Only changes</string>
+    <string name="comparison_before">Before</string>
+    <string name="comparison_now">Now</string>
     <string name="older">Older</string>
     <string name="newer">Newer</string>
     <string name="comparison_mode_text">Text</string>
     <string name="comparison_mode_rendered">Rendered</string>
-    <string name="comparison_mode_pixel_diff">Pixel diff</string>
-    <string name="comparison_mode_swipe">Swipe</string>
+    <string name="comparison_mode_pixel_diff">Highlight</string>
+    <string name="comparison_mode_swipe">Compare</string>
     <string name="comparison_mode_before">Before</string>
     <string name="comparison_mode_after">After</string>
     <string name="type_label">Type: %1$s</string>
@@ -170,12 +259,14 @@
     <string name="comparison_no_changes_title">No differences found</string>
     <string name="comparison_no_changes_text">The text content of both snapshots is identical.</string>
     <string name="comparison_no_changes_html">The visual content of both snapshots is identical.</string>
-    <string name="settings_comparison_title">Comparison method</string>
+    <string name="settings_comparison_title">Change view</string>
     <string name="settings_comparison_subtitle">Page text is lightweight; screenshots preserve the visual layout.</string>
+    <string name="settings_comparison_summary">Text or screenshots</string>
     <string name="settings_comparison_page_text">Page text</string>
     <string name="settings_comparison_screenshots">Screenshots</string>
     <string name="settings_browser_delay_title">Browser delay</string>
     <string name="settings_browser_delay_subtitle">Wait time before capturing page content</string>
+    <string name="settings_browser_delay_summary">Wait before capture</string>
     <string name="settings_interval_minutes">Interval (minutes)</string>
     <string name="settings_interval_minimum">Minimum 15 minutes</string>
     <string name="settings_quick_presets">Quick presets</string>
@@ -219,17 +310,22 @@
 
     <!-- Logs -->
     <string name="logs_error_loading">Error loading data</string>
-    <string name="logs_hero_title">Change history</string>
-    <string name="logs_hero_subtitle">%1$d changes across %2$d sites</string>
+    <string name="logs_hero_title">Version history</string>
+    <string name="logs_hero_subtitle">Every saved change, private and ready to inspect.</string>
+    <string name="logs_metric_changes">Versions</string>
+    <string name="logs_metric_sites">Sites</string>
     <string name="logs_section_history">Recent activity</string>
     <string name="logs_empty_title">No changes detected yet</string>
     <string name="logs_empty_subtitle">Start monitoring websites to see changes here.</string>
     <string name="logs_remove_snapshot_title">Remove snapshot?</string>
     <string name="logs_remove_snapshot_body">%1$s · %2$s</string>
     <string name="logs_just_now">Just now</string>
-    <string name="logs_min_ago">%d min ago</string>
-    <string name="logs_hr_ago">%d hr ago</string>
-    <string name="logs_day_ago">%d day ago</string>
+    <string name="logs_min_ago">%1$d min ago</string>
+    <string name="logs_hr_ago">%1$d hr ago</string>
+    <plurals name="logs_days_ago">
+        <item quantity="one">%1$d day ago</item>
+        <item quantity="other">%1$d days ago</item>
+    </plurals>
 
     <!-- Onboarding (New) -->
     <string name="onboarding_title_welcome">Welcome</string>
@@ -253,18 +349,25 @@
 
     <!-- Add/Edit -->
     <string name="save">Save</string>
-    <string name="site_name">Site Name</string>
-    <string name="site_name_placeholder">Example Website</string>
+    <string name="site_name">Name (optional)</string>
+    <string name="site_name_placeholder">Example website</string>
     <string name="color_theme">Color Theme</string>
     <string name="complete_setup">Complete Setup</string>
     <string name="success_title">All set!</string>
     <string name="site_added_successfully">Monitoring started successfully.</string>
     <string name="website_url">Website URL</string>
+    <string name="monitor_editor_add_title">Add page</string>
+    <string name="monitor_editor_edit_title">Edit monitor</string>
     <string name="enter_website_url">Enter website URL</string>
     <string name="website_url_placeholder">https://example.com</string>
+    <string name="monitor_editor_prompt_add">Website to monitor</string>
+    <string name="monitor_editor_prompt_add_supporting">Paste the exact address. We’ll save a private version when it changes so you can compare what happened.</string>
+    <string name="monitor_editor_prompt_edit">Monitor details</string>
+    <string name="monitor_editor_prompt_edit_supporting">Update the page address or the name shown in your watchlist.</string>
+    <string name="monitor_editor_private_title">Private by design</string>
+    <string name="monitor_editor_private_supporting">Checks and snapshots stay on this device. No account required.</string>
     <string name="clear">Clear</string>
     <string name="paste">Paste</string>
-    <string name="add_edit_url_description">Enter the exact address you want to monitor.</string>
     <string name="add_edit_details_title">Details</string>
     <string name="add_edit_details_description">Add context so future alerts are easy to understand.</string>
     <string name="add_edit_tags_label">Tags or notes (optional)</string>
@@ -302,11 +405,13 @@
     <string name="undo">Undo</string>
     
     <!-- Version Selector -->
-    <string name="version_count">%d versions</string>
+    <string name="version_count">%1$d versions</string>
     <string name="version_pair_format">%1$s → %2$s</string>
     <string name="version_latest">Latest</string>
     <string name="version_previous">Previous</string>
     <string name="version_older">Older</string>
+    <string name="version_pair_latest">Latest change</string>
+    <string name="version_pair_previous">Previous change %1$d</string>
     <string name="compare_versions">Compare</string>
     
     <!-- Sync Status -->
@@ -332,6 +437,9 @@
     <string name="image_diff_pixel_identical">The captured screenshots are pixel-identical.</string>
     <string name="image_diff_missing_output">The screenshots were decoded, but no visual diff image was generated.</string>
     <string name="image_diff_changed_pixels">Changed pixels</string>
+    <string name="image_diff_pixels_different">%1$s pixels differ</string>
+    <string name="image_diff_drag_supporting">Drag the handle to inspect the before and after captures.</string>
+    <string name="image_diff_same_dimensions">%1$d × %2$d capture</string>
     <string name="image_diff_size_changed">Screenshot size changed: %1$d × %2$d → %3$d × %4$d</string>
     
     <!-- Accessibility -->
@@ -366,7 +474,7 @@
     <string name="a11y_edit_site">Edit site</string>
     <string name="a11y_site_url">URL: %1$s</string>
     <string name="a11y_file_size">Size: %1$s</string>
-    <string name="a11y_version">Version %d of %d</string>
+    <string name="a11y_version">Version %1$d of %2$d</string>
     <string name="a11y_comparison_slider">Comparison overlay. Drag to blend between old and new versions.</string>
     <string name="a11y_drag_screenshot_comparison">Drag to compare screenshots</string>
     <string name="a11y_open_license">Open license</string>
@@ -376,8 +484,8 @@
     <!-- Export/Import -->
     <string name="export_sites">Export sites</string>
     <string name="import_sites">Import sites</string>
-    <string name="export_success">Exported %d sites</string>
-    <string name="import_success">Imported %d sites</string>
+    <string name="export_success">Exported %1$d sites</string>
+    <string name="import_success">Imported %1$d sites</string>
     <string name="import_error">Failed to import sites</string>
     <string name="export_error">Failed to export sites</string>
     <string name="no_sites_to_export">No sites to export</string>

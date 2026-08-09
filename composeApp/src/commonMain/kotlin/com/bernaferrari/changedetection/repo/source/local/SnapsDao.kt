@@ -5,10 +5,12 @@
 package com.bernaferrari.changedetection.repo.source.local
 
 import androidx.paging.PagingSource
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room3.Dao
+import androidx.room3.DaoReturnTypeConverters
+import androidx.room3.Insert
+import androidx.room3.OnConflictStrategy
+import androidx.room3.Query
+import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
 import com.bernaferrari.changedetection.repo.Snap
 import kotlinx.coroutines.flow.Flow
 
@@ -30,6 +32,7 @@ data class ContentDuplicationStats(
  * Inspired from Architecture Components MVVM sample app
  */
 @Dao
+@DaoReturnTypeConverters(PagingSourceDaoReturnTypeConverter::class)
 interface SnapsDao {
     /**
      * Select all snap metadata (which is everything except for its value) by siteId.
@@ -139,9 +142,12 @@ interface SnapsDao {
     @Query("DELETE FROM snaps")
     suspend fun deleteTasks()
 
-    // Optimized: Count snaps for sites with changes (more than 1 snap)
-    @Query("SELECT COUNT(*) FROM snaps WHERE siteId IN (SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 1)")
+    // A site's first snapshot is its baseline, not a detected change.
+    @Query("SELECT COALESCE(SUM(changeCount), 0) FROM (SELECT COUNT(*) - 1 AS changeCount FROM snaps GROUP BY siteId HAVING COUNT(*) > 1)")
     fun countNumberOfChanges(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM (SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 1)")
+    fun countSitesWithChanges(): Flow<Int>
 
     // Optimized: Get snaps from sites with changes - simplified for KMP
     @Query("SELECT * FROM snaps WHERE siteId IN (SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 1) ORDER BY timestamp DESC")

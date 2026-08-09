@@ -2,6 +2,8 @@
  * Copyright (c) 2024 ChangeDetection Contributors
  * Licensed under the Apache License, Version 2.0
  */
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.bernaferrari.changedetection.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
@@ -83,6 +85,7 @@ fun ConfirmDialog(
                     onConfirm()
                     onDismiss()
                 },
+                shapes = ButtonDefaults.shapes(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = actionColor,
                     contentColor = actionContentColor,

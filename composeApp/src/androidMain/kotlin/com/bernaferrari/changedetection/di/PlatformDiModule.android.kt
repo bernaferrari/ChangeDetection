@@ -8,12 +8,14 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.room.Room
+import androidx.room3.Room
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.bernaferrari.changedetection.WorkerHelper
 import com.bernaferrari.changedetection.background.MonitoringManager
 import com.bernaferrari.changedetection.platform.AndroidShareManager
 import com.bernaferrari.changedetection.platform.ShareManager
 import com.bernaferrari.changedetection.repo.source.local.ChangeDatabase
+import com.bernaferrari.changedetection.repo.source.local.getRoomDatabase
 import com.bernaferrari.changedetection.util.AndroidFileStorage
 import com.bernaferrari.changedetection.util.FileStorage
 import org.koin.core.annotation.Module
@@ -25,12 +27,17 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 @Module
 actual class PlatformDiModule {
     @Single
-    fun database(@Provided context: Context): ChangeDatabase = Room
-        .databaseBuilder(
-            context,
-            ChangeDatabase::class.java,
-            "changes.db",
-        ).build()
+    fun database(@Provided context: Context): ChangeDatabase {
+        val appContext = context.applicationContext
+        val path = appContext.getDatabasePath("changes.db").absolutePath
+        return getRoomDatabase(
+            Room.databaseBuilder<ChangeDatabase>(
+                context = appContext,
+                name = path,
+            ),
+            BundledSQLiteDriver(),
+        )
+    }
 
     @Single
     fun dataStore(@Provided context: Context): DataStore<Preferences> = context.dataStore

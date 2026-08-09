@@ -22,7 +22,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BatteryChargingFull
 import androidx.compose.material.icons.outlined.BatterySaver
-import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.material3.Icon
@@ -55,7 +54,6 @@ import com.bernaferrari.changedetection.shared.generated.resources.settings_inte
 import com.bernaferrari.changedetection.shared.generated.resources.settings_quick_presets
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_constraint_battery
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_constraint_charging
-import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_constraint_idle
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_constraint_wifi
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_monitoring_in_background
 import com.bernaferrari.changedetection.ui.theme.spacing
@@ -307,11 +305,9 @@ internal fun SyncConstraints(
     requireWifi: Boolean,
     requireCharging: Boolean,
     requireBatteryNotLow: Boolean,
-    requireDeviceIdle: Boolean,
     onWifiChange: (Boolean) -> Unit,
     onChargingChange: (Boolean) -> Unit,
     onBatteryChange: (Boolean) -> Unit,
-    onIdleChange: (Boolean) -> Unit,
 ) {
     Column {
         SyncConstraintRow(
@@ -331,12 +327,6 @@ internal fun SyncConstraints(
             title = stringResource(Res.string.settings_sync_constraint_battery),
             checked = requireBatteryNotLow,
             onCheckedChange = onBatteryChange,
-        )
-        SyncConstraintRow(
-            icon = Icons.Outlined.PhoneAndroid,
-            title = stringResource(Res.string.settings_sync_constraint_idle),
-            checked = requireDeviceIdle,
-            onCheckedChange = onIdleChange,
         )
     }
 }

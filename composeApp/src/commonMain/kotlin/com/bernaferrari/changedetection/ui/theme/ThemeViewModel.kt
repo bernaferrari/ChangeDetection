@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.model.ThemeMode
+import com.bernaferrari.changedetection.model.AppPalette
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -28,6 +29,7 @@ class ThemeViewModel(
 ) : ViewModel() {
     companion object {
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
+        val APP_PALETTE_KEY = stringPreferencesKey("app_palette")
     }
 
     val themeMode: StateFlow<ThemeMode> =
@@ -40,6 +42,15 @@ class ThemeViewModel(
                 initialValue = ThemeMode.SYSTEM,
             )
 
+    val appPalette: StateFlow<AppPalette> =
+        dataStore.data
+            .map { preferences -> AppPalette.fromStoredName(preferences[APP_PALETTE_KEY]) }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = AppPalette.TEAL,
+            )
+
     fun updateThemeMode(mode: ThemeMode) {
         viewModelScope.launch {
             dataStore.edit { preferences ->
@@ -47,6 +58,9 @@ class ThemeViewModel(
             }
         }
     }
+
+    @Composable
+    fun selectedSeedColor() = appPalette.collectAsStateWithLifecycle().value.seedColor
 
     /**
      * Returns whether dark theme should be used.
@@ -58,18 +72,7 @@ class ThemeViewModel(
         return when (mode) {
             ThemeMode.LIGHT -> false
             ThemeMode.DARK -> true
-            ThemeMode.SYSTEM, ThemeMode.MATERIAL_YOU -> isSystemInDarkTheme()
+            ThemeMode.SYSTEM -> isSystemInDarkTheme()
         }
-    }
-
-    /**
-     * Material You is an explicit appearance choice, so dynamic colors are only enabled for that
-     * mode. Keeping the decision here ensures Settings and the app root use one source of truth.
-     */
-    @Composable
-    fun shouldUseDynamicColor(): Boolean {
-        val mode by themeMode.collectAsStateWithLifecycle()
-        // MATERIAL_YOU mode always uses dynamic colors
-        return mode == ThemeMode.MATERIAL_YOU
     }
 }

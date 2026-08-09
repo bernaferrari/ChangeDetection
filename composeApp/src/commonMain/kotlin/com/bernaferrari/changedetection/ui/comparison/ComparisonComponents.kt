@@ -323,19 +323,19 @@ fun DiffLine(
 
         DiffLineType.ADDED -> Triple(
             "+ ",
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.46f),
             MaterialTheme.colorScheme.primary,
         )
 
         DiffLineType.REMOVED -> Triple(
             "- ",
-            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.46f),
             MaterialTheme.colorScheme.error,
         )
 
         DiffLineType.MODIFIED -> Triple(
             "~ ",
-            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
+            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.46f),
             MaterialTheme.colorScheme.tertiary,
         )
     }
@@ -344,13 +344,13 @@ fun DiffLine(
         modifier = modifier
             .fillMaxWidth()
             .background(backgroundColor)
-            .padding(horizontal = 4.dp, vertical = 2.dp),
+            .padding(horizontal = 8.dp, vertical = 5.dp),
         verticalAlignment = Alignment.Top,
     ) {
         // Line number
         Text(
             text = lineNumber.toString().padStart(4),
-            style = MaterialTheme.typography.bodySmall.copy(
+            style = MaterialTheme.typography.bodyMedium.copy(
                 fontFamily = FontFamily.Monospace,
             ),
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
@@ -360,7 +360,7 @@ fun DiffLine(
         // Prefix indicator
         Text(
             text = prefix,
-            style = MaterialTheme.typography.bodySmall.copy(
+            style = MaterialTheme.typography.bodyMedium.copy(
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
             ),
@@ -371,7 +371,7 @@ fun DiffLine(
         // Content
         Text(
             text = content,
-            style = MaterialTheme.typography.bodySmall.copy(
+            style = MaterialTheme.typography.bodyMedium.copy(
                 fontFamily = FontFamily.Monospace,
             ),
             color = MaterialTheme.colorScheme.onSurface,

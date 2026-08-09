@@ -6,34 +6,31 @@ package com.bernaferrari.changedetection.ui.main
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,31 +50,31 @@ import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.add_sites_to_monitor
-import com.bernaferrari.changedetection.shared.generated.resources.a11y_navigate_back
 import com.bernaferrari.changedetection.shared.generated.resources.add_first_site
 import com.bernaferrari.changedetection.shared.generated.resources.got_it
 import com.bernaferrari.changedetection.shared.generated.resources.how_it_works
 import com.bernaferrari.changedetection.shared.generated.resources.monitoring
 import com.bernaferrari.changedetection.shared.generated.resources.no_sites_yet
-import com.bernaferrari.changedetection.shared.generated.resources.select_sites
 import com.bernaferrari.changedetection.shared.generated.resources.turbo_help_text
 import com.bernaferrari.changedetection.shared.generated.resources.turbo_help_title
 import com.bernaferrari.changedetection.shared.generated.resources.turbo_mode
+import com.bernaferrari.changedetection.shared.generated.resources.turbo_select_pages
+import com.bernaferrari.changedetection.shared.generated.resources.turbo_select_pages_supporting
 import com.bernaferrari.changedetection.shared.generated.resources.clear_all
 import com.bernaferrari.changedetection.shared.generated.resources.select_all
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
+import com.bernaferrari.changedetection.ui.components.AppLoadingIndicator
 import com.bernaferrari.changedetection.ui.main.components.TurboHero
 import com.bernaferrari.changedetection.ui.main.components.TurboSiteRow
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TurboScreen(
     sites: List<SiteAndLastSnap>,
     quickMonitorState: QuickMonitorState,
     isLoading: Boolean = false,
     onAddSite: () -> Unit,
-    onNavigateUp: () -> Unit,
     onStartTurbo: (siteIds: Set<String>, intervalSeconds: Int) -> Unit,
     onStopTurbo: () -> Unit,
 ) {
@@ -99,7 +96,7 @@ fun TurboScreen(
     }
     var intervalSeconds by remember { mutableIntStateOf(quickMonitorState.intervalSeconds) }
     var showHelpDialog by remember { mutableStateOf(false) }
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     LaunchedEffect(isRunning, quickMonitorState.intervalSeconds) {
         if (isRunning) {
@@ -159,20 +156,12 @@ fun TurboScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
+            LargeFlexibleTopAppBar(
                 title = {
                     Text(
                         stringResource(Res.string.turbo_mode),
-                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
                     )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateUp) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(Res.string.a11y_navigate_back),
-                        )
-                    }
                 },
                 actions = {
                     IconButton(onClick = { showHelpDialog = true }) {
@@ -190,7 +179,6 @@ fun TurboScreen(
                 ),
             )
         },
-        floatingActionButton = {},
         contentWindowInsets = WindowInsets(0),
     ) { padding ->
         when {
@@ -201,7 +189,7 @@ fun TurboScreen(
                         .padding(padding),
                     contentAlignment = Alignment.Center,
                 ) {
-                    CircularProgressIndicator()
+                    AppLoadingIndicator()
                 }
             }
 
@@ -217,99 +205,159 @@ fun TurboScreen(
             }
 
             else -> {
-                Box(
+                BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding),
                 ) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .widthIn(max = 720.dp)
-                            .fillMaxWidth()
-                            .fillMaxHeight(),
-                        contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp),
-                    ) {
-                        // Hero section with circular progress
-                        item {
+                    val visibleSites = if (isRunning) {
+                        sites.filter { selectedIds.contains(it.site.id) }
+                    } else {
+                        sites
+                    }
+                    val toggleAll = {
+                        selectedIds = if (selectedIds.size == sites.size) {
+                            emptySet()
+                        } else {
+                            sites.mapTo(mutableSetOf()) { it.site.id }
+                        }
+                    }
+                    val onAction = {
+                        if (isRunning) onStopTurbo() else onStartTurbo(selectedIds, intervalSeconds)
+                    }
+                    val onSiteToggle: (String) -> Unit = { siteId ->
+                        val newIds = selectedIds.toMutableSet()
+                        if (siteId in newIds) newIds.remove(siteId) else newIds.add(siteId)
+                        selectedIds = newIds
+                    }
+
+                    if (maxWidth >= 900.dp) {
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .widthIn(max = 1120.dp)
+                                .fillMaxSize()
+                                .padding(horizontal = 24.dp, vertical = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(28.dp),
+                            verticalAlignment = Alignment.Top,
+                        ) {
                             TurboHero(
                                 isRunning = isRunning,
                                 isSyncing = isNetworkSyncing,
                                 intervalSeconds = intervalSeconds,
                                 selectedCount = selectedIds.size,
-                                onIntervalChange = {
-                                    intervalSeconds = it
-                                },
-                                onToggle = {
-                                    if (isRunning) {
-                                        onStopTurbo()
-                                    } else if (selectedIds.isNotEmpty()) {
-                                        onStartTurbo(selectedIds, intervalSeconds)
-                                    }
-                                },
-                                canToggle = isRunning || selectedIds.isNotEmpty(),
+                                onIntervalChange = { intervalSeconds = it },
+                                onAction = onAction,
+                                modifier = Modifier.weight(0.92f),
                             )
-                        }
-
-                        // Sites section header
-                        item {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = 24.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
+                            LazyColumn(
+                                modifier = Modifier.weight(1.08f).fillMaxHeight(),
+                                contentPadding = PaddingValues(bottom = 32.dp),
                             ) {
-                                Text(
-                                    text = if (isRunning) stringResource(Res.string.monitoring) else stringResource(Res.string.select_sites),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.weight(1f),
-                                )
-                                if (!isRunning) {
-                                    TextButton(
-                                        onClick = {
-                                            selectedIds = if (selectedIds.size == sites.size) {
-                                                emptySet()
-                                            } else {
-                                                sites.mapTo(mutableSetOf()) { it.site.id }
-                                            }
-                                        },
-                                    ) {
-                                        Text(
-                                            stringResource(
-                                                if (selectedIds.size == sites.size) Res.string.clear_all else Res.string.select_all,
-                                            ),
-                                        )
-                                    }
+                                item {
+                                    TurboSelectionHeader(
+                                        isRunning = isRunning,
+                                        allSelected = selectedIds.size == sites.size,
+                                        onToggleAll = toggleAll,
+                                    )
                                 }
+                                turboSiteItems(
+                                    sites = visibleSites,
+                                    selectedIds = selectedIds,
+                                    isRunning = isRunning,
+                                    onSiteToggle = onSiteToggle,
+                                )
                             }
                         }
-
-                        val visibleSites = if (isRunning) {
-                            sites.filter { selectedIds.contains(it.site.id) }
-                        } else {
-                            sites
-                        }
-                        items(visibleSites, key = { it.site.id }) { siteAndSnap ->
-                            val isSelected = selectedIds.contains(siteAndSnap.site.id)
-                            TurboSiteRow(
-                                site = siteAndSnap.site,
-                                isSelected = isSelected,
-                                enabled = !isRunning,
-                                isSyncing = isRunning && siteAndSnap.isSyncing,
-                                onClick = {
-                                    val newIds = selectedIds.toMutableSet()
-                                    if (isSelected) newIds.remove(siteAndSnap.site.id) else newIds.add(siteAndSnap.site.id)
-                                    selectedIds = newIds
-                                },
-                                modifier = Modifier.padding(horizontal = 16.dp),
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .widthIn(max = 720.dp)
+                                .fillMaxSize(),
+                            contentPadding = PaddingValues(top = 8.dp, bottom = 40.dp),
+                        ) {
+                            item {
+                                TurboHero(
+                                    isRunning = isRunning,
+                                    isSyncing = isNetworkSyncing,
+                                    intervalSeconds = intervalSeconds,
+                                    selectedCount = selectedIds.size,
+                                    onIntervalChange = { intervalSeconds = it },
+                                    onAction = onAction,
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                )
+                            }
+                            item {
+                                TurboSelectionHeader(
+                                    isRunning = isRunning,
+                                    allSelected = selectedIds.size == sites.size,
+                                    onToggleAll = toggleAll,
+                                    modifier = Modifier.padding(top = 12.dp),
+                                )
+                            }
+                            turboSiteItems(
+                                sites = visibleSites,
+                                selectedIds = selectedIds,
+                                isRunning = isRunning,
+                                onSiteToggle = onSiteToggle,
                             )
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun TurboSelectionHeader(
+    isRunning: Boolean,
+    allSelected: Boolean,
+    onToggleAll: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth().padding(start = 8.dp, end = 4.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = if (isRunning) stringResource(Res.string.monitoring) else stringResource(Res.string.turbo_select_pages),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+        if (!isRunning) {
+            TextButton(onClick = onToggleAll) {
+                Text(stringResource(if (allSelected) Res.string.clear_all else Res.string.select_all))
+            }
+        }
+    }
+}
+
+private fun androidx.compose.foundation.lazy.LazyListScope.turboSiteItems(
+    sites: List<SiteAndLastSnap>,
+    selectedIds: Set<String>,
+    isRunning: Boolean,
+    onSiteToggle: (String) -> Unit,
+) {
+    itemsIndexed(sites, key = { _, item -> item.site.id }) { index, siteAndSnap ->
+        val isSelected = siteAndSnap.site.id in selectedIds
+        TurboSiteRow(
+            site = siteAndSnap.site,
+            isSelected = isSelected,
+            enabled = !isRunning,
+            isSyncing = isRunning && siteAndSnap.isSyncing,
+            position = when {
+                sites.size == 1 -> SiteRowPosition.Single
+                index == 0 -> SiteRowPosition.First
+                index == sites.lastIndex -> SiteRowPosition.Last
+                else -> SiteRowPosition.Middle
+            },
+            onClick = { onSiteToggle(siteAndSnap.site.id) },
+            modifier = Modifier.padding(horizontal = 4.dp),
+        )
     }
 }
 

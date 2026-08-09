@@ -23,7 +23,6 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +37,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -52,7 +50,11 @@ import com.bernaferrari.changedetection.shared.generated.resources.about_title
 import com.bernaferrari.changedetection.shared.generated.resources.about_view_licenses
 import com.bernaferrari.changedetection.shared.generated.resources.about_view_on_github
 import com.bernaferrari.changedetection.shared.generated.resources.app_name
+import com.bernaferrari.changedetection.shared.generated.resources.brand_tagline
+import com.bernaferrari.changedetection.ui.theme.ChangeDetectionBrandMark
 import com.bernaferrari.changedetection.ui.theme.spacing
+import com.bernaferrari.changedetection.ui.components.SegmentPosition
+import com.bernaferrari.changedetection.ui.components.segmentShape
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -104,22 +106,45 @@ fun AboutScreen(
                 verticalArrangement = Arrangement.spacedBy(spacing.lg),
             ) {
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
-                        Text(
-                            text = stringResource(Res.string.app_name),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Text(
-                            text = "${stringResource(Res.string.about_designed_by)} ${stringResource(Res.string.about_developer_name)}",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.extraLarge,
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(spacing.lg),
+                            horizontalArrangement = Arrangement.spacedBy(spacing.md),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            ChangeDetectionBrandMark(
+                                modifier = Modifier.size(64.dp),
+                                containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                contentColor = MaterialTheme.colorScheme.primaryContainer,
+                                signalColor = MaterialTheme.colorScheme.secondaryContainer,
+                            )
+                            Column(verticalArrangement = Arrangement.spacedBy(spacing.xxs)) {
+                                Text(
+                                    text = stringResource(Res.string.app_name),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                                Text(
+                                    text = stringResource(Res.string.brand_tagline),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                                Text(
+                                    text = "${stringResource(Res.string.about_designed_by)} ${stringResource(Res.string.about_developer_name)}",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f),
+                                )
+                            }
+                        }
                     }
                 }
 
                 item {
-                    AboutActionGroup {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         AboutActionRow(
                             icon = Icons.Default.Code,
                             title = stringResource(Res.string.about_view_on_github),
@@ -128,19 +153,20 @@ fun AboutScreen(
                             onClick = {
                                 onGitHubClick("https://github.com/bernaferrari/ChangeDetection")
                             },
+                            position = SegmentPosition.First,
                         )
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         AboutActionRow(
                             icon = Icons.Default.Email,
                             title = stringResource(Res.string.about_contact_developer),
                             trailingIcon = Icons.AutoMirrored.Filled.OpenInNew,
                             onClick = onContactClick,
+                            position = SegmentPosition.Middle,
                         )
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         AboutActionRow(
                             icon = Icons.AutoMirrored.Filled.OpenInNew,
                             title = stringResource(Res.string.about_view_licenses),
                             onClick = { showLicensesDialog = true },
+                            position = SegmentPosition.Last,
                         )
                     }
                 }
@@ -203,42 +229,45 @@ fun AboutScreen(
 }
 
 @Composable
-private fun AboutActionGroup(content: @Composable () -> Unit) {
-    Surface(
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-    ) {
-        Column { content() }
-    }
-}
-
-@Composable
 private fun AboutActionRow(
     icon: ImageVector,
     title: String,
     onClick: () -> Unit,
     subtitle: String? = null,
     trailingIcon: ImageVector = Icons.AutoMirrored.Filled.ArrowForward,
+    position: SegmentPosition = SegmentPosition.Only,
 ) {
     Surface(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = MaterialTheme.spacing.touchTarget),
-        color = Color.Transparent,
+        shape = segmentShape(position),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = MaterialTheme.spacing.md, vertical = MaterialTheme.spacing.sm),
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp),
-            )
-            Column(modifier = Modifier.weight(1f)) {
+            Surface(
+                modifier = Modifier.size(40.dp),
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                contentColor = MaterialTheme.colorScheme.primary,
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
                 Text(text = title, style = MaterialTheme.typography.bodyLarge)
                 subtitle?.let {
                     Text(
@@ -251,8 +280,8 @@ private fun AboutActionRow(
             Icon(
                 imageVector = trailingIcon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.62f),
+                modifier = Modifier.size(20.dp),
             )
         }
     }

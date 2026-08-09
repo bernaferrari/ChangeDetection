@@ -14,8 +14,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,7 +33,6 @@ class MainActivity : ComponentActivity() {
             // Permission granted or denied - notifications will work if granted
         }
 
-    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -53,12 +50,10 @@ class MainActivity : ComponentActivity() {
             }
 
         setContent {
-            val windowSizeClass = calculateWindowSizeClass(this)
             val mainViewModel: MainViewModel = koinViewModel()
             val context = LocalContext.current
 
             ChangeDetectionRootApp(
-                windowSizeClass = windowSizeClass,
                 platformActions =
                 PlatformActions(
                     openUrl = { url -> openUrl(context, url) },
@@ -97,11 +92,13 @@ class MainActivity : ComponentActivity() {
 
 private fun Intent.extractSharedUrl(): String? = when (action) {
     Intent.ACTION_VIEW -> dataString
+
     Intent.ACTION_SEND -> getStringExtra(Intent.EXTRA_TEXT)
         ?.lineSequence()
         ?.flatMap { it.splitToSequence(' ', '\t') }
         ?.map { it.trim().trimEnd('.', ',', ')', ']') }
         ?.firstOrNull { it.startsWith("http://") || it.startsWith("https://") }
+
     else -> null
 }
 
