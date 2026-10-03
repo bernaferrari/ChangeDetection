@@ -18,68 +18,69 @@ import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.ui.comparison.SnapshotImage
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.pluralStringResource
+import com.bernaferrari.changedetection.shared.generated.resources.editor_words
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun CapturePreviewPanel(state: CapturePreviewState, enabled: Boolean, onPreview: () -> Unit, onClose: () -> Unit, onSelectRegion: ((com.bernaferrari.changedetection.detection.TextRegion) -> Unit)? = null, initialRegion: com.bernaferrari.changedetection.detection.TextRegion = com.bernaferrari.changedetection.detection.TextRegion()) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        if (state is CapturePreviewState.Idle) {
-            OutlinedButton(onClick = onPreview, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                Text(stringResource(Res.string.capture_preview_action))
-            }
+    if (state is CapturePreviewState.Idle) {
+        OutlinedButton(onClick = onPreview, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+            Text(stringResource(Res.string.capture_preview_action))
         }
-        if (state !is CapturePreviewState.Idle) {
-            Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainerLow) {
-                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(stringResource(Res.string.capture_preview_title), Modifier.padding(vertical = 12.dp, horizontal = 0.dp), style = MaterialTheme.typography.titleMedium)
-                        if (state !is CapturePreviewState.Loading) {
-                            TextButton(onClick = onPreview, enabled = enabled) {
-                                Text(stringResource(if (state is CapturePreviewState.Failed) Res.string.retry else Res.string.refresh))
-                            }
-                        }
-                    }
-                    when (state) {
-                        CapturePreviewState.Loading -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
-                            Text(stringResource(Res.string.capture_preview_loading), style = MaterialTheme.typography.bodyMedium)
-                        }
-
-                        is CapturePreviewState.Failed -> Text(
-                            stringResource(
-                                when (state.reason) {
-                                    PreviewFailure.TIMEOUT -> Res.string.check_failure_timeout_detail
-                                    PreviewFailure.REGION -> Res.string.check_failure_region_detail
-                                    PreviewFailure.UNAVAILABLE -> Res.string.check_failure_unknown_detail
-                                },
-                            ),
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-
-                        is CapturePreviewState.Ready -> when (val content = state.content) {
-                            is CapturePreview.Html -> {
-                                if (onSelectRegion != null && content.selectableDocument != null) {
-                                    TextRegionPickerAction(content.selectableDocument, initialRegion, onSelectRegion)
-                                }
-                                Text(stringResource(Res.string.capture_preview_html), style = MaterialTheme.typography.labelLarge)
-                                Text(
-                                    content.text.ifBlank { stringResource(Res.string.capture_preview_empty) },
-                                    modifier = Modifier.fillMaxWidth().heightIn(max = 280.dp).verticalScroll(rememberScrollState()),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            }
-
-                            is CapturePreview.Image -> {
-                                Text(stringResource(Res.string.capture_mode_screenshot), style = MaterialTheme.typography.labelLarge)
-                                ScreenshotPreview(content)
-                            }
-                        }
-
-                        CapturePreviewState.Idle -> Unit
-                    }
-                    Text(stringResource(Res.string.capture_preview_unsaved), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    TextButton(onClick = onClose) { Text(stringResource(if (state is CapturePreviewState.Loading) Res.string.cancel else Res.string.capture_preview_close)) }
+        return
+    }
+    Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainerLowest, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            when (state) {
+                CapturePreviewState.Loading -> Row(Modifier.heightIn(min = 72.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    androidx.compose.material3.LoadingIndicator(Modifier.size(36.dp))
+                    Text(stringResource(Res.string.capture_preview_loading), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                    TextButton(onClick = onClose) { Text(stringResource(Res.string.cancel)) }
                 }
+
+                is CapturePreviewState.Failed -> {
+                    Text(
+                        stringResource(
+                            when (state.reason) {
+                                PreviewFailure.TIMEOUT -> Res.string.check_failure_timeout_detail
+                                PreviewFailure.REGION -> Res.string.check_failure_region_detail
+                                PreviewFailure.UNAVAILABLE -> Res.string.check_failure_unknown_detail
+                            },
+                        ),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    OutlinedButton(onClick = onPreview, enabled = enabled) { Text(stringResource(Res.string.retry)) }
+                }
+
+                is CapturePreviewState.Ready -> when (val content = state.content) {
+                    is CapturePreview.Html -> {
+                        val words = remember(content.text) { content.text.split(Regex("\\s+")).count { it.isNotBlank() } }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(pluralStringResource(Res.plurals.editor_words, words, words), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                            TextButton(onClick = onPreview, enabled = enabled) { Text(stringResource(Res.string.refresh)) }
+                        }
+                        Text(
+                            content.text.ifBlank { stringResource(Res.string.capture_preview_empty) },
+                            modifier = Modifier.fillMaxWidth().heightIn(max = 240.dp).verticalScroll(rememberScrollState()),
+                            style = com.bernaferrari.changedetection.ui.theme.Reading.small.copy(color = MaterialTheme.colorScheme.onSurface),
+                        )
+                        if (onSelectRegion != null && content.selectableDocument != null) {
+                            TextRegionPickerAction(content.selectableDocument, initialRegion, onSelectRegion)
+                        }
+                    }
+
+                    is CapturePreview.Image -> {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(Res.string.capture_mode_screenshot), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                            TextButton(onClick = onPreview, enabled = enabled) { Text(stringResource(Res.string.refresh)) }
+                        }
+                        ScreenshotPreview(content)
+                    }
+                }
+
+                CapturePreviewState.Idle -> Unit
             }
         }
     }

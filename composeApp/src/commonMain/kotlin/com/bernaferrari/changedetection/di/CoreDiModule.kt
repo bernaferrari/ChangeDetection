@@ -113,4 +113,7 @@ class CoreDiModule {
         progressTracker,
         com.bernaferrari.changedetection.storage.SnapshotMaintenance(database, snapsDao, fileStorage, cleanup = cleanup),
     )
+
+    @Single
+    fun changePreviews(snaps: SnapsRepository, snapsDao: SnapsDao): com.bernaferrari.changedetection.preview.ChangePreviewRepository = com.bernaferrari.changedetection.preview.ChangePreviewRepository(snaps) { snapsDao.getPrecedingSnap(it.siteId, it.timestamp, it.snapId) }
 }

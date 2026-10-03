@@ -108,7 +108,16 @@ class AddEditViewModel(
         previewJob = viewModelScope.launch {
             try {
                 val content = previewer.capture(url, state.captureMode, if (state.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT) state.textRegion else com.bernaferrari.changedetection.detection.TextRegion())
-                if (generation == previewGeneration) _uiState.update { it.copy(preview = CapturePreviewState.Ready(content)) }
+                if (generation == previewGeneration) {
+                    // A page's own first heading names it better than its host; never override a typed name.
+                    val heading = (content as? CapturePreview.Html)?.text?.lineSequence()?.map { it.trim() }?.firstOrNull { it.isNotEmpty() }?.takeIf { it.length in 3..70 }
+                    _uiState.update {
+                        it.copy(
+                            preview = CapturePreviewState.Ready(content),
+                            title = if (!titleEditedByUser && heading != null) heading else it.title,
+                        )
+                    }
+                }
             } catch (timeout: kotlinx.coroutines.TimeoutCancellationException) {
                 kotlinx.coroutines.currentCoroutineContext().ensureActive()
                 if (generation == previewGeneration) _uiState.update { it.copy(preview = CapturePreviewState.Failed(PreviewFailure.TIMEOUT)) }

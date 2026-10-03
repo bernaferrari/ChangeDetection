@@ -24,6 +24,21 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BatterySaver
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Power
+import androidx.compose.material.icons.outlined.Wifi
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+import com.bernaferrari.changedetection.ui.kit.GroupLabel
+import com.bernaferrari.changedetection.ui.kit.GroupRow
+import com.bernaferrari.changedetection.shared.generated.resources.*
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
@@ -68,7 +83,7 @@ fun BackgroundSyncDialog(
     BackgroundSyncDialogContent(uiState, onDismiss, viewModel::saveMonitoringSettings, viewModel::retryLoading)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 internal fun BackgroundSyncDialogContent(
     uiState: SettingsUiState,
@@ -80,7 +95,6 @@ internal fun BackgroundSyncDialogContent(
         initialValue = SheetValue.Hidden,
         enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
     )
-    val spacing = MaterialTheme.spacing
     var draft by remember { mutableStateOf(uiState) }
     var initialized by remember { mutableStateOf(uiState.isLoaded) }
     LaunchedEffect(uiState.isLoaded) {
@@ -89,87 +103,116 @@ internal fun BackgroundSyncDialogContent(
             initialized = true
         }
     }
+    val presets = listOf(15L, 30L, 60L, 180L, 360L, 720L, 1440L, 10080L)
+    var custom by remember { mutableStateOf(uiState.syncInterval !in presets) }
     var valid by remember { mutableStateOf(true) }
     var saving by remember { mutableStateOf(false) }
     var failed by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val available = monitoringCapabilities.execution != MonitoringExecution.Unavailable
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface,
-        shape = MaterialTheme.shapes.extraLarge,
-        dragHandle = {
-            Box(
-                modifier = Modifier
-                    .padding(vertical = spacing.sm)
-                    .width(40.dp)
-                    .height(4.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.outlineVariant),
-            )
-        },
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
     ) {
-        Column(Modifier.fillMaxWidth().fillMaxHeight(0.92f).padding(bottom = spacing.md)) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(bottom = spacing.md),
-                verticalArrangement = Arrangement.spacedBy(spacing.lg),
-            ) {
+        Column(Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
+            Column(Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 16.dp)) {
+                Text(stringResource(Res.string.checks_title), Modifier.padding(horizontal = 24.dp), style = MaterialTheme.typography.headlineSmall)
                 if (!uiState.isLoaded || !initialized) {
                     SettingsLoadState(uiState.loadFailed, onRetry)
                 } else {
-                    BackgroundSyncHeader(
-                        syncEnabled = draft.backgroundSync,
-                        onToggle = { draft = draft.copy(backgroundSync = it) },
-                    )
-
-                    if (draft.backgroundSync && monitoringCapabilities.execution != MonitoringExecution.Unavailable) {
-                        Column(
-                            modifier = Modifier.padding(horizontal = spacing.md),
-                            verticalArrangement = Arrangement.spacedBy(spacing.md),
-                        ) {
-                            BackgroundSyncSectionCard(
-                                icon = Icons.Outlined.Schedule,
-                                title = stringResource(Res.string.settings_sync_interval_label),
-                            ) {
+                    // One sentence that always says what the settings below add up to.
+                    Surface(
+                        onClick = { draft = draft.copy(backgroundSync = !draft.backgroundSync) },
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
+                        shape = MaterialTheme.shapes.large,
+                        color = if (draft.backgroundSync) MaterialTheme.colorScheme.inverseSurface else MaterialTheme.colorScheme.surfaceContainer,
+                        contentColor = if (draft.backgroundSync) MaterialTheme.colorScheme.inverseOnSurface else MaterialTheme.colorScheme.onSurface,
+                    ) {
+                        Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Text(checksSentence(draft), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                            Switch(
+                                checked = draft.backgroundSync,
+                                onCheckedChange = { draft = draft.copy(backgroundSync = it) },
+                                enabled = available,
+                                colors = androidx.compose.material3.SwitchDefaults.colors(
+                                    checkedTrackColor = com.bernaferrari.changedetection.ui.theme.LocalMarks.current.highlight,
+                                    checkedThumbColor = MaterialTheme.colorScheme.inverseSurface,
+                                    checkedBorderColor = com.bernaferrari.changedetection.ui.theme.LocalMarks.current.highlight,
+                                ),
+                            )
+                        }
+                    }
+                    if (draft.backgroundSync && available) {
+                        GroupLabel(stringResource(Res.string.checks_every))
+                        FlowRow(Modifier.padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            presets.forEach { minutes ->
+                                FilterChip(
+                                    selected = !custom && draft.syncInterval == minutes,
+                                    onClick = {
+                                        custom = false
+                                        valid = true
+                                        draft = draft.copy(syncInterval = minutes)
+                                    },
+                                    label = { Text(presetLabel(minutes)) },
+                                    modifier = Modifier.heightIn(min = 40.dp),
+                                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primary, selectedLabelColor = MaterialTheme.colorScheme.onPrimary),
+                                )
+                            }
+                            FilterChip(
+                                selected = custom,
+                                onClick = { custom = true },
+                                label = { Text(stringResource(Res.string.checks_custom)) },
+                                modifier = Modifier.heightIn(min = 40.dp),
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primary, selectedLabelColor = MaterialTheme.colorScheme.onPrimary),
+                            )
+                        }
+                        if (custom) {
+                            Box(Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
                                 SyncIntervalInput(
                                     currentInterval = draft.syncInterval,
                                     onIntervalChanged = { draft = draft.copy(syncInterval = it) },
                                     onValidityChanged = { valid = it },
                                 )
                             }
-                            if (monitoringCapabilities.constraints) {
-                                BackgroundSyncSectionCard(
-                                    icon = Icons.Outlined.BatterySaver,
-                                    title = stringResource(Res.string.settings_sync_constraints_title),
-                                ) {
-                                    SyncConstraints(
-                                        requireWifi = draft.requireWifi,
-                                        requireCharging = draft.requireCharging,
-                                        requireBatteryNotLow = draft.requireBatteryNotLow,
-                                        onWifiChange = { draft = draft.copy(requireWifi = it) },
-                                        onChargingChange = { draft = draft.copy(requireCharging = it) },
-                                        onBatteryChange = { draft = draft.copy(requireBatteryNotLow = it) },
-                                    )
+                        }
+                        Text(
+                            stringResource(Res.string.checks_own_schedule_note),
+                            Modifier.padding(horizontal = 24.dp, vertical = 10.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (monitoringCapabilities.constraints) {
+                            GroupLabel(stringResource(Res.string.checks_only_when))
+                            Surface(Modifier.fillMaxWidth().padding(horizontal = 12.dp), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainerLow) {
+                                Column {
+                                    GroupRow(stringResource(Res.string.checks_wifi), supporting = stringResource(Res.string.checks_wifi_body), icon = Icons.Outlined.Wifi, role = Role.Switch, onClick = { draft = draft.copy(requireWifi = !draft.requireWifi) }) {
+                                        Switch(draft.requireWifi, onCheckedChange = null)
+                                    }
+                                    GroupRow(stringResource(Res.string.checks_charging), icon = Icons.Outlined.Power, showDivider = true, role = Role.Switch, onClick = { draft = draft.copy(requireCharging = !draft.requireCharging) }) {
+                                        Switch(draft.requireCharging, onCheckedChange = null)
+                                    }
+                                    GroupRow(stringResource(Res.string.checks_battery), icon = Icons.Outlined.BatterySaver, showDivider = true, role = Role.Switch, onClick = { draft = draft.copy(requireBatteryNotLow = !draft.requireBatteryNotLow) }) {
+                                        Switch(draft.requireBatteryNotLow, onCheckedChange = null)
+                                    }
                                 }
                             }
                         }
+                        Text(
+                            stringResource(if (monitoringCapabilities.execution == MonitoringExecution.Background) Res.string.checks_android_note else Res.string.settings_checks_while_open),
+                            Modifier.padding(horizontal = 24.dp, vertical = 14.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }
             if (failed) {
-                Text(
-                    stringResource(Res.string.schedule_save_failed),
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(horizontal = spacing.md),
-                )
+                Text(stringResource(Res.string.schedule_save_failed), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp))
             }
-            FilledTonalButton(
-                enabled = uiState.isLoaded && initialized && monitoringCapabilities.execution != MonitoringExecution.Unavailable && (!draft.backgroundSync || valid) && !saving,
+            Button(
+                enabled = uiState.isLoaded && initialized && available && (!draft.backgroundSync || valid) && !saving,
                 onClick = {
                     saving = true
                     scope.launch {
@@ -185,17 +228,30 @@ internal fun BackgroundSyncDialogContent(
                         }
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = spacing.touchTarget)
-                    .padding(horizontal = spacing.md),
-                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 16.dp),
             ) {
-                Text(
-                    text = stringResource(Res.string.save),
-                    style = MaterialTheme.typography.titleMedium,
-                )
+                Text(stringResource(Res.string.save), style = MaterialTheme.typography.titleMedium)
             }
         }
     }
+}
+
+@Composable
+private fun presetLabel(minutes: Long): String = when {
+    minutes % 1440L == 0L && minutes / 1440L == 7L -> stringResource(Res.string.checks_weekly)
+    minutes % 1440L == 0L -> stringResource(Res.string.checks_daily)
+    minutes % 60L == 0L -> stringResource(Res.string.checks_hours_short, (minutes / 60L).toInt())
+    else -> stringResource(Res.string.checks_minutes_short, minutes.toInt())
+}
+
+@Composable
+internal fun checksSentence(state: SettingsUiState): String {
+    if (!state.backgroundSync) return stringResource(Res.string.checks_sentence_off)
+    val conditions = buildList {
+        if (state.requireWifi) add(stringResource(Res.string.checks_cond_wifi))
+        if (state.requireCharging) add(stringResource(Res.string.checks_cond_charging))
+        if (state.requireBatteryNotLow) add(stringResource(Res.string.checks_cond_battery))
+    }.takeIf { monitoringCapabilities.constraints }.orEmpty()
+    val base = stringResource(Res.string.checks_sentence, com.bernaferrari.changedetection.ui.kit.cadence(state.syncInterval))
+    return if (conditions.isEmpty()) "$base." else base + ", " + conditions.joinToString(", ") + "."
 }

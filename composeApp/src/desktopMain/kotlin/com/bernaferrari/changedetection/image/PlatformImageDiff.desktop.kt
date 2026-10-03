@@ -68,11 +68,15 @@ internal actual object PlatformImageDiff {
 
         val diffPixels = if (includeDiffImage) IntArray(beforePixels.size) else null
         var differentPixels = 0L
+        val bounds = ChangedBoundsTracker(before.width)
         val context = currentCoroutineContext()
         beforePixels.indices.forEach { index ->
             if (index % 4096 == 0) context.ensureActive()
             val changed = pixelsDiffer.changed(beforePixels[index], afterPixels[index])
-            if (changed) differentPixels++
+            if (changed) {
+                differentPixels++
+                bounds.add(index)
+            }
             if (diffPixels != null) diffPixels[index] = differenceDisplayColor(beforePixels[index], changed)
         }
         val totalPixels = beforePixels.size.toLong()
@@ -86,6 +90,7 @@ internal actual object PlatformImageDiff {
             beforeHeight = decodedBefore.originalHeight,
             afterWidth = decodedAfter.originalWidth,
             afterHeight = decodedAfter.originalHeight,
+            changedBounds = bounds.result(before.height),
             // Statistics use bounded sampled pixels; dimensions retain the original capture size.
             diffImagePng = diffPixels?.let { encodeDifference(before.width, before.height, it) },
         )

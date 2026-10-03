@@ -25,6 +25,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.BorderStroke
@@ -75,11 +78,10 @@ internal fun SetupReceiptContent(
         bottomBar = {
             Surface(color = MaterialTheme.colorScheme.background) {
                 Column {
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     Button(
                         onClick = onDone,
-                        shape = MaterialTheme.shapes.medium,
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp).heightIn(min = 48.dp),
+                        shape = MaterialTheme.shapes.extraLarge,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).heightIn(min = 56.dp),
                     ) {
                         Icon(Icons.Outlined.Home, null, Modifier.size(20.dp))
                         Spacer(Modifier.width(10.dp))
@@ -181,21 +183,19 @@ internal fun SetupReceiptContent(
 
 @Composable
 private fun ReceiptMark() {
-    Box(Modifier.size(96.dp), contentAlignment = Alignment.Center) {
-        Surface(Modifier.size(80.dp).rotate(-9f), shape = RoundedCornerShape(26.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh) {}
-        Surface(Modifier.size(76.dp).rotate(5f), shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(Icons.Outlined.Description, null, Modifier.size(36.dp), tint = MaterialTheme.colorScheme.primary)
-            }
-        }
-        Surface(
-            Modifier.align(Alignment.BottomEnd).size(30.dp),
-            shape = RoundedCornerShape(10.dp),
-            color = MaterialTheme.colorScheme.primary,
-            border = BorderStroke(3.dp, MaterialTheme.colorScheme.background),
-        ) {
-            Box(contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Check, null, Modifier.size(16.dp)) }
-        }
+    val scale = remember { androidx.compose.animation.core.Animatable(0.6f) }
+    LaunchedEffect(Unit) { scale.animateTo(1f, androidx.compose.animation.core.spring(dampingRatio = 0.45f, stiffness = 300f)) }
+    Surface(
+        Modifier.size(88.dp).graphicsLayer {
+            scaleX = scale.value
+            scaleY = scale.value
+            rotationZ = (1f - scale.value) * -30f
+        },
+        shape = RoundedCornerShape(28.dp),
+        color = com.bernaferrari.changedetection.ui.theme.LocalMarks.current.highlight,
+        contentColor = com.bernaferrari.changedetection.ui.theme.LocalMarks.current.onHighlight,
+    ) {
+        Box(contentAlignment = Alignment.Center) { Icon(Icons.Rounded.Check, null, Modifier.size(44.dp)) }
     }
 }
 

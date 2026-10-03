@@ -38,12 +38,12 @@ class CreationJourneyUiTest {
                 }
             }
         }
-        compose.onNodeWithText("Step 1 of 2 · Page").assertIsDisplayed()
-        compose.onNodeWithText("Start monitoring").assertDoesNotExist()
+        compose.onNodeWithText("What should we watch?").assertIsDisplayed()
+        compose.onNodeWithText("Start watching").assertDoesNotExist()
         capture("creation-page-light")
         compose.onNode(hasSetTextAction()).performTextInput("https://example.test/program")
         compose.onNodeWithText("Continue").performClick()
-        compose.onNodeWithText("Step 2 of 2 · Content").assertIsDisplayed()
+        compose.onNodeWithText("What we’ll compare").assertIsDisplayed()
         compose.runOnIdle {
             assertEquals(1, previews)
             assertEquals(0, saves)
@@ -54,7 +54,7 @@ class CreationJourneyUiTest {
         compose.onNode(hasSetTextAction()).assertTextContains("https://example.test/program")
         compose.onNodeWithText("Continue").performClick()
         compose.onNodeWithText("Name (optional)").performScrollTo().assertTextContains("Program")
-        compose.onNodeWithText("Start monitoring").performClick()
+        compose.onNodeWithText("Start watching").performClick()
         compose.runOnIdle { assertEquals(1, saves) }
     }
 

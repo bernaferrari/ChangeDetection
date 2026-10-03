@@ -83,7 +83,7 @@
     <string name="quick_monitor_title">Turbo</string>
     <string name="quick_monitor_next_check_in">Next check in %1$ds</string>
     <string name="turbo_mode_button_stop">Stop</string>
-    <string name="nav_home">Watchlist</string>
+    <string name="nav_home">Home</string>
     <string name="nav_turbo">Turbo</string>
     <string name="nav_logs">Changes</string>
     <string name="nav_settings">Settings</string>
@@ -187,7 +187,7 @@
     <string name="settings_palette_label">Color</string>
     <string name="settings_section_appearance">Appearance</string>
     <string name="settings_accent_color">Accent color</string>
-    <string name="palette_dynamic">Device</string>
+    <string name="palette_dynamic">From wallpaper</string>
     <string name="palette_orange">Orange</string>
     <string name="palette_indigo">Indigo</string>
     <string name="palette_teal">Teal</string>
@@ -682,7 +682,7 @@
     <string name="legacy_threshold_remove">Remove filter on save</string>
     <string name="check_failure_region">Selected region unavailable</string>
     <string name="check_failure_region_detail">Edit this page and preview its region rules. The selector may no longer match, or the response may not be HTML. Saved history is kept.</string>
-    <string name="text_region_title">Watch a region</string>
+    <string name="text_region_title">Part of the page</string>
     <string name="text_region_whole">Whole page</string>
     <string name="text_region_main">Main content</string>
     <string name="text_region_custom">Advanced CSS</string>
@@ -735,7 +735,7 @@
     <string name="setup_receipt_open">Open page</string>
     <string name="setup_receipt_done">Go to watchlist</string>
     <string name="setup_receipt_status_unavailable">We couldn’t load the latest check status. Your page is saved.</string>
-    <string name="palette_default">Default</string>
+    <string name="palette_default">Highlighter</string>
     <string name="turbo_closer_eye">Keep a closer eye.</string>
     <string name="turbo_seconds_unit">seconds</string>
     <string name="turbo_minutes_unit">minutes</string>

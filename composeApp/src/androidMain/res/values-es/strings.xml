@@ -434,4 +434,10 @@
     <string name="quick_monitor_channel_description">Muestra la sesión activa de monitorización de alta frecuencia.</string>
     <string name="empty_add_site_hint">Añade una página para iniciar Turbo</string>
     <string name="start">Iniciar</string>
+    <string name="change_notification_named">%1$s cambió</string>
+    <string name="change_notification_generic">Toca para ver qué cambió.</string>
+    <string name="change_notification_was">" (antes “%1$s”)"</string>
+    <string name="change_notification_removed_text">Se eliminó texto</string>
+    <string name="change_notification_visual">Cambió el %1$s%% de la página. Toca para comparar.</string>
+    <string name="change_notification_large">Cambió casi toda la página. Toca para comparar.</string>
 </resources>

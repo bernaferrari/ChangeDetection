@@ -92,6 +92,11 @@ class MainViewModel(
 
     internal suspend fun resolveDeletion(ticket: UndoableDeletion.Ticket<Site>, chooseUndo: suspend () -> Boolean) = deletions.resolve(ticket, chooseUndo)
 
+    /** Deletes right away; used when the user already confirmed and no undo is offered. */
+    internal fun commitDeletion(ticket: UndoableDeletion.Ticket<Site>) {
+        applicationScope.scope.launch { deletions.resolve(ticket) { false } }
+    }
+
     private fun retryDeletion(site: Site) = deletions.retry(site)
 
     fun pruneSite(siteId: String) {
@@ -318,6 +323,15 @@ class MainViewModel(
     }
 
     fun stopQuickMonitor() = monitoringManager.stopQuickMonitor()
+
+    /** Clears the "new" state for exactly the version shown, so a newer change stays unread. */
+    fun markRead(row: SiteAndLastSnap) {
+        val snapId = row.snap?.snapId ?: return
+        viewModelScope.launch {
+            runCatching { mSitesRepository.markSiteRead(row.site.id, snapId) }
+                .onFailure { showError(it, ErrorContext.EDIT_SITE, row.site.id) }
+        }
+    }
 
     // Error handling methods
 

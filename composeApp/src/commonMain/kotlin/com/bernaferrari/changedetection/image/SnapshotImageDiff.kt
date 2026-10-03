@@ -13,6 +13,35 @@ data class SnapshotDimensionMismatch(
     val afterHeight: Int,
 )
 
+/** Where pixels changed, as fractions of the compared image (0..1), so any scaled copy can be cropped. */
+data class ChangedBounds(val left: Float, val top: Float, val right: Float, val bottom: Float) {
+    val width: Float get() = right - left
+    val height: Float get() = bottom - top
+}
+
+/** Accumulates the bounding box of changed pixels while a diff loop runs. */
+internal class ChangedBoundsTracker(private val width: Int) {
+    private var minX = Int.MAX_VALUE
+    private var minY = Int.MAX_VALUE
+    private var maxX = -1
+    private var maxY = -1
+
+    fun add(pixelIndex: Int) {
+        val x = pixelIndex % width
+        val y = pixelIndex / width
+        if (x < minX) minX = x
+        if (x > maxX) maxX = x
+        if (y < minY) minY = y
+        if (y > maxY) maxY = y
+    }
+
+    fun result(height: Int): ChangedBounds? = if (maxX < 0 || width <= 0 || height <= 0) {
+        null
+    } else {
+        ChangedBounds(minX.toFloat() / width, minY.toFloat() / height, (maxX + 1f) / width, (maxY + 1f) / height)
+    }
+}
+
 data class SnapshotImageDiff(
     val match: Boolean,
     val mismatchPercentage: Double,
@@ -25,6 +54,7 @@ data class SnapshotImageDiff(
     val diffImagePng: ByteArray?,
     val dimensionMismatch: SnapshotDimensionMismatch? = null,
     val error: String? = null,
+    val changedBounds: ChangedBounds? = null,
 ) {
     val isSampled: Boolean
         get() = totalPixels > 0 && totalPixels < beforeWidth.toLong() * beforeHeight
@@ -46,6 +76,7 @@ data class SnapshotImageDiff(
             return false
         }
         if (dimensionMismatch != other.dimensionMismatch) return false
+        if (changedBounds != other.changedBounds) return false
         return error == other.error
     }
 

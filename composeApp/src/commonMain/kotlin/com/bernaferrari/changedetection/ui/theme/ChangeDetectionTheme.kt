@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 // Primary seed color for MaterialKolor fallback schemes.
-internal val SeedColor = Color(0xFF6352CA)
+internal val SeedColor = Color(0xFF17160F)
 
 /**
  * ChangeDetection app theme with platform-specific dynamic color support.

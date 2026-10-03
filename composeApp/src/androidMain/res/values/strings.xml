@@ -628,4 +628,10 @@
     <string name="loading">Loading…</string>
     <string name="no_result">No result</string>
 
+    <string name="change_notification_named">%1$s changed</string>
+    <string name="change_notification_generic">Tap to see what changed.</string>
+    <string name="change_notification_was">" (was “%1$s”)"</string>
+    <string name="change_notification_removed_text">Text was removed</string>
+    <string name="change_notification_visual">%1$s%% of the page changed. Tap to compare.</string>
+    <string name="change_notification_large">Most of the page changed. Tap to compare.</string>
 </resources>

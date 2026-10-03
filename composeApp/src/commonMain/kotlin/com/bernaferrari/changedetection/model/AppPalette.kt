@@ -26,7 +26,7 @@ enum class AppPalette(
     val seedColor: Color,
     val usesSystemColors: Boolean = false,
 ) {
-    DEFAULT(Res.string.palette_default, Color(0xFF6352CA)),
+    DEFAULT(Res.string.palette_default, Color(0xFF17160F)),
     DYNAMIC(Res.string.palette_dynamic, Color(0xFF009688), usesSystemColors = true),
     ORANGE(Res.string.palette_orange, Color(0xFFFF5722)),
     AMBER(Res.string.palette_amber, Color(0xFFFFC107)),

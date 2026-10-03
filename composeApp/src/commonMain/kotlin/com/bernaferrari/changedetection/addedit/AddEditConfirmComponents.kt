@@ -4,6 +4,14 @@
  */
 package com.bernaferrari.changedetection.addedit
 
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.LoadingIndicator
+import com.bernaferrari.changedetection.ui.theme.marks
+import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.extensions.normalizeUrl
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -122,7 +130,6 @@ import com.bernaferrari.changedetection.shared.generated.resources.website_url_p
 import com.bernaferrari.changedetection.shared.generated.resources.a11y_navigate_back
 import com.bernaferrari.changedetection.shared.generated.resources.clear_page_address
 import com.bernaferrari.changedetection.shared.generated.resources.continue_label
-import com.bernaferrari.changedetection.ui.main.ChangeMark
 import com.bernaferrari.changedetection.shared.generated.resources.address_changed_keep_history
 import com.bernaferrari.changedetection.shared.generated.resources.address_changed_message
 import com.bernaferrari.changedetection.shared.generated.resources.address_changed_start_fresh
@@ -170,51 +177,49 @@ fun AddEditConfirmScreen(
     var step by rememberSaveable { mutableIntStateOf(0) }
     val choosingPage = !isEditing && step == 0
     val continueToContent = {
-        if (url.normalizeUrl() != null) {
-            step = 1
-        }
+        if (url.normalizeUrl() != null) step = 1
         onPreview()
     }
     val scrollState = rememberScrollState()
     val urlFocusRequester = remember { FocusRequester() }
-    val titleFocusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
-    val websiteUrlLabel = stringResource(Res.string.website_url)
-    val siteNameLabel = stringResource(Res.string.site_name)
     val urlErrorMessage = urlError?.localizedMessage()
     val saveErrorMessage = saveError?.localizedMessage()
-    val pasteLabel = stringResource(Res.string.paste)
     val scope = rememberCoroutineScope()
-    var clipboardHasText by remember { mutableStateOf(false) }
-    val spacing = MaterialTheme.spacing
-
+    var copiedLink by remember { mutableStateOf<String?>(null) }
+    var advanced by rememberSaveable { mutableStateOf(false) }
     val clipboard = LocalClipboard.current
     LaunchedEffect(url) {
         if (!isEditing && url.isBlank()) {
-            clipboardHasText = clipboard.readText()?.isNotBlank() == true
+            copiedLink = clipboard.readText()?.trim()?.takeIf { it.length < 2_000 && ' ' !in it && (it.startsWith("http://") || it.startsWith("https://") || it.contains('.')) }
         }
+    }
+    LaunchedEffect(Unit) { if (!isEditing && url.isBlank()) urlFocusRequester.requestFocus() }
+    LaunchedEffect(urlError) { if (urlError != null) step = 0 }
+    LaunchedEffect(step) { scrollState.scrollTo(0) }
+    val textMode = captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT
+    val visualMode = captureMode in setOf(com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT, com.bernaferrari.changedetection.repo.CaptureMode.DEFAULT)
+    fun changeMode(mode: com.bernaferrari.changedetection.repo.CaptureMode) {
+        if (mode == captureMode) return
+        onCaptureModeChange(mode)
+        if (preview !is CapturePreviewState.Idle) onPreview()
     }
 
-    LaunchedEffect(Unit) {
-        if (!isEditing && url.isBlank()) {
-            urlFocusRequester.requestFocus()
-        }
-    }
-    LaunchedEffect(urlError) {
-        if (urlError != null) {
-            step = 0
-        }
-    }
-    LaunchedEffect(step) { scrollState.scrollTo(0) }
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            androidx.compose.material3.CenterAlignedTopAppBar(
+            androidx.compose.material3.TopAppBar(
                 title = {
                     Text(
                         stringResource(
-                            if (isEditing) Res.string.monitor_editor_edit_title else Res.string.monitor_editor_add_title,
+                            if (isEditing) {
+                                Res.string.editor_edit_title
+                            } else if (choosingPage) {
+                                Res.string.home_watch_page
+                            } else {
+                                Res.string.editor_review_title
+                            },
                         ),
                     )
                 },
@@ -229,188 +234,134 @@ fun AddEditConfirmScreen(
                     }) {
                         Icon(
                             if (isEditing || step > 0) Icons.AutoMirrored.Filled.ArrowBack else Icons.Default.Close,
-                            contentDescription = stringResource(
-                                if (isEditing || step > 0) Res.string.a11y_navigate_back else Res.string.a11y_close,
-                            ),
+                            contentDescription = stringResource(if (isEditing || step > 0) Res.string.a11y_navigate_back else Res.string.a11y_close),
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
             )
         },
         bottomBar = {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .windowInsetsPadding(WindowInsets.ime)
-                        .navigationBarsPadding()
-                        .padding(horizontal = 24.dp, vertical = 16.dp),
+            Box(Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.ime).navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp), contentAlignment = Alignment.Center) {
+                Button(
+                    onClick = { if (choosingPage) continueToContent() else onSave() },
+                    enabled = !isSaving && (!choosingPage || url.isNotBlank()),
+                    shape = MaterialTheme.shapes.extraLarge,
+                    colors = if (choosingPage) ButtonDefaults.buttonColors() else ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
+                    modifier = Modifier.widthIn(max = 600.dp).fillMaxWidth().heightIn(min = 60.dp),
                 ) {
-                    Button(
-                        onClick = { if (choosingPage) continueToContent() else onSave() },
-                        enabled = !isSaving,
-                        shape = MaterialTheme.shapes.large,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 56.dp),
-                    ) {
-                        if (isSaving) {
-                            LoadingIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                            )
-                            Spacer(modifier = Modifier.size(MaterialTheme.spacing.xs))
-                            Text(stringResource(Res.string.saving))
-                        } else {
-                            Icon(
-                                imageVector = if (choosingPage) Icons.AutoMirrored.Filled.ArrowForward else Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                            )
-                            Spacer(modifier = Modifier.size(MaterialTheme.spacing.xs))
-                            Text(
-                                stringResource(
-                                    if (choosingPage) {
-                                        Res.string.continue_label
-                                    } else if (isEditing) {
-                                        Res.string.save
-                                    } else {
-                                        Res.string.start_monitoring
-                                    },
-                                ),
-                            )
-                        }
+                    if (isSaving) {
+                        LoadingIndicator(Modifier.size(24.dp))
+                        Spacer(Modifier.size(8.dp))
+                        Text(stringResource(Res.string.saving), style = MaterialTheme.typography.titleMedium)
+                    } else {
+                        Text(
+                            stringResource(
+                                if (choosingPage) {
+                                    Res.string.continue_label
+                                } else if (isEditing) {
+                                    Res.string.save
+                                } else {
+                                    Res.string.editor_start
+                                },
+                            ),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
                     }
                 }
             }
         },
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-        ) {
+        Box(Modifier.fillMaxSize().padding(paddingValues)) {
             Column(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .widthIn(max = 600.dp)
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-                    .verticalScroll(scrollState)
-                    .padding(horizontal = spacing.lg),
-                verticalArrangement = Arrangement.spacedBy(spacing.md),
+                Modifier.align(Alignment.TopCenter).widthIn(max = 600.dp).fillMaxWidth().fillMaxHeight().verticalScroll(scrollState).padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Spacer(modifier = Modifier.height(spacing.xs))
-
-                if (!isEditing) {
-                    Text(stringResource(if (choosingPage) Res.string.setup_step_page else Res.string.setup_step_content), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.height(16.dp))
-                    Text(stringResource(if (choosingPage) Res.string.setup_page_question else Res.string.setup_content_heading), style = MaterialTheme.typography.headlineLarge, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
-                    Text(if (choosingPage) stringResource(Res.string.setup_page_supporting) else url, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.height(16.dp))
-                } else {
-                    Text(
-                        text = stringResource(Res.string.monitor_editor_prompt_edit_supporting),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = spacing.xs),
-                    )
-                }
-
                 if (choosingPage || isEditing) {
+                    if (choosingPage) {
+                        Text(stringResource(Res.string.editor_paste_title), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(top = 8.dp))
+                        Text(stringResource(Res.string.editor_paste_body), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.height(4.dp))
+                    }
                     OutlinedTextField(
                         value = url,
                         onValueChange = onUrlChange,
-                        label = { Text(websiteUrlLabel) },
+                        label = { Text(stringResource(Res.string.website_url)) },
                         placeholder = { Text(stringResource(Res.string.website_url_placeholder)) },
-                        supportingText = when {
-                            urlErrorMessage != null -> {
-                                { Text(urlErrorMessage) }
-                            }
-
-                            else -> null
-                        },
+                        supportingText = urlErrorMessage?.let { { Text(it) } },
                         isError = urlError != null,
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Uri,
-                            imeAction = ImeAction.Next,
-                        ),
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Language,
-                                contentDescription = null,
-                            )
-                        },
+                        textStyle = MaterialTheme.typography.titleMedium,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = if (choosingPage) ImeAction.Go else ImeAction.Next),
+                        keyboardActions = KeyboardActions(onGo = { continueToContent() }),
+                        leadingIcon = { Icon(Icons.Default.Language, null) },
                         trailingIcon = if (url.isNotBlank()) {
-                            {
-                                IconButton(onClick = { onUrlChange("") }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = stringResource(Res.string.clear_page_address),
-                                    )
-                                }
-                            }
-                        } else if (clipboardHasText) {
-                            {
-                                TextButton(
-                                    onClick = {
-                                        scope.launch {
-                                            val text = clipboard.readText()?.trim()
-                                            if (!text.isNullOrBlank()) {
-                                                onUrlChange(text)
-                                            }
-                                        }
-                                    },
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.ContentPaste,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp),
-                                    )
-                                    Spacer(modifier = Modifier.width(spacing.xs))
-                                    Text(pasteLabel)
-                                }
-                            }
+                            { IconButton(onClick = { onUrlChange("") }) { Icon(Icons.Default.Clear, stringResource(Res.string.clear_page_address)) } }
                         } else {
                             null
                         },
-                        keyboardActions = KeyboardActions(
-                            onNext = { if (choosingPage) continueToContent() else titleFocusRequester.requestFocus() },
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .semantics {
-                                urlErrorMessage?.let { error(it) }
-                            }
-                            .focusRequester(urlFocusRequester),
-                        shape = MaterialTheme.shapes.medium,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                        ),
+                        modifier = Modifier.fillMaxWidth().semantics { urlErrorMessage?.let { error(it) } }.focusRequester(urlFocusRequester),
+                        shape = MaterialTheme.shapes.large,
+                        colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant, focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest, unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
                     )
+                    val link = copiedLink
+                    if (choosingPage && url.isBlank() && link != null) {
+                        Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.marks.highlightSoft) {
+                            Row(Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Icon(Icons.Default.ContentPaste, null, Modifier.size(20.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(stringResource(Res.string.empty_clipboard_label), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(link.removePrefix("https://").removePrefix("http://"), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                }
+                                Button(onClick = {
+                                    scope.launch {
+                                        onUrlChange(link)
+                                        keyboardController?.hide()
+                                    }
+                                }) { Text(stringResource(Res.string.editor_use_link)) }
+                            }
+                        }
+                    }
                 }
 
-                if (duplicateSiteId != null) {
-                    DuplicatePageWarning(
-                        siteId = duplicateSiteId,
-                        onOpen = onOpenDuplicate,
-                        onDismiss = onDismissDuplicate,
-                    )
-                }
+                if (duplicateSiteId != null) DuplicatePageWarning(siteId = duplicateSiteId, onOpen = onOpenDuplicate, onDismiss = onDismissDuplicate)
 
                 if (!choosingPage) {
+                    if (!isEditing) {
+                        Text(url.removePrefix("https://").removePrefix("http://").removePrefix("www."), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = onTitleChange,
+                        label = { Text(stringResource(Res.string.site_name)) },
+                        placeholder = { Text(stringResource(Res.string.site_name_placeholder)) },
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.titleLarge,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.large,
+                        colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant, focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest, unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
+                    )
+
+                    EditorLabel(stringResource(Res.string.editor_compare))
+                    val simpleModes = buildList {
+                        add(com.bernaferrari.changedetection.repo.CaptureMode.TEXT)
+                        if (com.bernaferrari.changedetection.repo.supportsVisualMonitoring || captureMode == com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT) add(com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT)
+                        if (captureMode !in this) add(captureMode)
+                    }
+                    if (simpleModes.size > 1) {
+                        com.bernaferrari.changedetection.ui.turbo.ConnectedChoice(simpleModes, captureMode, ::changeMode, Modifier.padding(horizontal = 0.dp).offset(x = (-16).dp).fillMaxWidth()) { modeName(it) }
+                    }
+                    Text(stringResource(modeExplanation(captureMode)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                    EditorLabel(stringResource(Res.string.editor_preview))
                     CapturePreviewPanel(
                         preview,
                         !isSaving && urlError == null && url.isNotBlank(),
                         onPreview,
                         onClosePreview,
-                        if (captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT) {
+                        if (textMode) {
                             { selected ->
                                 onTextRegionChange(selected)
                                 onPreview()
@@ -420,97 +371,90 @@ fun AddEditConfirmScreen(
                         },
                         initialRegion = textRegion,
                     )
-
-                    OutlinedTextField(
-                        value = title,
-                        onValueChange = onTitleChange,
-                        label = { Text(siteNameLabel) },
-                        placeholder = { Text(stringResource(Res.string.site_name_placeholder)) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                if (!isSaving) {
-                                    keyboardController?.hide()
-                                    onSave()
-                                }
-                            },
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(titleFocusRequester),
-                        shape = MaterialTheme.shapes.medium,
-                        colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant),
-                    )
-
-                    val visualMode = captureMode in setOf(com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT, com.bernaferrari.changedetection.repo.CaptureMode.DEFAULT)
-                    CaptureModeField(captureMode, onCaptureModeChange, enabled = !isSaving, isEditing = isEditing)
-                    if (visualMode) {
-                        VisualChangeFilterField(visualChangeThresholdBps, !isSaving, onVisualChangeThresholdChange)
+                    val ready = (preview as? CapturePreviewState.Ready)?.content as? CapturePreview.Html
+                    if (textMode && ready != null && ready.text.split(Regex("\\s+")).count { it.isNotBlank() } < 25 && com.bernaferrari.changedetection.repo.supportsVisualMonitoring) {
+                        com.bernaferrari.changedetection.ui.kit.Callout(
+                            title = stringResource(Res.string.editor_little_text_title),
+                            body = stringResource(Res.string.editor_little_text_body),
+                            icon = Icons.Default.Warning,
+                            container = MaterialTheme.marks.warningSoft,
+                            iconTint = MaterialTheme.marks.warning,
+                            modifier = Modifier.offset(x = (-12).dp).fillMaxWidth(),
+                            actions = { Button(onClick = { changeMode(com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT) }) { Text(stringResource(Res.string.editor_use_screenshot)) } },
+                        )
                     }
-                    if (captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT) {
-                        TextRegionFields(textRegion, regionError, !isSaving, onTextRegionChange)
+
+                    if (textMode) {
+                        Spacer(Modifier.height(8.dp))
+                        TextRegionFields(textRegion, regionError, !isSaving) {
+                            onTextRegionChange(it)
+                        }
+                    }
+                    if (visualMode) {
+                        EditorLabel(stringResource(Res.string.editor_sensitivity))
+                        VisualChangeFilterField(visualChangeThresholdBps, !isSaving, onVisualChangeThresholdChange)
                     }
                     if (legacyThreshold > 0 && !(visualMode && visualChangeThresholdBps > 0) && captureMode !in setOf(com.bernaferrari.changedetection.repo.CaptureMode.TEXT, com.bernaferrari.changedetection.repo.CaptureMode.SOURCE)) {
                         LegacyThresholdNotice(legacyThreshold, !isSaving, onRemoveLegacyThreshold)
                     }
-                }
 
-                if (!isEditing && !choosingPage) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = spacing.xs),
-                        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-                        verticalAlignment = Alignment.Top,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Schedule,
-                            contentDescription = null,
-                            modifier = Modifier.padding(top = 1.dp).size(18.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = stringResource(Res.string.monitor_editor_cadence_hint),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.weight(1f),
-                        )
+                    TextButton(onClick = { advanced = !advanced }, modifier = Modifier.offset(x = (-12).dp)) {
+                        Text(stringResource(Res.string.editor_advanced))
+                        Icon(if (advanced) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
+                    }
+                    if (advanced) {
+                        CaptureModeField(captureMode, ::changeMode, enabled = !isSaving, isEditing = isEditing)
+                    }
+                    if (isEditing) {
+                        Text(stringResource(Res.string.editor_baseline_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else {
+                        Text(stringResource(Res.string.monitor_editor_cadence_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
 
                 saveErrorMessage?.let { message ->
                     Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .semantics { liveRegion = LiveRegionMode.Polite },
-                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
+                        shape = MaterialTheme.shapes.large,
                         color = MaterialTheme.colorScheme.errorContainer,
                         contentColor = MaterialTheme.colorScheme.onErrorContainer,
                     ) {
-                        Row(
-                            modifier = Modifier.padding(MaterialTheme.spacing.md),
-                            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ErrorOutline,
-                                contentDescription = null,
-                            )
-                            Text(
-                                text = message,
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
+                        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.ErrorOutline, null)
+                            Text(message, style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.lg))
+                Spacer(Modifier.height(24.dp))
             }
         }
     }
 
-    if (showUrlChangeDialog) {
-        AddressChangeDialog(onCancel, onKeepHistory, onStartFresh)
-    }
+    if (showUrlChangeDialog) AddressChangeDialog(onCancel, onKeepHistory, onStartFresh)
+}
+
+@Composable
+private fun EditorLabel(text: String) {
+    Text(text, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.titleSmall)
+}
+
+@Composable
+private fun modeName(mode: com.bernaferrari.changedetection.repo.CaptureMode): String = stringResource(
+    when (mode) {
+        com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT -> Res.string.mode_screenshot
+        com.bernaferrari.changedetection.repo.CaptureMode.SOURCE -> Res.string.mode_source
+        com.bernaferrari.changedetection.repo.CaptureMode.HTML -> Res.string.mode_html
+        com.bernaferrari.changedetection.repo.CaptureMode.DEFAULT -> Res.string.mode_default
+        com.bernaferrari.changedetection.repo.CaptureMode.TEXT -> Res.string.mode_text
+    },
+)
+
+private fun modeExplanation(mode: com.bernaferrari.changedetection.repo.CaptureMode) = when (mode) {
+    com.bernaferrari.changedetection.repo.CaptureMode.TEXT -> Res.string.editor_text_body
+    com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT -> Res.string.editor_screenshot_body
+    com.bernaferrari.changedetection.repo.CaptureMode.SOURCE -> Res.string.editor_source_body
+    com.bernaferrari.changedetection.repo.CaptureMode.HTML -> Res.string.editor_html_body
+    com.bernaferrari.changedetection.repo.CaptureMode.DEFAULT -> Res.string.editor_default_body
 }
 
 @Composable
@@ -567,43 +511,3 @@ private fun AddEditError.localizedMessage(): String = stringResource(
         AddEditError.SaveFailed -> Res.string.monitor_editor_error_save
     },
 )
-
-@Composable
-private fun MonitorEditorHero() {
-    val spacing = MaterialTheme.spacing
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = SignalHeroShape,
-        color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-    ) {
-        Row(
-            modifier = Modifier.padding(spacing.md),
-            horizontalArrangement = Arrangement.spacedBy(spacing.md),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(spacing.xs),
-            ) {
-                Text(
-                    text = stringResource(Res.string.monitor_editor_step_label),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-                Text(
-                    text = stringResource(Res.string.monitor_editor_preview_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                )
-                Text(
-                    text = stringResource(Res.string.monitor_editor_preview_supporting),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
-                )
-            }
-            ChangeMark()
-        }
-    }
-}

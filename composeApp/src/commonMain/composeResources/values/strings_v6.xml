@@ -1,0 +1,299 @@
+<resources>
+    <string name="preview_before">Before</string>
+    <string name="preview_after">After</string>
+    <string name="preview_first_version">First version saved. Changes will show up here.</string>
+    <string name="preview_invisible">Only hidden parts changed</string>
+    <string name="preview_invisible_body">Scripts or markup, nothing you can read</string>
+    <string name="preview_large">Most of the page changed</string>
+    <string name="preview_large_body">%1$d of %2$d lines changed</string>
+    <string name="preview_unavailable">Open to see what changed</string>
+    <string name="home_watch_page">Watch a page</string>
+    <string name="home_pages">Pages</string>
+    <string name="home_nothing_new">Nothing new</string>
+    <plurals name="home_new_changes">
+        <item quantity="one">%1$d new change</item>
+        <item quantity="other">%1$d new changes</item>
+    </plurals>
+    <plurals name="home_checking">
+        <item quantity="one">Checking %1$d page…</item>
+        <item quantity="other">Checking %1$d pages…</item>
+    </plurals>
+    <plurals name="home_failing">
+        <item quantity="one">%1$d page can’t be checked</item>
+        <item quantity="other">%1$d pages can’t be checked</item>
+    </plurals>
+    <plurals name="home_status_ok">
+        <item quantity="one">%1$d page · last check %2$s</item>
+        <item quantity="other">%1$d pages · last check %2$s</item>
+    </plurals>
+    <plurals name="home_status_waiting">
+        <item quantity="one">%1$d page · waiting for the first check</item>
+        <item quantity="other">%1$d pages · waiting for the first check</item>
+    </plurals>
+    <string name="home_search">Search pages</string>
+    <string name="home_search_hint">Search your pages</string>
+    <string name="home_search_none">Nothing matches “%1$s”</string>
+    <string name="home_check_all">Check all now</string>
+    <string name="home_check_now">Check now</string>
+    <string name="home_clear_selection">Clear selection</string>
+    <string name="home_pause_checks">Pause checks</string>
+    <string name="home_resume_checks">Resume checks</string>
+    <string name="home_notify_on">Turn notifications on</string>
+    <string name="home_notify_off">Turn notifications off</string>
+    <string name="home_deleted_one">%1$s deleted</string>
+    <string name="home_deleted_many">%1$d pages deleted</string>
+    <string name="home_schedule_off_title">Automatic checks are off</string>
+    <string name="home_schedule_off_body">Pages are only checked when you pull down to refresh.</string>
+    <string name="home_schedule_turn_on">Turn on</string>
+    <string name="home_row_checking">Checking…</string>
+    <string name="home_row_paused">Paused</string>
+    <string name="home_row_waiting">waiting for first check</string>
+    <string name="home_row_no_changes">no changes yet</string>
+    <string name="home_row_changed">changed %1$s</string>
+    <string name="badge_new">New</string>
+    <string name="mark_read_short">Mark read</string>
+    <string name="preview_percent">%1$s% of the page changed</string>
+    <string name="preview_size_changed">The page size changed</string>
+    <plurals name="preview_more_changes">
+        <item quantity="one">+%1$d more change</item>
+        <item quantity="other">+%1$d more changes</item>
+    </plurals>
+    <string name="empty_title">Stop refreshing. We’ll tell you what changed.</string>
+    <string name="empty_body">Paste any link. We check it from this device and highlight exactly what changes. No account, nothing leaves your phone.</string>
+    <string name="empty_clipboard_label">Copied link</string>
+    <string name="empty_watch">Watch</string>
+    <string name="turbo_hours_left">%1$d h %2$d min left</string>
+    <plurals name="turbo_minutes_left">
+        <item quantity="one">%1$d min left</item>
+        <item quantity="other">%1$d min left</item>
+    </plurals>
+    <string name="turbo_every_seconds_short">%1$d s</string>
+    <string name="turbo_every_minutes_short">%1$d min</string>
+    <string name="turbo_minutes_short">%1$d min</string>
+    <plurals name="turbo_hours_short">
+        <item quantity="one">%1$d hour</item>
+        <item quantity="other">%1$d hours</item>
+    </plurals>
+    <string name="turbo_card_status">Next check in %1$d s · %2$s</string>
+    <string name="turbo_sheet_body">Check a few pages every few seconds, for a short time. Your normal schedule keeps running.</string>
+    <string name="turbo_sheet_pages">Pages</string>
+    <string name="turbo_sheet_every">Check every</string>
+    <string name="turbo_sheet_for">Stop after</string>
+    <string name="turbo_sheet_pick">Pick at least one page</string>
+    <plurals name="turbo_sheet_start">
+        <item quantity="one">Start Turbo on %1$d page</item>
+        <item quantity="other">Start Turbo on %1$d pages</item>
+    </plurals>
+    <string name="turbo_sheet_caption">Ends at %1$s · uses more battery while running</string>
+    <string name="turbo_run_again">Run again</string>
+    <string name="turbo_live_every_seconds">Every %1$d seconds</string>
+    <plurals name="turbo_live_every_minutes">
+        <item quantity="one">Every minute</item>
+        <item quantity="other">Every %1$d minutes</item>
+    </plurals>
+    <plurals name="turbo_found">
+        <item quantity="one">%1$d change found</item>
+        <item quantity="other">%1$d changes found</item>
+    </plurals>
+    <string name="turbo_ends_at">Ends %1$s</string>
+    <string name="turbo_summary_line">%1$d checks across %2$d pages</string>
+    <string name="turbo_changed">Changed</string>
+    <string name="turbo_checking">Checking</string>
+    <string name="turbo_no_change">No change</string>
+    <string name="turbo_ended_planned">Turbo ended as planned</string>
+    <string name="turbo_ended_stopped">Turbo stopped by you</string>
+    <string name="turbo_ended_interrupted">Turbo was interrupted — Android closed the app</string>
+    <string name="turbo_ended_failed">Turbo couldn’t start</string>
+    <string name="turbo_row_failed">Couldn’t check this page</string>
+    <string name="turbo_row_quiet">No change · checked %1$d s ago</string>
+    <string name="nav_activity">Activity</string>
+    <plurals name="turbo_card_title_n">
+        <item quantity="one">Turbo · %1$d page</item>
+        <item quantity="other">Turbo · %1$d pages</item>
+    </plurals>
+    <string name="turbo_found_none">No changes found</string>
+    <plurals name="turbo_summary_checks">
+        <item quantity="one">%1$d check across %2$d pages</item>
+        <item quantity="other">%1$d checks across %2$d pages</item>
+    </plurals>
+    <string name="turbo_live_note">Turbo keeps running if you leave this screen. You’ll get a notification the moment a page changes.</string>
+    <string-array name="weekday_names">
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+        <item>Sunday</item>
+    </string-array>
+    <string-array name="month_names">
+        <item>Jan</item>
+        <item>Feb</item>
+        <item>Mar</item>
+        <item>Apr</item>
+        <item>May</item>
+        <item>Jun</item>
+        <item>Jul</item>
+        <item>Aug</item>
+        <item>Sep</item>
+        <item>Oct</item>
+        <item>Nov</item>
+        <item>Dec</item>
+    </string-array>
+    <string name="today">Today</string>
+    <string name="day_month">%1$d %2$s</string>
+    <string name="day_time">%1$s, %2$s</string>
+    <string name="label_text_changed">Text changed</string>
+    <string name="label_percent">%1$s% of the page</string>
+    <string name="label_first_version">First version</string>
+    <string name="label_saved">Saved version</string>
+    <string name="detail_delete">Delete page</string>
+    <string name="detail_delete_title">Delete %1$s?</string>
+    <plurals name="detail_delete_body">
+        <item quantity="one">Its %1$d saved version will be removed from this device.</item>
+        <item quantity="other">All %1$d saved versions will be removed from this device.</item>
+    </plurals>
+    <string name="detail_turbo_on">Turbo is on</string>
+    <string name="detail_status_paused">Paused · history is kept</string>
+    <string name="detail_status_checked">Checked %1$s · %2$s</string>
+    <string name="detail_status_checked_manual">Checked %1$s · automatic checks are off</string>
+    <string name="detail_last_30">Last 30 days</string>
+    <plurals name="detail_changes_count">
+        <item quantity="one">%1$d change</item>
+        <item quantity="other">%1$d changes</item>
+    </plurals>
+    <string name="detail_versions">Versions</string>
+    <string name="detail_see_all">See all</string>
+    <string name="detail_how_watched">How it’s watched</string>
+    <string name="detail_what">What</string>
+    <string name="detail_what_page_screenshot">The whole page, as it looks</string>
+    <string name="detail_what_part">A part you picked</string>
+    <string name="detail_what_page">The page’s text</string>
+    <string name="mode_screenshot">Screenshot</string>
+    <string name="mode_source">Any source change</string>
+    <string name="mode_html">Page HTML</string>
+    <string name="mode_default">App default</string>
+    <string name="mode_text">Text</string>
+    <string name="detail_how_often">How often</string>
+    <string name="detail_notify">Notify me</string>
+    <string name="detail_paused">Pause checks</string>
+    <string name="detail_paused_body">History is kept while paused</string>
+    <string name="detail_last_success">Last successful check: %1$s</string>
+    <string name="detail_fix_settings">Fix settings</string>
+    <string name="detail_check_less">Check less often</string>
+    <string name="advice_temporary">The site is busy or down. This is usually temporary; we’ll keep trying.</string>
+    <string name="advice_connection">This device couldn’t reach the internet. We’ll try again when you’re back online.</string>
+    <string name="advice_login">The page needs you to sign in, which this app can’t do. Try a public page instead.</string>
+    <string name="advice_not_found">The page doesn’t exist anymore. Check that the link is still right.</string>
+    <string name="advice_rate">The site is asking us to slow down. Checking less often usually fixes this.</string>
+    <string name="advice_region">The part you picked isn’t on the page anymore. Pick it again.</string>
+    <string name="advice_content">The page came back in a way we couldn’t read. Try Screenshot instead.</string>
+    <string name="advice_generic">Something went wrong during the last check. Your history is safe.</string>
+    <string name="detail_first_saved_title">First version saved</string>
+    <string name="detail_first_saved_body">Saved %1$s. Changes will show up here.</string>
+    <string name="detail_view_saved">View saved version</string>
+    <string name="detail_latest_change">Latest change</string>
+    <string name="detail_compare_action">Compare</string>
+    <string name="detail_30_days_ago">30 days ago</string>
+    <string name="detail_latest">Latest</string>
+    <string name="cadence_hour">every hour</string>
+    <string name="cadence_day">every day</string>
+    <string name="cadence_week">every week</string>
+    <string name="cadence_days">every %1$d days</string>
+    <string name="cadence_hours">every %1$d hours</string>
+    <string name="cadence_minutes">every %1$d min</string>
+    <string name="activity_deleted_page">Deleted page</string>
+    <string name="activity_started">Started watching %1$s</string>
+    <string name="activity_changed">%1$s changed</string>
+    <string name="activity_delete_version">Delete this version</string>
+    <string name="activity_empty_title">No changes yet</string>
+    <string name="activity_empty_body">When a page you watch changes, it shows up here, newest first.</string>
+    <plurals name="reader_more_lines">
+        <item quantity="one">Show %1$d more line</item>
+        <item quantity="other">Show %1$d more lines</item>
+    </plurals>
+    <plurals name="reader_unchanged">
+        <item quantity="one">%1$d unchanged line</item>
+        <item quantity="other">%1$d unchanged lines</item>
+    </plurals>
+    <string name="reader_hidden_title">No visible difference</string>
+    <string name="reader_hidden_body">The words on the page are the same. Only hidden parts changed, like scripts or markup.</string>
+    <string name="reader_show_source">Show source changes</string>
+    <string name="comparison_share">Share</string>
+    <string name="reader_mode_changes">Changes</string>
+    <string name="reader_mode_page">Page</string>
+    <string name="reader_mode_source">Source</string>
+    <string name="reader_mode_slider">Slider</string>
+    <string name="reader_mode_highlight">Highlight</string>
+    <string name="reader_previous">Previous change</string>
+    <string name="reader_next">Next change</string>
+    <string name="reader_position">Change %1$d of %2$d</string>
+    <string name="reader_versions_title">Compare versions</string>
+    <string name="reader_versions_body">Tap a version to see what changed compared with the one before it.</string>
+    <string name="advice_capture">Screenshots can only be taken on Android. Switch this page to Text, or keep checking it from your phone.</string>
+    <string name="checks_title">Automatic checks</string>
+    <string name="checks_every">Every</string>
+    <string name="checks_custom">Custom…</string>
+    <string name="checks_own_schedule_note">Turbo sessions run on their own and don’t change this schedule.</string>
+    <string name="checks_only_when">Only when</string>
+    <string name="checks_wifi">On Wi‑Fi</string>
+    <string name="checks_wifi_body">Saves mobile data</string>
+    <string name="checks_charging">Charging</string>
+    <string name="checks_battery">Battery isn’t low</string>
+    <string name="checks_android_note">Android picks the exact moment to save battery, so checks can run a little late. For time‑critical pages, use Turbo.</string>
+    <string name="checks_weekly">Weekly</string>
+    <string name="checks_daily">Daily</string>
+    <string name="checks_hours_short">%1$d h</string>
+    <string name="checks_minutes_short">%1$d min</string>
+    <string name="checks_sentence_off">Automatic checks are off. Pages are checked only when you refresh.</string>
+    <string name="checks_sentence">Checks run about %1$s</string>
+    <string name="checks_cond_wifi">on Wi‑Fi</string>
+    <string name="checks_cond_charging">while charging</string>
+    <string name="checks_cond_battery">when battery isn’t low</string>
+    <string name="settings_group_checking">Checking</string>
+    <string name="settings_group_app">App</string>
+    <string name="settings_default_detection">Default for new pages</string>
+    <string name="settings_screenshot_wait">Screenshot wait</string>
+    <string name="settings_screenshot_wait_value">%1$d seconds before capture</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_notifications_body">Sounds, style and which apps can interrupt</string>
+    <string name="settings_saved_versions">Saved versions</string>
+    <string name="settings_storage_value">%1$s on this device</string>
+    <string name="settings_about_value">Version %1$s · open source</string>
+    <string name="settings_feedback">Send feedback</string>
+    <string name="settings_privacy_line">Everything stays on this device. No account, no tracking.</string>
+    <string name="palette_highlighter_body">Ink and marker yellow</string>
+    <string name="palette_dynamic_body">Matches your wallpaper</string>
+    <string name="palette_more">More colors</string>
+    <string name="palette_note">Added and removed text always keep their highlight colors, whatever you pick, so changes stay easy to read.</string>
+    <string name="editor_edit_title">Edit page</string>
+    <string name="editor_review_title">Review</string>
+    <string name="editor_start">Start watching</string>
+    <string name="editor_paste_title">What should we watch?</string>
+    <string name="editor_paste_body">Paste a link. Next, you’ll see exactly what we’ll compare before anything is saved.</string>
+    <string name="editor_use_link">Use</string>
+    <string name="editor_compare">Compare</string>
+    <string name="editor_preview">What we’ll compare</string>
+    <string name="editor_little_text_title">This page barely has any text</string>
+    <string name="editor_little_text_body">It probably loads its content with JavaScript, so a text check would miss real changes. A screenshot sees the page the way you do.</string>
+    <string name="editor_use_screenshot">Use Screenshot</string>
+    <string name="editor_area">Part of the page</string>
+    <string name="editor_sensitivity">Ignore tiny changes</string>
+    <string name="editor_advanced">Advanced</string>
+    <string name="editor_baseline_note">Changing what’s watched starts fresh from the next check. Your history stays, and the switch itself won’t send an alert.</string>
+    <string name="editor_text_body">Reads the words on the page. Fast and light on battery. Best for prices, dates, job posts and listings.</string>
+    <string name="editor_screenshot_body">Compares how the page looks. Catches images, layout and pages built with JavaScript. Slower and uses more data.</string>
+    <string name="editor_source_body">Any change in the page’s source counts, including scripts and whitespace. Noisy on most sites.</string>
+    <string name="editor_html_body">Compares the page’s HTML after cleanup. Catches markup changes you can’t see.</string>
+    <string name="editor_default_body">Follows the default set in Settings.</string>
+    <plurals name="editor_words">
+        <item quantity="one">%1$d word</item>
+        <item quantity="other">%1$d words</item>
+    </plurals>
+    <string name="how_intro">You pick a page. We check it from this device, keep each version that differs, and show you exactly what changed.</string>
+    <string name="how_example_label">What a change looks like</string>
+    <string name="how_example_body">Removed words are struck through in red. New words are highlighted. Nothing else on the page is shown unless you ask.</string>
+    <string name="single_saved_on">Saved %1$s</string>
+    <string name="about_story">Made by one person for the things you don’t want to miss. Free, open source, no account, no tracking. Pages are checked from your device, and everything stays on it.</string>
+    <string name="about_elsewhere">Elsewhere</string>
+</resources>

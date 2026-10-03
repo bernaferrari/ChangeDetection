@@ -6,6 +6,10 @@
 
 package com.bernaferrari.changedetection.ui.howItWorks
 
+import androidx.compose.ui.draw.clip
+
+import androidx.compose.foundation.background
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -73,7 +77,6 @@ import com.bernaferrari.changedetection.shared.generated.resources.how_it_works_
 import com.bernaferrari.changedetection.shared.generated.resources.how_it_works_step_monitor_title
 import com.bernaferrari.changedetection.shared.generated.resources.how_it_works_steps_header
 import com.bernaferrari.changedetection.shared.generated.resources.step_number
-import com.bernaferrari.changedetection.ui.main.ChangeMark
 import com.bernaferrari.changedetection.ui.theme.spacing
 import org.jetbrains.compose.resources.stringResource
 
@@ -125,185 +128,74 @@ internal fun HowItWorksContent(onBackClick: () -> Unit, capabilities: Monitoring
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(Res.string.how_it_works)) },
+                title = {},
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(Res.string.a11y_navigate_back),
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.a11y_navigate_back))
                     }
                 },
+                colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
             )
         },
     ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        ) {
+        Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
             LazyColumn(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .widthIn(max = 600.dp)
-                    .fillMaxWidth()
-                    .fillMaxHeight(),
-                contentPadding = PaddingValues(
-                    start = MaterialTheme.spacing.lg,
-                    top = MaterialTheme.spacing.md,
-                    end = MaterialTheme.spacing.lg,
-                    bottom = MaterialTheme.spacing.xl,
-                ),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                Modifier.widthIn(max = 640.dp).fillMaxSize(),
+                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 40.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                item {
-                    HowItWorksHero()
-                }
-                item {
+                item(key = "title") {
+                    Text(stringResource(Res.string.how_it_works), style = MaterialTheme.typography.displaySmall)
                     Text(
-                        text = stringResource(Res.string.how_it_works_steps_header),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = MaterialTheme.spacing.xs, top = MaterialTheme.spacing.md),
+                        stringResource(Res.string.how_intro),
+                        Modifier.padding(top = 10.dp, bottom = 20.dp),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                items(steps.size, key = { "step-$it" }) { index ->
-                    HowItWorksStepRow(
-                        number = index + 1,
-                        step = steps[index],
-                        position = segmentPosition(index == 0, index == steps.lastIndex),
-                    )
-                }
-                item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = MaterialTheme.spacing.lg),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.how_it_works_footer_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            textAlign = TextAlign.Center,
-                        )
-                        Text(
-                            text = stringResource(Res.string.how_it_works_footer_description),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                        )
-                        FilledTonalButton(
-                            onClick = onBackClick,
-                            shapes = ButtonDefaults.shapes(),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = MaterialTheme.spacing.xs),
-                        ) {
-                            Text(stringResource(Res.string.how_it_works_primary_cta))
+                item(key = "example") {
+                    androidx.compose.material3.Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+                        Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(stringResource(Res.string.how_example_label), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            com.bernaferrari.changedetection.ui.kit.DiffText(
+                                com.bernaferrari.changedetection.ui.kit.editText(
+                                    listOf(
+                                        com.bernaferrari.changedetection.preview.EditSegment("Applications close ", com.bernaferrari.changedetection.preview.EditSegment.Kind.Same),
+                                        com.bernaferrari.changedetection.preview.EditSegment("31 October", com.bernaferrari.changedetection.preview.EditSegment.Kind.Removed),
+                                        com.bernaferrari.changedetection.preview.EditSegment(" ", com.bernaferrari.changedetection.preview.EditSegment.Kind.Same),
+                                        com.bernaferrari.changedetection.preview.EditSegment("14 November", com.bernaferrari.changedetection.preview.EditSegment.Kind.Added),
+                                    ),
+                                    com.bernaferrari.changedetection.ui.theme.LocalMarks.current,
+                                ),
+                            )
+                            Text(stringResource(Res.string.how_example_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun HowItWorksHero() {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = SignalHeroShape,
-        color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-    ) {
-        Row(
-            modifier = Modifier.padding(MaterialTheme.spacing.lg),
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
-            ) {
-                Text(
-                    text = stringResource(Res.string.how_it_works_hero_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = stringResource(Res.string.how_it_works_hero_subtitle),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
-            ChangeMark()
-        }
-    }
-}
-
-@Composable
-private fun HowItWorksStepRow(
-    number: Int,
-    step: HowItWorksStep,
-    position: SegmentPosition,
-) {
-    val accent = MaterialTheme.colorScheme.primary
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = segmentShape(position),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-    ) {
-        Row(
-            modifier = Modifier.padding(MaterialTheme.spacing.md),
-            verticalAlignment = Alignment.Top,
-        ) {
-            Box(
-                modifier = Modifier.size(40.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    shape = MaterialTheme.shapes.large,
-                    color = accent.copy(alpha = 0.16f),
-                    contentColor = accent,
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = step.icon,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                        )
+                items(steps.size, key = { "step-$it" }) { index ->
+                    val step = steps[index]
+                    Row(Modifier.fillMaxWidth().padding(top = 20.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Box(
+                            Modifier.size(40.dp).clip(androidx.compose.foundation.shape.CircleShape).background(com.bernaferrari.changedetection.ui.theme.LocalMarks.current.highlight),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text((index + 1).toString(), style = MaterialTheme.typography.titleMedium, color = com.bernaferrari.changedetection.ui.theme.LocalMarks.current.onHighlight)
+                        }
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(step.title, style = MaterialTheme.typography.titleLarge)
+                            Text(step.description, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(step.detail, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                        }
                     }
                 }
-            }
-            Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                Text(
-                    text = stringResource(Res.string.step_number, number),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = accent,
-                )
-                Text(
-                    text = step.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Text(
-                    text = step.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = step.detail,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = accent,
-                    modifier = Modifier.padding(top = 2.dp),
-                )
+                item(key = "privacy") {
+                    androidx.compose.material3.Surface(Modifier.padding(top = 28.dp), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainer) {
+                        Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(stringResource(Res.string.how_it_works_footer_title), style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(Res.string.settings_privacy_line), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
             }
         }
     }
