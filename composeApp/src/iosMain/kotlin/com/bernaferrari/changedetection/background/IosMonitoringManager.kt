@@ -38,14 +38,19 @@ class IosMonitoringManager(
     private val dataStore: DataStore<Preferences>,
 ) : MonitoringManager {
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val backgroundScheduler = createBackgroundScheduler()
 
-    private var quickMonitorJob: Job? = null
+    private val turboSession = TurboSession(scope, com.bernaferrari.changedetection.sync.CheckRunner { syncEngine.syncSite(it) })
+    override val quickMonitorState = turboSession.state
     private val _syncStatus = MutableStateFlow<List<SyncJobInfo>>(emptyList())
 
-    companion object {
-        private val BACKGROUND_SYNC_KEY = booleanPreferencesKey("background_sync_enabled")
+    init {
+        scope.launch {
+            persistTurboSession(turboSession, dataStore, onFailure = {
+                Napier.w("Could not save Turbo state; retrying", it)
+            })
+        }
     }
 
     override fun getSyncStatusFlow(): Flow<List<SyncJobInfo>> = _syncStatus.asStateFlow()
@@ -55,8 +60,10 @@ class IosMonitoringManager(
         scope.launch {
             updateSyncStatus(site.id, SyncState.RUNNING)
             try {
-                syncEngine.syncSite(site.id)
-                updateSyncStatus(site.id, SyncState.SUCCEEDED)
+                val result = syncEngine.syncSite(site.id)
+                updateSyncStatus(site.id, if (result is com.bernaferrari.changedetection.sync.SyncResult.Success) SyncState.SUCCEEDED else SyncState.FAILED)
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
             } catch (e: Exception) {
                 Napier.e("iOS: Failed to sync site ${site.id}", e)
                 updateSyncStatus(site.id, SyncState.FAILED)
@@ -64,58 +71,24 @@ class IosMonitoringManager(
         }
     }
 
-    override fun startQuickMonitor(siteIds: List<String>, intervalSeconds: Int) {
-        Napier.d("iOS: Starting quick monitor for ${siteIds.size} sites")
-
-        quickMonitorJob?.cancel()
-        quickMonitorJob = scope.launch {
-            while (isActive) {
-                siteIds.forEach { siteId ->
-                    try {
-                        updateSyncStatus(siteId, SyncState.RUNNING)
-                        syncEngine.syncSite(siteId)
-                        updateSyncStatus(siteId, SyncState.SUCCEEDED)
-                    } catch (e: Exception) {
-                        Napier.e("iOS: Quick monitor failed for $siteId", e)
-                        updateSyncStatus(siteId, SyncState.FAILED)
-                    }
-                    delay(500L) // Small delay between sites
-                }
-
-                val delayMs = (intervalSeconds * 1000L).coerceAtLeast(5000L)
-                delay(delayMs)
-            }
-        }
-
-        // Also schedule background task as backup
-        backgroundScheduler.startQuickMonitor(siteIds, intervalSeconds)
+    override fun startQuickMonitor(siteIds: List<String>, intervalSeconds: Int, durationMinutes: Int) {
+        turboSession.start(siteIds.toSet(), intervalSeconds, durationMinutes)
     }
 
     override fun stopQuickMonitor() {
-        Napier.d("iOS: Stopping quick monitor")
-        quickMonitorJob?.cancel()
-        quickMonitorJob = null
+        turboSession.stop()
         backgroundScheduler.stopQuickMonitor()
     }
 
-    override suspend fun updateWorkerWithConstraints(
-        dataStore: DataStore<Preferences>,
-        cancelCurrentWork: Boolean,
-    ) {
-        val preferences = dataStore.data.first()
-        val isEnabled = preferences[BACKGROUND_SYNC_KEY] ?: false
-
-        if (cancelCurrentWork) {
-            cancelWork()
-        }
-
-        if (isEnabled) {
-            // Schedule periodic sync using BGTaskScheduler
-            // iOS enforces minimum 15 minute intervals
+    override suspend fun updateSchedule() {
+        val schedule = MonitoringSchedule.from(dataStore.data.first())
+        if (schedule.enabled) {
             backgroundScheduler.schedulePeriodicSync(
-                intervalMinutes = 15,
+                intervalMinutes = schedule.intervalMinutes,
                 constraints = SyncConstraints(),
             )
+        } else {
+            backgroundScheduler.cancelPeriodicSync()
         }
     }
 

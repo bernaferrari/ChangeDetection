@@ -6,6 +6,8 @@ package com.bernaferrari.changedetection.util
 
 import platform.Foundation.*
 import kotlinx.cinterop.*
+import com.bernaferrari.changedetection.error.DatabaseError
+import com.bernaferrari.changedetection.error.SnapshotStorageError
 
 @OptIn(ExperimentalForeignApi::class)
 class IosFileStorage : FileStorage {
@@ -21,12 +23,13 @@ class IosFileStorage : FileStorage {
     override fun writeBytes(fileName: String, bytes: ByteArray) {
         val path = getFilePath(fileName)
         val data = bytes.toNSData()
-        data.writeToFile(path, true)
+        if (!data.writeToFile(path, true)) throw SnapshotStorageError(lowSpace = false)
     }
 
     override fun readBytes(fileName: String): ByteArray {
         val path = getFilePath(fileName)
-        val data = NSData.dataWithContentsOfFile(path) ?: return ByteArray(0)
+        val data = NSData.dataWithContentsOfFile(path)
+            ?: throw DatabaseError(DatabaseError.Operation.READ, "Could not read saved snapshot")
         return data.toKByteArray()
     }
 

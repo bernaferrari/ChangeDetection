@@ -6,6 +6,8 @@
 
 package com.bernaferrari.changedetection.ui.components
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -32,13 +34,16 @@ fun SharedEmptyState(
 ) {
     val spacing = MaterialTheme.spacing
 
-    Box(
+    BoxWithConstraints(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
+        // A lazy-list item already has a scrolling parent and unbounded height.
+        val scroll = rememberScrollState()
+        val scrolling = if (constraints.hasBoundedHeight) Modifier.verticalScroll(scroll) else Modifier
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(spacing.xl),
+            modifier = Modifier.widthIn(max = 480.dp).then(scrolling).padding(spacing.xl),
         ) {
             Box(
                 modifier = Modifier

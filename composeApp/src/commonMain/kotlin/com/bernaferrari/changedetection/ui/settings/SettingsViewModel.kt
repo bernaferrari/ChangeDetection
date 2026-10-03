@@ -5,6 +5,7 @@
 package com.bernaferrari.changedetection.ui.settings
 
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -13,25 +14,38 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.background.MonitoringManager
+import com.bernaferrari.changedetection.background.MonitoringSchedule
 import com.bernaferrari.changedetection.model.AppPalette
 import com.bernaferrari.changedetection.repo.ComparisonMethod
 import com.bernaferrari.changedetection.model.ThemeMode
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
 
 data class SettingsUiState(
-    val backgroundSync: Boolean = false,
-    val syncInterval: Long = 60,
+    val isLoaded: Boolean = true,
+    val loadFailed: Boolean = false,
+    val storageBytes: Long? = null,
+    val storageLoadFailed: Boolean = false,
+    val backgroundSync: Boolean = true,
+    val syncInterval: Long = MonitoringSchedule.DEFAULT_INTERVAL_MINUTES,
     val requireWifi: Boolean = false,
     val requireCharging: Boolean = false,
     val requireBatteryNotLow: Boolean = false,
     val requireDeviceIdle: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
-    val appPalette: AppPalette = AppPalette.TEAL,
+    val appPalette: AppPalette = AppPalette.DEFAULT,
     val comparisonMethod: ComparisonMethod = ComparisonMethod.SCREENSHOT,
     val browserDelayMs: Long = 5000,
 )
@@ -40,13 +54,14 @@ data class SettingsUiState(
 class SettingsViewModel(
     private val dataStore: DataStore<Preferences>,
     private val monitoringManager: MonitoringManager,
+    private val snapshots: com.bernaferrari.changedetection.repo.source.SnapsRepository,
 ) : ViewModel() {
     companion object {
-        val BACKGROUND_SYNC_KEY = booleanPreferencesKey("background_sync")
-        val SYNC_INTERVAL_KEY = longPreferencesKey("sync_interval")
-        val REQUIRE_WIFI_KEY = booleanPreferencesKey("require_wifi")
-        val REQUIRE_CHARGING_KEY = booleanPreferencesKey("require_charging")
-        val REQUIRE_BATTERY_NOT_LOW_KEY = booleanPreferencesKey("require_battery_not_low")
+        val BACKGROUND_SYNC_KEY = MonitoringSchedule.ENABLED
+        val SYNC_INTERVAL_KEY = MonitoringSchedule.INTERVAL
+        val REQUIRE_WIFI_KEY = MonitoringSchedule.UNMETERED
+        val REQUIRE_CHARGING_KEY = MonitoringSchedule.CHARGING
+        val REQUIRE_BATTERY_NOT_LOW_KEY = MonitoringSchedule.BATTERY_NOT_LOW
         val REQUIRE_DEVICE_IDLE_KEY = booleanPreferencesKey("require_device_idle")
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
         val APP_PALETTE_KEY = stringPreferencesKey("app_palette")
@@ -54,12 +69,36 @@ class SettingsViewModel(
         val BROWSER_DELAY_KEY = longPreferencesKey("browser_delay_ms")
     }
 
-    val uiState: StateFlow<SettingsUiState> =
+    private val reload = MutableStateFlow(0)
+    private val reloadStorage = MutableStateFlow(0)
+    fun retryStorageLoading() {
+        reloadStorage.value += 1
+    }
+
+    private data class StorageSummary(val bytes: Long? = null, val failed: Boolean = false)
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    private val storageSummary = reloadStorage.flatMapLatest {
+        snapshots.observeStorageBytes().map { StorageSummary(bytes = it) }
+            .onStart { emit(StorageSummary()) }
+            .catch { error ->
+                io.github.aakira.napier.Napier.w("Could not load history storage size", error)
+                emit(StorageSummary(failed = true))
+            }
+    }
+    fun retryLoading() {
+        reload.value += 1
+    }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<SettingsUiState> = reload.flatMapLatest {
         dataStore.data
-            .map { preferences ->
+            .combine(storageSummary) { preferences, storage ->
                 SettingsUiState(
-                    backgroundSync = preferences[BACKGROUND_SYNC_KEY] ?: false,
-                    syncInterval = preferences[SYNC_INTERVAL_KEY] ?: 60,
+                    storageBytes = storage.bytes,
+                    storageLoadFailed = storage.failed,
+                    backgroundSync = MonitoringSchedule.from(preferences).enabled,
+                    syncInterval = MonitoringSchedule.from(preferences).intervalMinutes,
                     requireWifi = preferences[REQUIRE_WIFI_KEY] ?: false,
                     requireCharging = preferences[REQUIRE_CHARGING_KEY] ?: false,
                     requireBatteryNotLow = preferences[REQUIRE_BATTERY_NOT_LOW_KEY] ?: false,
@@ -74,90 +113,63 @@ class SettingsViewModel(
                     }.getOrElse { ComparisonMethod.SCREENSHOT },
                     browserDelayMs = preferences[BROWSER_DELAY_KEY] ?: 5000,
                 )
-            }.stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = SettingsUiState(),
-            )
-
-    fun updateBackgroundSync(enabled: Boolean) {
-        viewModelScope.launch {
-            dataStore.edit { preferences ->
-                preferences[BACKGROUND_SYNC_KEY] = enabled
+            }.onStart { emit(SettingsUiState(isLoaded = false)) }
+            .catch { error ->
+                io.github.aakira.napier.Napier.w("Could not load settings", error)
+                emit(SettingsUiState(isLoaded = false, loadFailed = true))
             }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = SettingsUiState(isLoaded = false),
+    )
 
-            if (enabled) {
-                monitoringManager.updateWorkerWithConstraints(dataStore)
-            } else {
-                monitoringManager.cancelWork()
-            }
+    suspend fun saveMonitoringSettings(settings: SettingsUiState) = kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+        check(settings.isLoaded) { "Settings have not loaded" }
+        require(settings.syncInterval in MonitoringSchedule.MIN_INTERVAL_MINUTES..MonitoringSchedule.MAX_INTERVAL_MINUTES)
+        dataStore.edit { preferences ->
+            preferences[BACKGROUND_SYNC_KEY] = settings.backgroundSync
+            preferences[SYNC_INTERVAL_KEY] = settings.syncInterval
+            preferences[REQUIRE_WIFI_KEY] = settings.requireWifi
+            preferences[REQUIRE_CHARGING_KEY] = settings.requireCharging
+            preferences[REQUIRE_BATTERY_NOT_LOW_KEY] = settings.requireBatteryNotLow
         }
+        monitoringManager.updateSchedule()
     }
 
-    fun updateSyncInterval(interval: Long) {
+    private val writeMutex = Mutex()
+    private var writeGeneration = 0L
+    private var failedWrite: (suspend (MutablePreferences) -> Unit)? = null
+    private val _writeFailed = MutableStateFlow(false)
+    val writeFailed: StateFlow<Boolean> = _writeFailed
+
+    fun retryPreferenceWrite() {
+        failedWrite?.let(::writePreference)
+    }
+
+    private fun writePreference(change: suspend (MutablePreferences) -> Unit) {
+        val generation = ++writeGeneration
+        failedWrite = null
+        _writeFailed.value = false
         viewModelScope.launch {
-            dataStore.edit { preferences ->
-                preferences[SYNC_INTERVAL_KEY] = interval
-            }
-            monitoringManager.updateWorkerWithConstraints(dataStore)
-        }
-    }
-
-    fun updateWifiConstraint(enabled: Boolean) {
-        updateConstraint(REQUIRE_WIFI_KEY, enabled)
-    }
-
-    fun updateChargingConstraint(enabled: Boolean) {
-        updateConstraint(REQUIRE_CHARGING_KEY, enabled)
-    }
-
-    fun updateBatteryNotLowConstraint(enabled: Boolean) {
-        updateConstraint(REQUIRE_BATTERY_NOT_LOW_KEY, enabled)
-    }
-
-    fun updateDeviceIdleConstraint(enabled: Boolean) {
-        updateConstraint(REQUIRE_DEVICE_IDLE_KEY, enabled)
-    }
-
-    private fun updateConstraint(
-        key: Preferences.Key<Boolean>,
-        enabled: Boolean,
-    ) {
-        viewModelScope.launch {
-            dataStore.edit { preferences ->
-                preferences[key] = enabled
-            }
-            monitoringManager.updateWorkerWithConstraints(dataStore)
-        }
-    }
-
-    fun updateThemeMode(themeMode: ThemeMode) {
-        viewModelScope.launch {
-            dataStore.edit { preferences ->
-                preferences[THEME_MODE_KEY] = themeMode.name
+            writeMutex.withLock {
+                try {
+                    dataStore.edit(change)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    io.github.aakira.napier.Napier.w("Could not save preference", error)
+                    if (generation == writeGeneration) {
+                        failedWrite = change
+                        _writeFailed.value = true
+                    }
+                }
             }
         }
     }
 
-    fun updateAppPalette(palette: AppPalette) {
-        viewModelScope.launch {
-            dataStore.edit { preferences -> preferences[APP_PALETTE_KEY] = palette.name }
-        }
-    }
-
-    fun updateComparisonMethod(method: ComparisonMethod) {
-        viewModelScope.launch {
-            dataStore.edit { preferences ->
-                preferences[COMPARISON_METHOD_KEY] = method.name
-            }
-        }
-    }
-
-    fun updateBrowserDelay(delayMs: Long) {
-        viewModelScope.launch {
-            dataStore.edit { preferences ->
-                preferences[BROWSER_DELAY_KEY] = delayMs
-            }
-        }
-    }
+    fun updateThemeMode(themeMode: ThemeMode) = writePreference { it[THEME_MODE_KEY] = themeMode.name }
+    fun updateAppPalette(palette: AppPalette) = writePreference { it[APP_PALETTE_KEY] = palette.name }
+    fun updateComparisonMethod(method: ComparisonMethod) = writePreference { it[COMPARISON_METHOD_KEY] = method.name }
+    fun updateBrowserDelay(delayMs: Long) = writePreference { it[BROWSER_DELAY_KEY] = delayMs }
 }

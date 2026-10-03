@@ -114,6 +114,38 @@ class ContentHasherTest {
         assertEquals(64, hash.length)
     }
 
+    @Test
+    fun `hashHtmlContent same content differing only in csrf nonce hashes equal`() {
+        // Arrange - identical pages except per-request nonce/CSRF attributes
+        val html1 =
+            "<html><body><div nonce=\"aaa111\" data-csrf=\"tok-1\" " +
+                "integrity=\"sha384-old\"><p>Hello</p></div></body></html>"
+        val html2 =
+            "<html><body><div nonce=\"bbb222\" data-csrf=\"tok-2\" " +
+                "integrity=\"sha384-new\"><p>Hello</p></div></body></html>"
+
+        // Act
+        val hash1 = ContentHasher.hashHtmlContent(html1.toByteArray())
+        val hash2 = ContentHasher.hashHtmlContent(html2.toByteArray())
+
+        // Assert
+        assertEquals(hash1, hash2)
+    }
+
+    @Test
+    fun `hashHtmlContent cache busting param change does not alter hash`() {
+        // Arrange - only the numeric cache-busting query param differs between fetches
+        val html1 = "<html><body><a href=\"https://example.com/page?ts=1727262000000&amp;id=42\">L</a></body></html>"
+        val html2 = "<html><body><a href=\"https://example.com/page?ts=1727262099999&amp;id=42\">L</a></body></html>"
+
+        // Act
+        val hash1 = ContentHasher.hashHtmlContent(html1.toByteArray())
+        val hash2 = ContentHasher.hashHtmlContent(html2.toByteArray())
+
+        // Assert
+        assertEquals(hash1, hash2)
+    }
+
     // ========== Change Detection Tests ==========
 
     @Test

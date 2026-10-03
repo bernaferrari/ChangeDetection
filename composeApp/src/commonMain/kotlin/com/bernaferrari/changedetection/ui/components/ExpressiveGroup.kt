@@ -21,9 +21,25 @@ enum class SegmentPosition {
     Last,
 }
 
+fun segmentPosition(first: Boolean, last: Boolean): SegmentPosition = when {
+    first && last -> SegmentPosition.Only
+    first -> SegmentPosition.First
+    last -> SegmentPosition.Last
+    else -> SegmentPosition.Middle
+}
+
 fun segmentShape(position: SegmentPosition): Shape = when (position) {
     SegmentPosition.Only -> RoundedCornerShape(24.dp)
-    SegmentPosition.First -> RoundedCornerShape(24.dp, 24.dp, 7.dp, 7.dp)
-    SegmentPosition.Middle -> RoundedCornerShape(7.dp)
-    SegmentPosition.Last -> RoundedCornerShape(7.dp, 7.dp, 24.dp, 24.dp)
+    SegmentPosition.First -> RoundedCornerShape(24.dp, 24.dp, 8.dp, 8.dp)
+    SegmentPosition.Middle -> RoundedCornerShape(8.dp)
+    SegmentPosition.Last -> RoundedCornerShape(8.dp, 8.dp, 24.dp, 24.dp)
 }
+
+/**
+ * The app's single hero shape.
+ *
+ * Used for the one oversized, attention-grabbing element on a screen (e.g. a featured card).
+ * Everything else must use [segmentShape] or standard Material shapes so the corner system
+ * stays coherent.
+ */
+val SignalHeroShape: Shape = RoundedCornerShape(28.dp, 28.dp, 28.dp, 12.dp)

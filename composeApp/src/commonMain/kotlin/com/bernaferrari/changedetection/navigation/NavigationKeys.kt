@@ -32,6 +32,12 @@ data object SettingsDestination : NavKey
 
 // Full-screen destinations
 @Serializable
+data class PageDetailDestination(val siteId: String) : NavKey
+
+@Serializable
+data class PageTurboDestination(val siteId: String) : NavKey
+
+@Serializable
 data class AddEditDestination(val initialUrl: String? = null) : NavKey
 
 @Serializable
@@ -50,7 +56,11 @@ data class BrowserDestination(
 ) : NavKey
 
 @Serializable
-data class ComparisonDestination(val siteId: String) : NavKey
+data class ComparisonDestination(
+    val siteId: String,
+    val initialSnapId: String? = null,
+    val showHistory: Boolean = false,
+) : NavKey
 
 /** Serialization contract used by Navigation 3 to restore the complete back stack. */
 val appNavSavedStateConfiguration =
@@ -59,6 +69,8 @@ val appNavSavedStateConfiguration =
             SerializersModule {
                 polymorphic(NavKey::class) {
                     subclass(MainDestination::class, MainDestination.serializer())
+                    subclass(PageDetailDestination::class, PageDetailDestination.serializer())
+                    subclass(PageTurboDestination::class, PageTurboDestination.serializer())
                     subclass(TurboDestination::class, TurboDestination.serializer())
                     subclass(LogsDestination::class, LogsDestination.serializer())
                     subclass(SettingsDestination::class, SettingsDestination.serializer())

@@ -4,6 +4,9 @@
  */
 package com.bernaferrari.changedetection.di
 
+import kotlinx.coroutines.launch
+import com.bernaferrari.changedetection.util.ApplicationScope
+import com.bernaferrari.changedetection.storage.SnapshotFileCleanup
 import com.bernaferrari.changedetection.sync.SyncEngine
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
@@ -17,7 +20,10 @@ private var koinApplication: KoinApplication? = null
 fun initKoin(appDeclaration: KoinAppDeclaration = {}): KoinApplication {
     Napier.base(DebugAntilog())
 
-    return koinApplication ?: startKoin<ChangeDetectionKoinApp> { appDeclaration() }.also { koinApplication = it }
+    return koinApplication ?: startKoin<ChangeDetectionKoinApp> { appDeclaration() }.also { application ->
+        koinApplication = application
+        application.koin.get<ApplicationScope>().scope.launch { application.koin.get<SnapshotFileCleanup>().run() }
+    }
 }
 
 // Helper for iOS to get SyncEngine

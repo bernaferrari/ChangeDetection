@@ -4,10 +4,14 @@
  */
 package com.bernaferrari.changedetection.ui.settings
 
+import com.bernaferrari.changedetection.background.MonitoringExecution
+import com.bernaferrari.changedetection.background.monitoringCapabilities
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +19,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,6 +29,7 @@ import androidx.compose.material.icons.outlined.BatteryChargingFull
 import androidx.compose.material.icons.outlined.BatterySaver
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.Wifi
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -37,14 +43,27 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.changedetection.background.MonitoringSchedule
+import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_unit_minutes
+import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_unit_hours
+import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_unit_days
+import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_interval_value
+import com.bernaferrari.changedetection.shared.generated.resources.settings_automatic_checks_title
+import com.bernaferrari.changedetection.shared.generated.resources.settings_checks_while_open
+import com.bernaferrari.changedetection.shared.generated.resources.settings_checks_unavailable
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.settings_24_hours
 import com.bernaferrari.changedetection.shared.generated.resources.settings_background_sync_disabled
@@ -56,6 +75,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.settings_sync
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_constraint_charging
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_constraint_wifi
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_monitoring_in_background
+import com.bernaferrari.changedetection.ui.components.monitoringCadenceLabel
 import com.bernaferrari.changedetection.ui.theme.spacing
 import org.jetbrains.compose.resources.stringResource
 
@@ -75,6 +95,7 @@ internal fun BackgroundSyncHeader(
             .heightIn(min = spacing.touchTarget)
             .toggleable(
                 value = syncEnabled,
+                enabled = monitoringCapabilities.execution != MonitoringExecution.Unavailable,
                 role = Role.Switch,
                 onValueChange = onToggle,
             )
@@ -98,17 +119,20 @@ internal fun BackgroundSyncHeader(
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = stringResource(Res.string.settings_background_sync_title),
+                text = stringResource(if (monitoringCapabilities.execution == MonitoringExecution.Background) Res.string.settings_background_sync_title else Res.string.settings_automatic_checks_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = if (syncEnabled) {
-                    stringResource(Res.string.settings_sync_monitoring_in_background)
-                } else {
-                    stringResource(Res.string.settings_background_sync_disabled)
-                },
+                text = stringResource(
+                    when {
+                        monitoringCapabilities.execution == MonitoringExecution.Unavailable -> Res.string.settings_checks_unavailable
+                        !syncEnabled -> Res.string.settings_background_sync_disabled
+                        monitoringCapabilities.execution == MonitoringExecution.WhileOpen -> Res.string.settings_checks_while_open
+                        else -> Res.string.settings_sync_monitoring_in_background
+                    },
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -159,89 +183,73 @@ internal fun BackgroundSyncSectionCard(
     }
 }
 
+/** Draft editor: no scheduler or persistence work happens until the sheet's Save action. */
 @Composable
 internal fun SyncIntervalInput(
     currentInterval: Long,
     onIntervalChanged: (Long) -> Unit,
+    onValidityChanged: (Boolean) -> Unit = {},
 ) {
-    val spacing = MaterialTheme.spacing
-    var textValue by remember(currentInterval) { mutableStateOf(currentInterval.toString()) }
+    fun unitFor(minutes: Long) = when {
+        minutes % 1440L == 0L -> 1440L
+        minutes % 60L == 0L -> 60L
+        else -> 1L
+    }
+    var unit by remember { mutableStateOf(unitFor(currentInterval)) }
+    var amount by remember { mutableStateOf((currentInterval / unit).toString()) }
     var isError by remember { mutableStateOf(false) }
-    val presets = listOf(15L, 30L, 60L, 120L, 360L, 720L)
-    val twentyFourHoursLabel = stringResource(Res.string.settings_24_hours)
-
-    Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
-        Row(
+    fun update(value: String, newUnit: Long) {
+        amount = value
+        unit = newUnit
+        val count = value.toLongOrNull()
+        val valid = count != null && count > 0 && count <= MonitoringSchedule.MAX_INTERVAL_MINUTES / newUnit &&
+            count * newUnit >= MonitoringSchedule.MIN_INTERVAL_MINUTES
+        isError = !valid
+        onValidityChanged(valid)
+        if (valid) onIntervalChanged(requireNotNull(count) * newUnit)
+    }
+    val units = listOf(
+        1L to stringResource(Res.string.settings_sync_unit_minutes),
+        60L to stringResource(Res.string.settings_sync_unit_hours),
+        1440L to stringResource(Res.string.settings_sync_unit_days),
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)) {
+        OutlinedTextField(
+            value = amount,
+            onValueChange = { update(it, unit) },
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            OutlinedTextField(
-                value = textValue,
-                onValueChange = { newValue ->
-                    textValue = newValue
-                    val parsed = newValue.toLongOrNull()
-                    if (parsed != null && parsed >= 15) {
-                        isError = false
-                        onIntervalChanged(parsed)
-                    } else {
-                        isError = newValue.isNotEmpty() && (parsed ?: 0) < 15
-                    }
-                },
-                modifier = Modifier.weight(1f),
-                label = { Text(stringResource(Res.string.settings_interval_minutes)) },
-                singleLine = true,
-                isError = isError,
-                supportingText = if (isError) {
-                    { Text(stringResource(Res.string.settings_interval_minimum)) }
-                } else {
-                    null
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                shape = MaterialTheme.shapes.medium,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                ),
-            )
-            Surface(
-                shape = MaterialTheme.shapes.small,
-                color = MaterialTheme.colorScheme.primaryContainer,
-            ) {
-                Text(
-                    text = formatInterval(currentInterval),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.padding(horizontal = spacing.md, vertical = spacing.sm),
+            label = { Text(stringResource(Res.string.settings_sync_interval_value)) },
+            singleLine = true,
+            isError = isError,
+            supportingText = { Text(stringResource(Res.string.settings_interval_minimum)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            shape = MaterialTheme.shapes.medium,
+        )
+        val unitMeasurer = rememberTextMeasurer()
+        FlowRow(modifier = Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            units.forEach { (value, label) ->
+                val labelWidth = with(LocalDensity.current) {
+                    unitMeasurer.measure(label, MaterialTheme.typography.labelLarge, softWrap = false).size.width.toDp()
+                } + 1.dp
+                FilterChip(
+                    selected = unit == value,
+                    onClick = { update(amount, value) },
+                    label = { Text(label, Modifier.width(labelWidth), style = MaterialTheme.typography.labelLarge) },
+                    modifier = Modifier.heightIn(min = MaterialTheme.spacing.touchTarget),
                 )
             }
         }
-
-        Text(
-            text = stringResource(Res.string.settings_quick_presets),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        PresetRow(
-            presets = presets.take(4),
-            selectedInterval = currentInterval,
-            onIntervalSelected = { preset ->
-                textValue = preset.toString()
-                onIntervalChanged(preset)
-            },
-        )
-        PresetRow(
-            presets = presets.drop(4) + 1440L,
-            selectedInterval = currentInterval,
-            onIntervalSelected = { preset ->
-                textValue = preset.toString()
-                onIntervalChanged(preset)
-            },
-            labelForPreset = { preset ->
-                if (preset == 1440L) twentyFourHoursLabel else formatInterval(preset)
-            },
-        )
+        Text(stringResource(Res.string.settings_quick_presets), style = MaterialTheme.typography.labelLarge)
+        listOf(listOf(15L, 30L, 60L), listOf(360L, 1440L, 10080L)).forEach { presets ->
+            PresetRow(
+                presets = presets,
+                selectedInterval = if (isError) -1 else currentInterval,
+                onIntervalSelected = { minutes ->
+                    val presetUnit = unitFor(minutes)
+                    update((minutes / presetUnit).toString(), presetUnit)
+                },
+            )
+        }
     }
 }
 
@@ -260,6 +268,7 @@ private fun PresetRow(
         presets.forEach { preset ->
             PresetChip(
                 label = labelForPreset(preset),
+                accessibleLabel = monitoringCadenceLabel(preset),
                 isSelected = selectedInterval == preset,
                 onClick = { onIntervalSelected(preset) },
                 modifier = Modifier.weight(1f),
@@ -271,6 +280,7 @@ private fun PresetRow(
 @Composable
 private fun PresetChip(
     label: String,
+    accessibleLabel: String,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -281,6 +291,7 @@ private fun PresetChip(
 
     Box(
         modifier = modifier
+            .semantics { contentDescription = accessibleLabel }
             .heightIn(min = spacing.touchTarget)
             .clip(MaterialTheme.shapes.small)
             .background(backgroundColor)
@@ -293,6 +304,7 @@ private fun PresetChip(
     ) {
         Text(
             text = label,
+            modifier = Modifier.clearAndSetSemantics { },
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Medium,
             color = contentColor,

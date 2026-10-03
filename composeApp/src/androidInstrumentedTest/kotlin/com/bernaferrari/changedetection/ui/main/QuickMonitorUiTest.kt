@@ -6,6 +6,7 @@ package com.bernaferrari.changedetection.ui.main
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -39,8 +40,84 @@ class QuickMonitorUiTest {
             }
         }
 
-        composeTestRule.onNodeWithText(title).assertIsDisplayed()
+        composeTestRule.onNodeWithText(title, substring = true).assertIsDisplayed()
         composeTestRule.onNodeWithText(changed).assertIsDisplayed()
+    }
+
+    @Test
+    fun failedCheckStillExposesSavedChange() {
+        composeTestRule.setContent {
+            ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
+                SiteRow(
+                    site = syntheticSite("Previously changed page").copy(isSuccessful = false),
+                    status = SiteStatus.Error,
+                    isQuickMonitored = false,
+                    hasUnreadChange = true,
+                    onClick = {},
+                    onLongClick = {},
+                )
+            }
+        }
+        composeTestRule.onNodeWithText("Saved change needs review").assertIsDisplayed()
+    }
+
+    @Test
+    fun eligibleScheduleDoesNotPromiseAnExactCheck() {
+        composeTestRule.setContent {
+            ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
+                ScheduleHealth(
+                    intervalMinutes = 15,
+                    job = com.bernaferrari.changedetection.background.SyncJobInfo(
+                        state = com.bernaferrari.changedetection.background.SyncState.ENQUEUED,
+                        tags = emptySet(),
+                        isPeriodic = true,
+                        nextEligibleTime = 1L,
+                    ),
+                )
+            }
+        }
+        composeTestRule.onNodeWithText("Sync every 15 minutes").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Eligible now · waiting for the device and your conditions").assertIsDisplayed()
+    }
+
+    @Test
+    fun unobservedPageDoesNotClaimItWasChecked() {
+        composeTestRule.setContent {
+            val item = com.bernaferrari.changedetection.repo.SiteAndLastSnap(site = syntheticSite("New monitor"), snap = null)
+            ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
+                SiteRow(
+                    site = item.site,
+                    status = item.toSiteStatus(isLoading = false, hasError = false),
+                    isQuickMonitored = false,
+                    onClick = {},
+                    onLongClick = {},
+                )
+            }
+        }
+        composeTestRule.onNodeWithText("Waiting for first check").assertIsDisplayed()
+    }
+
+    @Test
+    fun failedSummaryRoutesToErrorsAndKeepsSavedChangesActionableWhileChecking() {
+        var errors = 0
+        var changes = 0
+        composeTestRule.setContent {
+            ChangeDetectionTheme(darkTheme = true, dynamicColor = false) {
+                WatchlistSummary(
+                    scheduledEnabled = true,
+                    counts = MonitorCounts(all = 3, changed = 1, errors = 2, paused = 0, waiting = 0),
+                    isRefreshing = true,
+                    onReviewChanges = { changes++ },
+                    onReviewErrors = { errors++ },
+                )
+            }
+        }
+        composeTestRule.onNodeWithText("Review failed pages").assertIsDisplayed().performClick()
+        composeTestRule.onNodeWithText("Review changes").assertIsDisplayed().performClick()
+        composeTestRule.runOnIdle {
+            org.junit.Assert.assertEquals(1, errors)
+            org.junit.Assert.assertEquals(1, changes)
+        }
     }
 
     private fun syntheticSite(title: String) = Site(

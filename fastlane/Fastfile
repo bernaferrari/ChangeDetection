@@ -1,63 +1,41 @@
-# This file contains the fastlane.tools configuration
-# You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
-
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
-
 default_platform(:android)
 
+def require_release_credentials
+  ["CHANGEDETECTION_SIGNING_PROPERTIES", "CHANGEDETECTION_PLAY_CREDENTIALS"].each do |name|
+    path = ENV[name]
+    UI.user_error!("Set #{name} to an external credential file before publishing.") unless path && File.file?(path)
+  end
+end
+
 platform :android do
-  desc "Runs all the tests"
+  desc "Run Android quality checks"
   lane :test do
-    gradle(task: "test")
+    gradle(tasks: [":composeApp:testAndroidHostTest", ":composeApp:compileAndroidDeviceTest", ":app:lintDebug", ":app:assembleDebug"])
   end
 
-  desc "Submit a new Beta Build to Crashlytics Beta"
+  desc "Publish a release bundle to Google Play internal testing"
   lane :internal do
-
-  	increment_version_code(
-            gradle_file_path: "app/build.gradle",
-            #ext_constant_name: "test"
-            #app_folder_name:"app"
-    )
-
-    gradle(
-      task: 'bundle',
-      build_type: 'Release'
-    )
-
-   upload_to_play_store(
-   	  track: "internal",
+    require_release_credentials
+    gradle(task: ":app:bundleRelease")
+    upload_to_play_store(
+      track: "internal",
       mapping: "app/build/outputs/mapping/release/mapping.txt",
-      aab: "app/build/outputs/bundle/release/app.aab",
-      skip_upload_apk: true,
-      skip_upload_metadata: true,
-      skip_upload_images: true,
-      skip_upload_screenshots: true)
+      aab: "app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_apk: true, skip_upload_metadata: true,
+      skip_upload_images: true, skip_upload_screenshots: true
+    )
   end
 
-  desc "Deploy a new version to the Google Play"
+  desc "Publish a release bundle to Google Play production"
   lane :deploy do
-    gradle(
-      task: 'bundle',
-      build_type: 'Release'
-    )
-
-   upload_to_play_store(
+    require_release_credentials
+    gradle(task: ":app:bundleRelease")
+    upload_to_play_store(
+      track: "production",
       mapping: "app/build/outputs/mapping/release/mapping.txt",
-      aab: "app/build/outputs/bundle/release/app.aab",
-      skip_upload_apk: true,
-      skip_upload_metadata: true,
-      skip_upload_images: true,
-      skip_upload_screenshots: true)
+      aab: "app/build/outputs/bundle/release/app-release.aab",
+      skip_upload_apk: true, skip_upload_metadata: true,
+      skip_upload_images: true, skip_upload_screenshots: true
+    )
   end
 end

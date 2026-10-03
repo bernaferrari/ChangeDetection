@@ -4,26 +4,41 @@
  */
 package com.bernaferrari.changedetection.ui.comparison
 
+import com.bernaferrari.changedetection.image.PlatformImageDiff
+
+import com.bernaferrari.changedetection.image.SnapshotImageDiff
+
+import com.bernaferrari.changedetection.util.readableSnapshotText
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.background.MonitoringManager
-import com.bernaferrari.changedetection.platform.ShareManager
+import com.bernaferrari.changedetection.error.ErrorContext
+import com.bernaferrari.changedetection.error.ErrorHandler
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
+import com.bernaferrari.changedetection.platform.ShareManager
+import com.bernaferrari.changedetection.util.ApplicationScope
 import com.bernaferrari.changedetection.util.UnifiedDiffUtils
 import com.bernaferrari.changedetection.util.decodeByteArray
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 import org.koin.core.annotation.KoinViewModel
+
+enum class ComparisonLoadFailure { Page, Content }
 
 data class ComparisonUiState(
     val isLoading: Boolean = true,
@@ -38,8 +53,18 @@ data class ComparisonUiState(
     val singleSnapBytes: ByteArray? = null,
     val imageDiff: SnapshotImageDiff? = null,
     val isLoadingDiff: Boolean = false,
-    val error: String? = null,
-)
+    /** True when the selected pair spans a capture-method change (text snapshot vs screenshot). */
+    val mixedTypePair: Boolean = false,
+    val error: ComparisonLoadFailure? = null,
+    val requestedSnapshotUnavailable: Boolean = false,
+    val isUpdatingReadState: Boolean = false,
+) {
+    val showsLatestComparison: Boolean
+        get() = !isLoading && !isLoadingDiff && error == null && imageDiff?.error == null &&
+            !requestedSnapshotUnavailable && snaps.size > 1 && selectedPairIndex == 0
+    val canMarkRead: Boolean
+        get() = showsLatestComparison && site?.isRead == false && !isUpdatingReadState
+}
 
 @KoinViewModel
 class ComparisonViewModel(
@@ -47,19 +72,27 @@ class ComparisonViewModel(
     private val snapsRepository: SnapsRepository,
     private val monitoringManager: MonitoringManager,
     private val shareManager: ShareManager,
+    private val errorHandler: ErrorHandler,
+    private val applicationScope: ApplicationScope,
 ) : ViewModel() {
     private var contentLoadJob: Job? = null
-    // ... (existing code)
+    private var siteLoadJob: Job? = null
+    private var siteObservationJob: Job? = null
+
+    /** One-shot messages for the snackbar host (e.g. prune success). */
+    private val _actionMessages = Channel<String>(Channel.BUFFERED)
+    val actionMessages: Flow<String> = _actionMessages.receiveAsFlow()
 
     fun shareDiff(
         snap1: Snap,
         snap2: Snap,
         content1: String,
         content2: String,
+        readableText: Boolean = false,
     ) {
         viewModelScope.launch(Dispatchers.Default) {
-            val oldLines = content1.lines()
-            val newLines = content2.lines()
+            val oldLines = readableSnapshotText(content1, readableText && snap1.isHtmlSnapshot()).lines()
+            val newLines = readableSnapshotText(content2, readableText && snap2.isHtmlSnapshot()).lines()
             val patch =
                 com.bernaferrari.difflib.DiffUtils
                     .diff(oldLines, newLines)
@@ -93,6 +126,7 @@ class ComparisonViewModel(
                 appendLine("After: ${newerSnap.timestamp}")
                 appendLine("Changed: ${formatPercent(imageDiff.mismatchPercentage)}")
                 appendLine("Changed pixels: ${imageDiff.differentPixels} / ${imageDiff.totalPixels}")
+                if (imageDiff.isSampled) appendLine("Pixel statistics use a reduced-size preview.")
                 appendLine("Before size: ${imageDiff.beforeWidth} x ${imageDiff.beforeHeight}")
                 appendLine("After size: ${imageDiff.afterWidth} x ${imageDiff.afterHeight}")
                 imageDiff.dimensionMismatch?.let {
@@ -115,16 +149,42 @@ class ComparisonViewModel(
     private val _uiState = MutableStateFlow(ComparisonUiState())
     val uiState: StateFlow<ComparisonUiState> = _uiState.asStateFlow()
 
-    fun loadSiteAndSnaps(siteId: String) {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+    private var entryRequest: Pair<String, String?>? = null
+    private var lastLoadRequest: Pair<String, String?>? = null
+
+    /** Re-entering a retained route must preserve the user's historical selection. */
+    fun openComparison(siteId: String, initialSnapId: String? = null) {
+        val request = siteId to initialSnapId
+        if (entryRequest == request) return
+        entryRequest = request
+        loadSiteAndSnaps(siteId, initialSnapId)
+    }
+
+    /** Retry the visible/requested identity; only explicit View latest may change it. */
+    fun retryComparison() {
+        val request = lastLoadRequest ?: return
+        val state = _uiState.value
+        val selected = state.selectedPairIndex?.let { state.snaps.getOrNull(it)?.snapId }
+        loadSiteAndSnaps(request.first, selected ?: request.second)
+    }
+
+    fun loadSiteAndSnaps(
+        siteId: String,
+        initialSnapId: String? = null,
+    ) {
+        lastLoadRequest = siteId to initialSnapId
+        siteLoadJob?.cancel()
+        siteObservationJob?.cancel()
+        contentLoadJob?.cancel()
+        siteLoadJob = viewModelScope.launch {
+            _uiState.value = ComparisonUiState()
 
             try {
                 val site = sitesRepository.getSiteById(siteId)
                 val snaps =
                     snapsRepository
                         .getAllSnapsForSite(siteId)
-                        .sortedByDescending { it.timestamp } // Most recent first
+                        .sortedWith(compareByDescending<Snap> { it.timestamp }.thenByDescending { it.snapId })
 
                 _uiState.value =
                     ComparisonUiState(
@@ -133,21 +193,49 @@ class ComparisonViewModel(
                         snaps = snaps,
                     )
 
+                observeCheckStatus(siteId)
+
+                if (initialSnapId != null && snaps.none { it.snapId == initialSnapId }) {
+                    _uiState.update { it.copy(requestedSnapshotUnavailable = true) }
+                    return@launch
+                }
+
                 // If only one snapshot, load its content directly
                 if (snaps.size == 1) {
                     loadSingleSnapContent(snaps.first())
                 }
-
-                // Auto-select the latest pair for immediate "Visual Diff"
+                // Auto-select the alerted snapshot's pair when opened from a notification,
+                // else the latest pair for immediate "Visual Diff"
                 if (snaps.size >= 2) {
-                    selectPairForComparison(0)
+                    selectPairForComparison(initialSnapId)
                 }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
             } catch (e: Exception) {
+                Napier.w("Could not load saved comparison", e)
                 _uiState.value =
                     _uiState.value.copy(
                         isLoading = false,
-                        error = e.message ?: "Unknown error occurred",
+                        error = ComparisonLoadFailure.Page,
                     )
+            }
+        }
+    }
+
+    /** Check health is live even while the user reviews a specific historical pair. */
+    private fun observeCheckStatus(siteId: String) {
+        siteObservationJob = viewModelScope.launch {
+            try {
+                sitesRepository.getDataWithChanges().collect { sites ->
+                    val latest = sites.firstOrNull { it.id == siteId }
+                    _uiState.update { current ->
+                        if (current.site?.id == siteId) current.copy(site = latest) else current
+                    }
+                }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Napier.w("Could not refresh page check status", error)
             }
         }
     }
@@ -163,6 +251,23 @@ class ComparisonViewModel(
 
         _uiState.update { it.copy(selectedPairIndex = pairIndex, error = null) }
         loadSnapContents(pairIndex, snap1, snap2)
+    }
+
+    /**
+     * Selects the requested snapshot's pair. Missing history never silently opens another change.
+     */
+    fun selectPairForComparison(snapId: String?) {
+        if (snapId == null) {
+            selectPairForComparison(0)
+            return
+        }
+        val index = _uiState.value.snaps.indexOfFirst { it.snapId == snapId }
+        // The alerted snap is the newer half of its comparison pair; a baseline snap has none.
+        if (index in 0 until _uiState.value.snaps.lastIndex) {
+            selectPairForComparison(index)
+        } else {
+            _uiState.update { it.copy(requestedSnapshotUnavailable = true) }
+        }
     }
 
     private fun loadSnapContents(
@@ -181,6 +286,7 @@ class ComparisonViewModel(
                     snapBytes1 = null,
                     snapBytes2 = null,
                     imageDiff = null,
+                    mixedTypePair = snap1.isTextSnapshot() != snap2.isTextSnapshot(),
                 )
             }
 
@@ -229,12 +335,15 @@ class ComparisonViewModel(
                         isLoadingDiff = false,
                     )
                 }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
             } catch (e: Exception) {
+                Napier.w("Could not load saved comparison", e)
                 _uiState.update { current ->
                     if (current.selectedPairIndex != pairIndex) return@update current
                     current.copy(
                         isLoadingDiff = false,
-                        error = "Failed to load content: ${e.message}",
+                        error = ComparisonLoadFailure.Content,
                     )
                 }
             }
@@ -242,7 +351,8 @@ class ComparisonViewModel(
     }
 
     private fun loadSingleSnapContent(snap: Snap) {
-        viewModelScope.launch {
+        contentLoadJob?.cancel()
+        contentLoadJob = viewModelScope.launch {
             _uiState.update {
                 it.copy(
                     isLoadingDiff = true,
@@ -273,14 +383,64 @@ class ComparisonViewModel(
                         isLoadingDiff = false,
                     )
                 }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
             } catch (e: Exception) {
+                Napier.w("Could not load saved comparison", e)
                 _uiState.update {
                     it.copy(
                         isLoadingDiff = false,
-                        error = "Failed to load content: ${e.message}",
+                        error = ComparisonLoadFailure.Content,
                     )
                 }
             }
+        }
+    }
+
+    /** The returned concrete capture is the undo receipt; loading content never acknowledges it. */
+    suspend fun markVisibleComparisonRead(): Snap? {
+        val visible = _uiState.value
+        if (!visible.canMarkRead) return null
+        val snap = visible.snaps.first()
+        _uiState.update { it.copy(isUpdatingReadState = true) }
+        return try {
+            if (sitesRepository.markSiteRead(snap.siteId, snap.snapId)) {
+                _uiState.update { current ->
+                    if (current.site == visible.site) current.copy(site = current.site?.copy(isRead = true)) else current
+                }
+                snap
+            } else {
+                _actionMessages.send("read_changed")
+                null
+            }
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            Napier.w("Could not acknowledge saved comparison", error)
+            _actionMessages.send("read_failed")
+            null
+        } finally {
+            _uiState.update { it.copy(isUpdatingReadState = false) }
+        }
+    }
+
+    suspend fun undoRead(receipt: Snap) {
+        val visible = _uiState.value
+        try {
+            if (sitesRepository.undoSiteRead(receipt.siteId, receipt.snapId)) {
+                _uiState.update { current ->
+                    if (current.site?.id == receipt.siteId && current.site == visible.site) {
+                        current.copy(site = current.site.copy(isRead = false))
+                    } else {
+                        current
+                    }
+                }
+            }
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            Napier.w("Could not undo acknowledgement", error)
+            _actionMessages.send("read_failed")
         }
     }
 
@@ -291,24 +451,45 @@ class ComparisonViewModel(
         }
     }
 
+    /** Result flag for the last delete attempt: null = none, true = success, false = failed. */
+    private val _deleteResult = MutableStateFlow<Boolean?>(null)
+    val deleteResult: StateFlow<Boolean?> = _deleteResult.asStateFlow()
+
     fun deleteSite() {
         val site = _uiState.value.site ?: return
-        viewModelScope.launch {
-            snapsRepository.deleteAllSnaps(site.id)
-            sitesRepository.deleteSite(site.id)
+        _deleteResult.value = null
+        // Application-scoped: deletion survives navigating back (which cancels
+        // viewModelScope). Rows go atomically via FK cascade; files swept after.
+        applicationScope.scope.launch {
+            runCatching {
+                snapsRepository.deleteSiteWithSnaps(site.id)
+            }.onSuccess {
+                _deleteResult.value = true
+            }.onFailure { e ->
+                Napier.e(tag = "ComparisonViewModel") { "Failed to delete site ${site.id}: ${e.message}" }
+                errorHandler.handleError(e, ErrorContext.DELETE_SITE, userAction = "delete site")
+                _deleteResult.value = false
+            }
         }
     }
 
     fun pruneSite() {
         val site = _uiState.value.site ?: return
+        val selectedSnapId = _uiState.value.snaps.getOrNull(_uiState.value.selectedPairIndex ?: 0)?.snapId
         viewModelScope.launch {
-            snapsRepository.pruneSnaps(site.id)
-            // Refresh snaps list after pruning
-            val snaps =
-                snapsRepository
-                    .getAllSnapsForSite(site.id)
-                    .sortedByDescending { it.timestamp }
-            _uiState.update { it.copy(snaps = snaps) }
+            try {
+                snapsRepository.pruneSnaps(site.id)
+                // Reload the selected capture by identity: pruning changes list indices and
+                // may remove the older half of the comparison currently on screen.
+                if (_uiState.value.site?.id == site.id) loadSiteAndSnaps(site.id, selectedSnapId)
+                _actionMessages.trySend("pruned")
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (e: Exception) {
+                Napier.e(tag = "ComparisonViewModel") { "Failed to prune site ${site.id}: ${e.message}" }
+                errorHandler.handleError(e, ErrorContext.DATABASE_OPERATION, userAction = "prune snapshots")
+                _actionMessages.trySend("prune_failed")
+            }
         }
     }
 

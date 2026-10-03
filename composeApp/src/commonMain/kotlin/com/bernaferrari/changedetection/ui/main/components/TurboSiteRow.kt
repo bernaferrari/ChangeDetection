@@ -6,167 +6,111 @@
 
 package com.bernaferrari.changedetection.ui.main.components
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material3.*
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import com.bernaferrari.changedetection.ui.main.SiteIdentity
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.bernaferrari.changedetection.repo.Site
-import com.bernaferrari.changedetection.ui.main.SiteRowPosition
-import com.bernaferrari.changedetection.ui.theme.spacing
+import com.bernaferrari.changedetection.repo.SiteAndLastSnap
+import com.bernaferrari.changedetection.shared.generated.resources.*
+import com.bernaferrari.changedetection.ui.components.SegmentPosition
+import com.bernaferrari.changedetection.ui.components.segmentShape
+import com.bernaferrari.changedetection.ui.main.hasDetectedChange
+import com.bernaferrari.changedetection.util.displayPageTitle
+import com.bernaferrari.changedetection.util.displayPageAddress
+import com.bernaferrari.changedetection.util.getRelativeTimeLabel
+import org.jetbrains.compose.resources.stringResource
 
-/** A standard, full-row checkbox target for the sites included in a Turbo session. */
+/** Selection is explicit; in a running session a page opens its actual result. */
 @Composable
 internal fun TurboSiteRow(
-    site: Site,
-    isSelected: Boolean,
-    enabled: Boolean,
-    isSyncing: Boolean,
-    position: SiteRowPosition = SiteRowPosition.Single,
-    onClick: () -> Unit,
+    item: SiteAndLastSnap,
+    selected: Boolean,
+    selecting: Boolean,
+    sessionStarted: Long,
+    position: SegmentPosition,
+    onToggle: () -> Unit,
+    onOpen: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val spacing = MaterialTheme.spacing
-    val siteColor = remember(site.colors.first) { Color(site.colors.first) }
+    val site = item.site
+    val failed = site.timestamp >= sessionStarted && site.timestamp > 0 && !site.isSuccessful
+    val changed = if (sessionStarted > 0) {
+        item.snapshotCount > 1 && (item.snap?.timestamp ?: Long.MIN_VALUE) >= sessionStarted
+    } else {
+        item.hasDetectedChange()
+    }
+    val status = when {
+        !site.isSyncEnabled -> stringResource(Res.string.site_status_paused)
+        item.isSyncing -> stringResource(Res.string.home_action_checking)
+        site.timestamp == 0L || (sessionStarted > 0 && site.timestamp < sessionStarted) -> stringResource(Res.string.turbo_waiting_check)
+        failed -> if (site.lastFailureCode != null) com.bernaferrari.changedetection.ui.components.checkFailureTitle(site.lastFailureCode) else stringResource(Res.string.turbo_check_failed)
+        changed -> stringResource(Res.string.turbo_changed_badge)
+        else -> stringResource(Res.string.turbo_checked_ago, getRelativeTimeLabel(site.timestamp))
+    }
     val containerColor by animateColorAsState(
-        targetValue = if (isSelected) {
-            lerp(
-                MaterialTheme.colorScheme.surfaceContainerLow,
-                MaterialTheme.colorScheme.primaryContainer,
-                0.16f,
-            )
+        if (selecting && selected && site.isSyncEnabled) {
+            MaterialTheme.colorScheme.primaryContainer
         } else {
             MaterialTheme.colorScheme.surfaceContainerLow
         },
         animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
-        label = "turboRowColor",
+        label = "turboPageSelection",
     )
-
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = if (position == SiteRowPosition.First || position == SiteRowPosition.Single) 0.dp else 2.dp),
-        shape = position.turboRowShape(),
+        modifier = modifier.fillMaxWidth(),
+        shape = segmentShape(position),
         color = containerColor,
+        contentColor = if (selecting && selected && site.isSyncEnabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .toggleable(
-                    value = isSelected,
-                    enabled = enabled,
-                    role = Role.Checkbox,
-                    onValueChange = { onClick() },
-                )
-                .padding(horizontal = spacing.md, vertical = spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(siteColor.copy(alpha = 0.18f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (isSyncing) {
-                    LoadingIndicator(modifier = Modifier.size(24.dp), color = siteColor)
+            modifier = Modifier.fillMaxWidth().then(
+                if (selecting && site.isSyncEnabled) {
+                    Modifier.toggleable(selected, role = Role.Checkbox, onValueChange = { onToggle() })
                 } else {
-                    Text(
-                        text = site.title?.firstOrNull()?.uppercase() ?: "W",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = siteColor.copy(alpha = 0.9f),
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-            }
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = spacing.sm),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
+                    Modifier.clickable(onClick = onOpen)
+                },
+            ).padding(horizontal = 16.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            SiteIdentity(site.displayPageTitle(), Modifier.size(44.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(site.displayPageTitle(), style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(
-                    text = site.title?.takeIf { it.isNotBlank() } ?: site.url,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = site.url.replace(Regex("^https?://"), ""),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
+                    when {
+                        selecting && !site.isSyncEnabled -> stringResource(Res.string.turbo_paused_open)
+                        selecting -> site.url.displayPageAddress()
+                        else -> status
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = when {
+                        selecting && selected && site.isSyncEnabled -> MaterialTheme.colorScheme.onPrimaryContainer
+                        !selecting && failed -> MaterialTheme.colorScheme.error
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            Crossfade(
-                targetState = isSelected,
-                animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
-                label = "turboCheck",
-            ) { selected ->
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                        )
-                        .then(
-                            if (selected) {
-                                Modifier
-                            } else {
-                                Modifier.border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
-                            },
-                        ),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (selected) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(16.dp),
-                        )
-                    }
-                }
+            when {
+                selecting && site.isSyncEnabled -> Checkbox(checked = selected, onCheckedChange = null)
+                item.isSyncing -> CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                failed -> Icon(Icons.Rounded.ErrorOutline, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                else -> Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
-}
-
-private fun SiteRowPosition.turboRowShape() = when (this) {
-    SiteRowPosition.Single -> RoundedCornerShape(20.dp)
-    SiteRowPosition.First -> RoundedCornerShape(20.dp, 20.dp, 6.dp, 6.dp)
-    SiteRowPosition.Middle -> RoundedCornerShape(6.dp)
-    SiteRowPosition.Last -> RoundedCornerShape(6.dp, 6.dp, 20.dp, 20.dp)
 }

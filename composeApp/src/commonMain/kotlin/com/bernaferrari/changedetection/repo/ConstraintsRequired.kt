@@ -14,9 +14,9 @@ class ConstraintsRequired(
     val deviceIdle: Boolean,
 ) {
     constructor(list: List<String>) : this(
-        list.getOrNull(0)?.toBoolean() ?: false,
-        list.getOrNull(1)?.toBoolean() ?: false,
-        list.getOrNull(2)?.toBoolean() ?: false,
-        list.getOrNull(3)?.toBoolean() ?: false,
+        list.getOrNull(0)?.trim()?.toBoolean() ?: false,
+        list.getOrNull(1)?.trim()?.toBoolean() ?: false,
+        list.getOrNull(2)?.trim()?.toBoolean() ?: false,
+        list.getOrNull(3)?.trim()?.toBoolean() ?: false,
     )
 }

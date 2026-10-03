@@ -13,6 +13,24 @@ plugins {
     alias(libs.plugins.compose)
 }
 
+val releaseKeystorePropertiesFile = providers.environmentVariable("CHANGEDETECTION_SIGNING_PROPERTIES").orNull?.let { rootProject.file(it) }
+val releaseKeystoreProperties = Properties()
+
+if (releaseKeystorePropertiesFile?.isFile == true) {
+    FileInputStream(releaseKeystorePropertiesFile).use(releaseKeystoreProperties::load)
+}
+
+val releaseKeystoreFile =
+    releaseKeystoreProperties
+        .getProperty("storeFile")
+        ?.takeIf { it.isNotBlank() }
+        ?.let(::file)
+val hasReleaseSigningConfig =
+    releaseKeystoreFile?.isFile == true &&
+        listOf("keyAlias", "keyPassword", "storePassword").all { property ->
+            !releaseKeystoreProperties.getProperty(property).isNullOrBlank()
+        }
+
 android {
     namespace = "com.bernaferrari.changedetection"
     compileSdk = 37
@@ -26,21 +44,13 @@ android {
     }
 
     signingConfigs {
-        register("release") {
-            val keystorePropertiesFile = file("../ci-dummies/upload-keystore.properties")
-
-            if (!keystorePropertiesFile.exists()) {
-                logger.warn("Release builds may not work: signing config not found.")
-                return@register
+        if (hasReleaseSigningConfig) {
+            register("release") {
+                keyAlias = releaseKeystoreProperties.getProperty("keyAlias")
+                keyPassword = releaseKeystoreProperties.getProperty("keyPassword")
+                storeFile = releaseKeystoreFile
+                storePassword = releaseKeystoreProperties.getProperty("storePassword")
             }
-
-            val keystoreProperties = Properties()
-            keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-
-            keyAlias = keystoreProperties["keyAlias"].toString()
-            keyPassword = keystoreProperties["keyPassword"].toString()
-            storeFile = file(keystoreProperties["storeFile"].toString())
-            storePassword = keystoreProperties["storePassword"].toString()
         }
     }
 
@@ -78,12 +88,16 @@ android {
                     file("proguard-rules.pro"),
                 ),
             )
-            signingConfig = signingConfigs.getByName("release")
+            if (hasReleaseSigningConfig) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                logger.warn("Release signing credentials are unavailable; release artifacts will be unsigned.")
+            }
         }
     }
 
     lint {
-        abortOnError = false
+        abortOnError = true
     }
 }
 

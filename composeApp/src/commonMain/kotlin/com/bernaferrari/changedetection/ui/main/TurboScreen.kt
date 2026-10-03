@@ -2,199 +2,145 @@
  * Copyright (c) 2024 ChangeDetection Contributors
  * Licensed under the Apache License, Version 2.0
  */
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.bernaferrari.changedetection.ui.main
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.rounded.Bolt
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFlexibleTopAppBar
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.changedetection.background.TurboEndReason
+import com.bernaferrari.changedetection.background.monitoringCapabilities
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
-import com.bernaferrari.changedetection.shared.generated.resources.Res
-import com.bernaferrari.changedetection.shared.generated.resources.add_sites_to_monitor
-import com.bernaferrari.changedetection.shared.generated.resources.add_first_site
-import com.bernaferrari.changedetection.shared.generated.resources.got_it
-import com.bernaferrari.changedetection.shared.generated.resources.how_it_works
-import com.bernaferrari.changedetection.shared.generated.resources.monitoring
-import com.bernaferrari.changedetection.shared.generated.resources.no_sites_yet
-import com.bernaferrari.changedetection.shared.generated.resources.turbo_help_text
-import com.bernaferrari.changedetection.shared.generated.resources.turbo_help_title
-import com.bernaferrari.changedetection.shared.generated.resources.turbo_mode
-import com.bernaferrari.changedetection.shared.generated.resources.turbo_select_pages
-import com.bernaferrari.changedetection.shared.generated.resources.turbo_select_pages_supporting
-import com.bernaferrari.changedetection.shared.generated.resources.clear_all
-import com.bernaferrari.changedetection.shared.generated.resources.select_all
+import com.bernaferrari.changedetection.shared.generated.resources.*
+import com.bernaferrari.changedetection.ui.components.ListSkeleton
+import com.bernaferrari.changedetection.ui.components.SegmentPosition
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
-import com.bernaferrari.changedetection.ui.components.AppLoadingIndicator
 import com.bernaferrari.changedetection.ui.main.components.TurboHero
 import com.bernaferrari.changedetection.ui.main.components.TurboSiteRow
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalMaterial3Api::class, androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TurboScreen(
     sites: List<SiteAndLastSnap>,
     quickMonitorState: QuickMonitorState,
     isLoading: Boolean = false,
+    initialSiteId: String? = null,
+    onBack: (() -> Unit)? = null,
     onAddSite: () -> Unit,
-    onStartTurbo: (siteIds: Set<String>, intervalSeconds: Int) -> Unit,
+    onStartTurbo: (siteIds: Set<String>, intervalSeconds: Int, durationMinutes: Int) -> Unit,
     onStopTurbo: () -> Unit,
+    onOpenSite: (String) -> Unit,
+    turboAvailable: Boolean = monitoringCapabilities.turbo,
 ) {
-    val isRunning = quickMonitorState.isActive
-    var selectedIds by remember {
-        mutableStateOf(quickMonitorState.siteIds.ifEmpty { sites.mapTo(mutableSetOf()) { it.site.id } })
-    }
+    val running = quickMonitorState.isActive
+    val eligibleIds = sites.filter { it.site.isSyncEnabled }.mapTo(mutableSetOf()) { it.site.id }
+    val initialSelection = if (!running && initialSiteId != null) setOf(initialSiteId).intersect(eligibleIds) else quickMonitorState.siteIds.ifEmpty { eligibleIds }
+    var selectedIds by remember(initialSiteId, quickMonitorState.siteIds) { mutableStateOf(initialSelection) }
+    var initialized by remember { mutableStateOf(sites.isNotEmpty()) }
+    var intervalSeconds by remember(quickMonitorState.intervalSeconds) { mutableIntStateOf(quickMonitorState.intervalSeconds) }
+    var durationMinutes by remember(quickMonitorState.durationMinutes) { mutableIntStateOf(quickMonitorState.durationMinutes) }
+    var editingPages by remember { mutableStateOf(false) }
+    var showHelp by remember { mutableStateOf(false) }
+    val selecting = !running || editingPages
 
-    // Sync selectedIds when turbo starts (but don't clear when it stops)
-    LaunchedEffect(quickMonitorState.isActive, quickMonitorState.siteIds) {
-        if (quickMonitorState.isActive) {
+    LaunchedEffect(isLoading, eligibleIds, running) {
+        if (!isLoading && !initialized && sites.isNotEmpty()) {
+            selectedIds = initialSelection.intersect(eligibleIds)
+            initialized = true
+        } else if (!running) {
+            selectedIds = selectedIds.intersect(eligibleIds)
+        }
+    }
+    LaunchedEffect(running, quickMonitorState.siteIds, quickMonitorState.intervalSeconds) {
+        if (running) {
             selectedIds = quickMonitorState.siteIds
-        }
-    }
-    LaunchedEffect(sites, isRunning) {
-        if (!isRunning && selectedIds.isEmpty()) {
-            selectedIds = sites.mapTo(mutableSetOf()) { it.site.id }
-        }
-    }
-    var intervalSeconds by remember { mutableIntStateOf(quickMonitorState.intervalSeconds) }
-    var showHelpDialog by remember { mutableStateOf(false) }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-    LaunchedEffect(isRunning, quickMonitorState.intervalSeconds) {
-        if (isRunning) {
             intervalSeconds = quickMonitorState.intervalSeconds
+        } else {
+            editingPages = false
+        }
+    }
+    val selectPages: (Set<String>) -> Unit = { ids ->
+        selectedIds = ids.intersect(eligibleIds)
+        if (running) {
+            if (selectedIds.isEmpty()) onStopTurbo() else onStartTurbo(selectedIds, intervalSeconds, durationMinutes)
         }
     }
 
-    // Derived state: Is any selected site currently syncing?
-    val isNetworkSyncing = remember(sites, selectedIds) {
-        sites.any { selectedIds.contains(it.site.id) && it.isSyncing }
-    }
-
-    if (showHelpDialog) {
-        AlertDialog(
-            onDismissRequest = { showHelpDialog = false },
-            icon = {
-                Icon(
-                    imageVector = Icons.Rounded.Bolt,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+    // Frequent cadence and session controls use restrained Material motion.
+    MaterialTheme(motionScheme = MotionScheme.standard()) {
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = { Text(stringResource(Res.string.turbo_mode)) },
+                    navigationIcon = { onBack?.let { IconButton(onClick = it) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(Res.string.a11y_navigate_back)) } } },
+                    actions = {
+                        IconButton(onClick = { showHelp = true }) {
+                            Icon(Icons.AutoMirrored.Outlined.HelpOutline, stringResource(Res.string.how_it_works))
+                        }
+                    },
                 )
             },
-            title = { Text(stringResource(Res.string.turbo_help_title)) },
-            text = {
-                val helpText = stringResource(Res.string.turbo_help_text)
-                val annotatedText = remember(helpText) {
-                    buildAnnotatedString {
-                        var currentIndex = 0
-                        val boldRegex = "\\*\\*(.*?)\\*\\*".toRegex()
-                        boldRegex.findAll(helpText).forEach { match ->
-                            // Append text before the bold part
-                            append(helpText.substring(currentIndex, match.range.first))
-
-                            // Append the bold part
-                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append(match.groupValues[1])
+            bottomBar = {
+                if (running || (turboAvailable && sites.isNotEmpty() && !isLoading)) {
+                    Surface(color = MaterialTheme.colorScheme.surface) {
+                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Column(
+                                Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                Button(
+                                    onClick = { if (running) onStopTurbo() else onStartTurbo(selectedIds, intervalSeconds, durationMinutes) },
+                                    enabled = running || selectedIds.isNotEmpty(),
+                                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                                    shape = MaterialTheme.shapes.large,
+                                    colors = if (running) {
+                                        ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                                            contentColor = MaterialTheme.colorScheme.onSurface,
+                                        )
+                                    } else {
+                                        ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
+                                    },
+                                ) {
+                                    Icon(if (running) Icons.Rounded.Stop else Icons.Rounded.Bolt, null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(stringResource(if (running) Res.string.turbo_stop_session else Res.string.turbo_mode_button_start))
+                                }
                             }
-
-                            currentIndex = match.range.last + 1
-                        }
-                        // Append remaining text
-                        if (currentIndex < helpText.length) {
-                            append(helpText.substring(currentIndex))
                         }
                     }
                 }
-                Text(text = annotatedText)
             },
-            confirmButton = {
-                TextButton(onClick = { showHelpDialog = false }) {
-                    Text(stringResource(Res.string.got_it))
-                }
-            },
-        )
-    }
+            contentWindowInsets = WindowInsets(0),
+        ) { padding ->
+            when {
+                !turboAvailable && !running -> SharedEmptyState(
+                    icon = Icons.Rounded.Bolt,
+                    title = stringResource(Res.string.turbo_unavailable_title),
+                    description = stringResource(Res.string.turbo_unavailable_description),
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                )
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            LargeFlexibleTopAppBar(
-                title = {
-                    Text(
-                        stringResource(Res.string.turbo_mode),
-                        fontWeight = FontWeight.Bold,
-                    )
-                },
-                actions = {
-                    IconButton(onClick = { showHelpDialog = true }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
-                            contentDescription = stringResource(Res.string.how_it_works),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                ),
-            )
-        },
-        contentWindowInsets = WindowInsets(0),
-    ) { padding ->
-        when {
-            isLoading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    AppLoadingIndicator()
-                }
-            }
+                isLoading -> ListSkeleton(Modifier.fillMaxSize().padding(padding))
 
-            sites.isEmpty() -> {
-                SharedEmptyState(
+                sites.isEmpty() -> SharedEmptyState(
                     icon = Icons.Rounded.Bolt,
                     title = stringResource(Res.string.no_sites_yet),
                     description = stringResource(Res.string.add_sites_to_monitor),
@@ -202,171 +148,97 @@ fun TurboScreen(
                     primaryActionLabel = stringResource(Res.string.add_first_site),
                     onPrimaryAction = onAddSite,
                 )
-            }
 
-            else -> {
-                BoxWithConstraints(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                ) {
-                    val visibleSites = if (isRunning) {
-                        sites.filter { selectedIds.contains(it.site.id) }
-                    } else {
-                        sites
-                    }
-                    val toggleAll = {
-                        selectedIds = if (selectedIds.size == sites.size) {
-                            emptySet()
-                        } else {
-                            sites.mapTo(mutableSetOf()) { it.site.id }
+                else -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
+                    val visibleSites = if (selecting) sites else sites.filter { it.site.id in quickMonitorState.siteIds }
+                    LazyColumn(
+                        Modifier.widthIn(max = 720.dp).fillMaxSize().testTag("turbo-content"),
+                        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        if (!running && quickMonitorState.endReason != null) {
+                            item(key = "outcome") { SessionOutcome(quickMonitorState.endReason) }
                         }
-                    }
-                    val onAction = {
-                        if (isRunning) onStopTurbo() else onStartTurbo(selectedIds, intervalSeconds)
-                    }
-                    val onSiteToggle: (String) -> Unit = { siteId ->
-                        val newIds = selectedIds.toMutableSet()
-                        if (siteId in newIds) newIds.remove(siteId) else newIds.add(siteId)
-                        selectedIds = newIds
-                    }
-
-                    if (maxWidth >= 900.dp) {
-                        Row(
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .widthIn(max = 1120.dp)
-                                .fillMaxSize()
-                                .padding(horizontal = 24.dp, vertical = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(28.dp),
-                            verticalAlignment = Alignment.Top,
-                        ) {
+                        item(key = "session") {
                             TurboHero(
-                                isRunning = isRunning,
-                                isSyncing = isNetworkSyncing,
+                                state = quickMonitorState,
                                 intervalSeconds = intervalSeconds,
-                                selectedCount = selectedIds.size,
-                                onIntervalChange = { intervalSeconds = it },
-                                onAction = onAction,
-                                modifier = Modifier.weight(0.92f),
+                                durationMinutes = durationMinutes,
+                                onDurationChange = { durationMinutes = it },
+                                onIntervalChange = {
+                                    intervalSeconds = it
+                                    if (running) onStartTurbo(selectedIds, it, durationMinutes)
+                                },
                             )
-                            LazyColumn(
-                                modifier = Modifier.weight(1.08f).fillMaxHeight(),
-                                contentPadding = PaddingValues(bottom = 32.dp),
+                        }
+                        item(key = "pages-heading") {
+                            Row(
+                                Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                             ) {
-                                item {
-                                    TurboSelectionHeader(
-                                        isRunning = isRunning,
-                                        allSelected = selectedIds.size == sites.size,
-                                        onToggleAll = toggleAll,
-                                    )
-                                }
-                                turboSiteItems(
-                                    sites = visibleSites,
-                                    selectedIds = selectedIds,
-                                    isRunning = isRunning,
-                                    onSiteToggle = onSiteToggle,
+                                Text(
+                                    pluralStringResource(Res.plurals.turbo_mode_selected_sites, selectedIds.size, selectedIds.size),
+                                    Modifier.weight(1f),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
                                 )
+                                if (running) {
+                                    TextButton(onClick = { editingPages = !editingPages }) {
+                                        Text(stringResource(if (editingPages) Res.string.done else Res.string.edit))
+                                    }
+                                } else {
+                                    TextButton(onClick = { selectPages(if (selectedIds == eligibleIds) emptySet() else eligibleIds) }) {
+                                        Text(stringResource(if (selectedIds == eligibleIds) Res.string.clear_all else Res.string.select_all))
+                                    }
+                                }
                             }
                         }
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .widthIn(max = 720.dp)
-                                .fillMaxSize(),
-                            contentPadding = PaddingValues(top = 8.dp, bottom = 40.dp),
-                        ) {
-                            item {
-                                TurboHero(
-                                    isRunning = isRunning,
-                                    isSyncing = isNetworkSyncing,
-                                    intervalSeconds = intervalSeconds,
-                                    selectedCount = selectedIds.size,
-                                    onIntervalChange = { intervalSeconds = it },
-                                    onAction = onAction,
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                )
-                            }
-                            item {
-                                TurboSelectionHeader(
-                                    isRunning = isRunning,
-                                    allSelected = selectedIds.size == sites.size,
-                                    onToggleAll = toggleAll,
-                                    modifier = Modifier.padding(top = 12.dp),
-                                )
-                            }
-                            turboSiteItems(
-                                sites = visibleSites,
-                                selectedIds = selectedIds,
-                                isRunning = isRunning,
-                                onSiteToggle = onSiteToggle,
+                        itemsIndexed(visibleSites, key = { _, item -> item.site.id }) { index, item ->
+                            TurboSiteRow(
+                                item = item,
+                                selected = item.site.id in selectedIds,
+                                selecting = selecting,
+                                sessionStarted = if (running) quickMonitorState.startTime else 0,
+                                position = when {
+                                    visibleSites.size == 1 -> SegmentPosition.Only
+                                    index == 0 -> SegmentPosition.First
+                                    index == visibleSites.lastIndex -> SegmentPosition.Last
+                                    else -> SegmentPosition.Middle
+                                },
+                                onToggle = { selectPages(if (item.site.id in selectedIds) selectedIds - item.site.id else selectedIds + item.site.id) },
+                                onOpen = { onOpenSite(item.site.id) },
                             )
                         }
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun TurboSelectionHeader(
-    isRunning: Boolean,
-    allSelected: Boolean,
-    onToggleAll: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth().padding(start = 8.dp, end = 4.dp, bottom = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = if (isRunning) stringResource(Res.string.monitoring) else stringResource(Res.string.turbo_select_pages),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+        if (showHelp) {
+            AlertDialog(
+                onDismissRequest = { showHelp = false },
+                title = { Text(stringResource(Res.string.turbo_help_title)) },
+                text = { Text(stringResource(Res.string.turbo_help_text).replace("**", ""), Modifier.verticalScroll(rememberScrollState())) },
+                confirmButton = { TextButton(onClick = { showHelp = false }) { Text(stringResource(Res.string.got_it)) } },
             )
         }
-        if (!isRunning) {
-            TextButton(onClick = onToggleAll) {
-                Text(stringResource(if (allSelected) Res.string.clear_all else Res.string.select_all))
-            }
-        }
-    }
-}
-
-private fun androidx.compose.foundation.lazy.LazyListScope.turboSiteItems(
-    sites: List<SiteAndLastSnap>,
-    selectedIds: Set<String>,
-    isRunning: Boolean,
-    onSiteToggle: (String) -> Unit,
-) {
-    itemsIndexed(sites, key = { _, item -> item.site.id }) { index, siteAndSnap ->
-        val isSelected = siteAndSnap.site.id in selectedIds
-        TurboSiteRow(
-            site = siteAndSnap.site,
-            isSelected = isSelected,
-            enabled = !isRunning,
-            isSyncing = isRunning && siteAndSnap.isSyncing,
-            position = when {
-                sites.size == 1 -> SiteRowPosition.Single
-                index == 0 -> SiteRowPosition.First
-                index == sites.lastIndex -> SiteRowPosition.Last
-                else -> SiteRowPosition.Middle
-            },
-            onClick = { onSiteToggle(siteAndSnap.site.id) },
-            modifier = Modifier.padding(horizontal = 4.dp),
-        )
     }
 }
 
 @Composable
-private fun EmptyState(modifier: Modifier = Modifier) {
-    SharedEmptyState(
-        icon = Icons.Rounded.Bolt,
-        title = stringResource(Res.string.no_sites_yet),
-        description = stringResource(Res.string.add_sites_to_monitor),
-        modifier = modifier,
+private fun SessionOutcome(reason: TurboEndReason) {
+    val message = when (reason) {
+        TurboEndReason.Stopped -> Res.string.turbo_session_stopped
+        TurboEndReason.NoSites -> Res.string.turbo_session_no_sites
+        TurboEndReason.Expired -> Res.string.turbo_session_finished
+        TurboEndReason.Interrupted -> Res.string.turbo_session_interrupted
+        TurboEndReason.SystemLimit -> Res.string.turbo_session_system_limit
+        TurboEndReason.StartFailed -> Res.string.turbo_session_start_failed
+    }
+    Text(
+        stringResource(message),
+        Modifier.padding(top = 12.dp, bottom = 4.dp),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }

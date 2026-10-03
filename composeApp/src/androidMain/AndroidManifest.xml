@@ -4,12 +4,4 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
-    <!-- Library manifest - permissions and components are declared here but
-         the application element is in the app module's manifest -->
-    <application>
-        <service
-            android:name=".sync.ScreenshotService"
-            android:foregroundServiceType="dataSync"
-            android:exported="false" />
-    </application>
 </manifest>

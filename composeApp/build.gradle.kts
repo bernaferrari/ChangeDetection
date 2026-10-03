@@ -20,6 +20,10 @@ kotlin {
         freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 
+    jvm("desktop") {
+        compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
+    }
+
     android {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
@@ -36,7 +40,7 @@ kotlin {
             }
         }
         lint {
-            abortOnError = false
+            abortOnError = true
         }
         withHostTest { }
         withDeviceTest { }
@@ -102,6 +106,7 @@ kotlin {
 
             // Navigation 3 (KMP-compatible)
             implementation(libs.jetbrains.androidx.navigation3.ui)
+            implementation(libs.androidx.lifecycle.viewmodel.navigation3)
             implementation(libs.webview.multiplatform)
 
             // Adaptive
@@ -124,11 +129,9 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.work.runtime.ktx)
-            implementation(libs.timeago)
             // Navigation 3 (Android-specific runtime)
             implementation(libs.androidx.navigation3.runtime)
             implementation(libs.androidx.navigation3.ui)
-            implementation(libs.androidx.lifecycle.viewmodel.navigation3)
             implementation(libs.androidx.core.ktx)
             implementation(libs.androidx.startup)
 
@@ -146,21 +149,29 @@ kotlin {
 
             // Browser
             implementation(libs.androidx.browser)
-            implementation(libs.kmpwright.core)
-
-            // Web scraping and networking
-            implementation(libs.jsoup)
-            implementation(libs.okio)
-
-            // Text processing
-            implementation(libs.commons.text)
-
-            // Image handling
-            implementation(libs.subsampling.scale.imageview)
 
             // Glance AppWidget
             implementation(libs.androidx.glance)
             implementation(libs.androidx.glance.appwidget)
+        }
+        getByName("desktopMain") {
+            dependencies {
+                implementation(compose.desktop.currentOs)
+                implementation(libs.ktor.client.okhttp)
+                implementation(libs.kotlinx.coroutines.swing)
+                implementation(libs.material.kolor)
+                implementation(libs.sqlite.bundled)
+            }
+        }
+        getByName("desktopTest") {
+            kotlin.srcDir("src/jvmSharedTest/kotlin")
+            dependencies {
+                implementation(compose.desktop.uiTestJUnit4)
+                implementation(libs.junit)
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.mockito.core)
+                implementation(libs.mockito.kotlin)
+            }
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -175,14 +186,8 @@ kotlin {
 
         // Host (JVM) tests
         getByName("androidHostTest") {
-            kotlin.srcDirs(
-                "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/error",
-                "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/localBrowser",
-                "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/monitoring",
-                "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/sync",
-                "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/ui/comparison",
-                "src/androidUnitTest/kotlin/com/bernaferrari/changedetection/util",
-            )
+            kotlin.srcDir("src/androidUnitTest/kotlin")
+            kotlin.srcDir("src/jvmSharedTest/kotlin")
             dependencies {
                 implementation(libs.junit)
                 implementation(libs.ktor.client.mock)
@@ -213,8 +218,50 @@ room3 {
 }
 
 dependencies {
+    add("kspDesktop", libs.androidx.room.compiler)
     add("kspAndroid", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
     add("kspWasmJs", libs.androidx.room.compiler)
+}
+
+compose.desktop {
+    application {
+        mainClass = "com.bernaferrari.changedetection.DesktopMainKt"
+    }
+}
+
+// JCEF embeds native AWT peers on Desktop (including the Hot Reload JavaExec task).
+val browserJvmArgs = listOf(
+    "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",
+    "--add-opens=java.desktop/java.awt.peer=ALL-UNNAMED",
+) + if (System.getProperty("os.name").contains("Mac", ignoreCase = true)) {
+    listOf(
+        "--add-opens=java.desktop/sun.lwawt=ALL-UNNAMED",
+        "--add-opens=java.desktop/sun.lwawt.macosx=ALL-UNNAMED",
+    )
+} else {
+    emptyList()
+}
+tasks.withType<JavaExec>().configureEach { jvmArgs(browserJvmArgs) }
+compose.desktop.application.jvmArgs += browserJvmArgs
+
+// Opt-in: exercises the real bundled native browser, not a mocked WebView or semantic tree.
+tasks.register<JavaExec>("desktopBrowserSmoke") {
+    group = "verification"
+    description = "Load and reopen sanitized saved HTML using the bundled JCEF runtime"
+    val testCompilation = kotlin.targets.getByName("desktop").compilations.getByName("test")
+    dependsOn(testCompilation.compileTaskProvider)
+    classpath(testCompilation.output.allOutputs, testCompilation.runtimeDependencyFiles)
+    mainClass.set("com.bernaferrari.changedetection.browser.DesktopBrowserSmoke")
+    systemProperty("changedetection.browserSmoke.output", rootProject.layout.buildDirectory.dir("desktop-review").get().asFile.absolutePath)
+    javaLauncher.set(
+        javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(25))
+            vendor.set(JvmVendorSpec.JETBRAINS)
+        },
+    )
+    if (System.getProperty("os.name").contains("Mac", ignoreCase = true)) {
+        systemProperty("apple.awt.UIElement", "true")
+    }
 }

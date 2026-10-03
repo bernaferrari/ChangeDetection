@@ -10,6 +10,7 @@ import androidx.room3.DaoReturnTypeConverters
 import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
+import androidx.room3.Transaction
 import androidx.room3.paging.PagingSourceDaoReturnTypeConverter
 import com.bernaferrari.changedetection.repo.Snap
 import kotlinx.coroutines.flow.Flow
@@ -26,6 +27,11 @@ data class ContentDuplicationStats(
     val duplicationRate: Float get() = if (total_snaps > 0) 1f - (unique_content.toFloat() / total_snaps) else 0f
 }
 
+data class SiteSnapshotCount(
+    val siteId: String,
+    val count: Int,
+)
+
 /**
  * Data Access Object for the snaps table.
  * Includes performance optimizations with proper indexing
@@ -34,16 +40,56 @@ data class ContentDuplicationStats(
 @Dao
 @DaoReturnTypeConverters(PagingSourceDaoReturnTypeConverter::class)
 interface SnapsDao {
+    /** Selects only IDs beyond the newest pair; no full snapshot/archive materialization. */
+    @Query("SELECT snapId FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC, snapId DESC LIMIT :batchSize OFFSET 2")
+    suspend fun olderVersionIds(siteId: String, batchSize: Int): List<String>
+
+    /** One bounded transaction preserves the newest chronological pair, including repeated content. */
+    @Transaction
+    suspend fun removeOlderVersionsBatch(siteId: String, batchSize: Int = 500): List<String> {
+        require(batchSize in 1..500)
+        return olderVersionIds(siteId, batchSize).also { obsolete ->
+            if (obsolete.isNotEmpty()) deleteSnapsByIds(obsolete)
+        }
+    }
+
+    /** Plans a bounded deletion batch in SQLite without materializing the archive in app memory. */
+    @Query(
+        """
+        WITH ranked AS (
+            SELECT snapId, timestamp, MAX(contentSize, 0) AS bytes,
+                ROW_NUMBER() OVER (PARTITION BY siteId ORDER BY timestamp DESC, snapId DESC) AS position
+            FROM snaps
+        ), retained AS (
+            SELECT * FROM ranked WHERE position <= :versionsPerPage
+        ), budget AS (
+            SELECT MAX(COALESCE(SUM(bytes), 0) - :byteBudget, 0) AS excess FROM retained
+        ), candidates AS (
+            SELECT snapId, COALESCE(SUM(bytes) OVER (
+                ORDER BY timestamp, snapId ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+            ), 0) AS bytesBefore FROM retained WHERE position > 2
+        )
+        SELECT snapId FROM ranked WHERE position > :versionsPerPage
+        UNION ALL
+        SELECT snapId FROM candidates WHERE bytesBefore < (SELECT excess FROM budget)
+        LIMIT :batchSize
+    """,
+    )
+    suspend fun retentionBatch(versionsPerPage: Int, byteBudget: Long, batchSize: Int): List<String>
+
+    @Query("SELECT COALESCE(SUM(contentSize), 0) FROM snaps")
+    fun observeStorageBytes(): Flow<Long>
+
     /**
      * Select all snap metadata (which is everything except for its value) by siteId.
      *
      * @param siteId the site url to be filtered.
      * @return all minimal snaps for the siteId.
      */
-    @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC")
+    @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC, snapId DESC")
     suspend fun getAllSnapsForSiteId(siteId: String): List<Snap>
 
-    @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC")
+    @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC, snapId DESC")
     fun getAllSnapsForSiteIdWithFlow(siteId: String): Flow<List<Snap>>
 
     /**
@@ -61,24 +107,10 @@ interface SnapsDao {
     @Query("SELECT contentType FROM snaps WHERE siteId = :siteId GROUP BY contentType")
     suspend fun getContentTypesParams(siteId: String): List<String>
 
-    /**
-     * Select all snap by siteId.
-     *
-     * @param siteId the site url to be filtered.
-     * @return all snaps for the siteId.
-     */
-    @Query("SELECT * FROM snaps WHERE siteId = :siteId AND contentType = :contentType ORDER BY timestamp DESC")
-    suspend fun getAllSnapsForSiteIdAndContentType(
-        siteId: String,
-        contentType: String,
-    ): List<Snap>
+    /** The same chronological order used by history and comparison, bounded to one row. */
+    @Query("SELECT * FROM snaps WHERE siteId = :siteId AND (timestamp < :timestamp OR (timestamp = :timestamp AND snapId < :snapId)) ORDER BY timestamp DESC, snapId DESC LIMIT 1")
+    suspend fun getPrecedingSnap(siteId: String, timestamp: Long, snapId: String): Snap?
 
-    /**
-     * Select a snap by url
-     *
-     * @param id the snap url.
-     * @return the snap with snapId.
-     */
     @Query("SELECT * FROM snaps WHERE snapId = :id")
     suspend fun getSnapById(id: String): Snap?
 
@@ -88,10 +120,10 @@ interface SnapsDao {
      * @param siteId the site url.
      * @return the snap metadata with snapId.
      */
-    @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 1")
+    @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC, snapId DESC LIMIT 1")
     suspend fun getLastSnapForSiteId(siteId: String): Snap?
 
-    @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT :limit")
+    @Query("SELECT * FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC, snapId DESC LIMIT :limit")
     suspend fun getLastNSnapsForSiteId(
         siteId: String,
         limit: Int,
@@ -103,7 +135,7 @@ interface SnapsDao {
      * @param siteId the site url.
      * @return a list with the last 100 sizes.
      */
-    @Query("SELECT contentSize FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 100")
+    @Query("SELECT contentSize FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC, snapId DESC LIMIT 100")
     suspend fun getLastSnapsSize(siteId: String): List<Int>
 
     /**
@@ -123,10 +155,27 @@ interface SnapsDao {
     suspend fun deleteSnapById(snapId: String)
 
     /**
+     * Batch delete snaps by ids.
+     *
+     * @param snapIds the snap ids to delete.
+     * @return number of rows deleted.
+     */
+    @Query("DELETE FROM snaps WHERE snapId IN (:snapIds)")
+    suspend fun deleteSnapsByIds(snapIds: List<String>): Int
+
+    /**
      * Delete all snaps by siteId.
      */
     @Query("DELETE FROM snaps WHERE siteId = :id")
     suspend fun deleteAllSnapsForSite(id: String)
+
+    /**
+     * Cheap invalidation probe: re-emits whenever any row in the snaps table changes.
+     * Lets ViewModels refresh derived in-memory state after snap mutations (prune,
+     * delete-by-type) without observing full snap lists.
+     */
+    @Query("SELECT EXISTS(SELECT 1 FROM snaps)")
+    fun observeSnapsTable(): Flow<Boolean>
 
     /**
      * Insert a snap in the database. If the snap already exists, replace it.
@@ -149,8 +198,11 @@ interface SnapsDao {
     @Query("SELECT COUNT(*) FROM (SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 1)")
     fun countSitesWithChanges(): Flow<Int>
 
+    @Query("SELECT COUNT(*) FROM snaps WHERE siteId IN (SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 1)")
+    fun countVersionsInHistory(): Flow<Int>
+
     // Optimized: Get snaps from sites with changes - simplified for KMP
-    @Query("SELECT * FROM snaps WHERE siteId IN (SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 1) ORDER BY timestamp DESC")
+    @Query("SELECT * FROM snaps WHERE siteId IN (SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 1) ORDER BY timestamp DESC, snapId DESC")
     suspend fun getSnapsWithChanges(): List<Snap>
 
     // Enhanced: Get only the most recent snap for each site with changes
@@ -174,7 +226,7 @@ interface SnapsDao {
      * @param siteId the site url to be filtered.
      * @return all snaps for the siteId.
      */
-    @Query("SELECT * FROM snaps WHERE siteId = :siteId AND contentType LIKE :filter ORDER BY timestamp DESC")
+    @Query("SELECT * FROM snaps WHERE siteId = :siteId AND contentType LIKE :filter ORDER BY timestamp DESC, snapId DESC")
     fun getSnapsWithChange(
         siteId: String,
         filter: String,
@@ -186,20 +238,20 @@ interface SnapsDao {
      * @param siteId the site url to be filtered.
      * @return all snaps for the siteId.
      */
-    @Query("SELECT * FROM snaps ORDER BY timestamp DESC")
+    @Query("SELECT * FROM snaps ORDER BY timestamp DESC, snapId DESC")
     suspend fun getSnapsWithChange2(): List<Snap>
 
-    @Query("SELECT count(*) FROM snaps WHERE siteId = :siteId AND contentType LIKE :filter ORDER BY timestamp DESC")
+    @Query("SELECT count(*) FROM snaps WHERE siteId = :siteId AND contentType LIKE :filter")
     fun countSnapsWithChange(
         siteId: String,
         filter: String,
     ): Flow<Int>
 
     // Fast content comparison using hashes
-    @Query("SELECT contentHash FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 1")
+    @Query("SELECT contentHash FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC, snapId DESC LIMIT 1")
     suspend fun getLastContentHash(siteId: String): String?
 
-    @Query("SELECT processedContentHash FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC LIMIT 1")
+    @Query("SELECT processedContentHash FROM snaps WHERE siteId = :siteId ORDER BY timestamp DESC, snapId DESC LIMIT 1")
     suspend fun getLastProcessedContentHash(siteId: String): String?
 
     // Check if content with same hash already exists
@@ -209,18 +261,20 @@ interface SnapsDao {
         hash: String,
     ): Int
 
-    // Get snaps with different content hashes (actual changes)
+    // Get snaps with different content hashes (actual changes).
+    // Keeps the NEWEST snap per content hash so pruning never rolls the site's
+    // visible last version back to stale content.
     @Query(
         """
         SELECT * FROM snaps s1 
         WHERE siteId = :siteId 
-        AND NOT EXISTS (
+        AND (s1.contentHash = '' OR NOT EXISTS (
             SELECT 1 FROM snaps s2 
             WHERE s2.siteId = :siteId 
             AND s2.contentHash = s1.contentHash 
-            AND s2.timestamp < s1.timestamp
-        )
-        ORDER BY timestamp DESC
+            AND s2.timestamp > s1.timestamp
+        ))
+        ORDER BY timestamp DESC, snapId DESC
     """,
     )
     suspend fun getUniqueContentSnaps(siteId: String): List<Snap>
@@ -249,10 +303,28 @@ interface SnapsDao {
     )
     suspend fun getAllMostRecentSnaps(): List<Snap>
 
+    @Query("SELECT siteId, COUNT(*) AS count FROM snaps GROUP BY siteId")
+    suspend fun getSnapshotCounts(): List<SiteSnapshotCount>
+
     /**
      * Get paged snaps from sites with changes (more than 1 snap).
      * Used for the Logs screen.
      */
-    @Query("SELECT * FROM snaps WHERE siteId IN (SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 1) ORDER BY timestamp DESC")
+    @Query("SELECT * FROM snaps WHERE siteId IN (SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 1) ORDER BY timestamp DESC, snapId DESC")
     fun getSnapsPagedSource(): PagingSource<Int, Snap>
+
+    @Query(
+        """
+        SELECT snaps.* FROM snaps
+        INNER JOIN sites ON sites.siteId = snaps.siteId
+        WHERE snaps.siteId IN (SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 1)
+          AND (
+            :query = '' OR
+            LOWER(COALESCE(sites.title, '')) LIKE '%' || REPLACE(REPLACE(REPLACE(LOWER(:query), '!', '!!'), '%', '!%'), '_', '!_') || '%' ESCAPE '!' OR
+            LOWER(sites.url) LIKE '%' || REPLACE(REPLACE(REPLACE(LOWER(:query), '!', '!!'), '%', '!%'), '_', '!_') || '%' ESCAPE '!'
+          )
+        ORDER BY snaps.timestamp DESC, snaps.snapId DESC
+        """,
+    )
+    fun getSnapsPagedSource(query: String): PagingSource<Int, Snap>
 }

@@ -6,11 +6,19 @@ package com.bernaferrari.changedetection.localBrowser
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Article
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,30 +28,41 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import com.bernaferrari.changedetection.browser.BrowserRuntimeHost
+import com.bernaferrari.changedetection.browser.PlatformBrowserView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.bernaferrari.changedetection.extensions.replaceRelativePathWithAbsolute
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.a11y_close
+import com.bernaferrari.changedetection.shared.generated.resources.a11y_saved_screenshot
+import com.bernaferrari.changedetection.shared.generated.resources.a11y_saved_screenshot_source
+import com.bernaferrari.changedetection.shared.generated.resources.a11y_saved_screenshot_source_only
 import com.bernaferrari.changedetection.shared.generated.resources.local_browser_empty_snapshot
 import com.bernaferrari.changedetection.shared.generated.resources.local_browser_error_body
 import com.bernaferrari.changedetection.shared.generated.resources.local_browser_error_title
 import com.bernaferrari.changedetection.shared.generated.resources.local_browser_title_live
 import com.bernaferrari.changedetection.shared.generated.resources.local_browser_title_snapshot
 import com.bernaferrari.changedetection.shared.generated.resources.retry
+import com.bernaferrari.changedetection.ui.comparison.SnapshotImage
+import com.bernaferrari.changedetection.ui.comparison.SecureSnapshotWebView
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
+import com.bernaferrari.changedetection.util.formatTimestamp
+import com.bernaferrari.changedetection.util.readableFileSize
+import com.bernaferrari.changedetection.util.displayPageAddress
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.rememberWebViewState
-import com.multiplatform.webview.web.rememberWebViewStateWithHTMLData
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -99,7 +118,7 @@ fun LocalBrowserScreen(
                 LoadingIndicator()
             }
 
-            isLocalSnapshot && state.content.isBlank() -> SharedEmptyState(
+            isLocalSnapshot && state.content.isBlank() && state.bytes?.isEmpty() != false -> SharedEmptyState(
                 icon = Icons.Default.ErrorOutline,
                 title = stringResource(Res.string.local_browser_empty_snapshot),
                 description = stringResource(Res.string.local_browser_error_body),
@@ -109,63 +128,123 @@ fun LocalBrowserScreen(
             )
 
             isLocalSnapshot -> {
-                val content = remember(state.content, safeUrl) {
-                    com.bernaferrari.changedetection.util.HtmlSanitizer.sanitize(state.content)
-                        .replaceRelativePathWithAbsolute(safeUrl)
-                }
-                if (state.mimeType.startsWith("text/html", ignoreCase = true)) {
-                    WebView(
-                        state = rememberWebViewStateWithHTMLData(data = snapshotDocument(content)),
+                val content = state.content
+                val isImage = state.mimeType.startsWith("image/", ignoreCase = true)
+                val isHtmlDocument = state.mimeType.startsWith("text/html", ignoreCase = true) && content.hasHtmlMarkup()
+                val isShortText = !isImage && !isHtmlDocument && state.content.length < 800
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(paddingValues),
+                ) {
+                    SnapshotContextHeader(url = safeUrl, state = state)
+                    Surface(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                    )
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                            .verticalScroll(rememberScrollState())
-                            .padding(20.dp),
+                            .fillMaxWidth()
+                            .then(if (isShortText) Modifier.heightIn(min = 160.dp) else Modifier.weight(1f))
+                            .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
+                        shape = RoundedCornerShape(26.dp, 26.dp, 10.dp, 26.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerLow,
                     ) {
-                        Text(
-                            text = state.content,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontFamily = FontFamily.Monospace,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
+                        when {
+                            isImage && state.bytes?.isNotEmpty() == true -> {
+                                val source = safeUrl.displayPageAddress()
+                                val capturedAt = state.timestamp?.let(::formatTimestamp)
+                                val screenshotDescription = when {
+                                    source.isNotBlank() && capturedAt != null -> stringResource(
+                                        Res.string.a11y_saved_screenshot_source,
+                                        source,
+                                        capturedAt,
+                                    )
+
+                                    source.isNotBlank() -> stringResource(
+                                        Res.string.a11y_saved_screenshot_source_only,
+                                        source,
+                                    )
+
+                                    else -> stringResource(Res.string.a11y_saved_screenshot)
+                                }
+                                SnapshotImage(
+                                    bytes = requireNotNull(state.bytes),
+                                    contentDescription = screenshotDescription,
+                                    modifier = Modifier.fillMaxSize().padding(8.dp).clip(RoundedCornerShape(20.dp)),
+                                    contentScale = ContentScale.Fit,
+                                )
+                            }
+
+                            isHtmlDocument -> SecureSnapshotWebView(
+                                html = content,
+                                modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(26.dp, 26.dp, 10.dp, 26.dp)),
+                            )
+
+                            else -> SelectionContainer {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .verticalScroll(rememberScrollState())
+                                        .padding(24.dp),
+                                ) {
+                                    Text(
+                                        text = state.content,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
 
-            else -> WebView(
-                state = rememberWebViewState(url = safeUrl),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-            )
+            else -> BrowserRuntimeHost(Modifier.fillMaxSize().padding(paddingValues)) {
+                PlatformBrowserView(state = rememberWebViewState(url = safeUrl), modifier = Modifier.fillMaxSize().padding(paddingValues))
+            }
         }
     }
 }
 
-private fun snapshotDocument(body: String): String = """
-    <!doctype html>
-    <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <style>
-          :root { color-scheme: light; }
-          html, body { min-height: 100%; margin: 0; background: #ffffff; color: #1d1d1f; }
-          body {
-            box-sizing: border-box;
-            padding: 20px;
-            font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            overflow-wrap: anywhere;
-          }
-          img, video, canvas, svg { max-width: 100%; height: auto; }
-          table { max-width: 100%; border-collapse: collapse; }
-        </style>
-      </head>
-      <body>$body</body>
-    </html>
-""".trimIndent()
+@Composable
+private fun SnapshotContextHeader(url: String, state: BrowserState) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Surface(
+            modifier = Modifier.size(44.dp),
+            shape = RoundedCornerShape(15.dp),
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                androidx.compose.material3.Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.Article,
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+        }
+        Spacer(Modifier.size(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = url.displayPageAddress(),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+            )
+            val details = buildList {
+                state.timestamp?.let { add(formatTimestamp(it)) }
+                if (state.contentSize > 0) add(state.contentSize.toLong().readableFileSize())
+            }.joinToString(" · ")
+            if (details.isNotBlank()) {
+                Text(
+                    text = details,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                )
+            }
+        }
+    }
+}
+
+private val htmlElementPattern = Regex("<[a-zA-Z][^>]*>")
+
+private fun String.hasHtmlMarkup(): Boolean = htmlElementPattern.containsMatchIn(this)

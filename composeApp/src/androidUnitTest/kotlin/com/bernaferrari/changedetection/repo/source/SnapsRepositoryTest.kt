@@ -8,6 +8,8 @@ import com.bernaferrari.changedetection.repo.AppExecutors
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.local.SnapsDao
 import com.bernaferrari.changedetection.repo.source.local.SnapsLocalDataSource
+import com.bernaferrari.changedetection.repo.source.local.SitesDao
+import com.bernaferrari.changedetection.util.FileStorage
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +19,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import android.content.Context
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
@@ -40,10 +41,11 @@ class SnapsRepositoryTest {
     private lateinit var repository: SnapsRepository
     private lateinit var localDataSource: SnapsLocalDataSource
     private lateinit var mockDao: SnapsDao
+    private lateinit var mockSitesDao: SitesDao
     private lateinit var appExecutors: AppExecutors
 
     @Mock
-    private lateinit var mockContext: Context
+    private lateinit var mockFileStorage: FileStorage
 
     @Before
     fun setup() {
@@ -53,7 +55,8 @@ class SnapsRepositoryTest {
             uiContext = Dispatchers.Unconfined,
         )
         mockDao = mock(SnapsDao::class.java)
-        localDataSource = SnapsLocalDataSource(appExecutors, mockDao, mockContext)
+        mockSitesDao = mock(SitesDao::class.java)
+        localDataSource = SnapsLocalDataSource(appExecutors, mockDao, mockSitesDao, mockFileStorage, mock(com.bernaferrari.changedetection.storage.SnapshotFileCleanup::class.java))
         repository = SnapsRepository(localDataSource)
     }
 

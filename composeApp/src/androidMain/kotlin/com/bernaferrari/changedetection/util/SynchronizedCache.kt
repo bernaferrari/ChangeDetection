@@ -23,7 +23,9 @@ actual class SynchronizedCache<K : Any, V : Any> actual constructor(
 
     private val lock = ReentrantReadWriteLock()
 
-    actual operator fun get(key: K): V? = lock.read {
+    // Access-order mutation in LinkedHashMap requires exclusive access,
+    // so get() must take the WRITE lock to avoid corrupting the list.
+    actual operator fun get(key: K): V? = lock.write {
         cache[key]
     }
 

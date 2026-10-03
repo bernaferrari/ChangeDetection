@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Smartphone, Github, Sparkles } from "lucide-react";
+import { Smartphone, GitFork, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function CTA() {
@@ -67,7 +67,7 @@ export function CTA() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <Github className="mr-2" size={18} />
+                <GitFork className="mr-2" size={18} />
                 Star on GitHub
               </a>
             </Button>

@@ -16,7 +16,7 @@ import com.bernaferrari.changedetection.repo.Snap
  * The Room Database that contains the Site table.
  * Inspired from Architecture Components MVVM sample app
  */
-@Database(entities = [Site::class, Snap::class], version = 3, exportSchema = false)
+@Database(entities = [Site::class, Snap::class, PendingFileDeletion::class], version = 9, exportSchema = true)
 @ColumnTypeConverters(
     Site.ConstraintsConverter::class,
     Site.PairConverter::class,
@@ -24,6 +24,8 @@ import com.bernaferrari.changedetection.repo.Snap
 @ConstructedBy(ChangeDatabaseConstructor::class)
 abstract class ChangeDatabase : RoomDatabase() {
     abstract fun siteDao(): SitesDao
+
+    abstract fun pendingFileDeletionDao(): PendingFileDeletionDao
 
     abstract fun snapsDao(): SnapsDao
 }

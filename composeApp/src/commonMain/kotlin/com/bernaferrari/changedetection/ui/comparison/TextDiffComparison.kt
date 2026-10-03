@@ -2,202 +2,129 @@
  * Copyright (c) 2024 ChangeDetection Contributors
  * Licensed under the Apache License, Version 2.0
  */
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package com.bernaferrari.changedetection.ui.comparison
 
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.rounded.ExpandLess
+import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.bernaferrari.changedetection.shared.generated.resources.Res
-import com.bernaferrari.changedetection.shared.generated.resources.comparison_before
-import com.bernaferrari.changedetection.shared.generated.resources.comparison_no_changes_text
-import com.bernaferrari.changedetection.shared.generated.resources.comparison_no_changes_title
-import com.bernaferrari.changedetection.shared.generated.resources.comparison_now
-import com.bernaferrari.changedetection.shared.generated.resources.show_context
-import com.bernaferrari.changedetection.shared.generated.resources.show_only_changes
+import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
-import com.bernaferrari.changedetection.ui.theme.spacing
+import com.bernaferrari.changedetection.util.readableSnapshotText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
-/** Presents text changes as a human before/after story, with source context available on demand. */
+/** A reading surface: new text leads; each original passage is expandable in place. */
 @Composable
-internal fun SimpleDiffView(
-    oldContent: String,
-    newContent: String,
-    modifier: Modifier = Modifier,
-) {
-    val spacing = MaterialTheme.spacing
-    var showContext by remember { mutableStateOf(false) }
-    val diffRows = remember(oldContent, newContent) {
-        calculateDiffRows(oldContent.lines(), newContent.lines())
-    }
-    val removedRows = remember(diffRows) { diffRows.filter { it.type == DiffLineType.REMOVED } }
-    val addedRows = remember(diffRows) { diffRows.filter { it.type == DiffLineType.ADDED } }
-    val stats = remember(diffRows) {
-        ChangeStats(
-            added = addedRows.size,
-            removed = removedRows.size,
-            modified = 0,
-            unchanged = diffRows.count { it.type == DiffLineType.UNCHANGED },
-        )
-    }
-
-    Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .padding(spacing.md),
-        verticalArrangement = Arrangement.spacedBy(spacing.md),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            ComparisonStatsRow(stats = stats, modifier = Modifier.weight(1f))
-            TextButton(onClick = { showContext = !showContext }) {
-                Text(stringResource(if (showContext) Res.string.show_only_changes else Res.string.show_context))
-            }
+internal fun SimpleDiffView(oldContent: String, newContent: String, modifier: Modifier = Modifier, oldIsHtml: Boolean = false, newIsHtml: Boolean = false) {
+    var showContext by remember(oldContent, newContent) { mutableStateOf(false) }
+    val expanded = remember(oldContent, newContent) { mutableStateMapOf<Int, Boolean>() }
+    val diff by produceState<TextReaderContent?>(null, oldContent, newContent, oldIsHtml, newIsHtml) {
+        value = null
+        value = withContext(Dispatchers.Default) {
+            val rows = displayDiffRows(calculateDiffRows(readableSnapshotText(oldContent, oldIsHtml).lines(), readableSnapshotText(newContent, newIsHtml).lines()))
+            val headings = if (newIsHtml) com.fleeksoft.ksoup.Ksoup.parse(newContent).select("h1,h2,h3,h4,h5,h6").map { it.text() }.toSet() else emptySet()
+            TextReaderContent(rows, textChangeSections(rows, headings))
         }
-
-        if (addedRows.isEmpty() && removedRows.isEmpty()) {
-            SharedEmptyState(
-                icon = Icons.Default.CheckCircle,
-                title = stringResource(Res.string.comparison_no_changes_title),
-                description = stringResource(Res.string.comparison_no_changes_text),
-                modifier = Modifier.fillMaxWidth().padding(spacing.lg),
-            )
-        } else {
-            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                if (maxWidth >= 620.dp) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(spacing.sm),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        ChangeStoryPanel(
-                            label = stringResource(Res.string.comparison_before),
-                            rows = removedRows,
-                            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                            modifier = Modifier.weight(1f),
-                        )
-                        ChangeDirection(horizontal = true)
-                        ChangeStoryPanel(
-                            label = stringResource(Res.string.comparison_now),
-                            rows = addedRows,
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.weight(1f),
-                        )
+    }
+    val content = diff
+    if (content == null) {
+        Box(modifier, contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        return
+    }
+    val listState = remember(oldContent, newContent) { androidx.compose.foundation.lazy.LazyListState() }
+    val rows = content.rows
+    val sections = content.sections
+    val beforeLabel = stringResource(Res.string.comparison_before)
+    val afterLabel = stringResource(Res.string.comparison_mode_after)
+    val showPrevious = stringResource(Res.string.comparison_show_previous)
+    val hidePrevious = stringResource(Res.string.comparison_hide_previous)
+    Box(modifier, contentAlignment = Alignment.TopCenter) {
+        LazyColumn(
+            Modifier.widthIn(max = 720.dp).fillMaxSize().testTag("comparison-lines"),
+            state = listState,
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+        ) {
+            stickyHeader(key = "stats") {
+                PassageNavigation(sections, passageItemIndices(sections, expanded), listState, showContext) { showContext = !showContext }
+            }
+            if (sections.isEmpty()) {
+                item(key = "unchanged") {
+                    SharedEmptyState(Icons.Default.CheckCircle, stringResource(if (oldIsHtml || newIsHtml) Res.string.comparison_no_readable_changes else Res.string.comparison_no_changes_title), stringResource(if (oldIsHtml || newIsHtml) Res.string.comparison_no_readable_changes_detail else Res.string.comparison_no_changes_text))
+                }
+            }
+            sections.forEachIndexed { sectionIndex, section ->
+                item(key = "section-$sectionIndex") {
+                    Row(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+                        section.context?.let { Text(it, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) } ?: Spacer(Modifier.weight(1f))
+                        Text((sectionIndex + 1).toString().padStart(2, '0'), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                } else {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(spacing.sm),
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                }
+                item(key = "after-heading-$sectionIndex") { PassageHeading(afterLabel) }
+                passageLines("after-$sectionIndex", section.after, before = false)
+                item(key = "before-toggle-$sectionIndex") {
+                    val isExpanded = (expanded[sectionIndex] ?: section.after.all { it.content.isBlank() })
+                    Surface(
+                        onClick = { expanded[sectionIndex] = !isExpanded },
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp).semantics { contentDescription = if (isExpanded) hidePrevious else showPrevious },
+                        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = if (isExpanded) 0.dp else 24.dp, bottomEnd = if (isExpanded) 0.dp else 24.dp),
+                        color = MaterialTheme.colorScheme.surfaceContainerLow,
                     ) {
-                        ChangeStoryPanel(
-                            label = stringResource(Res.string.comparison_before),
-                            rows = removedRows,
-                            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                        ChangeDirection(horizontal = false)
-                        ChangeStoryPanel(
-                            label = stringResource(Res.string.comparison_now),
-                            rows = addedRows,
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                        Row(Modifier.heightIn(min = 48.dp).padding(horizontal = 18.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(beforeLabel, Modifier.weight(1f), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Icon(if (isExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
+                }
+                if ((expanded[sectionIndex] ?: section.after.all { it.content.isBlank() })) passageLines("before-$sectionIndex", section.before, before = true)
+                item(key = "gap-$sectionIndex") { Spacer(Modifier.height(24.dp)) }
+            }
+            if (showContext) {
+                items(rows.size, key = { "context-$it" }) { index ->
+                    val row = rows[index]
+                    DiffLine(row.lineNumber, row.content, row.type, showLineNumber = !row.isContinuation)
                 }
             }
         }
-
-        if (showContext) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-            ) {
-                diffRows.forEach { row -> DiffLine(row.lineNumber, row.content, row.type) }
-            }
-        }
     }
 }
 
-@Composable
-private fun ChangeStoryPanel(
-    label: String,
-    rows: List<DiffRowModel>,
-    containerColor: Color,
-    contentColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.extraLarge,
-        color = containerColor,
-        contentColor = contentColor,
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+private fun LazyListScope.passageLines(key: String, rows: List<DiffRowModel>, before: Boolean) {
+    items(maxOf(rows.size, 1), key = { "$key-$it" }) { index ->
+        val last = index == maxOf(rows.lastIndex, 0)
+        Surface(
+            Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(bottomStart = if (last) (if (before) 24.dp else 8.dp) else 0.dp, bottomEnd = if (last) (if (before) 24.dp else 8.dp) else 0.dp),
+            color = if (before) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.primaryContainer,
+            contentColor = if (before) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimaryContainer,
         ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                color = contentColor.copy(alpha = 0.72f),
-            )
-            rows.ifEmpty { listOf(DiffRowModel(0, "—", DiffLineType.UNCHANGED)) }.forEach { row ->
-                Text(
-                    text = row.content.ifBlank { " " },
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 4,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            Text(rows.getOrNull(index)?.content?.ifBlank { " " } ?: "—", Modifier.padding(start = 18.dp, end = 18.dp, bottom = if (last) 18.dp else 8.dp), style = MaterialTheme.typography.bodyLarge)
         }
     }
 }
 
 @Composable
-private fun ChangeDirection(horizontal: Boolean) {
-    Surface(
-        shape = CircleShape,
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-    ) {
-        Icon(
-            imageVector = if (horizontal) Icons.AutoMirrored.Filled.ArrowForward else Icons.Default.ArrowDownward,
-            contentDescription = null,
-            modifier = Modifier.padding(9.dp).size(18.dp),
-        )
+private fun PassageHeading(label: String) {
+    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp), color = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer) {
+        Text(label, Modifier.padding(start = 18.dp, end = 18.dp, top = 16.dp, bottom = 8.dp), style = MaterialTheme.typography.labelMedium)
     }
 }
+
+private data class TextReaderContent(val rows: List<DiffRowModel>, val sections: List<TextChangeSection>)

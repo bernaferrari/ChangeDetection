@@ -15,7 +15,10 @@ import com.bernaferrari.changedetection.repo.source.local.SitesDao
 import com.bernaferrari.changedetection.repo.source.local.SitesLocalDataSource
 import com.bernaferrari.changedetection.repo.source.local.SnapsDao
 import com.bernaferrari.changedetection.repo.source.local.SnapsLocalDataSource
+import com.bernaferrari.changedetection.sync.ChangeNotifier
 import com.bernaferrari.changedetection.sync.SyncEngine
+import com.bernaferrari.changedetection.sync.SyncProgressTracker
+import com.bernaferrari.changedetection.util.ApplicationScope
 import com.bernaferrari.changedetection.util.FileStorage
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
@@ -30,6 +33,12 @@ import org.koin.core.annotation.Single
 class CoreDiModule {
     @Single
     fun errorHandler(): ErrorHandler = ErrorHandler()
+
+    @Single
+    fun applicationScope(): ApplicationScope = ApplicationScope()
+
+    @Single
+    fun syncProgressTracker(): SyncProgressTracker = SyncProgressTracker()
 
     @Single
     fun httpClient(): HttpClient = HttpClient {
@@ -61,14 +70,17 @@ class CoreDiModule {
     fun sitesDataSource(
         appExecutors: AppExecutors,
         sitesDao: SitesDao,
-    ): SitesDataSource = SitesLocalDataSource(appExecutors, sitesDao)
+        cleanup: com.bernaferrari.changedetection.storage.SnapshotFileCleanup,
+    ): SitesDataSource = SitesLocalDataSource(appExecutors, sitesDao, cleanup)
 
     @Single(binds = [SnapsDataSource::class])
     fun snapsDataSource(
         appExecutors: AppExecutors,
         snapsDao: SnapsDao,
+        sitesDao: SitesDao,
         fileStorage: FileStorage,
-    ): SnapsDataSource = SnapsLocalDataSource(appExecutors, snapsDao, fileStorage)
+        cleanup: com.bernaferrari.changedetection.storage.SnapshotFileCleanup,
+    ): SnapsDataSource = SnapsLocalDataSource(appExecutors, snapsDao, sitesDao, fileStorage, cleanup)
 
     @Single
     fun sitesRepository(dataSource: SitesDataSource): SitesRepository = SitesRepository(dataSource)
@@ -77,11 +89,28 @@ class CoreDiModule {
     fun snapsRepository(dataSource: SnapsDataSource): SnapsRepository = SnapsRepository(dataSource)
 
     @Single
+    fun snapshotFileCleanup(database: ChangeDatabase, fileStorage: FileStorage): com.bernaferrari.changedetection.storage.SnapshotFileCleanup = com.bernaferrari.changedetection.storage.SnapshotFileCleanup(database.pendingFileDeletionDao(), database.snapsDao(), fileStorage)
+
+    @Single
     fun syncEngine(
         httpClient: HttpClient,
+        database: ChangeDatabase,
         sitesDao: SitesDao,
         snapsDao: SnapsDao,
         fileStorage: FileStorage,
         errorHandler: ErrorHandler,
-    ): SyncEngine = SyncEngine(httpClient, sitesDao, snapsDao, fileStorage, errorHandler)
+        changeNotifier: ChangeNotifier,
+        progressTracker: SyncProgressTracker,
+        cleanup: com.bernaferrari.changedetection.storage.SnapshotFileCleanup,
+    ): SyncEngine = SyncEngine(
+        httpClient,
+        database,
+        sitesDao,
+        snapsDao,
+        fileStorage,
+        errorHandler,
+        changeNotifier,
+        progressTracker,
+        com.bernaferrari.changedetection.storage.SnapshotMaintenance(database, snapsDao, fileStorage, cleanup = cleanup),
+    )
 }

@@ -6,7 +6,6 @@ package com.bernaferrari.changedetection.repo.source
 
 import com.bernaferrari.changedetection.repo.ContentTypeInfo
 import com.bernaferrari.changedetection.repo.Snap
-import com.bernaferrari.changedetection.repo.source.Result
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -14,13 +13,23 @@ import kotlinx.coroutines.flow.Flow
  * Inspired from Architecture Components MVVM sample app
  */
 interface SnapsDataSource {
+    fun observeStorageBytes(): Flow<Long>
+
+    suspend fun deleteSiteWithSnaps(siteId: String)
+
     suspend fun getContentTypeInfo(siteId: String): List<ContentTypeInfo>
 
     suspend fun getMostRecentSnap(siteId: String): Snap?
 
     suspend fun getAllMostRecentSnaps(): Map<String, Snap>
 
+    /** Number of saved versions per page, loaded in one query where supported. */
+    suspend fun getSnapshotCounts(): Map<String, Int> = emptyMap()
+
     fun getSnaps(siteId: String): Flow<List<Snap>>
+
+    /** Re-emits whenever any row in the snaps table changes (Room invalidation probe). */
+    fun observeSnapsTable(): Flow<Boolean>
 
     fun getSnapsFiltered(
         siteId: String,
@@ -45,20 +54,7 @@ interface SnapsDataSource {
         newId: String,
     ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>>?
 
-    suspend fun saveSnap(
-        snap: Snap,
-        content: ByteArray,
-        threshold: Int,
-    ): Result<Snap>
-
-    suspend fun deleteAllSnaps(siteId: String)
-
     suspend fun deleteSnap(snapId: String)
-
-    suspend fun deleteSnapsForSiteIdAndContentType(
-        siteId: String,
-        contentType: String,
-    )
 
     suspend fun pruneSnaps(siteId: String)
 

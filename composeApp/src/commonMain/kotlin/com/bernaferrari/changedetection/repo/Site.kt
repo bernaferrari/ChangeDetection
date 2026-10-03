@@ -30,13 +30,38 @@ data class Site(
     val isSuccessful: Boolean,
     val isBrowser: Boolean,
     val threshold: Int,
-    val isRead: Boolean, // reserved for future use
+    val isRead: Boolean, // false while a saved change still needs review
     val isSyncEnabled: Boolean, // enable/disable sync
     val isNotificationEnabled: Boolean,
     val notes: String,
     val colors: ColorGroup,
     val constraints: ConstraintsRequired, // reserved for future use
+    @ColumnInfo(defaultValue = "'DEFAULT'")
+    val captureMode: CaptureMode = CaptureMode.DEFAULT,
+    /** Unknown for an unobserved page or a legacy failed check; never inferred from a failure. */
+    @ColumnInfo(defaultValue = "NULL")
+    val lastSuccessfulCheck: Long? = null,
+    @ColumnInfo(defaultValue = "NULL")
+    val lastFailureCode: String? = null,
+    @ColumnInfo(defaultValue = "''")
+    val textIncludeSelector: String = "",
+    @ColumnInfo(defaultValue = "''")
+    val textExcludeSelector: String = "",
+    @ColumnInfo(defaultValue = "0")
+    val visualChangeThresholdBps: Int = 0,
 ) {
+    /** Zero disables filtering; one basis point is 0.01% of sampled pixels. */
+    fun visualFilterBasisPoints(): Int = if (captureMode == CaptureMode.SCREENSHOT || captureMode == CaptureMode.DEFAULT) {
+        visualChangeThresholdBps.takeIf { it in 1..10_000 } ?: 0
+    } else {
+        0
+    }
+
+    fun textRegion() = if (captureMode == CaptureMode.TEXT) {
+        com.bernaferrari.changedetection.detection.TextRegion(textIncludeSelector, textExcludeSelector)
+    } else {
+        com.bernaferrari.changedetection.detection.TextRegion()
+    }
 
     @Ignore
     constructor(

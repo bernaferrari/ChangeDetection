@@ -31,8 +31,17 @@ fun AddPageDialog(
     selectedUrl: String? = null,
     onDismiss: () -> Unit,
     onSaveComplete: () -> Unit,
+    onOpenSite: (String) -> Unit = {},
 ) {
-    val viewModel: AddEditViewModel = koinViewModel(key = "add-page-$sessionKey") { parametersOf(null) }
+    val owner = androidx.compose.runtime.remember(sessionKey) {
+        object : androidx.lifecycle.ViewModelStoreOwner {
+            override val viewModelStore = androidx.lifecycle.ViewModelStore()
+        }
+    }
+    androidx.compose.runtime.DisposableEffect(owner) {
+        onDispose { owner.viewModelStore.clear() }
+    }
+    val viewModel: AddEditViewModel = koinViewModel(viewModelStoreOwner = owner) { parametersOf(null) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -67,6 +76,7 @@ fun AddPageDialog(
                 AddEditFlow(
                     selectedUrl = selectedUrl,
                     onNavigateUp = onDismiss,
+                    onOpenSite = onOpenSite,
                     onSaveComplete = onSaveComplete,
                     viewModel = viewModel,
                 )
@@ -81,9 +91,13 @@ fun AddEditFlow(
     selectedUrl: String? = null,
     onNavigateUp: () -> Unit,
     onSaveComplete: () -> Unit,
+    onOpenSite: (String) -> Unit = {},
     viewModel: AddEditViewModel = koinViewModel { parametersOf(siteId) },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    androidx.compose.runtime.DisposableEffect(viewModel) {
+        onDispose { viewModel.dismissPreview() }
+    }
     LaunchedEffect(selectedUrl, siteId) {
         if (siteId == null && !selectedUrl.isNullOrBlank()) {
             if (viewModel.uiState.value.url.isBlank()) {
@@ -93,12 +107,31 @@ fun AddEditFlow(
     }
 
     LaunchedEffect(uiState.saveComplete) {
-        if (uiState.saveComplete) {
+        if (uiState.saveComplete && siteId != null) {
             onSaveComplete()
+            // Consume immediately so the flag can't re-fire on state restoration.
+            viewModel.consumeSaveComplete()
         }
     }
 
+    // Drain one-shot events so the channel never backs up; the dialog host has no
+    // dedicated ack channel, so MonitorAdded is consumed without extra UI.
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { }
+    }
+
     when {
+        siteId == null && uiState.savedSite != null -> {
+            SetupReceiptScreen(
+                savedSite = uiState.savedSite!!,
+                onOpenPage = {
+                    onSaveComplete()
+                    onOpenSite(uiState.savedSite!!.id)
+                },
+                onDone = onSaveComplete,
+            )
+        }
+
         siteId != null && uiState.isLoading -> {
             androidx.compose.foundation.layout.Box(
                 modifier = Modifier.fillMaxSize(),
@@ -116,8 +149,30 @@ fun AddEditFlow(
                 isEditing = siteId != null,
                 isSaving = uiState.isSaving,
                 saveError = uiState.saveError,
+                duplicateSiteId = uiState.duplicateSiteId,
+                onDismissDuplicate = viewModel::consumeDuplicate,
+                onOpenDuplicate = { id ->
+                    onNavigateUp()
+                    onOpenSite(id)
+                },
+                showUrlChangeDialog = uiState.showUrlChangeDialog,
+                onCancel = viewModel::onUrlChangeCancel,
+                onKeepHistory = viewModel::onUrlChangeKeepHistory,
+                onStartFresh = viewModel::onUrlChangeStartFresh,
                 onUrlChange = viewModel::setUrl,
                 onTitleChange = viewModel::setTitle,
+                captureMode = uiState.captureMode,
+                textRegion = uiState.textRegion,
+                regionError = uiState.regionError,
+                onTextRegionChange = viewModel::setTextRegion,
+                legacyThreshold = uiState.legacyThreshold,
+                visualChangeThresholdBps = uiState.visualChangeThresholdBps,
+                onVisualChangeThresholdChange = viewModel::setVisualChangeThreshold,
+                onRemoveLegacyThreshold = viewModel::removeLegacyThreshold,
+                onCaptureModeChange = viewModel::setCaptureMode,
+                preview = uiState.preview,
+                onPreview = viewModel::requestPreview,
+                onClosePreview = viewModel::dismissPreview,
                 onNavigateUp = onNavigateUp,
                 onSave = viewModel::saveSite,
             )

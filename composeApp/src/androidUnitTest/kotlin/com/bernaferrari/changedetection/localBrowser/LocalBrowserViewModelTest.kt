@@ -6,7 +6,6 @@ package com.bernaferrari.changedetection.localBrowser
 
 import com.bernaferrari.changedetection.repo.ContentTypeInfo
 import com.bernaferrari.changedetection.repo.Snap
-import com.bernaferrari.changedetection.repo.source.Result
 import com.bernaferrari.changedetection.repo.source.SnapsDataSource
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import kotlinx.coroutines.Dispatchers
@@ -69,6 +68,8 @@ class LocalBrowserViewModelTest {
         private val snap: Snap?,
         private val content: ByteArray,
     ) : SnapsDataSource {
+        override fun observeStorageBytes() = kotlinx.coroutines.flow.flowOf(0L)
+        override suspend fun deleteSiteWithSnaps(siteId: String) = Unit
         override suspend fun getContentTypeInfo(siteId: String): List<ContentTypeInfo> = emptyList()
 
         override suspend fun getMostRecentSnap(siteId: String): Snap? = null
@@ -76,6 +77,8 @@ class LocalBrowserViewModelTest {
         override suspend fun getAllMostRecentSnaps(): Map<String, Snap> = emptyMap()
 
         override fun getSnaps(siteId: String) = flowOf(emptyList<Snap>())
+
+        override fun observeSnapsTable() = flowOf(false)
 
         override fun getSnapsFiltered(
             siteId: String,
@@ -98,20 +101,7 @@ class LocalBrowserViewModelTest {
             newId: String,
         ): Pair<Pair<Snap, ByteArray>, Pair<Snap, ByteArray>>? = null
 
-        override suspend fun saveSnap(
-            snap: Snap,
-            content: ByteArray,
-            threshold: Int,
-        ): Result<Snap> = Result.Error()
-
-        override suspend fun deleteAllSnaps(siteId: String) = Unit
-
         override suspend fun deleteSnap(snapId: String) = Unit
-
-        override suspend fun deleteSnapsForSiteIdAndContentType(
-            siteId: String,
-            contentType: String,
-        ) = Unit
 
         override suspend fun pruneSnaps(siteId: String) = Unit
 

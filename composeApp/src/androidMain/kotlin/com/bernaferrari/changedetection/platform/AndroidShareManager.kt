@@ -4,6 +4,7 @@
  */
 package com.bernaferrari.changedetection.platform
 
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
@@ -30,7 +31,7 @@ class AndroidShareManager(
                 }
             context.startActivity(chooser)
         } catch (e: Exception) {
-            Napier.e("Failed to share text: ${e.message}")
+            Napier.e("Failed to share text", e)
         }
     }
 
@@ -41,14 +42,16 @@ class AndroidShareManager(
     ) {
         try {
             val cacheDir = File(context.cacheDir, "shares")
-            cacheDir.mkdirs()
-            val file = File(cacheDir, fileName)
+            check(cacheDir.exists() || cacheDir.mkdirs()) { "Unable to prepare the share cache" }
+            val safeFileName = File(fileName).name
+            require(safeFileName == fileName && safeFileName.isNotBlank()) { "Invalid share file name" }
+            val file = File(cacheDir, safeFileName)
             file.writeText(text)
 
             val uri =
                 FileProvider.getUriForFile(
                     context,
-                    "${context.packageName}.provider",
+                    "${context.packageName}.files",
                     file,
                 )
 
@@ -56,6 +59,7 @@ class AndroidShareManager(
                 Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_STREAM, uri)
+                    clipData = ClipData.newRawUri(safeFileName, uri)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
@@ -66,7 +70,7 @@ class AndroidShareManager(
                 }
             context.startActivity(chooser)
         } catch (e: Exception) {
-            Napier.e("Failed to share file: ${e.message}")
+            Napier.e("Failed to share file", e)
         }
     }
 }

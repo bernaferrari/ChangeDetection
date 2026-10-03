@@ -84,6 +84,8 @@ lint/tmp/
 *.json
 !gradle/libs.versions.toml
 !package.json
+# Room schema definitions contain structure only and are needed for migration review.
+!composeApp/schemas/**/*.json
 secrets.properties
 api-*.json
 *-keystore.*

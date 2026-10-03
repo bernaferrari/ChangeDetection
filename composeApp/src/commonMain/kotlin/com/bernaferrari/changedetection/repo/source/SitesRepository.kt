@@ -4,7 +4,9 @@
  */
 package com.bernaferrari.changedetection.repo.source
 
+import com.bernaferrari.changedetection.extensions.canonicalUrlKey
 import com.bernaferrari.changedetection.repo.Site
+import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -14,21 +16,36 @@ import kotlinx.coroutines.flow.Flow
 class SitesRepository(
     private val mSitesLocalDataSource: SitesDataSource,
 ) : SitesDataSource {
+    override fun observeWatchlist(): Flow<List<SiteAndLastSnap>> = mSitesLocalDataSource.observeWatchlist()
+
     override fun getDataWithChanges(): Flow<List<Site>> = mSitesLocalDataSource.getDataWithChanges()
 
     override suspend fun getSites(): List<Site> = mSitesLocalDataSource.getSites()
 
     override suspend fun getSiteById(siteId: String): Site? = mSitesLocalDataSource.getSiteById(siteId)
 
-    override suspend fun getSiteByUrl(siteUrl: String): Site? = mSitesLocalDataSource.getSiteByUrl(siteUrl)
+    override suspend fun getSiteByUrl(siteUrl: String): Site? {
+        mSitesLocalDataSource.getSiteByUrl(siteUrl)?.let { return it }
 
-    override suspend fun saveSite(site: Site) {
-        mSitesLocalDataSource.saveSite(site)
+        // Older databases may contain addresses saved before canonical duplicate
+        // checks existed. Compare stable URL identities as a migration-free guard
+        // so host case, fragments, default ports, and trailing slashes cannot create
+        // another copy of the same page.
+        val requestedKey = siteUrl.canonicalUrlKey() ?: return null
+        return mSitesLocalDataSource.getSites().firstOrNull { it.url.canonicalUrlKey() == requestedKey }
+    }
+
+    override suspend fun saveSite(site: Site, resetHistory: Boolean) {
+        mSitesLocalDataSource.saveSite(site, resetHistory)
     }
 
     override suspend fun updateSite(site: Site) {
         mSitesLocalDataSource.updateSite(site)
     }
+
+    override suspend fun markSiteRead(siteId: String, snapId: String): Boolean = mSitesLocalDataSource.markSiteRead(siteId, snapId)
+
+    override suspend fun undoSiteRead(siteId: String, snapId: String): Boolean = mSitesLocalDataSource.undoSiteRead(siteId, snapId)
 
     override suspend fun deleteAllSites() {
         mSitesLocalDataSource.deleteAllSites()

@@ -41,12 +41,16 @@ actual fun ChangeDetectionTheme(
 
         // All other cases: generate from SeedColor using MaterialKolor
         else -> {
-            dynamicColorScheme(
-                seedColor = seedColor,
-                isDark = darkTheme,
-                style = PaletteStyle.TonalSpot,
-                specVersion = ColorSpec.SpecVersion.SPEC_2025,
-            )
+            if (seedColor == SeedColor) {
+                referenceColorScheme(darkTheme)
+            } else {
+                dynamicColorScheme(
+                    seedColor = seedColor,
+                    isDark = darkTheme,
+                    style = PaletteStyle.TonalSpot,
+                    specVersion = ColorSpec.SpecVersion.SPEC_2025,
+                )
+            }
         }
     }
 
@@ -54,6 +58,7 @@ actual fun ChangeDetectionTheme(
         colorScheme = colorScheme,
         motionScheme = MotionScheme.expressive(),
         typography = Typography,
+        shapes = AppShapes,
     ) {
         CompositionLocalProvider(LocalAppSpacing provides AppSpacing()) {
             content()

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Github, Heart } from "lucide-react";
+import { GitFork, Heart } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -37,7 +37,7 @@ export function Footer() {
                 aria-label="Open Change Detection on GitHub"
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
-                <Github size={20} />
+                <GitFork size={20} />
               </a>
             </div>
           </div>

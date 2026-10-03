@@ -35,6 +35,7 @@ fun SignalEmptyState(
     onPrimaryAction: (() -> Unit)? = null,
     secondaryActionLabel: String? = null,
     onSecondaryAction: (() -> Unit)? = null,
+    visual: (@Composable () -> Unit)? = null,
 ) {
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Column(
@@ -42,6 +43,7 @@ fun SignalEmptyState(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            visual?.invoke()
             Text(
                 text = title,
                 style = MaterialTheme.typography.headlineSmall,

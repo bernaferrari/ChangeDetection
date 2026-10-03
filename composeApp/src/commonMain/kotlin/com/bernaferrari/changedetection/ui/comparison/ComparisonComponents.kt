@@ -50,6 +50,7 @@ data class DiffRowModel(
     val lineNumber: Int,
     val content: String,
     val type: DiffLineType,
+    val isContinuation: Boolean = false,
 )
 
 enum class DiffLineType {
@@ -313,6 +314,7 @@ fun DiffLine(
     content: String,
     type: DiffLineType,
     modifier: Modifier = Modifier,
+    showLineNumber: Boolean = true,
 ) {
     val (prefix, backgroundColor, textColor) = when (type) {
         DiffLineType.UNCHANGED -> Triple(
@@ -349,11 +351,11 @@ fun DiffLine(
     ) {
         // Line number
         Text(
-            text = lineNumber.toString().padStart(4),
+            text = if (showLineNumber) lineNumber.toString().padStart(4) else "    ",
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontFamily = FontFamily.Monospace,
             ),
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(end = 8.dp),
         )
 
@@ -375,8 +377,7 @@ fun DiffLine(
                 fontFamily = FontFamily.Monospace,
             ),
             color = MaterialTheme.colorScheme.onSurface,
-            softWrap = false,
-            maxLines = 1,
+            softWrap = true,
         )
     }
 }

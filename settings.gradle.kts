@@ -6,12 +6,19 @@ pluginManagement {
     }
 }
 
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
+
 dependencyResolutionManagement {
     // Kotlin/Wasm adds the Node.js distribution repository needed for browser builds.
     repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
     repositories {
         google()
         mavenCentral()
+        maven("https://jogamp.org/deployment/maven") {
+            content { includeGroup("org.jogamp.gluegen"); includeGroup("org.jogamp.jogl") }
+        }
     }
 }
 
@@ -19,11 +26,3 @@ include(":app")
 include(":composeApp")
 include(":sqliteWasmWorker")
 include(":webApp")
-
-// The Android browser adapter uses the local Webwright development build. Keeping this as a
-// composite preserves the shared source-level browser implementation used by the native apps.
-includeBuild("../../kotlin/webwright") {
-    dependencySubstitution {
-        substitute(module("com.bernaferrari.kmpwright:kmpwright-core")).using(project(":kmpwright-core"))
-    }
-}
