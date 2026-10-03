@@ -9,16 +9,6 @@ import android.webkit.CookieManager
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import com.bernaferrari.kmpwright.core.AndroidPlatformContext
-import com.bernaferrari.kmpwright.core.AndroidScreenshotController
-import com.bernaferrari.kmpwright.core.Browser
-import com.bernaferrari.kmpwright.core.GotoOptions
-import com.bernaferrari.kmpwright.core.KmpwrightConfig
-import com.bernaferrari.kmpwright.core.LoadState
-import com.bernaferrari.kmpwright.core.Page
-import com.bernaferrari.kmpwright.core.ReloadOptions
-import com.bernaferrari.kmpwright.core.ScreenshotOptions
-import com.bernaferrari.kmpwright.core.Viewport
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,122 +19,6 @@ data class WebViewScreenshot(
     val width: Int,
     val height: Int,
 )
-
-class AndroidWebwrightSession private constructor(
-    private val webView: WebView,
-    private val browser: Browser,
-    val page: Page,
-    private val config: KmpwrightConfig,
-) {
-    suspend fun goto(url: String) = page.goto(
-        url,
-        GotoOptions(
-            waitUntil = LoadState.Load,
-            timeoutMs = NAVIGATION_TIMEOUT_MS,
-        ),
-    )
-
-    suspend fun waitForPageToSettle(delayMs: Long) {
-        runCatching { page.waitForLoadState(LoadState.Load, LOAD_STATE_TIMEOUT_MS) }
-        if (delayMs > 0) {
-            page.waitForTimeout(delayMs)
-        }
-    }
-
-    suspend fun evaluate(script: String): String = page.evaluate(script).value
-
-    suspend fun cookieHeader(): String {
-        val cookies = page.getAllCookies()
-            .joinToString("; ") { cookie -> "${cookie.name}=${cookie.value}" }
-        return cookies.ifBlank {
-            page.url.value?.let(::readCookiesForUrl).orEmpty()
-        }
-    }
-
-    suspend fun captureFullPagePng(maxHeightPixels: Int): WebViewScreenshot = withContext(Dispatchers.Main.immediate) {
-        webView.ensureLaidOut()
-        val controller = AndroidScreenshotController(webView, config)
-        val pageDimensions = controller.getPageDimensions()
-        val scale = if (pageDimensions.contentHeight > maxHeightPixels) {
-            (maxHeightPixels.toDouble() / pageDimensions.contentHeight.toDouble()).coerceIn(MIN_SCREENSHOT_SCALE, 1.0)
-        } else {
-            1.0
-        }
-        val screenshot = page.screenshot(
-            ScreenshotOptions(
-                fullPage = true,
-                scale = scale,
-            ),
-        )
-
-        WebViewScreenshot(
-            contentType = "image/png",
-            bytes = screenshot.bytes,
-            width = screenshot.width,
-            height = screenshot.height,
-        )
-    }
-
-    suspend fun back() = page.back()
-
-    suspend fun forward() = page.forward()
-
-    suspend fun reload() = page.reload(ReloadOptions(timeoutMs = NAVIGATION_TIMEOUT_MS))
-
-    fun stopLoading() {
-        webView.stopLoading()
-    }
-
-    fun userAgent(): String = webView.settings.userAgentString.orEmpty()
-
-    fun close() {
-        browser.close()
-    }
-
-    companion object {
-        fun attach(
-            context: Context,
-            webView: WebView,
-            enableZoom: Boolean = false,
-            overviewMode: Boolean = true,
-            acceptThirdPartyCookies: Boolean = false,
-            delegateWebViewClient: WebViewClient? = null,
-            delegateWebChromeClient: WebChromeClient? = null,
-        ): AndroidWebwrightSession {
-            webView.configureChangeDetectionWebView(
-                enableZoom = enableZoom,
-                overviewMode = overviewMode,
-                acceptThirdPartyCookies = acceptThirdPartyCookies,
-            )
-            webView.ensureLaidOut()
-
-            val config = KmpwrightConfig(
-                viewport = Viewport(
-                    width = webView.width.takeIf { it > 0 } ?: DEFAULT_VIEWPORT_WIDTH,
-                    height = webView.height.takeIf { it > 0 } ?: DEFAULT_VIEWPORT_HEIGHT,
-                    isMobile = true,
-                    hasTouch = true,
-                ),
-            )
-            val browser = Browser(
-                AndroidPlatformContext(
-                    context = context,
-                    webView = webView,
-                    delegateWebViewClient = delegateWebViewClient,
-                    delegateWebChromeClient = delegateWebChromeClient,
-                ),
-                config,
-            )
-
-            return AndroidWebwrightSession(
-                webView = webView,
-                browser = browser,
-                page = browser.page(),
-                config = config,
-            )
-        }
-    }
-}
 
 internal fun WebView.configureChangeDetectionWebView(
     enableZoom: Boolean = false,

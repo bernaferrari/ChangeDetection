@@ -5,6 +5,9 @@
 package com.bernaferrari.changedetection.util
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.delay
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.logs_days_ago
 import com.bernaferrari.changedetection.shared.generated.resources.logs_hr_ago
@@ -16,40 +19,36 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.pluralStringResource
 import kotlin.time.Instant
 
-fun formatTimestamp(timestamp: Long): String {
-    val instant = Instant.fromEpochMilliseconds(timestamp)
-    val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
-
-    // Custom formatting since KMP doesn't support java.text.SimpleDateFormat
-    // Format: MMM dd, HH:mm:ss
-    val monthNames = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-    val month = monthNames[localDateTime.month.ordinal]
-
-    val day = localDateTime.day.toString().padStart(2, '0')
-    val hour = localDateTime.hour.toString().padStart(2, '0')
-    val minute = localDateTime.minute.toString().padStart(2, '0')
-    val second = localDateTime.second.toString().padStart(2, '0')
-
-    return "$month $day, $hour:$minute"
+fun formatTimestamp(timestamp: Long, includeSeconds: Boolean = false): String = timestamp.toLocalDateTime().let { dateTime ->
+    "${dateTime.year.toString().padStart(4, '0')}-${(dateTime.month.ordinal + 1).twoDigits()}-" +
+        "${dateTime.day.twoDigits()}, ${dateTime.hour.twoDigits()}:${dateTime.minute.twoDigits()}" +
+        if (includeSeconds) ":${dateTime.second.twoDigits()}" else ""
 }
 
 /** Formats the calendar day used to group history entries without splitting every timestamp. */
-fun formatDate(timestamp: Long): String {
-    val localDateTime = Instant.fromEpochMilliseconds(timestamp)
-        .toLocalDateTime(TimeZone.currentSystemDefault())
-    val monthNames = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-    val month = monthNames[localDateTime.month.ordinal]
-    val day = localDateTime.day.toString().padStart(2, '0')
-
-    return "$month $day"
+fun formatDate(timestamp: Long): String = timestamp.toLocalDateTime().let { dateTime ->
+    "${dateTime.year.toString().padStart(4, '0')}-${(dateTime.month.ordinal + 1).twoDigits()}-${dateTime.day.twoDigits()}"
 }
+
+fun formatTime(timestamp: Long, includeSeconds: Boolean = false): String = timestamp.toLocalDateTime().let { dateTime ->
+    "${dateTime.hour.twoDigits()}:${dateTime.minute.twoDigits()}" +
+        if (includeSeconds) ":${dateTime.second.twoDigits()}" else ""
+}
+
+private fun Long.toLocalDateTime() = Instant.fromEpochMilliseconds(this)
+    .toLocalDateTime(TimeZone.currentSystemDefault())
+
+private fun Int.twoDigits(): String = toString().padStart(2, '0')
 
 @Composable
 fun getRelativeTimeLabel(timestamp: Long): String {
-    val now =
-        kotlin.time.Clock.System
-            .now()
-            .toEpochMilliseconds()
+    // A visible “just now” label must age even when the underlying record is unchanged.
+    val now by produceState(initialValue = getCurrentTimeMillis(), key1 = timestamp) {
+        while (true) {
+            value = getCurrentTimeMillis()
+            delay(60_000)
+        }
+    }
     val diff = now - timestamp
     val seconds = diff / 1000
     val minutes = seconds / 60

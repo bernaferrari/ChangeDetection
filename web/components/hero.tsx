@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Bell, Github, Smartphone } from "lucide-react";
+import { Bell, GitFork, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductPreview } from "@/components/product-preview";
 
@@ -77,7 +77,7 @@ export function Hero() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <Github className="mr-2" size={18} />
+                <GitFork className="mr-2" size={18} />
                 View on GitHub
               </a>
             </Button>

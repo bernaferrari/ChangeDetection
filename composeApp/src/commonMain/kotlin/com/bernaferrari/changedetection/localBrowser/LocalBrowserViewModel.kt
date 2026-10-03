@@ -10,6 +10,7 @@ import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.util.decodeByteArray
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,10 +20,13 @@ import org.koin.core.annotation.KoinViewModel
 
 data class BrowserState(
     val content: String = "",
+    val bytes: ByteArray? = null,
     val isLoading: Boolean = false,
     val hasError: Boolean = false,
     val mimeType: String = "text/html",
     val charset: String = "UTF-8",
+    val timestamp: Long? = null,
+    val contentSize: Int = 0,
 )
 
 @KoinViewModel
@@ -33,33 +37,40 @@ class LocalBrowserViewModel(
     private val _state = MutableStateFlow(BrowserState())
     val state: StateFlow<BrowserState> = _state.asStateFlow()
 
+    private var fetchJob: Job? = null
+
     fun reset() {
+        fetchJob?.cancel()
         _state.value = BrowserState()
     }
 
     fun fetchData(snapId: String) {
-        viewModelScope.launch {
+        // Cancel any in-flight load so a stale response can never overwrite
+        // newer state (rapid snapshot switching, or reset() during a load).
+        fetchJob?.cancel()
+        fetchJob = viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
 
             try {
-                val snapshotInfo =
-                    withContext(Dispatchers.Default) {
-                        val snap = snapsRepository.getSnapById(snapId)
-                        val bytes = snapsRepository.getSnapContent(snapId)
-                        Triple(snap, bytes, resolveEncoding(snap))
-                    }
-
-                val (snap, bytes, encoding) = snapshotInfo
-                val (mimeType, charsetName) = encoding
-
-                val decodedContent = decodeByteArray(bytes, charsetName)
+                val (snap, bytes) = withContext(Dispatchers.Default) {
+                    snapsRepository.getSnapById(snapId) to snapsRepository.getSnapContent(snapId)
+                }
+                val (mimeType, charsetName) = resolveEncoding(snap)
+                val decodedContent = if (mimeType.startsWith("text/", ignoreCase = true)) {
+                    decodeByteArray(bytes, charsetName)
+                } else {
+                    ""
+                }
 
                 _state.value =
                     BrowserState(
                         content = decodedContent,
+                        bytes = bytes,
                         isLoading = false,
                         mimeType = mimeType,
                         charset = charsetName,
+                        timestamp = snap?.timestamp,
+                        contentSize = snap?.contentSize ?: bytes.size,
                     )
             } catch (e: Exception) {
                 _state.value =

@@ -48,7 +48,7 @@ class ThemeViewModel(
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
-                initialValue = AppPalette.TEAL,
+                initialValue = AppPalette.DEFAULT,
             )
 
     fun updateThemeMode(mode: ThemeMode) {

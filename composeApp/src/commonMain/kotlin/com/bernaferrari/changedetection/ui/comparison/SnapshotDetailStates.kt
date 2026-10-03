@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -38,18 +39,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.shared.generated.resources.Res
+import com.bernaferrari.changedetection.shared.generated.resources.a11y_saved_screenshot_capture
+import com.bernaferrari.changedetection.shared.generated.resources.home_action_check_now
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_single_snapshot_hint
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_single_snapshot_title
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_empty_subtitle
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_empty_title
 import com.bernaferrari.changedetection.shared.generated.resources.failed_to_load_content
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_check_now_hint
 import com.bernaferrari.changedetection.shared.generated.resources.retry
 import com.bernaferrari.changedetection.ui.components.SignalEmptyState
 import com.bernaferrari.changedetection.ui.components.AppLoadingIndicator
 import com.bernaferrari.changedetection.ui.theme.spacing
 import com.bernaferrari.changedetection.util.formatTimestamp
-import com.multiplatform.webview.web.WebView
-import com.multiplatform.webview.web.rememberWebViewStateWithHTMLData
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -71,14 +73,20 @@ internal fun SingleSnapshotState(
     isLoadingContent: Boolean,
     hasError: Boolean,
     onRetry: () -> Unit,
+    onCheckNow: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val spacing = MaterialTheme.spacing
     if (snap.isImageSnapshot() && bytes != null) {
+        val screenshotDescription = stringResource(
+            Res.string.a11y_saved_screenshot_capture,
+            formatTimestamp(snap.timestamp),
+        )
         Box(modifier = modifier) {
             ImageViewport(
                 bytes = bytes,
                 label = null,
+                contentDescription = screenshotDescription,
                 modifier = Modifier.fillMaxSize(),
             )
 
@@ -96,25 +104,12 @@ internal fun SingleSnapshotState(
 
         Box(modifier = modifier) {
             if (isHtml) {
-                val webViewState = rememberWebViewStateWithHTMLData(data = content)
-                WebView(
-                    state = webViewState,
+                SecureSnapshotWebView(
+                    html = content,
                     modifier = Modifier.fillMaxSize(),
                 )
             } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(bottom = spacing.md),
-                ) {
-                    Text(
-                        text = content,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontFamily = FontFamily.Monospace,
-                        modifier = Modifier.padding(spacing.md),
-                    )
-                }
+                SnapshotTextContent(content, Modifier.fillMaxSize(), monospace = true)
             }
 
             SnapshotTimestampLabel(
@@ -133,7 +128,7 @@ internal fun SingleSnapshotState(
         }
     } else if (hasError) {
         Column(
-            modifier = modifier.padding(spacing.xl),
+            modifier = modifier.verticalScroll(rememberScrollState()).padding(spacing.xl),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -185,6 +180,33 @@ internal fun SingleSnapshotState(
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
                 )
+                if (onCheckNow != null) {
+                    Spacer(modifier = Modifier.height(spacing.md))
+                    Text(
+                        text = stringResource(Res.string.comparison_check_now_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(modifier = Modifier.height(spacing.sm))
+                    Button(
+                        onClick = onCheckNow,
+                        enabled = !isLoadingContent,
+                        shapes = ButtonDefaults.shapes(),
+                    ) {
+                        if (isLoadingContent) {
+                            AppLoadingIndicator(size = 16.dp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(stringResource(Res.string.home_action_check_now))
+                    }
+                }
             }
         }
     }
@@ -199,7 +221,7 @@ internal fun SnapshotTimestampLabel(
     Surface(
         modifier = modifier,
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.9f),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
         tonalElevation = spacing.xxs,
     ) {
         Text(

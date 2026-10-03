@@ -4,12 +4,22 @@
  */
 package com.bernaferrari.changedetection.ui.settings
 
+import com.bernaferrari.changedetection.background.MonitoringExecution
+import com.bernaferrari.changedetection.background.monitoringCapabilities
+
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.History
+import com.bernaferrari.changedetection.repo.supportsVisualMonitoring
+import com.bernaferrari.changedetection.ui.components.monitoringCadenceLabel
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Code
@@ -38,6 +48,7 @@ import com.bernaferrari.changedetection.model.ThemeMode
 import com.bernaferrari.changedetection.model.AppPalette
 import com.bernaferrari.changedetection.repo.ComparisonMethod
 import com.bernaferrari.changedetection.ui.components.SegmentPosition
+import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.how_it_works
 import com.bernaferrari.changedetection.shared.generated.resources.dialog_cancel
@@ -64,22 +75,53 @@ import com.bernaferrari.changedetection.ui.theme.spacing
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun AppearanceSettingsSection(
+internal fun DeviceSettingsSection(
+    uiState: SettingsUiState,
+    onThemeSelected: (ThemeMode) -> Unit,
+    onPaletteSelected: (AppPalette) -> Unit,
+    onRetryStorage: () -> Unit,
+    writeFailed: Boolean = false,
+    onRetryWrite: () -> Unit = {},
+) {
+    SettingsSectionHeader(title = stringResource(Res.string.settings_on_this_device))
+    SettingsGroup {
+        AppearanceSettingsRow(uiState.themeMode, uiState.appPalette, onThemeSelected, onPaletteSelected, writeFailed, onRetryWrite, SegmentPosition.First)
+        HistoryStorageRow(uiState.storageBytes, uiState.storageLoadFailed, onRetryStorage, SegmentPosition.Last)
+    }
+    if (uiState.storageLoadFailed) TextButton(onClick = onRetryStorage, modifier = Modifier.padding(horizontal = 24.dp)) { Text(stringResource(Res.string.retry)) }
+}
+
+@Composable
+private fun AppearanceSettingsRow(
     selectedTheme: ThemeMode,
     selectedPalette: AppPalette,
     onThemeSelected: (ThemeMode) -> Unit,
     onPaletteSelected: (AppPalette) -> Unit,
+    writeFailed: Boolean,
+    onRetryWrite: () -> Unit,
+    position: SegmentPosition,
 ) {
-    SettingsSectionHeader(
-        title = stringResource(Res.string.settings_section_appearance),
+    var expanded by remember { mutableStateOf(false) }
+    SettingsActionRow(
+        icon = Icons.Outlined.Palette,
+        title = stringResource(Res.string.settings_theme_and_color),
+        value = "${stringResource(selectedTheme.titleRes)} · ${stringResource(selectedPalette.titleRes)}",
+        position = position,
+        onClick = { expanded = true },
     )
-    ThemeSelector(
-        selectedTheme = selectedTheme,
-        selectedPalette = selectedPalette,
-        onThemeSelected = onThemeSelected,
-        onPaletteSelected = onPaletteSelected,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.spacing.md),
-    )
+    if (expanded) {
+        AlertDialog(
+            onDismissRequest = { expanded = false },
+            title = { Text(stringResource(Res.string.settings_section_appearance)) },
+            text = {
+                Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState())) {
+                    if (writeFailed) SettingsWriteError(onRetryWrite)
+                    ThemeSelector(selectedTheme, selectedPalette, onThemeSelected, onPaletteSelected, Modifier.fillMaxWidth())
+                }
+            },
+            confirmButton = { TextButton(onClick = { expanded = false }) { Text(stringResource(Res.string.done)) } },
+        )
+    }
 }
 
 @Composable
@@ -95,38 +137,48 @@ internal fun MonitoringSettingsSection(
     SettingsGroup {
         SettingsActionRow(
             icon = Icons.Outlined.Sync,
-            title = stringResource(Res.string.settings_background_sync_title),
+            title = stringResource(if (monitoringCapabilities.execution == MonitoringExecution.Background) Res.string.settings_background_sync_title else Res.string.settings_automatic_checks_title),
             value = if (uiState.backgroundSync) {
-                stringResource(Res.string.settings_background_sync_every, uiState.syncInterval.toInt())
+                monitoringCadenceLabel(uiState.syncInterval)
             } else {
                 stringResource(Res.string.settings_background_sync_disabled)
             },
-            subtitle = stringResource(Res.string.settings_background_sync_summary),
-            position = SegmentPosition.First,
-            onClick = onBackgroundSyncClick,
-        )
-        SettingsActionRow(
-            icon = Icons.Outlined.Schedule,
-            title = stringResource(Res.string.settings_browser_delay_title),
-            subtitle = stringResource(Res.string.settings_browser_delay_summary),
-            value = formatDelay(uiState.browserDelayMs),
-            position = SegmentPosition.Middle,
-            onClick = onBrowserDelayClick,
-        )
-        SettingsActionRow(
-            icon = Icons.Outlined.Code,
-            title = stringResource(Res.string.settings_comparison_title),
-            subtitle = stringResource(Res.string.settings_comparison_summary),
-            value = stringResource(
-                if (uiState.comparisonMethod == ComparisonMethod.HTML) {
-                    Res.string.settings_comparison_page_text
-                } else {
-                    Res.string.settings_comparison_screenshots
+            subtitle = stringResource(
+                when (monitoringCapabilities.execution) {
+                    MonitoringExecution.Background -> Res.string.settings_background_sync_summary
+                    MonitoringExecution.WhileOpen -> Res.string.settings_checks_while_open
+                    MonitoringExecution.Unavailable -> Res.string.settings_checks_unavailable
                 },
             ),
-            position = SegmentPosition.Last,
-            onClick = onComparisonMethodClick,
+            position = if (supportsVisualMonitoring) SegmentPosition.First else SegmentPosition.Only,
+            onClick = onBackgroundSyncClick,
         )
+        if (supportsVisualMonitoring) {
+            SettingsActionRow(
+                icon = Icons.Outlined.Schedule,
+                title = stringResource(Res.string.settings_browser_delay_title),
+                subtitle = stringResource(Res.string.settings_browser_delay_summary),
+                value = formatDelay(uiState.browserDelayMs),
+                position = SegmentPosition.Middle,
+                onClick = onBrowserDelayClick,
+            )
+        }
+        if (supportsVisualMonitoring) {
+            SettingsActionRow(
+                icon = Icons.Outlined.Code,
+                title = stringResource(Res.string.settings_comparison_title),
+                subtitle = stringResource(Res.string.settings_comparison_summary),
+                value = stringResource(
+                    if (uiState.comparisonMethod == ComparisonMethod.HTML) {
+                        Res.string.settings_comparison_page_text
+                    } else {
+                        Res.string.settings_comparison_screenshots
+                    },
+                ),
+                position = SegmentPosition.Last,
+                onClick = onComparisonMethodClick,
+            )
+        }
     }
 }
 
@@ -202,7 +254,7 @@ internal fun AboutSettingsSection(
     onContactClick: () -> Unit,
 ) {
     SettingsSectionHeader(
-        title = stringResource(Res.string.settings_about_section),
+        title = stringResource(Res.string.settings_help_section),
     )
     SettingsGroup {
         SettingsActionRow(
@@ -218,19 +270,18 @@ internal fun AboutSettingsSection(
             onClick = onAboutClick,
         )
         SettingsActionRow(
-            icon = Icons.Outlined.Code,
-            title = stringResource(Res.string.settings_version),
-            value = appVersion.ifBlank { "—" },
-            showChevron = false,
-            position = SegmentPosition.Middle,
-        )
-        SettingsActionRow(
             icon = Icons.Outlined.Email,
             title = stringResource(Res.string.settings_action_contact),
             position = SegmentPosition.Last,
             onClick = onContactClick,
         )
     }
+    Text(
+        stringResource(Res.string.settings_version) + " · " + appVersion.ifBlank { "—" },
+        Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 20.dp),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @Composable
@@ -241,7 +292,7 @@ private fun BrowserDelaySelector(
     val spacing = MaterialTheme.spacing
     val delays = listOf(2000L, 5000L, 10000L, 15000L)
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
     ) {
         delays.forEachIndexed { index, delay ->
@@ -275,4 +326,41 @@ private fun BrowserDelaySelector(
 private fun formatDelay(delayMs: Long): String {
     val seconds = (delayMs / 1000L).coerceAtLeast(1L)
     return "${seconds}s"
+}
+
+@Composable
+private fun HistoryStorageRow(bytes: Long?, loadFailed: Boolean, onRetry: () -> Unit, position: SegmentPosition) {
+    var expanded by remember { mutableStateOf(false) }
+    val usage = if (loadFailed) {
+        stringResource(Res.string.storage_history_load_failed)
+    } else if (bytes == null) {
+        stringResource(Res.string.loading)
+    } else {
+        stringResource(Res.string.storage_history_usage, if (bytes in 1..1_048_575) "<1" else (bytes / 1_048_576L).toString())
+    }
+    SettingsActionRow(
+        icon = Icons.Outlined.History,
+        title = stringResource(Res.string.storage_history_title),
+        subtitle = usage,
+        position = position,
+        onClick = { expanded = true },
+    )
+    if (expanded) {
+        AlertDialog(
+            onDismissRequest = { expanded = false },
+            title = { Text(stringResource(Res.string.storage_history_title)) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(usage, style = MaterialTheme.typography.titleMedium)
+                    if (loadFailed) TextButton(onClick = onRetry) { Text(stringResource(Res.string.retry)) }
+                    Text(
+                        stringResource(Res.string.storage_history_policy),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            },
+            confirmButton = { TextButton(onClick = { expanded = false }) { Text(stringResource(Res.string.done)) } },
+        )
+    }
 }

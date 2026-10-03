@@ -4,6 +4,11 @@
  */
 package com.bernaferrari.changedetection.ui.comparison
 
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.platform.testTag
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.heightIn
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,17 +23,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,88 +42,59 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.shared.generated.resources.Res
-import com.bernaferrari.changedetection.shared.generated.resources.comparison_choose_older
+import com.bernaferrari.changedetection.shared.generated.resources.a11y_close
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_section_snapshots
 import com.bernaferrari.changedetection.shared.generated.resources.version_count
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_before
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_after
 import com.bernaferrari.changedetection.shared.generated.resources.version_pair_latest
 import com.bernaferrari.changedetection.shared.generated.resources.version_pair_previous
-import com.bernaferrari.changedetection.ui.theme.spacing
 import com.bernaferrari.changedetection.ui.components.SegmentPosition
 import com.bernaferrari.changedetection.ui.components.segmentShape
 import com.bernaferrari.changedetection.util.formatTimestamp
 import org.jetbrains.compose.resources.stringResource
 
-/** A compact version timeline modeled after SDK Monitor's segmented history. */
+/** One lazy history surface, anchored at the selected change. */
 @Composable
 internal fun VersionSelector(
     snaps: List<Snap>,
     selectedIndex: Int,
     onSelectPair: (Int) -> Unit,
+    onClose: () -> Unit,
+    footer: @Composable () -> Unit = {},
 ) {
-    val spacing = MaterialTheme.spacing
     val pairCount = (snaps.size - 1).coerceAtLeast(0)
-    val visibleIndices = remember(pairCount, selectedIndex) {
-        if (pairCount <= 3) {
-            (0 until pairCount).toList()
-        } else {
-            buildList {
-                add(0)
-                add(1)
-                add(if (selectedIndex >= 2) selectedIndex else 2)
-            }.distinct().sorted()
-        }
-    }
-    var olderMenuOpen by remember { mutableStateOf(false) }
-
-    Column(modifier = Modifier.fillMaxWidth().padding(top = spacing.xs)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(Res.string.comparison_section_snapshots),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = stringResource(Res.string.version_count, snaps.size),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState(
+        initialFirstVisibleItemIndex = selectedIndex.coerceIn(0, (pairCount - 1).coerceAtLeast(0)),
+    )
+    Column(Modifier.fillMaxWidth().heightIn(max = 640.dp)) {
+        Row(Modifier.fillMaxWidth().padding(bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(Res.string.comparison_section_snapshots), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(stringResource(Res.string.version_count, snaps.size), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            if (pairCount > 3) {
-                Box {
-                    TextButton(onClick = { olderMenuOpen = true }) {
-                        Text(stringResource(Res.string.comparison_choose_older))
-                    }
-                    DropdownMenu(expanded = olderMenuOpen, onDismissRequest = { olderMenuOpen = false }) {
-                        (2 until pairCount).forEach { index ->
-                            DropdownMenuItem(
-                                text = { Text(stringResource(Res.string.version_pair_previous, index)) },
-                                onClick = {
-                                    onSelectPair(index)
-                                    olderMenuOpen = false
-                                },
-                            )
-                        }
-                    }
-                }
+            IconButton(onClick = onClose) {
+                Icon(Icons.Rounded.Close, stringResource(Res.string.a11y_close))
             }
         }
-
-        Column(modifier = Modifier.padding(top = spacing.xs)) {
-            visibleIndices.forEachIndexed { visibleIndex, pairIndex ->
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxWidth().weight(1f, fill = false).testTag("version-history").selectableGroup(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            items(count = pairCount, key = { snaps[it].snapId }) { index ->
                 VersionTimelineEntry(
-                    label = if (pairIndex == 0) {
-                        stringResource(Res.string.version_pair_latest)
-                    } else {
-                        stringResource(Res.string.version_pair_previous, pairIndex)
-                    },
-                    timeRange = "${formatTimestamp(snaps[pairIndex + 1].timestamp)} → ${formatTimestamp(snaps[pairIndex].timestamp)}",
-                    selected = pairIndex == selectedIndex,
-                    first = visibleIndex == 0,
-                    last = visibleIndex == visibleIndices.lastIndex,
-                    onClick = { onSelectPair(pairIndex) },
+                    label = if (index == 0) stringResource(Res.string.version_pair_latest) else stringResource(Res.string.version_pair_previous, index),
+                    beforeTime = formatTimestamp(snaps[index + 1].timestamp, includeSeconds = true),
+                    afterTime = formatTimestamp(snaps[index].timestamp, includeSeconds = true),
+                    selected = index == selectedIndex,
+                    first = index == 0,
+                    last = index == pairCount - 1,
+                    onClick = { onSelectPair(index) },
                 )
             }
+            item(key = "page-facts") { Box(Modifier.padding(top = 16.dp)) { footer() } }
         }
     }
 }
@@ -129,7 +102,8 @@ internal fun VersionSelector(
 @Composable
 private fun VersionTimelineEntry(
     label: String,
-    timeRange: String,
+    beforeTime: String,
+    afterTime: String,
     selected: Boolean,
     first: Boolean,
     last: Boolean,
@@ -184,7 +158,8 @@ private fun VersionTimelineEntry(
             ) {
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(label, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-                    Text(timeRange, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${stringResource(Res.string.comparison_mode_before)} · $beforeTime", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${stringResource(Res.string.comparison_mode_after)} · $afterTime", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

@@ -7,6 +7,7 @@ package com.bernaferrari.changedetection.error
 import io.github.aakira.napier.Napier
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.network.sockets.SocketTimeoutException
+import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ServerResponseException
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -72,18 +73,30 @@ class ErrorHandler {
 
         is DatabaseError -> handleDatabaseError(error)
 
+        is SnapshotStorageError -> ErrorResult(
+            type = ErrorType.DATABASE,
+            userMessage = if (error.lowSpace) "Not enough storage" else "Could not save this check",
+            description = if (error.lowSpace) "Free up device storage, then check the page again. Existing history is preserved." else "The snapshot could not be written. Existing history is preserved.",
+            severity = ErrorSeverity.ERROR,
+            isRetryable = !error.lowSpace,
+            suggestedActions = if (error.lowSpace) listOf("Free up device storage", "Check the page again") else listOf("Check the page again"),
+            recoveryAction = if (error.lowSpace) RecoveryAction.NONE else RecoveryAction.RETRY,
+        )
+
         is SyncError -> handleSyncError(error)
 
         is AuthenticationError -> handleAuthenticationError(error)
 
         is ContentError -> handleContentError(error)
 
-        // Network connectivity
-        is IOException -> handleConnectivityError(error)
+        is HttpRequestTimeoutException -> handleTimeoutError()
 
         is ConnectTimeoutException -> handleTimeoutError()
 
         is SocketTimeoutException -> handleTimeoutError()
+
+        // Network connectivity
+        is IOException -> handleConnectivityError(error)
 
         // Fallback
         else -> handleGenericError(error)
@@ -333,11 +346,12 @@ class ErrorHandler {
         when (error.reason) {
             ContentError.Reason.EMPTY -> "Empty content"
             ContentError.Reason.UNSUPPORTED -> "Unsupported content type"
+            ContentError.Reason.CAPTURE_UNAVAILABLE -> "Screenshot monitoring is unavailable on this platform"
             ContentError.Reason.ENCODING -> "Encoding error"
             else -> "Content processing failed"
         },
         severity = ErrorSeverity.WARNING,
-        isRetryable = error.reason != ContentError.Reason.UNSUPPORTED,
+        isRetryable = error.reason !in setOf(ContentError.Reason.UNSUPPORTED, ContentError.Reason.CAPTURE_UNAVAILABLE),
     )
 
     private fun handleConnectivityError(error: IOException): ErrorResult {
@@ -535,6 +549,12 @@ data class ErrorEvent(
 )
 
 // Custom exception classes with additional context
+class SnapshotStorageError(val lowSpace: Boolean, cause: Throwable? = null) :
+    Exception(
+        if (lowSpace) "Insufficient space to safely save a snapshot" else "Snapshot file write failed",
+        cause,
+    )
+
 class NetworkError(
     val code: Int,
     message: String,
@@ -576,7 +596,7 @@ class ContentError(
     val reason: Reason,
     message: String = "",
 ) : Exception(message) {
-    enum class Reason { EMPTY, UNSUPPORTED, ENCODING, UNKNOWN }
+    enum class Reason { EMPTY, UNSUPPORTED, CAPTURE_UNAVAILABLE, ENCODING, UNKNOWN }
 }
 
 // Extension functions

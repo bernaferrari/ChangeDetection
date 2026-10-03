@@ -14,8 +14,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.error.ErrorEvent
 import com.bernaferrari.changedetection.error.ErrorSeverity
@@ -58,67 +60,48 @@ private fun ErrorBannerContent(
     Surface(
         modifier = modifier
             .fillMaxWidth()
+            .semantics { liveRegion = LiveRegionMode.Polite }
             .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = MaterialTheme.shapes.large,
         color = colors.containerColor,
         tonalElevation = 3.dp,
     ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            // Icon
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(colors.iconBackgroundColor),
-                contentAlignment = Alignment.Center,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = colors.iconColor,
-                    modifier = Modifier.size(20.dp),
-                )
-            }
-
-            // Message
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = event.message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = colors.textColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (event.description != null) {
-                    Text(
-                        text = event.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.textColor.copy(alpha = 0.7f),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(colors.iconBackgroundColor),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = colors.iconColor,
+                        modifier = Modifier.size(20.dp),
                     )
                 }
-            }
 
-            // Actions
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (onRetry != null) {
-                    TextButton(
-                        onClick = {
-                            onDismiss()
-                            onRetry()
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = colors.actionColor,
-                        ),
-                    ) {
-                        Text(stringResource(Res.string.retry))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = event.message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = colors.textColor,
+                    )
+                    if (event.description != null) {
+                        Text(
+                            text = event.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.textColor,
+                        )
                     }
                 }
                 IconButton(
@@ -131,6 +114,18 @@ private fun ErrorBannerContent(
                         tint = colors.textColor.copy(alpha = 0.7f),
                         modifier = Modifier.size(18.dp),
                     )
+                }
+            }
+            if (onRetry != null) {
+                TextButton(
+                    onClick = {
+                        onDismiss()
+                        onRetry()
+                    },
+                    modifier = Modifier.align(Alignment.End),
+                    colors = ButtonDefaults.textButtonColors(contentColor = colors.actionColor),
+                ) {
+                    Text(stringResource(Res.string.retry))
                 }
             }
         }

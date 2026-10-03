@@ -7,14 +7,11 @@ package com.bernaferrari.changedetection.repo.source.local
 import com.bernaferrari.changedetection.repo.AppExecutors
 import com.bernaferrari.changedetection.repo.ContentTypeInfo
 import com.bernaferrari.changedetection.repo.Snap
-import com.bernaferrari.changedetection.repo.source.Result
 import com.bernaferrari.changedetection.repo.source.SnapsDataSource
-import com.bernaferrari.changedetection.util.ContentHasher
 import com.bernaferrari.changedetection.util.FileStorage
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
-import kotlin.math.abs
 
 /**
  * Concrete implementation of a data source as a db.
@@ -23,65 +20,42 @@ import kotlin.math.abs
 class SnapsLocalDataSource constructor(
     private val mAppExecutors: AppExecutors,
     private val mSnapsDao: SnapsDao,
+    private val sitesDao: SitesDao,
     private val fileStorage: FileStorage,
+    private val cleanup: com.bernaferrari.changedetection.storage.SnapshotFileCleanup,
 ) : SnapsDataSource {
+    override fun observeStorageBytes(): Flow<Long> = mSnapsDao.observeStorageBytes()
+
+    /** Keep the comparison pair; each bounded transaction also queues its file cleanup. */
     override suspend fun pruneSnaps(siteId: String) = withContext(mAppExecutors.ioContext) {
-        // Use optimized database-level pruning instead of loading all data into memory
-        pruneSnapsOptimized(siteId)
-    }
-
-    private suspend fun pruneSnapsOptimized(siteId: String) {
-        // First, get content duplication stats to determine pruning strategy
-        val duplicationStats = mSnapsDao.getContentDuplicationStats(siteId)
-
-        if (duplicationStats.duplicationRate > 0.3) {
-            // High duplication rate - remove duplicates first using content hashes
-            pruneByContentHash(siteId)
+        while (true) {
+            val obsolete = mSnapsDao.removeOlderVersionsBatch(siteId)
+            if (obsolete.isEmpty()) break
+            cleanup.drain()
         }
-
-        // Then keep only the most recent 10 unique snapshots
-        pruneOldSnaps(siteId, keepCount = 10)
     }
 
-    private suspend fun pruneByContentHash(siteId: String) {
-        val uniqueSnaps = mSnapsDao.getUniqueContentSnaps(siteId)
-        val allSnapIds = mSnapsDao.getAllSnapsForSiteId(siteId).map { it.snapId }.toSet()
-        val uniqueSnapIds = uniqueSnaps.map { it.snapId }.toSet()
+    /**
+     * Atomically deletes a page and all its saved-version rows. Snap content files
+     * are queued transactionally by SQLite and removed in bounded, retryable batches.
+     */
+    override suspend fun deleteSiteWithSnaps(siteId: String): Unit = withContext(mAppExecutors.ioContext) {
+        sitesDao.deleteSiteById(siteId)
+        cleanup.drain()
+    }
 
-        // Delete duplicates (snaps not in unique list)
-        val duplicateIds = allSnapIds - uniqueSnapIds
-        duplicateIds.forEach { snapId ->
-            fileStorage.deleteFile(snapId)
+    override suspend fun deleteSnap(snapId: String) {
+        withContext(mAppExecutors.ioContext) {
+            // The database trigger commits cleanup intent with the row deletion.
             mSnapsDao.deleteSnapById(snapId)
-            Napier.d("Removed duplicate snap: $snapId")
+            cleanup.drain()
         }
-    }
-
-    private suspend fun pruneOldSnaps(
-        siteId: String,
-        keepCount: Int,
-    ) {
-        val oldSnaps = mSnapsDao.getAllSnapsForSiteId(siteId).drop(keepCount)
-        oldSnaps.forEach { snap ->
-            fileStorage.deleteFile(snap.snapId)
-            mSnapsDao.deleteSnapById(snap.snapId)
-            Napier.d("Removed old snap: ${snap.snapId}")
-        }
-    }
-
-    override suspend fun deleteAllSnaps(siteId: String) {
-        mSnapsDao.getAllSnapsForSiteId(siteId).forEach {
-            fileStorage.deleteFile(it.snapId)
-            mSnapsDao.deleteSnapById(it.snapId)
-        }
-    }
-
-    override suspend fun deleteSnap(snapId: String) = withContext(mAppExecutors.ioContext) {
-        fileStorage.deleteFile(snapId)
-        mSnapsDao.deleteSnapById(snapId)
     }
 
     override fun getSnaps(siteId: String): Flow<List<Snap>> = mSnapsDao.getAllSnapsForSiteIdWithFlow(siteId)
+
+    /** Re-emits whenever any row in the snaps table changes (Room invalidation). */
+    override fun observeSnapsTable(): Flow<Boolean> = mSnapsDao.observeSnapsTable()
 
     override fun getSnapsFiltered(
         siteId: String,
@@ -100,49 +74,6 @@ class SnapsLocalDataSource constructor(
         fileStorage.readBytes(snapId)
     }
 
-    override suspend fun saveSnap(
-        snap: Snap,
-        content: ByteArray,
-        threshold: Int,
-    ): Result<Snap> = withContext(mAppExecutors.ioContext) {
-        val lastSnapValue =
-            mSnapsDao.getLastSnapForSiteId(snap.siteId).let { previousValue ->
-                if (previousValue != null && fileStorage.fileExists(previousValue.snapId)) {
-                    fileStorage.readBytes(previousValue.snapId)
-                } else {
-                    ByteArray(0)
-                }
-            }
-
-        val belowThresh = threshold <= abs(lastSnapValue.size - content.size)
-
-        if (belowThresh &&
-            ContentHasher.contentChanged(
-                content,
-                lastSnapValue,
-                snap.contentType,
-            )
-        ) {
-            Napier.d("Difference detected! Size went from ${lastSnapValue.size} to ${content.size}")
-            mSnapsDao.insertSnap(snap)
-            fileStorage.writeBytes(snap.snapId, content)
-            Result.Success(snap)
-        } else {
-            Napier.d("No difference detected!")
-            Result.Error()
-        }
-    }
-
-    override suspend fun deleteSnapsForSiteIdAndContentType(
-        siteId: String,
-        contentType: String,
-    ) = withContext(mAppExecutors.ioContext) {
-        mSnapsDao.getAllSnapsForSiteIdAndContentType(siteId, contentType).forEach {
-            fileStorage.deleteFile(it.snapId)
-            mSnapsDao.deleteSnapById(it.snapId)
-        }
-    }
-
     override suspend fun getContentTypeInfo(siteId: String): List<ContentTypeInfo> = withContext(mAppExecutors.ioContext) {
         mSnapsDao.getContentTypesWithCount(siteId).map {
             ContentTypeInfo(it.contentType, it.count)
@@ -156,6 +87,10 @@ class SnapsLocalDataSource constructor(
     override suspend fun getAllMostRecentSnaps(): Map<String, Snap> = withContext(mAppExecutors.ioContext) {
         val allSnapshots = mSnapsDao.getAllMostRecentSnaps()
         allSnapshots.associateBy { it.siteId }
+    }
+
+    override suspend fun getSnapshotCounts(): Map<String, Int> = withContext(mAppExecutors.ioContext) {
+        mSnapsDao.getSnapshotCounts().associate { it.siteId to it.count }
     }
 
     override suspend fun getLastNSnapsForSiteId(

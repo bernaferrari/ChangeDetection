@@ -10,13 +10,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-// Material 3 Expressive Typography
+// Quiet reading roles; larger titles carry hierarchy through size rather than heavy weight.
 val Typography =
     Typography(
         displayLarge =
         TextStyle(
             fontFamily = FontFamily.Default,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 57.sp,
             lineHeight = 64.sp,
             letterSpacing = 0.sp,
@@ -24,7 +24,7 @@ val Typography =
         displayMedium =
         TextStyle(
             fontFamily = FontFamily.Default,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 45.sp,
             lineHeight = 52.sp,
             letterSpacing = 0.sp,
@@ -35,15 +35,15 @@ val Typography =
             fontWeight = FontWeight.SemiBold,
             fontSize = 36.sp,
             lineHeight = 44.sp,
-            letterSpacing = 0.sp,
+            letterSpacing = (-0.8).sp,
         ),
         headlineLarge =
         TextStyle(
             fontFamily = FontFamily.Default,
-            fontWeight = FontWeight.Bold,
-            fontSize = 32.sp,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 34.sp,
             lineHeight = 40.sp,
-            letterSpacing = 0.sp,
+            letterSpacing = (-0.8).sp,
         ),
         headlineMedium =
         TextStyle(
@@ -51,7 +51,7 @@ val Typography =
             fontWeight = FontWeight.SemiBold,
             fontSize = 28.sp,
             lineHeight = 36.sp,
-            letterSpacing = 0.sp,
+            letterSpacing = (-0.8).sp,
         ),
         headlineSmall =
         TextStyle(
@@ -64,7 +64,7 @@ val Typography =
         titleLarge =
         TextStyle(
             fontFamily = FontFamily.Default,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 22.sp,
             lineHeight = 28.sp,
             letterSpacing = 0.sp,
@@ -75,7 +75,7 @@ val Typography =
             fontWeight = FontWeight.Medium,
             fontSize = 16.sp,
             lineHeight = 24.sp,
-            letterSpacing = 0.15.sp,
+            letterSpacing = 0.sp,
         ),
         titleSmall =
         TextStyle(
@@ -83,7 +83,7 @@ val Typography =
             fontWeight = FontWeight.Medium,
             fontSize = 14.sp,
             lineHeight = 20.sp,
-            letterSpacing = 0.1.sp,
+            letterSpacing = 0.sp,
         ),
         bodyLarge =
         TextStyle(
@@ -91,7 +91,7 @@ val Typography =
             fontWeight = FontWeight.Normal,
             fontSize = 16.sp,
             lineHeight = 24.sp,
-            letterSpacing = 0.15.sp,
+            letterSpacing = 0.sp,
         ),
         bodyMedium =
         TextStyle(
@@ -99,7 +99,7 @@ val Typography =
             fontWeight = FontWeight.Normal,
             fontSize = 14.sp,
             lineHeight = 20.sp,
-            letterSpacing = 0.1.sp,
+            letterSpacing = 0.sp,
         ),
         bodySmall =
         TextStyle(
@@ -115,7 +115,7 @@ val Typography =
             fontWeight = FontWeight.Medium,
             fontSize = 14.sp,
             lineHeight = 20.sp,
-            letterSpacing = 0.1.sp,
+            letterSpacing = 0.sp,
         ),
         labelMedium =
         TextStyle(

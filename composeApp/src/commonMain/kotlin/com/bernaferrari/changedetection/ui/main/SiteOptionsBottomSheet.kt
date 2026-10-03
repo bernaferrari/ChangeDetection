@@ -4,6 +4,12 @@
  */
 package com.bernaferrari.changedetection.ui.main
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.outlined.Pause
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Notifications
+import com.bernaferrari.changedetection.shared.generated.resources.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +19,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
@@ -38,11 +43,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.shared.generated.resources.Res
+import com.bernaferrari.changedetection.shared.generated.resources.notifications_platform_unavailable
+import com.bernaferrari.changedetection.shared.generated.resources.notification_system_settings
 import com.bernaferrari.changedetection.shared.generated.resources.delete
 import com.bernaferrari.changedetection.shared.generated.resources.edit
 import com.bernaferrari.changedetection.shared.generated.resources.open_in_browser
 import com.bernaferrari.changedetection.shared.generated.resources.refresh
-import com.bernaferrari.changedetection.shared.generated.resources.remove
 import com.bernaferrari.changedetection.ui.theme.spacing
 import org.jetbrains.compose.resources.stringResource
 
@@ -54,7 +60,11 @@ fun SiteOptionsBottomSheet(
     onRefresh: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onOpenInBrowser: (() -> Unit)? = null,
+    onOpenInBrowser: () -> Unit,
+    onToggleMonitoring: () -> Unit,
+    onToggleNotifications: () -> Unit,
+    notificationDeliveryAvailable: Boolean,
+    onNotificationSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val sheetState = rememberBottomSheetState(
@@ -66,17 +76,16 @@ fun SiteOptionsBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface,
     ) {
         Column(
             modifier = modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(bottom = MaterialTheme.spacing.lg),
         ) {
             SiteSheetHeader(
                 title = displayTitle,
                 domain = displayDomain,
-                color = Color(site.colors.first),
             )
             Spacer(modifier = Modifier.size(MaterialTheme.spacing.xs))
             SheetActionRow(
@@ -89,19 +98,23 @@ fun SiteOptionsBottomSheet(
                 label = stringResource(Res.string.edit),
                 onClick = onEdit,
             )
-            onOpenInBrowser?.let { openInBrowser ->
-                SheetActionRow(
-                    icon = Icons.Outlined.OpenInBrowser,
-                    label = stringResource(Res.string.open_in_browser),
-                    onClick = openInBrowser,
-                )
-            }
+            SheetActionRow(
+                icon = if (site.isSyncEnabled) Icons.Outlined.Pause else Icons.Outlined.PlayArrow,
+                label = stringResource(if (site.isSyncEnabled) Res.string.pause_monitoring else Res.string.resume_monitoring),
+                onClick = onToggleMonitoring,
+            )
+            NotificationPreference(notificationDeliveryAvailable, site.isNotificationEnabled, onToggleNotifications, onNotificationSettings)
+            SheetActionRow(
+                icon = Icons.Outlined.OpenInBrowser,
+                label = stringResource(Res.string.open_in_browser),
+                onClick = onOpenInBrowser,
+            )
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = MaterialTheme.spacing.lg, vertical = MaterialTheme.spacing.xs),
             )
             SheetActionRow(
                 icon = Icons.Outlined.Delete,
-                label = stringResource(Res.string.remove),
+                label = stringResource(Res.string.delete),
                 onClick = onDelete,
                 color = MaterialTheme.colorScheme.error,
             )
@@ -110,29 +123,38 @@ fun SiteOptionsBottomSheet(
 }
 
 @Composable
+internal fun NotificationPreference(deliverySupported: Boolean, enabled: Boolean, onToggle: () -> Unit, onOpenSettings: () -> Unit) {
+    if (deliverySupported) {
+        SheetActionRow(
+            icon = Icons.Outlined.Notifications,
+            label = stringResource(if (enabled) Res.string.notification_disable else Res.string.notification_enable),
+            onClick = onToggle,
+        )
+        SheetActionRow(
+            icon = Icons.Outlined.Notifications,
+            label = stringResource(Res.string.notification_system_settings),
+            onClick = onOpenSettings,
+        )
+    } else {
+        Text(
+            stringResource(Res.string.notifications_platform_unavailable),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
 private fun SiteSheetHeader(
     title: String,
     domain: String,
-    color: Color,
 ) {
     Row(
         modifier = Modifier.padding(horizontal = MaterialTheme.spacing.lg, vertical = MaterialTheme.spacing.sm),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Surface(
-            modifier = Modifier.size(44.dp),
-            shape = CircleShape,
-            color = color.copy(alpha = 0.16f),
-            contentColor = color,
-        ) {
-            Text(
-                text = title.firstOrNull()?.uppercase() ?: "?",
-                modifier = Modifier.padding(top = 10.dp),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            )
-        }
+        SiteIdentity(title = title, modifier = Modifier.size(44.dp))
         Spacer(modifier = Modifier.width(MaterialTheme.spacing.md))
         Column(modifier = Modifier.weight(1f)) {
             Text(

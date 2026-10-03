@@ -9,6 +9,7 @@ import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.changedetection.util.getRelativeTimeLabel
 
 sealed interface SiteStatus {
+    data object Waiting : SiteStatus
     data object Checking : SiteStatus
     data object Error : SiteStatus
     data object Paused : SiteStatus
@@ -27,6 +28,8 @@ internal fun SiteAndLastSnap.toSiteStatus(
 
     !site.isSyncEnabled -> SiteStatus.Paused
 
+    snap == null && snapshotCount == 0 -> SiteStatus.Waiting
+
     hasDetectedChange() -> SiteStatus.Changed(
         ago = getRelativeTimeLabel(requireNotNull(snap).timestamp),
     )
@@ -38,7 +41,5 @@ internal fun SiteAndLastSnap.toSiteStatus(
     )
 }
 
-/** A snapshot written during the latest successful check means that check found new content. */
-internal fun SiteAndLastSnap.hasDetectedChange(): Boolean = site.isSuccessful && snap != null && snap.timestamp >= site.timestamp - RECENT_CHANGE_WINDOW_MS
-
-private const val RECENT_CHANGE_WINDOW_MS = 60_000L
+/** A saved change stays visible until the user explicitly marks its comparison as read. */
+internal fun SiteAndLastSnap.hasDetectedChange(): Boolean = snapshotCount > 1 && snap != null && !site.isRead

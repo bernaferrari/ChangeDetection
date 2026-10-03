@@ -102,7 +102,7 @@
         <item>Diseño moderno y agradable</item>
         <item>Notificaciones ultrarrápidas</item>
     </string-array>
-    <string name="quick_monitor_sites_selected_label">Sitios seleccionados</string>
+    <string name="quick_monitor_sites_selected_label">Páginas seleccionadas</string>
 
     <!-- Main Screen -->
     <string name="main_add_site">Agregar sitio</string>
@@ -151,11 +151,11 @@
     <string name="nav_settings">Ajustes</string>
 
     <!-- Quick Monitor -->
-    <string name="quick_monitor_toast_starting">Iniciando Turbo monitor…</string>
-    <string name="quick_monitor_toast_failed">No se pudo iniciar el Turbo monitor: %1$s</string>
+    <string name="quick_monitor_toast_starting">Iniciando Turbo…</string>
+    <string name="quick_monitor_toast_failed">No se pudo iniciar Turbo: %1$s</string>
     <string name="quick_monitor_toast_extended">Extendido por 1 hora</string>
     <string name="quick_monitor_alert_state_on">Primer plano</string>
-    <string name="quick_monitor_banner_active_title">⚡ Turbo monitor</string>
+    <string name="quick_monitor_banner_active_title">⚡ Turbo</string>
     <!-- Browser Controls -->
     <string name="browser_monitor_label">Monitorear</string>
     <string name="browser_zap_label">Ocultar</string>
@@ -172,8 +172,8 @@
     <string name="browser_parent_preview_selector_label">Selector CSS</string>
     <string name="browser_parent_preview_text_label">Texto visible</string>
 
-    <string name="quick_monitor_banner_inactive_title">💡 Turbo monitor</string>
-    <string name="quick_monitor_banner_active_details">Monitoreando %1$d sitios cada %2$d segundos • Transcurrido %3$s • Restante %4$s</string>
+    <string name="quick_monitor_banner_inactive_title">💡 Turbo</string>
+    <string name="quick_monitor_banner_active_details">Comprobando %1$d páginas cada %2$d segundos • Transcurrido %3$s • Restante %4$s</string>
     <string name="quick_monitor_banner_inactive_details">Toca para fijar una notificación y vigilar los cambios cada pocos segundos.</string>
     <string name="quick_monitor_banner_service_running">Servicio en primer plano</string>
     <string name="quick_monitor_banner_notifications">Notificación fija mientras está activo</string>
@@ -184,9 +184,9 @@
     <string name="recent_changes">Cambios recientes</string>
     <string name="quick_monitor_banner_checking_site">Verificando: %1$s</string>
     <string name="quick_monitor_banner_progress">%1$d/%2$d</string>
-    <string name="quick_monitor_title">Monitor turbo</string>
-    <string name="quick_monitor_active">Monitor turbo activo</string>
-    <string name="quick_monitor_notification_title">⚡ Monitor turbo activo</string>
+    <string name="quick_monitor_title">Turbo</string>
+    <string name="quick_monitor_active">Turbo activo</string>
+    <string name="quick_monitor_notification_title">⚡ Turbo activo</string>
     <!-- Status & Logs -->
     <string name="status_last_snapshot">Último: %1$s</string>
     <string name="status_no_snapshots">Sin capturas</string>
@@ -253,8 +253,11 @@
     <string name="comparison_single_snapshot_hint">Necesitamos al menos dos capturas para comparar.</string>
 
     <!-- Notifications -->
-    <string name="quick_monitor_notification_initial_title">⚡ Turbo monitor iniciando…</string>
+    <string name="quick_monitor_notification_initial_title">⚡ Iniciando Turbo…</string>
     <string name="quick_monitor_notification_initial_text">Preparando monitoreo de alta frecuencia</string>
+    <string name="change_notification_title">El sitio web cambió</string>
+    <string name="change_notification_channel_name">Cambios detectados</string>
+    <string name="change_notification_channel_description">Alertas cuando cambia un sitio web monitoreado</string>
 
     <string name="remove_this">Remover %1$s</string>
     <string name="remove_content">¿Está seguro que desea remover esto?</string>
@@ -308,7 +311,7 @@
     </plurals>
 
     <string name="change_detected_notification_with_title">¡%1$s (%2$s) fue actualizado!</string>
-    <string name="change_detected_notification_without_title">¡Cambio detectado! (%1s)</string>
+    <string name="change_detected_notification_without_title">¡Cambio detectado! (%1$s)</string>
 
     <string name="sort_by_name">Ordenar por nombrer</string>
     <string name="disable_dark_mode">Desactivar tema oscuro</string>
@@ -342,8 +345,8 @@
     <string name="turbo_mode_dialog_warning_title">Alto consumo de batería</string>
     <string name="turbo_mode_dialog_warning_body">El modo Turbo revisa cada %1$ds y mantiene el dispositivo activo. Úsalo cuando cada segundo cuente.</string>
     <plurals name="turbo_mode_selected_sites">
-        <item quantity="one">%d sitio seleccionado</item>
-        <item quantity="other">%d sitios seleccionados</item>
+        <item quantity="one">%d página seleccionada</item>
+        <item quantity="other">%d páginas seleccionadas</item>
     </plurals>
     <string name="cookies_section_title">Cookies de sesión</string>
     <string name="cookies_section_caption">Mantén la sesión iniciada y reutiliza los cookies capturados durante las comprobaciones.</string>
@@ -356,9 +359,9 @@
     <string name="quick_monitor_sheet_badge_idle">Turbo listo</string>
     <string name="quick_monitor_sheet_interval_title">Cadencia de la sesión</string>
     <string name="quick_monitor_sheet_active_section_title">Ejecutándose ahora</string>
-    <string name="quick_monitor_sheet_limit_hint">Turbo monitorea hasta 3 horas y puede extenderse mientras está activo.</string>
-    <string name="quick_monitor_sheet_empty_title">No hay sitios listos para Turbo</string>
-    <string name="quick_monitor_sheet_empty_subtitle">Agrega un sitio o elige al menos uno para iniciar la sesión.</string>
+    <string name="quick_monitor_sheet_limit_hint">Turbo dura hasta 3 horas y puede ampliarse mientras está activo.</string>
+    <string name="quick_monitor_sheet_empty_title">No hay páginas listas para Turbo</string>
+    <string name="quick_monitor_sheet_empty_subtitle">Añade una página o elige al menos una para iniciar la sesión.</string>
     <string name="quick_monitor_interval_value">%1$d segundos</string>
 
     <string name="how_it_works_title">Cómo funciona</string>
@@ -427,4 +430,8 @@
         <item quantity="one">hace 1 día</item>
         <item quantity="other">hace %d días</item>
     </plurals>
+
+    <string name="quick_monitor_channel_description">Muestra la sesión activa de monitorización de alta frecuencia.</string>
+    <string name="empty_add_site_hint">Añade una página para iniciar Turbo</string>
+    <string name="start">Iniciar</string>
 </resources>

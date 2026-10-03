@@ -5,6 +5,14 @@
 package com.bernaferrari.changedetection.ui.navigation
 
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.material3.*
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
@@ -45,7 +53,6 @@ private data class AppNavItem(
 private val appNavItems = listOf(
     AppNavItem(MainDestination, Icons.Filled.Visibility, Icons.Outlined.Visibility),
     AppNavItem(LogsDestination, Icons.Filled.History, Icons.Outlined.History),
-    AppNavItem(TurboDestination, Icons.Filled.Bolt, Icons.Outlined.Bolt),
     AppNavItem(SettingsDestination, Icons.Filled.Settings, Icons.Outlined.Settings),
 )
 
@@ -58,38 +65,77 @@ private val appNavItems = listOf(
 @Composable
 fun ChangeDetectionNavigationSuite(
     backStack: NavBackStack<NavKey>,
+    retainNavigationForDetail: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val currentTab = backStack.lastOrNull { it.isRootTab() } ?: MainDestination
     val labels = listOf(
         stringResource(Res.string.nav_home),
         stringResource(Res.string.nav_logs),
-        stringResource(Res.string.nav_turbo),
         stringResource(Res.string.nav_settings),
     )
 
-    BoundedNavigationSuiteScaffold(
-        navigationSuiteItems = {
-            appNavItems.forEachIndexed { index, item ->
-                val selected = item.destination.matches(currentTab)
-                val label = labels[index]
-                item(
-                    selected = selected,
-                    onClick = {
-                        if (!selected) navigateToTab(backStack, item.destination)
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
-                            contentDescription = label,
+    // Subsequent pages get the full canvas. M3 toolbars and the primary navigation bar should not
+    // compete at the bottom of the same compact screen.
+    if (backStack.lastOrNull()?.isRootTab() != true && !retainNavigationForDetail) {
+        content()
+        return
+    }
+
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        if (maxWidth < 600.dp) {
+            Scaffold(
+                contentWindowInsets = WindowInsets(0),
+                bottomBar = {
+                    NavigationBar(
+                        containerColor = MaterialTheme.colorScheme.background,
+                        tonalElevation = 0.dp,
+                        windowInsets = NavigationBarDefaults.windowInsets,
+                    ) {
+                        appNavItems.forEachIndexed { index, item ->
+                            val selected = item.destination.matches(currentTab)
+                            NavigationBarItem(
+                                selected = selected,
+                                onClick = { if (!selected) navigateToTab(backStack, item.destination) },
+                                icon = { Icon(item.unselectedIcon, null, Modifier.size(24.dp)) },
+                                label = { Text(labels[index], style = MaterialTheme.typography.labelMedium) },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                ),
+                            )
+                        }
+                    }
+                },
+            ) { padding -> Box(Modifier.fillMaxSize().padding(padding)) { content() } }
+        } else {
+            BoundedNavigationSuiteScaffold(
+                navigationSuiteItems = {
+                    appNavItems.forEachIndexed { index, item ->
+                        val selected = item.destination.matches(currentTab)
+                        val label = labels[index]
+                        item(
+                            selected = selected,
+                            onClick = {
+                                if (!selected) navigateToTab(backStack, item.destination)
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
+                                    contentDescription = null,
+                                )
+                            },
+                            label = { Text(label) },
                         )
-                    },
-                    label = { Text(label) },
-                )
-            }
-        },
-        content = content,
-    )
+                    }
+                },
+                content = content,
+            )
+        }
+    }
 }
 
 /** Compose Web can briefly issue an unbounded probe before the real viewport measurement. */
@@ -133,4 +179,4 @@ private fun navigateToTab(backStack: NavBackStack<NavKey>, destination: NavKey) 
     }
 }
 
-private fun NavKey.isRootTab(): Boolean = this is MainDestination || this is LogsDestination || this is TurboDestination || this is SettingsDestination
+private fun NavKey.isRootTab(): Boolean = this is MainDestination || this is LogsDestination || this is SettingsDestination

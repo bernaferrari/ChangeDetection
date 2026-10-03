@@ -6,6 +6,7 @@ package com.bernaferrari.changedetection.repo.source
 
 import com.bernaferrari.changedetection.repo.ContentTypeInfo
 import com.bernaferrari.changedetection.repo.Snap
+import com.bernaferrari.changedetection.repo.source.local.SnapsLocalDataSource
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -15,18 +16,18 @@ import kotlinx.coroutines.flow.Flow
 class SnapsRepository(
     private val mSnapsLocalDataSource: SnapsDataSource,
 ) : SnapsDataSource {
+    override fun observeStorageBytes(): Flow<Long> = mSnapsLocalDataSource.observeStorageBytes()
     override suspend fun getSingleSnapPair(id: String): ByteArray = mSnapsLocalDataSource.getSingleSnapPair(id)
 
     // override fun getSnapForPaging(siteId: String, filter: String): PagingSource<Int, Snap> {
     //    return mSnapsLocalDataSource.getSnapForPaging(siteId, filter)
     // }
 
-    override suspend fun deleteAllSnaps(siteId: String) = mSnapsLocalDataSource.deleteAllSnaps(siteId)
-
-    override suspend fun deleteSnapsForSiteIdAndContentType(
-        siteId: String,
-        contentType: String,
-    ) = mSnapsLocalDataSource.deleteSnapsForSiteIdAndContentType(siteId, contentType)
+    /**
+     * Atomically deletes a page and all its saved-version rows, then removes the
+     * corresponding content files even if the initiating screen has closed.
+     */
+    override suspend fun deleteSiteWithSnaps(siteId: String) = mSnapsLocalDataSource.deleteSiteWithSnaps(siteId)
 
     override suspend fun getContentTypeInfo(siteId: String): List<ContentTypeInfo> = mSnapsLocalDataSource.getContentTypeInfo(siteId)
 
@@ -34,9 +35,13 @@ class SnapsRepository(
 
     override suspend fun getAllMostRecentSnaps(): Map<String, Snap> = mSnapsLocalDataSource.getAllMostRecentSnaps()
 
-    override suspend fun getSnapById(snapId: String): Snap? = mSnapsLocalDataSource.getSnapById(snapId)
+    override suspend fun getSnapshotCounts(): Map<String, Int> = mSnapsLocalDataSource.getSnapshotCounts()
 
+    override suspend fun getSnapById(snapId: String): Snap? = mSnapsLocalDataSource.getSnapById(snapId)
     override fun getSnaps(siteId: String): Flow<List<Snap>> = mSnapsLocalDataSource.getSnaps(siteId)
+
+    /** Re-emits whenever any row in the snaps table changes (Room invalidation). */
+    override fun observeSnapsTable(): Flow<Boolean> = mSnapsLocalDataSource.observeSnapsTable()
 
     override fun getSnapsFiltered(
         siteId: String,
@@ -54,12 +59,6 @@ class SnapsRepository(
         siteId: String,
         limit: Int,
     ): List<Snap>? = mSnapsLocalDataSource.getLastNSnapsForSiteId(siteId, limit)
-
-    override suspend fun saveSnap(
-        snap: Snap,
-        content: ByteArray,
-        threshold: Int,
-    ): Result<Snap> = mSnapsLocalDataSource.saveSnap(snap, content, threshold)
 
     override suspend fun deleteSnap(snapId: String) {
         mSnapsLocalDataSource.deleteSnap(snapId)

@@ -4,6 +4,12 @@
  */
 package com.bernaferrari.changedetection.ui.theme
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -22,6 +29,9 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * Change Detection's “change pulse” mark.
@@ -35,7 +45,23 @@ fun ChangeDetectionBrandMark(
     containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
     contentColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     signalColor: Color = MaterialTheme.colorScheme.secondary,
+    animated: Boolean = false,
 ) {
+    val scannerAngle = if (animated) {
+        val scanner = rememberInfiniteTransition(label = "brandScanner")
+        val angle by scanner.animateFloat(
+            initialValue = 42f,
+            targetValue = 402f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 2400, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart,
+            ),
+            label = "brandScannerAngle",
+        )
+        angle
+    } else {
+        318f
+    }
     Surface(
         modifier = modifier,
         shape = BrandMarkShape,
@@ -76,10 +102,16 @@ fun ChangeDetectionBrandMark(
                         join = StrokeJoin.Round,
                     ),
                 )
+                val angle = scannerAngle * PI / 180.0
+                val ringRadius = ringSize / 2f
+                val ringCenter = origin + Offset(edge / 2f, edge / 2f)
                 drawCircle(
                     color = signalColor,
                     radius = edge * 0.07f,
-                    center = origin + Offset(edge * 0.77f, edge * 0.34f),
+                    center = ringCenter + Offset(
+                        x = cos(angle).toFloat() * ringRadius,
+                        y = sin(angle).toFloat() * ringRadius,
+                    ),
                 )
             }
         }

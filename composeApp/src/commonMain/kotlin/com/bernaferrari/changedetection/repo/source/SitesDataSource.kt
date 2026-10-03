@@ -5,6 +5,7 @@
 package com.bernaferrari.changedetection.repo.source
 
 import com.bernaferrari.changedetection.repo.Site
+import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -12,6 +13,9 @@ import kotlinx.coroutines.flow.Flow
  * Inspired from Architecture Components MVVM sample app
  */
 interface SitesDataSource {
+    /** Observe complete page/history summaries in a single consistent read. */
+    fun observeWatchlist(): Flow<List<SiteAndLastSnap>>
+
     suspend fun getSites(): List<Site>
 
     fun getDataWithChanges(): Flow<List<Site>>
@@ -20,9 +24,15 @@ interface SitesDataSource {
 
     suspend fun getSiteByUrl(siteUrl: String): Site?
 
-    suspend fun saveSite(site: Site)
+    suspend fun saveSite(site: Site, resetHistory: Boolean = false)
 
     suspend fun updateSite(site: Site)
+
+    /** Acknowledge only the latest saved snapshot; returns false if a newer change arrived. */
+    suspend fun markSiteRead(siteId: String, snapId: String): Boolean
+
+    /** Reopen attention only if the acknowledged capture is still latest. */
+    suspend fun undoSiteRead(siteId: String, snapId: String): Boolean
 
     suspend fun deleteAllSites()
 

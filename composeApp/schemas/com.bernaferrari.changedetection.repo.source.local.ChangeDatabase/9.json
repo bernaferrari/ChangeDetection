@@ -1,0 +1,333 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 9,
+    "identityHash": "b1ef6add68ec62ccc4b7ce2300f182f4",
+    "entities": [
+      {
+        "tableName": "sites",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`title` TEXT, `url` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `siteId` TEXT NOT NULL, `isSuccessful` INTEGER NOT NULL, `isBrowser` INTEGER NOT NULL, `threshold` INTEGER NOT NULL, `isRead` INTEGER NOT NULL, `isSyncEnabled` INTEGER NOT NULL, `isNotificationEnabled` INTEGER NOT NULL, `notes` TEXT NOT NULL, `colors` TEXT NOT NULL, `constraints` TEXT NOT NULL, `captureMode` TEXT NOT NULL DEFAULT 'DEFAULT', `lastSuccessfulCheck` INTEGER DEFAULT NULL, `lastFailureCode` TEXT DEFAULT NULL, `textIncludeSelector` TEXT NOT NULL DEFAULT '', `textExcludeSelector` TEXT NOT NULL DEFAULT '', `visualChangeThresholdBps` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`siteId`))",
+        "fields": [
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "siteId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isSuccessful",
+            "columnName": "isSuccessful",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isBrowser",
+            "columnName": "isBrowser",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "threshold",
+            "columnName": "threshold",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isRead",
+            "columnName": "isRead",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isSyncEnabled",
+            "columnName": "isSyncEnabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isNotificationEnabled",
+            "columnName": "isNotificationEnabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "colors",
+            "columnName": "colors",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "constraints",
+            "columnName": "constraints",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "captureMode",
+            "columnName": "captureMode",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'DEFAULT'"
+          },
+          {
+            "fieldPath": "lastSuccessfulCheck",
+            "columnName": "lastSuccessfulCheck",
+            "affinity": "INTEGER",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "lastFailureCode",
+            "columnName": "lastFailureCode",
+            "affinity": "TEXT",
+            "defaultValue": "NULL"
+          },
+          {
+            "fieldPath": "textIncludeSelector",
+            "columnName": "textIncludeSelector",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "textExcludeSelector",
+            "columnName": "textExcludeSelector",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "visualChangeThresholdBps",
+            "columnName": "visualChangeThresholdBps",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "siteId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_sites_siteId",
+            "unique": true,
+            "columnNames": [
+              "siteId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_sites_siteId` ON `${TABLE_NAME}` (`siteId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "snaps",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`snapId` TEXT NOT NULL, `siteId` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `contentType` TEXT NOT NULL, `contentCharset` TEXT NOT NULL, `contentSize` INTEGER NOT NULL, `contentHash` TEXT NOT NULL, `processedContentHash` TEXT NOT NULL, PRIMARY KEY(`snapId`), FOREIGN KEY(`siteId`) REFERENCES `sites`(`siteId`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "snapId",
+            "columnName": "snapId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "siteId",
+            "columnName": "siteId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentType",
+            "columnName": "contentType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentCharset",
+            "columnName": "contentCharset",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentSize",
+            "columnName": "contentSize",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentHash",
+            "columnName": "contentHash",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "processedContentHash",
+            "columnName": "processedContentHash",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "snapId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_snaps_siteId_snapId",
+            "unique": true,
+            "columnNames": [
+              "siteId",
+              "snapId"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_snaps_siteId_snapId` ON `${TABLE_NAME}` (`siteId`, `snapId`)"
+          },
+          {
+            "name": "index_snaps_siteId_timestamp",
+            "unique": false,
+            "columnNames": [
+              "siteId",
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_snaps_siteId_timestamp` ON `${TABLE_NAME}` (`siteId`, `timestamp`)"
+          },
+          {
+            "name": "index_snaps_siteId_contentType",
+            "unique": false,
+            "columnNames": [
+              "siteId",
+              "contentType"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_snaps_siteId_contentType` ON `${TABLE_NAME}` (`siteId`, `contentType`)"
+          },
+          {
+            "name": "index_snaps_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_snaps_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          },
+          {
+            "name": "index_snaps_contentType",
+            "unique": false,
+            "columnNames": [
+              "contentType"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_snaps_contentType` ON `${TABLE_NAME}` (`contentType`)"
+          },
+          {
+            "name": "index_snaps_composite",
+            "unique": false,
+            "columnNames": [
+              "siteId",
+              "contentType",
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_snaps_composite` ON `${TABLE_NAME}` (`siteId`, `contentType`, `timestamp`)"
+          },
+          {
+            "name": "index_snaps_contentHash",
+            "unique": false,
+            "columnNames": [
+              "contentHash"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_snaps_contentHash` ON `${TABLE_NAME}` (`contentHash`)"
+          },
+          {
+            "name": "index_snaps_processedContentHash",
+            "unique": false,
+            "columnNames": [
+              "processedContentHash"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_snaps_processedContentHash` ON `${TABLE_NAME}` (`processedContentHash`)"
+          },
+          {
+            "name": "index_snaps_siteId_contentHash",
+            "unique": false,
+            "columnNames": [
+              "siteId",
+              "contentHash"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_snaps_siteId_contentHash` ON `${TABLE_NAME}` (`siteId`, `contentHash`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "sites",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "siteId"
+            ],
+            "referencedColumns": [
+              "siteId"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "pendingFileDeletions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`snapId` TEXT NOT NULL, PRIMARY KEY(`snapId`))",
+        "fields": [
+          {
+            "fieldPath": "snapId",
+            "columnName": "snapId",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "snapId"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b1ef6add68ec62ccc4b7ce2300f182f4')"
+    ]
+  }
+}

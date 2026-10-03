@@ -19,6 +19,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.height
+import com.bernaferrari.changedetection.background.MonitoringCapabilities
+import com.bernaferrari.changedetection.background.MonitoringExecution
+import com.bernaferrari.changedetection.background.monitoringCapabilities
+import com.bernaferrari.changedetection.ui.components.segmentPosition
+import com.bernaferrari.changedetection.ui.components.segmentShape
+import com.bernaferrari.changedetection.ui.components.SegmentPosition
+import com.bernaferrari.changedetection.shared.generated.resources.*
+import com.bernaferrari.changedetection.ui.components.SignalHeroShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -45,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.a11y_navigate_back
 import com.bernaferrari.changedetection.shared.generated.resources.how_it_works_footer_description
+import com.bernaferrari.changedetection.shared.generated.resources.how_it_works
 import com.bernaferrari.changedetection.shared.generated.resources.how_it_works_footer_title
 import com.bernaferrari.changedetection.shared.generated.resources.how_it_works_hero_subtitle
 import com.bernaferrari.changedetection.shared.generated.resources.how_it_works_hero_title
@@ -63,9 +73,8 @@ import com.bernaferrari.changedetection.shared.generated.resources.how_it_works_
 import com.bernaferrari.changedetection.shared.generated.resources.how_it_works_step_monitor_title
 import com.bernaferrari.changedetection.shared.generated.resources.how_it_works_steps_header
 import com.bernaferrari.changedetection.shared.generated.resources.step_number
+import com.bernaferrari.changedetection.ui.main.ChangeMark
 import com.bernaferrari.changedetection.ui.theme.spacing
-import com.bernaferrari.changedetection.ui.components.SegmentPosition
-import com.bernaferrari.changedetection.ui.components.segmentShape
 import org.jetbrains.compose.resources.stringResource
 
 private data class HowItWorksStep(
@@ -76,7 +85,10 @@ private data class HowItWorksStep(
 )
 
 @Composable
-fun HowItWorksScreen(onBackClick: () -> Unit) {
+fun HowItWorksScreen(onBackClick: () -> Unit) = HowItWorksContent(onBackClick, monitoringCapabilities)
+
+@Composable
+internal fun HowItWorksContent(onBackClick: () -> Unit, capabilities: MonitoringCapabilities) {
     val steps = listOf(
         HowItWorksStep(
             title = stringResource(Res.string.how_it_works_step_add_title),
@@ -86,14 +98,20 @@ fun HowItWorksScreen(onBackClick: () -> Unit) {
         ),
         HowItWorksStep(
             title = stringResource(Res.string.how_it_works_step_monitor_title),
-            description = stringResource(Res.string.how_it_works_step_monitor_description),
-            detail = stringResource(Res.string.how_it_works_step_monitor_highlight),
+            description = stringResource(
+                when (capabilities.execution) {
+                    MonitoringExecution.Background -> Res.string.how_it_works_step_monitor_description
+                    MonitoringExecution.WhileOpen -> Res.string.settings_checks_while_open
+                    MonitoringExecution.Unavailable -> Res.string.settings_checks_unavailable
+                },
+            ),
+            detail = stringResource(if (capabilities.constraints) Res.string.how_it_works_step_monitor_highlight else Res.string.how_it_works_schedule_range),
             icon = Icons.Rounded.NotificationsActive,
         ),
         HowItWorksStep(
             title = stringResource(Res.string.how_it_works_step_focus_title),
-            description = stringResource(Res.string.how_it_works_step_focus_description),
-            detail = stringResource(Res.string.how_it_works_step_focus_highlight),
+            description = stringResource(if (capabilities.turbo) Res.string.how_it_works_step_focus_description else Res.string.turbo_unavailable_description),
+            detail = stringResource(if (capabilities.turbo) Res.string.how_it_works_step_focus_highlight else Res.string.turbo_unavailable_title),
             icon = Icons.Rounded.FlashOn,
         ),
         HowItWorksStep(
@@ -107,7 +125,7 @@ fun HowItWorksScreen(onBackClick: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(Res.string.how_it_works_hero_title)) },
+                title = { Text(stringResource(Res.string.how_it_works)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -127,7 +145,7 @@ fun HowItWorksScreen(onBackClick: () -> Unit) {
             LazyColumn(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .widthIn(max = 680.dp)
+                    .widthIn(max = 600.dp)
                     .fillMaxWidth()
                     .fillMaxHeight(),
                 contentPadding = PaddingValues(
@@ -136,38 +154,25 @@ fun HowItWorksScreen(onBackClick: () -> Unit) {
                     end = MaterialTheme.spacing.lg,
                     bottom = MaterialTheme.spacing.xl,
                 ),
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)) {
-                        Text(
-                            text = stringResource(Res.string.how_it_works_hero_subtitle),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Spacer(modifier = Modifier.size(MaterialTheme.spacing.sm))
-                        Text(
-                            text = stringResource(Res.string.how_it_works_steps_header),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    }
+                    HowItWorksHero()
                 }
                 item {
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        steps.forEachIndexed { index, step ->
-                            HowItWorksStepRow(
-                                number = index + 1,
-                                step = step,
-                                position = when {
-                                    steps.size == 1 -> SegmentPosition.Only
-                                    index == 0 -> SegmentPosition.First
-                                    index == steps.lastIndex -> SegmentPosition.Last
-                                    else -> SegmentPosition.Middle
-                                },
-                            )
-                        }
-                    }
+                    Text(
+                        text = stringResource(Res.string.how_it_works_steps_header),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = MaterialTheme.spacing.xs, top = MaterialTheme.spacing.md),
+                    )
+                }
+                items(steps.size, key = { "step-$it" }) { index ->
+                    HowItWorksStepRow(
+                        number = index + 1,
+                        step = steps[index],
+                        position = segmentPosition(index == 0, index == steps.lastIndex),
+                    )
                 }
                 item {
                     Column(
@@ -206,12 +211,47 @@ fun HowItWorksScreen(onBackClick: () -> Unit) {
 }
 
 @Composable
+private fun HowItWorksHero() {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = SignalHeroShape,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    ) {
+        Row(
+            modifier = Modifier.padding(MaterialTheme.spacing.lg),
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+            ) {
+                Text(
+                    text = stringResource(Res.string.how_it_works_hero_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = stringResource(Res.string.how_it_works_hero_subtitle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+            ChangeMark()
+        }
+    }
+}
+
+@Composable
 private fun HowItWorksStepRow(
     number: Int,
     step: HowItWorksStep,
     position: SegmentPosition,
 ) {
+    val accent = MaterialTheme.colorScheme.primary
     Surface(
+        modifier = Modifier.fillMaxWidth(),
         shape = segmentShape(position),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
@@ -226,8 +266,8 @@ private fun HowItWorksStepRow(
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     shape = MaterialTheme.shapes.large,
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    color = accent.copy(alpha = 0.16f),
+                    contentColor = accent,
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
@@ -246,7 +286,7 @@ private fun HowItWorksStepRow(
                 Text(
                     text = stringResource(Res.string.step_number, number),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = accent,
                 )
                 Text(
                     text = step.title,
@@ -255,13 +295,13 @@ private fun HowItWorksStepRow(
                 )
                 Text(
                     text = step.description,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
                     text = step.detail,
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = accent,
                     modifier = Modifier.padding(top = 2.dp),
                 )
             }

@@ -29,20 +29,32 @@ class SettingsUiTest {
     @Test
     fun monitoringShowsAndSelectsBothComparisonMethodsFromHtmlDefault() {
         var selectedMethod by mutableStateOf(ComparisonMethod.HTML)
+        var showComparisonMethodDialog by mutableStateOf(false)
 
         composeTestRule.setContent {
             ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
                 MonitoringSettingsSection(
                     uiState = SettingsUiState(comparisonMethod = selectedMethod),
                     onBackgroundSyncClick = {},
-                    onBrowserDelaySelected = {},
-                    onComparisonMethodSelected = { selectedMethod = it },
+                    onBrowserDelayClick = {},
+                    onComparisonMethodClick = { showComparisonMethodDialog = true },
                 )
+                if (showComparisonMethodDialog) {
+                    ComparisonMethodChoiceDialog(
+                        selectedMethod = selectedMethod,
+                        onDismiss = { showComparisonMethodDialog = false },
+                        onConfirm = {
+                            selectedMethod = it
+                            showComparisonMethodDialog = false
+                        },
+                    )
+                }
             }
         }
 
-        composeTestRule.onNodeWithText("Page text").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Page text").assertIsDisplayed().performClick()
         composeTestRule.onNodeWithText("Screenshots").performClick()
+        composeTestRule.onNodeWithText("Done").performClick()
 
         composeTestRule.runOnIdle {
             assertEquals(ComparisonMethod.SCREENSHOT, selectedMethod)

@@ -10,9 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.glance.GlanceId
 import androidx.compose.ui.graphics.Color
 import androidx.glance.GlanceModifier
@@ -44,32 +45,35 @@ import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.MainActivityProvider
 import com.bernaferrari.changedetection.library.R
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 
-private val Context.widgetDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+// Single 'settings' DataStore is declared only in PlatformDiModule.android.kt;
+// obtained here via Koin so the widget never registers a second file delegate.
+private fun Context.dataStore(): DataStore<Preferences> = org.koin.mp.KoinPlatformTools.defaultContext().get().get()
 
 class QuickMonitorWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        val manager = org.koin.mp.KoinPlatformTools.defaultContext().get().get<com.bernaferrari.changedetection.WorkerHelper>()
+        val state = manager.quickMonitorState.value
         provideContent {
             GlanceTheme {
-                WidgetContent(context)
+                WidgetContent(context, state)
             }
         }
     }
 
     @Composable
-    private fun WidgetContent(context: Context) {
-        val ACTIVE = booleanPreferencesKey("quick_monitor_active")
-        val SITE_IDS = stringPreferencesKey("quick_monitor_site_ids")
-        val START_TIME = longPreferencesKey("quick_monitor_start_time")
-        val DEADLINE = longPreferencesKey("quick_monitor_deadline_time")
-
-        val prefs = runBlocking { context.widgetDataStore.data.first() }
-        val isActive = prefs[ACTIVE] ?: false
-        val siteCount = (prefs[SITE_IDS] ?: "").split(',').filter { it.isNotBlank() }.size
+    private fun WidgetContent(context: Context, state: com.bernaferrari.changedetection.background.TurboState) {
+        val isActive = state.isActive
+        val siteCount = state.siteIds.size
+        val intervalSeconds = state.intervalSeconds
         val subtitle = if (isActive) {
-            context.getString(R.string.quick_monitor_notification_subtitle, siteCount, 15)
+            context.resources.getQuantityString(
+                R.plurals.quick_monitor_notification_subtitle,
+                siteCount,
+                siteCount,
+                intervalSeconds,
+            )
         } else {
             context.getString(R.string.empty_add_site_hint)
         }
@@ -119,13 +123,6 @@ class QuickMonitorWidget : GlanceAppWidget() {
             Row {
                 if (isActive) {
                     Text(
-                        text = context.getString(R.string.quick_monitor_extend_1h),
-                        modifier = GlanceModifier
-                            .padding(end = 12.dp)
-                            .clickable(actionRunCallback<WidgetExtendAction>()),
-                        style = TextStyle(color = accentColor, fontWeight = FontWeight.Medium),
-                    )
-                    Text(
                         text = context.getString(R.string.action_stop_monitoring),
                         modifier = GlanceModifier.clickable(actionRunCallback<WidgetStopAction>()),
                         style = TextStyle(color = GlanceTheme.colors.error, fontWeight = FontWeight.Medium),
@@ -149,18 +146,11 @@ class QuickMonitorWidget : GlanceAppWidget() {
     }
 }
 
-class WidgetExtendAction : androidx.glance.appwidget.action.ActionCallback {
-    override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        com.bernaferrari.changedetection.QuickMonitorService.extend(context)
-        updateAppWidgetState(context, glanceId) { }
-        QuickMonitorWidget().update(context, glanceId)
-    }
-}
-
 class WidgetStopAction : androidx.glance.appwidget.action.ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        com.bernaferrari.changedetection.QuickMonitorService.stop(context)
-        updateAppWidgetState(context, glanceId) { }
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main.immediate) {
+            org.koin.mp.KoinPlatformTools.defaultContext().get().get<com.bernaferrari.changedetection.WorkerHelper>().stopQuickMonitor()
+        }
         QuickMonitorWidget().update(context, glanceId)
     }
 }

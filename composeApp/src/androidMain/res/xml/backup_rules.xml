@@ -1,9 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?><!--
+  Legacy (API < 31) backup rules. Local monitoring history stays on-device.
+-->
 <full-backup-content>
-    <exclude
-        domain="database"
-        path="sensitive.db" />
-    <exclude
-        domain="sharedpref"
-        path="sensitive_prefs.xml" />
+    <exclude domain="database" path="changes.db" />
 </full-backup-content>

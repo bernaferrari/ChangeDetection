@@ -7,10 +7,13 @@ package com.bernaferrari.changedetection.sync
 import com.bernaferrari.changedetection.error.*
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
+import com.bernaferrari.changedetection.repo.source.local.ChangeDatabase
 import com.bernaferrari.changedetection.repo.source.local.SitesDao
 import com.bernaferrari.changedetection.repo.source.local.SnapsDao
 import com.bernaferrari.changedetection.util.ContentHasher
 import com.bernaferrari.changedetection.util.FileStorage
+import com.bernaferrari.changedetection.extensions.findCharset
+import com.bernaferrari.changedetection.util.decodeByteArray
 import io.github.aakira.napier.Napier
 import com.fleeksoft.ksoup.Ksoup
 import io.ktor.client.*
@@ -18,10 +21,16 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.readRemaining
+import kotlinx.io.readByteArray
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import androidx.room3.withWriteTransaction
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -57,30 +66,24 @@ sealed class SyncResult {
  * - FileStorage for content persistence (platform-specific)
  */
 @OptIn(ExperimentalUuidApi::class)
-class SyncEngine(
+open class SyncEngine(
     private val httpClient: HttpClient,
+    private val database: ChangeDatabase,
     private val sitesDao: SitesDao,
     private val snapsDao: SnapsDao,
     private val fileStorage: FileStorage,
     private val errorHandler: ErrorHandler,
+    private val changeNotifier: ChangeNotifier = NoOpChangeNotifier,
+    private val progressTracker: SyncProgressTracker = SyncProgressTracker(),
+    private val maintenance: com.bernaferrari.changedetection.storage.SnapshotMaintenance? = null,
 ) {
-    // Per-site mutexes to prevent concurrent syncs of the same site
-    private val siteMutexes = mutableMapOf<String, Mutex>()
-    private val mutexMapLock = Mutex()
+    private val pageLocks = PageCheckLocks()
 
-    private suspend fun <T> withSiteLock(siteId: String, block: suspend () -> T): T {
-        val mutex = mutexMapLock.withLock {
-            siteMutexes.getOrPut(siteId) { Mutex() }
-        }
-        return mutex.withLock { block() }
+    private suspend fun <T> withSiteLock(siteId: String, block: suspend () -> T): T = pageLocks.withLock(siteId) {
+        progressTracker.track(siteId, block)
     }
 
-    /**
-     * Check if a site is currently being synced.
-     */
-    suspend fun isSiteSyncing(siteId: String): Boolean = mutexMapLock.withLock {
-        siteMutexes[siteId]?.isLocked == true
-    }
+    suspend fun isSiteSyncing(siteId: String): Boolean = pageLocks.isLocked(siteId)
 
     /**
      * Fetch result for internal use.
@@ -125,20 +128,11 @@ class SyncEngine(
      *
      * @return SyncResult with success/failure details, or Skipped if already syncing
      */
-    suspend fun trySyncSite(siteId: String): SyncResult {
-        val mutex = mutexMapLock.withLock {
-            siteMutexes.getOrPut(siteId) { Mutex() }
-        }
-
-        if (!mutex.tryLock()) {
-            return SyncResult.Skipped(siteId, "Already syncing")
-        }
-
-        return try {
-            syncSiteInternal(siteId)
-        } finally {
-            mutex.unlock()
-        }
+    suspend fun trySyncSite(siteId: String): SyncResult = pageLocks.tryWithLock(
+        siteId,
+        onBusy = { SyncResult.Skipped(siteId, "Already syncing") },
+    ) {
+        progressTracker.track(siteId) { syncSiteInternal(siteId) }
     }
 
     private suspend fun syncSiteInternal(siteId: String): SyncResult = withContext(Dispatchers.Default) {
@@ -154,67 +148,121 @@ class SyncEngine(
             return@withContext SyncResult.Skipped(siteId, "Sync disabled")
         }
 
+        if (!com.bernaferrari.changedetection.repo.supportsVisualMonitoring && site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT) {
+            val error = ContentError(ContentError.Reason.CAPTURE_UNAVAILABLE, "Screenshot monitoring is unavailable on this platform")
+            return@withContext processErrorResult(site, FetchResult.Error(error.message.orEmpty(), error))
+        }
+
         Napier.i("Syncing: ${site.title ?: site.url}")
 
         val fetchResult = fetchFromServer(site)
-        processFetchResult(site, fetchResult, site.threshold)
+        processFetchResultUnlocked(site, fetchResult, site.threshold)
     }
 
-    /**
-     * Process fetch result and save if changed.
-     * This is the main entry point for external fetchers (e.g., ScreenshotService).
-     */
     suspend fun processFetchResult(
         site: Site,
         result: FetchResult,
         threshold: Int = 0,
+    ): SyncResult = withSiteLock(site.id) {
+        withContext(Dispatchers.Default) {
+            processFetchResultUnlocked(site, result, threshold)
+        }
+    }
+
+    /**
+     * Core change-detection path. Callers MUST hold the per-site lock
+     * (via [processFetchResult], [syncSite] or [trySyncSite]).
+     */
+    private suspend fun processFetchResultUnlocked(
+        site: Site,
+        result: FetchResult,
+        threshold: Int = 0,
     ): SyncResult = withContext(Dispatchers.Default) {
+        val currentSite = sitesDao.getSiteById(site.id)
+            ?: return@withContext SyncResult.Skipped(site.id, "Page deleted during check")
+        if (currentSite.url != site.url || currentSite.captureMode != site.captureMode || currentSite.threshold != site.threshold || currentSite.visualChangeThresholdBps != site.visualChangeThresholdBps || currentSite.textRegion() != site.textRegion() || !currentSite.isSyncEnabled) {
+            return@withContext SyncResult.Skipped(site.id, "Page changed or paused during check")
+        }
+        try {
+            maintenance?.beforeCheck()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Napier.w("Orphan cleanup will retry on a later check", error)
+        }
         when (result) {
             is FetchResult.Success -> {
-                processSuccessResult(site, result, threshold)
+                if (result.data.isEmpty()) {
+                    processErrorResult(currentSite, FetchResult.Error("The page returned no content"))
+                } else if (site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT && result.contentType.startsWith("image/", true)) {
+                    processErrorResult(currentSite, FetchResult.Error("This address returns an image. Choose screenshots or source monitoring."))
+                } else {
+                    processSuccessResult(currentSite, result, threshold)
+                }
             }
 
             is FetchResult.Error -> {
-                processErrorResult(site, result)
+                processErrorResult(currentSite, result)
             }
         }
     }
 
     private suspend fun processSuccessResult(
         site: Site,
-        result: FetchResult.Success,
+        incoming: FetchResult.Success,
         threshold: Int,
     ): SyncResult {
+        val prepared = try {
+            if (site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT) {
+                com.bernaferrari.changedetection.detection.prepareTextCapture(incoming.data, incoming.contentType, site.textRegion())
+            } else {
+                null
+            }
+        } catch (selection: com.bernaferrari.changedetection.detection.TextRegionException) {
+            return processErrorResult(site, FetchResult.Error(selection.message.orEmpty(), selection))
+        }
+        val result = if (prepared != null) incoming.copy(data = prepared.data) else incoming
         val lastSnap = snapsDao.getLastSnapForSiteId(site.id)
-        val isHtml = result.contentType.contains("html", ignoreCase = true)
+        val contentHash = prepared?.contentHash ?: ContentHasher.detectionHash(result.data, result.contentType, site.captureMode)
+        val isFirstSnap = lastSnap == null ||
+            lastSnap.contentType.startsWith("image/", true) != result.contentType.startsWith("image/", true) ||
+            ContentHasher.detectionPolicy(lastSnap.contentHash) != ContentHasher.detectionPolicy(contentHash)
 
-        val contentHash = if (isHtml) {
-            ContentHasher.hashHtmlContent(result.data)
+        // A stored normalized hash avoids loading and parsing the previous document
+        // on every 30-second check. Legacy rows have no hash, so compare their bytes.
+        val hasContentChanged = when {
+            isFirstSnap -> true
+            lastSnap.contentHash.isNotEmpty() -> lastSnap.contentHash != contentHash
+            else -> ContentHasher.contentChanged(result.data, fileStorage.readBytes(lastSnap.snapId), result.contentType)
+        }
+        val explicitRule = site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT || site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.SOURCE
+        val visualThreshold = site.visualFilterBasisPoints().takeIf { result.contentType.startsWith("image/", true) } ?: 0
+        val meetsThreshold = if (visualThreshold > 0 && !isFirstSnap && hasContentChanged) {
+            try {
+                val difference = com.bernaferrari.changedetection.image.PlatformImageDiff.compare(
+                    fileStorage.readBytes(requireNotNull(lastSnap).snapId),
+                    result.data,
+                    includeDiffImage = false,
+                )
+                if (difference.error != null || (difference.totalPixels <= 0 && difference.dimensionMismatch == null)) {
+                    return processErrorResult(site, FetchResult.Error("Could not compare screenshots", ContentError(ContentError.Reason.UNKNOWN)))
+                }
+                difference.dimensionMismatch != null || difference.differentPixels * 10_000 >= difference.totalPixels * visualThreshold
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                return processErrorResult(site, FetchResult.Error("Could not compare screenshots", error))
+            }
         } else {
-            ContentHasher.hashContent(result.data)
+            visualThreshold > 0 || explicitRule || isFirstSnap || threshold <= 0 || !hasContentChanged ||
+                ContentHasher.changedByteCount(result.data, fileStorage.readBytes(lastSnap!!.snapId), result.contentType) >= threshold
         }
 
-        val hasContentChanged = ContentHasher.contentChanged(
-            result.data,
-            lastSnap?.let { fileStorage.readBytes(it.snapId) } ?: ByteArray(0),
-            result.contentType,
-        )
-
-        val meetsThreshold = threshold <= kotlin.math.abs(
-            (lastSnap?.contentSize ?: 0) - result.data.size,
-        )
-
-        if ((hasContentChanged && meetsThreshold) || lastSnap == null) {
-            return saveNewSnap(site, result, contentHash, lastSnap == null)
+        if (hasContentChanged && meetsThreshold) {
+            return saveNewSnap(site, result, contentHash, lastSnap?.snapId, isFirstSnap)
         } else {
-            // No changes - update timestamp only
-            sitesDao.updateSite(
-                site.copy(
-                    timestamp = currentTimeMillis(),
-                    isSuccessful = true,
-                    isBrowser = result.contentType.contains("image", ignoreCase = true),
-                ),
-            )
+            val updated = updateStatusIfCurrent(site, successful = true, isBrowser = result.contentType.contains("image", ignoreCase = true), expectedSnapshot = lastSnap)
+            if (!updated) return SyncResult.Skipped(site.id, "Page changed or paused during check")
             Napier.d("No changes for ${site.url}")
             return SyncResult.Success(site.id, hadChanges = false)
         }
@@ -224,12 +272,13 @@ class SyncEngine(
         site: Site,
         result: FetchResult.Success,
         contentHash: String,
+        previousSnapId: String?,
         isFirstSnap: Boolean,
     ): SyncResult {
         val snapId = Uuid.random().toString()
-        var fileWritten = false
-
-        return try {
+        var committed = false
+        val notificationSite: Site
+        try {
             val snap = Snap(
                 snapId = snapId,
                 siteId = site.id,
@@ -240,58 +289,96 @@ class SyncEngine(
                 contentHash = contentHash,
                 processedContentHash = contentHash,
             )
-
-            // Step 1: Save content to file storage first (can be cleaned up on failure)
             fileStorage.writeBytes(snapId, result.data)
-            fileWritten = true
+            currentCoroutineContext().ensureActive()
 
-            // Step 2: Save metadata to database
-            snapsDao.insertSnap(snap)
-
-            // Step 3: Update site status
-            sitesDao.updateSite(
-                site.copy(
-                    timestamp = currentTimeMillis(),
-                    isSuccessful = true,
-                    isBrowser = result.contentType.contains("image", ignoreCase = true),
-                ),
-            )
-
-            val changeReason = if (isFirstSnap) "Initial snapshot" else "Content changed"
-            Napier.i("✓ Saved snap for ${site.url}: $changeReason (${result.data.size} bytes)")
-
-            SyncResult.Success(
-                siteId = site.id,
-                hadChanges = true,
-                snapId = snapId,
-                contentSize = result.data.size,
-            )
-        } catch (e: Exception) {
-            // Rollback: Clean up file if it was written but database operation failed
-            if (fileWritten) {
-                try {
-                    fileStorage.deleteFile(snapId)
-                    Napier.d("Rolled back file for failed snap: $snapId")
-                } catch (cleanupError: Exception) {
-                    Napier.w("Failed to clean up file for failed snap: $snapId", cleanupError)
+            // Complete this short commit even if Stop arrives at the suspension boundary.
+            // The committed flag must be set before cancellation can be delivered on return.
+            notificationSite = withContext(NonCancellable) {
+                val savedSite = inWriteTransaction {
+                    val current = currentCaptureSite(site) ?: return@inWriteTransaction null
+                    // A fresh start or history edit invalidates the comparison we just made.
+                    if (snapsDao.getLastSnapForSiteId(site.id)?.snapId != previousSnapId) return@inWriteTransaction null
+                    snapsDao.insertSnap(snap)
+                    sitesDao.updateSyncMetadata(
+                        siteId = site.id,
+                        timestamp = snap.timestamp,
+                        successful = true,
+                        isBrowser = result.contentType.contains("image", ignoreCase = true),
+                        isRead = if (!isFirstSnap) {
+                            false
+                        } else if (previousSnapId == null) {
+                            true
+                        } else {
+                            null
+                        },
+                    )
+                    current
                 }
-            }
-
-            // Rollback: Try to delete snap metadata if it was inserted
-            try {
-                snapsDao.deleteSnapById(snapId)
-            } catch (_: Exception) {
-                // Ignore cleanup errors
-            }
-
+                committed = savedSite != null
+                savedSite
+            } ?: return SyncResult.Skipped(site.id, "Page or history changed during check")
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
             val errorResult = errorHandler.handleError(
-                DatabaseError(DatabaseError.Operation.WRITE, "Failed to save snapshot", e),
+                if (error is SnapshotStorageError) error else DatabaseError(DatabaseError.Operation.WRITE, "Failed to save snapshot", error),
                 ErrorContext.SYNC_WORKER,
                 "save_snap",
                 site.id,
             )
-            SyncResult.Failed(site.id, errorResult, e)
+            try {
+                updateStatusIfCurrent(site, successful = false, isBrowser = site.isBrowser, failureCode = CheckFailure.from(errorResult, error).name)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (statusError: Exception) {
+                Napier.w("Could not record failed snapshot status for ${site.id}", statusError)
+            }
+            return SyncResult.Failed(site.id, errorResult, error)
+        } finally {
+            if (!committed) {
+                // Room rolls back failed transactions. Never delete a committed row here.
+                // A failed write can leave a partial file even when writeBytes did not return.
+                withContext(NonCancellable) {
+                    runCatching {
+                        if (!fileStorage.deleteFile(snapId) && fileStorage.fileExists(snapId)) {
+                            if (!fileStorage.deleteFile(snapId)) Napier.w("Orphan cleanup will retry snapshot $snapId")
+                        }
+                    }.onFailure { Napier.w("Could not clean up incomplete snapshot $snapId", it) }
+                }
+            }
         }
+
+        // Side effects after the commit can never remove durable history.
+        if (!isFirstSnap && notificationSite.isNotificationEnabled) {
+            try {
+                changeNotifier.notifyChange(notificationSite, snapId)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Napier.w("Saved change, but notification delivery failed for ${site.id}", error)
+            }
+        }
+        try {
+            maintenance?.afterSavedVersion()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            Napier.w("Saved version retained; history maintenance will retry", error)
+        }
+        return SyncResult.Success(site.id, hadChanges = !isFirstSnap, snapId = snapId, contentSize = result.data.size)
+    }
+
+    /** Must be read under the same write transaction as the status or snapshot commit. */
+    private suspend fun currentCaptureSite(site: Site): Site? = sitesDao.getSiteById(site.id)?.takeIf {
+        it.url == site.url && it.isSyncEnabled && it.threshold == site.threshold && it.visualChangeThresholdBps == site.visualChangeThresholdBps && it.captureMode == site.captureMode && it.textRegion() == site.textRegion()
+    }
+
+    private suspend fun updateStatusIfCurrent(site: Site, successful: Boolean, isBrowser: Boolean, expectedSnapshot: Snap? = null, failureCode: String? = null): Boolean = inWriteTransaction {
+        currentCaptureSite(site) ?: return@inWriteTransaction false
+        if (expectedSnapshot != null && snapsDao.getLastSnapForSiteId(site.id)?.snapId != expectedSnapshot.snapId) return@inWriteTransaction false
+        sitesDao.updateSyncMetadata(site.id, currentTimeMillis(), successful, isBrowser, isRead = null, failureCode = failureCode)
+        true
     }
 
     private suspend fun processErrorResult(site: Site, result: FetchResult.Error): SyncResult {
@@ -302,11 +389,9 @@ class SyncEngine(
             site.id,
         )
 
-        // Update site as failed
-        sitesDao.updateSite(
-            site.copy(timestamp = currentTimeMillis(), isSuccessful = false),
-        )
-
+        if (!updateStatusIfCurrent(site, successful = false, isBrowser = site.isBrowser, failureCode = CheckFailure.from(errorResult, result.throwable).name)) {
+            return SyncResult.Skipped(site.id, "Page changed or paused during check")
+        }
         Napier.e("✗ Sync failed for ${site.url}: ${result.message}", result.throwable)
 
         return SyncResult.Failed(site.id, errorResult, result.throwable)
@@ -343,7 +428,7 @@ class SyncEngine(
      */
     suspend fun fetchFromServer(site: Site): FetchResult = withContext(Dispatchers.Default) {
         try {
-            val response: HttpResponse = httpClient.get(site.url) {
+            httpClient.prepareGet(site.url) {
                 headers {
                     append(HttpHeaders.UserAgent, USER_AGENT)
                     append(HttpHeaders.Accept, "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
@@ -352,40 +437,61 @@ class SyncEngine(
                     requestTimeoutMillis = REQUEST_TIMEOUT_MS
                     connectTimeoutMillis = CONNECT_TIMEOUT_MS
                 }
+            }.execute { response ->
+                if (!response.status.isSuccess()) {
+                    val errorResult = errorHandler.handleError(
+                        NetworkError(response.status.value, "HTTP ${response.status.value}"),
+                        ErrorContext.SYNC_WORKER,
+                        "fetch_${site.id}",
+                        site.id,
+                    )
+                    return@execute FetchResult.Error(
+                        "HTTP ${response.status.value}: ${response.status.description}",
+                        throwable = NetworkError(response.status.value, "HTTP ${response.status.value}"),
+                        errorResult = errorResult,
+                    )
+                }
+
+                val contentType = response.contentType()?.toString() ?: "text/html"
+
+                // Check content size before loading
+                val contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull() ?: 0
+                if (contentLength > MAX_CONTENT_SIZE) {
+                    val errorResult = errorHandler.handleError(
+                        SyncError(SyncError.Reason.CONTENT_TOO_LARGE, "Content size: $contentLength"),
+                        ErrorContext.SYNC_WORKER,
+                        "fetch_${site.id}",
+                        site.id,
+                    )
+                    return@execute FetchResult.Error(
+                        "Content too large (${contentLength / 1024 / 1024}MB)",
+                        throwable = SyncError(SyncError.Reason.CONTENT_TOO_LARGE),
+                        errorResult = errorResult,
+                    )
+                }
+                // Stream the body so the size cap is enforced even without a
+                // Content-Length header, and keep binary payloads intact
+                // (decoding everything as text corrupted images and other binaries).
+                // Extract the charset label from the Content-Type header text
+                // (multiplatform-safe; response.charset() is JVM-only).
+                val charsetName = contentType.findCharset()?.takeIf { it.isNotBlank() } ?: "UTF-8"
+                val isText = contentType.contains("text/", ignoreCase = true) ||
+                    contentType.contains("html", ignoreCase = true) ||
+                    contentType.contains("xml", ignoreCase = true) ||
+                    contentType.contains("json", ignoreCase = true)
+
+                val bodyBytes = readCappedBody(response.bodyAsChannel())
+                val data = if (isText) {
+                    // Normalize text payloads to UTF-8 bytes (decodeByteArray falls
+                    // back to UTF-8 when the label is unknown).
+                    decodeByteArray(bodyBytes, charsetName).encodeToByteArray()
+                } else {
+                    bodyBytes
+                }
+                FetchResult.Success(contentType, data)
             }
-
-            if (!response.status.isSuccess()) {
-                val errorResult = errorHandler.handleError(
-                    NetworkError(response.status.value, "HTTP ${response.status.value}"),
-                    ErrorContext.SYNC_WORKER,
-                    "fetch_${site.id}",
-                    site.id,
-                )
-                return@withContext FetchResult.Error(
-                    "HTTP ${response.status.value}: ${response.status.description}",
-                    errorResult = errorResult,
-                )
-            }
-
-            val contentType = response.contentType()?.toString() ?: "text/html"
-
-            // Check content size before loading
-            val contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull() ?: 0
-            if (contentLength > MAX_CONTENT_SIZE) {
-                val errorResult = errorHandler.handleError(
-                    SyncError(SyncError.Reason.CONTENT_TOO_LARGE, "Content size: $contentLength"),
-                    ErrorContext.SYNC_WORKER,
-                    "fetch_${site.id}",
-                    site.id,
-                )
-                return@withContext FetchResult.Error(
-                    "Content too large (${contentLength / 1024 / 1024}MB)",
-                    errorResult = errorResult,
-                )
-            }
-
-            val bodyText = response.bodyAsText()
-            FetchResult.Success(contentType, bodyText.encodeToByteArray())
+        } catch (cancellation: CancellationException) {
+            throw cancellation
         } catch (e: Exception) {
             val errorResult = errorHandler.handleError(
                 e,
@@ -437,6 +543,29 @@ class SyncEngine(
     } catch (e: Exception) {
         "Content changed"
     }
+
+    /**
+     * Reads the response body enforcing MAX_CONTENT_SIZE during the read, so
+     * chunked responses without a Content-Length header cannot balloon memory.
+     */
+    private suspend fun readCappedBody(channel: ByteReadChannel): ByteArray {
+        val source = channel.readRemaining(MAX_CONTENT_SIZE + 1)
+        val bytes = source.readByteArray()
+        if (bytes.size > MAX_CONTENT_SIZE) {
+            throw SyncError(
+                SyncError.Reason.CONTENT_TOO_LARGE,
+                "Response exceeded ${MAX_CONTENT_SIZE / 1024 / 1024}MB",
+            )
+        }
+        return bytes
+    }
+
+    /**
+     * Runs [block] inside a database write transaction. Extracted as an open
+     * hook so tests can substitute a no-op transaction around mocked DAOs
+     * (Room's withWriteTransaction extension cannot be stubbed by Mockito).
+     */
+    protected open suspend fun <T> inWriteTransaction(block: suspend () -> T): T = database.withWriteTransaction { block() }
 
     private fun currentTimeMillis(): Long = kotlin.time.Clock.System.now().toEpochMilliseconds()
 

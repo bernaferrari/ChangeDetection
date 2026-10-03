@@ -17,6 +17,8 @@ import com.bernaferrari.changedetection.platform.ShareManager
 import com.bernaferrari.changedetection.repo.source.local.ChangeDatabase
 import com.bernaferrari.changedetection.repo.source.local.getDatabaseBuilder
 import com.bernaferrari.changedetection.repo.source.local.getRoomDatabase
+import com.bernaferrari.changedetection.sync.ChangeNotifier
+import com.bernaferrari.changedetection.sync.NoOpChangeNotifier
 import com.bernaferrari.changedetection.sync.SyncEngine
 import com.bernaferrari.changedetection.util.FileStorage
 import com.bernaferrari.changedetection.util.IosFileStorage
@@ -30,6 +32,9 @@ import platform.Foundation.NSUserDomainMask
 
 @Module
 actual class PlatformDiModule {
+    @Single
+    fun capturePreviewer(engine: com.bernaferrari.changedetection.sync.SyncEngine): com.bernaferrari.changedetection.addedit.CapturePreviewer = com.bernaferrari.changedetection.addedit.HtmlCapturePreviewer(engine)
+
     @Single
     fun database(): ChangeDatabase = getRoomDatabase(getDatabaseBuilder(), BundledSQLiteDriver())
 
@@ -62,6 +67,9 @@ actual class PlatformDiModule {
 
     @Single
     fun fileStorage(): FileStorage = IosFileStorage()
+
+    @Single
+    fun changeNotifier(): ChangeNotifier = NoOpChangeNotifier
 }
 
 fun initKoinIos(): KoinApplication = initKoin()

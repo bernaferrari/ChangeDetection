@@ -4,6 +4,8 @@
  */
 package com.bernaferrari.changedetection.ui.settings
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -18,7 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -52,20 +54,22 @@ fun SettingsScreen(
     appVersion: String = "",
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val writeFailed by viewModel.writeFailed.collectAsStateWithLifecycle()
     var showBackgroundSyncDialog by remember { mutableStateOf(false) }
     var showBrowserDelayDialog by remember { mutableStateOf(false) }
     var showComparisonMethodDialog by remember { mutableStateOf(false) }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val spacing = MaterialTheme.spacing
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeFlexibleTopAppBar(
+            TopAppBar(
+                expandedHeight = 96.dp,
                 title = {
                     Text(
                         text = stringResource(Res.string.settings_title),
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        style = MaterialTheme.typography.headlineLarge,
                     )
                 },
                 scrollBehavior = scrollBehavior,
@@ -82,40 +86,47 @@ fun SettingsScreen(
                 .fillMaxSize()
                 .padding(paddingValues),
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .widthIn(max = 720.dp)
-                    .fillMaxWidth()
-                    .fillMaxHeight(),
-                contentPadding = PaddingValues(vertical = spacing.md),
-            ) {
-                item(key = "appearance") {
-                    AppearanceSettingsSection(
-                        selectedTheme = uiState.themeMode,
-                        selectedPalette = uiState.appPalette,
-                        onThemeSelected = viewModel::updateThemeMode,
-                        onPaletteSelected = viewModel::updateAppPalette,
-                    )
-                }
-                item(key = "monitoring") {
-                    MonitoringSettingsSection(
-                        uiState = uiState,
-                        onBackgroundSyncClick = { showBackgroundSyncDialog = true },
-                        onBrowserDelayClick = { showBrowserDelayDialog = true },
-                        onComparisonMethodClick = { showComparisonMethodDialog = true },
-                    )
-                }
-                item(key = "about") {
-                    AboutSettingsSection(
-                        appVersion = appVersion,
-                        onHowItWorksClick = onHowItWorksClick,
-                        onAboutClick = onAboutClick,
-                        onContactClick = onContactClick,
-                    )
-                }
-                item(key = "bottom-spacer") {
-                    Spacer(modifier = Modifier.height(spacing.xl + spacing.touchTarget))
+            if (!uiState.isLoaded) {
+                SettingsLoadState(uiState.loadFailed, viewModel::retryLoading, Modifier.verticalScroll(rememberScrollState()))
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .widthIn(max = 720.dp)
+                        .fillMaxWidth()
+                        .fillMaxHeight(),
+                    contentPadding = PaddingValues(vertical = spacing.md),
+                ) {
+                    if (writeFailed) item(key = "write-error") { SettingsWriteError(viewModel::retryPreferenceWrite) }
+                    item(key = "monitoring") {
+                        MonitoringSettingsSection(
+                            uiState = uiState,
+                            onBackgroundSyncClick = { showBackgroundSyncDialog = true },
+                            onBrowserDelayClick = { showBrowserDelayDialog = true },
+                            onComparisonMethodClick = { showComparisonMethodDialog = true },
+                        )
+                    }
+                    item(key = "device") {
+                        DeviceSettingsSection(
+                            uiState = uiState,
+                            onThemeSelected = viewModel::updateThemeMode,
+                            onPaletteSelected = viewModel::updateAppPalette,
+                            onRetryStorage = viewModel::retryStorageLoading,
+                            writeFailed = writeFailed,
+                            onRetryWrite = viewModel::retryPreferenceWrite,
+                        )
+                    }
+                    item(key = "about") {
+                        AboutSettingsSection(
+                            appVersion = appVersion,
+                            onHowItWorksClick = onHowItWorksClick,
+                            onAboutClick = onAboutClick,
+                            onContactClick = onContactClick,
+                        )
+                    }
+                    item(key = "bottom-spacer") {
+                        Spacer(modifier = Modifier.height(spacing.xl + spacing.touchTarget))
+                    }
                 }
             }
         }

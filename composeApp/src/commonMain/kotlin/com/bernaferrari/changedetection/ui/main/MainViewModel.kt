@@ -23,6 +23,8 @@ import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
+import com.bernaferrari.changedetection.sync.SyncProgressTracker
+import com.bernaferrari.changedetection.util.ApplicationScope
 import io.github.aakira.napier.Napier
 import kotlin.time.Clock
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -37,12 +39,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
 import org.koin.core.annotation.KoinViewModel
 
 sealed class UiMessage {
     data object SnapshotsPruned : UiMessage()
+    data object TurboEnded : UiMessage()
 }
 
 @OptIn(ExperimentalUuidApi::class)
@@ -53,6 +57,8 @@ class MainViewModel(
     private val monitoringManager: MonitoringManager,
     private val dataStore: DataStore<Preferences>,
     private val errorHandler: ErrorHandler,
+    private val applicationScope: ApplicationScope,
+    syncProgressTracker: SyncProgressTracker,
 ) : ViewModel() {
 
     val syncStatusFlow = monitoringManager.getSyncStatusFlow()
@@ -68,30 +74,25 @@ class MainViewModel(
     // Pending retry action for error recovery
     private var pendingRetryAction: (() -> Unit)? = null
 
-    fun onDeleteSite(site: Site) {
-        _pendingDeletionSiteIds.update { it + site.id }
-    }
+    private val deletions: UndoableDeletion<Site> = UndoableDeletion(
+        scope = applicationScope.scope,
+        delete = { site ->
+            mSnapsRepository.deleteSiteWithSnaps(site.id)
+            removeSiteFromQuickMonitor(site.id)
+        },
+        onHidden = { site -> _pendingDeletionSiteIds.update { it + site.id } },
+        onRestored = { site -> _pendingDeletionSiteIds.update { it - site.id } },
+        onDeleted = { site -> _pendingDeletionSiteIds.update { it - site.id } },
+        onFailure = { site, error ->
+            showError(error, ErrorContext.DELETE_SITE, site.id, retryAction = { retryDeletion(site) })
+        },
+    )
 
-    fun onUndoDeleteSite(site: Site) {
-        _pendingDeletionSiteIds.update { it - site.id }
-    }
+    internal fun onDeleteSite(site: Site) = deletions.stage(site)
 
-    fun onConfirmDeleteSite(site: Site) {
-        viewModelScope.launch {
-            _pendingDeletionSiteIds.update { it - site.id }
-            runCatching {
-                mSnapsRepository.deleteAllSnaps(site.id)
-                mSitesRepository.deleteSite(site.id)
-            }.onFailure { error ->
-                showError(
-                    error = error,
-                    context = ErrorContext.DELETE_SITE,
-                    siteId = site.id,
-                    retryAction = { onConfirmDeleteSite(site) },
-                )
-            }
-        }
-    }
+    internal suspend fun resolveDeletion(ticket: UndoableDeletion.Ticket<Site>, chooseUndo: suspend () -> Boolean) = deletions.resolve(ticket, chooseUndo)
+
+    private fun retryDeletion(site: Site) = deletions.retry(site)
 
     fun pruneSite(siteId: String) {
         viewModelScope.launch {
@@ -106,14 +107,6 @@ class MainViewModel(
                     retryAction = { pruneSite(siteId) },
                 )
             }
-        }
-    }
-
-    suspend fun removeSnapsByType(siteId: String, contentType: String) {
-        runCatching {
-            mSnapsRepository.deleteSnapsForSiteIdAndContentType(siteId, contentType)
-        }.onFailure { error ->
-            showError(error, ErrorContext.GENERAL, siteId)
         }
     }
 
@@ -143,6 +136,7 @@ class MainViewModel(
         viewModelScope.launch {
             runCatching {
                 mSitesRepository.updateSite(site)
+                if (!site.isSyncEnabled) removeSiteFromQuickMonitor(site.id)
             }.onFailure { error ->
                 showError(
                     error = error,
@@ -154,66 +148,65 @@ class MainViewModel(
         }
     }
 
-    // StateFlow for tracking loading sites
-    private val _loadingSites = MutableStateFlow<Set<String>>(emptySet())
-    val loadingSites: StateFlow<Set<String>> = _loadingSites.asStateFlow()
+    // WorkManager describes queued requests; the process tracker describes the
+    // page currently doing real work. Keep optimistic taps separately so one
+    // source can never erase another source's truthful loading state.
+    private val _workLoadingSites = MutableStateFlow<Set<String>>(emptySet())
+    private val _optimisticLoadingSites = MutableStateFlow<Set<String>>(emptySet())
+    val loadingSites: StateFlow<Set<String>> = combine(
+        _workLoadingSites,
+        _optimisticLoadingSites,
+        syncProgressTracker.activeSiteIds,
+    ) { workIds, optimisticIds, activeIds ->
+        workIds + optimisticIds + activeIds
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = emptySet(),
+    )
 
     // StateFlow for tracking sites pending deletion (Undo feature)
     private val _pendingDeletionSiteIds = MutableStateFlow<Set<String>>(emptySet())
 
-    val sitesFlow: StateFlow<List<SiteAndLastSnap>?> = combine(
-        mSitesRepository.getDataWithChanges(),
-        _loadingSites.asStateFlow(),
-        _pendingDeletionSiteIds.asStateFlow(),
-    ) { sites, loadingSiteIds, pendingDeletionIds ->
-        // Load all snapshots in a single optimized query
-        val snapsBySite = runCatching { mSnapsRepository.getAllMostRecentSnaps() }.getOrNull() ?: emptyMap()
+    private var watchlistErrorId: String? = null
+    private val watchlistData = watchlistReader(
+        sites = mSitesRepository,
+        onFailure = { error ->
+            showError(error, ErrorContext.GENERAL)
+            watchlistErrorId = _currentError.value?.id
+        },
+        onLoaded = {
+            if (watchlistErrorId != null && _currentError.value?.id == watchlistErrorId) dismissError()
+            watchlistErrorId = null
+        },
+    )
 
-        // Map sites to SiteAndLastSnap using the pre-loaded snapshots
-        sites
-            .filter { !pendingDeletionIds.contains(it.id) } // Filter out pending deletions
-            .map { site ->
-                SiteAndLastSnap(
-                    site = site,
-                    snap = snapsBySite[site.id], // Fast map lookup instead of separate query
-                    isSyncing = loadingSiteIds.contains(site.id),
-                )
-            }
+    val sitesFlow: StateFlow<List<SiteAndLastSnap>?> = combine(
+        watchlistData,
+        loadingSites,
+        _pendingDeletionSiteIds.asStateFlow(),
+    ) { rows, loadingSiteIds, pendingDeletionIds ->
+        rows.filter { it.site.id !in pendingDeletionIds }
+            .map { it.copy(isSyncing = it.site.id in loadingSiteIds) }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = null,
     )
 
-    // Quick Monitor state
-    private val QUICK_MONITOR_ACTIVE_KEY = booleanPreferencesKey("quick_monitor_active")
-    private val QUICK_MONITOR_SITE_IDS_KEY = stringPreferencesKey("quick_monitor_site_ids")
-    private val QUICK_MONITOR_START_TIME_KEY = longPreferencesKey("quick_monitor_start_time")
-    private val QUICK_MONITOR_DEADLINE_TIME_KEY = longPreferencesKey("quick_monitor_deadline_time")
-    private val QUICK_MONITOR_INTERVAL_KEY = intPreferencesKey("quick_monitor_interval_seconds")
+    val monitoringSchedule = dataStore.data.map { com.bernaferrari.changedetection.background.MonitoringSchedule.from(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), com.bernaferrari.changedetection.background.MonitoringSchedule())
 
-    val quickMonitorState = dataStore.data.map { preferences ->
-        val isActive = preferences[QUICK_MONITOR_ACTIVE_KEY] ?: false
-        val siteIdsString = preferences[QUICK_MONITOR_SITE_IDS_KEY] ?: ""
-        val siteIds = if (siteIdsString.isBlank()) {
-            emptySet()
-        } else {
-            siteIdsString.split(",").filter { it.isNotBlank() }.toSet()
+    fun resumeScheduledChecks() {
+        applicationScope.scope.launch {
+            runCatching {
+                dataStore.edit { it[com.bernaferrari.changedetection.background.MonitoringSchedule.ENABLED] = true }
+                monitoringManager.updateSchedule()
+            }.onFailure { showError(it, ErrorContext.GENERAL) }
         }
-        val startTime = preferences[QUICK_MONITOR_START_TIME_KEY] ?: 0L
+    }
 
-        QuickMonitorState(
-            isActive = isActive,
-            siteIds = siteIds,
-            startTime = startTime,
-            deadlineTime = preferences[QUICK_MONITOR_DEADLINE_TIME_KEY] ?: 0L,
-            intervalSeconds = preferences[QUICK_MONITOR_INTERVAL_KEY] ?: 15,
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = QuickMonitorState(),
-    )
+    val quickMonitorState = monitoringManager.quickMonitorState
 
     // Initialize monitoring
     init {
@@ -221,44 +214,19 @@ class MainViewModel(
         viewModelScope.launch {
             syncStatusFlow.collect { syncList ->
                 val runningSiteIds = syncList
-                    .filter { it.state == SyncState.RUNNING || it.state == SyncState.ENQUEUED }
+                    .filter { it.state == SyncState.RUNNING }
                     .flatMap { it.tags }
                     .filter { it != "singleEvent" && it != "work" }
                     .toSet()
 
                 // Update loading sites state
-                _loadingSites.value = runningSiteIds
+                _workLoadingSites.value = runningSiteIds
             }
         }
 
-        restoreQuickMonitorIfNeeded()
-    }
-
-    private fun restoreQuickMonitorIfNeeded() {
         viewModelScope.launch {
-            val prefs = dataStore.data.first()
-            val isActive = prefs[QUICK_MONITOR_ACTIVE_KEY] ?: false
-            val siteIdsString = prefs[QUICK_MONITOR_SITE_IDS_KEY].orEmpty()
-            val siteIds = siteIdsString.split(",").filter { it.isNotBlank() }
-            val interval = prefs[QUICK_MONITOR_INTERVAL_KEY] ?: 15
-            val deadline = prefs[QUICK_MONITOR_DEADLINE_TIME_KEY] ?: 0L
-
-            if (!isActive || siteIds.isEmpty()) {
-                return@launch
-            }
-
-            if (deadline > 0L && getNow() > deadline) {
-                dataStore.edit { preferences ->
-                    preferences[QUICK_MONITOR_ACTIVE_KEY] = false
-                    preferences[QUICK_MONITOR_SITE_IDS_KEY] = ""
-                    preferences[QUICK_MONITOR_START_TIME_KEY] = 0L
-                    preferences[QUICK_MONITOR_DEADLINE_TIME_KEY] = 0L
-                    preferences[QUICK_MONITOR_INTERVAL_KEY] = 15
-                }
-                return@launch
-            }
-
-            monitoringManager.startQuickMonitor(siteIds, interval)
+            runCatching { monitoringManager.updateSchedule() }
+                .onFailure { showError(it, ErrorContext.GENERAL) }
         }
     }
 
@@ -289,14 +257,13 @@ class MainViewModel(
 
     private suspend fun scheduleSiteReload(site: Site) {
         try {
-            if (_loadingSites.value.contains(site.id)) {
+            if (loadingSites.value.contains(site.id)) {
                 return
             }
 
-            _loadingSites.update { it + site.id }
+            _optimisticLoadingSites.update { it + site.id }
 
             // Update site timestamp to indicate sync started
-            mSitesRepository.updateSite(site.copy(timestamp = getNow()))
 
             // Start sync work
             monitoringManager.reloadSite(site)
@@ -304,7 +271,7 @@ class MainViewModel(
             // Monitor work completion without blocking caller
             monitorSiteWorkCompletionAsync(site.id)
         } catch (e: Exception) {
-            _loadingSites.update { it - site.id }
+            _optimisticLoadingSites.update { it - site.id }
             showError(
                 error = e,
                 context = ErrorContext.GENERAL,
@@ -322,53 +289,35 @@ class MainViewModel(
 
     private suspend fun monitorSiteWorkCompletion(siteId: String) {
         try {
-            // Wait a bit for work to start, then monitor completion
-            // Note: In KMP wait usage is limited but delay is fine
-            kotlinx.coroutines.delay(1000)
-
-            // Observe work status until it finishes
-            syncStatusFlow
-                .map { syncList ->
-                    syncList.any { syncInfo ->
-                        syncInfo.state.isRunningOrEnqueued() &&
-                            syncInfo.tags.contains(siteId)
-                    }
-                }
-                .first { isStillRunning -> !isStillRunning }
+            // Hand off tap feedback to actual execution tracking as soon as Android
+            // acknowledges the request. ENQUEUED retries are not active checks.
+            com.bernaferrari.changedetection.background.awaitSiteRequest(syncStatusFlow, siteId)
         } catch (e: Exception) {
             Napier.e("Failed to monitor work for site $siteId: ${e.message}")
         } finally {
-            _loadingSites.update { it - siteId }
+            _optimisticLoadingSites.update { it - siteId }
         }
     }
 
-    fun startQuickMonitor(siteIds: Set<String>, intervalSeconds: Int = 15) {
-        viewModelScope.launch {
-            Napier.d("Starting quick monitor for ${siteIds.size} sites")
-
-            dataStore.edit { preferences ->
-                preferences[QUICK_MONITOR_ACTIVE_KEY] = true
-                preferences[QUICK_MONITOR_SITE_IDS_KEY] = siteIds.joinToString(",")
-                preferences[QUICK_MONITOR_START_TIME_KEY] = getNow()
-                preferences[QUICK_MONITOR_INTERVAL_KEY] = intervalSeconds
-            }
-            monitoringManager.startQuickMonitor(siteIds.toList(), intervalSeconds = intervalSeconds)
+    fun startQuickMonitor(siteIds: Set<String>, intervalSeconds: Int = 30, durationMinutes: Int = 180) {
+        if (siteIds.isEmpty()) {
+            stopQuickMonitor()
+            return
+        }
+        try {
+            monitoringManager.startQuickMonitor(siteIds.toList(), intervalSeconds, durationMinutes)
+        } catch (error: Exception) {
+            showError(error, ErrorContext.GENERAL, retryAction = { startQuickMonitor(siteIds, intervalSeconds, durationMinutes) })
         }
     }
 
-    fun stopQuickMonitor() {
-        viewModelScope.launch {
-            Napier.d("Stopping quick monitor")
-
-            dataStore.edit { preferences ->
-                preferences[QUICK_MONITOR_ACTIVE_KEY] = false
-                preferences[QUICK_MONITOR_SITE_IDS_KEY] = ""
-                preferences[QUICK_MONITOR_START_TIME_KEY] = 0L
-                preferences[QUICK_MONITOR_INTERVAL_KEY] = 15
-            }
-            monitoringManager.stopQuickMonitor()
-        }
+    private suspend fun removeSiteFromQuickMonitor(siteId: String) {
+        val current = quickMonitorState.value
+        if (!current.isActive || siteId !in current.siteIds) return
+        startQuickMonitor(current.siteIds - siteId, current.intervalSeconds)
     }
+
+    fun stopQuickMonitor() = monitoringManager.stopQuickMonitor()
 
     // Error handling methods
 

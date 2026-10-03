@@ -5,11 +5,27 @@
 package com.bernaferrari.changedetection.util
 
 import com.bernaferrari.changedetection.extensions.cleanUpHtml
+import com.bernaferrari.changedetection.repo.CaptureMode
 
 object ContentHasher {
-    private val htmlCleanupCache = SynchronizedCache<String, String>(MAX_CACHE_SIZE)
 
-    private const val MAX_CACHE_SIZE = 500 // Reduced since LRU is more efficient
+    /** Versioned policy hashes make a rule change a baseline, never a false content alert. */
+    fun detectionHash(content: ByteArray, contentType: String, mode: CaptureMode): String = when (mode) {
+        CaptureMode.TEXT -> "text-v1:" + hashContent(
+            readableSnapshotText(content.decodeToString(), contentType.contains("html", true)).encodeToByteArray(),
+        )
+
+        CaptureMode.SOURCE -> "source-v1:" + hashContent(content)
+
+        else -> if (contentType.contains("html", true)) hashHtmlContent(content) else hashContent(content)
+    }
+
+    fun detectionPolicy(hash: String): String = when {
+        hash.startsWith("text-region-v1:") || hash.startsWith("text-region-v2:") -> hash.substringBeforeLast(':')
+        hash.startsWith("text-v1:") -> "text-v1"
+        hash.startsWith("source-v1:") -> "source-v1"
+        else -> "legacy"
+    }
 
     /**
      * Generate SHA-256 hash for raw content
@@ -22,7 +38,7 @@ object ContentHasher {
     fun hashHtmlContent(content: ByteArray): String {
         val contentString = content.decodeToString()
 
-        // Get cleaned HTML (cached)
+        // Normalize without retaining complete page bodies in memory.
         val cleanedHtml = getCleanedHtml(contentString)
 
         // Hash the cleaned content
@@ -37,7 +53,7 @@ object ContentHasher {
         previousContent: ByteArray,
         contentType: String,
     ): Boolean {
-        if (newContent.isEmpty()) return false
+        if (newContent.isEmpty()) return previousContent.isNotEmpty()
         if (previousContent.isEmpty()) return true
 
         return if (contentType.contains("html", ignoreCase = true)) {
@@ -67,30 +83,19 @@ object ContentHasher {
         return sizeChange > threshold
     }
 
-    /**
-     * Get cleaned HTML with caching
-     */
-    private fun getCleanedHtml(html: String): String {
-        // Check cache first
-        val cached = htmlCleanupCache[html]
-        if (cached != null) {
-            return cached
-        }
+    private fun getCleanedHtml(html: String): String = html.cleanUpHtml()
 
-        // Clean the HTML
-        val cleaned = html.cleanUpHtml()
-
-        // Cache the result
-        htmlCleanupCache[html] = cleaned
-        return cleaned
+    /** Count changed bytes, including replacements that do not change the file length. */
+    fun changedByteCount(newContent: ByteArray, previousContent: ByteArray, contentType: String): Int {
+        val html = contentType.contains("html", ignoreCase = true)
+        val current = if (html) getCleanedHtml(newContent.decodeToString()).encodeToByteArray() else newContent
+        val previous = if (html) getCleanedHtml(previousContent.decodeToString()).encodeToByteArray() else previousContent
+        return kotlin.math.abs(current.size - previous.size) +
+            (0 until minOf(current.size, previous.size)).count { current[it] != previous[it] }
     }
 
-    /**
-     * Clear all caches
-     */
-    fun clearCaches() {
-        htmlCleanupCache.clear()
-    }
+    // Kept for callers; no document bodies are retained between checks.
+    fun clearCaches() = Unit
 }
 
 /**

@@ -23,14 +23,19 @@ actual fun ChangeDetectionTheme(
     content: @Composable () -> Unit,
 ) {
     MaterialExpressiveTheme(
-        colorScheme = dynamicColorScheme(
-            seedColor = seedColor,
-            isDark = darkTheme,
-            style = PaletteStyle.TonalSpot,
-            specVersion = ColorSpec.SpecVersion.SPEC_2025,
-        ),
+        colorScheme = if (seedColor == SeedColor) {
+            referenceColorScheme(darkTheme)
+        } else {
+            dynamicColorScheme(
+                seedColor = seedColor,
+                isDark = darkTheme,
+                style = PaletteStyle.TonalSpot,
+                specVersion = ColorSpec.SpecVersion.SPEC_2025,
+            )
+        },
         motionScheme = MotionScheme.expressive(),
         typography = Typography,
+        shapes = AppShapes,
     ) {
         CompositionLocalProvider(LocalAppSpacing provides AppSpacing(), content = content)
     }

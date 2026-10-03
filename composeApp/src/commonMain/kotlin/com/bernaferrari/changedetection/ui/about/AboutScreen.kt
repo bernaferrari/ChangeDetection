@@ -22,6 +22,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,10 +51,15 @@ import com.bernaferrari.changedetection.shared.generated.resources.about_open_so
 import com.bernaferrari.changedetection.shared.generated.resources.about_title
 import com.bernaferrari.changedetection.shared.generated.resources.about_view_licenses
 import com.bernaferrari.changedetection.shared.generated.resources.about_view_on_github
+import com.bernaferrari.changedetection.shared.generated.resources.about_hero_label
+import com.bernaferrari.changedetection.shared.generated.resources.about_hero_title
+import com.bernaferrari.changedetection.shared.generated.resources.about_local_badge
+import com.bernaferrari.changedetection.shared.generated.resources.about_signal_badge
 import com.bernaferrari.changedetection.shared.generated.resources.app_name
 import com.bernaferrari.changedetection.shared.generated.resources.brand_tagline
 import com.bernaferrari.changedetection.ui.theme.ChangeDetectionBrandMark
 import com.bernaferrari.changedetection.ui.theme.spacing
+import com.bernaferrari.changedetection.ui.components.SignalHeroShape
 import com.bernaferrari.changedetection.ui.components.SegmentPosition
 import com.bernaferrari.changedetection.ui.components.segmentShape
 import org.jetbrains.compose.resources.stringResource
@@ -108,37 +115,65 @@ fun AboutScreen(
                 item {
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = MaterialTheme.shapes.extraLarge,
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        shape = SignalHeroShape,
+                        color = MaterialTheme.colorScheme.tertiaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                     ) {
-                        Row(
-                            modifier = Modifier.padding(spacing.lg),
-                            horizontalArrangement = Arrangement.spacedBy(spacing.md),
-                            verticalAlignment = Alignment.CenterVertically,
+                        Column(
+                            modifier = Modifier.padding(spacing.xl),
+                            verticalArrangement = Arrangement.spacedBy(spacing.md),
                         ) {
-                            ChangeDetectionBrandMark(
-                                modifier = Modifier.size(64.dp),
-                                containerColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                contentColor = MaterialTheme.colorScheme.primaryContainer,
-                                signalColor = MaterialTheme.colorScheme.secondaryContainer,
-                            )
-                            Column(verticalArrangement = Arrangement.spacedBy(spacing.xxs)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.Top,
+                            ) {
                                 Text(
-                                    text = stringResource(Res.string.app_name),
+                                    text = stringResource(Res.string.about_hero_label),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.72f),
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.weight(1f).padding(end = spacing.md),
+                                )
+                                ChangeDetectionBrandMark(
+                                    modifier = Modifier.size(72.dp),
+                                    containerColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                    signalColor = MaterialTheme.colorScheme.primaryContainer,
+                                )
+                            }
+                            Column(verticalArrangement = Arrangement.spacedBy(spacing.xs)) {
+                                Text(
+                                    text = stringResource(Res.string.about_hero_title),
                                     style = MaterialTheme.typography.headlineSmall,
                                     fontWeight = FontWeight.Bold,
                                 )
                                 Text(
                                     text = stringResource(Res.string.brand_tagline),
                                     style = MaterialTheme.typography.bodyLarge,
-                                )
-                                Text(
-                                    text = "${stringResource(Res.string.about_designed_by)} ${stringResource(Res.string.about_developer_name)}",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f),
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f),
                                 )
                             }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(spacing.xs),
+                            ) {
+                                AboutBadge(
+                                    icon = Icons.Outlined.Lock,
+                                    label = stringResource(Res.string.about_local_badge),
+                                    modifier = Modifier.weight(1f),
+                                )
+                                AboutBadge(
+                                    icon = Icons.Outlined.NotificationsActive,
+                                    label = stringResource(Res.string.about_signal_badge),
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                            Text(
+                                text = "${stringResource(Res.string.about_designed_by)} ${stringResource(Res.string.about_developer_name)}",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.68f),
+                            )
                         }
                     }
                 }
@@ -225,6 +260,29 @@ fun AboutScreen(
             onDismiss = { showLicensesDialog = false },
             onUrlClick = onLicenseUrlClick,
         )
+    }
+}
+
+@Composable
+private fun AboutBadge(
+    icon: ImageVector,
+    label: String,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.heightIn(min = 52.dp),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.sm, vertical = MaterialTheme.spacing.xs),
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
+            Text(text = label, style = MaterialTheme.typography.labelMedium, modifier = Modifier.weight(1f))
+        }
     }
 }
 

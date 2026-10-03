@@ -6,178 +6,191 @@
 
 package com.bernaferrari.changedetection.ui.main.components
 
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Bolt
-import androidx.compose.material.icons.rounded.Stop
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.ui.draw.alpha
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.bernaferrari.changedetection.shared.generated.resources.Res
-import com.bernaferrari.changedetection.shared.generated.resources.start
-import com.bernaferrari.changedetection.shared.generated.resources.stop
-import com.bernaferrari.changedetection.shared.generated.resources.turbo_cadence
-import com.bernaferrari.changedetection.shared.generated.resources.turbo_cadence_value
-import com.bernaferrari.changedetection.shared.generated.resources.turbo_live_label
-import com.bernaferrari.changedetection.shared.generated.resources.turbo_mode_selected_sites
+import com.bernaferrari.changedetection.background.TurboState
+import com.bernaferrari.changedetection.shared.generated.resources.*
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
-private data class IntervalOption(
-    val seconds: Int,
-    val shortLabel: String,
-    val longLabel: String,
-)
-
-private val intervalOptions = listOf(
-    IntervalOption(15, "15s", "15 seconds"),
-    IntervalOption(30, "30s", "30 seconds"),
-    IntervalOption(60, "1m", "1 minute"),
-    IntervalOption(120, "2m", "2 minutes"),
-)
-
-/** Turbo's single hero moment: cadence, scope and the action that starts the session. */
+/** Setup exposes cadence and duration; an active session shows its bounded lifetime. */
 @Composable
 internal fun TurboHero(
-    isRunning: Boolean,
-    isSyncing: Boolean,
+    state: TurboState,
     intervalSeconds: Int,
-    selectedCount: Int,
     onIntervalChange: (Int) -> Unit,
-    onAction: () -> Unit,
+    durationMinutes: Int = 180,
+    onDurationChange: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    val interval = intervalOptions.firstOrNull { it.seconds == intervalSeconds } ?: intervalOptions.first()
-    val containerColor by animateColorAsState(
-        targetValue = if (isRunning) {
-            MaterialTheme.colorScheme.secondaryContainer
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerLow
-        },
-        animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
-        label = "turboHeroColor",
-    )
-
-    Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.extraLarge,
-        color = containerColor,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-    ) {
-        Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = stringResource(if (isRunning) Res.string.turbo_live_label else Res.string.turbo_cadence),
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (isSyncing) {
-                    LoadingIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+        if (state.isActive) {
+            SessionStatus(state)
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(stringResource(Res.string.turbo_check_every), style = MaterialTheme.typography.titleMedium)
+                IntervalSelector(intervalSeconds, onIntervalChange)
             }
-            Text(
-                text = stringResource(Res.string.turbo_cadence_value, interval.longLabel),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = if (isRunning) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = pluralStringResource(
-                    Res.plurals.turbo_mode_selected_sites,
-                    selectedCount,
-                    selectedCount,
-                ),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+        } else {
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             ) {
-                intervalOptions.forEachIndexed { index, option ->
-                    val selected = option.seconds == intervalSeconds
-                    ToggleButton(
-                        checked = selected,
-                        onCheckedChange = { if (it) onIntervalChange(option.seconds) },
-                        enabled = !isRunning,
-                        modifier = Modifier.weight(1f).heightIn(min = 44.dp),
-                        shapes = when (index) {
-                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                            intervalOptions.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                        },
-                        colors = ToggleButtonDefaults.toggleButtonColors(
-                            checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        ),
-                    ) {
-                        Text(option.shortLabel, maxLines = 1)
+                Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(stringResource(Res.string.turbo_closer_eye), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Icon(Icons.Outlined.Bolt, null)
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(stringResource(Res.string.turbo_check_every), style = MaterialTheme.typography.bodyMedium)
+                        TurboOptions(intervalOptions(), intervalSeconds, onIntervalChange, integrated = true)
                     }
                 }
             }
+        }
+        if (!state.isActive) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(stringResource(Res.string.turbo_for_how_long), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                TurboOptions(
+                    options = listOf(15 to "15 min", 30 to "30 min", 60 to "1 h", 180 to "3 h").map { (minutes, label) ->
+                        val hours = minutes >= 60
+                        val quantity = if (hours) minutes / 60 else minutes
+                        TurboOption(minutes, label, pluralStringResource(if (hours) Res.plurals.turbo_session_length_hours else Res.plurals.turbo_session_length_minutes, quantity, quantity))
+                    },
+                    selectedValue = durationMinutes,
+                    onSelected = onDurationChange,
+                )
+                Text(stringResource(Res.string.turbo_schedule_continues), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
 
-            Button(
-                onClick = onAction,
-                enabled = isRunning || selectedCount > 0,
-                modifier = Modifier.fillMaxWidth(),
-                shapes = ButtonDefaults.shapes(),
-                colors = if (isRunning) {
-                    ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                    )
-                } else {
-                    ButtonDefaults.buttonColors()
-                },
-            ) {
-                Crossfade(
-                    targetState = isRunning,
-                    animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
-                    label = "turboAction",
-                ) { running ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = if (running) Icons.Rounded.Stop else Icons.Rounded.Bolt,
-                            contentDescription = null,
+@Composable
+private fun SessionStatus(state: TurboState) {
+    val remaining = rememberTurboRemaining(state)
+    val durationMs = state.durationMinutes * 60_000L
+    val clock = turboClock(remaining)
+    Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer) {
+        Column(Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.Timer, null)
+                Text(stringResource(Res.string.turbo_running_title), style = MaterialTheme.typography.titleMedium)
+            }
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    val type = if (maxWidth / LocalDensity.current.fontScale < 240.dp) MaterialTheme.typography.headlineLarge else MaterialTheme.typography.displayMedium
+                    Text(clock, style = type.copy(fontFeatureSettings = "tnum"), fontWeight = FontWeight.Normal, maxLines = 1)
+                }
+                Text(stringResource(Res.string.turbo_session_remaining), style = MaterialTheme.typography.bodyMedium)
+                val hours = state.durationMinutes >= 60
+                val length = if (hours) state.durationMinutes / 60 else state.durationMinutes
+                Text(pluralStringResource(if (hours) Res.plurals.turbo_session_length_hours else Res.plurals.turbo_session_length_minutes, length, length), style = MaterialTheme.typography.bodySmall)
+            }
+            LinearProgressIndicator(
+                progress = { remaining.toFloat() / durationMs },
+                modifier = Modifier.fillMaxWidth().height(4.dp),
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                trackColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.12f),
+                drawStopIndicator = {},
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(pluralStringResource(Res.plurals.turbo_saved_updates, state.updatesSaved, state.updatesSaved), style = MaterialTheme.typography.titleMedium)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(pluralStringResource(Res.plurals.turbo_successful_checks, state.successfulChecks, state.successfulChecks), style = MaterialTheme.typography.bodySmall)
+                    if (state.failedChecks > 0) Text(pluralStringResource(Res.plurals.turbo_failed_checks, state.failedChecks, state.failedChecks), style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun IntervalSelector(intervalSeconds: Int, onIntervalChange: (Int) -> Unit) {
+    val options = intervalOptions()
+    TurboOptions(options, intervalSeconds, onIntervalChange)
+}
+
+private data class TurboOption(val value: Int, val label: String, val accessibleLabel: String)
+
+@Composable
+private fun intervalOptions(): List<TurboOption> = listOf(15 to "15s", 30 to "30s", 60 to "1m", 120 to "2m").map { (seconds, label) ->
+    val minutes = seconds >= 60
+    val quantity = if (minutes) seconds / 60 else seconds
+    TurboOption(seconds, label, pluralStringResource(if (minutes) Res.plurals.turbo_every_minutes else Res.plurals.turbo_every_seconds, quantity, quantity))
+}
+
+@Composable
+private fun TurboOptions(options: List<TurboOption>, selectedValue: Int, onSelected: (Int) -> Unit, integrated: Boolean = false) {
+    val fontScale = LocalDensity.current.fontScale
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val columns = if (maxWidth / fontScale < 280.dp) 2 else 4
+        Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            options.chunked(columns).forEach { row ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    row.forEach { (seconds, label, accessibleLabel) ->
+                        val selected = seconds == selectedValue
+                        val container by animateColorAsState(
+                            when {
+                                selected -> MaterialTheme.colorScheme.primaryContainer
+                                integrated -> MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.06f)
+                                else -> MaterialTheme.colorScheme.surfaceContainerLowest
+                            },
+                            animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
                         )
-                        Spacer(Modifier.size(8.dp))
-                        Text(stringResource(if (running) Res.string.stop else Res.string.start))
+                        val content by animateColorAsState(
+                            if (selected) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else if (integrated) {
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
+                        )
+                        val shape = MaterialTheme.shapes.medium
+                        Surface(
+                            modifier = Modifier.weight(1f).clip(shape).semantics { contentDescription = accessibleLabel }.selectable(
+                                selected = selected,
+                                role = Role.RadioButton,
+                                onClick = { if (!selected) onSelected(seconds) },
+                            ),
+                            shape = shape,
+                            color = container,
+                            contentColor = content,
+                            border = if (integrated && !selected) null else BorderStroke(1.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant),
+                        ) {
+                            Row(
+                                Modifier.heightIn(min = 48.dp).padding(horizontal = 8.dp, vertical = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                // Reserve the marker space so choosing an option never moves its label.
+                                Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(12.dp).alpha(if (selected) 1f else 0f))
+                                Text(label, modifier = Modifier.clearAndSetSemantics {}, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Normal, maxLines = 1)
+                            }
+                        }
                     }
                 }
             }

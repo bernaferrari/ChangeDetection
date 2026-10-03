@@ -45,8 +45,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.geometry.Rect
-import com.multiplatform.webview.web.WebView
-import com.multiplatform.webview.web.rememberWebViewStateWithHTMLData
 
 @Composable
 fun VisualDiffView(
@@ -143,12 +141,8 @@ private fun WebContent(
     content: String,
     modifier: Modifier = Modifier,
 ) {
-    val state = rememberWebViewStateWithHTMLData(
-        data = content,
-    )
-
-    WebView(
-        state = state,
+    SecureSnapshotWebView(
+        html = content,
         modifier = modifier,
     )
 }

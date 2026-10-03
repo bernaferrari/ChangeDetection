@@ -28,17 +28,22 @@ actual fun ChangeDetectionTheme(
     content: @Composable () -> Unit,
 ) {
     // iOS doesn't have native Material You, always use MaterialKolor
-    val colorScheme = dynamicColorScheme(
-        seedColor = seedColor,
-        isDark = darkTheme,
-        style = PaletteStyle.TonalSpot,
-        specVersion = ColorSpec.SpecVersion.SPEC_2025,
-    )
+    val colorScheme = if (seedColor == SeedColor) {
+        referenceColorScheme(darkTheme)
+    } else {
+        dynamicColorScheme(
+            seedColor = seedColor,
+            isDark = darkTheme,
+            style = PaletteStyle.TonalSpot,
+            specVersion = ColorSpec.SpecVersion.SPEC_2025,
+        )
+    }
 
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
         motionScheme = MotionScheme.expressive(),
         typography = Typography,
+        shapes = AppShapes,
     ) {
         CompositionLocalProvider(LocalAppSpacing provides AppSpacing()) {
             content()

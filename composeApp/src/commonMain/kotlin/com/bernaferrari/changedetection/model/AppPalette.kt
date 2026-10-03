@@ -6,6 +6,7 @@ package com.bernaferrari.changedetection.model
 
 import androidx.compose.ui.graphics.Color
 import com.bernaferrari.changedetection.shared.generated.resources.Res
+import com.bernaferrari.changedetection.shared.generated.resources.palette_default
 import com.bernaferrari.changedetection.shared.generated.resources.palette_amber
 import com.bernaferrari.changedetection.shared.generated.resources.palette_blue
 import com.bernaferrari.changedetection.shared.generated.resources.palette_cyan
@@ -25,6 +26,7 @@ enum class AppPalette(
     val seedColor: Color,
     val usesSystemColors: Boolean = false,
 ) {
+    DEFAULT(Res.string.palette_default, Color(0xFF6352CA)),
     DYNAMIC(Res.string.palette_dynamic, Color(0xFF009688), usesSystemColors = true),
     ORANGE(Res.string.palette_orange, Color(0xFFFF5722)),
     AMBER(Res.string.palette_amber, Color(0xFFFFC107)),
@@ -39,6 +41,6 @@ enum class AppPalette(
     ;
 
     companion object {
-        fun fromStoredName(value: String?): AppPalette = entries.firstOrNull { it.name == value } ?: TEAL
+        fun fromStoredName(value: String?): AppPalette = entries.firstOrNull { it.name == value } ?: DEFAULT
     }
 }

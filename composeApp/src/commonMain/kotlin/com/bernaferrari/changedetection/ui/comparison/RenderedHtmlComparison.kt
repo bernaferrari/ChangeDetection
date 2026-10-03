@@ -4,168 +4,138 @@
  */
 package com.bernaferrari.changedetection.ui.comparison
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.FilterChip
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.shared.generated.resources.Res
-import com.bernaferrari.changedetection.shared.generated.resources.comparison_no_changes_html
-import com.bernaferrari.changedetection.shared.generated.resources.comparison_no_changes_title
-import com.bernaferrari.changedetection.shared.generated.resources.newer
-import com.bernaferrari.changedetection.shared.generated.resources.older
-import com.bernaferrari.changedetection.ui.components.SharedEmptyState
-import com.bernaferrari.changedetection.util.HtmlSanitizer
-import com.multiplatform.webview.web.WebView
-import com.multiplatform.webview.web.rememberWebViewStateWithHTMLData
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_after
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_before
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_version_switcher
 import org.jetbrains.compose.resources.stringResource
 
-/** Rendered old/new HTML layers with a deliberate, user-controlled blend control. */
+/** Full-canvas rendered comparison with a stable before/after split instead of a slider. */
 @Composable
 internal fun RenderedHtmlComparison(
     oldContent: String,
     newContent: String,
     modifier: Modifier = Modifier,
 ) {
-    var overlayOpacity by remember { mutableFloatStateOf(0.5f) }
-    val similarityPercent = remember(oldContent, newContent) {
-        calculateRenderedSimilarity(oldContent, newContent)
+    val useNativeText by produceState(true, oldContent, newContent) {
+        value = withContext(Dispatchers.Default) {
+            !oldContent.hasRenderedMarkup() && !newContent.hasRenderedMarkup()
+        }
     }
-    val sanitizedOldContent = remember(oldContent) { renderedDocument(HtmlSanitizer.sanitize(oldContent)) }
-    val sanitizedNewContent = remember(newContent) { renderedDocument(HtmlSanitizer.sanitize(newContent)) }
-    val oldWebViewState = rememberWebViewStateWithHTMLData(data = sanitizedOldContent)
-    val newWebViewState = rememberWebViewStateWithHTMLData(data = sanitizedNewContent)
+    var showAfter by remember(oldContent, newContent) { mutableStateOf(true) }
 
-    Column(modifier = modifier) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                val similarityColor = when {
-                    similarityPercent >= 90 -> MaterialTheme.colorScheme.tertiary
-                    similarityPercent >= 70 -> MaterialTheme.colorScheme.primary
-                    similarityPercent >= 50 -> MaterialTheme.colorScheme.secondary
-                    else -> MaterialTheme.colorScheme.error
-                }
-                Text(
-                    text = "${100 - similarityPercent}% changed",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = similarityColor,
-                )
-                Text(
-                    text = " • ",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = "$similarityPercent% similar",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-        ) {
-            if (similarityPercent == 100) {
-                SharedEmptyState(
-                    icon = Icons.Default.CheckCircle,
-                    title = stringResource(Res.string.comparison_no_changes_title),
-                    description = stringResource(Res.string.comparison_no_changes_html),
-                    modifier = Modifier.fillMaxSize().padding(32.dp),
-                )
-            } else {
-                WebView(state = oldWebViewState, modifier = Modifier.fillMaxSize())
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer { alpha = overlayOpacity },
+    Column(
+        modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+            if (useNativeText) {
+                Surface(
+                    modifier = Modifier.fillMaxSize().heightIn(min = 168.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 ) {
-                    WebView(state = newWebViewState, modifier = Modifier.fillMaxSize())
+                    SnapshotTextContent(if (showAfter) newContent else oldContent, Modifier.fillMaxSize())
+                }
+            } else {
+                key(showAfter) {
+                    SecureSnapshotWebView(
+                        html = if (showAfter) newContent else oldContent,
+                        modifier = Modifier.fillMaxSize(),
+                    )
                 }
             }
         }
+        Spacer(Modifier.height(8.dp))
+        RenderedVersionSwitcher(
+            showAfter = showAfter,
+            onShowAfterChange = { showAfter = it },
+        )
+    }
+}
 
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 2.dp,
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                FilterChip(
-                    selected = overlayOpacity == 0f,
-                    onClick = { overlayOpacity = 0f },
-                    label = { Text(stringResource(Res.string.older)) },
-                )
-                Slider(
-                    value = overlayOpacity,
-                    onValueChange = { overlayOpacity = it },
-                    modifier = Modifier.weight(1f),
-                    colors = SliderDefaults.colors(
-                        thumbColor = MaterialTheme.colorScheme.primary,
-                        activeTrackColor = MaterialTheme.colorScheme.primary,
-                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+@Composable
+private fun RenderedVersionSwitcher(
+    showAfter: Boolean,
+    onShowAfterChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val switcherLabel = stringResource(Res.string.comparison_version_switcher)
+    Surface(
+        modifier = modifier
+            .widthIn(max = 280.dp)
+            .semantics { contentDescription = switcherLabel }
+            .selectableGroup(),
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        tonalElevation = 1.dp,
+    ) {
+        Row(modifier = Modifier.padding(5.dp)) {
+            listOf(false, true).forEachIndexed { index, after ->
+                ToggleButton(
+                    checked = showAfter == after,
+                    onCheckedChange = { checked -> if (checked) onShowAfterChange(after) },
+                    modifier = Modifier.weight(1f).heightIn(min = 48.dp),
+                    shapes = if (index == 0) {
+                        ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    } else {
+                        ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    },
+                    colors = ToggleButtonDefaults.toggleButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
-                )
-                FilterChip(
-                    selected = overlayOpacity == 1f,
-                    onClick = { overlayOpacity = 1f },
-                    label = { Text(stringResource(Res.string.newer)) },
-                )
+                ) {
+                    Text(
+                        text = stringResource(
+                            if (after) Res.string.comparison_mode_after else Res.string.comparison_mode_before,
+                        ),
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
             }
         }
     }
 }
 
-private fun renderedDocument(body: String): String = """
-    <!doctype html>
-    <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <style>
-          :root { color-scheme: light; }
-          html, body { min-height: 100%; margin: 0; background: #ffffff; color: #1d1d1f; }
-          body {
-            box-sizing: border-box;
-            padding: 20px;
-            font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            overflow-wrap: anywhere;
-          }
-          img, video, canvas, svg { max-width: 100%; height: auto; }
-          table { max-width: 100%; border-collapse: collapse; }
-        </style>
-      </head>
-      <body>$body</body>
-    </html>
-""".trimIndent()
+private val renderedHtmlElementPattern = Regex("<[a-zA-Z][^>]*>")
+
+private fun String.hasRenderedMarkup(): Boolean = renderedHtmlElementPattern.containsMatchIn(this)

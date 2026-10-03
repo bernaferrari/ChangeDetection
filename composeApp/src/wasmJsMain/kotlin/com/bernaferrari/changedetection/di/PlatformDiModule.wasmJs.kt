@@ -13,6 +13,8 @@ import com.bernaferrari.changedetection.platform.ShareManager
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.source.local.ChangeDatabase
 import com.bernaferrari.changedetection.repo.source.local.createWasmDatabase
+import com.bernaferrari.changedetection.sync.ChangeNotifier
+import com.bernaferrari.changedetection.sync.NoOpChangeNotifier
 import com.bernaferrari.changedetection.util.FileStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +26,9 @@ import org.koin.core.annotation.Single
 
 @Module
 actual class PlatformDiModule {
+    @Single
+    fun capturePreviewer(engine: com.bernaferrari.changedetection.sync.SyncEngine): com.bernaferrari.changedetection.addedit.CapturePreviewer = com.bernaferrari.changedetection.addedit.HtmlCapturePreviewer(engine)
+
     @Single
     fun database(): ChangeDatabase = createWasmDatabase()
 
@@ -38,6 +43,9 @@ actual class PlatformDiModule {
 
     @Single
     fun fileStorage(): FileStorage = DemoFileStorage()
+
+    @Single
+    fun changeNotifier(): ChangeNotifier = NoOpChangeNotifier
 }
 
 /** The browser demo has no platform preference file; state lives for the lifetime of the tab. */
@@ -53,11 +61,12 @@ private class DemoPreferencesStore : DataStore<Preferences> {
 }
 
 private object DemoMonitoringManager : MonitoringManager {
+    override val quickMonitorState = kotlinx.coroutines.flow.MutableStateFlow(com.bernaferrari.changedetection.background.TurboState())
     override fun getSyncStatusFlow(): Flow<List<SyncJobInfo>> = emptyFlow()
     override fun reloadSite(site: Site) = Unit
-    override fun startQuickMonitor(siteIds: List<String>, intervalSeconds: Int) = Unit
+    override fun startQuickMonitor(siteIds: List<String>, intervalSeconds: Int, durationMinutes: Int) = Unit
     override fun stopQuickMonitor() = Unit
-    override suspend fun updateWorkerWithConstraints(dataStore: DataStore<Preferences>, cancelCurrentWork: Boolean) = Unit
+    override suspend fun updateSchedule() = Unit
     override fun cancelWork() = Unit
 }
 

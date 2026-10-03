@@ -1,6 +1,6 @@
 "use client";
 
-import { Github, Menu, X } from "lucide-react";
+import { GitFork, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -72,7 +72,7 @@ export function Navbar() {
             aria-label="Open Change Detection on GitHub"
             className="p-3 text-muted-foreground hover:text-foreground transition-colors"
           >
-            <Github size={18} />
+            <GitFork size={18} />
           </a>
           <ThemeToggle />
 
