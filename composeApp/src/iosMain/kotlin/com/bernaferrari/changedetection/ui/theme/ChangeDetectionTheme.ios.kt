@@ -45,7 +45,7 @@ actual fun ChangeDetectionTheme(
         typography = Typography,
         shapes = AppShapes,
     ) {
-        CompositionLocalProvider(LocalAppSpacing provides AppSpacing()) {
+        CompositionLocalProvider(LocalAppSpacing provides AppSpacing(), LocalMarks provides marksFor(darkTheme)) {
             content()
         }
     }

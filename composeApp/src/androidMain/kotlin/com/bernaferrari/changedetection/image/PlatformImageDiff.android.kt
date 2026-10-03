@@ -47,6 +47,7 @@ internal actual object PlatformImageDiff {
             beforeHeight = before.originalHeight,
             afterWidth = after.originalWidth,
             afterHeight = after.originalHeight,
+            changedBounds = diff.changedBounds,
             diffImagePng = diff.diffImage?.let { pixels ->
                 encodeRgbaAsPng(RgbaImage(beforeImage.width, beforeImage.height, pixels))
             },

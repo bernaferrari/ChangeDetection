@@ -15,14 +15,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bolt
-import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.outlined.Bolt
-import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.Timeline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
@@ -39,7 +37,7 @@ import com.bernaferrari.changedetection.navigation.SettingsDestination
 import com.bernaferrari.changedetection.navigation.TurboDestination
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.nav_home
-import com.bernaferrari.changedetection.shared.generated.resources.nav_logs
+import com.bernaferrari.changedetection.shared.generated.resources.nav_activity
 import com.bernaferrari.changedetection.shared.generated.resources.nav_settings
 import com.bernaferrari.changedetection.shared.generated.resources.nav_turbo
 import org.jetbrains.compose.resources.stringResource
@@ -51,8 +49,8 @@ private data class AppNavItem(
 )
 
 private val appNavItems = listOf(
-    AppNavItem(MainDestination, Icons.Filled.Visibility, Icons.Outlined.Visibility),
-    AppNavItem(LogsDestination, Icons.Filled.History, Icons.Outlined.History),
+    AppNavItem(MainDestination, Icons.Filled.Home, Icons.Outlined.Home),
+    AppNavItem(LogsDestination, Icons.Filled.Timeline, Icons.Outlined.Timeline),
     AppNavItem(SettingsDestination, Icons.Filled.Settings, Icons.Outlined.Settings),
 )
 
@@ -66,12 +64,13 @@ private val appNavItems = listOf(
 fun ChangeDetectionNavigationSuite(
     backStack: NavBackStack<NavKey>,
     retainNavigationForDetail: Boolean = false,
+    homeBadge: Int = 0,
     content: @Composable () -> Unit,
 ) {
     val currentTab = backStack.lastOrNull { it.isRootTab() } ?: MainDestination
     val labels = listOf(
         stringResource(Res.string.nav_home),
-        stringResource(Res.string.nav_logs),
+        stringResource(Res.string.nav_activity),
         stringResource(Res.string.nav_settings),
     )
 
@@ -97,11 +96,11 @@ fun ChangeDetectionNavigationSuite(
                             NavigationBarItem(
                                 selected = selected,
                                 onClick = { if (!selected) navigateToTab(backStack, item.destination) },
-                                icon = { Icon(item.unselectedIcon, null, Modifier.size(24.dp)) },
+                                icon = { NavIcon(if (selected) item.selectedIcon else item.unselectedIcon, if (item.destination is MainDestination) homeBadge else 0) },
                                 label = { Text(labels[index], style = MaterialTheme.typography.labelMedium) },
                                 colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                                    selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    selectedTextColor = MaterialTheme.colorScheme.onSurface,
                                     indicatorColor = MaterialTheme.colorScheme.primaryContainer,
                                     unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                     unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -122,12 +121,7 @@ fun ChangeDetectionNavigationSuite(
                             onClick = {
                                 if (!selected) navigateToTab(backStack, item.destination)
                             },
-                            icon = {
-                                Icon(
-                                    imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
-                                    contentDescription = null,
-                                )
-                            },
+                            icon = { NavIcon(if (selected) item.selectedIcon else item.unselectedIcon, if (item.destination is MainDestination) homeBadge else 0) },
                             label = { Text(label) },
                         )
                     }
@@ -135,6 +129,17 @@ fun ChangeDetectionNavigationSuite(
                 content = content,
             )
         }
+    }
+}
+
+@Composable
+private fun NavIcon(icon: ImageVector, badge: Int) {
+    if (badge > 0) {
+        BadgedBox(badge = {
+            Badge(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary) { Text(if (badge > 99) "99+" else badge.toString()) }
+        }) { Icon(icon, null, Modifier.size(24.dp)) }
+    } else {
+        Icon(icon, null, Modifier.size(24.dp))
     }
 }
 

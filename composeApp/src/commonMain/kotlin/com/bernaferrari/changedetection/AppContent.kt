@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,18 +40,17 @@ import androidx.navigation3.ui.NavDisplay
 import com.bernaferrari.changedetection.addedit.AddEditFlow
 import com.bernaferrari.changedetection.addedit.AddPageDialog
 import com.bernaferrari.changedetection.localBrowser.LocalBrowserScreen
-import com.bernaferrari.changedetection.ui.logs.LogsScreen
+import com.bernaferrari.changedetection.ui.logs.ActivityScreen
 import com.bernaferrari.changedetection.ui.detail.PageDetailScreen
 import com.bernaferrari.changedetection.ui.settings.BackgroundSyncDialog
 import com.bernaferrari.changedetection.navigation.*
 import com.bernaferrari.changedetection.ui.about.AboutScreen
 import com.bernaferrari.changedetection.ui.comparison.ComparisonScreen
-import com.bernaferrari.changedetection.ui.components.SignalEmptyState
 import com.bernaferrari.changedetection.ui.howItWorks.HowItWorksScreen
-import com.bernaferrari.changedetection.ui.main.MainScreen
+import com.bernaferrari.changedetection.ui.home.HomeScreen
+import com.bernaferrari.changedetection.ui.turbo.TurboLiveScreen
+import com.bernaferrari.changedetection.ui.turbo.TurboSetupSheet
 import com.bernaferrari.changedetection.ui.main.MainViewModel
-import com.bernaferrari.changedetection.ui.main.TurboScreen
-import com.bernaferrari.changedetection.ui.main.ChangeRibbon
 import com.bernaferrari.changedetection.ui.navigation.ChangeDetectionNavigationSuite
 import com.bernaferrari.changedetection.ui.settings.SettingsScreen
 import com.bernaferrari.changedetection.ui.theme.ChangeDetectionTheme
@@ -124,6 +124,7 @@ fun ChangeDetectionApp(
     val backStack = rememberNavBackStack(appNavSavedStateConfiguration, MainDestination)
     val mainViewModel: MainViewModel = koinViewModel()
     var addPageSession by remember { mutableIntStateOf(0) }
+    var turboSetup by remember { mutableStateOf<Set<String>?>(null) }
     var addPageUrl by remember { mutableStateOf<String?>(null) }
 
     fun openAddPage(url: String? = null) {
@@ -165,8 +166,11 @@ fun ChangeDetectionApp(
         }
     }
 
+    val navSites by mainViewModel.sitesFlow.collectAsStateWithLifecycle()
+    val unreadCount = navSites.orEmpty().count { !it.site.isRead && it.snap != null && it.snapshotCount > 1 }
     ChangeDetectionNavigationSuite(
         backStack = backStack,
+        homeBadge = unreadCount,
         retainNavigationForDetail = !singlePaneLayout && (backStack.lastOrNull() is ComparisonDestination || backStack.lastOrNull() is PageDetailDestination),
     ) {
         NavDisplay(
@@ -182,51 +186,36 @@ fun ChangeDetectionApp(
                         },
                     ),
                 ) {
-                    MainScreen(
+                    HomeScreen(
                         viewModel = mainViewModel,
-                        onEnableNotifications = platformActions.requestNotifications,
-                        onNotificationSettings = platformActions.openNotificationSettings,
                         selectedSiteId = (backStack.lastOrNull() as? PageDetailDestination)?.siteId ?: (backStack.lastOrNull() as? ComparisonDestination)?.siteId,
-                        onAddSite = { openAddPage() },
-                        onLearnHowItWorks = { backStack.add(HowItWorksDestination) },
+                        onAddPage = { url -> openAddPage(url) },
+                        onOpenPage = { id -> backStack.openPage(id) },
+                        onOpenChange = { id, snapId -> backStack.openComparison(id, snapId) },
+                        onEditPage = { id -> backStack.add(EditSiteDestination(siteId = id)) },
+                        onSetUpTurbo = { ids -> turboSetup = ids },
                         onOpenTurbo = { backStack.add(TurboDestination) },
-                        onSiteClick = { site -> backStack.openPage(site.id) },
-                        onSiteEdit = { site -> backStack.add(EditSiteDestination(siteId = site.id)) },
+                        onHowItWorks = { backStack.add(HowItWorksDestination) },
+                        onEnableNotifications = platformActions.requestNotifications,
                     )
                 }
 
                 entry<TurboDestination> {
-                    val sites by mainViewModel.sitesFlow.collectAsStateWithLifecycle()
-                    val quickMonitorState by mainViewModel.quickMonitorState.collectAsStateWithLifecycle()
-
-                    TurboScreen(
+                    TurboRoute(
+                        mainViewModel = mainViewModel,
                         onBack = { backStack.removeLastOrNull() },
-                        onOpenSite = { backStack.openPage(it) },
-                        sites = sites ?: emptyList(),
-                        quickMonitorState = quickMonitorState,
-                        isLoading = sites == null,
-                        onAddSite = { openAddPage() },
-                        onStartTurbo = { selectedUrl, interval, duration ->
-                            platformActions.startTurbo?.invoke(selectedUrl, interval, duration)
-                                ?: mainViewModel.startQuickMonitor(selectedUrl, interval, duration)
-                        },
-                        onStopTurbo = {
-                            platformActions.stopTurbo?.invoke() ?: mainViewModel.stopQuickMonitor()
-                        },
+                        onStop = { platformActions.stopTurbo?.invoke() ?: mainViewModel.stopQuickMonitor() },
+                        onRunAgain = { ids -> turboSetup = ids },
+                        onOpenPage = { backStack.openPage(it) },
+                        onOpenChange = { id, snapId -> backStack.openComparison(id, snapId) },
                     )
                 }
 
                 entry<LogsDestination> {
-                    CenteredScreen {
-                        LogsScreen(
-                            onSnapClick = { siteId, snapId ->
-                                backStack.openComparison(siteId, snapId)
-                            },
-                            onSnapOpenInBrowser = { snapId, url ->
-                                backStack.add(BrowserDestination(snapId = snapId, url = url))
-                            },
-                        )
-                    }
+                    ActivityScreen(
+                        onOpenChange = { siteId, snapId -> backStack.openComparison(siteId, snapId) },
+                        onOpenPage = { backStack.openPage(it) },
+                    )
                 }
 
                 entry<SettingsDestination> {
@@ -237,6 +226,7 @@ fun ChangeDetectionApp(
                             onContactClick = {
                                 platformActions.openEmail("bernaferrari2@gmail.com", "Change Detection Feedback")
                             },
+                            onNotificationSettings = platformActions.openNotificationSettings,
                             appVersion = platformActions.appVersion,
                         )
                     }
@@ -251,25 +241,22 @@ fun ChangeDetectionApp(
                         onCompare = { snapId -> backStack.openComparison(key.siteId, snapId) },
                         onHistory = { snapId -> backStack.openComparison(key.siteId, snapId, showHistory = true) },
                         onEdit = { backStack.add(EditSiteDestination(key.siteId)) },
-                        onTurbo = { backStack.add(PageTurboDestination(key.siteId)) },
+                        onTurbo = { turboSetup = setOf(key.siteId) },
                         onSchedule = { showSchedule = true },
                         onOpenUrl = platformActions.openUrl,
+                        onEnableNotifications = platformActions.requestNotifications,
                     )
                     if (showSchedule) BackgroundSyncDialog(onDismiss = { showSchedule = false })
                 }
 
-                entry<PageTurboDestination>(metadata = forwardTransitionMetadata) { key ->
-                    val sites by mainViewModel.sitesFlow.collectAsStateWithLifecycle()
-                    val state by mainViewModel.quickMonitorState.collectAsStateWithLifecycle()
-                    TurboScreen(
-                        sites = sites.orEmpty(), quickMonitorState = state, isLoading = sites == null,
-                        initialSiteId = key.siteId, onBack = { backStack.removeLastOrNull() },
-                        onAddSite = { openAddPage() },
-                        onOpenSite = { backStack.openPage(it) },
-                        onStartTurbo = { ids, interval, duration ->
-                            platformActions.startTurbo?.invoke(ids, interval, duration) ?: mainViewModel.startQuickMonitor(ids, interval, duration)
-                        },
-                        onStopTurbo = { platformActions.stopTurbo?.invoke() ?: mainViewModel.stopQuickMonitor() },
+                entry<PageTurboDestination>(metadata = forwardTransitionMetadata) {
+                    TurboRoute(
+                        mainViewModel = mainViewModel,
+                        onBack = { backStack.removeLastOrNull() },
+                        onStop = { platformActions.stopTurbo?.invoke() ?: mainViewModel.stopQuickMonitor() },
+                        onRunAgain = { ids -> turboSetup = ids },
+                        onOpenPage = { backStack.openPage(it) },
+                        onOpenChange = { id, snapId -> backStack.openComparison(id, snapId) },
                     )
                 }
 
@@ -328,6 +315,22 @@ fun ChangeDetectionApp(
         )
     }
 
+    turboSetup?.let { preselected ->
+        val sites by mainViewModel.sitesFlow.collectAsStateWithLifecycle()
+        val turboState by mainViewModel.quickMonitorState.collectAsStateWithLifecycle()
+        TurboSetupSheet(
+            sites = sites.orEmpty(),
+            preselected = preselected,
+            state = turboState,
+            onDismiss = { turboSetup = null },
+            onStart = { ids, interval, duration ->
+                turboSetup = null
+                platformActions.startTurbo?.invoke(ids, interval, duration) ?: mainViewModel.startQuickMonitor(ids, interval, duration)
+                if (backStack.lastOrNull() !is TurboDestination) backStack.add(TurboDestination)
+            },
+        )
+    }
+
     if (addPageSession > 0) {
         AddPageDialog(
             sessionKey = addPageSession,
@@ -356,7 +359,12 @@ private fun MonitorDetailPlaceholder(modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            ChangeRibbon(colors = emptyList(), isListening = false, modifier = Modifier.widthIn(max = 320.dp))
+            androidx.compose.material3.Icon(
+                androidx.compose.material.icons.Icons.Outlined.Description,
+                null,
+                Modifier.padding(bottom = 8.dp).widthIn(max = 64.dp),
+                tint = MaterialTheme.colorScheme.outline,
+            )
             androidx.compose.material3.Text(
                 text = stringResource(Res.string.select_site_canvas_label),
                 style = MaterialTheme.typography.labelLarge,
@@ -378,4 +386,26 @@ private fun MonitorDetailPlaceholder(modifier: Modifier = Modifier) {
             )
         }
     }
+}
+
+@Composable
+private fun TurboRoute(
+    mainViewModel: MainViewModel,
+    onBack: () -> Unit,
+    onStop: () -> Unit,
+    onRunAgain: (Set<String>) -> Unit,
+    onOpenPage: (String) -> Unit,
+    onOpenChange: (String, String?) -> Unit,
+) {
+    val sites by mainViewModel.sitesFlow.collectAsStateWithLifecycle()
+    val state by mainViewModel.quickMonitorState.collectAsStateWithLifecycle()
+    TurboLiveScreen(
+        state = state,
+        sites = sites.orEmpty(),
+        onBack = onBack,
+        onStop = onStop,
+        onRunAgain = { onRunAgain(state.siteIds) },
+        onOpenPage = onOpenPage,
+        onOpenChange = onOpenChange,
+    )
 }

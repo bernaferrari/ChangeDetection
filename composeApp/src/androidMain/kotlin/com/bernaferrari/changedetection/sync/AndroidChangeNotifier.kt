@@ -21,6 +21,7 @@ import com.bernaferrari.changedetection.MainActivityProvider
 import com.bernaferrari.changedetection.library.R
 import com.bernaferrari.changedetection.repo.Site
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.launch
 
 /** Intent contract shared by change alerts and the Android app entry point. */
 object ChangeNotificationContract {
@@ -33,8 +34,42 @@ object ChangeNotificationContract {
 class AndroidChangeNotifier(
     private val context: Context,
 ) : ChangeNotifier {
-    @SuppressLint("MissingPermission")
+    private val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
+
     override fun notifyChange(site: Site, snapId: String) {
+        post(site, snapId, summary = null)
+        // Follow up with the same bounded preview the app shows, quietly replacing the first alert.
+        scope.launch {
+            val koin = org.koin.mp.KoinPlatformTools.defaultContext().getOrNull() ?: return@launch
+            val previews = koin.getOrNull<com.bernaferrari.changedetection.preview.ChangePreviewRepository>() ?: return@launch
+            val snap = koin.getOrNull<com.bernaferrari.changedetection.repo.source.SnapsRepository>()?.getSnapById(snapId) ?: return@launch
+            val summary = runCatching { plainSummary(previews.forVersion(snap)) }.getOrNull() ?: return@launch
+            post(site, snapId, summary)
+        }
+    }
+
+    private fun plainSummary(preview: com.bernaferrari.changedetection.preview.ChangePreview): String? = when (preview) {
+        is com.bernaferrari.changedetection.preview.ChangePreview.Words -> {
+            val now = preview.segments.filter { it.kind != com.bernaferrari.changedetection.preview.EditSegment.Kind.Removed }.joinToString("") { it.text }.trim()
+            val was = preview.segments.filter { it.kind == com.bernaferrari.changedetection.preview.EditSegment.Kind.Removed }.joinToString(" ") { it.text }.trim()
+            buildString {
+                preview.section?.let { append(it).append(": ") }
+                if (preview.leadingEllipsis) append("…")
+                append(now.ifEmpty { context.getString(R.string.change_notification_removed_text) })
+                if (preview.trailingEllipsis) append("…")
+                if (was.isNotEmpty() && was.length <= 60 && now.isNotEmpty()) append(context.getString(R.string.change_notification_was, was))
+            }
+        }
+
+        is com.bernaferrari.changedetection.preview.ChangePreview.Crop -> context.getString(R.string.change_notification_visual, String.format(java.util.Locale.getDefault(), "%.1f", preview.percent))
+
+        is com.bernaferrari.changedetection.preview.ChangePreview.Large -> context.getString(R.string.change_notification_large)
+
+        else -> null
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun post(site: Site, snapId: String, summary: String?) {
         val notificationManager = NotificationManagerCompat.from(context)
         if (!notificationManager.areNotificationsEnabled() || !hasNotificationPermission()) {
             Napier.d("Change alert skipped because notifications are unavailable")
@@ -64,16 +99,13 @@ class AndroidChangeNotifier(
             return
         }
 
-        val siteLabel = site.title?.trim().takeUnless { it.isNullOrEmpty() }
-        val message = if (siteLabel != null) {
-            context.getString(R.string.change_detected_notification_with_title, siteLabel, site.url)
-        } else {
-            context.getString(R.string.change_detected_notification_without_title, site.url)
-        }
+        val siteLabel = site.title?.trim().takeUnless { it.isNullOrEmpty() } ?: Uri.parse(site.url).host?.removePrefix("www.") ?: site.url
+        val message = summary ?: context.getString(R.string.change_notification_generic)
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification_change)
-            .setContentTitle(context.getString(R.string.change_notification_title))
+            .setContentTitle(context.getString(R.string.change_notification_named, siteLabel))
+            .setOnlyAlertOnce(true)
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
             .setContentIntent(contentIntent)

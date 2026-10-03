@@ -19,6 +19,7 @@ internal data class RgbaDifference(
     val differentPixels: Long,
     val totalPixels: Long,
     val diffImage: ByteArray?,
+    val changedBounds: ChangedBounds? = null,
 )
 
 internal object RgbaDiff {
@@ -29,11 +30,15 @@ internal object RgbaDiff {
         val total = expected.width.toLong() * expected.height
         val result = if (includeDiffImage) ByteArray(expected.pixels.size) else null
         var differences = 0L
+        val bounds = ChangedBoundsTracker(expected.width)
         for (index in expected.pixels.indices step 4) {
             val before = expected.pixels.argbAt(index)
             val after = actual.pixels.argbAt(index)
             val changed = pixelsDiffer.changed(before, after)
-            if (changed) differences++
+            if (changed) {
+                differences++
+                bounds.add(index / 4)
+            }
             if (result != null) {
                 val display = differenceDisplayColor(before, changed)
                 result[index] = (display ushr 16).toByte()
@@ -42,7 +47,7 @@ internal object RgbaDiff {
                 result[index + 3] = 255.toByte()
             }
         }
-        return RgbaDifference(differences == 0L, differences * 100.0 / total, differences, total, result)
+        return RgbaDifference(differences == 0L, differences * 100.0 / total, differences, total, result, bounds.result(expected.height))
     }
 }
 

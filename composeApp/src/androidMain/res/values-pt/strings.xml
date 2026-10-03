@@ -430,4 +430,10 @@
     <string name="quick_monitor_notification_title">⚡ Turbo ativo</string>
     <string name="empty_add_site_hint">Adicione uma página para iniciar o Turbo</string>
     <string name="start">Iniciar</string>
+    <string name="change_notification_named">%1$s mudou</string>
+    <string name="change_notification_generic">Toque para ver o que mudou.</string>
+    <string name="change_notification_was">" (antes “%1$s”)"</string>
+    <string name="change_notification_removed_text">Texto removido</string>
+    <string name="change_notification_visual">%1$s%% da página mudou. Toque para comparar.</string>
+    <string name="change_notification_large">Quase toda a página mudou. Toque para comparar.</string>
 </resources>

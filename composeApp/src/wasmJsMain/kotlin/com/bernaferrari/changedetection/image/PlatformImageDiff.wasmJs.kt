@@ -58,8 +58,12 @@ internal actual object PlatformImageDiff {
         after.readPixels(afterPixels)
 
         var differentPixels = 0L
+        val bounds = ChangedBoundsTracker(before.width)
         beforePixels.indices.forEach { index ->
-            if (pixelsDiffer.changed(beforePixels[index], afterPixels[index])) differentPixels++
+            if (pixelsDiffer.changed(beforePixels[index], afterPixels[index])) {
+                differentPixels++
+                bounds.add(index)
+            }
         }
         val totalPixels = beforePixels.size.toLong()
 
@@ -72,6 +76,7 @@ internal actual object PlatformImageDiff {
             beforeHeight = before.height,
             afterWidth = after.width,
             afterHeight = after.height,
+            changedBounds = bounds.result(before.height),
             // Wasm reports accurate statistics and uses the interactive swipe view as its visual overlay.
             diffImagePng = null,
         )

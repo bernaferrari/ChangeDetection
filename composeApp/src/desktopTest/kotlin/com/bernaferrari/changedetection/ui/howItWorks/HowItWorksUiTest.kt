@@ -40,8 +40,7 @@ class HowItWorksUiTest {
         compose.onNodeWithText("Use battery-friendly background checks for everyday tracking.").assertDoesNotExist()
         compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Turbo stops when its timer ends. You can stop it sooner at any time."))
         compose.onNodeWithText("Turbo stops when its timer ends. You can stop it sooner at any time.").assertIsDisplayed()
-        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Back to app"))
-        compose.onNodeWithText("Back to app").performClick()
+        compose.onNodeWithContentDescription("Navigate back").performClick()
         compose.runOnIdle { assertEquals(1, back) }
     }
 

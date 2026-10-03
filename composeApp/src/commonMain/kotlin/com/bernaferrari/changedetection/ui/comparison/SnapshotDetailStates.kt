@@ -6,6 +6,15 @@
 
 package com.bernaferrari.changedetection.ui.comparison
 
+import com.bernaferrari.changedetection.shared.generated.resources.reader_mode_page
+import com.bernaferrari.changedetection.shared.generated.resources.mode_text
+import com.bernaferrari.changedetection.shared.generated.resources.single_saved_on
+
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -102,22 +111,20 @@ internal fun SingleSnapshotState(
             snap.isHtmlSnapshot()
         }
 
-        Box(modifier = modifier) {
+        var asPage by remember(snap.snapId) { mutableStateOf(false) }
+        Column(modifier = modifier) {
             if (isHtml) {
-                SecureSnapshotWebView(
-                    html = content,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            } else {
-                SnapshotTextContent(content, Modifier.fillMaxSize(), monospace = true)
+                com.bernaferrari.changedetection.ui.turbo.ConnectedChoice(listOf(false, true), asPage, { asPage = it }, Modifier.padding(vertical = 8.dp)) {
+                    stringResource(if (it) Res.string.reader_mode_page else Res.string.mode_text)
+                }
             }
-
-            SnapshotTimestampLabel(
-                timestamp = snap.timestamp,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = spacing.xl),
-            )
+            Box(Modifier.weight(1f).fillMaxWidth()) {
+                if (isHtml && asPage) {
+                    SecureSnapshotWebView(html = content, modifier = Modifier.fillMaxSize())
+                } else {
+                    ReadableSnapshot(snap, content, isHtml)
+                }
+            }
         }
     } else if (isLoadingContent) {
         Box(
@@ -212,6 +219,40 @@ internal fun SingleSnapshotState(
     }
 }
 
+/** One saved version, read like the page: its words in the reading face, with when it was saved. */
+@Composable
+private fun ReadableSnapshot(snap: Snap, content: String, isHtml: Boolean) {
+    val lines by androidx.compose.runtime.produceState<List<String>?>(null, content) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            com.bernaferrari.changedetection.util.readableSnapshotText(content, isHtml).lines().filter { it.isNotBlank() }
+        }
+    }
+    val loaded = lines
+    if (loaded == null) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { AppLoadingIndicator() }
+        return
+    }
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        androidx.compose.foundation.lazy.LazyColumn(
+            Modifier.widthIn(max = 720.dp).fillMaxSize(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 24.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            item(key = "saved") {
+                Text(
+                    stringResource(Res.string.single_saved_on, com.bernaferrari.changedetection.ui.kit.friendlyDateTime(snap.timestamp)),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 6.dp),
+                )
+            }
+            items(loaded.size) { index ->
+                Text(loaded[index], style = com.bernaferrari.changedetection.ui.theme.Reading.body.copy(color = MaterialTheme.colorScheme.onSurface))
+            }
+        }
+    }
+}
+
 @Composable
 internal fun SnapshotTimestampLabel(
     timestamp: Long,
@@ -225,7 +266,7 @@ internal fun SnapshotTimestampLabel(
         tonalElevation = spacing.xxs,
     ) {
         Text(
-            text = formatTimestamp(timestamp),
+            text = com.bernaferrari.changedetection.ui.kit.friendlyDateTime(timestamp),
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.padding(horizontal = spacing.md, vertical = spacing.xs),
             color = MaterialTheme.colorScheme.primary,

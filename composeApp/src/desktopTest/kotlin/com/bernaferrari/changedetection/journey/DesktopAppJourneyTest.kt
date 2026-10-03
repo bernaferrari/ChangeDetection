@@ -71,47 +71,42 @@ class DesktopAppJourneyTest {
                 }
             }
             compose.waitForIdle()
-            compose.waitUntil(10_000) { compose.onAllNodesWithText("Add your first page").fetchSemanticsNodes().isNotEmpty() }
-            compose.onNodeWithText("Add your first page").performClick()
+            compose.waitUntil(10_000) { compose.onAllNodesWithText("Watch a page").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithText("Watch a page").performClick()
             compose.onNodeWithText("Page address").performTextInput("http://127.0.0.1:${server.address.port}/program")
             compose.onNodeWithText("Continue").performClick()
             compose.waitUntil(10_000) { compose.onAllNodesWithText("Opening session 09:00", substring = true).fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithText("Opening session 09:00", substring = true).assertIsDisplayed()
             capture("app-journey-setup-preview")
-            compose.onNodeWithText("Name (optional)").performScrollTo().performTextReplacement("Journey schedule")
-            compose.onNode(hasText("Start monitoring") and hasClickAction()).performClick()
+            compose.onNodeWithText("Name (optional)").performTextReplacement("Journey schedule")
+            compose.onNode(hasText("Start watching") and hasClickAction()).performClick()
             compose.waitUntil(10_000) { compose.onAllNodesWithText("First version saved").fetchSemanticsNodes().isNotEmpty() }
-            compose.onNodeWithText("First version saved").assertIsDisplayed()
             val page = runBlocking { db.siteDao().getSitesList().single() }
             val first = runBlocking { requireNotNull(db.snapsDao().getLastSnapForSiteId(page.id)) }
             assertTrue(requests.get() >= 1)
             capture("app-journey-baseline")
             compose.onNodeWithText("Go to watchlist").performClick()
             content.set("<html><body><h1>Program</h1><p>Opening session 10:00</p></body></html>")
+            compose.onNodeWithContentDescription("More options").performClick()
             compose.onNodeWithContentDescription("Refresh all").performClick()
             compose.waitUntil(10_000) {
                 runBlocking { db.snapsDao().getLastSnapForSiteId(page.id)?.snapId != first.snapId }
             }
-            compose.onNodeWithText("Journey schedule", substring = true).performClick()
-            compose.waitUntil(10_000) { compose.onAllNodesWithText("Compare").fetchSemanticsNodes().isNotEmpty() }
-            compose.onNodeWithTag("page-details").performScrollToKey("history")
-            compose.onNodeWithText("Saved versions").performScrollTo().performClick()
-            compose.waitUntil(10_000) { compose.onAllNodesWithContentDescription("Close").fetchSemanticsNodes().isNotEmpty() }
+            compose.waitUntil(10_000) { compose.onAllNodesWithText("1 new change").fetchSemanticsNodes().isNotEmpty() }
+            compose.onAllNodesWithText("Journey schedule", substring = true).onLast().performClick()
+            compose.waitUntil(10_000) { compose.onAllNodesWithText("Latest change").fetchSemanticsNodes().isNotEmpty() }
             assertFalse(runBlocking { requireNotNull(db.siteDao().getSiteById(page.id)).isRead })
-            capture("app-journey-direct-history")
-            compose.onNodeWithContentDescription("Close").performClick()
-            compose.waitUntil(10_000) { compose.onAllNodesWithText("Mark as read").fetchSemanticsNodes().isNotEmpty() }
+            capture("app-journey-detail")
+            compose.onAllNodesWithText("Compare").onFirst().performClick()
+            compose.waitUntil(10_000) { compose.onAllNodesWithText("10:00", substring = true).fetchSemanticsNodes().isNotEmpty() }
             assertFalse(runBlocking { requireNotNull(db.siteDao().getSiteById(page.id)).isRead })
-            compose.waitUntil(10_000) { compose.onAllNodesWithContentDescription("Show previous text").fetchSemanticsNodes().isNotEmpty() }
+            compose.onAllNodesWithText("09:00", substring = true).onFirst().assertExists()
             capture("app-journey-comparison")
-            compose.onNodeWithContentDescription("Show previous text").performClick()
-            compose.waitUntil(10_000) { compose.onAllNodesWithText("09:00", substring = true).fetchSemanticsNodes().isNotEmpty() }
-            compose.onNodeWithText("09:00", substring = true).assertExists()
-            compose.onNodeWithText("10:00", substring = true).assertExists()
-            capture("app-journey-comparison-expanded")
-            compose.onNodeWithText("Mark as read").performClick()
+            compose.onAllNodesWithText("Mark read").onLast().performClick()
             compose.waitUntil(10_000) { runBlocking { db.siteDao().getSiteById(page.id)?.isRead == true } }
             assertEquals(2, runBlocking { db.snapsDao().getAllSnapsForSiteId(page.id).size })
+            compose.onNodeWithText("Activity").performClick()
+            compose.onNodeWithText("Home").performClick()
             compose.waitUntil(10_000) { compose.onAllNodesWithContentDescription("Add page").fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithContentDescription("Add page").performClick()
             compose.onNodeWithText("Page address").assertIsDisplayed()

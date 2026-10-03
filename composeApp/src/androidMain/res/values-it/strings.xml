@@ -275,4 +275,10 @@
     <string name="quick_monitor_notification_subtitle_widget">%1$d pagine ogni %2$d s</string>
     <string name="empty_add_site_hint">Aggiungi una pagina per avviare Turbo</string>
     <string name="start">Avvia</string>
+    <string name="change_notification_named">%1$s è cambiata</string>
+    <string name="change_notification_generic">Tocca per vedere cosa è cambiato.</string>
+    <string name="change_notification_was">" (prima “%1$s”)"</string>
+    <string name="change_notification_removed_text">Testo rimosso</string>
+    <string name="change_notification_visual">È cambiato il %1$s%% della pagina. Tocca per confrontare.</string>
+    <string name="change_notification_large">È cambiata quasi tutta la pagina. Tocca per confrontare.</string>
 </resources>

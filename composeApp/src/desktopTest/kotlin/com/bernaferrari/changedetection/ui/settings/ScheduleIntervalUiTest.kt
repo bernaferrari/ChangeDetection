@@ -43,18 +43,18 @@ class ScheduleIntervalUiTest {
             assertNull(saved)
             source = SettingsUiState(syncInterval = 10080L)
         }
-        compose.onNodeWithContentDescription("Sync every 7 days").assertIsSelected()
-        compose.onNodeWithContentDescription("Sync every 15 minutes").performClick()
+        compose.onNodeWithText("Weekly").assertIsSelected()
+        compose.onNodeWithText("15 min").performClick()
         compose.runOnIdle { source = source.copy(storageBytes = 8000L, syncInterval = 360L) }
-        compose.onNodeWithContentDescription("Sync every 15 minutes").assertIsSelected()
+        compose.onNodeWithText("15 min").assertIsSelected()
         compose.runOnIdle { source = source.copy(storageBytes = null, storageLoadFailed = true) }
         compose.onNodeWithText("Save").assertIsEnabled()
-        compose.onNodeWithContentDescription("Sync every 15 minutes").assertIsSelected()
+        compose.onNodeWithText("15 min").assertIsSelected()
         compose.runOnIdle { source = SettingsUiState(isLoaded = false, loadFailed = true) }
         compose.onNodeWithText("Could not load settings. Try again.").assertIsDisplayed()
         compose.onNodeWithText("Save").assertIsNotEnabled()
         compose.onNodeWithText("Retry").performClick()
-        compose.onNodeWithContentDescription("Sync every 15 minutes").assertIsSelected()
+        compose.onNodeWithText("15 min").assertIsSelected()
         compose.onNodeWithText("Save").performClick()
         compose.waitUntil { saved != null }
         compose.runOnIdle {

@@ -1,0 +1,719 @@
+/*
+ * Copyright (c) 2024 ChangeDetection Contributors
+ * Licensed under the Apache License, Version 2.0
+ */
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
+
+package com.bernaferrari.changedetection.ui.home
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.NotificationsOff
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Pause
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.outlined.ScheduleSend
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bernaferrari.changedetection.background.TurboState
+import com.bernaferrari.changedetection.background.monitoringCapabilities
+import com.bernaferrari.changedetection.preview.ChangePreview
+import com.bernaferrari.changedetection.repo.CaptureMode
+import com.bernaferrari.changedetection.repo.SiteAndLastSnap
+import com.bernaferrari.changedetection.shared.generated.resources.*
+import com.bernaferrari.changedetection.ui.components.ErrorBanner
+import com.bernaferrari.changedetection.ui.components.checkFailureTitle
+import com.bernaferrari.changedetection.ui.kit.Callout
+import com.bernaferrari.changedetection.ui.kit.ChangePreviewBlock
+import com.bernaferrari.changedetection.ui.kit.NewBadge
+import com.bernaferrari.changedetection.ui.kit.PageAvatar
+import com.bernaferrari.changedetection.ui.kit.SectionHeader
+import com.bernaferrari.changedetection.ui.kit.domain
+import com.bernaferrari.changedetection.ui.kit.name
+import com.bernaferrari.changedetection.ui.kit.rememberLatestPreview
+import com.bernaferrari.changedetection.ui.main.MainViewModel
+import com.bernaferrari.changedetection.ui.main.UiMessage
+import com.bernaferrari.changedetection.ui.theme.marks
+import com.bernaferrari.changedetection.ui.turbo.TurboLiveCard
+import com.bernaferrari.changedetection.util.BackHandler
+import com.bernaferrari.changedetection.util.getRelativeTimeLabel
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
+
+/** What changed comes first, then every page in a stable, quiet list. */
+@Composable
+fun HomeScreen(
+    viewModel: MainViewModel,
+    onAddPage: (url: String?) -> Unit,
+    onOpenPage: (siteId: String) -> Unit,
+    onOpenChange: (siteId: String, snapId: String?) -> Unit,
+    onEditPage: (siteId: String) -> Unit,
+    onSetUpTurbo: (siteIds: Set<String>) -> Unit,
+    onOpenTurbo: () -> Unit,
+    onHowItWorks: () -> Unit,
+    onEnableNotifications: () -> Unit,
+    modifier: Modifier = Modifier,
+    selectedSiteId: String? = null,
+) {
+    val sites by viewModel.sitesFlow.collectAsStateWithLifecycle()
+    val schedule by viewModel.monitoringSchedule.collectAsStateWithLifecycle()
+    val turbo by viewModel.quickMonitorState.collectAsStateWithLifecycle()
+    val loading by viewModel.loadingSites.collectAsStateWithLifecycle()
+    val error by viewModel.currentError.collectAsStateWithLifecycle()
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    var selection by rememberSaveable { mutableStateOf(setOf<String>()) }
+    var searching by rememberSaveable { mutableStateOf(false) }
+    var query by rememberSaveable { mutableStateOf("") }
+    var pullRequested by remember { mutableStateOf(false) }
+    val selecting = selection.isNotEmpty()
+
+    BackHandler(enabled = selecting || searching) {
+        if (selecting) {
+            selection = emptySet()
+        } else {
+            searching = false
+            query = ""
+        }
+    }
+    LaunchedEffect(loading.isEmpty()) { if (loading.isEmpty()) pullRequested = false }
+    LaunchedEffect(sites) {
+        val ids = sites.orEmpty().mapTo(mutableSetOf()) { it.site.id }
+        if (!ids.containsAll(selection)) selection = selection.intersect(ids)
+    }
+
+    val prunedText = stringResource(Res.string.pruned_snapshots)
+    val turboEndedText = stringResource(Res.string.turbo_ended)
+    LaunchedEffect(Unit) {
+        viewModel.uiMessage.collect { message ->
+            when (message) {
+                UiMessage.SnapshotsPruned -> snackbar.showSnackbar(prunedText)
+                UiMessage.TurboEnded -> snackbar.showSnackbar(turboEndedText)
+            }
+        }
+    }
+
+    val undoText = stringResource(Res.string.undo)
+    val deletedOne = stringResource(Res.string.home_deleted_one)
+    val deletedMany = stringResource(Res.string.home_deleted_many)
+    fun deleteSelected() {
+        val rows = sites.orEmpty().filter { it.site.id in selection }
+        selection = emptySet()
+        if (rows.isEmpty()) return
+        val tickets = rows.map { viewModel.onDeleteSite(it.site) }
+        scope.launch {
+            val message = if (rows.size == 1) deletedOne.replace("%1\$s", rows.single().site.name()) else deletedMany.replace("%1\$d", rows.size.toString())
+            val undo = snackbar.showSnackbar(message, actionLabel = undoText, duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed
+            tickets.forEach { ticket -> launch { viewModel.resolveDeletion(ticket) { undo } } }
+        }
+    }
+
+    val all = sites
+    val filtered = remember(all, query, searching) {
+        if (!searching || query.isBlank()) {
+            all.orEmpty()
+        } else {
+            all.orEmpty().filter {
+                it.site.name().contains(query, ignoreCase = true) || it.site.url.contains(query, ignoreCase = true)
+            }
+        }
+    }
+    val unread = filtered.filter { !it.site.isRead && it.snap != null && it.snapshotCount > 1 }.sortedByDescending { it.snap?.timestamp ?: 0 }
+    val listState = rememberLazyListState()
+    val fabExpanded by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    Scaffold(
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        contentWindowInsets = WindowInsets(0),
+        topBar = {
+            Crossfade(
+                targetState = when {
+                    selecting -> TopMode.Select
+                    searching -> TopMode.Search
+                    else -> TopMode.Normal
+                },
+                label = "top-bar",
+            ) { mode ->
+                when (mode) {
+                    TopMode.Select -> SelectionBar(
+                        count = selection.size,
+                        rows = all.orEmpty().filter { it.site.id in selection },
+                        turboAvailable = monitoringCapabilities.turbo,
+                        onClose = { selection = emptySet() },
+                        onCheck = {
+                            all.orEmpty().filter { it.site.id in selection }.forEach { viewModel.reloadSite(it.site) }
+                            selection = emptySet()
+                        },
+                        onTurbo = {
+                            val ids = selection
+                            selection = emptySet()
+                            onSetUpTurbo(ids)
+                        },
+                        onDelete = ::deleteSelected,
+                        onSetPaused = { paused ->
+                            all.orEmpty().filter { it.site.id in selection }.forEach { viewModel.updateSite(it.site.copy(isSyncEnabled = !paused)) }
+                            selection = emptySet()
+                        },
+                        onSetNotify = { on ->
+                            if (on) onEnableNotifications()
+                            all.orEmpty().filter { it.site.id in selection }.forEach { viewModel.updateSite(it.site.copy(isNotificationEnabled = on)) }
+                            selection = emptySet()
+                        },
+                        onEdit = {
+                            val id = selection.single()
+                            selection = emptySet()
+                            onEditPage(id)
+                        },
+                    )
+
+                    TopMode.Search -> SearchBar(query, { query = it }) {
+                        searching = false
+                        query = ""
+                    }
+
+                    TopMode.Normal -> HomeTopBar(
+                        rows = all,
+                        unreadCount = all.orEmpty().count { !it.site.isRead && it.snap != null && it.snapshotCount > 1 },
+                        checking = loading.size,
+                        turboAvailable = monitoringCapabilities.turbo && !all.isNullOrEmpty(),
+                        onTurbo = { if (turbo.isActive) onOpenTurbo() else onSetUpTurbo(emptySet()) },
+                        onSearch = { searching = true },
+                        onCheckAll = viewModel::refreshAllSites,
+                        onHowItWorks = onHowItWorks,
+                        scrollBehavior = scrollBehavior,
+                    )
+                }
+            }
+        },
+        floatingActionButton = {
+            if (!all.isNullOrEmpty() && !selecting && !searching) {
+                ExtendedFloatingActionButton(
+                    onClick = { onAddPage(null) },
+                    expanded = fabExpanded,
+                    icon = { Icon(Icons.Rounded.Add, null) },
+                    text = { Text(stringResource(Res.string.home_watch_page)) },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.semantics { contentDescription = "Add page" },
+                )
+            }
+        },
+        snackbarHost = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                ErrorBanner(error = error, onDismiss = viewModel::dismissError, onRetry = viewModel::retryLastAction)
+                SnackbarHost(snackbar)
+            }
+        },
+    ) { padding ->
+        when {
+            all == null -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { LoadingIndicator() }
+
+            all.isEmpty() -> HomeEmptyState(onAddPage = onAddPage, onHowItWorks = onHowItWorks, modifier = Modifier.padding(padding))
+
+            else -> PullToRefreshBox(
+                isRefreshing = pullRequested && loading.isNotEmpty(),
+                onRefresh = {
+                    pullRequested = true
+                    viewModel.refreshAllSites()
+                },
+                modifier = Modifier.fillMaxSize().padding(padding),
+            ) {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize().testTag("home-list"),
+                    contentPadding = PaddingValues(bottom = 112.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.dp),
+                ) {
+                    if (turbo.isActive && !searching) {
+                        item(key = "turbo") {
+                            TurboLiveCard(turbo, onClick = onOpenTurbo, modifier = Modifier.animateItem().padding(bottom = 8.dp))
+                        }
+                    }
+                    if (!schedule.enabled && !searching) {
+                        item(key = "schedule-off") {
+                            Callout(
+                                title = stringResource(Res.string.home_schedule_off_title),
+                                body = stringResource(Res.string.home_schedule_off_body),
+                                icon = Icons.Outlined.ScheduleSend,
+                                modifier = Modifier.animateItem().padding(bottom = 8.dp),
+                                actions = { FilledTonalButton(onClick = viewModel::resumeScheduledChecks) { Text(stringResource(Res.string.home_schedule_turn_on)) } },
+                            )
+                        }
+                    }
+                    items(unread, key = { "card-" + it.site.id }) { row ->
+                        ChangeCard(
+                            row = row,
+                            selected = row.site.id in selection,
+                            selecting = selecting,
+                            onOpen = { if (selecting) selection = selection.toggle(row.site.id) else onOpenChange(row.site.id, row.snap?.snapId) },
+                            onLongPress = { selection = selection.toggle(row.site.id) },
+                            onMarkRead = { viewModel.markRead(row) },
+                            modifier = Modifier.animateItem().padding(horizontal = 12.dp, vertical = 5.dp),
+                        )
+                    }
+                    item(key = "pages-header") {
+                        SectionHeader(
+                            title = stringResource(Res.string.home_pages),
+                            count = filtered.size,
+                            modifier = Modifier.animateItem().padding(top = if (unread.isEmpty()) 0.dp else 10.dp),
+                        )
+                    }
+                    if (filtered.isEmpty()) {
+                        item(key = "no-match") {
+                            Text(
+                                stringResource(Res.string.home_search_none, query),
+                                Modifier.padding(horizontal = 20.dp, vertical = 24.dp),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    items(filtered, key = { "row-" + it.site.id }) { row ->
+                        PageRow(
+                            row = row,
+                            checking = row.site.id in loading || row.isSyncing,
+                            selected = row.site.id in selection,
+                            current = row.site.id == selectedSiteId,
+                            selecting = selecting,
+                            onClick = { if (selecting) selection = selection.toggle(row.site.id) else onOpenPage(row.site.id) },
+                            onLongPress = { selection = selection.toggle(row.site.id) },
+                            modifier = Modifier.animateItem(),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private enum class TopMode { Normal, Search, Select }
+
+private fun Set<String>.toggle(id: String) = if (id in this) this - id else this + id
+
+@Composable
+private fun HomeTopBar(
+    rows: List<SiteAndLastSnap>?,
+    unreadCount: Int,
+    checking: Int,
+    turboAvailable: Boolean,
+    onTurbo: () -> Unit,
+    onSearch: () -> Unit,
+    onCheckAll: () -> Unit,
+    onHowItWorks: () -> Unit,
+    scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior,
+) {
+    var menu by remember { mutableStateOf(false) }
+    val pages = rows.orEmpty()
+    val failing = pages.count { it.site.isSyncEnabled && !it.site.isSuccessful }
+    val lastCheck = pages.maxOfOrNull { it.site.timestamp }?.takeIf { it > 0 }
+    if (rows != null && pages.isEmpty()) {
+        TopAppBar(
+            title = {},
+            actions = {
+                TextButton(onClick = onHowItWorks) { Text(stringResource(Res.string.how_it_works)) }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+        )
+        return
+    }
+    LargeFlexibleTopAppBar(
+        title = {
+            Text(
+                when {
+                    pages.isEmpty() -> stringResource(Res.string.app_name)
+                    unreadCount > 0 -> pluralStringResource(Res.plurals.home_new_changes, unreadCount, unreadCount)
+                    else -> stringResource(Res.string.home_nothing_new)
+                },
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        },
+        subtitle = if (pages.isEmpty()) {
+            null
+        } else {
+            {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    val (color, text) = when {
+                        checking > 0 -> MaterialTheme.colorScheme.primary to pluralStringResource(Res.plurals.home_checking, checking, checking)
+                        failing > 0 -> MaterialTheme.colorScheme.error to pluralStringResource(Res.plurals.home_failing, failing, failing)
+                        lastCheck != null -> MaterialTheme.marks.healthy to pluralStringResource(Res.plurals.home_status_ok, pages.size, pages.size, getRelativeTimeLabel(lastCheck).lowercase())
+                        else -> MaterialTheme.colorScheme.outline to pluralStringResource(Res.plurals.home_status_waiting, pages.size, pages.size)
+                    }
+                    if (checking > 0) {
+                        LoadingIndicator(Modifier.size(18.dp))
+                    } else {
+                        Box(Modifier.size(8.dp).background(color, CircleShape))
+                    }
+                    Text(text, style = MaterialTheme.typography.bodyMedium, color = if (failing > 0 && checking == 0) color else MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        },
+        actions = {
+            if (turboAvailable) {
+                IconButton(onClick = onTurbo) { Icon(Icons.Rounded.Bolt, stringResource(Res.string.turbo_mode)) }
+            }
+            if (pages.isNotEmpty()) {
+                IconButton(onClick = onSearch) { Icon(Icons.Outlined.Search, stringResource(Res.string.home_search)) }
+            }
+            Box {
+                IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreVert, stringResource(Res.string.more_options)) }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    if (pages.isNotEmpty()) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(Res.string.home_check_all)) },
+                            leadingIcon = { Icon(Icons.Outlined.Refresh, null) },
+                            onClick = {
+                                menu = false
+                                onCheckAll()
+                            },
+                            modifier = Modifier.semantics { contentDescription = "Refresh all" },
+                        )
+                    }
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.how_it_works)) },
+                        onClick = {
+                            menu = false
+                            onHowItWorks()
+                        },
+                    )
+                }
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface, scrolledContainerColor = MaterialTheme.colorScheme.surface),
+        scrollBehavior = scrollBehavior,
+    )
+}
+
+@Composable
+private fun SelectionBar(
+    count: Int,
+    rows: List<SiteAndLastSnap>,
+    turboAvailable: Boolean,
+    onClose: () -> Unit,
+    onCheck: () -> Unit,
+    onTurbo: () -> Unit,
+    onDelete: () -> Unit,
+    onSetPaused: (Boolean) -> Unit,
+    onSetNotify: (Boolean) -> Unit,
+    onEdit: () -> Unit,
+) {
+    var menu by remember { mutableStateOf(false) }
+    val allPaused = rows.isNotEmpty() && rows.all { !it.site.isSyncEnabled }
+    val allNotify = rows.isNotEmpty() && rows.all { it.site.isNotificationEnabled }
+    TopAppBar(
+        title = { Text(count.toString(), style = MaterialTheme.typography.titleLarge) },
+        navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.Outlined.Close, stringResource(Res.string.home_clear_selection)) } },
+        actions = {
+            IconButton(onClick = onCheck) { Icon(Icons.Outlined.Refresh, stringResource(Res.string.home_check_now)) }
+            if (turboAvailable && !allPaused) {
+                FilledIconButton(
+                    onClick = onTurbo,
+                    colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
+                ) { Icon(Icons.Rounded.Bolt, stringResource(Res.string.turbo_mode)) }
+            }
+            IconButton(onClick = onDelete) { Icon(Icons.Outlined.DeleteOutline, stringResource(Res.string.delete)) }
+            Box {
+                IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreVert, stringResource(Res.string.more_options)) }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    if (count == 1) {
+                        DropdownMenuItem(text = { Text(stringResource(Res.string.edit)) }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = {
+                            menu = false
+                            onEdit()
+                        })
+                    }
+                    DropdownMenuItem(
+                        text = { Text(stringResource(if (allPaused) Res.string.home_resume_checks else Res.string.home_pause_checks)) },
+                        leadingIcon = { Icon(if (allPaused) Icons.Outlined.PlayArrow else Icons.Outlined.Pause, null) },
+                        onClick = {
+                            menu = false
+                            onSetPaused(!allPaused)
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(if (allNotify) Res.string.home_notify_off else Res.string.home_notify_on)) },
+                        leadingIcon = { Icon(if (allNotify) Icons.Outlined.NotificationsOff else Icons.Outlined.Notifications, null) },
+                        onClick = {
+                            menu = false
+                            onSetNotify(!allNotify)
+                        },
+                    )
+                }
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.marks.highlightSoft),
+    )
+}
+
+@Composable
+private fun SearchBar(query: String, onQuery: (String) -> Unit, onClose: () -> Unit) {
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focus.requestFocus() }
+    TopAppBar(
+        navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(Res.string.home_search_close)) } },
+        title = {
+            TextField(
+                value = query,
+                onValueChange = onQuery,
+                placeholder = { Text(stringResource(Res.string.home_search_hint)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().focusRequester(focus),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                ),
+            )
+        },
+        actions = {
+            if (query.isNotEmpty()) IconButton(onClick = { onQuery("") }) { Icon(Icons.Outlined.Close, stringResource(Res.string.home_search_clear)) }
+        },
+    )
+}
+
+/** A change waiting to be read: who changed, when, and a bounded look at what. */
+@Composable
+private fun ChangeCard(
+    row: SiteAndLastSnap,
+    selected: Boolean,
+    selecting: Boolean,
+    onOpen: () -> Unit,
+    onLongPress: () -> Unit,
+    onMarkRead: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val preview = rememberLatestPreview(row.site.id, row.snap?.snapId)
+    val container by androidx.compose.animation.animateColorAsState(
+        if (selected) MaterialTheme.marks.highlightSoft else MaterialTheme.colorScheme.surfaceContainerLowest,
+        label = "card",
+    )
+    Surface(
+        modifier = modifier.fillMaxWidth().semantics { this.selected = selected },
+        shape = MaterialTheme.shapes.large,
+        color = container,
+    ) {
+        Column(
+            Modifier
+                .combinedClickable(onClick = onOpen, onLongClick = onLongPress)
+                .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 10.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (selecting) SelectMark(selected) else PageAvatar(row.site.name(), row.site.id)
+                Column(Modifier.weight(1f)) {
+                    Text(row.site.name(), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        row.site.domain() + " · " + getRelativeTimeLabel(row.snap?.timestamp ?: row.site.timestamp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                NewBadge(text = stringResource(Res.string.badge_new))
+            }
+            Spacer(Modifier.height(12.dp))
+            ChangePreviewBlock(preview)
+            Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    previewFooter(preview),
+                    Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (!selecting) {
+                    FilledTonalButton(onClick = onMarkRead, contentPadding = PaddingValues(horizontal = 16.dp)) {
+                        Icon(Icons.Rounded.Check, null, Modifier.size(18.dp))
+                        Spacer(Modifier.size(6.dp))
+                        Text(stringResource(Res.string.mark_read_short))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun previewFooter(preview: ChangePreview?): String = when (preview) {
+    is ChangePreview.Crop -> if (preview.sizeChanged) stringResource(Res.string.preview_size_changed) else stringResource(Res.string.preview_percent, formatPercent(preview.percent))
+    is ChangePreview.Words -> if (preview.otherChanges > 0) pluralStringResource(Res.plurals.preview_more_changes, preview.otherChanges, preview.otherChanges) else ""
+    else -> ""
+}
+
+internal fun formatPercent(value: Double): String = when {
+    value < 0.1 -> "<0.1"
+    value < 10 -> ((value * 10).toInt() / 10.0).toString()
+    else -> value.toInt().toString()
+}
+
+@Composable
+private fun SelectMark(selected: Boolean) {
+    Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+        Checkbox(
+            checked = selected,
+            onCheckedChange = null,
+            colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary, checkmarkColor = MaterialTheme.colorScheme.onPrimary),
+        )
+    }
+}
+
+/** One page in the stable list: identity on the left, its single most important fact underneath. */
+@Composable
+private fun PageRow(
+    row: SiteAndLastSnap,
+    checking: Boolean,
+    selected: Boolean,
+    current: Boolean,
+    selecting: Boolean,
+    onClick: () -> Unit,
+    onLongPress: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val site = row.site
+    val paused = !site.isSyncEnabled
+    val failing = !paused && !site.isSuccessful
+    val background by androidx.compose.animation.animateColorAsState(
+        when {
+            selected -> MaterialTheme.marks.highlightSoft
+            current -> MaterialTheme.colorScheme.surfaceContainer
+            else -> Color.Transparent
+        },
+        label = "row",
+    )
+    Row(
+        modifier
+            .fillMaxWidth()
+            .background(background)
+            .combinedClickable(onClick = onClick, onLongClick = onLongPress)
+            .heightIn(min = 72.dp)
+            .padding(horizontal = 20.dp, vertical = 10.dp)
+            .semantics { this.selected = selected },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        if (selecting) SelectMark(selected) else PageAvatar(site.name(), site.id, dimmed = paused)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                site.name(),
+                style = MaterialTheme.typography.titleMedium,
+                color = if (paused) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                val statusColor = if (failing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                when {
+                    paused -> Icon(Icons.Outlined.Pause, null, Modifier.size(15.dp), tint = statusColor)
+                    failing -> Icon(Icons.Outlined.ErrorOutline, null, Modifier.size(15.dp), tint = statusColor)
+                    site.captureMode == CaptureMode.SCREENSHOT -> Icon(Icons.Outlined.Image, null, Modifier.size(15.dp), tint = statusColor)
+                    else -> Unit
+                }
+                Text(
+                    when {
+                        checking -> stringResource(Res.string.home_row_checking)
+                        paused -> stringResource(Res.string.home_row_paused)
+                        failing -> checkFailureTitle(site.lastFailureCode)
+                        row.snap == null -> site.domain() + " · " + stringResource(Res.string.home_row_waiting)
+                        row.snapshotCount <= 1 -> site.domain() + " · " + stringResource(Res.string.home_row_no_changes)
+                        else -> site.domain() + " · " + stringResource(Res.string.home_row_changed, getRelativeTimeLabel(row.snap.timestamp))
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = statusColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        AnimatedVisibility(checking, enter = fadeIn(), exit = fadeOut()) { LoadingIndicator(Modifier.size(28.dp)) }
+        if (!site.isRead && row.snapshotCount > 1 && !checking) {
+            Box(Modifier.size(10.dp).background(MaterialTheme.marks.highlight, CircleShape))
+        }
+    }
+}
