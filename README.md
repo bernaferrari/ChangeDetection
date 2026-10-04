@@ -20,7 +20,7 @@ New monitors start with **Readable text**: compare text from the fetched respons
 Screenshot monitors offer an optional **Visual change filter**: off, at least 0.1%, 1%, or 5% of compared pixels. It uses a reduced-size comparison, ignores tiny color shifts, and compares against the last saved version so small changes can accumulate. Image-size changes are always saved. It is off for existing and new monitors unless explicitly enabled; enabling it replaces a legacy byte filter. This setting applies to screenshot captures, which currently run on Android. Preview statistics are not a guarantee of full-resolution pixel identity.
 
 
-In Readable text mode, **Watch a region** offers Whole page, Main content, and Custom rules. Main content selects semantic `main`, `[role=main]`, or `article` elements. Custom rules accept an include CSS selector and an optional selector for ignored elements. Preview before saving: only the selected HTML is stored, and a missing region records a failure while keeping history. Blank include rules monitor the whole page except ignored elements. Region edits establish a new baseline without a change alert.
+In Text mode, **Part of the page** offers Whole page, Main content, and Advanced CSS. Main content selects semantic `main`, `[role=main]`, or `article` elements. Advanced CSS accepts an include selector and an optional selector for ignored elements. **Choose text on the page** opens the visual selection tools. Preview before saving: only the selected HTML is stored, and a missing region records a failure while keeping history. Blank include rules monitor the whole page except ignored elements. Region edits establish a new baseline without a change alert.
 
 **Any source change** detects changes in the response content, including scripts and whitespace. **Page HTML** retains the existing normalized-HTML behavior, and **App default** follows Settings. Existing monitors keep their saved choice. Switching detection rules preserves history and establishes a new baseline without sending a change alert for the rule switch itself.
 
@@ -30,9 +30,9 @@ Normal monitoring supports intervals from **15 minutes to 7 days**. Android can 
 
 ## Turbo, precisely
 
-Turbo applies only to the sites selected on the **Turbo** tab. When no previous selection exists, the app selects every enabled site by default; you can deselect any of them before starting.
+Start Turbo from the lightning action in **Home**, the page-selection toolbar, or a page’s details. Setup applies only to the selected active pages; paused pages are excluded. When no previous selection exists, the app selects every enabled page by default. Review the selection before starting.
 
-Turbo checks at 15-second, 30-second, 1-minute, or 2-minute intervals. It runs as an Android foreground service with a persistent notification and stops automatically after three hours to limit battery use. Normal background sync is configured separately in **Settings**.
+Turbo checks at 15-second, 30-second, 1-minute, or 2-minute intervals. Choose a duration from 15 minutes to three hours. It runs as an Android foreground service with a persistent notification and stops when its timer expires or you stop it. Normal background sync is configured separately in **Settings**. On Desktop, Turbo runs while the app is open.
 
 ## Repository map
 

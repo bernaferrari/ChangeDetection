@@ -89,12 +89,14 @@ export default function DocsPage() {
 
               <ol className="space-y-2">
                 <li>
-                  <strong>Enter the URL:</strong> Paste the address and preview the
-                  public page you want to monitor.
+                  <strong>Enter the URL:</strong> Tap Watch a page, paste a public
+                  page address, and tap Continue.
                 </li>
                 <li>
-                  <strong>Name and save it:</strong> Give the site a recognizable
-                  name and choose its color. The first snapshot starts immediately.
+                  <strong>Review and start watching:</strong> Choose Text or
+                  Screenshot, review what will be saved, and optionally edit the
+                  name. Tap Start watching. The first successful check becomes
+                  the starting version for future comparisons.
                 </li>
               </ol>
 
@@ -108,9 +110,10 @@ export default function DocsPage() {
                     Tip: Choose a stable URL
                   </h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Change Detection currently compares the complete public page.
-                    Prefer a focused product, result, or article URL to reduce
-                    unrelated changes from navigation and rotating content.
+                    Prefer a focused product, result, or article URL. In Text
+                    mode, choose Main content or use Choose text on the page to
+                    watch specific areas and ignore unrelated content. Use
+                    Screenshot for content that appears after JavaScript runs.
                   </p>
                 </div>
               </div>
@@ -125,8 +128,10 @@ export default function DocsPage() {
               </div>
 
               <p>
-                For time-sensitive monitoring, enable <strong>Turbo Mode</strong>{" "}
-                to check websites more frequently:
+                For time-sensitive monitoring, start <strong>Turbo Mode</strong>{" "}
+                from the lightning action in Home, selected pages, or a page’s
+                details. Choose the active pages to check and a duration from
+                15 minutes to three hours. Paused pages are excluded.
               </p>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 not-prose my-6">
@@ -149,8 +154,11 @@ export default function DocsPage() {
               </div>
 
               <p>
-                Turbo Mode is perfect for catching flash sales, ticket drops, or
-                any scenario where seconds matter.
+                Turbo uses more battery and runs with a persistent Android
+                notification. It stops when its timer expires or you tap Stop
+                Turbo. Your normal check schedule stays separate. Checks can
+                still be delayed by connectivity, page loading, or Android power
+                management.
               </p>
             </section>
 
