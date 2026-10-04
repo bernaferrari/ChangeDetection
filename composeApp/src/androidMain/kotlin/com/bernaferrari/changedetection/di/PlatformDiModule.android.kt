@@ -9,10 +9,9 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room3.Room
-import androidx.room3.RoomDatabase
-import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.bernaferrari.changedetection.repo.source.local.MIGRATION_1_3
+import com.bernaferrari.changedetection.repo.source.local.importLegacyDatabase
 import com.bernaferrari.changedetection.WorkerHelper
 import com.bernaferrari.changedetection.background.MonitoringManager
 import com.bernaferrari.changedetection.platform.AndroidShareManager
@@ -42,61 +41,20 @@ actual class PlatformDiModule {
     fun database(@Provided context: Context): ChangeDatabase {
         val appContext = context.applicationContext
 
-        importLegacyDatabaseIfNeeded(appContext)
+        // A failed import must stop startup before Room can open a fresh or partial copy.
+        // Keep the original database and its sidecars as an upgrade backup.
+        importLegacyDatabase(appContext.getDatabasePath("Changes.db"), appContext.getDatabasePath("changes.db"))
 
         val path = appContext.getDatabasePath("changes.db").absolutePath
-        // The callback deletes the legacy "Changes.db" only once Room has
-        // actually opened (and migrated) the imported copy; if the migration
-        // fails, the legacy file is still the only copy of the user's history.
         val builder = Room.databaseBuilder<ChangeDatabase>(
             context = appContext,
             name = path,
-        ).addCallback(
-            object : RoomDatabase.Callback() {
-                override suspend fun onOpen(db: SQLiteConnection) {
-                    java.io.File(appContext.getDatabasePath("Changes.db").path).delete()
-                }
-            },
         )
         return getRoomDatabase(
             builder,
             BundledSQLiteDriver(),
             migrations = arrayOf(MIGRATION_1_3),
         )
-    }
-
-    /**
-     * App releases 2.1/2.2 stored data in a database file named "Changes.db"
-     * (capital C) with schema v1. Copy the legacy file over the new name
-     * ("changes.db") so existing users keep their history; [MIGRATION_1_3]
-     * then migrates the imported copy from v1 to the current schema.
-     * The legacy file is NOT deleted here — it is removed in a
-     * RoomDatabase.Callback.onOpen, i.e. only after Room has successfully
-     * opened (and migrated) the imported copy. If the migration were to
-     * fail, the legacy file remains the only intact copy of the user's data.
-     */
-    private fun importLegacyDatabaseIfNeeded(appContext: Context) {
-        try {
-            val legacy = appContext.getDatabasePath("Changes.db")
-            val current = appContext.getDatabasePath("changes.db")
-            if (!legacy.exists()) return
-            if (current.exists() && current.length() > 0) {
-                // Current install already has data; leave both alone.
-                return
-            }
-            legacy.copyTo(current, overwrite = true)
-            // Also migrate WAL/SHM sidecar files when present so no committed
-            // transaction in the legacy write-ahead log is lost.
-            listOf("-wal", "-shm").forEach { suffix ->
-                val sidecar = java.io.File(legacy.path + suffix)
-                if (sidecar.exists()) {
-                    sidecar.copyTo(java.io.File(current.path + suffix), overwrite = true)
-                }
-            }
-        } catch (e: Exception) {
-            // Never block startup on the import; worst case is the old behavior
-            // (fresh database).
-        }
     }
 
     @Single
