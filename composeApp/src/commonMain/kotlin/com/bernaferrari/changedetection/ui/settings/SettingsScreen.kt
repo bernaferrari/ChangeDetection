@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -59,6 +61,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.Role
@@ -79,7 +82,8 @@ import com.bernaferrari.changedetection.ui.kit.GroupRow
 import com.bernaferrari.changedetection.ui.kit.ListGroup
 import com.bernaferrari.changedetection.ui.kit.cadence
 import com.bernaferrari.changedetection.ui.theme.marks
-import com.bernaferrari.changedetection.ui.turbo.ConnectedChoice
+import com.bernaferrari.changedetection.ui.theme.supportsDynamicColors
+import com.bernaferrari.changedetection.ui.kit.ConnectedChoice
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -90,7 +94,7 @@ fun SettingsScreen(
     onAboutClick: () -> Unit = {},
     onHowItWorksClick: () -> Unit = {},
     onContactClick: () -> Unit = {},
-    onNotificationSettings: () -> Unit = {},
+    onNotificationSettings: (() -> Unit)? = null,
     appVersion: String = "",
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -153,17 +157,19 @@ fun SettingsScreen(
                 item(key = "app") {
                     GroupLabel(stringResource(Res.string.settings_group_app))
                     ListGroup {
-                        GroupRow(
-                            title = stringResource(Res.string.settings_notifications),
-                            supporting = stringResource(Res.string.settings_notifications_body),
-                            icon = Icons.Outlined.Notifications,
-                            onClick = onNotificationSettings,
-                        )
+                        if (onNotificationSettings != null) {
+                            GroupRow(
+                                title = stringResource(Res.string.settings_notifications),
+                                supporting = stringResource(Res.string.settings_notifications_body),
+                                icon = Icons.Outlined.Notifications,
+                                onClick = onNotificationSettings,
+                            )
+                        }
                         GroupRow(
                             title = stringResource(Res.string.settings_section_appearance),
                             supporting = stringResource(uiState.themeMode.titleRes) + " · " + stringResource(uiState.appPalette.titleRes),
                             icon = Icons.Outlined.Palette,
-                            showDivider = true,
+                            showDivider = onNotificationSettings != null,
                             onClick = { showAppearance = true },
                         )
                         GroupRow(
@@ -221,6 +227,7 @@ private fun settingsChecksSummary(state: SettingsUiState): String {
         listOfNotNull(
             stringResource(Res.string.checks_wifi).takeIf { state.requireWifi },
             stringResource(Res.string.checks_charging).takeIf { state.requireCharging },
+            stringResource(Res.string.checks_battery).takeIf { state.requireBatteryNotLow },
         )
     } else {
         emptyList()
@@ -229,6 +236,7 @@ private fun settingsChecksSummary(state: SettingsUiState): String {
 }
 
 private fun formatStorage(bytes: Long): String = when {
+    bytes == 0L -> "0 MB"
     bytes < 1024 * 1024 -> "<1 MB"
     bytes < 1024L * 1024 * 1024 -> "${bytes / (1024 * 1024)} MB"
     else -> "${(bytes * 10 / (1024L * 1024 * 1024)) / 10.0} GB"
@@ -244,13 +252,13 @@ internal fun AppearanceSheet(
     onDismiss: () -> Unit,
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = MaterialTheme.colorScheme.surfaceContainerLowest) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 32.dp)) {
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 32.dp).selectableGroup()) {
             Text(stringResource(Res.string.settings_section_appearance), Modifier.padding(horizontal = 24.dp), style = MaterialTheme.typography.headlineSmall)
             GroupLabel(stringResource(Res.string.settings_theme_label))
             ConnectedChoice(ThemeMode.entries, theme, onTheme) { stringResource(it.titleRes) }
             GroupLabel(stringResource(Res.string.settings_palette_label))
             PaletteRow(AppPalette.DEFAULT, palette, Icons.Outlined.Palette, stringResource(Res.string.palette_highlighter_body), onPalette)
-            if (monitoringCapabilities.execution == MonitoringExecution.Background) {
+            if (supportsDynamicColors()) {
                 PaletteRow(AppPalette.DYNAMIC, palette, Icons.Outlined.AutoAwesome, stringResource(Res.string.palette_dynamic_body), onPalette)
             }
             Text(stringResource(Res.string.palette_more), Modifier.padding(start = 24.dp, top = 16.dp, bottom = 10.dp), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -264,14 +272,14 @@ internal fun AppearanceSheet(
                             .clip(CircleShape)
                             .background(option.seedColor)
                             .border(if (selected) 3.dp else 0.dp, if (selected) MaterialTheme.colorScheme.onSurface else Color.Transparent, CircleShape)
-                            .clickable(role = Role.RadioButton) { onPalette(option) }
+                            .selectable(selected = selected, role = Role.RadioButton) { onPalette(option) }
                             .semantics {
                                 this.selected = selected
                                 contentDescription = name
                             },
                         contentAlignment = Alignment.Center,
                     ) {
-                        if (selected) Icon(Icons.Rounded.Check, null, tint = Color.White)
+                        if (selected) Icon(Icons.Rounded.Check, null, tint = if (option.seedColor.luminance() > 0.179f) Color.Black else Color.White)
                     }
                 }
             }
@@ -288,7 +296,7 @@ internal fun AppearanceSheet(
 @Composable
 private fun PaletteRow(option: AppPalette, current: AppPalette, icon: androidx.compose.ui.graphics.vector.ImageVector, body: String, onSelect: (AppPalette) -> Unit) {
     Row(
-        Modifier.fillMaxWidth().clickable(role = Role.RadioButton) { onSelect(option) }.padding(horizontal = 24.dp, vertical = 10.dp),
+        Modifier.fillMaxWidth().selectable(selected = option == current, role = Role.RadioButton) { onSelect(option) }.padding(horizontal = 24.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {

@@ -35,6 +35,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.CheckBox
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ErrorOutline
@@ -64,6 +65,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -86,6 +88,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,7 +97,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -149,15 +154,15 @@ fun HomeScreen(
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    var selection by rememberSaveable { mutableStateOf(setOf<String>()) }
+    var selection by rememberSaveable(stateSaver = HomeSelection.Saver) { mutableStateOf(HomeSelection()) }
     var searching by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
     var pullRequested by remember { mutableStateOf(false) }
-    val selecting = selection.isNotEmpty()
+    val selecting = selection.active
 
     BackHandler(enabled = selecting || searching) {
         if (selecting) {
-            selection = emptySet()
+            selection = selection.clear()
         } else {
             searching = false
             query = ""
@@ -165,8 +170,9 @@ fun HomeScreen(
     }
     LaunchedEffect(loading.isEmpty()) { if (loading.isEmpty()) pullRequested = false }
     LaunchedEffect(sites) {
+        if (sites == null) return@LaunchedEffect
         val ids = sites.orEmpty().mapTo(mutableSetOf()) { it.site.id }
-        if (!ids.containsAll(selection)) selection = selection.intersect(ids)
+        selection = if (ids.isEmpty()) selection.clear() else selection.retain(ids)
     }
 
     val prunedText = stringResource(Res.string.pruned_snapshots)
@@ -181,11 +187,12 @@ fun HomeScreen(
     }
 
     val undoText = stringResource(Res.string.undo)
+    val addPageLabel = stringResource(Res.string.add_site)
     val deletedOne = stringResource(Res.string.home_deleted_one)
     val deletedMany = stringResource(Res.string.home_deleted_many)
     fun deleteSelected() {
-        val rows = sites.orEmpty().filter { it.site.id in selection }
-        selection = emptySet()
+        val rows = sites.orEmpty().filter { it.site.id in selection.ids }
+        selection = selection.clear()
         if (rows.isEmpty()) return
         val tickets = rows.map { viewModel.onDeleteSite(it.site) }
         scope.launch {
@@ -224,32 +231,33 @@ fun HomeScreen(
             ) { mode ->
                 when (mode) {
                     TopMode.Select -> SelectionBar(
-                        count = selection.size,
-                        rows = all.orEmpty().filter { it.site.id in selection },
+                        count = selection.ids.size,
+                        rows = all.orEmpty().filter { it.site.id in selection.ids },
                         turboAvailable = monitoringCapabilities.turbo,
-                        onClose = { selection = emptySet() },
+                        onClose = { selection = selection.clear() },
                         onCheck = {
-                            all.orEmpty().filter { it.site.id in selection }.forEach { viewModel.reloadSite(it.site) }
-                            selection = emptySet()
+                            all.orEmpty().filter { it.site.id in selection.ids }.forEach { viewModel.reloadSite(it.site) }
+                            selection = selection.clear()
                         },
                         onTurbo = {
-                            val ids = selection
-                            selection = emptySet()
+                            val ids = selection.ids
+                            if (ids.isEmpty()) return@SelectionBar
+                            selection = selection.clear()
                             onSetUpTurbo(ids)
                         },
                         onDelete = ::deleteSelected,
                         onSetPaused = { paused ->
-                            all.orEmpty().filter { it.site.id in selection }.forEach { viewModel.updateSite(it.site.copy(isSyncEnabled = !paused)) }
-                            selection = emptySet()
+                            all.orEmpty().filter { it.site.id in selection.ids }.forEach { viewModel.updateSite(it.site.copy(isSyncEnabled = !paused)) }
+                            selection = selection.clear()
                         },
                         onSetNotify = { on ->
                             if (on) onEnableNotifications()
-                            all.orEmpty().filter { it.site.id in selection }.forEach { viewModel.updateSite(it.site.copy(isNotificationEnabled = on)) }
-                            selection = emptySet()
+                            all.orEmpty().filter { it.site.id in selection.ids }.forEach { viewModel.updateSite(it.site.copy(isNotificationEnabled = on)) }
+                            selection = selection.clear()
                         },
                         onEdit = {
-                            val id = selection.single()
-                            selection = emptySet()
+                            val id = selection.ids.singleOrNull() ?: return@SelectionBar
+                            selection = selection.clear()
                             onEditPage(id)
                         },
                     )
@@ -267,6 +275,7 @@ fun HomeScreen(
                         onTurbo = { if (turbo.isActive) onOpenTurbo() else onSetUpTurbo(emptySet()) },
                         onSearch = { searching = true },
                         onCheckAll = viewModel::refreshAllSites,
+                        onSelectPages = { selection = selection.enter() },
                         onHowItWorks = onHowItWorks,
                         scrollBehavior = scrollBehavior,
                     )
@@ -282,7 +291,7 @@ fun HomeScreen(
                     text = { Text(stringResource(Res.string.home_watch_page)) },
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.semantics { contentDescription = "Add page" },
+                    modifier = Modifier.semantics { contentDescription = addPageLabel },
                 )
             }
         },
@@ -308,7 +317,7 @@ fun HomeScreen(
             ) {
                 LazyColumn(
                     state = listState,
-                    modifier = Modifier.fillMaxSize().testTag("home-list"),
+                    modifier = Modifier.align(Alignment.TopCenter).widthIn(max = 720.dp).fillMaxSize().testTag("home-list"),
                     contentPadding = PaddingValues(bottom = 112.dp),
                     verticalArrangement = Arrangement.spacedBy(0.dp),
                 ) {
@@ -331,7 +340,7 @@ fun HomeScreen(
                     items(unread, key = { "card-" + it.site.id }) { row ->
                         ChangeCard(
                             row = row,
-                            selected = row.site.id in selection,
+                            selected = row.site.id in selection.ids,
                             selecting = selecting,
                             onOpen = { if (selecting) selection = selection.toggle(row.site.id) else onOpenChange(row.site.id, row.snap?.snapId) },
                             onLongPress = { selection = selection.toggle(row.site.id) },
@@ -360,7 +369,7 @@ fun HomeScreen(
                         PageRow(
                             row = row,
                             checking = row.site.id in loading || row.isSyncing,
-                            selected = row.site.id in selection,
+                            selected = row.site.id in selection.ids,
                             current = row.site.id == selectedSiteId,
                             selecting = selecting,
                             onClick = { if (selecting) selection = selection.toggle(row.site.id) else onOpenPage(row.site.id) },
@@ -376,7 +385,20 @@ fun HomeScreen(
 
 private enum class TopMode { Normal, Search, Select }
 
-private fun Set<String>.toggle(id: String) = if (id in this) this - id else this + id
+/** Empty selection is a real mode: the user chooses the first page explicitly. */
+internal data class HomeSelection(val active: Boolean = false, val ids: Set<String> = emptySet()) {
+    fun enter() = copy(active = true)
+    fun toggle(id: String) = copy(active = true, ids = if (id in ids) ids - id else ids + id)
+    fun retain(available: Set<String>) = copy(ids = ids.intersect(available))
+    fun clear() = HomeSelection()
+
+    companion object {
+        val Saver = listSaver<HomeSelection, String>(
+            save = { listOf(if (it.active) "active" else "closed") + it.ids.sorted() },
+            restore = { HomeSelection(active = it.first() == "active", ids = it.drop(1).toSet()) },
+        )
+    }
+}
 
 @Composable
 private fun HomeTopBar(
@@ -387,11 +409,22 @@ private fun HomeTopBar(
     onTurbo: () -> Unit,
     onSearch: () -> Unit,
     onCheckAll: () -> Unit,
+    onSelectPages: () -> Unit,
     onHowItWorks: () -> Unit,
     scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior,
 ) {
     var menu by remember { mutableStateOf(false) }
     val pages = rows.orEmpty()
+    val density = LocalDensity.current
+    val largeText = density.fontScale > 1.3f
+    val expandedHeight = if (largeText) {
+        TopAppBarDefaults.LargeAppBarCollapsedHeight + with(density) {
+            MaterialTheme.typography.headlineLarge.lineHeight.toDp() * 2 + MaterialTheme.typography.bodyMedium.lineHeight.toDp() * 2
+        } + 32.dp
+    } else {
+        TopAppBarDefaults.LargeFlexibleAppBarWithSubtitleExpandedHeight
+    }
+    val checkAllLabel = stringResource(Res.string.refresh_all)
     val failing = pages.count { it.site.isSyncEnabled && !it.site.isSuccessful }
     val lastCheck = pages.maxOfOrNull { it.site.timestamp }?.takeIf { it > 0 }
     if (rows != null && pages.isEmpty()) {
@@ -412,7 +445,9 @@ private fun HomeTopBar(
                     unreadCount > 0 -> pluralStringResource(Res.plurals.home_new_changes, unreadCount, unreadCount)
                     else -> stringResource(Res.string.home_nothing_new)
                 },
-                maxLines = 1,
+                // The slot is called with separate expanded/collapsed text styles.
+                // Keep collapsed chrome compact while making the hero readable.
+                maxLines = if (largeText && LocalTextStyle.current.fontSize > MaterialTheme.typography.titleLarge.fontSize) 2 else 1,
                 overflow = TextOverflow.Ellipsis,
             )
         },
@@ -448,13 +483,22 @@ private fun HomeTopBar(
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     if (pages.isNotEmpty()) {
                         DropdownMenuItem(
+                            text = { Text(stringResource(Res.string.home_select_pages)) },
+                            leadingIcon = { Icon(Icons.Outlined.CheckBox, null) },
+                            onClick = {
+                                menu = false
+                                onSelectPages()
+                            },
+                        )
+                        DropdownMenuItem(
                             text = { Text(stringResource(Res.string.home_check_all)) },
                             leadingIcon = { Icon(Icons.Outlined.Refresh, null) },
                             onClick = {
                                 menu = false
                                 onCheckAll()
                             },
-                            modifier = Modifier.semantics { contentDescription = "Refresh all" },
+                            enabled = checking == 0,
+                            modifier = Modifier.semantics { contentDescription = checkAllLabel },
                         )
                     }
                     DropdownMenuItem(
@@ -468,12 +512,13 @@ private fun HomeTopBar(
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface, scrolledContainerColor = MaterialTheme.colorScheme.surface),
+        expandedHeight = expandedHeight,
         scrollBehavior = scrollBehavior,
     )
 }
 
 @Composable
-private fun SelectionBar(
+internal fun SelectionBar(
     count: Int,
     rows: List<SiteAndLastSnap>,
     turboAvailable: Boolean,
@@ -484,22 +529,32 @@ private fun SelectionBar(
     onSetPaused: (Boolean) -> Unit,
     onSetNotify: (Boolean) -> Unit,
     onEdit: () -> Unit,
+    notificationsAvailable: Boolean = monitoringCapabilities.notifications,
 ) {
     var menu by remember { mutableStateOf(false) }
+    val selectionLabel = pluralStringResource(Res.plurals.turbo_mode_selected_sites, count, count)
     val allPaused = rows.isNotEmpty() && rows.all { !it.site.isSyncEnabled }
     val allNotify = rows.isNotEmpty() && rows.all { it.site.isNotificationEnabled }
+    val hasSelection = count > 0
     TopAppBar(
-        title = { Text(count.toString(), style = MaterialTheme.typography.titleLarge) },
+        title = {
+            Text(
+                count.toString(),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.semantics { contentDescription = selectionLabel },
+            )
+        },
         navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.Outlined.Close, stringResource(Res.string.home_clear_selection)) } },
         actions = {
-            IconButton(onClick = onCheck) { Icon(Icons.Outlined.Refresh, stringResource(Res.string.home_check_now)) }
+            IconButton(onClick = onCheck, enabled = hasSelection) { Icon(Icons.Outlined.Refresh, stringResource(Res.string.home_check_now)) }
             if (turboAvailable && !allPaused) {
                 FilledIconButton(
                     onClick = onTurbo,
+                    enabled = hasSelection,
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
                 ) { Icon(Icons.Rounded.Bolt, stringResource(Res.string.turbo_mode)) }
             }
-            IconButton(onClick = onDelete) { Icon(Icons.Outlined.DeleteOutline, stringResource(Res.string.delete)) }
+            IconButton(onClick = onDelete, enabled = hasSelection) { Icon(Icons.Outlined.DeleteOutline, stringResource(Res.string.delete)) }
             Box {
                 IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreVert, stringResource(Res.string.more_options)) }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
@@ -512,19 +567,23 @@ private fun SelectionBar(
                     DropdownMenuItem(
                         text = { Text(stringResource(if (allPaused) Res.string.home_resume_checks else Res.string.home_pause_checks)) },
                         leadingIcon = { Icon(if (allPaused) Icons.Outlined.PlayArrow else Icons.Outlined.Pause, null) },
+                        enabled = hasSelection,
                         onClick = {
                             menu = false
                             onSetPaused(!allPaused)
                         },
                     )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(if (allNotify) Res.string.home_notify_off else Res.string.home_notify_on)) },
-                        leadingIcon = { Icon(if (allNotify) Icons.Outlined.NotificationsOff else Icons.Outlined.Notifications, null) },
-                        onClick = {
-                            menu = false
-                            onSetNotify(!allNotify)
-                        },
-                    )
+                    if (notificationsAvailable) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(if (allNotify) Res.string.home_notify_off else Res.string.home_notify_on)) },
+                            leadingIcon = { Icon(if (allNotify) Icons.Outlined.NotificationsOff else Icons.Outlined.Notifications, null) },
+                            enabled = hasSelection,
+                            onClick = {
+                                menu = false
+                                onSetNotify(!allNotify)
+                            },
+                        )
+                    }
                 }
             }
         },
@@ -571,29 +630,35 @@ private fun ChangeCard(
     modifier: Modifier = Modifier,
 ) {
     val preview = rememberLatestPreview(row.site.id, row.snap?.snapId)
+    val largeText = LocalDensity.current.fontScale > 1.3f
+    val selectLabel = stringResource(Res.string.home_select_page)
     val container by androidx.compose.animation.animateColorAsState(
         if (selected) MaterialTheme.marks.highlightSoft else MaterialTheme.colorScheme.surfaceContainerLowest,
         label = "card",
     )
     Surface(
-        modifier = modifier.fillMaxWidth().semantics { this.selected = selected },
+        modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         color = container,
     ) {
         Column(
             Modifier
-                .combinedClickable(onClick = onOpen, onLongClick = onLongPress)
+                .combinedClickable(onClick = onOpen, onLongClick = onLongPress, onLongClickLabel = selectLabel, role = Role.Button)
+                .semantics { if (selecting) this.selected = selected }
                 .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 10.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (selecting) SelectMark(selected) else PageAvatar(row.site.name(), row.site.id)
                 Column(Modifier.weight(1f)) {
-                    Text(row.site.name(), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(row.site.name(), style = MaterialTheme.typography.titleMedium, maxLines = if (largeText) 3 else 1, overflow = TextOverflow.Ellipsis)
+                    if (largeText) {
+                        Text(row.site.domain(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
                     Text(
-                        row.site.domain() + " · " + getRelativeTimeLabel(row.snap?.timestamp ?: row.site.timestamp),
+                        (if (largeText) "" else row.site.domain() + " · ") + getRelativeTimeLabel(row.snap?.timestamp ?: row.site.timestamp),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
+                        maxLines = if (largeText) 3 else 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -657,6 +722,8 @@ private fun PageRow(
     modifier: Modifier = Modifier,
 ) {
     val site = row.site
+    val largeText = LocalDensity.current.fontScale > 1.3f
+    val selectLabel = stringResource(Res.string.home_select_page)
     val paused = !site.isSyncEnabled
     val failing = !paused && !site.isSuccessful
     val background by androidx.compose.animation.animateColorAsState(
@@ -671,10 +738,10 @@ private fun PageRow(
         modifier
             .fillMaxWidth()
             .background(background)
-            .combinedClickable(onClick = onClick, onLongClick = onLongPress)
+            .combinedClickable(onClick = onClick, onLongClick = onLongPress, onLongClickLabel = selectLabel, role = Role.Button)
             .heightIn(min = 72.dp)
             .padding(horizontal = 20.dp, vertical = 10.dp)
-            .semantics { this.selected = selected },
+            .semantics { if (selecting) this.selected = selected },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -684,9 +751,12 @@ private fun PageRow(
                 site.name(),
                 style = MaterialTheme.typography.titleMedium,
                 color = if (paused) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
+                maxLines = if (largeText) 3 else 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            if (largeText && !paused && !failing && !checking) {
+                Text(site.domain(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 val statusColor = if (failing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                 when {
@@ -700,13 +770,13 @@ private fun PageRow(
                         checking -> stringResource(Res.string.home_row_checking)
                         paused -> stringResource(Res.string.home_row_paused)
                         failing -> checkFailureTitle(site.lastFailureCode)
-                        row.snap == null -> site.domain() + " · " + stringResource(Res.string.home_row_waiting)
-                        row.snapshotCount <= 1 -> site.domain() + " · " + stringResource(Res.string.home_row_no_changes)
-                        else -> site.domain() + " · " + stringResource(Res.string.home_row_changed, getRelativeTimeLabel(row.snap.timestamp))
+                        row.snap == null -> (if (largeText) "" else site.domain() + " · ") + stringResource(Res.string.home_row_waiting)
+                        row.snapshotCount <= 1 -> (if (largeText) "" else site.domain() + " · ") + stringResource(Res.string.home_row_no_changes)
+                        else -> (if (largeText) "" else site.domain() + " · ") + stringResource(Res.string.home_row_changed, getRelativeTimeLabel(row.snap.timestamp))
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = statusColor,
-                    maxLines = 1,
+                    maxLines = if (largeText) 3 else 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }

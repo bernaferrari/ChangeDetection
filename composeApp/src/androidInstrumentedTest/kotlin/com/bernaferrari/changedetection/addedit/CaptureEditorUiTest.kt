@@ -38,7 +38,7 @@ class CaptureEditorUiTest {
         }
         compose.onNodeWithText("Main content").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(MAIN_TEXT_REGION, region.include) }
-        compose.onNodeWithText("Custom rules").performScrollTo().performClick()
+        compose.onNodeWithText("Advanced CSS").performScrollTo().performClick()
         compose.onNodeWithText("Include CSS selector (optional)").performScrollTo().performTextReplacement("#price")
         compose.onNodeWithText("Ignore CSS selector (optional)").performScrollTo().performTextReplacement(".timer")
         compose.runOnIdle { assertEquals(com.bernaferrari.changedetection.detection.TextRegion("#price", ".timer"), region) }
@@ -109,6 +109,7 @@ class CaptureEditorUiTest {
                     )
                 }
             }
+            compose.onNodeWithText("Continue").assertIsDisplayed().performClick()
             compose.onNodeWithText("View full screenshot").performScrollTo().performClick()
             compose.onNodeWithText("Done").assertIsDisplayed()
             compose.waitUntil(5_000) {
@@ -128,7 +129,7 @@ class CaptureEditorUiTest {
                     .executeShellCommand("screencap -p /sdcard/Download/capture-expanded-bottom.png"),
             ).use { it.readBytes() }
             compose.onNodeWithText("Done").performClick()
-            compose.onNodeWithText("Start monitoring").assertIsDisplayed()
+            compose.onNodeWithText("Start watching").assertIsDisplayed()
             compose.runOnIdle { assertEquals(false, saved) }
         }
     }
@@ -149,9 +150,10 @@ class CaptureEditorUiTest {
                 )
             }
         }
-        compose.onNodeWithText("App default").performScrollTo().performClick()
-        compose.onNodeWithText("Page HTML").performClick()
-        compose.onNodeWithText("Switching methods starts a new baseline. Existing history is kept.").assertExists()
+        compose.onNodeWithText("Advanced").performScrollTo().performClick()
+        compose.onNodeWithText("Check using").performScrollTo().performClick()
+        compose.onNodeWithText("Page HTML").performScrollTo().performClick()
+        compose.onNodeWithText("Changing what’s watched starts fresh from the next check. Your history stays, and the switch itself won’t send an alert.").assertExists()
         compose.onNodeWithText("Preview capture").performScrollTo().performClick()
         compose.onNodeWithText("Camera restock: available today").performScrollTo().assertIsDisplayed()
         compose.waitForIdle()

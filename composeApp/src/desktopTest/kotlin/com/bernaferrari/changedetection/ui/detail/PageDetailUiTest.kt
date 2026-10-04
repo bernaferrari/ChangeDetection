@@ -50,7 +50,7 @@ class PageDetailUiTest {
                             item = item, isLoading = false, versions = versions, schedule = schedule, turbo = TurboState(),
                             onBack = {}, onCompare = { opened = it }, onEdit = { edited++ }, onTurbo = {}, onSchedule = { schedules++ },
                             onOpenUrl = {}, onCheck = { checks++ }, onMarkRead = { read++ }, onSetPaused = { paused = it },
-                            onSetNotify = { notify = it }, onDelete = {},
+                            onSetNotify = { notify = it }, notificationsAvailable = true, onDelete = {},
                         )
                     }
                 }
@@ -97,7 +97,7 @@ class PageDetailUiTest {
         compose.onNodeWithTag("page-details").performScrollToKey("watch")
         compose.onNodeWithText("Notify me").performScrollTo().performClick()
         compose.onNodeWithText("Pause checks").performScrollTo().performClick()
-        compose.onNodeWithText("How often").performScrollTo().performClick()
+        compose.onNodeWithText("App check schedule").performScrollTo().performClick()
         compose.runOnIdle {
             assertEquals(false, notify)
             assertEquals(true, paused)

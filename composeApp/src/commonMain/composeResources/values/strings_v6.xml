@@ -1,4 +1,17 @@
 <resources>
+    <string name="reader_hide_unchanged">Hide unchanged lines</string>
+    <string name="reader_collapse_change">Show fewer lines</string>
+    <string name="snapshot_restore_failed">We couldn’t restore this version. Try again.</string>
+    <string name="home_select_page">Select page</string>
+    <string name="home_select_pages">Select pages</string>
+    <string name="detail_status_failed">Last check failed %1$s</string>
+    <string name="detail_calendar_summary">%1$d changes across %2$d days in the last 30 days</string>
+    <string name="turbo_sheet_no_pages">No active pages yet. Resume a page before starting Turbo.</string>
+    <string name="turbo_sheet_paused_note">Paused pages are not included.</string>
+    <string name="turbo_live_note_while_open">Turbo keeps checking while the app is open. You can leave this screen and return to see any changes.</string>
+    <string name="image_diff_highlight_unavailable_body">The highlight could not be prepared. Try again or use Before and After to inspect the saved screenshots.</string>
+    <string name="image_diff_dimensions_supporting">Compare the captures below; their different sizes prevent a direct pixel comparison.</string>
+    <string name="turbo_card_cadence">Every %1$s · %2$s</string>
     <string name="preview_before">Before</string>
     <string name="preview_after">After</string>
     <string name="preview_first_version">First version saved. Changes will show up here.</string>
@@ -43,7 +56,7 @@
     <string name="home_deleted_one">%1$s deleted</string>
     <string name="home_deleted_many">%1$d pages deleted</string>
     <string name="home_schedule_off_title">Automatic checks are off</string>
-    <string name="home_schedule_off_body">Pages are only checked when you pull down to refresh.</string>
+    <string name="home_schedule_off_body">Check pages manually, or turn on automatic checks.</string>
     <string name="home_schedule_turn_on">Turn on</string>
     <string name="home_row_checking">Checking…</string>
     <string name="home_row_paused">Paused</string>
@@ -59,7 +72,7 @@
         <item quantity="other">+%1$d more changes</item>
     </plurals>
     <string name="empty_title">Stop refreshing. We’ll tell you what changed.</string>
-    <string name="empty_body">Paste any link. We check it from this device and highlight exactly what changes. No account, nothing leaves your phone.</string>
+    <string name="empty_body">Paste any link. We check it from this device and highlight exactly what changes. No account, your saved pages stay on this device.</string>
     <string name="empty_clipboard_label">Copied link</string>
     <string name="empty_watch">Watch</string>
     <string name="turbo_hours_left">%1$d h %2$d min left</string>
@@ -102,7 +115,7 @@
     <string name="turbo_no_change">No change</string>
     <string name="turbo_ended_planned">Turbo ended as planned</string>
     <string name="turbo_ended_stopped">Turbo stopped by you</string>
-    <string name="turbo_ended_interrupted">Turbo was interrupted — Android closed the app</string>
+    <string name="turbo_ended_interrupted">Turbo was interrupted</string>
     <string name="turbo_ended_failed">Turbo couldn’t start</string>
     <string name="turbo_row_failed">Couldn’t check this page</string>
     <string name="turbo_row_quiet">No change · checked %1$d s ago</string>
@@ -174,7 +187,7 @@
     <string name="mode_html">Page HTML</string>
     <string name="mode_default">App default</string>
     <string name="mode_text">Text</string>
-    <string name="detail_how_often">How often</string>
+    <string name="detail_how_often">App check schedule</string>
     <string name="detail_notify">Notify me</string>
     <string name="detail_paused">Pause checks</string>
     <string name="detail_paused_body">History is kept while paused</string>
@@ -234,7 +247,7 @@
     <string name="checks_title">Automatic checks</string>
     <string name="checks_every">Every</string>
     <string name="checks_custom">Custom…</string>
-    <string name="checks_own_schedule_note">Turbo sessions run on their own and don’t change this schedule.</string>
+    <string name="checks_own_schedule_note">This schedule applies to all active pages. Turbo sessions run on their own and don’t change it.</string>
     <string name="checks_only_when">Only when</string>
     <string name="checks_wifi">On Wi‑Fi</string>
     <string name="checks_wifi_body">Saves mobile data</string>
@@ -252,7 +265,7 @@
     <string name="checks_cond_battery">when battery isn’t low</string>
     <string name="settings_group_checking">Checking</string>
     <string name="settings_group_app">App</string>
-    <string name="settings_default_detection">Default for new pages</string>
+    <string name="settings_default_detection">Default capture method</string>
     <string name="settings_screenshot_wait">Screenshot wait</string>
     <string name="settings_screenshot_wait_value">%1$d seconds before capture</string>
     <string name="settings_notifications">Notifications</string>

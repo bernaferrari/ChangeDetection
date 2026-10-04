@@ -1,0 +1,312 @@
+<resources>
+    <string name="home_select_pages">Seleziona pagine</string>
+    <string name="reader_hide_unchanged">Nascondi le righe invariate</string>
+    <string name="reader_collapse_change">Mostra meno righe</string>
+    <string name="snapshot_restore_failed">Impossibile ripristinare questa versione. Riprova.</string>
+    <string name="home_select_page">Seleziona pagina</string>
+    <string name="detail_status_failed">Ultimo controllo non riuscito %1$s</string>
+    <string name="detail_calendar_summary">%1$d modifiche in %2$d giorni negli ultimi 30 giorni</string>
+    <string name="turbo_sheet_no_pages">Nessuna pagina attiva. Riattiva una pagina prima di avviare Turbo.</string>
+    <string name="turbo_sheet_paused_note">Le pagine in pausa non sono incluse.</string>
+    <string name="turbo_live_note_while_open">Turbo continua a controllare mentre l’app è aperta. Puoi uscire da questa schermata e tornare per vedere le modifiche.</string>
+    <string name="image_diff_highlight_unavailable_body">Impossibile preparare l’evidenziazione. Riprova o usa Prima e Dopo per esaminare le schermate salvate.</string>
+    <string name="image_diff_dimensions_supporting">Confronta le schermate qui sotto: le dimensioni diverse impediscono un confronto diretto dei pixel.</string>
+    <string name="turbo_card_cadence">Ogni %1$s · %2$s</string>
+    <string name="preview_before">Prima</string>
+    <string name="preview_after">Dopo</string>
+    <string name="preview_first_version">Prima versione salvata. Le modifiche appariranno qui.</string>
+    <string name="preview_invisible">Sono cambiate solo parti nascoste</string>
+    <string name="preview_invisible_body">Script o markup, senza modifiche al contenuto leggibile</string>
+    <string name="preview_large">È cambiata gran parte della pagina</string>
+    <string name="preview_large_body">%1$d righe modificate su %2$d</string>
+    <string name="preview_unavailable">Apri per vedere cosa è cambiato</string>
+    <string name="home_watch_page">Monitora una pagina</string>
+    <string name="home_pages">Pagine</string>
+    <string name="home_nothing_new">Nessuna novità</string>
+    <plurals name="home_new_changes">
+        <item quantity="one">%1$d nuova modifica</item>
+        <item quantity="other">%1$d nuove modifiche</item>
+    </plurals>
+    <plurals name="home_checking">
+        <item quantity="one">Controllo di %1$d pagina…</item>
+        <item quantity="other">Controllo di %1$d pagine…</item>
+    </plurals>
+    <plurals name="home_failing">
+        <item quantity="one">Impossibile controllare %1$d pagina</item>
+        <item quantity="other">Impossibile controllare %1$d pagine</item>
+    </plurals>
+    <plurals name="home_status_ok">
+        <item quantity="one">%1$d pagina · ultimo controllo %2$s</item>
+        <item quantity="other">%1$d pagine · ultimo controllo %2$s</item>
+    </plurals>
+    <plurals name="home_status_waiting">
+        <item quantity="one">%1$d pagina · in attesa del primo controllo</item>
+        <item quantity="other">%1$d pagine · in attesa del primo controllo</item>
+    </plurals>
+    <string name="home_search">Cerca pagine</string>
+    <string name="home_search_hint">Cerca tra le tue pagine</string>
+    <string name="home_search_none">Nessun risultato per “%1$s”</string>
+    <string name="home_check_all">Controlla tutte ora</string>
+    <string name="home_check_now">Controlla ora</string>
+    <string name="home_clear_selection">Annulla selezione</string>
+    <string name="home_pause_checks">Sospendi i controlli</string>
+    <string name="home_resume_checks">Riprendi i controlli</string>
+    <string name="home_notify_on">Attiva le notifiche</string>
+    <string name="home_notify_off">Disattiva le notifiche</string>
+    <string name="home_deleted_one">%1$s eliminata</string>
+    <string name="home_deleted_many">%1$d pagine eliminate</string>
+    <string name="home_schedule_off_title">I controlli automatici sono disattivati</string>
+    <string name="home_schedule_off_body">Controlla le pagine manualmente o attiva i controlli automatici.</string>
+    <string name="home_schedule_turn_on">Attiva</string>
+    <string name="home_row_checking">Controllo in corso…</string>
+    <string name="home_row_paused">In pausa</string>
+    <string name="home_row_waiting">in attesa del primo controllo</string>
+    <string name="home_row_no_changes">ancora nessuna modifica</string>
+    <string name="home_row_changed">modificata %1$s</string>
+    <string name="badge_new">Nuova</string>
+    <string name="mark_read_short">Segna come letta</string>
+    <string name="preview_percent">È cambiato il %1$s% della pagina</string>
+    <string name="preview_size_changed">Le dimensioni della pagina sono cambiate</string>
+    <plurals name="preview_more_changes">
+        <item quantity="one">+%1$d altra modifica</item>
+        <item quantity="other">+%1$d altre modifiche</item>
+    </plurals>
+    <string name="empty_title">Smetti di aggiornare. Ti diciamo cosa è cambiato.</string>
+    <string name="empty_body">Incolla un link. Controlliamo la pagina da questo dispositivo ed evidenziamo esattamente cosa cambia. Nessun account: le pagine salvate restano su questo dispositivo.</string>
+    <string name="empty_clipboard_label">Link copiato</string>
+    <string name="empty_watch">Monitora</string>
+    <string name="turbo_hours_left">Restano %1$d h e %2$d min</string>
+    <plurals name="turbo_minutes_left">
+        <item quantity="one">Resta %1$d min</item>
+        <item quantity="other">Restano %1$d min</item>
+    </plurals>
+    <string name="turbo_every_seconds_short">%1$d s</string>
+    <string name="turbo_every_minutes_short">%1$d min</string>
+    <string name="turbo_minutes_short">%1$d min</string>
+    <plurals name="turbo_hours_short">
+        <item quantity="one">%1$d ora</item>
+        <item quantity="other">%1$d ore</item>
+    </plurals>
+    <string name="turbo_card_status">Prossimo controllo tra %1$d s · %2$s</string>
+    <string name="turbo_sheet_body">Controlla alcune pagine ogni pochi secondi per un breve periodo. La programmazione abituale resta attiva.</string>
+    <string name="turbo_sheet_pages">Pagine</string>
+    <string name="turbo_sheet_every">Controlla ogni</string>
+    <string name="turbo_sheet_for">Interrompi dopo</string>
+    <string name="turbo_sheet_pick">Scegli almeno una pagina</string>
+    <plurals name="turbo_sheet_start">
+        <item quantity="one">Avvia Turbo su %1$d pagina</item>
+        <item quantity="other">Avvia Turbo su %1$d pagine</item>
+    </plurals>
+    <string name="turbo_sheet_caption">Termina alle %1$s · consuma più batteria mentre è attivo</string>
+    <string name="turbo_run_again">Avvia di nuovo</string>
+    <string name="turbo_live_every_seconds">Ogni %1$d secondi</string>
+    <plurals name="turbo_live_every_minutes">
+        <item quantity="one">Ogni minuto</item>
+        <item quantity="other">Ogni %1$d minuti</item>
+    </plurals>
+    <plurals name="turbo_found">
+        <item quantity="one">%1$d modifica trovata</item>
+        <item quantity="other">%1$d modifiche trovate</item>
+    </plurals>
+    <string name="turbo_ends_at">Termina alle %1$s</string>
+    <string name="turbo_summary_line">%1$d controlli su %2$d pagine</string>
+    <string name="turbo_changed">Modificate</string>
+    <string name="turbo_checking">Controllo in corso</string>
+    <string name="turbo_no_change">Nessuna modifica</string>
+    <string name="turbo_ended_planned">Turbo è terminato come previsto</string>
+    <string name="turbo_ended_stopped">Hai interrotto Turbo</string>
+    <string name="turbo_ended_interrupted">Turbo è stato interrotto</string>
+    <string name="turbo_ended_failed">Impossibile avviare Turbo</string>
+    <string name="turbo_row_failed">Impossibile controllare questa pagina</string>
+    <string name="turbo_row_quiet">Nessuna modifica · controllata %1$d s fa</string>
+    <string name="nav_activity">Attività</string>
+    <plurals name="turbo_card_title_n">
+        <item quantity="one">Turbo · %1$d pagina</item>
+        <item quantity="other">Turbo · %1$d pagine</item>
+    </plurals>
+    <string name="turbo_found_none">Nessuna modifica trovata</string>
+    <plurals name="turbo_summary_checks">
+        <item quantity="one">%1$d controllo su %2$d pagine</item>
+        <item quantity="other">%1$d controlli su %2$d pagine</item>
+    </plurals>
+    <string name="turbo_live_note">Turbo resta attivo se esci da questa schermata. Riceverai una notifica appena cambia una pagina.</string>
+    <string-array name="weekday_names">
+        <item>Lunedì</item>
+        <item>Martedì</item>
+        <item>Mercoledì</item>
+        <item>Giovedì</item>
+        <item>Venerdì</item>
+        <item>Sabato</item>
+        <item>Domenica</item>
+    </string-array>
+    <string-array name="month_names">
+        <item>gen</item>
+        <item>feb</item>
+        <item>mar</item>
+        <item>apr</item>
+        <item>mag</item>
+        <item>giu</item>
+        <item>lug</item>
+        <item>ago</item>
+        <item>set</item>
+        <item>ott</item>
+        <item>nov</item>
+        <item>dic</item>
+    </string-array>
+    <string name="today">Oggi</string>
+    <string name="day_month">%1$d %2$s</string>
+    <string name="day_time">%1$s, %2$s</string>
+    <string name="label_text_changed">Testo modificato</string>
+    <string name="label_percent">%1$s% della pagina</string>
+    <string name="label_first_version">Prima versione</string>
+    <string name="label_saved">Versione salvata</string>
+    <string name="detail_delete">Elimina pagina</string>
+    <string name="detail_delete_title">Eliminare %1$s?</string>
+    <plurals name="detail_delete_body">
+        <item quantity="one">Verrà rimossa %1$d versione salvata da questo dispositivo.</item>
+        <item quantity="other">Tutte le %1$d versioni salvate verranno rimosse da questo dispositivo.</item>
+    </plurals>
+    <string name="detail_turbo_on">Turbo è attivo</string>
+    <string name="detail_status_paused">In pausa · cronologia conservata</string>
+    <string name="detail_status_checked">Controllata %1$s · %2$s</string>
+    <string name="detail_status_checked_manual">Controllata %1$s · controlli automatici disattivati</string>
+    <string name="detail_last_30">Ultimi 30 giorni</string>
+    <plurals name="detail_changes_count">
+        <item quantity="one">%1$d modifica</item>
+        <item quantity="other">%1$d modifiche</item>
+    </plurals>
+    <string name="detail_versions">Versioni</string>
+    <string name="detail_see_all">Vedi tutte</string>
+    <string name="detail_how_watched">Come viene monitorata</string>
+    <string name="detail_what">Cosa</string>
+    <string name="detail_what_page_screenshot">L’intera pagina, così come appare</string>
+    <string name="detail_what_part">Una parte che hai scelto</string>
+    <string name="detail_what_page">Il testo della pagina</string>
+    <string name="mode_screenshot">Schermata</string>
+    <string name="mode_source">Qualsiasi modifica al codice sorgente</string>
+    <string name="mode_html">HTML della pagina</string>
+    <string name="mode_default">Predefinito dell’app</string>
+    <string name="mode_text">Testo</string>
+    <string name="detail_how_often">Programmazione dell’app</string>
+    <string name="detail_notify">Avvisami</string>
+    <string name="detail_paused">Sospendi i controlli</string>
+    <string name="detail_paused_body">La cronologia viene conservata durante la pausa</string>
+    <string name="detail_last_success">Ultimo controllo riuscito: %1$s</string>
+    <string name="detail_fix_settings">Correggi le impostazioni</string>
+    <string name="detail_check_less">Controlla meno spesso</string>
+    <string name="advice_temporary">Il sito è occupato o non disponibile. Di solito è temporaneo: continueremo a riprovare.</string>
+    <string name="advice_connection">Questo dispositivo non è riuscito a connettersi a internet. Riproveremo quando la connessione sarà disponibile.</string>
+    <string name="advice_login">La pagina richiede l’accesso, che questa app non può eseguire. Prova una pagina pubblica.</string>
+    <string name="advice_not_found">La pagina non esiste più. Verifica che il link sia ancora corretto.</string>
+    <string name="advice_rate">Il sito ci chiede di rallentare. Controllare meno spesso di solito risolve il problema.</string>
+    <string name="advice_region">La parte che hai scelto non è più nella pagina. Selezionala di nuovo.</string>
+    <string name="advice_content">La pagina è stata restituita in un formato che non riusciamo a leggere. Prova Schermata.</string>
+    <string name="advice_generic">Si è verificato un problema durante l’ultimo controllo. La cronologia è al sicuro.</string>
+    <string name="detail_first_saved_title">Prima versione salvata</string>
+    <string name="detail_first_saved_body">Salvata %1$s. Le modifiche appariranno qui.</string>
+    <string name="detail_view_saved">Visualizza la versione salvata</string>
+    <string name="detail_latest_change">Ultima modifica</string>
+    <string name="detail_compare_action">Confronta</string>
+    <string name="detail_30_days_ago">30 giorni fa</string>
+    <string name="detail_latest">Più recente</string>
+    <string name="cadence_hour">ogni ora</string>
+    <string name="cadence_day">ogni giorno</string>
+    <string name="cadence_week">ogni settimana</string>
+    <string name="cadence_days">ogni %1$d giorni</string>
+    <string name="cadence_hours">ogni %1$d ore</string>
+    <string name="cadence_minutes">ogni %1$d min</string>
+    <string name="activity_deleted_page">Pagina eliminata</string>
+    <string name="activity_started">Monitoraggio di %1$s avviato</string>
+    <string name="activity_changed">%1$s è cambiata</string>
+    <string name="activity_delete_version">Elimina questa versione</string>
+    <string name="activity_empty_title">Ancora nessuna modifica</string>
+    <string name="activity_empty_body">Quando cambia una pagina monitorata, appare qui, dalla più recente alla meno recente.</string>
+    <plurals name="reader_more_lines">
+        <item quantity="one">Mostra %1$d altra riga</item>
+        <item quantity="other">Mostra %1$d altre righe</item>
+    </plurals>
+    <plurals name="reader_unchanged">
+        <item quantity="one">%1$d riga invariata</item>
+        <item quantity="other">%1$d righe invariate</item>
+    </plurals>
+    <string name="reader_hidden_title">Nessuna differenza visibile</string>
+    <string name="reader_hidden_body">Le parole nella pagina sono le stesse. Sono cambiate solo parti nascoste, come script o markup.</string>
+    <string name="reader_show_source">Mostra le modifiche al codice sorgente</string>
+    <string name="comparison_share">Condividi</string>
+    <string name="reader_mode_changes">Modifiche</string>
+    <string name="reader_mode_page">Pagina</string>
+    <string name="reader_mode_source">Codice sorgente</string>
+    <string name="reader_mode_slider">Scorrimento</string>
+    <string name="reader_mode_highlight">Evidenziazione</string>
+    <string name="reader_previous">Modifica precedente</string>
+    <string name="reader_next">Modifica successiva</string>
+    <string name="reader_position">Modifica %1$d di %2$d</string>
+    <string name="reader_versions_title">Confronta versioni</string>
+    <string name="reader_versions_body">Tocca una versione per vedere cosa è cambiato rispetto alla precedente.</string>
+    <string name="advice_capture">Le schermate possono essere acquisite solo su Android. Imposta questa pagina su Testo o continua a controllarla dal telefono.</string>
+    <string name="checks_title">Controlli automatici</string>
+    <string name="checks_every">Ogni</string>
+    <string name="checks_custom">Personalizzato…</string>
+    <string name="checks_own_schedule_note">Questa programmazione vale per tutte le pagine attive. Le sessioni Turbo funzionano separatamente e non la modificano.</string>
+    <string name="checks_only_when">Solo quando</string>
+    <string name="checks_wifi">Con Wi‑Fi</string>
+    <string name="checks_wifi_body">Risparmia dati mobili</string>
+    <string name="checks_charging">In carica</string>
+    <string name="checks_battery">La batteria non è scarica</string>
+    <string name="checks_android_note">Android sceglie il momento esatto per risparmiare batteria, quindi i controlli possono ritardare un po’. Per le pagine urgenti, usa Turbo.</string>
+    <string name="checks_weekly">Settimanale</string>
+    <string name="checks_daily">Giornaliero</string>
+    <string name="checks_hours_short">%1$d h</string>
+    <string name="checks_minutes_short">%1$d min</string>
+    <string name="checks_sentence_off">I controlli automatici sono disattivati. Le pagine vengono controllate solo quando aggiorni.</string>
+    <string name="checks_sentence">I controlli vengono eseguiti circa %1$s</string>
+    <string name="checks_cond_wifi">con Wi‑Fi</string>
+    <string name="checks_cond_charging">durante la ricarica</string>
+    <string name="checks_cond_battery">quando la batteria non è scarica</string>
+    <string name="settings_group_checking">Controlli</string>
+    <string name="settings_group_app">App</string>
+    <string name="settings_default_detection">Metodo di acquisizione predefinito</string>
+    <string name="settings_screenshot_wait">Attesa per la schermata</string>
+    <string name="settings_screenshot_wait_value">%1$d secondi prima dell’acquisizione</string>
+    <string name="settings_notifications">Notifiche</string>
+    <string name="settings_notifications_body">Suoni, stile e app che possono interrompere</string>
+    <string name="settings_saved_versions">Versioni salvate</string>
+    <string name="settings_storage_value">%1$s su questo dispositivo</string>
+    <string name="settings_about_value">Versione %1$s · open source</string>
+    <string name="settings_feedback">Invia un feedback</string>
+    <string name="settings_privacy_line">Tutto resta su questo dispositivo. Nessun account, nessun tracciamento.</string>
+    <string name="palette_highlighter_body">Inchiostro e giallo evidenziatore</string>
+    <string name="palette_dynamic_body">Si adatta al tuo sfondo</string>
+    <string name="palette_more">Altri colori</string>
+    <string name="palette_note">Il testo aggiunto e rimosso mantiene i colori di evidenziazione, qualunque sia la tua scelta, così le modifiche restano facili da leggere.</string>
+    <string name="editor_edit_title">Modifica pagina</string>
+    <string name="editor_review_title">Rivedi</string>
+    <string name="editor_start">Inizia il monitoraggio</string>
+    <string name="editor_paste_title">Cosa vuoi monitorare?</string>
+    <string name="editor_paste_body">Incolla un link. Poi vedrai esattamente cosa confronteremo prima di salvare.</string>
+    <string name="editor_use_link">Usa</string>
+    <string name="editor_compare">Confronta</string>
+    <string name="editor_preview">Cosa confronteremo</string>
+    <string name="editor_little_text_title">Questa pagina contiene pochissimo testo</string>
+    <string name="editor_little_text_body">Probabilmente carica i contenuti con JavaScript, quindi un controllo del testo non rileverebbe le modifiche reali. Una schermata vede la pagina come la vedi tu.</string>
+    <string name="editor_use_screenshot">Usa Schermata</string>
+    <string name="editor_area">Parte della pagina</string>
+    <string name="editor_sensitivity">Ignora le piccole modifiche</string>
+    <string name="editor_advanced">Avanzate</string>
+    <string name="editor_baseline_note">Cambiare cosa viene monitorato crea un nuovo punto di partenza al prossimo controllo. La cronologia viene conservata e il cambio di configurazione non invia avvisi.</string>
+    <string name="editor_text_body">Legge le parole nella pagina. Veloce e con un basso consumo di batteria. Ideale per prezzi, date, offerte di lavoro e annunci.</string>
+    <string name="editor_screenshot_body">Confronta l’aspetto della pagina. Rileva immagini, layout e pagine create con JavaScript. Più lento e consuma più dati.</string>
+    <string name="editor_source_body">Conta qualsiasi modifica al codice sorgente, inclusi script e spazi. Genera molti avvisi nella maggior parte dei siti.</string>
+    <string name="editor_html_body">Confronta l’HTML della pagina dopo la pulizia. Rileva modifiche al markup che non puoi vedere.</string>
+    <string name="editor_default_body">Segue il valore predefinito nelle Impostazioni.</string>
+    <plurals name="editor_words">
+        <item quantity="one">%1$d parola</item>
+        <item quantity="other">%1$d parole</item>
+    </plurals>
+    <string name="how_intro">Scegli una pagina. La controlliamo da questo dispositivo, conserviamo ogni versione diversa e ti mostriamo esattamente cosa è cambiato.</string>
+    <string name="how_example_label">Come appare una modifica</string>
+    <string name="how_example_body">Le parole rimosse sono barrate in rosso. Le nuove sono evidenziate. Il resto della pagina viene mostrato solo se lo richiedi.</string>
+    <string name="single_saved_on">Salvata %1$s</string>
+    <string name="about_story">Creato da una persona per ciò che non vuoi perderti. Gratuito, open source, senza account né tracciamento. Le pagine vengono controllate dal tuo dispositivo e tutto resta lì.</string>
+    <string name="about_elsewhere">Altrove</string>
+</resources>

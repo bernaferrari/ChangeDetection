@@ -193,7 +193,7 @@ internal fun BrowserDelayChoiceDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(Res.string.settings_browser_delay_title)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
                 Text(
                     stringResource(Res.string.settings_browser_delay_subtitle),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -225,7 +225,7 @@ internal fun ComparisonMethodChoiceDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(Res.string.settings_comparison_title)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
                 Text(
                     stringResource(Res.string.settings_comparison_subtitle),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -289,38 +289,8 @@ private fun BrowserDelaySelector(
     selectedDelay: Long,
     onDelaySelected: (Long) -> Unit,
 ) {
-    val spacing = MaterialTheme.spacing
     val delays = listOf(2000L, 5000L, 10000L, 15000L)
-    Row(
-        modifier = Modifier.fillMaxWidth().selectableGroup(),
-        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-    ) {
-        delays.forEachIndexed { index, delay ->
-            val isSelected = selectedDelay == delay
-            ToggleButton(
-                checked = isSelected,
-                onCheckedChange = { checked -> if (checked) onDelaySelected(delay) },
-                modifier = Modifier.weight(1f).heightIn(min = spacing.touchTarget),
-                shapes = when (index) {
-                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                    delays.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                },
-                colors = ToggleButtonDefaults.toggleButtonColors(
-                    checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
-            ) {
-                Text(
-                    text = formatDelay(delay),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Medium,
-                )
-            }
-        }
-    }
+    com.bernaferrari.changedetection.ui.kit.ConnectedChoice(delays, selectedDelay, onDelaySelected, Modifier) { formatDelay(it) }
 }
 
 private fun formatDelay(delayMs: Long): String {

@@ -402,43 +402,8 @@ internal fun ComparisonMethodSelector(
     selectedMethod: ComparisonMethod,
     onMethodSelected: (ComparisonMethod) -> Unit,
 ) {
-    val spacing = MaterialTheme.spacing
-    Row(
-        modifier = Modifier.fillMaxWidth().selectableGroup(),
-        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-    ) {
-        ComparisonMethod.entries.forEachIndexed { index, method ->
-            val isSelected = method == selectedMethod
-            ToggleButton(
-                checked = isSelected,
-                onCheckedChange = { checked -> if (checked) onMethodSelected(method) },
-                modifier = Modifier.weight(1f).heightIn(min = spacing.touchTarget),
-                shapes = when (index) {
-                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                    ComparisonMethod.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                },
-                colors = ToggleButtonDefaults.toggleButtonColors(
-                    checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
-            ) {
-                Text(
-                    text = stringResource(
-                        if (method == ComparisonMethod.HTML) {
-                            Res.string.settings_comparison_page_text
-                        } else {
-                            Res.string.settings_comparison_screenshots
-                        },
-                    ),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                )
-            }
-        }
+    com.bernaferrari.changedetection.ui.kit.ConnectedChoice(ComparisonMethod.entries, selectedMethod, onMethodSelected, Modifier) { method ->
+        stringResource(if (method == ComparisonMethod.HTML) Res.string.settings_comparison_page_text else Res.string.settings_comparison_screenshots)
     }
 }
 

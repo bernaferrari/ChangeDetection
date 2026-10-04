@@ -49,6 +49,8 @@ data class ComparisonUiState(
     val snapContent2: String? = null,
     val snapBytes1: ByteArray? = null,
     val snapBytes2: ByteArray? = null,
+    /** A saved baseline has no earlier version, but remains readable from history. */
+    val singleSnap: Snap? = null,
     val singleSnapContent: String? = null,
     val singleSnapBytes: ByteArray? = null,
     val imageDiff: SnapshotImageDiff? = null,
@@ -165,7 +167,7 @@ class ComparisonViewModel(
         val request = lastLoadRequest ?: return
         val state = _uiState.value
         val selected = state.selectedPairIndex?.let { state.snaps.getOrNull(it)?.snapId }
-        loadSiteAndSnaps(request.first, selected ?: request.second)
+        loadSiteAndSnaps(request.first, selected ?: state.singleSnap?.snapId ?: request.second)
     }
 
     fun loadSiteAndSnaps(
@@ -244,12 +246,16 @@ class ComparisonViewModel(
         val currentState = _uiState.value
         val snaps = currentState.snaps
 
-        if (pairIndex < 0 || pairIndex >= snaps.size - 1) return
+        if (pairIndex !in snaps.indices) return
+        if (pairIndex == snaps.lastIndex) {
+            loadSingleSnapContent(snaps[pairIndex])
+            return
+        }
 
         val snap1 = snaps[pairIndex]
         val snap2 = snaps[pairIndex + 1]
 
-        _uiState.update { it.copy(selectedPairIndex = pairIndex, error = null) }
+        _uiState.update { it.copy(selectedPairIndex = pairIndex, singleSnap = null, singleSnapContent = null, singleSnapBytes = null, error = null, requestedSnapshotUnavailable = false) }
         loadSnapContents(pairIndex, snap1, snap2)
     }
 
@@ -262,8 +268,8 @@ class ComparisonViewModel(
             return
         }
         val index = _uiState.value.snaps.indexOfFirst { it.snapId == snapId }
-        // The alerted snap is the newer half of its comparison pair; a baseline snap has none.
-        if (index in 0 until _uiState.value.snaps.lastIndex) {
+        // The baseline opens as a saved version; every later version opens its actual pair.
+        if (index in _uiState.value.snaps.indices) {
             selectPairForComparison(index)
         } else {
             _uiState.update { it.copy(requestedSnapshotUnavailable = true) }
@@ -357,6 +363,14 @@ class ComparisonViewModel(
                 it.copy(
                     isLoadingDiff = true,
                     error = null,
+                    singleSnap = snap,
+                    selectedPairIndex = null,
+                    snapContent1 = null,
+                    snapContent2 = null,
+                    snapBytes1 = null,
+                    snapBytes2 = null,
+                    imageDiff = null,
+                    requestedSnapshotUnavailable = false,
                     singleSnapContent = null,
                     singleSnapBytes = null,
                 )
@@ -475,7 +489,7 @@ class ComparisonViewModel(
 
     fun pruneSite() {
         val site = _uiState.value.site ?: return
-        val selectedSnapId = _uiState.value.snaps.getOrNull(_uiState.value.selectedPairIndex ?: 0)?.snapId
+        val selectedSnapId = _uiState.value.singleSnap?.snapId ?: _uiState.value.snaps.getOrNull(_uiState.value.selectedPairIndex ?: 0)?.snapId
         viewModelScope.launch {
             try {
                 snapsRepository.pruneSnaps(site.id)
@@ -497,6 +511,9 @@ class ComparisonViewModel(
         _uiState.update {
             it.copy(
                 selectedPairIndex = null,
+                singleSnap = null,
+                singleSnapContent = null,
+                singleSnapBytes = null,
                 snapContent1 = null,
                 snapContent2 = null,
                 snapBytes1 = null,

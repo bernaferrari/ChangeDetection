@@ -82,9 +82,13 @@ class SyncEngineTest {
         val channel = ByteChannel(autoFlush = true)
         val producer = backgroundScope.launch(Dispatchers.Default) {
             val chunk = ByteArray(8192) { 65 }
-            repeat(1500) { channel.writeFully(chunk) }
-            // The server never sends EOF. A buffering GET would wait here rather than enforce the cap.
-            awaitCancellation()
+            try {
+                repeat(1500) { channel.writeFully(chunk) }
+                // The server never sends EOF. A buffering GET would wait here rather than enforce the cap.
+                awaitCancellation()
+            } catch (_: ClosedByteChannelException) {
+                // Rejecting an oversized response closes the reader while the server is still writing.
+            }
         }
         mockHttpClient = HttpClient(MockEngine { respond(channel, headers = headersOf(HttpHeaders.ContentType, "application/octet-stream")) })
         syncEngine = makeSyncEngine()
