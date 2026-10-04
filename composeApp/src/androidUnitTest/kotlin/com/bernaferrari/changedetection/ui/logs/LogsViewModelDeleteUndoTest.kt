@@ -149,20 +149,37 @@ class LogsViewModelDeleteUndoTest {
     }
 
     @Test
-    fun `retained bytes expire even when UI never dismisses snackbar`() = runTest(mainDispatcherRule.dispatcher) {
+    fun `undo remains available while queued or accessibility extended snackbar is visible`() = runTest(mainDispatcherRule.dispatcher) {
         val fakes = Fakes()
         val viewModel = fakes.createViewModel()
         val snap = testSnap("snap-expired")
 
         viewModel.removeSnap(snap)
         runCurrent()
-        advanceTimeBy(8_001L)
+        advanceTimeBy(60_000L)
         runCurrent()
 
         viewModel.undoRemoveSnap(snap)
         runCurrent()
 
-        assertFalse("Expired snapshot must not remain restorable", "snap-expired" in fakes.dao.inserted)
+        assertEquals("Visible Undo must still restore after a long snackbar wait", snap, fakes.dao.inserted["snap-expired"])
+    }
+
+    @Test
+    fun `failed undo keeps backup for retry without inserting an unreadable version`() = runTest(mainDispatcherRule.dispatcher) {
+        val fakes = Fakes()
+        val viewModel = fakes.createViewModel()
+        val snap = testSnap("snap-retry")
+        assertTrue(viewModel.removeSnap(snap).await())
+        fakes.storage.failWrites = true
+
+        assertFalse(viewModel.undoRemoveSnap(snap).await())
+        assertFalse("No history row may point at missing content", snap.snapId in fakes.dao.inserted)
+
+        fakes.storage.failWrites = false
+        assertTrue(viewModel.undoRemoveSnap(snap).await())
+        assertEquals(snap, fakes.dao.inserted[snap.snapId])
+        assertEquals(TEST_BYTES, fakes.storage.written[snap.snapId])
     }
 
     private fun testSnap(id: String) = Snap(
@@ -411,8 +428,10 @@ class LogsViewModelDeleteUndoTest {
 
     private class FakeFileStorage(private val gate: Gate?) : FileStorage {
         val written = mutableMapOf<String, ByteArray>()
+        var failWrites = false
 
         override fun writeBytes(fileName: String, bytes: ByteArray) {
+            if (failWrites) throw java.io.IOException("Storage unavailable")
             written[fileName] = bytes
         }
 

@@ -24,9 +24,44 @@ import org.junit.Rule
 import org.junit.Test
 import java.io.File
 import javax.imageio.ImageIO
+import kotlinx.coroutines.CompletableDeferred
 
 class ScheduleIntervalUiTest {
     @get:Rule val compose = createComposeRule()
+
+    @Test fun delayedCustomScheduleShowsItsSavedValue() {
+        var source by mutableStateOf(SettingsUiState(isLoaded = false))
+        compose.setContent {
+            ChangeDetectionTheme {
+                BackgroundSyncDialogContent(source, {}, {})
+            }
+        }
+        compose.runOnIdle { source = SettingsUiState(syncInterval = 90L) }
+        compose.onNodeWithText("Custom…").performScrollTo().assertIsSelected()
+        compose.onNode(hasSetTextAction()).performScrollTo().assertTextContains("90")
+        compose.onNodeWithText("Save").assertIsEnabled()
+    }
+
+    @Test fun savingScheduleDisablesFurtherEditsUntilItCompletes() {
+        val finishSave = CompletableDeferred<Unit>()
+        var saved: SettingsUiState? = null
+        compose.setContent {
+            ChangeDetectionTheme {
+                BackgroundSyncDialogContent(SettingsUiState(syncInterval = 60L), {}, {
+                    saved = it
+                    finishSave.await()
+                })
+            }
+        }
+        compose.onNodeWithText("Save").performClick()
+        compose.onNodeWithText("Saving…").assertIsNotEnabled()
+        compose.onNodeWithText("15 min").assertIsNotEnabled()
+        compose.onNodeWithText("Custom…").assertIsNotEnabled()
+        compose.runOnIdle {
+            assertEquals(60L, saved?.syncInterval)
+            finishSave.complete(Unit)
+        }
+    }
 
     @Test fun delayedPreferencesInitializeDraftOnceAndCannotSaveDefaults() {
         var source by mutableStateOf(SettingsUiState(isLoaded = false))

@@ -98,7 +98,7 @@ class PageDetailUiTest {
         compose.onNodeWithTag("page-details").performScrollToKey("watch")
         compose.onNodeWithText("Notify me").performScrollTo().performClick()
         compose.onNodeWithText("Pause checks").performScrollTo().performClick()
-        compose.onNodeWithText("How often").performScrollTo().performClick()
+        compose.onNodeWithText("App check schedule").performScrollTo().performClick()
         compose.runOnIdle {
             assertEquals(false, notify)
             assertEquals(true, paused)

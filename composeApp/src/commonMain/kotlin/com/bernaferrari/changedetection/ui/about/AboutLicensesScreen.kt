@@ -5,6 +5,7 @@
 package com.bernaferrari.changedetection.ui.about
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,9 +13,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -75,65 +78,65 @@ fun AboutLicensesDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.surface,
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = MaterialTheme.spacing.lg, end = MaterialTheme.spacing.xs, top = MaterialTheme.spacing.md),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(Res.string.about_licenses_title),
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Text(
-                            text = stringResource(Res.string.about_licenses_subtitle),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.a11y_close))
-                    }
-                }
-                HorizontalDivider(modifier = Modifier.padding(top = MaterialTheme.spacing.md))
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(MaterialTheme.spacing.lg),
-                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
-                ) {
-                    groupedLicenses.forEach { (category, categoryLicenses) ->
-                        item(key = category) {
+        Box(Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
+            Surface(
+                modifier = Modifier.widthIn(max = 640.dp).heightIn(max = 720.dp).fillMaxSize(),
+                shape = RoundedCornerShape(28.dp),
+                color = MaterialTheme.colorScheme.surface,
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = MaterialTheme.spacing.lg, end = MaterialTheme.spacing.xs, top = MaterialTheme.spacing.md),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = category,
-                                style = MaterialTheme.typography.labelLarge,
+                                text = stringResource(Res.string.about_licenses_title),
+                                style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(top = MaterialTheme.spacing.sm, bottom = MaterialTheme.spacing.xs),
+                            )
+                            Text(
+                                text = stringResource(Res.string.about_licenses_subtitle),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
-                        items(categoryLicenses, key = { it.name }) { license ->
-                            LicenseRow(
-                                license = license,
-                                onClick = {
-                                    onUrlClick(
-                                        if (license.licenseType == "Apache License 2.0") {
-                                            "https://www.apache.org/licenses/LICENSE-2.0"
-                                        } else {
-                                            "https://opensource.org/licenses"
-                                        },
-                                    )
-                                },
-                            )
+                        IconButton(onClick = onDismiss) {
+                            Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.a11y_close))
+                        }
+                    }
+                    HorizontalDivider(modifier = Modifier.padding(top = MaterialTheme.spacing.md))
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(MaterialTheme.spacing.lg),
+                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                    ) {
+                        groupedLicenses.forEach { (category, categoryLicenses) ->
+                            item(key = category) {
+                                Text(
+                                    text = category,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(top = MaterialTheme.spacing.sm, bottom = MaterialTheme.spacing.xs),
+                                )
+                            }
+                            items(categoryLicenses, key = { it.name }) { license ->
+                                LicenseRow(
+                                    license = license,
+                                    onClick = {
+                                        onUrlClick(
+                                            if (license.licenseType == "Apache License 2.0") {
+                                                "https://www.apache.org/licenses/LICENSE-2.0"
+                                            } else {
+                                                "https://opensource.org/licenses"
+                                            },
+                                        )
+                                    },
+                                )
+                            }
                         }
                     }
                 }
@@ -149,7 +152,7 @@ private fun LicenseRow(
 ) {
     Surface(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
         shape = MaterialTheme.shapes.medium,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
@@ -162,15 +165,11 @@ private fun LicenseRow(
                     text = license.name,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = "${license.author} · ${license.licenseType}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                 )
             }
             Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))

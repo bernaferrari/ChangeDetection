@@ -6,10 +6,12 @@ package com.bernaferrari.changedetection.ui.kit
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -42,6 +44,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -59,6 +62,10 @@ import com.bernaferrari.changedetection.ui.theme.Marks
 import com.bernaferrari.changedetection.ui.theme.marks
 import com.bernaferrari.changedetection.util.displayPageAddress
 import com.bernaferrari.changedetection.util.displayPageTitle
+import com.bernaferrari.changedetection.shared.generated.resources.Res
+import com.bernaferrari.changedetection.shared.generated.resources.preview_before
+import com.bernaferrari.changedetection.shared.generated.resources.preview_after
+import org.jetbrains.compose.resources.stringResource
 
 /** Host only, for the quiet second line under a page name. */
 fun Site.domain(): String = url.displayPageAddress().substringBefore('/').substringBefore('?')
@@ -111,13 +118,36 @@ fun editText(
                 pop()
             }
 
-            EditSegment.Kind.Added -> withStyle(SpanStyle(background = marks.highlight, color = marks.onHighlight)) { append(segment.text) }
+            EditSegment.Kind.Added -> {
+                pushStringAnnotation(ADDED_TAG, "")
+                withStyle(SpanStyle(background = marks.highlight, color = marks.onHighlight)) { append(segment.text) }
+                pop()
+            }
         }
     }
     if (trailingEllipsis) append("…")
 }
 
 const val REMOVED_TAG = "removed"
+const val ADDED_TAG = "added"
+
+/** Gives spoken previews the same before/after meaning as the visual marks. */
+internal fun spokenEditText(text: AnnotatedString, before: String, after: String): String {
+    val edits = text.getStringAnnotations(0, text.length).filter { it.tag == REMOVED_TAG || it.tag == ADDED_TAG }.sortedBy { it.start }
+    return buildString {
+        var position = 0
+        edits.forEach { edit ->
+            append(text.text.substring(position, edit.start))
+            append(" ")
+            append(if (edit.tag == REMOVED_TAG) before else after)
+            append(": ")
+            append(text.text.substring(edit.start, edit.end))
+            append(". ")
+            position = edit.end
+        }
+        append(text.text.substring(position))
+    }
+}
 
 /** Text that draws a confident strike through removed ranges. */
 @Composable
@@ -130,9 +160,12 @@ fun DiffText(
     var layout by remember { mutableStateOf<TextLayoutResult?>(null) }
     val strike = MaterialTheme.marks.removed
     val ranges = remember(text) { text.getStringAnnotations(REMOVED_TAG, 0, text.length) }
+    val before = stringResource(Res.string.preview_before)
+    val after = stringResource(Res.string.preview_after)
+    val description = remember(text, before, after) { spokenEditText(text, before, after) }
     Text(
         text,
-        modifier = modifier.drawWithContent {
+        modifier = modifier.semantics { contentDescription = description }.drawWithContent {
             drawContent()
             val result = layout ?: return@drawWithContent
             val thickness = 2.dp.toPx()
@@ -199,12 +232,13 @@ fun SectionHeader(
         modifier.fillMaxWidth().heightIn(min = 48.dp).padding(start = 20.dp, end = 8.dp, top = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
-        if (count != null) {
-            Spacer(Modifier.width(6.dp))
-            Text(count.toString(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.outline)
+        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+            Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f, fill = false).semantics { heading() })
+            if (count != null) {
+                Spacer(Modifier.width(6.dp))
+                Text(count.toString(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
-        Spacer(Modifier.weight(1f))
         if (trailingText != null) {
             Text(trailingText, Modifier.padding(end = 12.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -248,6 +282,7 @@ fun GroupRow(
     enabled: Boolean = true,
     onClick: (() -> Unit)? = null,
     role: Role = Role.Button,
+    checked: Boolean? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
     Column(modifier) {
@@ -260,7 +295,13 @@ fun GroupRow(
         Row(
             Modifier
                 .fillMaxWidth()
-                .then(if (onClick != null) Modifier.clickable(enabled = enabled, role = role, onClick = onClick) else Modifier)
+                .then(
+                    when {
+                        onClick != null && checked != null -> Modifier.toggleable(value = checked, enabled = enabled, role = role, onValueChange = { onClick() })
+                        onClick != null -> Modifier.clickable(enabled = enabled, role = role, onClick = onClick)
+                        else -> Modifier
+                    },
+                )
                 .heightIn(min = 60.dp)
                 .padding(horizontal = 20.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -270,7 +311,7 @@ fun GroupRow(
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(title, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium), color = if (enabled) titleColor else titleColor.copy(alpha = 0.4f))
                 if (supporting != null) {
-                    Text(supporting, style = MaterialTheme.typography.bodyMedium, color = supportingColor, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(supporting, style = MaterialTheme.typography.bodyMedium, color = supportingColor)
                 }
             }
             if (trailing != null) trailing()
@@ -296,7 +337,7 @@ fun Callout(
                 Text(title, style = MaterialTheme.typography.titleMedium)
                 Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (actions != null) {
-                    Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), content = actions)
+                    FlowRow(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) { actions() }
                 }
             }
         }

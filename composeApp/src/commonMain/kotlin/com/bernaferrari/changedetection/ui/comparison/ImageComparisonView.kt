@@ -54,6 +54,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -70,6 +71,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.shared.generated.resources.image_diff_dimensions
 import com.bernaferrari.changedetection.shared.generated.resources.done
+import com.bernaferrari.changedetection.shared.generated.resources.retry
+import com.bernaferrari.changedetection.shared.generated.resources.image_diff_highlight_unavailable_body
+import com.bernaferrari.changedetection.shared.generated.resources.image_diff_dimensions_supporting
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.a11y_drag_screenshot_comparison
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_after
@@ -124,6 +128,7 @@ internal fun ImageComparisonContent(
     imageDiff: SnapshotImageDiff?,
     mode: ComparisonMode,
     modifier: Modifier = Modifier,
+    onRetry: (() -> Unit)? = null,
 ) {
     Box(modifier = modifier) {
         val singleImage = when (mode) {
@@ -141,6 +146,18 @@ internal fun ImageComparisonContent(
                 title = stringResource(Res.string.image_comparison_unavailable),
                 description = stringResource(Res.string.failed_to_load_content),
                 modifier = Modifier.fillMaxSize(),
+                onRetry = onRetry,
+            )
+            return@Box
+        }
+
+        if (mode == ComparisonMode.ImageDiff && imageDiff?.error != null) {
+            ImageComparisonNotice(
+                icon = Icons.Default.Warning,
+                title = stringResource(Res.string.image_diff_status_unavailable),
+                description = stringResource(Res.string.image_diff_highlight_unavailable_body),
+                modifier = Modifier.fillMaxSize(),
+                onRetry = onRetry,
             )
             return@Box
         }
@@ -200,7 +217,7 @@ internal fun ImageComparisonContent(
 
 /** Status messages share the reader's space and remain scrollable at large font sizes. */
 @Composable
-private fun ImageComparisonNotice(icon: ImageVector, title: String, description: String, modifier: Modifier = Modifier) {
+private fun ImageComparisonNotice(icon: ImageVector, title: String, description: String, modifier: Modifier = Modifier, onRetry: (() -> Unit)? = null) {
     Column(
         modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerLow).verticalScroll(rememberScrollState()).testTag("image-comparison-notice").padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -208,6 +225,7 @@ private fun ImageComparisonNotice(icon: ImageVector, title: String, description:
         Icon(icon, null, Modifier.size(24.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(title, Modifier.semantics { heading() }, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
         Text(description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (onRetry != null) TextButton(onClick = onRetry) { Text(stringResource(Res.string.retry)) }
     }
 }
 
@@ -234,6 +252,7 @@ private fun ImageDiffSummary(
                     text = when {
                         imageDiff == null -> stringResource(Res.string.image_diff_preparing)
                         imageDiff.error != null -> stringResource(Res.string.image_diff_status_unavailable)
+                        imageDiff.dimensionMismatch != null -> stringResource(Res.string.image_diff_dimensions)
                         imageDiff.match -> stringResource(Res.string.comparison_no_changes_title)
                         else -> "${formatImagePercent(imageDiff.mismatchPercentage)} ${stringResource(Res.string.image_diff_changed).lowercase()}"
                     },
@@ -242,9 +261,16 @@ private fun ImageDiffSummary(
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
                 Text(
-                    text = imageDiff?.takeIf { it.error == null }?.let {
-                        stringResource(if (it.isSampled) Res.string.image_diff_sampled_pixels_different else Res.string.image_diff_pixels_different, formatPixelCount(it.differentPixels))
-                    } ?: stringResource(Res.string.image_diff_drag_supporting),
+                    text = when {
+                        imageDiff?.dimensionMismatch != null -> stringResource(Res.string.image_diff_dimensions_supporting)
+
+                        imageDiff != null && imageDiff.error == null -> stringResource(
+                            if (imageDiff.isSampled) Res.string.image_diff_sampled_pixels_different else Res.string.image_diff_pixels_different,
+                            formatPixelCount(imageDiff.differentPixels),
+                        )
+
+                        else -> stringResource(Res.string.image_diff_drag_supporting)
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
@@ -352,6 +378,7 @@ private fun ImageSwipeComparison(
     afterBytes: ByteArray,
     modifier: Modifier = Modifier,
 ) {
+    val labelInset = with(LocalDensity.current) { MaterialTheme.typography.labelMedium.lineHeight.toDp() } + 24.dp
     val dragLabel = stringResource(Res.string.a11y_drag_screenshot_comparison)
     BoxWithConstraints(modifier = modifier) {
         val widthPx = constraints.maxWidth.toFloat().coerceAtLeast(1f)
@@ -362,22 +389,20 @@ private fun ImageSwipeComparison(
             splitFraction = (splitFraction + delta / widthPx).coerceIn(0f, 1f)
         }
 
-        ImageViewport(
-            bytes = beforeBytes,
-            label = null,
-            modifier = Modifier.fillMaxSize(),
-        )
-
+        // A single vertical viewport moves both full-width captures together. Long pages
+        // remain readable, and captures of different heights still share one scroll range.
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(HorizontalSplitShape(splitX)),
+            Modifier.fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                .verticalScroll(rememberScrollState())
+                .testTag("screenshot-scroll"),
         ) {
-            ImageViewport(
-                bytes = afterBytes,
-                label = null,
-                modifier = Modifier.fillMaxSize(),
-            )
+            Box(Modifier.fillMaxWidth().padding(top = labelInset)) {
+                WidthSizedImage(beforeBytes, stringResource(Res.string.comparison_mode_before))
+            }
+            Box(Modifier.fillMaxWidth().padding(top = labelInset).clip(HorizontalSplitShape(splitX))) {
+                WidthSizedImage(afterBytes, stringResource(Res.string.comparison_mode_after))
+            }
         }
 
         // The split is in physical image coordinates, independent of interface direction.
@@ -480,12 +505,10 @@ internal fun ImageViewport(
         modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerLowest),
         contentAlignment = Alignment.Center,
     ) {
-        SnapshotImage(
-            bytes = bytes,
-            contentDescription = contentDescription,
-            modifier = Modifier.fillMaxSize().padding(12.dp),
-            contentScale = ContentScale.Fit,
-        )
+        val labelInset = if (label == null) 0.dp else with(LocalDensity.current) { MaterialTheme.typography.labelMedium.lineHeight.toDp() } + 24.dp
+        Box(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).testTag("screenshot-scroll")) {
+            Box(Modifier.fillMaxWidth().padding(top = labelInset)) { WidthSizedImage(bytes, contentDescription) }
+        }
 
         if (label != null) {
             ImagePillLabel(
@@ -494,6 +517,17 @@ internal fun ImageViewport(
             )
         }
     }
+}
+
+/** Preserve screenshot text size at the available width; tall captures scroll vertically. */
+@Composable
+private fun WidthSizedImage(bytes: ByteArray, contentDescription: String?) {
+    SnapshotImage(
+        bytes = bytes,
+        contentDescription = contentDescription,
+        modifier = Modifier.fillMaxWidth().padding(12.dp),
+        contentScale = ContentScale.FillWidth,
+    )
 }
 
 @Composable

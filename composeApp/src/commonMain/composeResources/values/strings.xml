@@ -779,8 +779,8 @@
     <string name="region_picker_preview_empty">Choose an area to preview the text that will be watched.</string>
     <string name="region_picker_preview_hint">Future checks compare this text. Ignored content is left out.</string>
     <plurals name="turbo_saved_updates">
-        <item quantity="one">%1$d update saved</item>
-        <item quantity="other">%1$d updates saved</item>
+        <item quantity="one">%1$d change saved</item>
+        <item quantity="other">%1$d changes saved</item>
     </plurals>
     <plurals name="turbo_successful_checks">
         <item quantity="one">%1$d successful check</item>

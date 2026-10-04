@@ -57,6 +57,36 @@ class ComparisonReadStateTest {
         assertEquals(0, model.uiState.value.selectedPairIndex)
     }
 
+    @Test fun savedBaselineOpensItsActualContentWithoutInventingAnUnavailableComparison() = runTest(dispatcher) {
+        prepare()
+        model.openComparison(site.id, "baseline")
+        val loaded = model.uiState.first { it.singleSnapContent != null && !it.isLoadingDiff }
+        assertEquals("baseline", loaded.singleSnap?.snapId)
+        assertEquals("baseline", loaded.singleSnapContent)
+        assertNull(loaded.selectedPairIndex)
+        assertFalse(loaded.requestedSnapshotUnavailable)
+        assertFalse(loaded.canMarkRead)
+        verify(sites, never()).markSiteRead(any(), any())
+        model.selectPairForComparison(0)
+        val pair = model.uiState.first { it.snapContent1 == "new" && !it.isLoadingDiff }
+        assertNull(pair.singleSnap)
+        assertNull(pair.singleSnapContent)
+    }
+
+    @Test fun failedBaselineRetryPreservesTheSavedVersionIdentity() = runTest(dispatcher) {
+        prepare()
+        whenever(snaps.getSnapContent("baseline")).thenThrow(IllegalStateException("Temporary storage failure"))
+        model.openComparison(site.id, "baseline")
+        model.uiState.first { it.error != null }
+        doReturn("baseline".encodeToByteArray()).whenever(snaps).getSnapContent("baseline")
+        model.retryComparison()
+        val recovered = model.uiState.first { it.singleSnapContent != null && !it.isLoadingDiff }
+        assertEquals("baseline", recovered.singleSnap?.snapId)
+        assertEquals("baseline", recovered.singleSnapContent)
+        assertFalse(recovered.requestedSnapshotUnavailable)
+        assertNull(recovered.snapContent1)
+    }
+
     @Test fun retryKeepsTheHistoricalIdentityAfterContentFailure() = runTest(dispatcher) {
         prepare()
         whenever(snaps.getSnapContent("baseline")).thenThrow(IllegalStateException("Temporary storage failure"))
@@ -159,16 +189,19 @@ class ComparisonReadStateTest {
         assertFalse(model.uiState.value.site!!.isRead)
     }
 
-    @Test fun pruningAnOlderComparisonDoesNotLeaveStaleContentOrSelectAnotherPair() = runTest(dispatcher) {
+    @Test fun pruningAnOlderComparisonPreservesItsSavedVersionAsTheNewBaseline() = runTest(dispatcher) {
         prepare()
         model.loadSiteAndSnaps(site.id, "older")
         model.uiState.first { it.snapContent1 != null && !it.isLoadingDiff }
         whenever(snaps.getAllSnapsForSite(site.id)).thenReturn(history.take(2))
         model.pruneSite()
-        val state = model.uiState.first { it.requestedSnapshotUnavailable }
+        val state = model.uiState.first { it.singleSnap?.snapId == "older" && it.singleSnapContent != null && !it.isLoadingDiff }
+        assertEquals("older", state.singleSnapContent)
+        assertFalse(state.requestedSnapshotUnavailable)
         assertNull(state.snapContent1)
         assertNull(state.snapContent2)
         assertNull(state.selectedPairIndex)
+        assertFalse(state.canMarkRead)
         verify(sites, never()).markSiteRead(any(), any())
     }
 

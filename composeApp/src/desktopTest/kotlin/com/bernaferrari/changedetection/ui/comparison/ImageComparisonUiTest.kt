@@ -38,12 +38,12 @@ class ImageComparisonUiTest {
     @get:Rule val compose = createComposeRule()
     private val png = ByteArrayOutputStream().also { ImageIO.write(BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB), "png", it) }.toByteArray()
 
-    private fun show(mode: ComparisonMode, before: ByteArray? = png, after: ByteArray? = png, direction: LayoutDirection = LayoutDirection.Ltr, diff: SnapshotImageDiff? = null, fontScale: Float = 1f) {
+    private fun show(mode: ComparisonMode, before: ByteArray? = png, after: ByteArray? = png, direction: LayoutDirection = LayoutDirection.Ltr, diff: SnapshotImageDiff? = null, fontScale: Float = 1f, onRetry: (() -> Unit)? = null) {
         compose.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalLayoutDirection provides direction, LocalDensity provides Density(density.density, fontScale)) {
                 ChangeDetectionTheme(darkTheme = true, dynamicColor = false) {
-                    ImageComparisonContent(before, after, diff, mode, Modifier.size(280.dp, 200.dp))
+                    ImageComparisonContent(before, after, diff, mode, Modifier.size(280.dp, 200.dp), onRetry = onRetry)
                 }
             }
         }
@@ -114,12 +114,35 @@ class ImageComparisonUiTest {
         assertTrue("Images retain more space than summary", imageBounds.height > summaryBounds.height)
         compose.onNodeWithContentDescription("Before").assertIsDisplayed()
         compose.onNodeWithContentDescription("After").assertIsDisplayed()
-        compose.onNodeWithText("Size changed").performScrollTo().assertIsDisplayed().performClick()
+        compose.onNode(hasText("Size changed") and hasClickAction()).performScrollTo().assertIsDisplayed().performClick()
         compose.onNodeWithText("Screenshot size changed:", substring = true).assertIsDisplayed()
         compose.onNodeWithText("Done").performClick()
         val file = File("../build/desktop-review/pixel-diff-short-large.png")
         file.parentFile.mkdirs()
         ImageIO.write(compose.onRoot().captureToImage().toAwtImage(), "png", file)
+    }
+
+    @Test fun missingImageOffersAWorkingRetryAction() {
+        var retries = 0
+        show(ComparisonMode.ImageSwipe, before = null, onRetry = { retries++ })
+        compose.onNodeWithText("Retry").performScrollTo().performClick()
+        compose.runOnIdle { assertEquals(1, retries) }
+    }
+
+    @Test fun failedHighlightExplainsTheFailureInsteadOfSilentlyShowingSlider() {
+        val diff = SnapshotImageDiff(false, 100.0, 0L, 0L, 10, 10, 10, 10, null, error = "Cannot decode")
+        show(ComparisonMode.ImageDiff, diff = diff, onRetry = {})
+        compose.onNodeWithText("The highlight could not be prepared.", substring = true).assertIsDisplayed()
+        compose.onNode(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress)).assertDoesNotExist()
+        compose.onNodeWithText("Retry").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test fun dimensionChangesDoNotClaimMisleadingPixelStatistics() {
+        val diff = SnapshotImageDiff(false, 100.0, 0L, 0L, 10, 10, 20, 10, null, SnapshotDimensionMismatch(10, 10, 20, 10))
+        show(ComparisonMode.ImageDiff, diff = diff)
+        compose.onNodeWithText("100.0% changed").assertDoesNotExist()
+        compose.onNodeWithText("0 pixels different").assertDoesNotExist()
+        compose.onNodeWithText("Compare the captures below;", substring = true).assertIsDisplayed()
     }
 
     @Test fun beforeViewRetainsAvailableImageWhenAfterIsMissing() {
@@ -162,6 +185,58 @@ class ImageComparisonUiTest {
         val image = File("../build/desktop-review/image-swipe-rtl.png")
         image.parentFile.mkdirs()
         ImageIO.write(rendered.toAwtImage(), "png", image)
+    }
+
+    private fun tallBands(colors: List<Int>): ByteArray {
+        val image = BufferedImage(100, 600, BufferedImage.TYPE_INT_RGB)
+        return try {
+            image.createGraphics().let { graphics ->
+                try {
+                    colors.forEachIndexed { index, rgb ->
+                        graphics.color = java.awt.Color(rgb)
+                        graphics.fillRect(0, index * 200, 100, 200)
+                    }
+                } finally {
+                    graphics.dispose()
+                }
+            }
+            ByteArrayOutputStream().also { ImageIO.write(image, "png", it) }.toByteArray()
+        } finally {
+            image.flush()
+        }
+    }
+
+    @Test fun tallSliderKeepsBothCapturesAtReadableWidthAndScrollsThemTogether() {
+        val before = tallBands(listOf(0xff0000, 0x00ff00, 0x0000ff))
+        val after = tallBands(listOf(0x00ffff, 0xffff00, 0xff00ff))
+        show(ComparisonMode.ImageSwipe, before, after)
+        compose.waitUntil(5_000) { compose.onAllNodesWithContentDescription("After").fetchSemanticsNodes().isNotEmpty() && compose.onAllNodesWithContentDescription("Before").fetchSemanticsNodes().isNotEmpty() }
+        val scroll = compose.onNodeWithTag("screenshot-scroll")
+        val range = scroll.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange]
+        assertTrue("Long pages render at available width rather than fitting the whole document", range.maxValue() > 1_000f)
+        scroll.performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, range.maxValue()) }
+        compose.waitForIdle()
+        val pixels = compose.onRoot().captureToImage().toPixelMap()
+        val left = pixels[(pixels.width * 0.25f).toInt(), pixels.height / 2]
+        val right = pixels[(pixels.width * 0.75f).toInt(), pixels.height / 2]
+        assertTrue("Before reaches its blue footer", left.blue > 0.9f && left.red < 0.1f)
+        assertTrue("After reaches its magenta footer at the same vertical position", right.red > 0.9f && right.blue > 0.9f && right.green < 0.1f)
+        compose.onNode(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress)).assertIsDisplayed()
+    }
+
+    @Test fun tallHighlightKeepsItsChangedPixelsReachableByScrolling() {
+        val image = tallBands(listOf(0xffffff, 0xffffff, 0xff0000))
+        val diff = SnapshotImageDiff(false, 33.3, 20_000L, 60_000L, 100, 600, 100, 600, image)
+        show(ComparisonMode.ImageDiff, image, image, diff = diff)
+        compose.waitUntil(5_000) { compose.onAllNodesWithContentDescription("Changed pixels").fetchSemanticsNodes().isNotEmpty() }
+        val scroll = compose.onNodeWithTag("screenshot-scroll")
+        val range = scroll.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange]
+        assertTrue(range.maxValue() > 1_000f)
+        scroll.performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, range.maxValue()) }
+        compose.waitForIdle()
+        val pixels = compose.onRoot().captureToImage().toPixelMap()
+        val footer = pixels[pixels.width / 2, (pixels.height * 0.75f).toInt()]
+        assertTrue("The highlight footer remains reachable", footer.red > 0.9f && footer.green < 0.1f)
     }
 
     @Test fun swipeSupportsKeyboardBoundsAndRejectsNonFiniteProgress() {

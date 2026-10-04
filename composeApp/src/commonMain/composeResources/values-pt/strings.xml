@@ -83,7 +83,7 @@
     <string name="quick_monitor_title">Turbo</string>
     <string name="quick_monitor_next_check_in">Próxima verificação em %1$ds</string>
     <string name="turbo_mode_button_stop">Parar</string>
-    <string name="nav_home">Monitoramento</string>
+    <string name="nav_home">Início</string>
     <string name="nav_turbo">Turbo</string>
     <string name="nav_logs">Mudanças</string>
     <string name="nav_settings">Configurações</string>
@@ -735,7 +735,7 @@
     <string name="setup_receipt_open">Abrir página</string>
     <string name="setup_receipt_done">Ir para a lista</string>
     <string name="setup_receipt_status_unavailable">Não foi possível carregar o estado da última verificação. Sua página foi salva.</string>
-    <string name="palette_default">Padrão</string>
+    <string name="palette_default">Marca-texto</string>
     <string name="turbo_closer_eye">Acompanhe de perto.</string>
     <string name="turbo_seconds_unit">segundos</string>
     <string name="turbo_minutes_unit">minutos</string>
@@ -779,8 +779,8 @@
     <string name="region_picker_preview_empty">Escolha uma área para visualizar o texto que será monitorado.</string>
     <string name="region_picker_preview_hint">As próximas verificações comparam este texto. O conteúdo ignorado fica de fora.</string>
     <plurals name="turbo_saved_updates">
-        <item quantity="one">%1$d atualização salva</item>
-        <item quantity="other">%1$d atualizações salvas</item>
+        <item quantity="one">%1$d alteração salva</item>
+        <item quantity="other">%1$d alterações salvas</item>
     </plurals>
     <plurals name="turbo_successful_checks">
         <item quantity="one">%1$d verificação bem-sucedida</item>

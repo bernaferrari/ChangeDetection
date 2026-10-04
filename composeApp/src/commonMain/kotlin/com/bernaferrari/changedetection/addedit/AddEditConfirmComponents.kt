@@ -176,13 +176,18 @@ fun AddEditConfirmScreen(
 ) {
     var step by rememberSaveable { mutableIntStateOf(0) }
     val choosingPage = !isEditing && step == 0
+    val keyboardController = LocalSoftwareKeyboardController.current
     val continueToContent = {
-        if (url.normalizeUrl() != null) step = 1
-        onPreview()
+        if (!isSaving) {
+            if (url.normalizeUrl() != null) {
+                keyboardController?.hide()
+                step = 1
+            }
+            onPreview()
+        }
     }
     val scrollState = rememberScrollState()
     val urlFocusRequester = remember { FocusRequester() }
-    val keyboardController = LocalSoftwareKeyboardController.current
     val urlErrorMessage = urlError?.localizedMessage()
     val saveErrorMessage = saveError?.localizedMessage()
     val scope = rememberCoroutineScope()
@@ -200,7 +205,7 @@ fun AddEditConfirmScreen(
     val textMode = captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT
     val visualMode = captureMode in setOf(com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT, com.bernaferrari.changedetection.repo.CaptureMode.DEFAULT)
     fun changeMode(mode: com.bernaferrari.changedetection.repo.CaptureMode) {
-        if (mode == captureMode) return
+        if (isSaving || mode == captureMode) return
         onCaptureModeChange(mode)
         if (preview !is CapturePreviewState.Idle) onPreview()
     }
@@ -224,7 +229,7 @@ fun AddEditConfirmScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = {
+                    IconButton(enabled = !isSaving, onClick = {
                         if (!isEditing && step > 0) {
                             step = 0
                             onClosePreview()
@@ -286,6 +291,7 @@ fun AddEditConfirmScreen(
                     OutlinedTextField(
                         value = url,
                         onValueChange = onUrlChange,
+                        enabled = !isSaving,
                         label = { Text(stringResource(Res.string.website_url)) },
                         placeholder = { Text(stringResource(Res.string.website_url_placeholder)) },
                         supportingText = urlErrorMessage?.let { { Text(it) } },
@@ -296,7 +302,7 @@ fun AddEditConfirmScreen(
                         keyboardActions = KeyboardActions(onGo = { continueToContent() }),
                         leadingIcon = { Icon(Icons.Default.Language, null) },
                         trailingIcon = if (url.isNotBlank()) {
-                            { IconButton(onClick = { onUrlChange("") }) { Icon(Icons.Default.Clear, stringResource(Res.string.clear_page_address)) } }
+                            { IconButton(enabled = !isSaving, onClick = { onUrlChange("") }) { Icon(Icons.Default.Clear, stringResource(Res.string.clear_page_address)) } }
                         } else {
                             null
                         },
@@ -333,6 +339,7 @@ fun AddEditConfirmScreen(
                     OutlinedTextField(
                         value = title,
                         onValueChange = onTitleChange,
+                        enabled = !isSaving,
                         label = { Text(stringResource(Res.string.site_name)) },
                         placeholder = { Text(stringResource(Res.string.site_name_placeholder)) },
                         singleLine = true,
@@ -351,7 +358,7 @@ fun AddEditConfirmScreen(
                         if (captureMode !in this) add(captureMode)
                     }
                     if (simpleModes.size > 1) {
-                        com.bernaferrari.changedetection.ui.turbo.ConnectedChoice(simpleModes, captureMode, ::changeMode, Modifier.padding(horizontal = 0.dp).offset(x = (-16).dp).fillMaxWidth()) { modeName(it) }
+                        com.bernaferrari.changedetection.ui.kit.ConnectedChoice(simpleModes, captureMode, ::changeMode, Modifier, enabled = !isSaving) { modeName(it) }
                     }
                     Text(stringResource(modeExplanation(captureMode)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
@@ -361,7 +368,7 @@ fun AddEditConfirmScreen(
                         !isSaving && urlError == null && url.isNotBlank(),
                         onPreview,
                         onClosePreview,
-                        if (textMode) {
+                        if (textMode && !isSaving) {
                             { selected ->
                                 onTextRegionChange(selected)
                                 onPreview()
@@ -380,7 +387,7 @@ fun AddEditConfirmScreen(
                             container = MaterialTheme.marks.warningSoft,
                             iconTint = MaterialTheme.marks.warning,
                             modifier = Modifier.offset(x = (-12).dp).fillMaxWidth(),
-                            actions = { Button(onClick = { changeMode(com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT) }) { Text(stringResource(Res.string.editor_use_screenshot)) } },
+                            actions = { Button(enabled = !isSaving, onClick = { changeMode(com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT) }) { Text(stringResource(Res.string.editor_use_screenshot)) } },
                         )
                     }
 
@@ -398,7 +405,7 @@ fun AddEditConfirmScreen(
                         LegacyThresholdNotice(legacyThreshold, !isSaving, onRemoveLegacyThreshold)
                     }
 
-                    TextButton(onClick = { advanced = !advanced }, modifier = Modifier.offset(x = (-12).dp)) {
+                    TextButton(enabled = !isSaving, onClick = { advanced = !advanced }, modifier = Modifier.offset(x = (-12).dp)) {
                         Text(stringResource(Res.string.editor_advanced))
                         Icon(if (advanced) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
                     }

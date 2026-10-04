@@ -22,6 +22,26 @@ import org.junit.Test
 class CreationJourneyUiTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun saveInProgressDisablesInputsAndNavigation() {
+        var saving by mutableStateOf(false)
+        compose.setContent {
+            ChangeDetectionTheme {
+                Box(Modifier.width(390.dp).height(844.dp)) {
+                    AddEditConfirmScreen(
+                        url = "https://example.test/program", urlError = null, title = "Program", captureMode = CaptureMode.TEXT,
+                        isEditing = true, isSaving = saving, saveError = null, onUrlChange = {}, onTitleChange = {},
+                        onNavigateUp = { error("must not dismiss a pending save") }, onSave = { saving = true },
+                    )
+                }
+            }
+        }
+        compose.onNodeWithText("Save").performClick()
+        compose.onNodeWithText("Saving…").assertIsNotEnabled()
+        compose.onNodeWithText("Name (optional)").assertIsNotEnabled()
+        compose.onNodeWithContentDescription("Navigate back").assertIsNotEnabled()
+        compose.onNodeWithText("Page address").assertIsNotEnabled()
+    }
+
     @Test fun pageEntryPreviewBackAndSavePreserveInput() {
         var previews = 0
         var saves = 0

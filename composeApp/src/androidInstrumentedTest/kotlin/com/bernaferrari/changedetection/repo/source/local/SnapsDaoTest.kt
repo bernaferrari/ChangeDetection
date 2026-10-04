@@ -143,8 +143,11 @@ class SnapsDaoTest {
             } finally {
                 original.close()
             }
-            // Schema 3 has the same tables except for the newly added captureMode column.
+            // Reconstruct schema 3 by removing columns and cleanup objects added later.
             BundledSQLiteDriver().open(path).use { connection ->
+                connection.prepare("DROP TRIGGER queue_deleted_snapshot").use { it.step() }
+                connection.prepare("DROP TABLE pendingFileDeletions").use { it.step() }
+                connection.prepare("ALTER TABLE sites DROP COLUMN visualChangeThresholdBps").use { it.step() }
                 connection.prepare("ALTER TABLE sites DROP COLUMN textIncludeSelector").use { it.step() }
                 connection.prepare("ALTER TABLE sites DROP COLUMN textExcludeSelector").use { it.step() }
                 connection.prepare("ALTER TABLE sites DROP COLUMN lastFailureCode").use { it.step() }
@@ -305,6 +308,9 @@ class SnapsDaoTest {
             original.snapsDao().insertSnap(snap("saved", "garden", 100))
             original.close()
             BundledSQLiteDriver().open(path).use { connection ->
+                connection.prepare("DROP TRIGGER queue_deleted_snapshot").use { it.step() }
+                connection.prepare("DROP TABLE pendingFileDeletions").use { it.step() }
+                connection.prepare("ALTER TABLE sites DROP COLUMN visualChangeThresholdBps").use { it.step() }
                 connection.prepare("ALTER TABLE sites DROP COLUMN textIncludeSelector").use { it.step() }
                 connection.prepare("ALTER TABLE sites DROP COLUMN textExcludeSelector").use { it.step() }
                 connection.prepare("PRAGMA user_version = 6").use { it.step() }
@@ -343,6 +349,9 @@ class SnapsDaoTest {
                 original.close()
             }
             BundledSQLiteDriver().open(path).use { connection ->
+                connection.prepare("DROP TRIGGER queue_deleted_snapshot").use { it.step() }
+                connection.prepare("DROP TABLE pendingFileDeletions").use { it.step() }
+                connection.prepare("ALTER TABLE sites DROP COLUMN visualChangeThresholdBps").use { it.step() }
                 connection.prepare("ALTER TABLE sites DROP COLUMN textIncludeSelector").use { it.step() }
                 connection.prepare("ALTER TABLE sites DROP COLUMN textExcludeSelector").use { it.step() }
                 connection.prepare("ALTER TABLE sites DROP COLUMN lastFailureCode").use { it.step() }
@@ -380,6 +389,9 @@ class SnapsDaoTest {
                 original.close()
             }
             BundledSQLiteDriver().open(path).use { connection ->
+                connection.prepare("DROP TRIGGER queue_deleted_snapshot").use { it.step() }
+                connection.prepare("DROP TABLE pendingFileDeletions").use { it.step() }
+                connection.prepare("ALTER TABLE sites DROP COLUMN visualChangeThresholdBps").use { it.step() }
                 connection.prepare("ALTER TABLE sites DROP COLUMN textIncludeSelector").use { it.step() }
                 connection.prepare("ALTER TABLE sites DROP COLUMN textExcludeSelector").use { it.step() }
                 connection.prepare("ALTER TABLE sites DROP COLUMN lastFailureCode").use { it.step() }

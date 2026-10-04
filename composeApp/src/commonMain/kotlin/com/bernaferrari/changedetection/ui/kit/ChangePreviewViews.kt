@@ -63,13 +63,15 @@ import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.runtime.remember
 import org.koin.mp.KoinPlatformTools
+import kotlinx.coroutines.CancellationException
 
 /** Loads the bounded preview for a page's newest change; re-runs only when a new version lands. */
 @Composable
 fun rememberLatestPreview(siteId: String, latestSnapId: String?): ChangePreview? {
     val repository = remember { optional<ChangePreviewRepository>() }
     val preview by produceState<ChangePreview?>(null, siteId, latestSnapId) {
-        value = repository?.latest(siteId) ?: ChangePreview.Unavailable
+        value = null
+        value = loadPreview { repository?.latest(siteId) }
     }
     return preview
 }
@@ -78,7 +80,8 @@ fun rememberLatestPreview(siteId: String, latestSnapId: String?): ChangePreview?
 fun rememberVersionPreview(snap: com.bernaferrari.changedetection.repo.Snap): ChangePreview? {
     val repository = remember { optional<ChangePreviewRepository>() }
     val preview by produceState<ChangePreview?>(null, snap.snapId) {
-        value = repository?.forVersion(snap) ?: ChangePreview.Unavailable
+        value = null
+        value = loadPreview { repository?.forVersion(snap) }
     }
     return preview
 }
@@ -88,17 +91,28 @@ fun rememberPairPreview(beforeSnapId: String?, afterSnapId: String): ChangePrevi
     val repository = remember { optional<ChangePreviewRepository>() }
     val snaps = remember { optional<SnapsRepository>() }
     val preview by produceState<ChangePreview?>(null, beforeSnapId, afterSnapId) {
-        value = if (repository == null || snaps == null) {
-            ChangePreview.Unavailable
-        } else if (beforeSnapId == null) {
-            ChangePreview.FirstVersion
-        } else {
-            val before = snaps.getSnapById(beforeSnapId)
-            val after = snaps.getSnapById(afterSnapId)
-            if (before == null || after == null) ChangePreview.Unavailable else repository.between(before, after)
+        value = null
+        value = loadPreview {
+            if (repository == null || snaps == null) {
+                ChangePreview.Unavailable
+            } else if (beforeSnapId == null) {
+                ChangePreview.FirstVersion
+            } else {
+                val before = snaps.getSnapById(beforeSnapId)
+                val after = snaps.getSnapById(afterSnapId)
+                if (before == null || after == null) ChangePreview.Unavailable else repository.between(before, after)
+            }
         }
     }
     return preview
+}
+
+private suspend fun loadPreview(load: suspend () -> ChangePreview?): ChangePreview = try {
+    load() ?: ChangePreview.Unavailable
+} catch (cancelled: CancellationException) {
+    throw cancelled
+} catch (_: Exception) {
+    ChangePreview.Unavailable
 }
 
 /** One short line describing a change, for lists of versions and activity. */
@@ -160,7 +174,7 @@ private fun QuietFact(icon: androidx.compose.ui.graphics.vector.ImageVector, tit
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(icon, null, Modifier.size(22.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Column {
+        Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleSmall)
             Text(body, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -179,7 +193,16 @@ fun CropPair(beforeSnapId: String, afterSnapId: String, bounds: ChangedBounds?, 
 @Composable
 fun CropTile(snapId: String, bounds: ChangedBounds?, label: String, highlighted: Boolean, modifier: Modifier = Modifier) {
     val snaps = remember { optional<SnapsRepository>() }
-    val bytes by produceState<ByteArray?>(null, snapId) { value = runCatching { snaps?.getSnapContent(snapId) }.getOrNull() }
+    val bytes by produceState<ByteArray?>(null, snapId) {
+        value = null
+        value = try {
+            snaps?.getSnapContent(snapId)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            null
+        }
+    }
     val shape = RoundedCornerShape(14.dp)
     val marks = MaterialTheme.marks
     Box(

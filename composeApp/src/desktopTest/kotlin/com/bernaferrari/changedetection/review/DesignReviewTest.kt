@@ -12,6 +12,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
 import androidx.compose.ui.unit.Density
 import androidx.datastore.core.DataStore
@@ -61,16 +62,41 @@ class DesignReviewTest {
 
     @Test fun darkTour() = tour(dark = true)
 
+    @Test fun largeTextTour() = tour(dark = true, fontScale = 1.8f)
+
+    @Test fun wideReview() = withApp(dark = false, seed = true, width = 1680, height = 1050, density = 1.25f) {
+        waitForText("new changes", substring = true)
+        shot("wide-01-home")
+        onNodeWithTag("home-list").performScrollToKey("row-fellowship")
+        onAllNodesWithText("Fellowship guide").onLast().performClick()
+        waitForText("Latest change")
+        shot("wide-11-detail")
+        onNodeWithText("Compare", substring = false).performClick()
+        waitForText("Changes")
+        waitForText("Change 1 of", substring = true)
+        shot("wide-13-reader")
+        onNodeWithText("Settings", substring = false).performClick()
+        waitForText("Appearance")
+        shot("wide-20-settings")
+    }
+
     @Test fun firstRun() = withApp(dark = false, seed = false) {
         waitForText("Watch a page")
         shot("00-empty")
     }
 
-    private fun tour(dark: Boolean) = withApp(dark, seed = true) {
-        val p = if (dark) "dark-" else ""
+    private fun tour(dark: Boolean, fontScale: Float = 1f) = withApp(dark, seed = true, fontScale = fontScale) {
+        val p = if (fontScale > 1f) {
+            "large-"
+        } else if (dark) {
+            "dark-"
+        } else {
+            ""
+        }
         waitForText("new changes", substring = true)
         runCatching { waitForText("of the page changed", substring = true, timeout = 15_000) }
         shot("${p}01-home")
+        onNodeWithTag("home-list").performScrollToKey("card-fellowship")
         onAllNodesWithText("Fellowship guide").onFirst().performClick()
         waitForText("Changes")
         runCatching { waitForText("Change 1 of", substring = true, timeout = 8_000) }
@@ -78,21 +104,24 @@ class DesignReviewTest {
         onNodeWithContentDescription("Version history").performClick()
         waitForText("Compare versions")
         shot("${p}14-versions")
-        onAllNodesWithText("Today", substring = true).onFirst().performClick()
+        onAllNodes(hasClickAction() and hasAnyAncestor(hasTestTag("version-list"))).onFirst().performClick()
         waitForIdle()
         onNodeWithContentDescription("Navigate back").performClick()
-        waitForText("Studio Display")
+        waitForTag("home-list")
+        onNodeWithTag("home-list").performScrollToKey("card-studio")
         onAllNodesWithText("Studio Display").onFirst().performClick()
         waitForText("Slider")
+        waitUntil(timeoutMillis = 15_000) { onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress)).fetchSemanticsNodes().isNotEmpty() }
         shot("${p}15-compare-image")
         onNodeWithText("Highlight").performClick()
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithContentDescription("Changed pixels").fetchSemanticsNodes().isNotEmpty() }
         shot("${p}16-compare-highlight")
         onNodeWithContentDescription("Navigate back").performClick()
-        waitForText("Pages")
+        waitForTag("home-list")
         onNodeWithContentDescription("Turbo").performClick()
         waitForText("Stop after")
-        onAllNodesWithText("Exam results").onLast().performClick()
-        onAllNodesWithText("Studio Display").onLast().performClick()
+        onAllNodesWithText("Exam results").onLast().performScrollTo().performClick()
+        onAllNodesWithText("Studio Display").onLast().performScrollTo().performClick()
         shot("${p}05-turbo-setup")
         onNodeWithText("Start Turbo", substring = true).performClick()
         waitForText("Every 30 seconds", timeout = 10_000)
@@ -101,7 +130,7 @@ class DesignReviewTest {
         waitForText("Done")
         shot("${p}07-turbo-ended")
         onNodeWithText("Done").performClick()
-        waitForText("Pages")
+        waitForTag("home-list")
         onNodeWithText("Activity").performClick()
         runCatching { waitForText("changed", substring = true, timeout = 10_000) }
         shot("${p}08-activity")
@@ -114,14 +143,14 @@ class DesignReviewTest {
         onNodeWithText("Save").performClick()
         waitForIdle()
         onNodeWithText("Home").performClick()
-        waitForText("Pages")
+        waitForTag("home-list")
         onNodeWithTag("home-list").performScrollToKey("row-exam")
         shot("${p}02-home-pages")
-        onAllNodesWithText("Exam results").onLast().performClick()
+        onAllNodesWithText("Exam results").onLast().performScrollTo().performClick()
         waitForIdle()
         shot("${p}10-detail-failing")
         onNodeWithContentDescription("Navigate back").performClick()
-        waitForText("Pages")
+        waitForTag("home-list")
         onNodeWithTag("home-list").performScrollToKey("row-studio")
         onAllNodesWithText("Studio Display").onLast().performClick()
         waitForText("Latest change")
@@ -130,7 +159,7 @@ class DesignReviewTest {
         onNodeWithTag("page-details").performScrollToKey("watch")
         shot("${p}12-detail-settings")
         onNodeWithContentDescription("Navigate back").performClick()
-        waitForText("Pages")
+        waitForTag("home-list")
         onNodeWithContentDescription("Add page").performClick()
         waitForText("What should we watch?")
         shot("${p}30-add-url")
@@ -144,7 +173,7 @@ class DesignReviewTest {
         runCatching { onNodeWithText("Go to watchlist").performClick() }
         runCatching { onNodeWithText("Done").performClick() }
         waitForIdle()
-        waitForText("Pages")
+        waitForTag("home-list")
         onNodeWithTag("home-list").performScrollToKey("row-roles")
         onAllNodesWithText("Design roles").onLast().performClick()
         waitForText("First version saved")
@@ -156,23 +185,23 @@ class DesignReviewTest {
         onNodeWithContentDescription("Navigate back").performClick()
         onNodeWithText("Settings").performClick()
         waitForText("About")
-        onNodeWithText("About").performClick()
+        onNodeWithText("About").performScrollTo().performClick()
         waitForIdle()
         shot("${p}23-about")
         onNodeWithContentDescription("Navigate back").performClick()
-        onNodeWithText("How it works").performClick()
+        onNodeWithText("How it works").performScrollTo().performClick()
         waitForIdle()
         shot("${p}24-how")
         onNodeWithContentDescription("Navigate back").performClick()
         waitForText("Appearance")
-        onNodeWithText("Appearance").performClick()
+        onNodeWithText("Appearance").performScrollTo().performClick()
         waitForText("More colors")
         shot("${p}22-appearance")
     }
 
     private var fixtureUrl = ""
 
-    private fun withApp(dark: Boolean, seed: Boolean, block: ComposeUiTest.() -> Unit) {
+    private fun withApp(dark: Boolean, seed: Boolean, fontScale: Float = 1f, width: Int = WIDTH_PX, height: Int = HEIGHT_PX, density: Float = DENSITY, block: ComposeUiTest.() -> Unit) {
         val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
         server.createContext("/open-call") { exchange ->
             val bytes = String(fellowship("30 November", "€22,000")).encodeToByteArray()
@@ -202,12 +231,12 @@ class DesignReviewTest {
                 }
                 if (seed) seedFixtures(db, koin.get())
             }
-            runDesktopComposeUiTest(width = WIDTH_PX, height = HEIGHT_PX) {
+            runDesktopComposeUiTest(width = width, height = height) {
                 setContent {
                     CompositionLocalProvider(
                         LocalViewModelStoreOwner provides owner,
                         LocalLifecycleOwner provides lifecycleOwner,
-                        LocalDensity provides Density(DENSITY, 1f),
+                        LocalDensity provides Density(density, fontScale),
                     ) {
                         Box(Modifier.fillMaxSize()) { ChangeDetectionRootApp(PlatformActions(appVersion = "6.0")) }
                     }
@@ -234,6 +263,11 @@ class DesignReviewTest {
 
     private fun ComposeUiTest.waitForText(text: String, substring: Boolean = false, timeout: Long = 10_000) {
         waitUntil(timeoutMillis = timeout) { onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty() }
+    }
+
+    private fun ComposeUiTest.waitForTag(tag: String) {
+        waitUntil(timeoutMillis = 8_000) { onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty() }
+        waitForIdle()
     }
 
     private fun ComposeUiTest.shot(name: String) {

@@ -8,6 +8,8 @@ package com.bernaferrari.changedetection.ui.comparison
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,17 +24,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.rounded.UnfoldMore
+import androidx.compose.material.icons.rounded.UnfoldLess
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -50,6 +54,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.preview.EditSegment
 import com.bernaferrari.changedetection.preview.wordDiff
@@ -58,6 +66,11 @@ import com.bernaferrari.changedetection.shared.generated.resources.comparison_no
 import com.bernaferrari.changedetection.shared.generated.resources.reader_hidden_body
 import com.bernaferrari.changedetection.shared.generated.resources.reader_hidden_title
 import com.bernaferrari.changedetection.shared.generated.resources.reader_more_lines
+import com.bernaferrari.changedetection.shared.generated.resources.reader_position
+import com.bernaferrari.changedetection.shared.generated.resources.reader_hide_unchanged
+import com.bernaferrari.changedetection.shared.generated.resources.reader_collapse_change
+import com.bernaferrari.changedetection.shared.generated.resources.preview_before
+import com.bernaferrari.changedetection.shared.generated.resources.preview_after
 import com.bernaferrari.changedetection.shared.generated.resources.reader_show_source
 import com.bernaferrari.changedetection.shared.generated.resources.reader_unchanged
 import com.bernaferrari.changedetection.ui.kit.DiffText
@@ -72,7 +85,7 @@ import org.jetbrains.compose.resources.stringResource
 
 /** One block of the reader: either a run of unchanged lines or one change. */
 internal sealed interface ReaderBlock {
-    data class Unchanged(val id: Int, val lines: List<String>) : ReaderBlock
+    data class Unchanged(val id: Int, val lines: List<String>, val originalLineCount: Int = lines.size) : ReaderBlock
     data class Change(val number: Int, val section: String?, val before: List<String>, val after: List<String>) : ReaderBlock
 }
 
@@ -91,15 +104,15 @@ internal fun readerBlocks(oldLines: List<String>, newLines: List<String>, headin
     var foldId = 0
     var number = 0
     fun flushChange() {
-        if (before.isNotEmpty() || after.isNotEmpty()) {
-            blocks += ReaderBlock.Change(++number, changeSection, before, after)
-            before = mutableListOf()
-            after = mutableListOf()
+        if (before.any { it.isNotBlank() } || after.any { it.isNotBlank() }) {
+            blocks += ReaderBlock.Change(++number, changeSection, boundedReaderLines(before), boundedReaderLines(after))
         }
+        before = mutableListOf()
+        after = mutableListOf()
     }
     fun flushUnchanged() {
         if (unchanged.isNotEmpty()) {
-            blocks += ReaderBlock.Unchanged(foldId++, unchanged)
+            blocks += ReaderBlock.Unchanged(foldId++, boundedReaderLines(unchanged), unchanged.size)
             unchanged = mutableListOf()
         }
     }
@@ -122,25 +135,78 @@ internal fun readerBlocks(oldLines: List<String>, newLines: List<String>, headin
     return blocks
 }
 
+/** One oversized source line must not produce an unbounded text-layout operation. */
+private fun boundedReaderLines(lines: List<String>): List<String> = displayDiffRows(
+    lines.mapIndexed { index, line -> DiffRowModel(index + 1, line, DiffLineType.UNCHANGED) },
+).map { it.content }
+
 /** Lets the floating navigator move between changes in the reader below it. */
 @Stable
 internal class ReaderState {
     val list = LazyListState()
     var changeIndices by mutableStateOf(emptyList<Int>())
     val changeCount: Int get() = changeIndices.size
+    private var destination by mutableStateOf<Pair<Int, Pair<Int, Int>>?>(null)
     val current: Int by derivedStateOf {
-        val first = list.firstVisibleItemIndex
-        changeIndices.indexOfFirst { it >= first }.let { if (it < 0) changeIndices.lastIndex else it }.coerceAtLeast(0)
+        if (changeIndices.isEmpty()) return@derivedStateOf 0
+        val position = list.firstVisibleItemIndex to list.firstVisibleItemScrollOffset
+        destination?.takeIf { it.second == position }?.first?.coerceAtMost(changeIndices.lastIndex)
+            ?: changeIndices.indexOfLast { it <= position.first }.coerceAtLeast(0)
     }
 
     suspend fun go(delta: Int) {
         if (changeIndices.isEmpty()) return
         val target = (current + delta).coerceIn(0, changeIndices.lastIndex)
-        list.animateScrollToItem(changeIndices[target])
+        // Intentional navigation is immediate, including when system animations are disabled.
+        list.scrollToItem(changeIndices[target])
+        // A short final change may not reach the top. Keep its selection until manual scrolling.
+        destination = target to (list.firstVisibleItemIndex to list.firstVisibleItemScrollOffset)
     }
 }
 
 private data class ReaderContent(val blocks: List<ReaderBlock>, val changes: Int)
+
+private sealed interface ReaderItem {
+    val key: String
+    data class Change(val block: ReaderBlock.Change, val expanded: Boolean) : ReaderItem {
+        override val key = "c${block.number}"
+    }
+    data class ChangedLine(val change: Int, val lineIndex: Int, val text: String, val kind: EditSegment.Kind) : ReaderItem {
+        override val key = "c$change-$kind-$lineIndex"
+    }
+    data class Fold(val block: ReaderBlock.Unchanged, val open: Boolean) : ReaderItem {
+        override val key = "u${block.id}"
+    }
+    data class ContextLine(val blockId: Int, val lineIndex: Int, val text: String) : ReaderItem {
+        override val key = "u$blockId-$lineIndex"
+    }
+}
+
+/** Expanded context is still virtualized; a long page never becomes one enormous lazy item. */
+private fun readerItems(blocks: List<ReaderBlock>, expanded: List<Int>, expandedChanges: List<Int>): List<ReaderItem> = buildList {
+    blocks.forEach { block ->
+        when (block) {
+            is ReaderBlock.Change -> {
+                val open = block.number in expandedChanges
+                add(ReaderItem.Change(block, open))
+                if (open) {
+                    block.before.forEachIndexed { index, line -> if (line.isNotBlank()) add(ReaderItem.ChangedLine(block.number, index, line, EditSegment.Kind.Removed)) }
+                    block.after.forEachIndexed { index, line -> if (line.isNotBlank()) add(ReaderItem.ChangedLine(block.number, index, line, EditSegment.Kind.Added)) }
+                }
+            }
+
+            is ReaderBlock.Unchanged -> {
+                val open = block.id in expanded || block.lines.size <= SHORT_RUN
+                if (block.lines.size > SHORT_RUN) add(ReaderItem.Fold(block, open))
+                if (open) {
+                    block.lines.forEachIndexed { index, line ->
+                        if (line.isNotBlank()) add(ReaderItem.ContextLine(block.id, index, line))
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 internal fun ChangeReader(
@@ -152,7 +218,7 @@ internal fun ChangeReader(
     onShowSource: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    val content by produceState<ReaderContent?>(null, oldContent, newContent) {
+    val content by produceState<ReaderContent?>(null, oldContent, newContent, oldIsHtml, newIsHtml) {
         value = null
         value = withContext(Dispatchers.Default) {
             val headings = if (newIsHtml) {
@@ -170,6 +236,7 @@ internal fun ChangeReader(
     }
     val loaded = content
     if (loaded == null) {
+        SideEffect { state.changeIndices = emptyList() }
         Box(modifier, contentAlignment = Alignment.Center) { LoadingIndicator() }
         return
     }
@@ -179,29 +246,32 @@ internal fun ChangeReader(
         return
     }
     val expanded: SnapshotStateList<Int> = remember(loaded) { emptyList<Int>().toMutableStateList() }
-    val indices = remember(loaded) {
-        var index = 0
-        buildList {
-            loaded.blocks.forEach { block ->
-                if (block is ReaderBlock.Change) add(index)
-                index++
-            }
-        }
-    }
+    val expandedChanges = remember(loaded) { emptyList<Int>().toMutableStateList() }
+    val items = remember(loaded, expanded.toList(), expandedChanges.toList()) { readerItems(loaded.blocks, expanded, expandedChanges) }
+    val indices = remember(items) { items.indices.filter { items[it] is ReaderItem.Change } }
     SideEffect { state.changeIndices = indices }
     Box(modifier, contentAlignment = Alignment.TopCenter) {
         LazyColumn(
             state = state.list,
             modifier = Modifier.widthIn(max = 720.dp).fillMaxSize().testTag("comparison-lines"),
-            contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 120.dp),
+            contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 24.dp),
         ) {
-            itemsIndexed(loaded.blocks, key = { _, block -> if (block is ReaderBlock.Change) "c${block.number}" else "u${(block as ReaderBlock.Unchanged).id}" }) { _, block ->
-                when (block) {
-                    is ReaderBlock.Change -> ChangeBlock(block, Modifier.padding(vertical = 4.dp))
+            items(items, key = { it.key }, contentType = { it::class }) { item ->
+                when (item) {
+                    is ReaderItem.Change -> ChangeBlock(item.block, loaded.changes, item.expanded, { if (item.block.number in expandedChanges) expandedChanges.remove(item.block.number) else expandedChanges.add(item.block.number) }, Modifier.padding(vertical = 4.dp))
 
-                    is ReaderBlock.Unchanged -> UnchangedBlock(block, block.id in expanded || block.lines.size <= SHORT_RUN) {
-                        if (block.id in expanded) expanded.remove(block.id) else expanded.add(block.id)
+                    is ReaderItem.ChangedLine -> ChangedLine(item)
+
+                    is ReaderItem.Fold -> UnchangedFold(item.block, item.open) {
+                        if (item.block.id in expanded) expanded.remove(item.block.id) else expanded.add(item.block.id)
                     }
+
+                    is ReaderItem.ContextLine -> Text(
+                        item.text,
+                        Modifier.fillMaxWidth().padding(horizontal = 30.dp, vertical = 2.dp),
+                        style = Reading.small,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }
@@ -209,7 +279,7 @@ internal fun ChangeReader(
 }
 
 @Composable
-private fun ChangeBlock(block: ReaderBlock.Change, modifier: Modifier = Modifier) {
+private fun ChangeBlock(block: ReaderBlock.Change, total: Int, expanded: Boolean, onExpand: () -> Unit, modifier: Modifier = Modifier) {
     val marks = MaterialTheme.marks
     val beforeText = block.before.joinToString(" ").trim()
     val afterText = block.after.joinToString(" ").trim()
@@ -219,13 +289,26 @@ private fun ChangeBlock(block: ReaderBlock.Change, modifier: Modifier = Modifier
             Box(Modifier.padding(start = 10.dp, end = 12.dp).width(4.dp).heightIn(min = 24.dp).clip(RoundedCornerShape(2.dp)).background(marks.highlightEdge))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (block.section != null) {
-                    Text(block.section, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(block.section, Modifier.semantics { heading() }, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                if (inline) {
-                    DiffText(editText(wordDiff(beforeText, afterText), marks), style = Reading.body.copy(color = MaterialTheme.colorScheme.onSurface))
+                if (expanded) {
+                    Text(stringResource(Res.string.reader_position, block.number, total), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    TextButton(onClick = onExpand, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(Res.string.reader_collapse_change)) }
+                } else if (inline) {
+                    val beforeLabel = stringResource(Res.string.preview_before)
+                    val afterLabel = stringResource(Res.string.preview_after)
+                    val description = listOfNotNull(
+                        beforeText.takeIf { it.isNotEmpty() }?.let { "$beforeLabel: $it" },
+                        afterText.takeIf { it.isNotEmpty() }?.let { "$afterLabel: $it" },
+                    ).joinToString("\n")
+                    DiffText(
+                        editText(wordDiff(beforeText, afterText), marks),
+                        Modifier.clearAndSetSemantics { contentDescription = description },
+                        style = Reading.body.copy(color = MaterialTheme.colorScheme.onSurface),
+                    )
                 } else {
-                    CappedLines(block.before, EditSegment.Kind.Removed)
-                    CappedLines(block.after, EditSegment.Kind.Added)
+                    CappedLines(block.before, EditSegment.Kind.Removed, onExpand)
+                    CappedLines(block.after, EditSegment.Kind.Added, onExpand)
                 }
             }
         }
@@ -233,63 +316,62 @@ private fun ChangeBlock(block: ReaderBlock.Change, modifier: Modifier = Modifier
 }
 
 @Composable
-private fun CappedLines(lines: List<String>, kind: EditSegment.Kind) {
+private fun CappedLines(lines: List<String>, kind: EditSegment.Kind, onExpand: () -> Unit) {
     if (lines.isEmpty()) return
-    var showAll by remember(lines) { mutableStateOf(false) }
-    val visible = if (showAll) lines else lines.take(12)
+    val visible = lines.take(12)
     val marks = MaterialTheme.marks
+    val label = stringResource(if (kind == EditSegment.Kind.Removed) Res.string.preview_before else Res.string.preview_after)
     visible.filter { it.isNotBlank() }.forEach { line ->
-        DiffText(editText(listOf(EditSegment(line, kind)), marks), style = Reading.body.copy(color = MaterialTheme.colorScheme.onSurface))
+        DiffText(
+            editText(listOf(EditSegment(line, kind)), marks),
+            Modifier.clearAndSetSemantics { contentDescription = "$label: $line" },
+            style = Reading.body.copy(color = MaterialTheme.colorScheme.onSurface),
+        )
     }
-    if (!showAll && lines.size > visible.size) {
-        Text(
-            pluralStringResource(Res.plurals.reader_more_lines, lines.size - visible.size, lines.size - visible.size),
-            Modifier.clip(MaterialTheme.shapes.small).clickable(role = Role.Button) { showAll = true }.padding(vertical = 6.dp),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
+    if (lines.size > visible.size) {
+        TextButton(onClick = onExpand, modifier = Modifier.heightIn(min = 48.dp)) {
+            Text(pluralStringResource(Res.plurals.reader_more_lines, lines.size - visible.size, lines.size - visible.size))
+        }
+    }
+}
+
+/** Revealed long changes stay lazy, including very large replacements and minified content. */
+@Composable
+private fun ChangedLine(item: ReaderItem.ChangedLine) {
+    val label = stringResource(if (item.kind == EditSegment.Kind.Removed) Res.string.preview_before else Res.string.preview_after)
+    Surface(Modifier.fillMaxWidth().padding(vertical = 2.dp), shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        DiffText(
+            editText(listOf(EditSegment(item.text, item.kind)), MaterialTheme.marks),
+            Modifier.padding(start = 32.dp, end = 16.dp, top = 8.dp, bottom = 8.dp).clearAndSetSemantics { contentDescription = "$label: ${item.text}" },
+            style = Reading.body.copy(color = MaterialTheme.colorScheme.onSurface),
         )
     }
 }
 
 @Composable
-private fun UnchangedBlock(block: ReaderBlock.Unchanged, open: Boolean, onToggle: () -> Unit) {
-    if (open) {
-        Column(
-            Modifier.fillMaxWidth().clickable(enabled = block.lines.size > SHORT_RUN, role = Role.Button, onClick = onToggle).padding(horizontal = 30.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            block.lines.filter { it.isNotBlank() }.forEach {
-                Text(it, style = Reading.small, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-    } else {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-                .clip(MaterialTheme.shapes.medium)
-                .clickable(role = Role.Button, onClick = onToggle)
-                .background(MaterialTheme.colorScheme.surfaceContainer)
-                .heightIn(min = 40.dp)
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-        ) {
-            Icon(Icons.Rounded.UnfoldMore, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(
-                pluralStringResource(Res.plurals.reader_unchanged, block.lines.size, block.lines.size),
-                Modifier.padding(start = 6.dp),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+private fun UnchangedFold(block: ReaderBlock.Unchanged, open: Boolean, onToggle: () -> Unit) {
+    val label = if (open) stringResource(Res.string.reader_hide_unchanged) else pluralStringResource(Res.plurals.reader_unchanged, block.originalLineCount, block.originalLineCount)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clip(MaterialTheme.shapes.medium)
+            .clickable(role = Role.Button, onClick = onToggle)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .heightIn(min = 48.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        Icon(if (open) Icons.Rounded.UnfoldLess else Icons.Rounded.UnfoldMore, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(label, Modifier.padding(start = 6.dp), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
 private fun NothingVisible(html: Boolean, onShowSource: (() -> Unit)?, modifier: Modifier) {
     Box(modifier, contentAlignment = Alignment.Center) {
-        Column(Modifier.widthIn(max = 420.dp).padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.widthIn(max = 420.dp).verticalScroll(rememberScrollState()).padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Box(Modifier.size(80.dp).clip(MaterialTheme.shapes.extraLarge).background(MaterialTheme.colorScheme.surfaceContainer), contentAlignment = Alignment.Center) {
                 Icon(Icons.Outlined.VisibilityOff, null, Modifier.size(36.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }

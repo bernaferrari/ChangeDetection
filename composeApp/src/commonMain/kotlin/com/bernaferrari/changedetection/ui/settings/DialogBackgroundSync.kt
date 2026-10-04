@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BatterySaver
 import androidx.compose.material.icons.outlined.Schedule
@@ -95,16 +97,17 @@ internal fun BackgroundSyncDialogContent(
         initialValue = SheetValue.Hidden,
         enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
     )
+    val presets = listOf(15L, 30L, 60L, 180L, 360L, 720L, 1440L, 10080L)
     var draft by remember { mutableStateOf(uiState) }
+    var custom by remember { mutableStateOf(uiState.syncInterval !in presets) }
     var initialized by remember { mutableStateOf(uiState.isLoaded) }
     LaunchedEffect(uiState.isLoaded) {
         if (uiState.isLoaded && !initialized) {
             draft = uiState
+            custom = uiState.syncInterval !in presets
             initialized = true
         }
     }
-    val presets = listOf(15L, 30L, 60L, 180L, 360L, 720L, 1440L, 10080L)
-    var custom by remember { mutableStateOf(uiState.syncInterval !in presets) }
     var valid by remember { mutableStateOf(true) }
     var saving by remember { mutableStateOf(false) }
     var failed by remember { mutableStateOf(false) }
@@ -112,7 +115,7 @@ internal fun BackgroundSyncDialogContent(
     val available = monitoringCapabilities.execution != MonitoringExecution.Unavailable
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = { if (!saving) onDismiss() },
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
     ) {
@@ -124,8 +127,9 @@ internal fun BackgroundSyncDialogContent(
                 } else {
                     // One sentence that always says what the settings below add up to.
                     Surface(
-                        onClick = { draft = draft.copy(backgroundSync = !draft.backgroundSync) },
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp)
+                            .toggleable(draft.backgroundSync, enabled = available && !saving, role = Role.Switch) { draft = draft.copy(backgroundSync = it) }
+                            .semantics(mergeDescendants = true) {},
                         shape = MaterialTheme.shapes.large,
                         color = if (draft.backgroundSync) MaterialTheme.colorScheme.inverseSurface else MaterialTheme.colorScheme.surfaceContainer,
                         contentColor = if (draft.backgroundSync) MaterialTheme.colorScheme.inverseOnSurface else MaterialTheme.colorScheme.onSurface,
@@ -134,8 +138,8 @@ internal fun BackgroundSyncDialogContent(
                             Text(checksSentence(draft), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
                             Switch(
                                 checked = draft.backgroundSync,
-                                onCheckedChange = { draft = draft.copy(backgroundSync = it) },
-                                enabled = available,
+                                onCheckedChange = null,
+                                enabled = available && !saving,
                                 colors = androidx.compose.material3.SwitchDefaults.colors(
                                     checkedTrackColor = com.bernaferrari.changedetection.ui.theme.LocalMarks.current.highlight,
                                     checkedThumbColor = MaterialTheme.colorScheme.inverseSurface,
@@ -150,21 +154,23 @@ internal fun BackgroundSyncDialogContent(
                             presets.forEach { minutes ->
                                 FilterChip(
                                     selected = !custom && draft.syncInterval == minutes,
+                                    enabled = !saving,
                                     onClick = {
                                         custom = false
                                         valid = true
                                         draft = draft.copy(syncInterval = minutes)
                                     },
                                     label = { Text(presetLabel(minutes)) },
-                                    modifier = Modifier.heightIn(min = 40.dp),
+                                    modifier = Modifier.heightIn(min = 48.dp),
                                     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primary, selectedLabelColor = MaterialTheme.colorScheme.onPrimary),
                                 )
                             }
                             FilterChip(
                                 selected = custom,
+                                enabled = !saving,
                                 onClick = { custom = true },
                                 label = { Text(stringResource(Res.string.checks_custom)) },
-                                modifier = Modifier.heightIn(min = 40.dp),
+                                modifier = Modifier.heightIn(min = 48.dp),
                                 colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primary, selectedLabelColor = MaterialTheme.colorScheme.onPrimary),
                             )
                         }
@@ -174,6 +180,7 @@ internal fun BackgroundSyncDialogContent(
                                     currentInterval = draft.syncInterval,
                                     onIntervalChanged = { draft = draft.copy(syncInterval = it) },
                                     onValidityChanged = { valid = it },
+                                    enabled = !saving,
                                 )
                             }
                         }
@@ -187,14 +194,14 @@ internal fun BackgroundSyncDialogContent(
                             GroupLabel(stringResource(Res.string.checks_only_when))
                             Surface(Modifier.fillMaxWidth().padding(horizontal = 12.dp), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainerLow) {
                                 Column {
-                                    GroupRow(stringResource(Res.string.checks_wifi), supporting = stringResource(Res.string.checks_wifi_body), icon = Icons.Outlined.Wifi, role = Role.Switch, onClick = { draft = draft.copy(requireWifi = !draft.requireWifi) }) {
-                                        Switch(draft.requireWifi, onCheckedChange = null)
+                                    GroupRow(stringResource(Res.string.checks_wifi), supporting = stringResource(Res.string.checks_wifi_body), icon = Icons.Outlined.Wifi, role = Role.Switch, checked = draft.requireWifi, enabled = !saving, onClick = { draft = draft.copy(requireWifi = !draft.requireWifi) }) {
+                                        Switch(draft.requireWifi, onCheckedChange = null, enabled = !saving)
                                     }
-                                    GroupRow(stringResource(Res.string.checks_charging), icon = Icons.Outlined.Power, showDivider = true, role = Role.Switch, onClick = { draft = draft.copy(requireCharging = !draft.requireCharging) }) {
-                                        Switch(draft.requireCharging, onCheckedChange = null)
+                                    GroupRow(stringResource(Res.string.checks_charging), icon = Icons.Outlined.Power, showDivider = true, role = Role.Switch, checked = draft.requireCharging, enabled = !saving, onClick = { draft = draft.copy(requireCharging = !draft.requireCharging) }) {
+                                        Switch(draft.requireCharging, onCheckedChange = null, enabled = !saving)
                                     }
-                                    GroupRow(stringResource(Res.string.checks_battery), icon = Icons.Outlined.BatterySaver, showDivider = true, role = Role.Switch, onClick = { draft = draft.copy(requireBatteryNotLow = !draft.requireBatteryNotLow) }) {
-                                        Switch(draft.requireBatteryNotLow, onCheckedChange = null)
+                                    GroupRow(stringResource(Res.string.checks_battery), icon = Icons.Outlined.BatterySaver, showDivider = true, role = Role.Switch, checked = draft.requireBatteryNotLow, enabled = !saving, onClick = { draft = draft.copy(requireBatteryNotLow = !draft.requireBatteryNotLow) }) {
+                                        Switch(draft.requireBatteryNotLow, onCheckedChange = null, enabled = !saving)
                                     }
                                 }
                             }
@@ -215,6 +222,7 @@ internal fun BackgroundSyncDialogContent(
                 enabled = uiState.isLoaded && initialized && available && (!draft.backgroundSync || valid) && !saving,
                 onClick = {
                     saving = true
+                    failed = false
                     scope.launch {
                         try {
                             onSave(draft)
@@ -230,7 +238,7 @@ internal fun BackgroundSyncDialogContent(
                 },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 16.dp),
             ) {
-                Text(stringResource(Res.string.save), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(if (saving) Res.string.saving else Res.string.save), style = MaterialTheme.typography.titleMedium)
             }
         }
     }
@@ -246,6 +254,7 @@ private fun presetLabel(minutes: Long): String = when {
 
 @Composable
 internal fun checksSentence(state: SettingsUiState): String {
+    if (monitoringCapabilities.execution == MonitoringExecution.Unavailable) return stringResource(Res.string.settings_checks_unavailable)
     if (!state.backgroundSync) return stringResource(Res.string.checks_sentence_off)
     val conditions = buildList {
         if (state.requireWifi) add(stringResource(Res.string.checks_cond_wifi))

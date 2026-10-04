@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -40,7 +42,6 @@ import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
@@ -59,6 +60,7 @@ import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
+import com.bernaferrari.changedetection.ui.kit.ConnectedChoice
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -70,9 +72,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.background.TURBO_DURATION_MINUTES
@@ -80,6 +86,7 @@ import com.bernaferrari.changedetection.background.TURBO_INTERVAL_SECONDS
 import com.bernaferrari.changedetection.background.TurboEndReason
 import com.bernaferrari.changedetection.background.TurboState
 import com.bernaferrari.changedetection.background.monitoringCapabilities
+import com.bernaferrari.changedetection.background.MonitoringExecution
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.ui.kit.ChangePreviewBlock
@@ -112,12 +119,6 @@ private fun TurboState.progress(now: Long): Float {
     val total = durationMinutes * 60_000f
     if (!isActive || total <= 0f) return 0f
     return (1f - remainingTimeMillis(now) / total).coerceIn(0f, 1f)
-}
-
-private fun TurboState.secondsToNextCheck(now: Long): Int {
-    if (lastCheckTime <= 0) return intervalSeconds
-    val next = lastCheckTime + intervalSeconds * 1_000L
-    return ((next - now) / 1_000L).toInt().coerceIn(0, intervalSeconds)
 }
 
 @Composable
@@ -160,7 +161,7 @@ fun TurboLiveCard(state: TurboState, onClick: () -> Unit, modifier: Modifier = M
                 Column(Modifier.weight(1f)) {
                     Text(pluralStringResource(Res.plurals.turbo_card_title_n, state.siteIds.size, state.siteIds.size), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        stringResource(Res.string.turbo_card_status, state.secondsToNextCheck(now), minutesLeftLabel(state, now)),
+                        stringResource(Res.string.turbo_card_cadence, intervalLabel(state.intervalSeconds), minutesLeftLabel(state, now)),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -192,84 +193,99 @@ fun TurboSetupSheet(
     preselected: Set<String>,
     state: TurboState,
     onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
     onStart: (siteIds: Set<String>, intervalSeconds: Int, durationMinutes: Int) -> Unit,
 ) {
     val eligible = sites.filter { it.site.isSyncEnabled }
     val eligibleIds = eligible.mapTo(mutableSetOf()) { it.site.id }
     var selected by remember {
         mutableStateOf(
-            preselected.intersect(eligibleIds).ifEmpty { state.siteIds.intersect(eligibleIds) }.ifEmpty {
-                if (eligibleIds.size <= 3) eligibleIds else emptySet()
+            when {
+                preselected.isNotEmpty() -> preselected.intersect(eligibleIds)
+                state.siteIds.isNotEmpty() -> state.siteIds.intersect(eligibleIds)
+                eligibleIds.size <= 3 -> eligibleIds
+                else -> emptySet()
             },
         )
     }
     var interval by remember { mutableIntStateOf(state.intervalSeconds.takeIf { it in TURBO_INTERVAL_SECONDS } ?: 30) }
     var duration by remember { mutableIntStateOf(state.durationMinutes.takeIf { it in TURBO_DURATION_MINUTES } ?: 60) }
-    val endsAt = remember(duration) { getCurrentTimeMillis() + duration * 60_000L }
+    // A page can be paused or removed while the setup sheet remains open.
+    val selectedEligible = selected.intersect(eligibleIds)
+    val endsAt = rememberNow(true) + duration * 60_000L
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
     ) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 16.dp).testTag("turbo-setup")) {
-            Row(Modifier.padding(horizontal = 24.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                BoltBadge()
-                Text(stringResource(Res.string.turbo_mode), style = MaterialTheme.typography.headlineSmall)
+        Column(modifier.fillMaxWidth().padding(bottom = 16.dp).testTag("turbo-setup")) {
+            Column(Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 20.dp)) {
+                Row(Modifier.padding(horizontal = 24.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    BoltBadge()
+                    Text(stringResource(Res.string.turbo_mode), style = MaterialTheme.typography.headlineSmall)
+                }
+                Text(
+                    stringResource(Res.string.turbo_sheet_body),
+                    Modifier.padding(horizontal = 24.dp, vertical = 10.dp),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (!monitoringCapabilities.turbo) {
+                    Text(stringResource(Res.string.turbo_unavailable_description), Modifier.padding(24.dp), style = MaterialTheme.typography.bodyLarge)
+                    return@Column
+                }
+                SheetLabel(stringResource(Res.string.turbo_sheet_pages))
+                if (eligible.isEmpty()) {
+                    Text(stringResource(Res.string.turbo_sheet_no_pages), Modifier.padding(horizontal = 24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else if (sites.any { !it.site.isSyncEnabled }) {
+                    Text(stringResource(Res.string.turbo_sheet_paused_note), Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                FlowRow(Modifier.padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    eligible.forEach { row ->
+                        val on = row.site.id in selectedEligible
+                        FilterChip(
+                            selected = on,
+                            onClick = { selected = if (on) selected - row.site.id else selected + row.site.id },
+                            label = { Text(row.site.name(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 200.dp)) },
+                            leadingIcon = if (on) {
+                                { Icon(Icons.Rounded.Check, null, Modifier.size(FilterChipDefaults.IconSize)) }
+                            } else {
+                                { PageAvatar(row.site.name(), row.site.id, size = 22.dp) }
+                            },
+                            shape = MaterialTheme.shapes.medium,
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
+                            ),
+                            modifier = Modifier.heightIn(min = 48.dp),
+                        )
+                    }
+                }
+                SheetLabel(stringResource(Res.string.turbo_sheet_every))
+                ConnectedChoice(TURBO_INTERVAL_SECONDS.sorted(), interval, { interval = it }) { intervalLabel(it) }
+                SheetLabel(stringResource(Res.string.turbo_sheet_for))
+                ConnectedChoice(TURBO_DURATION_MINUTES.sorted(), duration, { duration = it }) { durationLabel(it) }
             }
-            Text(
-                stringResource(Res.string.turbo_sheet_body),
-                Modifier.padding(horizontal = 24.dp, vertical = 10.dp),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            if (!monitoringCapabilities.turbo) {
-                Text(stringResource(Res.string.turbo_unavailable_description), Modifier.padding(24.dp), style = MaterialTheme.typography.bodyLarge)
-                return@Column
-            }
-            SheetLabel(stringResource(Res.string.turbo_sheet_pages))
-            FlowRow(Modifier.padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                eligible.forEach { row ->
-                    val on = row.site.id in selected
-                    FilterChip(
-                        selected = on,
-                        onClick = { selected = if (on) selected - row.site.id else selected + row.site.id },
-                        label = { Text(row.site.name(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 200.dp)) },
-                        leadingIcon = if (on) {
-                            { Icon(Icons.Rounded.Check, null, Modifier.size(FilterChipDefaults.IconSize)) }
-                        } else {
-                            { PageAvatar(row.site.name(), row.site.id, size = 22.dp) }
-                        },
-                        shape = MaterialTheme.shapes.medium,
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primary,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
-                        ),
-                        modifier = Modifier.heightIn(min = 40.dp),
+            if (monitoringCapabilities.turbo) {
+                Button(
+                    onClick = { onStart(selectedEligible, interval, duration) },
+                    enabled = selectedEligible.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).heightIn(min = 60.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
+                    shape = MaterialTheme.shapes.extraLarge,
+                ) {
+                    Icon(Icons.Rounded.Bolt, null)
+                    Spacer(Modifier.size(8.dp))
+                    Text(
+                        if (selectedEligible.isEmpty()) stringResource(Res.string.turbo_sheet_pick) else pluralStringResource(Res.plurals.turbo_sheet_start, selectedEligible.size, selectedEligible.size),
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
-            }
-            SheetLabel(stringResource(Res.string.turbo_sheet_every))
-            ConnectedChoice(TURBO_INTERVAL_SECONDS.sorted(), interval, { interval = it }) { intervalLabel(it) }
-            SheetLabel(stringResource(Res.string.turbo_sheet_for))
-            ConnectedChoice(TURBO_DURATION_MINUTES.sorted(), duration, { duration = it }) { durationLabel(it) }
-            Button(
-                onClick = { onStart(selected, interval, duration) },
-                enabled = selected.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 24.dp).heightIn(min = 60.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
-                shape = MaterialTheme.shapes.extraLarge,
-            ) {
-                Icon(Icons.Rounded.Bolt, null)
-                Spacer(Modifier.size(8.dp))
-                Text(
-                    if (selected.isEmpty()) stringResource(Res.string.turbo_sheet_pick) else pluralStringResource(Res.plurals.turbo_sheet_start, selected.size, selected.size),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-            Row(Modifier.align(Alignment.CenterHorizontally).padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Outlined.BatteryAlert, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(stringResource(Res.string.turbo_sheet_caption, formatTime(endsAt)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(Modifier.align(Alignment.CenterHorizontally).padding(start = 24.dp, end = 24.dp, top = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Icon(Icons.Outlined.BatteryAlert, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(Res.string.turbo_sheet_caption, formatTime(endsAt)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
     }
@@ -278,37 +294,6 @@ fun TurboSetupSheet(
 @Composable
 private fun SheetLabel(text: String) {
     Text(text, Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 10.dp), style = MaterialTheme.typography.titleSmall)
-}
-
-/** An M3 Expressive connected button group behaving as a single-choice control. */
-@Composable
-fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier, label: @Composable (T) -> String) {
-    Row(
-        modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-    ) {
-        options.forEachIndexed { index, option ->
-            ToggleButton(
-                checked = option == selected,
-                onCheckedChange = { onSelect(option) },
-                modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics { role = Role.RadioButton },
-                shapes = when (index) {
-                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                    options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                },
-                colors = ToggleButtonDefaults.toggleButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                    checkedContainerColor = MaterialTheme.colorScheme.primary,
-                    checkedContentColor = MaterialTheme.colorScheme.onPrimary,
-                ),
-                contentPadding = PaddingValues(horizontal = 4.dp),
-            ) {
-                Text(label(option), maxLines = 1, style = MaterialTheme.typography.labelLarge)
-            }
-        }
-    }
 }
 
 /** The live session: what is happening, how much time is left, and anything that changed. */
@@ -324,7 +309,11 @@ fun TurboLiveScreen(
 ) {
     val now = rememberNow(state.isActive)
     val sessionPages = sites.filter { it.site.id in state.siteIds }
-    val changed = sessionPages.filter { row -> state.startTime > 0 && (row.snap?.timestamp ?: 0) >= state.startTime && row.snapshotCount > 1 }
+    val changed = sessionPages.filter { row ->
+        val timestamp = row.snap?.timestamp ?: 0
+        state.startTime > 0 && timestamp >= state.startTime && row.snapshotCount > 1 &&
+            (state.isActive || timestamp <= state.lastCheckTime)
+    }
     val quiet = sessionPages - changed.toSet()
     Scaffold(
         topBar = {
@@ -381,7 +370,7 @@ fun TurboLiveScreen(
                             if (state.isActive) {
                                 if (state.intervalSeconds < 60) stringResource(Res.string.turbo_live_every_seconds, state.intervalSeconds) else pluralStringResource(Res.plurals.turbo_live_every_minutes, state.intervalSeconds / 60, state.intervalSeconds / 60)
                             } else {
-                                if (changed.isEmpty()) stringResource(Res.string.turbo_found_none) else pluralStringResource(Res.plurals.turbo_found, changed.size, changed.size)
+                                if (state.updatesSaved == 0) stringResource(Res.string.turbo_found_none) else pluralStringResource(Res.plurals.turbo_saved_updates, state.updatesSaved, state.updatesSaved)
                             },
                             style = MaterialTheme.typography.displaySmall,
                         )
@@ -425,7 +414,7 @@ fun TurboLiveScreen(
                 if (state.isActive) {
                     item(key = "note") {
                         Text(
-                            stringResource(Res.string.turbo_live_note),
+                            stringResource(if (!monitoringCapabilities.notifications) Res.string.turbo_live_note_while_open else Res.string.turbo_live_note),
                             Modifier.padding(horizontal = 24.dp, vertical = 24.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -480,21 +469,15 @@ private fun QuietRow(row: SiteAndLastSnap, state: TurboState, now: Long, onClick
             Text(row.site.name(), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
                 when {
+                    row.isSyncing -> stringResource(Res.string.home_row_checking)
                     !row.site.isSuccessful -> com.bernaferrari.changedetection.ui.components.checkFailureTitle(row.site.lastFailureCode)
                     seconds == null -> row.site.domain()
                     else -> stringResource(Res.string.turbo_row_quiet, seconds)
                 },
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (!row.site.isSuccessful) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (!row.isSyncing && !row.site.isSuccessful) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        if (state.isActive) {
-            CircularProgressIndicator(
-                progress = { 1f - state.secondsToNextCheck(now) / state.intervalSeconds.toFloat() },
-                modifier = Modifier.size(28.dp),
-                strokeWidth = 3.dp,
-                trackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            )
-        }
+        if (row.isSyncing) androidx.compose.material3.LoadingIndicator(Modifier.size(28.dp))
     }
 }

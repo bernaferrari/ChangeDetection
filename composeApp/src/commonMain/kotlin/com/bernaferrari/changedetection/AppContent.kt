@@ -71,7 +71,7 @@ data class PlatformActions(
     val startTurbo: ((siteIds: Set<String>, intervalSeconds: Int, durationMinutes: Int) -> Unit)? = null,
     val stopTurbo: (() -> Unit)? = null,
     val requestNotifications: () -> Unit = {},
-    val openNotificationSettings: () -> Unit = {},
+    val openNotificationSettings: (() -> Unit)? = null,
     val appVersion: String = "",
 )
 

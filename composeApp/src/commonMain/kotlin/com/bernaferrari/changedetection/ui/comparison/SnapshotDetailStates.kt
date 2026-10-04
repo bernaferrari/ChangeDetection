@@ -114,7 +114,7 @@ internal fun SingleSnapshotState(
         var asPage by remember(snap.snapId) { mutableStateOf(false) }
         Column(modifier = modifier) {
             if (isHtml) {
-                com.bernaferrari.changedetection.ui.turbo.ConnectedChoice(listOf(false, true), asPage, { asPage = it }, Modifier.padding(vertical = 8.dp)) {
+                com.bernaferrari.changedetection.ui.kit.ConnectedChoice(listOf(false, true), asPage, { asPage = it }, Modifier.padding(vertical = 8.dp)) {
                     stringResource(if (it) Res.string.reader_mode_page else Res.string.mode_text)
                 }
             }

@@ -7,9 +7,9 @@
 package com.bernaferrari.changedetection.ui.detail
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -71,7 +71,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -132,7 +135,7 @@ internal fun PageDetailScreen(
     val error by viewModel.currentError.collectAsStateWithLifecycle()
     val versions by remember(siteId) { repository.getSnaps(siteId) }.collectAsStateWithLifecycle(null)
     val item = rows?.firstOrNull { it.site.id == siteId }
-    var confirmDelete by remember { mutableStateOf(false) }
+    var confirmDelete by remember(siteId) { mutableStateOf(false) }
     PageDetailContent(
         item = item,
         isLoading = rows == null,
@@ -198,6 +201,7 @@ internal fun PageDetailContent(
     onSetNotify: (Boolean) -> Unit,
     onDelete: () -> Unit,
     onHistory: (String) -> Unit = onCompare,
+    notificationsAvailable: Boolean = monitoringCapabilities.notifications,
     errorContent: @Composable () -> Unit = {},
 ) {
     var menu by remember { mutableStateOf(false) }
@@ -231,24 +235,33 @@ internal fun PageDetailContent(
         bottomBar = {
             if (item != null) {
                 Surface(color = MaterialTheme.colorScheme.surface) {
-                    Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        FilledTonalButton(onClick = onCheck, enabled = !item.isSyncing, modifier = Modifier.weight(1f).heightIn(min = 56.dp)) {
-                            if (item.isSyncing) LoadingIndicator(Modifier.size(24.dp)) else Icon(Icons.Rounded.Refresh, null)
-                            Spacer(Modifier.size(8.dp))
-                            Text(stringResource(if (item.isSyncing) Res.string.home_row_checking else Res.string.home_check_now))
-                        }
-                        if (monitoringCapabilities.turbo && item.site.isSyncEnabled) {
-                            val running = turbo.isActive && item.site.id in turbo.siteIds
-                            Button(
-                                onClick = onTurbo,
-                                modifier = Modifier.weight(1f).heightIn(min = 56.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
-                            ) {
-                                Icon(Icons.Rounded.Bolt, null)
-                                Spacer(Modifier.size(8.dp))
-                                Text(stringResource(if (running) Res.string.detail_turbo_on else Res.string.turbo_mode))
-                            }
-                        }
+                    Box(Modifier.fillMaxWidth().navigationBarsPadding(), contentAlignment = Alignment.Center) {
+                        DetailActions(
+                            modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                            first = { buttonModifier ->
+                                FilledTonalButton(onClick = onCheck, enabled = !item.isSyncing, modifier = buttonModifier.heightIn(min = 56.dp)) {
+                                    if (item.isSyncing) LoadingIndicator(Modifier.size(24.dp)) else Icon(Icons.Rounded.Refresh, null)
+                                    Spacer(Modifier.size(8.dp))
+                                    Text(stringResource(if (item.isSyncing) Res.string.home_row_checking else Res.string.home_check_now))
+                                }
+                            },
+                            second = if (monitoringCapabilities.turbo && item.site.isSyncEnabled) {
+                                { buttonModifier ->
+                                    val running = turbo.isActive && item.site.id in turbo.siteIds
+                                    Button(
+                                        onClick = onTurbo,
+                                        modifier = buttonModifier.heightIn(min = 56.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
+                                    ) {
+                                        Icon(Icons.Rounded.Bolt, null)
+                                        Spacer(Modifier.size(8.dp))
+                                        Text(stringResource(if (running) Res.string.detail_turbo_on else Res.string.turbo_mode))
+                                    }
+                                }
+                            } else {
+                                null
+                            },
+                        )
                     }
                 }
             }
@@ -264,7 +277,29 @@ internal fun PageDetailContent(
                     TextButton(onClick = onBack) { Text(stringResource(Res.string.nav_home)) }
                 }
 
-                else -> DetailList(item, versions, schedule, onCompare, onEdit, onSchedule, onOpenUrl, onCheck, onMarkRead, onSetPaused, onSetNotify, onHistory, errorContent)
+                else -> DetailList(item, versions, schedule, onCompare, onEdit, onSchedule, onOpenUrl, onCheck, onMarkRead, onSetPaused, onSetNotify, onHistory, notificationsAvailable, errorContent)
+            }
+        }
+    }
+}
+
+/** Keep action labels readable on compact windows and with large system text. */
+@Composable
+private fun DetailActions(
+    modifier: Modifier = Modifier,
+    first: @Composable (Modifier) -> Unit,
+    second: (@Composable (Modifier) -> Unit)? = null,
+) {
+    BoxWithConstraints(modifier) {
+        if (maxWidth < 300.dp || LocalDensity.current.fontScale > 1.3f) {
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                first(Modifier.fillMaxWidth())
+                second?.invoke(Modifier.fillMaxWidth())
+            }
+        } else {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                first(Modifier.weight(1f))
+                second?.invoke(Modifier.weight(1f))
             }
         }
     }
@@ -284,6 +319,7 @@ private fun DetailList(
     onSetPaused: (Boolean) -> Unit,
     onSetNotify: (Boolean) -> Unit,
     onHistory: (String) -> Unit,
+    notificationsAvailable: Boolean,
     errorContent: @Composable () -> Unit,
 ) {
     val site = item.site
@@ -301,7 +337,6 @@ private fun DetailList(
                         Text(site.name(), style = MaterialTheme.typography.headlineSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         Text(
                             site.url.displayPageAddress(),
-                            Modifier.clip(MaterialTheme.shapes.small).clickable(role = Role.Button, onClick = onOpenUrl),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
@@ -319,6 +354,8 @@ private fun DetailList(
                     Text(
                         when {
                             paused -> stringResource(Res.string.detail_status_paused)
+                            item.isSyncing -> stringResource(Res.string.home_row_checking)
+                            failing -> stringResource(Res.string.detail_status_failed, getRelativeTimeLabel(site.timestamp).lowercase())
                             site.timestamp <= 0 -> stringResource(Res.string.home_row_waiting)
                             schedule.enabled -> stringResource(Res.string.detail_status_checked, getRelativeTimeLabel(site.timestamp).lowercase(), cadence(schedule.intervalMinutes))
                             else -> stringResource(Res.string.detail_status_checked_manual, getRelativeTimeLabel(site.timestamp).lowercase())
@@ -340,8 +377,9 @@ private fun DetailList(
         }
         if (versions.size > 1) {
             item(key = "calendar-h") {
-                val month = 30L * 24 * 60 * 60 * 1000
-                val changes = versions.dropLast(1).count { getCurrentTimeMillis() - it.timestamp < month }
+                val today = getCurrentTimeMillis().localDate()
+                val start = today.minus(DatePeriod(days = 29))
+                val changes = versions.dropLast(1).count { it.timestamp.localDate() in start..today }
                 SectionHeader(stringResource(Res.string.detail_last_30), trailingText = pluralStringResource(Res.plurals.detail_changes_count, changes, changes))
             }
             item(key = "calendar") { ChangeCalendar(versions) }
@@ -399,13 +437,16 @@ private fun DetailList(
                     showDivider = true,
                     onClick = onSchedule,
                 ) { Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.outline) }
-                GroupRow(
-                    title = stringResource(Res.string.detail_notify),
-                    icon = Icons.Outlined.Notifications,
-                    showDivider = true,
-                    onClick = { onSetNotify(!site.isNotificationEnabled) },
-                    role = Role.Switch,
-                ) { Switch(site.isNotificationEnabled, onCheckedChange = null) }
+                if (notificationsAvailable) {
+                    GroupRow(
+                        title = stringResource(Res.string.detail_notify),
+                        icon = Icons.Outlined.Notifications,
+                        showDivider = true,
+                        onClick = { onSetNotify(!site.isNotificationEnabled) },
+                        role = Role.Switch,
+                        checked = site.isNotificationEnabled,
+                    ) { Switch(site.isNotificationEnabled, onCheckedChange = null, modifier = Modifier.clearAndSetSemantics { }) }
+                }
                 GroupRow(
                     title = stringResource(Res.string.detail_paused),
                     supporting = stringResource(Res.string.detail_paused_body),
@@ -413,7 +454,8 @@ private fun DetailList(
                     showDivider = true,
                     onClick = { onSetPaused(!paused) },
                     role = Role.Switch,
-                ) { Switch(paused, onCheckedChange = null) }
+                    checked = paused,
+                ) { Switch(paused, onCheckedChange = null, modifier = Modifier.clearAndSetSemantics { }) }
             }
         }
     }
@@ -488,16 +530,23 @@ private fun LatestChange(item: SiteAndLastSnap, onCompare: (String) -> Unit, onM
                         if (unread) NewBadge(text = stringResource(Res.string.badge_new))
                     }
                     ChangePreviewBlock(preview, cropHeight = 132.dp)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (unread) {
-                            FilledTonalButton(onClick = onMarkRead, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
-                                Icon(Icons.Rounded.Check, null, Modifier.size(18.dp))
-                                Spacer(Modifier.size(6.dp))
-                                Text(stringResource(Res.string.mark_read_short))
-                            }
-                        }
-                        Button(onClick = { onCompare(snap.snapId) }, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) { Text(stringResource(Res.string.detail_compare_action)) }
+                    val compareButton: @Composable (Modifier) -> Unit = { buttonModifier ->
+                        Button(onClick = { onCompare(snap.snapId) }, modifier = buttonModifier.heightIn(min = 48.dp)) { Text(stringResource(Res.string.detail_compare_action)) }
                     }
+                    DetailActions(
+                        first = if (unread) {
+                            { buttonModifier ->
+                                FilledTonalButton(onClick = onMarkRead, modifier = buttonModifier.heightIn(min = 48.dp)) {
+                                    Icon(Icons.Rounded.Check, null, Modifier.size(18.dp))
+                                    Spacer(Modifier.size(6.dp))
+                                    Text(stringResource(Res.string.mark_read_short))
+                                }
+                            }
+                        } else {
+                            compareButton
+                        },
+                        second = if (unread) compareButton else null,
+                    )
                 }
             }
         }
@@ -508,9 +557,12 @@ private fun LatestChange(item: SiteAndLastSnap, onCompare: (String) -> Unit, onM
 @Composable
 private fun ChangeCalendar(versions: List<Snap>) {
     val today = getCurrentTimeMillis().localDate()
-    val changedDays = remember(versions) { versions.dropLast(1).mapTo(mutableSetOf()) { it.timestamp.localDate() } }
-    val latestUnread = versions.firstOrNull()?.timestamp?.localDate()
-    Surface(Modifier.fillMaxWidth().padding(horizontal = 12.dp), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+    val start = today.minus(DatePeriod(days = 29))
+    val changes = remember(versions, today) { versions.dropLast(1).filter { it.timestamp.localDate() in start..today } }
+    val changedDays = remember(changes) { changes.mapTo(mutableSetOf()) { it.timestamp.localDate() } }
+    val latestDay = versions.firstOrNull()?.timestamp?.localDate()
+    val summary = stringResource(Res.string.detail_calendar_summary, changes.size, changedDays.size)
+    Surface(Modifier.fillMaxWidth().padding(horizontal = 12.dp).clearAndSetSemantics { contentDescription = summary }, shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainerLowest) {
         Column(Modifier.padding(16.dp)) {
             for (week in 0 until 2) {
                 Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -520,7 +572,7 @@ private fun ChangeCalendar(versions: List<Snap>) {
                         Box(
                             Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(5.dp)).background(
                                 when {
-                                    changed && day == latestUnread -> MaterialTheme.marks.highlight
+                                    changed && day == latestDay -> MaterialTheme.marks.highlight
                                     changed -> MaterialTheme.colorScheme.onSurfaceVariant
                                     else -> MaterialTheme.colorScheme.surfaceContainer
                                 },

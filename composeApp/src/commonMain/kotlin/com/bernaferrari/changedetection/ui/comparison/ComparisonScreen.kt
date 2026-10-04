@@ -13,6 +13,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -77,6 +78,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -94,7 +96,7 @@ import com.bernaferrari.changedetection.ui.kit.name
 import com.bernaferrari.changedetection.ui.kit.previewLabel
 import com.bernaferrari.changedetection.ui.kit.rememberPairPreview
 import com.bernaferrari.changedetection.ui.theme.marks
-import com.bernaferrari.changedetection.ui.turbo.ConnectedChoice
+import com.bernaferrari.changedetection.ui.kit.ConnectedChoice
 import com.bernaferrari.changedetection.util.displayPageAddress
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -122,7 +124,6 @@ fun ComparisonScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
-    val reader = remember(siteId) { ReaderState() }
 
     LaunchedEffect(siteId, initialSnapId) { viewModel.openComparison(siteId, initialSnapId) }
     val deleteFailedMessage = stringResource(Res.string.delete_site_failed)
@@ -152,6 +153,7 @@ fun ComparisonScreen(
     val pairIndex = uiState.selectedPairIndex ?: 0
     val newer = uiState.snaps.getOrNull(pairIndex)
     val older = uiState.snaps.getOrNull(pairIndex + 1)
+    val reader = remember(siteId, newer?.snapId, older?.snapId, uiState.singleSnap?.snapId) { ReaderState() }
     val isImagePair = newer?.isImageSnapshot() == true && older?.isImageSnapshot() == true
     val isHtmlPair = newer?.isHtmlSnapshot() == true || older?.isHtmlSnapshot() == true
     val modes = when {
@@ -227,7 +229,7 @@ fun ComparisonScreen(
             )
         },
         bottomBar = {
-            val showNav = mode == ComparisonMode.Text && reader.changeCount > 1 && uiState.snaps.size > 1 && !uiState.isLoadingDiff
+            val showNav = mode == ComparisonMode.Text && reader.changeCount > 1 && uiState.snaps.size > 1 && uiState.singleSnap == null && !uiState.isLoadingDiff
             AnimatedVisibility(showNav || canMarkRead, enter = slideInVertically { it } + fadeIn(), exit = slideOutVertically { it } + fadeOut()) {
                 ReaderBar(reader, showNav, canMarkRead, onMarkRead = markRead)
             }
@@ -258,16 +260,27 @@ fun ComparisonScreen(
 
                 uiState.snaps.isEmpty() -> EmptySnapshotState(Modifier.fillMaxSize())
 
-                uiState.snaps.size == 1 -> SingleSnapshotState(
-                    snap = uiState.snaps.first(),
-                    content = uiState.singleSnapContent,
-                    bytes = uiState.singleSnapBytes,
-                    isLoadingContent = uiState.isLoadingDiff,
-                    hasError = uiState.error != null,
-                    onRetry = viewModel::retryComparison,
-                    onCheckNow = { viewModel.reloadSite() },
-                    modifier = Modifier.fillMaxSize(),
-                )
+                uiState.snaps.size == 1 || uiState.singleSnap != null -> Column(Modifier.fillMaxSize()) {
+                    val snap = uiState.singleSnap ?: uiState.snaps.first()
+                    if (uiState.snaps.size > 1) {
+                        GroupRow(
+                            title = friendlyDateTime(snap.timestamp),
+                            supporting = stringResource(Res.string.label_first_version),
+                            onClick = { showVersions = true },
+                            modifier = Modifier.widthIn(max = 720.dp).align(Alignment.CenterHorizontally),
+                        ) { Icon(Icons.Rounded.UnfoldMore, stringResource(Res.string.comparison_section_snapshots)) }
+                    }
+                    SingleSnapshotState(
+                        snap = snap,
+                        content = uiState.singleSnapContent,
+                        bytes = uiState.singleSnapBytes,
+                        isLoadingContent = uiState.isLoadingDiff,
+                        hasError = uiState.error != null,
+                        onRetry = viewModel::retryComparison,
+                        onCheckNow = { viewModel.reloadSite() },
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                    )
+                }
 
                 else -> Column(Modifier.fillMaxSize()) {
                     val site = requireNotNull(uiState.site)
@@ -291,7 +304,7 @@ fun ComparisonScreen(
                         when {
                             uiState.isLoadingDiff -> LoadingIndicator(Modifier.align(Alignment.Center))
 
-                            isImagePair -> ImageComparisonContent(uiState.snapBytes2, uiState.snapBytes1, uiState.imageDiff, mode, Modifier.fillMaxSize())
+                            isImagePair -> ImageComparisonContent(uiState.snapBytes2, uiState.snapBytes1, uiState.imageDiff, mode, Modifier.fillMaxSize(), onRetry = viewModel::retryComparison)
 
                             content1 != null && content2 != null -> when (mode) {
                                 ComparisonMode.Html -> RenderedHtmlComparison(oldContent = content2, newContent = content1, modifier = Modifier.fillMaxSize())
@@ -333,7 +346,8 @@ fun ComparisonScreen(
     if (showVersions && uiState.snaps.size > 1) {
         VersionSheet(
             snaps = uiState.snaps,
-            selectedIndex = pairIndex,
+            selectedIndex = if (uiState.singleSnap != null) -2 else pairIndex,
+            selectedSingleSnapId = uiState.singleSnap?.snapId,
             onDismiss = { showVersions = false },
             onSelect = {
                 viewModel.selectPairForComparison(it)
@@ -424,7 +438,7 @@ private fun VersionBar(older: Snap?, newer: Snap?, onClick: () -> Unit) {
 private fun VersionStamp(label: String, snap: Snap?, modifier: Modifier) {
     Column(modifier) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(snap?.let { friendlyDateTime(it.timestamp) } ?: "—", style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(snap?.let { friendlyDateTime(it.timestamp) } ?: "—", style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -454,33 +468,45 @@ private fun ReaderBar(reader: ReaderState, showNav: Boolean, canMarkRead: Boolea
             contentColor = MaterialTheme.colorScheme.inverseOnSurface,
             shadowElevation = 6.dp,
         ) {
-            Row(Modifier.padding(6.dp).heightIn(min = 52.dp), verticalAlignment = Alignment.CenterVertically) {
-                if (showNav) {
-                    val colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.inverseOnSurface)
-                    IconButton(onClick = { scope.launch { reader.go(-1) } }, enabled = reader.current > 0, colors = colors) {
-                        Icon(Icons.Rounded.KeyboardArrowUp, stringResource(Res.string.reader_previous))
+            BoxWithConstraints(Modifier.padding(6.dp)) {
+                val stacked = canMarkRead && (maxWidth < 360.dp || LocalDensity.current.fontScale > 1.3f)
+                val navigation: @Composable (Modifier) -> Unit = { modifier ->
+                    Row(modifier.heightIn(min = 52.dp), verticalAlignment = Alignment.CenterVertically) {
+                        val colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.inverseOnSurface)
+                        IconButton(onClick = { scope.launch { reader.go(-1) } }, enabled = reader.current > 0, colors = colors) {
+                            Icon(Icons.Rounded.KeyboardArrowUp, stringResource(Res.string.reader_previous))
+                        }
+                        Text(
+                            stringResource(Res.string.reader_position, reader.current + 1, reader.changeCount),
+                            Modifier.weight(1f),
+                            style = MaterialTheme.typography.titleSmall,
+                            textAlign = TextAlign.Center,
+                        )
+                        IconButton(onClick = { scope.launch { reader.go(1) } }, enabled = reader.current < reader.changeCount - 1, colors = colors) {
+                            Icon(Icons.Rounded.KeyboardArrowDown, stringResource(Res.string.reader_next))
+                        }
                     }
-                    Text(
-                        stringResource(Res.string.reader_position, reader.current + 1, reader.changeCount),
-                        Modifier.weight(1f),
-                        style = MaterialTheme.typography.titleSmall,
-                        textAlign = TextAlign.Center,
-                    )
-                    IconButton(onClick = { scope.launch { reader.go(1) } }, enabled = reader.current < reader.changeCount - 1, colors = colors) {
-                        Icon(Icons.Rounded.KeyboardArrowDown, stringResource(Res.string.reader_next))
-                    }
-                } else {
-                    Spacer(Modifier.weight(1f))
                 }
-                if (canMarkRead) {
+                val readButton: @Composable (Modifier) -> Unit = { modifier ->
                     Button(
                         onClick = onMarkRead,
-                        modifier = Modifier.heightIn(min = 48.dp).then(if (showNav) Modifier else Modifier.fillMaxWidth()),
+                        modifier = modifier.heightIn(min = 48.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.marks.highlight, contentColor = MaterialTheme.marks.onHighlight),
                     ) {
                         Icon(Icons.Rounded.Check, null, Modifier.size(18.dp))
                         Spacer(Modifier.size(6.dp))
                         Text(stringResource(Res.string.mark_read_short))
+                    }
+                }
+                if (stacked) {
+                    Column(Modifier.fillMaxWidth()) {
+                        navigation(Modifier.fillMaxWidth())
+                        readButton(Modifier.fillMaxWidth())
+                    }
+                } else {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        navigation(Modifier.weight(1f))
+                        if (canMarkRead) readButton(Modifier)
                     }
                 }
             }
@@ -490,24 +516,26 @@ private fun ReaderBar(reader: ReaderState, showNav: Boolean, canMarkRead: Boolea
 
 /** Each version labelled by what changed, so "the one where the dates moved" is easy to find. */
 @Composable
-private fun VersionSheet(snaps: List<Snap>, selectedIndex: Int, onDismiss: () -> Unit, onSelect: (Int) -> Unit) {
+private fun VersionSheet(snaps: List<Snap>, selectedIndex: Int, selectedSingleSnapId: String?, onDismiss: () -> Unit, onSelect: (Int) -> Unit) {
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = MaterialTheme.colorScheme.surfaceContainerLowest) {
-        Text(stringResource(Res.string.reader_versions_title), Modifier.padding(horizontal = 24.dp), style = MaterialTheme.typography.headlineSmall)
-        Text(stringResource(Res.string.reader_versions_body), Modifier.padding(horizontal = 24.dp, vertical = 6.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         LazyColumn(Modifier.fillMaxWidth().testTag("version-list"), contentPadding = PaddingValues(bottom = 24.dp, top = 8.dp)) {
+            item(key = "title") {
+                Text(stringResource(Res.string.reader_versions_title), Modifier.padding(horizontal = 24.dp), style = MaterialTheme.typography.headlineSmall)
+                Text(stringResource(Res.string.reader_versions_body), Modifier.padding(horizontal = 24.dp, vertical = 6.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             itemsIndexed(snaps, key = { _, snap -> snap.snapId }) { index, snap ->
                 val previous = snaps.getOrNull(index + 1)
                 val preview = rememberPairPreview(previous?.snapId, snap.snapId)
                 GroupRow(
                     title = friendlyDateTime(snap.timestamp),
                     supporting = previewLabel(preview),
-                    enabled = previous != null,
-                    onClick = if (previous != null) ({ onSelect(index) }) else null,
+                    onClick = { onSelect(index) },
                     modifier = Modifier.padding(horizontal = 8.dp),
                 ) {
-                    when (index) {
-                        selectedIndex -> SelectionTag(stringResource(Res.string.preview_after))
-                        selectedIndex + 1 -> SelectionTag(stringResource(Res.string.preview_before))
+                    when {
+                        snap.snapId == selectedSingleSnapId -> SelectionTag(stringResource(Res.string.comparison_selected))
+                        index == selectedIndex -> SelectionTag(stringResource(Res.string.preview_after))
+                        index == selectedIndex + 1 -> SelectionTag(stringResource(Res.string.preview_before))
                     }
                 }
             }

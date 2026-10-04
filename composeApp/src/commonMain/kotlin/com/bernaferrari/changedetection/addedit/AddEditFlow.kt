@@ -42,9 +42,10 @@ fun AddPageDialog(
         onDispose { owner.viewModelStore.clear() }
     }
     val viewModel: AddEditViewModel = koinViewModel(viewModelStoreOwner = owner) { parametersOf(null) }
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = { if (!uiState.isSaving) onDismiss() },
         properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         BoxWithConstraints(

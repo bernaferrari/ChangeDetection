@@ -189,6 +189,7 @@ internal fun SyncIntervalInput(
     currentInterval: Long,
     onIntervalChanged: (Long) -> Unit,
     onValidityChanged: (Boolean) -> Unit = {},
+    enabled: Boolean = true,
 ) {
     fun unitFor(minutes: Long) = when {
         minutes % 1440L == 0L -> 1440L
@@ -221,6 +222,7 @@ internal fun SyncIntervalInput(
             label = { Text(stringResource(Res.string.settings_sync_interval_value)) },
             singleLine = true,
             isError = isError,
+            enabled = enabled,
             supportingText = { Text(stringResource(Res.string.settings_interval_minimum)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             shape = MaterialTheme.shapes.medium,
@@ -233,6 +235,7 @@ internal fun SyncIntervalInput(
                 } + 1.dp
                 FilterChip(
                     selected = unit == value,
+                    enabled = enabled,
                     onClick = { update(amount, value) },
                     label = { Text(label, Modifier.width(labelWidth), style = MaterialTheme.typography.labelLarge) },
                     modifier = Modifier.heightIn(min = MaterialTheme.spacing.touchTarget),
@@ -248,6 +251,7 @@ internal fun SyncIntervalInput(
                     val presetUnit = unitFor(minutes)
                     update((minutes / presetUnit).toString(), presetUnit)
                 },
+                enabled = enabled,
             )
         }
     }
@@ -259,6 +263,7 @@ private fun PresetRow(
     selectedInterval: Long,
     onIntervalSelected: (Long) -> Unit,
     labelForPreset: (Long) -> String = ::formatInterval,
+    enabled: Boolean = true,
 ) {
     val spacing = MaterialTheme.spacing
     Row(
@@ -272,6 +277,7 @@ private fun PresetRow(
                 isSelected = selectedInterval == preset,
                 onClick = { onIntervalSelected(preset) },
                 modifier = Modifier.weight(1f),
+                enabled = enabled,
             )
         }
     }
@@ -284,6 +290,7 @@ private fun PresetChip(
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     val spacing = MaterialTheme.spacing
     val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh
@@ -298,6 +305,7 @@ private fun PresetChip(
             .selectable(
                 selected = isSelected,
                 role = Role.RadioButton,
+                enabled = enabled,
                 onClick = onClick,
             ),
         contentAlignment = Alignment.Center,

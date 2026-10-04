@@ -35,10 +35,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.sync.withPermit
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.async
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.FlowPreview
@@ -64,7 +61,6 @@ class LogsViewModel(
     private val fileStorage: FileStorage,
     // Injected so host tests can run deletes on a deterministic test dispatcher.
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.Default,
-    private val undoRetentionMillis: Long = 8_000L,
 ) : ViewModel() {
     /**
      * Snapshots held in memory between delete and Undo-expiry, keyed by snapId.
@@ -84,9 +80,6 @@ class LogsViewModel(
 
         /** Completes once read + deletion finished; cancelled if the delete fails. */
         val deleted = CompletableDeferred<Unit>()
-
-        /** Releases retained bytes even if the snackbar leaves composition. */
-        var expiryJob: Job? = null
     }
 
     // Mutated from both the caller (UI) thread and IO-dispatcher coroutines, so all
@@ -178,12 +171,9 @@ class LogsViewModel(
                 pending.contentBytes = fileStorage.readBytes(snap.snapId)
                 snapsRepository.deleteSnap(snap.snapId)
                 pending.deleted.complete(Unit)
-                pending.expiryJob = viewModelScope.launch {
-                    delay(undoRetentionMillis)
-                    pendingDeletions.update { current ->
-                        if (current[snap.snapId] === pending) current - snap.snapId else current
-                    }
-                }
+                // The screen releases this entry when its snackbar ends or leaves
+                // composition. A fixed timer can expire before a queued snackbar
+                // appears or while accessibility keeps its Undo action visible.
                 true
             } catch (cancellation: CancellationException) {
                 pendingDeletions.update { it - snap.snapId }
@@ -198,18 +188,9 @@ class LogsViewModel(
         }
     }
 
-    fun undoRemoveSnap(snap: Snap) {
-        var removed: PendingSnapDeletion? = null
-        pendingDeletions.update { current ->
-            // update may retry after a lost race, so the capture stays idempotent.
-            current[snap.snapId]?.let { slot ->
-                removed = slot
-                current - snap.snapId
-            } ?: current
-        }
-        val pending = removed ?: return
-        pending.expiryJob?.cancel()
-        viewModelScope.launch(ioDispatcher) {
+    fun undoRemoveSnap(snap: Snap): Deferred<Boolean> {
+        val pending = pendingDeletions.value[snap.snapId] ?: return CompletableDeferred(false)
+        return viewModelScope.async(ioDispatcher) {
             // Wait for the delete to finish before restoring, otherwise the delete
             // would remove what this undo just re-inserted.
             try {
@@ -217,11 +198,24 @@ class LogsViewModel(
             } catch (_: CancellationException) {
                 // The delete failed or its owner was cancelled; the original row
                 // was not safely removed, so there is nothing honest to restore.
-                return@launch
+                return@async false
             }
-            pending.contentBytes?.let { fileStorage.writeBytes(snap.snapId, it) }
-            runCatching { snapsDao.insertSnap(pending.snap) }
-                .onFailure { Napier.e("Failed to restore snapshot ${snap.snapId}", it) }
+            try {
+                val bytes = pending.contentBytes ?: return@async false
+                fileStorage.writeBytes(snap.snapId, bytes)
+                snapsDao.insertSnap(pending.snap)
+                pendingDeletions.update { current ->
+                    if (current[snap.snapId] === pending) current - snap.snapId else current
+                }
+                true
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (error: Exception) {
+                // Retain the backup while the UI offers Retry. Never re-insert a
+                // row if its bytes could not be safely restored first.
+                Napier.e("Failed to restore snapshot ${snap.snapId}", error)
+                false
+            }
         }
     }
 
@@ -232,19 +226,11 @@ class LogsViewModel(
      */
     fun discardPendingDeletion(snap: Snap?) {
         if (snap == null) return
-        var removed: PendingSnapDeletion? = null
-        pendingDeletions.update { current ->
-            current[snap.snapId]?.let {
-                removed = it
-                current - snap.snapId
-            } ?: current
-        }
-        removed?.expiryJob?.cancel()
+        pendingDeletions.update { current -> current - snap.snapId }
     }
 
     override fun onCleared() {
         // Release any retained snapshot bytes; nothing can restore them anymore.
-        pendingDeletions.value.values.forEach { it.expiryJob?.cancel() }
         pendingDeletions.value = emptyMap()
         super.onCleared()
     }

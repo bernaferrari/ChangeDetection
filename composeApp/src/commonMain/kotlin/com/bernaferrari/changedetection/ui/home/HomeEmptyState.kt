@@ -44,6 +44,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.preview.EditSegment
@@ -115,7 +116,7 @@ private fun DemoCards() {
     val settle = remember { Animatable(0f) }
     LaunchedEffect(Unit) { settle.animateTo(1f, tween(700)) }
     val marks = MaterialTheme.marks
-    Box(Modifier.fillMaxWidth().heightIn(min = 190.dp)) {
+    Column(Modifier.fillMaxWidth().clearAndSetSemantics { }, verticalArrangement = Arrangement.spacedBy((-8).dp)) {
         DemoCard(
             Modifier.padding(end = 24.dp).rotate(-2.5f * settle.value).graphicsLayer {
                 translationY = (1f - settle.value) * 40f
@@ -130,7 +131,7 @@ private fun DemoCards() {
             )
         }
         DemoCard(
-            Modifier.align(Alignment.BottomEnd).padding(start = 40.dp).rotate(2f * settle.value).graphicsLayer {
+            Modifier.align(Alignment.End).padding(start = 40.dp).rotate(2f * settle.value).graphicsLayer {
                 translationY = (1f - settle.value) * 80f
                 alpha = settle.value
             },

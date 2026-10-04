@@ -26,6 +26,16 @@ class ChangePreviewTest {
         assertEquals("Applications close [-31 October,-] {+14 November,+} 23:59 CET", diff.render())
     }
 
+    @Test fun insertionsAndDeletionsPreserveWordSeparators() {
+        assertEquals("Price [-10 -]USD", wordDiff("Price 10 USD", "Price USD").render())
+        assertEquals("Price {+10 +}USD", wordDiff("Price USD", "Price 10 USD").render())
+    }
+
+    @Test fun blankLineOnlyChangesDoNotCreateEmptyPreviewsOrReaderCards() {
+        assertEquals(ChangePreview.Invisible, textPreview(listOf("Same", ""), listOf("Same")))
+        assertTrue(readerBlocks(listOf("Same", ""), listOf("Same"), emptySet()).none { it is ReaderBlock.Change })
+    }
+
     @Test fun rewrittenSentencesShowOldThenNew() {
         val diff = wordDiff("Results will be published at 12:00.", "Results are now available.")
         assertTrue(diff.render(), diff.first().kind == EditSegment.Kind.Removed || diff.any { it.kind == EditSegment.Kind.Added })
@@ -46,6 +56,22 @@ class ChangePreviewTest {
         val new = (1..40).map { "Listing ${it + 100} · 1 200 €" }
         val preview = textPreview(old, new)
         assertTrue(preview is ChangePreview.Large)
+    }
+
+    @Test fun previewSkipsAnEarlierIsolatedBlankLineEdit() {
+        val old = listOf("Heading", "", "Unchanged sentence", "Price 10")
+        val new = listOf("Heading", "Unchanged sentence", "Price 12")
+        val preview = textPreview(old, new) as ChangePreview.Words
+        assertTrue(preview.segments.any { it.kind == EditSegment.Kind.Added && "12" in it.text })
+        assertEquals(0, preview.otherChanges)
+    }
+
+    @Test fun completeRewritesCountEachReplacedLineOnlyOnce() {
+        val old = (1..40).map { "Original listing $it · 900 €" }
+        val new = (1..40).map { "Replacement listing $it · 1 200 €" }
+        val preview = textPreview(old, new) as ChangePreview.Large
+        assertEquals(40, preview.changedLines)
+        assertEquals(40, preview.totalLines)
     }
 
     @Test fun identicalReadableTextIsInvisible() {

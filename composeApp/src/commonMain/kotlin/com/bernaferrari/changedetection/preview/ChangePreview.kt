@@ -8,7 +8,6 @@ import com.bernaferrari.changedetection.image.ChangedBounds
 import com.bernaferrari.changedetection.image.PlatformImageDiff
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
-import com.bernaferrari.changedetection.ui.comparison.DiffLineType
 import com.bernaferrari.changedetection.ui.comparison.calculateDiffRows
 import com.bernaferrari.changedetection.ui.comparison.isHtmlSnapshot
 import com.bernaferrari.changedetection.ui.comparison.isImageSnapshot
@@ -147,14 +146,20 @@ private const val LARGE_CHANGED_CHARS = 900
 /** Pure and synchronous so it is easy to test with plain strings. */
 internal fun textPreview(oldLines: List<String>, newLines: List<String>, headings: Set<String> = emptySet()): ChangePreview {
     val rows = calculateDiffRows(oldLines, newLines)
-    val changed = rows.filter { it.type != DiffLineType.UNCHANGED }
-    if (changed.isEmpty()) return ChangePreview.Invisible
-    val sections = textChangeSections(rows, headings)
+    val sections = textChangeSections(rows, headings).filter { section ->
+        section.before.any { it.content.isNotBlank() } || section.after.any { it.content.isNotBlank() }
+    }
+    if (sections.isEmpty()) return ChangePreview.Invisible
+    val changed = sections.flatMap { it.before + it.after }.filter { it.content.isNotBlank() }
     val changedChars = changed.sumOf { it.content.length }
     val total = maxOf(oldLines.size, newLines.size, 1)
-    val sectionsShare = changed.size.toFloat() / total
-    if (changedChars > LARGE_CHANGED_CHARS || (changed.size > 8 && sectionsShare > 0.4f)) {
-        return ChangePreview.Large(changed.size, total)
+    // A replaced line is one change, rather than one deletion plus one addition.
+    val changedLines = sections.sumOf { section ->
+        maxOf(section.before.count { it.content.isNotBlank() }, section.after.count { it.content.isNotBlank() })
+    }.coerceAtMost(total)
+    val sectionsShare = changedLines.toFloat() / total
+    if (changedChars > LARGE_CHANGED_CHARS || (changedLines > 8 && sectionsShare > 0.4f)) {
+        return ChangePreview.Large(changedLines, total)
     }
     val first = sections.first()
     val before = first.before.joinToString(" ") { it.content }
@@ -234,9 +239,16 @@ private fun clusterEdits(ops: List<Pair<EditSegment.Kind, String>>): List<EditSe
         val added = cluster.filter { it.first != EditSegment.Kind.Removed }.joinToString("") { it.second }.trim()
         val hasRemoved = cluster.any { it.first == EditSegment.Kind.Removed }
         val hasAdded = cluster.any { it.first == EditSegment.Kind.Added }
-        if (hasRemoved && removed.isNotEmpty()) push(removed, EditSegment.Kind.Removed)
-        if (hasRemoved && hasAdded && removed.isNotEmpty() && added.isNotEmpty()) push(" ", EditSegment.Kind.Same)
-        if (hasAdded && added.isNotEmpty()) push(added, EditSegment.Kind.Added)
+        if (hasRemoved && !hasAdded) {
+            // Keep boundary whitespace for insertions/deletions so adjacent words do not run together.
+            push(cluster.joinToString("") { it.second }, EditSegment.Kind.Removed)
+        } else if (hasAdded && !hasRemoved) {
+            push(cluster.joinToString("") { it.second }, EditSegment.Kind.Added)
+        } else {
+            if (removed.isNotEmpty()) push(removed, EditSegment.Kind.Removed)
+            if (removed.isNotEmpty() && added.isNotEmpty()) push(" ", EditSegment.Kind.Same)
+            if (added.isNotEmpty()) push(added, EditSegment.Kind.Added)
+        }
         index = lastEdit + 1
     }
     return out
