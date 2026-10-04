@@ -30,5 +30,5 @@ Design reference: `design/change-detection-v6.html`. Branch: `redesign/v6`.
 ## Known gaps
 
 - Screenshot crops depend on Android captures; desktop can't capture screenshots, so screenshot pages fail there by design.
-- Translations exist for the new Android notification strings only; other new UI strings fall back to English.
-- The launcher icon still uses the previous mark. `AppMark` is the in-app mark.
+- The [4 October review](v6-review.md) added Portuguese, Spanish and Italian translations, updated the Android launcher/splash/notification marks, and corrected the interaction and accessibility gaps. It supersedes this implementation snapshot’s test counts and those earlier translation/icon gaps.
+- Physical-device lifecycle and signed-release acceptance remain separate from the shared UI review. See the release-readiness notes in the review.

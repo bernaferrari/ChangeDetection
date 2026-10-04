@@ -2,6 +2,7 @@
   "name": "web",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.20.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -38,7 +39,7 @@
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
-      "version": "^11.0.0",
+      "version": "11.20.0",
       "onFail": "ignore"
     }
   }

@@ -50,7 +50,7 @@ jobs:
           path: |
             composeApp/build/reports/tests/desktopTest/
             composeApp/build/test-results/desktopTest/
-            build/desktop-review/*.png
+            build/desktop-review/**/*.png
           retention-days: 14
           if-no-files-found: warn
 

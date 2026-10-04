@@ -42,6 +42,27 @@ Gradle now uses at most two workers, and both Gradle and Kotlin JVMs see two pro
 
 Usability judgments here are based on code, interaction tests and rendered screens. They are not a substitute for observing first-time users. Android screenshot capture remains platform-specific; desktop/web retain the explicit unsupported-capture explanation.
 
+## Release readiness follow-through — 4 October
+
+The next step is a signed Android internal-testing candidate. The design review supports testing with users; broad production rollout is not signed off. iOS remains a development target, and the web build is a demo rather than a replacement for Android monitoring.
+
+The release audit found an existing history-loss risk outside the redesign: Android copied the old `Changes.db` into `changes.db`, swallowed copy errors, and deleted the legacy source whenever Room opened. A failed or skipped import could therefore lose the only intact history. The importer now preserves every legacy file, stages and syncs the main/WAL/SHM/rollback-journal copies, installs recovery files before atomically activating the main database, and propagates failures before Room construction. It restores preexisting destination sidecars if activation fails. Existing nonempty databases stay untouched. Ten host regressions cover failure, rollback and retry; actual Android upgrade acceptance still requires a device.
+
+Rollback journals are included because an interrupted older transaction may need them for recovery. [SQLite’s corruption guidance](https://www.sqlite.org/howtocorrupt.html#_deleting_a_hot_journal) explains why copying the database without its recovery journal is unsafe.
+
+User-facing documentation now follows the v6 Watch a page, Text/Screenshot, region-selection and Turbo flows. The website has an explicit pnpm version matching CI, so the generated KMP root package cannot redirect its commands to Yarn. CI now retains the nested v6 review captures. The Fastlane README describes the current Play internal/production lanes and their prerequisites.
+
+Final validation passed: all 316 Android host tests, including ten legacy-import regressions; formatting; optimized release APK and AAB assembly; and website lint and production build. The corrected native test sources also compile, but the native suite was not executed during this follow-through. Workflow YAML parses successfully; hosted execution remains unverified. Gradle used at most two workers, and no emulator was used. The resulting APK and AAB are unsigned because external signing credentials are not configured in this session.
+
+Before public rollout:
+
+1. Confirm the external credential remediation in [credential-remediation.md](credential-remediation.md). The repository records previously exposed credentials; revocation/replacement and the correct upload/app-signing identity are not verified here. Use verified replacement credentials through the external-file configuration.
+2. Confirm the highest uploaded Play version code and choose an unused code. The project still declares version 2.31 / code 34; this audit does not assume that code is available.
+3. Build a signed AAB and verify an internal-track install or appropriately signed release APK on an authorized physical device: upgrade a populated older install, retain saved history after restart, run normal and screenshot checks, open the correct version from a notification, deny notifications and recover, and exercise Turbo start/Stop/timer expiry with screen off, offline recovery and process death. Execute the corrected native suite as part of this gate. No emulator is required or started by this follow-through.
+4. Distribute through Play internal testing. Observe first-time users adding a page, recognizing a change, comparing versions and finding Turbo. Promote a limited production rollout after the beta shows no blocking usability, crash, history or monitoring problem.
+
+Hosted CI success and repository-required checks for the final candidate remain unverified. A successful unsigned release build proves compilation, optimization and packaging; it is not an installable or publishable signed release.
+
 ## Rendered review sheets
 
 - [Light appearance](../design/v6-reviewed-light.jpg)
