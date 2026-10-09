@@ -30,6 +30,7 @@ import kotlin.time.Clock
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -47,6 +48,7 @@ import org.koin.core.annotation.KoinViewModel
 sealed class UiMessage {
     data object SnapshotsPruned : UiMessage()
     data object TurboEnded : UiMessage()
+    data class PageAdded(val siteId: String, val name: String) : UiMessage()
 }
 
 @OptIn(ExperimentalUuidApi::class)
@@ -68,8 +70,13 @@ class MainViewModel(
     val currentError: StateFlow<ErrorEvent?> = _currentError.asStateFlow()
 
     // Success/error messages for snackbar display
-    private val _uiMessage = MutableSharedFlow<UiMessage>(extraBufferCapacity = 1)
-    val uiMessage: SharedFlow<UiMessage> = _uiMessage.asSharedFlow()
+    // A channel keeps a message until Home is on screen to show it (e.g. right after adding a page).
+    private val _uiMessage = kotlinx.coroutines.channels.Channel<UiMessage>(kotlinx.coroutines.channels.Channel.BUFFERED)
+    val uiMessage: kotlinx.coroutines.flow.Flow<UiMessage> = _uiMessage.receiveAsFlow()
+
+    fun announcePageAdded(siteId: String, name: String) {
+        _uiMessage.trySend(UiMessage.PageAdded(siteId, name))
+    }
 
     // Pending retry action for error recovery
     private var pendingRetryAction: (() -> Unit)? = null
@@ -103,7 +110,7 @@ class MainViewModel(
         viewModelScope.launch {
             runCatching {
                 mSnapsRepository.pruneSnaps(siteId)
-                _uiMessage.tryEmit(UiMessage.SnapshotsPruned)
+                _uiMessage.trySend(UiMessage.SnapshotsPruned)
             }.onFailure { error ->
                 showError(
                     error = error,

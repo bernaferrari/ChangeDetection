@@ -283,7 +283,7 @@
     <string name="editor_review_title">Revisar</string>
     <string name="editor_start">Empezar a monitorizar</string>
     <string name="editor_paste_title">¿Qué quieres monitorizar?</string>
-    <string name="editor_paste_body">Pega un enlace. Después verás exactamente qué compararemos antes de guardar nada.</string>
+    <string name="editor_paste_body">Pega un enlace y verás exactamente qué compararemos antes de guardar nada.</string>
     <string name="editor_use_link">Usar</string>
     <string name="editor_compare">Comparar</string>
     <string name="editor_preview">Qué compararemos</string>

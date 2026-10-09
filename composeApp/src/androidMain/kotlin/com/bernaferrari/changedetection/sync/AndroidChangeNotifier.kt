@@ -41,31 +41,11 @@ class AndroidChangeNotifier(
         // Follow up with the same bounded preview the app shows, quietly replacing the first alert.
         scope.launch {
             val koin = org.koin.mp.KoinPlatformTools.defaultContext().getOrNull() ?: return@launch
-            val previews = koin.getOrNull<com.bernaferrari.changedetection.preview.ChangePreviewRepository>() ?: return@launch
-            val snap = koin.getOrNull<com.bernaferrari.changedetection.repo.source.SnapsRepository>()?.getSnapById(snapId) ?: return@launch
-            val summary = runCatching { plainSummary(previews.forVersion(snap)) }.getOrNull() ?: return@launch
+            val (_, summary) = runCatching {
+                changeAlertText(site, snapId, koin.getOrNull(), koin.getOrNull())
+            }.getOrNull() ?: return@launch
             post(site, snapId, summary)
         }
-    }
-
-    private fun plainSummary(preview: com.bernaferrari.changedetection.preview.ChangePreview): String? = when (preview) {
-        is com.bernaferrari.changedetection.preview.ChangePreview.Words -> {
-            val now = preview.segments.filter { it.kind != com.bernaferrari.changedetection.preview.EditSegment.Kind.Removed }.joinToString("") { it.text }.trim()
-            val was = preview.segments.filter { it.kind == com.bernaferrari.changedetection.preview.EditSegment.Kind.Removed }.joinToString(" ") { it.text }.trim()
-            buildString {
-                preview.section?.let { append(it).append(": ") }
-                if (preview.leadingEllipsis) append("…")
-                append(now.ifEmpty { context.getString(R.string.change_notification_removed_text) })
-                if (preview.trailingEllipsis) append("…")
-                if (was.isNotEmpty() && was.length <= 60 && now.isNotEmpty()) append(context.getString(R.string.change_notification_was, was))
-            }
-        }
-
-        is com.bernaferrari.changedetection.preview.ChangePreview.Crop -> context.getString(R.string.change_notification_visual, String.format(java.util.Locale.getDefault(), "%.1f", preview.percent))
-
-        is com.bernaferrari.changedetection.preview.ChangePreview.Large -> context.getString(R.string.change_notification_large)
-
-        else -> null
     }
 
     @SuppressLint("MissingPermission")

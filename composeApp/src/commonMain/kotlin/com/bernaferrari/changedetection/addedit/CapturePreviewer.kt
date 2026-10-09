@@ -10,7 +10,7 @@ import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.sync.SyncEngine
 
 sealed interface CapturePreview {
-    data class Html(val text: String, val totalBytes: Int, val selectableDocument: com.bernaferrari.changedetection.detection.SelectableTextDocument? = null) : CapturePreview
+    data class Html(val text: String, val totalBytes: Int, val selectableDocument: com.bernaferrari.changedetection.detection.SelectableTextDocument? = null, val pageTitle: String? = null) : CapturePreview
     data class Image(val bytes: ByteArray) : CapturePreview
 }
 
@@ -60,9 +60,23 @@ class HtmlCapturePreviewer(private val engine: SyncEngine) : CapturePreviewer {
                         } else {
                             null
                         },
+                        pageTitle = if (result.contentType.contains("html", true)) htmlTitle(result.data.decodeToString()) else null,
                     )
                 }
             }
         }
     }
+}
+
+private val titleTag = Regex("<title[^>]*>(.*?)</title>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+private val ogTitle = Regex("<meta[^>]+property=[\"']og:title[\"'][^>]*content=([\"'])(.*?)\\1", RegexOption.IGNORE_CASE)
+
+/** The page's own name: Open Graph title first (usually cleanest), then `<title>`; cleaned to be a good default. */
+internal fun htmlTitle(html: String): String? {
+    val head = html.take(600_000)
+    val raw = ogTitle.find(head)?.groupValues?.get(2) ?: titleTag.find(head)?.groupValues?.get(1) ?: return null
+    val text = com.fleeksoft.ksoup.Ksoup.parse(raw).text().replace(Regex("\\s+"), " ").trim()
+    // "BBC News - Breaking news, video and…" reads better as "BBC News"; short titles stay whole.
+    val short = if (text.length > 40) text.split(" - ", " | ", " – ", " — ", " · ").first().trim() else text
+    return short.takeIf { it.length >= 2 }?.let { if (it.length > 60) it.take(60).substringBeforeLast(' ') + "…" else it }
 }

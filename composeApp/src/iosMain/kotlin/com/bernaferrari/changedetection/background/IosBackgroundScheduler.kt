@@ -5,6 +5,7 @@
 package com.bernaferrari.changedetection.background
 
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.launch
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.BackgroundTasks.BGAppRefreshTaskRequest
 import platform.BackgroundTasks.BGTaskScheduler
@@ -107,30 +108,29 @@ class IosBackgroundScheduler : BackgroundScheduler {
      * ```
      */
     fun registerBackgroundTasks(onSync: () -> Unit) {
+        registerBackgroundWork { onSync() }
+    }
+
+    /** Swift entry point: background refresh runs every active page through the shared sync engine. */
+    fun registerDefaultBackgroundWork() {
+        registerBackgroundWork { com.bernaferrari.changedetection.di.KoinHelper.getSyncEngine().syncAllSites() }
+    }
+
+    /**
+     * Registers handlers that keep iOS informed: the task completes only after the checks finish,
+     * and an expiring task cancels the work instead of being killed mid-write.
+     */
+    fun registerBackgroundWork(work: suspend () -> Unit) {
         Napier.i("Registering iOS background task handlers", tag = "BackgroundScheduler")
-        BGTaskScheduler.sharedScheduler.registerForTaskWithIdentifier(
-            identifier = PERIODIC_SYNC_TASK_ID,
-            usingQueue = null,
-        ) { task ->
-            Napier.i("Executing iOS periodic sync task", tag = "BackgroundScheduler")
-            // Handle the background task
-            if (task != null) {
-                onSync()
-                task.setTaskCompletedWithSuccess(true)
-
-                // Reschedule for next interval
-                schedulePeriodicSync(periodicIntervalMinutes, periodicConstraints)
-            }
-        }
-
-        BGTaskScheduler.sharedScheduler.registerForTaskWithIdentifier(
-            identifier = QUICK_MONITOR_TASK_ID,
-            usingQueue = null,
-        ) { task ->
-            Napier.i("Executing iOS quick monitor task", tag = "BackgroundScheduler")
-            if (task != null) {
-                onSync()
-                task.setTaskCompletedWithSuccess(true)
+        listOf(PERIODIC_SYNC_TASK_ID, QUICK_MONITOR_TASK_ID).forEach { identifier ->
+            BGTaskScheduler.sharedScheduler.registerForTaskWithIdentifier(identifier = identifier, usingQueue = null) { task ->
+                if (task == null) return@registerForTaskWithIdentifier
+                if (identifier == PERIODIC_SYNC_TASK_ID) schedulePeriodicSync(periodicIntervalMinutes, periodicConstraints)
+                val job = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default).launch {
+                    val ok = runCatching { work() }.isSuccess
+                    task.setTaskCompletedWithSuccess(ok)
+                }
+                task.expirationHandler = { job.cancel() }
             }
         }
     }

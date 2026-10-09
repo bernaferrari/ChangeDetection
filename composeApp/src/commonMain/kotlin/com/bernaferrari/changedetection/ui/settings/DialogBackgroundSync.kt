@@ -117,7 +117,7 @@ internal fun BackgroundSyncDialogContent(
     ModalBottomSheet(
         onDismissRequest = { if (!saving) onDismiss() },
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        containerColor = MaterialTheme.colorScheme.surfaceBright,
     ) {
         Column(Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
             Column(Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 16.dp)) {

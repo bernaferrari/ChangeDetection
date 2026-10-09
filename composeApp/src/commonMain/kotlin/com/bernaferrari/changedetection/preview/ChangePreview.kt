@@ -44,10 +44,27 @@ sealed interface ChangePreview {
         val otherChanges: Int,
         val leadingEllipsis: Boolean,
         val trailingEllipsis: Boolean,
+        /** Every change only moved digits: counters, times, prices. */
+        val numbersOnly: Boolean = false,
     ) : ChangePreview
 
-    /** So much changed that quoting it would only be noise. */
-    data class Large(val changedLines: Int, val totalLines: Int) : ChangePreview
+    /**
+     * Too much changed to quote as one passage. Instead of the diff, a few representative one-line
+     * samples (meaningful words first, number churn last) plus the size of the change.
+     */
+    data class Large(
+        val changedLines: Int,
+        val totalLines: Int,
+        val samples: List<List<EditSegment>> = emptyList(),
+        val numbersOnly: Boolean = false,
+        /** Lines that are genuinely new / gone, ignoring order and numbers. */
+        val added: Int = 0,
+        val removed: Int = 0,
+        /** Lines that only moved or had their numbers change. */
+        val updated: Int = 0,
+        /** Exactly the same lines in a different order (re-sorted lists). */
+        val reordered: Boolean = false,
+    ) : ChangePreview
 
     /** The content changed, but not in a way that is visible as text (scripts, markup, whitespace). */
     data object Invisible : ChangePreview
@@ -142,6 +159,78 @@ class ChangePreviewRepository(
 private const val CONTEXT_CHARS = 48
 private const val SNIPPET_CHARS = 200
 private const val LARGE_CHANGED_CHARS = 900
+private const val SAMPLE_CHARS = 90
+
+private val digits = Regex("\\d+([.,:]\\d+)*")
+
+/** "12 minutes ago", "3 hours ago", "yesterday": relative times tick like counters, so they are masked like numbers. */
+private val relativeTime = Regex(
+    "\\b(#\\s*)?(seconds?|secs?|minutes?|mins?|hours?|hrs?|days?|weeks?|months?|years?|segundos?|minutos?|horas?|d[ií]as?|semanas?|meses|mes|años?|anos?|secondi|minuti|ore|ora|giorni|giorno|settimane|mesi|anni)\\b(\\s+(ago|atrás|fa))?|\\b(just now|yesterday|today|ayer|hoy|ontem|hoje|ieri|oggi)\\b",
+    RegexOption.IGNORE_CASE,
+)
+
+/** Masks the parts of a line that change on their own: numbers and relative times. */
+private fun mask(line: String): String = relativeTime.replace(digits.replace(line, "#"), "#t")
+
+/** True when two passages differ only in their numbers ("76 points · 1 hour ago" → "80 points · 2 hours ago" is not, "76 points" → "80 points" is). */
+internal fun onlyNumbersDiffer(before: String, after: String): Boolean =
+    before != after && mask(before) == mask(after)
+
+/** How much real wording a change carries, so previews lead with words rather than counters. */
+private fun meaning(before: String, after: String): Int {
+    if (onlyNumbersDiffer(before, after)) return 0
+    val words = wordDiff(before.take(400), after.take(400)).filter { it.kind != EditSegment.Kind.Same }.sumOf { segment -> segment.text.count { it.isLetter() } }
+    return words.coerceAtLeast(1)
+}
+
+/** A busy page's change, sorted the way a person reads it: what is new, what is gone, what only ticked. */
+data class TextDigest(
+    val added: List<String>,
+    val removed: List<String>,
+    /** Old → new lines that are mostly the same words: real edits, shown as word-level changes. */
+    val edited: List<Pair<String, String>>,
+    /** Old → new lines whose words are the same and only numbers moved (counters, times, prices). */
+    val numberUpdates: List<Pair<String, String>>,
+    /** Exactly the same lines in a different order. */
+    val reordered: Boolean,
+)
+
+/** Compares the sets of lines with numbers masked, so shifting and re-sorting are not mistaken for change. */
+fun textDigest(oldLines: List<String>, newLines: List<String>): TextDigest {
+    fun norm(line: String) = mask(line.trim())
+    val old = oldLines.map { it.trim() }.filter { it.isNotEmpty() }
+    val new = newLines.map { it.trim() }.filter { it.isNotEmpty() }
+    if (old != new && old.sorted() == new.sorted()) return TextDigest(emptyList(), emptyList(), emptyList(), emptyList(), reordered = true)
+    val oldByNorm = old.groupBy(::norm)
+    val newNorms = new.mapTo(HashSet(), ::norm)
+    val oldExact = old.toHashSet()
+    val addedAll = new.filter { norm(it) !in oldByNorm }.distinct()
+    val removedAll = old.filter { norm(it) !in newNorms }.distinct()
+    val updates = new.filter { it !in oldExact }.mapNotNull { line -> oldByNorm[norm(line)]?.firstOrNull()?.let { it to line } }.distinct()
+    // A "new" line that mostly repeats the words of a "gone" line is an edit of it, not a new item.
+    val edited = mutableListOf<Pair<String, String>>()
+    val unmatched = removedAll.take(300).toMutableList()
+    val added = mutableListOf<String>()
+    addedAll.forEachIndexed { index, line ->
+        val words = wordSet(line)
+        val match = if (index < 300) unmatched.maxByOrNull { similarity(words, wordSet(it)) }?.takeIf { similarity(words, wordSet(it)) >= 0.5f } else null
+        if (match != null) {
+            edited += match to line
+            unmatched.remove(match)
+        } else {
+            added += line
+        }
+    }
+    val removed = removedAll.filter { gone -> edited.none { it.first == gone } }
+    return TextDigest(added, removed, edited, updates, reordered = false)
+}
+
+private fun wordSet(line: String): Set<String> = mask(line.lowercase()).split(Regex("[^\\p{L}#]+")).filter { it.length > 1 || it == "#" }.toSet()
+
+private fun similarity(a: Set<String>, b: Set<String>): Float {
+    if (a.isEmpty() || b.isEmpty()) return 0f
+    return a.intersect(b).size.toFloat() / (a.size + b.size - a.intersect(b).size)
+}
 
 /** Pure and synchronous so it is easy to test with plain strings. */
 internal fun textPreview(oldLines: List<String>, newLines: List<String>, headings: Set<String> = emptySet()): ChangePreview {
@@ -150,6 +239,12 @@ internal fun textPreview(oldLines: List<String>, newLines: List<String>, heading
         section.before.any { it.content.isNotBlank() } || section.after.any { it.content.isNotBlank() }
     }
     if (sections.isEmpty()) return ChangePreview.Invisible
+    val passages = sections.map { section ->
+        val before = section.before.joinToString(" ") { it.content }
+        val after = section.after.joinToString(" ") { it.content }
+        Triple(section, before, after)
+    }
+    val numbersOnly = passages.all { (_, before, after) -> onlyNumbersDiffer(before, after) }
     val changed = sections.flatMap { it.before + it.after }.filter { it.content.isNotBlank() }
     val changedChars = changed.sumOf { it.content.length }
     val total = maxOf(oldLines.size, newLines.size, 1)
@@ -158,17 +253,40 @@ internal fun textPreview(oldLines: List<String>, newLines: List<String>, heading
         maxOf(section.before.count { it.content.isNotBlank() }, section.after.count { it.content.isNotBlank() })
     }.coerceAtMost(total)
     val sectionsShare = changedLines.toFloat() / total
+    val scored = passages.mapIndexed { index, passage -> Triple(index, passage, meaning(passage.second, passage.third)) }
     if (changedChars > LARGE_CHANGED_CHARS || (changedLines > 8 && sectionsShare > 0.4f)) {
-        return ChangePreview.Large(changedLines, total)
+        val digest = textDigest(oldLines, newLines)
+        if (digest.reordered) return ChangePreview.Large(changedLines, total, reordered = true)
+        val addedLines = digest.added
+        val removedLines = digest.removed
+        val updated = digest.numberUpdates.size + digest.edited.size
+        val samples = buildList {
+            digest.edited.sortedByDescending { meaning(it.first, it.second) }.take(1).filter { meaning(it.first, it.second) >= 12 }.forEach { (before, after) ->
+                add(trimAroundFirstEdit(wordDiff(before.take(300), after.take(300)), SAMPLE_CHARS).first)
+            }
+            addedLines.sortedByDescending { line -> line.count { it.isLetter() } }.take(3 - size).forEach { add(listOf(EditSegment(clip(it), EditSegment.Kind.Added))) }
+            removedLines.sortedByDescending { line -> line.count { it.isLetter() } }.take(3 - size).forEach { add(listOf(EditSegment(clip(it), EditSegment.Kind.Removed))) }
+            if (isEmpty()) {
+                val pairs = sections.flatMap { section ->
+                    val before = section.before.map { it.content }.filter { it.isNotBlank() }
+                    val after = section.after.map { it.content }.filter { it.isNotBlank() }
+                    (0 until maxOf(before.size, after.size)).map { i -> before.getOrElse(i) { "" } to after.getOrElse(i) { "" } }
+                }.filter { it.first.trim() != it.second.trim() }
+                pairs.withIndex().map { (index, pair) -> Triple(index, pair, meaning(pair.first, pair.second)) }
+                    .sortedByDescending { it.third }.take(3).sortedBy { it.first }
+                    .forEach { (_, pair, _) -> add(trimAroundFirstEdit(wordDiff(pair.first.take(300), pair.second.take(300)), SAMPLE_CHARS).first) }
+            }
+        }
+        return ChangePreview.Large(changedLines, total, samples, numbersOnly || (addedLines.isEmpty() && removedLines.isEmpty() && digest.edited.isEmpty() && updated > 0), addedLines.size, removedLines.size, updated)
     }
-    val first = sections.first()
-    val before = first.before.joinToString(" ") { it.content }
-    val after = first.after.joinToString(" ") { it.content }
+    val (first, before, after) = scored.maxBy { it.third }.second
     val segments = wordDiff(before, after)
     val (trimmed, leading, trailing) = trimAroundFirstEdit(segments)
     val section = first.context?.takeIf { headings.isEmpty() || it in headings }?.takeIf { it.length <= 60 }
-    return ChangePreview.Words(section, trimmed, sections.size - 1, leading, trailing)
+    return ChangePreview.Words(section, trimmed, sections.size - 1, leading, trailing, numbersOnly)
 }
+
+private fun clip(line: String): String = line.trim().let { if (it.length > SAMPLE_CHARS) it.take(SAMPLE_CHARS).substringBeforeLast(' ') + "…" else it }
 
 private val wordPattern = Regex("\\s+|[^\\s]+")
 
@@ -255,16 +373,17 @@ private fun clusterEdits(ops: List<Pair<EditSegment.Kind, String>>): List<EditSe
 }
 
 /** Keep a little context before the first edit and stop once the snippet is card-sized. */
-private fun trimAroundFirstEdit(segments: List<EditSegment>): Triple<List<EditSegment>, Boolean, Boolean> {
+private fun trimAroundFirstEdit(segments: List<EditSegment>, limit: Int = SNIPPET_CHARS): Triple<List<EditSegment>, Boolean, Boolean> {
     val firstEdit = segments.indexOfFirst { it.kind != EditSegment.Kind.Same }
     if (firstEdit < 0) return Triple(segments, false, false)
     val out = mutableListOf<EditSegment>()
     var leading = false
     if (firstEdit > 0) {
         val context = segments.subList(0, firstEdit).joinToString("") { it.text }
-        if (context.length > CONTEXT_CHARS) {
+        val keep = if (limit < SNIPPET_CHARS) 24 else CONTEXT_CHARS
+        if (context.length > keep) {
             leading = true
-            val cut = context.substring(context.length - CONTEXT_CHARS)
+            val cut = context.substring(context.length - keep)
             out += EditSegment(cut.substringAfter(' ', cut), EditSegment.Kind.Same)
         } else {
             out += EditSegment(context, EditSegment.Kind.Same)
@@ -273,7 +392,7 @@ private fun trimAroundFirstEdit(segments: List<EditSegment>): Triple<List<EditSe
     var length = out.sumOf { it.text.length }
     var trailing = false
     for (segment in segments.drop(firstEdit)) {
-        val room = SNIPPET_CHARS - length
+        val room = limit - length
         if (room <= 0) {
             trailing = true
             break

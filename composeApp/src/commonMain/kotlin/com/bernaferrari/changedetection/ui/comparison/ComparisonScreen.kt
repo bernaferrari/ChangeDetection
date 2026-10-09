@@ -37,6 +37,7 @@ import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
@@ -295,7 +296,7 @@ fun ComparisonScreen(
                     Column(Modifier.widthIn(max = 720.dp).align(Alignment.CenterHorizontally)) {
                         VersionBar(older, newer, onClick = { showVersions = true })
                         if (modes.size > 1) {
-                            ConnectedChoice(modes, mode, { mode = it }, Modifier.padding(top = 10.dp, bottom = 6.dp)) { modeLabel(it) }
+                            ConnectedChoice(modes, mode, { mode = it }, Modifier.padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 4.dp)) { modeLabel(it) }
                         }
                     }
                     Box(Modifier.fillMaxWidth().weight(1f).testTag("comparison-reader"), contentAlignment = Alignment.TopCenter) {
@@ -413,32 +414,28 @@ private fun modeLabel(mode: ComparisonMode): String = stringResource(
     },
 )
 
-/** "Before → After" with the two dates; tap to pick other versions. */
+/** A compact "Before → After" pill; tap to compare other versions. */
 @Composable
 private fun VersionBar(older: Snap?, newer: Snap?, onClick: () -> Unit) {
     val label = stringResource(Res.string.comparison_section_snapshots)
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).semantics { contentDescription = label },
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerLowest,
-    ) {
-        Row(Modifier.padding(start = 16.dp, end = 8.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            VersionStamp(stringResource(Res.string.preview_before), older, Modifier.weight(1f))
-            Icon(Icons.AutoMirrored.Rounded.ArrowForward, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.outline)
-            VersionStamp(stringResource(Res.string.preview_after), newer, Modifier.weight(1f))
-            Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainer) {
-                Icon(Icons.Rounded.UnfoldMore, null, Modifier.padding(8.dp).size(20.dp))
+    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Surface(
+            onClick = onClick,
+            modifier = Modifier.heightIn(min = 40.dp).semantics { contentDescription = label },
+            shape = androidx.compose.foundation.shape.CircleShape,
+            color = MaterialTheme.colorScheme.surfaceBright,
+        ) {
+            Row(Modifier.padding(start = 14.dp, end = 10.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Icon(Icons.Outlined.History, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    (older?.let { friendlyDateTime(it.timestamp) } ?: "—") + "  →  " + (newer?.let { friendlyDateTime(it.timestamp) } ?: "—"),
+                    style = MaterialTheme.typography.labelLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Icon(Icons.Rounded.UnfoldMore, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-    }
-}
-
-@Composable
-private fun VersionStamp(label: String, snap: Snap?, modifier: Modifier) {
-    Column(modifier) {
-        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(snap?.let { friendlyDateTime(it.timestamp) } ?: "—", style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -517,7 +514,7 @@ private fun ReaderBar(reader: ReaderState, showNav: Boolean, canMarkRead: Boolea
 /** Each version labelled by what changed, so "the one where the dates moved" is easy to find. */
 @Composable
 private fun VersionSheet(snaps: List<Snap>, selectedIndex: Int, selectedSingleSnapId: String?, onDismiss: () -> Unit, onSelect: (Int) -> Unit) {
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = MaterialTheme.colorScheme.surfaceContainerLowest) {
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
         LazyColumn(Modifier.fillMaxWidth().testTag("version-list"), contentPadding = PaddingValues(bottom = 24.dp, top = 8.dp)) {
             item(key = "title") {
                 Text(stringResource(Res.string.reader_versions_title), Modifier.padding(horizontal = 24.dp), style = MaterialTheme.typography.headlineSmall)

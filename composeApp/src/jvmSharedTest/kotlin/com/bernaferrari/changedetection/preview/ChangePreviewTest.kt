@@ -74,6 +74,51 @@ class ChangePreviewTest {
         assertEquals(40, preview.totalLines)
     }
 
+    @Test fun counterOnlyChangesAreLabelledAsNumbers() {
+        val preview = textPreview(listOf("Story", "76 points by ana 1 hour ago | 36 comments"), listOf("Story", "80 points by ana 2 hour ago | 41 comments")) as ChangePreview.Words
+        assertTrue(preview.numbersOnly)
+    }
+
+    @Test fun meaningfulWordsLeadOverCounterChurn() {
+        val old = listOf("12 comments", "Price", "Ships in 2 weeks")
+        val new = listOf("15 comments", "Price", "In stock today")
+        val preview = textPreview(old, new) as ChangePreview.Words
+        assertTrue(preview.segments.render(), preview.segments.render().contains("{+In stock today+}"))
+        assertTrue(!preview.numbersOnly)
+    }
+
+    @Test fun largeNoisyChangesCarryReadableSamples() {
+        val old = (1..30).map { "Story $it about something · ${it * 3} points" }
+        val new = (1..30).map { if (it % 3 == 0) "Brand new headline number $it · 1 point" else "Story $it about something · ${it * 3 + 2} points" }
+        val preview = textPreview(old, new) as ChangePreview.Large
+        assertEquals(3, preview.samples.size)
+        assertTrue(preview.samples.all { sample -> sample.any { it.kind == EditSegment.Kind.Added && it.text.contains("headline") } })
+        assertEquals(10, preview.added)
+    }
+
+    @Test fun shiftedListsReportOnlyGenuinelyNewLines() {
+        val words = listOf("apple", "bridge", "cloud", "desert", "engine", "forest", "garden", "harbor", "island", "jungle", "kettle", "lantern", "meadow", "needle", "orchard", "pepper", "quartz", "river", "saddle", "tunnel")
+        val stories = words.map { "A long story about the $it and friends" }
+        val old = stories.flatMap { listOf(it, "${it.length} points · 3 hours ago") }
+        val newStories = listOf("A completely fresh headline today", "Another brand new story appears") + stories.dropLast(2)
+        val new = newStories.flatMap { listOf(it, "${it.length + 5} points · 3 hours ago") }
+        val preview = textPreview(old, new) as ChangePreview.Large
+        assertEquals(2, preview.added)
+        assertEquals(2, preview.removed)
+        assertTrue(preview.samples.first().single().kind == EditSegment.Kind.Added)
+    }
+
+    @Test fun resortedListsSayOnlyTheOrderChanged() {
+        val items = (1..20).map { "Listing ${'a' + it} · ${900 + it} €" }
+        val preview = textPreview(items, items.reversed()) as ChangePreview.Large
+        assertTrue(preview.reordered)
+    }
+
+    @Test fun relativeTimesTickLikeNumbers() {
+        assertTrue(onlyNumbersDiffer("253 points by ana 12 minutes ago | 72 comments", "260 points by ana 3 hours ago | 80 comments"))
+        assertTrue(!onlyNumbersDiffer("Ships in 2 weeks", "In stock today"))
+    }
+
     @Test fun identicalReadableTextIsInvisible() {
         assertEquals(ChangePreview.Invisible, textPreview(listOf("Same"), listOf("Same")))
     }

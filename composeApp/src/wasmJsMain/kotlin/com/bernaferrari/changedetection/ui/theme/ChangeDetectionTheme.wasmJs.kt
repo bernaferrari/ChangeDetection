@@ -22,21 +22,5 @@ actual fun ChangeDetectionTheme(
     seedColor: Color,
     content: @Composable () -> Unit,
 ) {
-    MaterialExpressiveTheme(
-        colorScheme = if (seedColor == SeedColor) {
-            referenceColorScheme(darkTheme)
-        } else {
-            dynamicColorScheme(
-                seedColor = seedColor,
-                isDark = darkTheme,
-                style = PaletteStyle.TonalSpot,
-                specVersion = ColorSpec.SpecVersion.SPEC_2025,
-            )
-        },
-        motionScheme = MotionScheme.expressive(),
-        typography = Typography,
-        shapes = AppShapes,
-    ) {
-        CompositionLocalProvider(LocalAppSpacing provides AppSpacing(), LocalMarks provides marksFor(darkTheme), content = content)
-    }
+    AppMaterialTheme(brandColorScheme(seedColor, darkTheme), darkTheme, content)
 }

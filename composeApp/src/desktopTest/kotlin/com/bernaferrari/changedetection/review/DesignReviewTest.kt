@@ -60,6 +60,77 @@ import org.koin.plugin.module.dsl.startKoin
 class DesignReviewTest {
     @Test fun lightTour() = tour(dark = false)
 
+    /** Fast loop for visual work: the main screens in light and dark, each step independent. */
+    @Test fun quickTour() {
+        for (dark in listOf(false, true)) {
+            withApp(dark, seed = true) {
+                val p = if (dark) "q-dark-" else "q-"
+                fun step(name: String, block: () -> Unit) = runCatching { block(); shot(p + name) }.onFailure { println("quick step $name failed: $it") }
+                fun home() = runCatching {
+                    repeat(3) { if (onAllNodesWithTag("home-list").fetchSemanticsNodes().isEmpty()) runCatching { onNodeWithContentDescription("Navigate back").performClick() } }
+                    if (onAllNodesWithTag("home-list").fetchSemanticsNodes().isEmpty()) onNodeWithText("Home").performClick()
+                    waitForTag("home-list")
+                }
+                waitForText("new changes", substring = true)
+                runCatching { waitForText("of the page changed", substring = true, timeout = 15_000) }
+                step("01-home") {}
+                step("02-home-pages") { onNodeWithTag("home-list").performScrollToKey("row-exam") }
+                step("11-detail") {
+                    onNodeWithTag("home-list").performScrollToKey("row-studio")
+                    onAllNodesWithText("Studio Display").onLast().performClick()
+                    runCatching { waitForText("of the page", substring = true, timeout = 8_000) }
+                }
+                step("12-detail-settings") { onNodeWithTag("page-details").performScrollToKey("watch") }
+                home()
+                step("10-detail-failing") {
+                    onNodeWithTag("home-list").performScrollToKey("row-exam")
+                    onAllNodesWithText("Exam results").onLast().performClick()
+                    waitForIdle()
+                }
+                home()
+                step("13-compare-text") {
+                    onNodeWithTag("home-list").performScrollToKey("card-fellowship")
+                    onAllNodesWithText("Fellowship guide").onFirst().performClick()
+                    runCatching { waitForText("Change 1 of", substring = true, timeout = 8_000) }
+                }
+                home()
+                step("15-compare-image") {
+                    onNodeWithTag("home-list").performScrollToKey("card-studio")
+                    onAllNodesWithText("Studio Display").onFirst().performClick()
+                    waitUntil(timeoutMillis = 15_000) { onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress)).fetchSemanticsNodes().isNotEmpty() }
+                }
+                home()
+                step("08-activity") {
+                    onNodeWithText("Activity").performClick()
+                    runCatching { waitForText("changed", substring = true, timeout = 10_000) }
+                }
+                step("20-settings") { onNodeWithText("Settings").performClick() }
+                step("21-checks") {
+                    onNodeWithText("Automatic checks").performClick()
+                    waitForText("Every", timeout = 5_000)
+                }
+                runCatching { onNodeWithText("Save").performClick() }
+                home()
+                step("30-add-url") {
+                    onNodeWithContentDescription("Add page").performClick()
+                    waitForText("What should we watch?")
+                }
+                step("31-add-review") {
+                    onNodeWithText("Page address").performTextInput(fixtureUrl)
+                    onNodeWithText("Continue").performClick()
+                    waitForText("Applications are open", substring = true, timeout = 15_000)
+                }
+                runCatching { onNodeWithContentDescription("Navigate back").performClick() }
+                runCatching { onNodeWithContentDescription("Close").performClick() }
+                home()
+                step("05-turbo-setup") {
+                    onNodeWithContentDescription("Turbo").performClick()
+                    waitForText("Stop after")
+                }
+            }
+        }
+    }
+
     @Test fun darkTour() = tour(dark = true)
 
     @Test fun largeTextTour() = tour(dark = true, fontScale = 1.8f)

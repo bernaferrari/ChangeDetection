@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_preview_failed_title">Impossibile aprire questa pagina</string>
+    <string name="editor_change_address">Cambia indirizzo</string>
+    <string name="editor_region_custom">Testo scelto</string>
+    <string name="editor_selectors">Selettori CSS</string>
+    <string name="editor_name">Nome</string>
+    <string name="detail_open_short">Apri</string>
+    <string name="editor_more_options">Altre opzioni</string>
+    <string name="show_more">Mostra di più</string>
+    <string name="show_less">Mostra meno</string>
+    <string name="alert_title">%1$s è cambiata</string>
+    <string name="alert_generic">Tocca per vedere cosa è cambiato.</string>
+    <string name="alert_was">(prima “%1$s”)</string>
+    <string name="alert_removed">Testo rimosso</string>
+    <string name="alert_visual">È cambiato il %1$s% della pagina. Tocca per confrontare.</string>
+    <string name="alert_large">È cambiata quasi tutta la pagina. Tocca per confrontare.</string>
+    <string name="home_now_watching">Ora monitori %1$s</string>
+    <string name="preview_numbers_only">Sono cambiati solo i numeri</string>
+    <string name="preview_added">%1$d nuove</string>
+    <string name="preview_removed">%1$d rimosse</string>
+    <string name="preview_updated">%1$d aggiornate</string>
+    <string name="preview_reordered">È cambiato solo l’ordine</string>
+    <string name="preview_reordered_body">Gli stessi elementi, riordinati. Nulla è stato aggiunto o rimosso.</string>
+    <string name="digest_new">Nuovo</string>
+    <string name="digest_removed">Rimosso</string>
+    <string name="digest_numbers">Numeri cambiati in %1$d righe</string>
+    <string name="digest_numbers_body">Contatori, orari e prezzi. Di solito è rumore.</string>
+    <string name="digest_show_full">Mostra confronto completo</string>
+    <string name="digest_changed">Modificato</string>
+</resources>

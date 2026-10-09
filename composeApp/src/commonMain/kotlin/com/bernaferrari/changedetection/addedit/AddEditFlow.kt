@@ -4,6 +4,8 @@
  */
 package com.bernaferrari.changedetection.addedit
 
+import com.bernaferrari.changedetection.util.displayPageTitle
+
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
@@ -25,66 +27,6 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-@Composable
-fun AddPageDialog(
-    sessionKey: Int,
-    selectedUrl: String? = null,
-    onDismiss: () -> Unit,
-    onSaveComplete: () -> Unit,
-    onOpenSite: (String) -> Unit = {},
-) {
-    val owner = androidx.compose.runtime.remember(sessionKey) {
-        object : androidx.lifecycle.ViewModelStoreOwner {
-            override val viewModelStore = androidx.lifecycle.ViewModelStore()
-        }
-    }
-    androidx.compose.runtime.DisposableEffect(owner) {
-        onDispose { owner.viewModelStore.clear() }
-    }
-    val viewModel: AddEditViewModel = koinViewModel(viewModelStoreOwner = owner) { parametersOf(null) }
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    Dialog(
-        onDismissRequest = { if (!uiState.isSaving) onDismiss() },
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-    ) {
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            // Keep the parent visible in compact browser windows. Phones still get a
-            // full-screen task, while tablet-sized surfaces retain dialog context.
-            val useDialogShape = maxWidth >= 520.dp && maxHeight >= 620.dp
-            Surface(
-                modifier = if (useDialogShape) {
-                    Modifier
-                        .padding(24.dp)
-                        .widthIn(max = 640.dp)
-                        .heightIn(max = 640.dp)
-                        .fillMaxSize()
-                } else {
-                    Modifier.fillMaxSize()
-                },
-                shape = if (useDialogShape) {
-                    MaterialTheme.shapes.extraLarge
-                } else {
-                    RoundedCornerShape(0.dp)
-                },
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = if (useDialogShape) 6.dp else 0.dp,
-                shadowElevation = if (useDialogShape) 12.dp else 0.dp,
-            ) {
-                AddEditFlow(
-                    selectedUrl = selectedUrl,
-                    onNavigateUp = onDismiss,
-                    onOpenSite = onOpenSite,
-                    onSaveComplete = onSaveComplete,
-                    viewModel = viewModel,
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun AddEditFlow(
@@ -93,6 +35,7 @@ fun AddEditFlow(
     onNavigateUp: () -> Unit,
     onSaveComplete: () -> Unit,
     onOpenSite: (String) -> Unit = {},
+    onPageAdded: (siteId: String, name: String) -> Unit = { _, _ -> onSaveComplete() },
     viewModel: AddEditViewModel = koinViewModel { parametersOf(siteId) },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -105,6 +48,12 @@ fun AddEditFlow(
                 viewModel.setUrl(selectedUrl)
             }
         }
+    }
+
+    // A new page goes straight back to Home, which shows it in the list and confirms with a message.
+    val saved = uiState.savedSite
+    LaunchedEffect(saved) {
+        if (siteId == null && saved != null) onPageAdded(saved.id, saved.displayPageTitle())
     }
 
     LaunchedEffect(uiState.saveComplete) {
@@ -122,17 +71,6 @@ fun AddEditFlow(
     }
 
     when {
-        siteId == null && uiState.savedSite != null -> {
-            SetupReceiptScreen(
-                savedSite = uiState.savedSite!!,
-                onOpenPage = {
-                    onSaveComplete()
-                    onOpenSite(uiState.savedSite!!.id)
-                },
-                onDone = onSaveComplete,
-            )
-        }
-
         siteId != null && uiState.isLoading -> {
             androidx.compose.foundation.layout.Box(
                 modifier = Modifier.fillMaxSize(),

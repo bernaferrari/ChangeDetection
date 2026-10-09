@@ -55,6 +55,12 @@ import com.bernaferrari.changedetection.shared.generated.resources.preview_first
 import com.bernaferrari.changedetection.shared.generated.resources.preview_invisible
 import com.bernaferrari.changedetection.shared.generated.resources.preview_invisible_body
 import com.bernaferrari.changedetection.shared.generated.resources.preview_large
+import com.bernaferrari.changedetection.shared.generated.resources.preview_numbers_only
+import com.bernaferrari.changedetection.shared.generated.resources.preview_added
+import com.bernaferrari.changedetection.shared.generated.resources.preview_reordered
+import com.bernaferrari.changedetection.shared.generated.resources.preview_reordered_body
+import com.bernaferrari.changedetection.shared.generated.resources.preview_removed
+import com.bernaferrari.changedetection.shared.generated.resources.preview_updated
 import com.bernaferrari.changedetection.shared.generated.resources.preview_large_body
 import com.bernaferrari.changedetection.shared.generated.resources.preview_unavailable
 import com.bernaferrari.changedetection.ui.comparison.SnapshotImage
@@ -119,9 +125,9 @@ private suspend fun loadPreview(load: suspend () -> ChangePreview?): ChangePrevi
 @Composable
 fun previewLabel(preview: ChangePreview?): String = when (preview) {
     null -> " "
-    is ChangePreview.Words -> preview.section ?: stringResource(Res.string.label_text_changed)
+    is ChangePreview.Words -> if (preview.numbersOnly) stringResource(Res.string.preview_numbers_only) else preview.section ?: stringResource(Res.string.label_text_changed)
     is ChangePreview.Crop -> if (preview.sizeChanged) stringResource(Res.string.preview_size_changed) else stringResource(Res.string.label_percent, com.bernaferrari.changedetection.ui.home.formatPercent(preview.percent))
-    is ChangePreview.Large -> stringResource(Res.string.preview_large)
+    is ChangePreview.Large -> largeSummary(preview)
     ChangePreview.Invisible -> stringResource(Res.string.preview_invisible)
     ChangePreview.FirstVersion -> stringResource(Res.string.label_first_version)
     ChangePreview.Unavailable -> stringResource(Res.string.label_saved)
@@ -139,29 +145,67 @@ fun ChangePreviewBlock(preview: ChangePreview?, modifier: Modifier = Modifier, c
     ) { current ->
         when (current) {
             null -> Box(
-                Modifier.fillMaxWidth().height(56.dp).clip(MaterialTheme.shapes.medium).background(MaterialTheme.colorScheme.surfaceContainer),
+                Modifier.fillMaxWidth().height(64.dp).clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow),
             )
 
-            is ChangePreview.Words -> Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (current.section != null) {
-                    Text(current.section, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            is ChangePreview.Words -> Column(
+                Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                val label = if (current.numbersOnly) stringResource(Res.string.preview_numbers_only) else current.section
+                if (label != null) {
+                    Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 DiffText(editText(current.segments, MaterialTheme.marks, current.leadingEllipsis, current.trailingEllipsis), maxLines = 4)
             }
 
             is ChangePreview.Crop -> CropPair(current.beforeSnapId, current.afterSnapId, current.bounds, cropHeight)
 
-            is ChangePreview.Large -> QuietFact(
-                Icons.Outlined.Layers,
-                stringResource(Res.string.preview_large),
-                stringResource(Res.string.preview_large_body, current.changedLines, current.totalLines),
-            )
+            is ChangePreview.Large -> if (current.reordered) {
+                QuietFact(Icons.Outlined.Layers, stringResource(Res.string.preview_reordered), stringResource(Res.string.preview_reordered_body))
+            } else if (current.samples.isEmpty()) {
+                QuietFact(Icons.Outlined.Layers, stringResource(Res.string.preview_large), stringResource(Res.string.preview_large_body, current.changedLines, current.totalLines))
+            } else {
+                LargeChange(current)
+            }
 
             ChangePreview.Invisible -> QuietFact(Icons.Outlined.VisibilityOff, stringResource(Res.string.preview_invisible), stringResource(Res.string.preview_invisible_body))
 
-            ChangePreview.FirstVersion -> Text(stringResource(Res.string.preview_first_version), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            ChangePreview.FirstVersion -> Text(stringResource(Res.string.preview_first_version), Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(14.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
-            ChangePreview.Unavailable -> Text(stringResource(Res.string.preview_unavailable), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            ChangePreview.Unavailable -> Text(stringResource(Res.string.preview_unavailable), Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(14.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+/** "2 new · 1 removed · 20 updated", or what kind of churn it was when nothing is genuinely new. */
+@Composable
+fun largeSummary(preview: ChangePreview.Large): String {
+    if (preview.reordered) return stringResource(Res.string.preview_reordered)
+    if (preview.added == 0 && preview.removed == 0) {
+        return if (preview.numbersOnly) stringResource(Res.string.preview_numbers_only) else stringResource(Res.string.preview_large_body, preview.changedLines, preview.totalLines)
+    }
+    return listOfNotNull(
+        preview.added.takeIf { it > 0 }?.let { stringResource(Res.string.preview_added, it) },
+        preview.removed.takeIf { it > 0 }?.let { stringResource(Res.string.preview_removed, it) },
+        preview.updated.takeIf { it > 0 }?.let { stringResource(Res.string.preview_updated, it) },
+    ).joinToString(" · ")
+}
+
+/** A big text change as its few most meaningful lines, one per row, with the size of the whole change. */
+@Composable
+private fun LargeChange(preview: ChangePreview.Large) {
+    val marks = MaterialTheme.marks
+    Column(
+        Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(largeSummary(preview), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+        preview.samples.forEach { sample ->
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+                Box(Modifier.padding(top = 9.dp).size(5.dp).clip(androidx.compose.foundation.shape.CircleShape).background(MaterialTheme.colorScheme.outline))
+                DiffText(editText(sample, marks), maxLines = 2, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface), modifier = Modifier.weight(1f))
+            }
         }
     }
 }
@@ -169,7 +213,7 @@ fun ChangePreviewBlock(preview: ChangePreview?, modifier: Modifier = Modifier, c
 @Composable
 private fun QuietFact(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, body: String) {
     Row(
-        Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium).background(MaterialTheme.colorScheme.surfaceContainer).padding(horizontal = 14.dp, vertical = 12.dp),
+        Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(horizontal = 14.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -203,7 +247,7 @@ fun CropTile(snapId: String, bounds: ChangedBounds?, label: String, highlighted:
             null
         }
     }
-    val shape = RoundedCornerShape(14.dp)
+    val shape = RoundedCornerShape(16.dp)
     val marks = MaterialTheme.marks
     Box(
         modifier

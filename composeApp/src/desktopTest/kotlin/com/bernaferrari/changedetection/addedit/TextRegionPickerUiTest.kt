@@ -331,7 +331,7 @@ class TextRegionPickerUiTest {
                 TextRegionFields(TextRegion("#stock"), false, true) { result = it }
             }
         }
-        compose.onNodeWithText("A text region is selected. Check the preview, or choose Whole page to reset.").assertIsDisplayed()
+        compose.onNodeWithText("Selected text").assertIsDisplayed()
         compose.onNodeWithText("#stock").assertDoesNotExist()
         compose.onNodeWithText("Whole page").performClick()
         compose.runOnIdle { assertEquals(TextRegion(), result) }

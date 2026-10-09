@@ -393,7 +393,7 @@ private fun ImageSwipeComparison(
         // remain readable, and captures of different heights still share one scroll range.
         Box(
             Modifier.fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                .background(MaterialTheme.colorScheme.surfaceBright)
                 .verticalScroll(rememberScrollState())
                 .testTag("screenshot-scroll"),
         ) {
@@ -502,7 +502,7 @@ internal fun ImageViewport(
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerLowest),
+        modifier = modifier.background(MaterialTheme.colorScheme.surfaceBright),
         contentAlignment = Alignment.Center,
     ) {
         val labelInset = if (label == null) 0.dp else with(LocalDensity.current) { MaterialTheme.typography.labelMedium.lineHeight.toDp() } + 24.dp

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -96,6 +97,8 @@ import com.bernaferrari.changedetection.ui.kit.GroupRow
 import com.bernaferrari.changedetection.ui.kit.ListGroup
 import com.bernaferrari.changedetection.ui.kit.NewBadge
 import com.bernaferrari.changedetection.ui.kit.PageAvatar
+import com.bernaferrari.changedetection.ui.kit.tileColor
+import androidx.compose.ui.text.style.TextAlign
 import com.bernaferrari.changedetection.ui.kit.SectionHeader
 import com.bernaferrari.changedetection.ui.kit.cadence
 import com.bernaferrari.changedetection.ui.kit.friendlyDateTime
@@ -212,7 +215,6 @@ internal fun PageDetailContent(
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(Res.string.a11y_navigate_back)) } },
                 actions = {
                     if (item != null) {
-                        IconButton(onClick = onOpenUrl) { Icon(Icons.AutoMirrored.Outlined.OpenInNew, stringResource(Res.string.open_in_browser)) }
                         IconButton(onClick = onEdit) { Icon(Icons.Outlined.Edit, stringResource(Res.string.edit)) }
                         Box {
                             IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreVert, stringResource(Res.string.more_options)) }
@@ -232,40 +234,6 @@ internal fun PageDetailContent(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
             )
         },
-        bottomBar = {
-            if (item != null) {
-                Surface(color = MaterialTheme.colorScheme.surface) {
-                    Box(Modifier.fillMaxWidth().navigationBarsPadding(), contentAlignment = Alignment.Center) {
-                        DetailActions(
-                            modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                            first = { buttonModifier ->
-                                FilledTonalButton(onClick = onCheck, enabled = !item.isSyncing, modifier = buttonModifier.heightIn(min = 56.dp)) {
-                                    if (item.isSyncing) LoadingIndicator(Modifier.size(24.dp)) else Icon(Icons.Rounded.Refresh, null)
-                                    Spacer(Modifier.size(8.dp))
-                                    Text(stringResource(if (item.isSyncing) Res.string.home_row_checking else Res.string.home_check_now))
-                                }
-                            },
-                            second = if (monitoringCapabilities.turbo && item.site.isSyncEnabled) {
-                                { buttonModifier ->
-                                    val running = turbo.isActive && item.site.id in turbo.siteIds
-                                    Button(
-                                        onClick = onTurbo,
-                                        modifier = buttonModifier.heightIn(min = 56.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
-                                    ) {
-                                        Icon(Icons.Rounded.Bolt, null)
-                                        Spacer(Modifier.size(8.dp))
-                                        Text(stringResource(if (running) Res.string.detail_turbo_on else Res.string.turbo_mode))
-                                    }
-                                }
-                            } else {
-                                null
-                            },
-                        )
-                    }
-                }
-            }
-        },
     ) { insets ->
         Box(Modifier.fillMaxSize().padding(insets), contentAlignment = Alignment.TopCenter) {
             when {
@@ -277,7 +245,7 @@ internal fun PageDetailContent(
                     TextButton(onClick = onBack) { Text(stringResource(Res.string.nav_home)) }
                 }
 
-                else -> DetailList(item, versions, schedule, onCompare, onEdit, onSchedule, onOpenUrl, onCheck, onMarkRead, onSetPaused, onSetNotify, onHistory, notificationsAvailable, errorContent)
+                else -> DetailList(item, versions, schedule, turbo, onCompare, onEdit, onTurbo, onSchedule, onOpenUrl, onCheck, onMarkRead, onSetPaused, onSetNotify, onHistory, notificationsAvailable, errorContent)
             }
         }
     }
@@ -310,8 +278,10 @@ private fun DetailList(
     item: SiteAndLastSnap,
     versions: List<Snap>,
     schedule: MonitoringSchedule,
+    turbo: TurboState,
     onCompare: (String) -> Unit,
     onEdit: () -> Unit,
+    onTurbo: () -> Unit,
     onSchedule: () -> Unit,
     onOpenUrl: () -> Unit,
     onCheck: () -> Unit,
@@ -327,30 +297,32 @@ private fun DetailList(
     val failing = !paused && !site.isSuccessful
     LazyColumn(
         Modifier.widthIn(max = 720.dp).fillMaxSize().testTag("page-details"),
-        contentPadding = PaddingValues(bottom = 24.dp),
+        contentPadding = PaddingValues(bottom = 32.dp),
     ) {
         item(key = "identity") {
-            Column(Modifier.padding(horizontal = 20.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    PageAvatar(site.name(), site.id, size = 56.dp, dimmed = paused)
-                    Column(Modifier.weight(1f)) {
-                        Text(site.name(), style = MaterialTheme.typography.headlineSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                        Text(
-                            site.url.displayPageAddress(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-                Row(Modifier.padding(top = 14.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                PageAvatar(site.name(), site.id, size = 88.dp, dimmed = paused)
+                Spacer(Modifier.height(16.dp))
+                Text(site.name(), style = MaterialTheme.typography.headlineMedium, maxLines = 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+                Text(
+                    site.url.displayPageAddress(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+                Row(
+                    Modifier.padding(top = 12.dp).clip(CircleShape).background(if (failing) MaterialTheme.colorScheme.error.copy(alpha = 0.12f) else tileColor).padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     val dot = when {
                         paused -> MaterialTheme.colorScheme.outline
                         failing -> MaterialTheme.colorScheme.error
                         else -> MaterialTheme.marks.healthy
                     }
-                    Box(Modifier.size(8.dp).background(dot, CircleShape))
+                    if (item.isSyncing) LoadingIndicator(Modifier.size(16.dp)) else Box(Modifier.size(8.dp).background(dot, CircleShape))
                     Text(
                         when {
                             paused -> stringResource(Res.string.detail_status_paused)
@@ -360,9 +332,17 @@ private fun DetailList(
                             schedule.enabled -> stringResource(Res.string.detail_status_checked, getRelativeTimeLabel(site.timestamp).lowercase(), cadence(schedule.intervalMinutes))
                             else -> stringResource(Res.string.detail_status_checked_manual, getRelativeTimeLabel(site.timestamp).lowercase())
                         },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = if (failing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+                Row(Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    HeroAction(Icons.Rounded.Refresh, stringResource(if (item.isSyncing) Res.string.home_row_checking else Res.string.home_check_now), onCheck, Modifier.weight(1f), enabled = !item.isSyncing, busy = item.isSyncing)
+                    if (monitoringCapabilities.turbo && site.isSyncEnabled) {
+                        val running = turbo.isActive && site.id in turbo.siteIds
+                        HeroAction(Icons.Rounded.Bolt, stringResource(if (running) Res.string.detail_turbo_on else Res.string.turbo_mode), onTurbo, Modifier.weight(1f), emphasized = true)
+                    }
+                    HeroAction(Icons.AutoMirrored.Outlined.OpenInNew, stringResource(Res.string.detail_open_short), onOpenUrl, Modifier.weight(1f))
                 }
                 errorContent()
             }
@@ -469,7 +449,7 @@ private fun FailureCallout(code: String?, lastSuccess: Long?, checking: Boolean,
         body = stringResource(failureAdvice(failure)) + (lastSuccess?.let { "\n" + stringResource(Res.string.detail_last_success, friendlyDateTime(it)) } ?: ""),
         icon = Icons.Outlined.ErrorOutline,
         iconTint = MaterialTheme.colorScheme.error,
-        container = MaterialTheme.colorScheme.errorContainer,
+        container = tileColor,
         modifier = Modifier.padding(bottom = 12.dp),
         actions = {
             when (failure) {
@@ -502,11 +482,11 @@ private fun LatestChange(item: SiteAndLastSnap, onCompare: (String) -> Unit, onM
     val snap = item.snap
     val unread = !item.site.isRead && item.snapshotCount > 1
     Surface(
-        Modifier.fillMaxWidth().padding(horizontal = 12.dp),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = tileColor,
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             when {
                 snap == null -> {
                     Text(stringResource(Res.string.detail_no_version), style = MaterialTheme.typography.titleMedium)
@@ -553,6 +533,24 @@ private fun LatestChange(item: SiteAndLastSnap, onCompare: (String) -> Unit, onM
     }
 }
 
+/** A Contacts-style action: a large tonal pill with the icon above its label. */
+@Composable
+private fun HeroAction(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, emphasized: Boolean = false, busy: Boolean = false) {
+    Surface(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.heightIn(min = 76.dp),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = if (emphasized) MaterialTheme.colorScheme.primaryContainer else tileColor,
+        contentColor = if (emphasized) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+    ) {
+        Column(Modifier.padding(horizontal = 8.dp, vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically)) {
+            if (busy) LoadingIndicator(Modifier.size(24.dp)) else Icon(icon, null, Modifier.size(24.dp))
+            Text(label, style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center, maxLines = 2)
+        }
+    }
+}
+
 /** Thirty squares, one per day; filled on days a new version was saved. */
 @Composable
 private fun ChangeCalendar(versions: List<Snap>) {
@@ -562,19 +560,19 @@ private fun ChangeCalendar(versions: List<Snap>) {
     val changedDays = remember(changes) { changes.mapTo(mutableSetOf()) { it.timestamp.localDate() } }
     val latestDay = versions.firstOrNull()?.timestamp?.localDate()
     val summary = stringResource(Res.string.detail_calendar_summary, changes.size, changedDays.size)
-    Surface(Modifier.fillMaxWidth().padding(horizontal = 12.dp).clearAndSetSemantics { contentDescription = summary }, shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainerLowest) {
-        Column(Modifier.padding(16.dp)) {
+    Surface(Modifier.fillMaxWidth().padding(horizontal = 16.dp).clearAndSetSemantics { contentDescription = summary }, shape = MaterialTheme.shapes.extraLarge, color = tileColor) {
+        Column(Modifier.padding(20.dp)) {
             for (week in 0 until 2) {
                 Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     for (i in 0 until 15) {
                         val day = today.minus(DatePeriod(days = 29 - (week * 15 + i)))
                         val changed = day in changedDays
                         Box(
-                            Modifier.weight(1f).aspectRatio(1f).clip(RoundedCornerShape(5.dp)).background(
+                            Modifier.weight(1f).aspectRatio(1f).clip(if (changed) CircleShape else RoundedCornerShape(6.dp)).background(
                                 when {
                                     changed && day == latestDay -> MaterialTheme.marks.highlight
-                                    changed -> MaterialTheme.colorScheme.onSurfaceVariant
-                                    else -> MaterialTheme.colorScheme.surfaceContainer
+                                    changed -> MaterialTheme.colorScheme.primary
+                                    else -> MaterialTheme.colorScheme.surfaceContainerHigh
                                 },
                             ),
                         )
@@ -599,8 +597,8 @@ private fun VersionRow(snap: Snap, previous: Snap?, latest: Boolean, showDivider
         onClick = onClick,
     ) {
         if (latest) {
-            Box(Modifier.clip(RoundedCornerShape(8.dp)).background(MaterialTheme.marks.highlight).padding(horizontal = 8.dp, vertical = 3.dp)) {
-                Text(stringResource(Res.string.detail_latest), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.marks.onHighlight)
+            Box(Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer).padding(horizontal = 10.dp, vertical = 3.dp)) {
+                Text(stringResource(Res.string.detail_latest), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
             }
         } else {
             Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.outline)

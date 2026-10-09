@@ -423,6 +423,14 @@ open class SyncEngine(
         successCount to results
     }
 
+    /** Checks only the active pages whose last check is older than [intervalMinutes]; used when the app comes back. */
+    suspend fun syncDueSites(intervalMinutes: Long): Int = withContext(Dispatchers.Default) {
+        val now = currentTimeMillis()
+        val due = sitesDao.getSitesList().filter { it.isSyncEnabled && now - it.timestamp >= intervalMinutes * 60_000L }
+        due.forEach { trySyncSite(it.id) }
+        due.size
+    }
+
     /**
      * Fetch content from a website URL using Ktor.
      */

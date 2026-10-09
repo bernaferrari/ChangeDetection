@@ -41,29 +41,11 @@ actual fun ChangeDetectionTheme(
 
         // All other cases: generate from SeedColor using MaterialKolor
         else -> {
-            if (seedColor == SeedColor) {
-                referenceColorScheme(darkTheme)
-            } else {
-                dynamicColorScheme(
-                    seedColor = seedColor,
-                    isDark = darkTheme,
-                    style = PaletteStyle.TonalSpot,
-                    specVersion = ColorSpec.SpecVersion.SPEC_2025,
-                )
-            }
+            brandColorScheme(seedColor, darkTheme)
         }
     }
 
-    MaterialExpressiveTheme(
-        colorScheme = colorScheme,
-        motionScheme = MotionScheme.expressive(),
-        typography = Typography,
-        shapes = AppShapes,
-    ) {
-        CompositionLocalProvider(LocalAppSpacing provides AppSpacing(), LocalMarks provides marksFor(darkTheme)) {
-            content()
-        }
-    }
+    AppMaterialTheme(colorScheme, darkTheme, content)
 }
 
 /**
