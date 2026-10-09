@@ -125,7 +125,7 @@ fun ChangeDetectionApp(
     var turboSetup by remember { mutableStateOf<Set<String>?>(null) }
 
     fun openAddPage(url: String? = null) {
-        if (backStack.lastOrNull() is AddEditDestination) backStack.removeLastOrNull()
+        if (backStack.lastOrNull() is AddEditDestination) backStack.pop()
         backStack.add(AddEditDestination(url))
     }
 
@@ -172,7 +172,7 @@ fun ChangeDetectionApp(
     ) {
         NavDisplay(
             backStack = backStack,
-            onBack = { backStack.removeLastOrNull() },
+            onBack = { backStack.pop() },
             sceneStrategies = listOf(listDetailStrategy),
             entryDecorators = rememberAppEntryDecorators(),
             entryProvider = entryProvider {
@@ -197,10 +197,10 @@ fun ChangeDetectionApp(
                     )
                 }
 
-                entry<TurboDestination> {
+                entry<TurboDestination> { navKey ->
                     TurboRoute(
                         mainViewModel = mainViewModel,
-                        onBack = { backStack.removeLastOrNull() },
+                        onBack = { backStack.pop(navKey) },
                         onStop = { platformActions.stopTurbo?.invoke() ?: mainViewModel.stopQuickMonitor() },
                         onRunAgain = { ids -> turboSetup = ids },
                         onOpenPage = { backStack.openPage(it) },
@@ -208,14 +208,14 @@ fun ChangeDetectionApp(
                     )
                 }
 
-                entry<LogsDestination> {
+                entry<LogsDestination> { navKey ->
                     ActivityScreen(
                         onOpenChange = { siteId, snapId -> backStack.openComparison(siteId, snapId) },
                         onOpenPage = { backStack.openPage(it) },
                     )
                 }
 
-                entry<SettingsDestination> {
+                entry<SettingsDestination> { navKey ->
                     CenteredScreen {
                         SettingsScreen(
                             onAboutClick = { backStack.add(AboutDestination) },
@@ -234,7 +234,7 @@ fun ChangeDetectionApp(
                     PageDetailScreen(
                         siteId = key.siteId,
                         viewModel = mainViewModel,
-                        onBack = { backStack.removeLastOrNull() },
+                        onBack = { backStack.pop(key) },
                         onCompare = { snapId -> backStack.openComparison(key.siteId, snapId) },
                         onHistory = { snapId -> backStack.openComparison(key.siteId, snapId, showHistory = true) },
                         onEdit = { backStack.add(EditSiteDestination(key.siteId)) },
@@ -246,10 +246,10 @@ fun ChangeDetectionApp(
                     if (showSchedule) BackgroundSyncDialog(onDismiss = { showSchedule = false })
                 }
 
-                entry<PageTurboDestination>(metadata = forwardTransitionMetadata) {
+                entry<PageTurboDestination>(metadata = forwardTransitionMetadata) { navKey ->
                     TurboRoute(
                         mainViewModel = mainViewModel,
-                        onBack = { backStack.removeLastOrNull() },
+                        onBack = { backStack.pop(navKey) },
                         onStop = { platformActions.stopTurbo?.invoke() ?: mainViewModel.stopQuickMonitor() },
                         onRunAgain = { ids -> turboSetup = ids },
                         onOpenPage = { backStack.openPage(it) },
@@ -260,17 +260,17 @@ fun ChangeDetectionApp(
                 entry<AddEditDestination>(metadata = forwardTransitionMetadata) { key ->
                     AddEditFlow(
                         selectedUrl = key.initialUrl,
-                        onNavigateUp = { backStack.removeLastOrNull() },
+                        onNavigateUp = { backStack.pop(key) },
                         onSaveComplete = {
                             platformActions.requestNotifications()
-                            backStack.removeLastOrNull()
+                            backStack.pop(key)
                         },
                         onOpenSite = { siteId ->
-                            backStack.removeLastOrNull()
+                            backStack.pop(key)
                             backStack.openPage(siteId)
                         },
                         onPageAdded = { siteId, name ->
-                            backStack.removeLastOrNull()
+                            backStack.pop(key)
                             mainViewModel.announcePageAdded(siteId, name)
                             platformActions.requestNotifications()
                         },
@@ -280,14 +280,14 @@ fun ChangeDetectionApp(
                 entry<EditSiteDestination>(metadata = forwardTransitionMetadata) { key ->
                     AddEditFlow(
                         siteId = key.siteId,
-                        onNavigateUp = { backStack.removeLastOrNull() },
-                        onSaveComplete = { backStack.removeLastOrNull() },
+                        onNavigateUp = { backStack.pop(key) },
+                        onSaveComplete = { backStack.pop(key) },
                     )
                 }
 
-                entry<AboutDestination>(metadata = forwardTransitionMetadata) {
+                entry<AboutDestination>(metadata = forwardTransitionMetadata) { navKey ->
                     AboutScreen(
-                        onBack = { backStack.removeLastOrNull() },
+                        onBack = { backStack.pop(navKey) },
                         onSocialClick = { url ->
                             platformActions.openUrl(url)
                         },
@@ -303,9 +303,9 @@ fun ChangeDetectionApp(
                     )
                 }
 
-                entry<HowItWorksDestination>(metadata = forwardTransitionMetadata) {
+                entry<HowItWorksDestination>(metadata = forwardTransitionMetadata) { navKey ->
                     HowItWorksScreen(
-                        onBackClick = { backStack.removeLastOrNull() },
+                        onBackClick = { backStack.pop(navKey) },
                     )
                 }
 
@@ -313,19 +313,19 @@ fun ChangeDetectionApp(
                     LocalBrowserScreen(
                         snapId = key.snapId,
                         url = key.url,
-                        onDismiss = { backStack.removeLastOrNull() },
+                        onDismiss = { backStack.pop(key) },
                     )
                 }
 
                 entry<ComparisonDestination>(metadata = comparisonMetadata) { key ->
                     ComparisonScreen(
                         siteId = key.siteId,
-                        onNavigateUp = { backStack.removeLastOrNull() },
+                        onNavigateUp = { backStack.pop(key) },
                         showNavigateUp = singlePaneLayout,
                         initialSnapId = key.initialSnapId,
                         showHistoryInitially = key.showHistory,
                         onSiteEdit = { id -> backStack.add(EditSiteDestination(siteId = id)) },
-                        onSiteDelete = { backStack.removeLastOrNull() },
+                        onSiteDelete = { backStack.pop(key) },
                     )
                 }
             },
@@ -406,4 +406,14 @@ private fun TurboRoute(
         onOpenPage = onOpenPage,
         onOpenChange = onOpenChange,
     )
+}
+
+/**
+ * Closes [screen] if it is still on top (taps that land during the closing animation do nothing), and never
+ * removes the last screen: an empty back stack crashes navigation.
+ */
+internal fun androidx.navigation3.runtime.NavBackStack<NavKey>.pop(screen: NavKey? = null) {
+    if (size <= 1) return
+    if (screen != null && lastOrNull() != screen) return
+    removeLastOrNull()
 }
