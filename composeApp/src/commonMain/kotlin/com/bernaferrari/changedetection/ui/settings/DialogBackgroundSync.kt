@@ -117,7 +117,7 @@ internal fun BackgroundSyncDialogContent(
     ModalBottomSheet(
         onDismissRequest = { if (!saving) onDismiss() },
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surfaceBright,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Column(Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
             Column(Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 16.dp)) {
@@ -130,9 +130,9 @@ internal fun BackgroundSyncDialogContent(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp)
                             .toggleable(draft.backgroundSync, enabled = available && !saving, role = Role.Switch) { draft = draft.copy(backgroundSync = it) }
                             .semantics(mergeDescendants = true) {},
-                        shape = MaterialTheme.shapes.large,
-                        color = if (draft.backgroundSync) MaterialTheme.colorScheme.inverseSurface else MaterialTheme.colorScheme.surfaceContainer,
-                        contentColor = if (draft.backgroundSync) MaterialTheme.colorScheme.inverseOnSurface else MaterialTheme.colorScheme.onSurface,
+                        shape = MaterialTheme.shapes.extraLarge,
+                        color = if (draft.backgroundSync) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                        contentColor = if (draft.backgroundSync) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
                     ) {
                         Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             Text(checksSentence(draft), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
@@ -140,11 +140,6 @@ internal fun BackgroundSyncDialogContent(
                                 checked = draft.backgroundSync,
                                 onCheckedChange = null,
                                 enabled = available && !saving,
-                                colors = androidx.compose.material3.SwitchDefaults.colors(
-                                    checkedTrackColor = com.bernaferrari.changedetection.ui.theme.LocalMarks.current.highlight,
-                                    checkedThumbColor = MaterialTheme.colorScheme.inverseSurface,
-                                    checkedBorderColor = com.bernaferrari.changedetection.ui.theme.LocalMarks.current.highlight,
-                                ),
                             )
                         }
                     }
@@ -192,8 +187,8 @@ internal fun BackgroundSyncDialogContent(
                         )
                         if (monitoringCapabilities.constraints) {
                             GroupLabel(stringResource(Res.string.checks_only_when))
-                            Surface(Modifier.fillMaxWidth().padding(horizontal = 12.dp), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainerLow) {
-                                Column {
+                            com.bernaferrari.changedetection.ui.kit.ListGroup {
+                                run {
                                     GroupRow(stringResource(Res.string.checks_wifi), supporting = stringResource(Res.string.checks_wifi_body), icon = Icons.Outlined.Wifi, role = Role.Switch, checked = draft.requireWifi, enabled = !saving, onClick = { draft = draft.copy(requireWifi = !draft.requireWifi) }) {
                                         Switch(draft.requireWifi, onCheckedChange = null, enabled = !saving)
                                     }
@@ -207,7 +202,13 @@ internal fun BackgroundSyncDialogContent(
                             }
                         }
                         Text(
-                            stringResource(if (monitoringCapabilities.execution == MonitoringExecution.Background) Res.string.checks_android_note else Res.string.settings_checks_while_open),
+                            stringResource(
+                                when {
+                                    monitoringCapabilities.osScheduled -> Res.string.checks_ios_note
+                                    monitoringCapabilities.execution == MonitoringExecution.Background -> Res.string.checks_android_note
+                                    else -> Res.string.settings_checks_while_open
+                                },
+                            ),
                             Modifier.padding(horizontal = 24.dp, vertical = 14.dp),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,

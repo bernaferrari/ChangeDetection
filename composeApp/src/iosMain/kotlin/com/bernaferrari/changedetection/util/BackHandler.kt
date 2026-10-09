@@ -2,11 +2,14 @@
  * Copyright (c) 2024 ChangeDetection Contributors
  * Licensed under the Apache License, Version 2.0
  */
+@file:OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+
 package com.bernaferrari.changedetection.util
 
 import androidx.compose.runtime.Composable
 
+/** The iOS edge-swipe back gesture closes in-screen states (selection, search) like it does on Android. */
 @Composable
 actual fun BackHandler(enabled: Boolean, onBack: () -> Unit) {
-    // No-op on iOS as standard back gesture/navigation is handled by the system or navigation controller
+    androidx.compose.ui.backhandler.BackHandler(enabled = enabled, onBack = onBack)
 }

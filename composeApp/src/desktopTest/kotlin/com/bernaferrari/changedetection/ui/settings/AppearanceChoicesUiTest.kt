@@ -41,7 +41,7 @@ class AppearanceChoicesUiTest {
         compose.runOnIdle { assertEquals(ThemeMode.DARK, theme) }
         compose.onNodeWithContentDescription("Blue").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(AppPalette.BLUE, palette) }
-        compose.onNodeWithText("Highlighter").performScrollTo().performClick()
+        compose.onNodeWithText("Indigo").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(AppPalette.DEFAULT, palette) }
     }
 }

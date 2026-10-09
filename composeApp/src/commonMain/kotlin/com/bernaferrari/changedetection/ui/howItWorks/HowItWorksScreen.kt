@@ -6,6 +6,8 @@
 
 package com.bernaferrari.changedetection.ui.howItWorks
 
+import androidx.compose.material3.toShape
+
 import androidx.compose.ui.draw.clip
 
 import androidx.compose.foundation.background
@@ -154,9 +156,9 @@ internal fun HowItWorksContent(onBackClick: () -> Unit, capabilities: Monitoring
                     )
                 }
                 item(key = "example") {
-                    androidx.compose.material3.Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceBright) {
-                        Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(stringResource(Res.string.how_example_label), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    androidx.compose.material3.Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surfaceBright) {
+                        Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(stringResource(Res.string.how_example_label), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                             com.bernaferrari.changedetection.ui.kit.DiffText(
                                 com.bernaferrari.changedetection.ui.kit.editText(
                                     listOf(
@@ -176,10 +178,10 @@ internal fun HowItWorksContent(onBackClick: () -> Unit, capabilities: Monitoring
                     val step = steps[index]
                     Row(Modifier.fillMaxWidth().padding(top = 20.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         Box(
-                            Modifier.size(40.dp).clip(androidx.compose.foundation.shape.CircleShape).background(com.bernaferrari.changedetection.ui.theme.LocalMarks.current.highlight),
+                            Modifier.size(44.dp).clip(androidx.compose.material3.MaterialShapes.Cookie9Sided.toShape()).background(MaterialTheme.colorScheme.primaryContainer),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text((index + 1).toString(), style = MaterialTheme.typography.titleMedium, color = com.bernaferrari.changedetection.ui.theme.LocalMarks.current.onHighlight)
+                            Text((index + 1).toString(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(step.title, style = MaterialTheme.typography.titleLarge)
@@ -189,8 +191,8 @@ internal fun HowItWorksContent(onBackClick: () -> Unit, capabilities: Monitoring
                     }
                 }
                 item(key = "privacy") {
-                    androidx.compose.material3.Surface(Modifier.padding(top = 28.dp), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainer) {
-                        Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    androidx.compose.material3.Surface(Modifier.padding(top = 28.dp), shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surfaceBright) {
+                        Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Text(stringResource(Res.string.how_it_works_footer_title), style = MaterialTheme.typography.titleMedium)
                             Text(stringResource(Res.string.settings_privacy_line), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }

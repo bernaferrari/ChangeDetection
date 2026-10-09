@@ -269,13 +269,13 @@
     <string name="settings_screenshot_wait">Espera para la captura</string>
     <string name="settings_screenshot_wait_value">%1$d segundos antes de capturar</string>
     <string name="settings_notifications">Notificaciones</string>
-    <string name="settings_notifications_body">Sonidos, estilo y qué apps pueden interrumpir</string>
+    <string name="settings_notifications_body">Avisos, sonidos y banners en los ajustes del sistema</string>
     <string name="settings_saved_versions">Versiones guardadas</string>
     <string name="settings_storage_value">%1$s en este dispositivo</string>
     <string name="settings_about_value">Versión %1$s · código abierto</string>
     <string name="settings_feedback">Enviar comentarios</string>
     <string name="settings_privacy_line">Todo se queda en este dispositivo. Sin cuenta ni seguimiento.</string>
-    <string name="palette_highlighter_body">Tinta y amarillo de resaltador</string>
+    <string name="palette_highlighter_body">Los colores propios de la app</string>
     <string name="palette_dynamic_body">A juego con tu fondo de pantalla</string>
     <string name="palette_more">Más colores</string>
     <string name="palette_note">Los textos añadidos y eliminados conservan sus colores de resaltado, elijas lo que elijas, para que los cambios sean fáciles de leer.</string>

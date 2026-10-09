@@ -72,7 +72,7 @@
         <item quantity="other">+%1$d more changes</item>
     </plurals>
     <string name="empty_title">Stop refreshing. We’ll tell you what changed.</string>
-    <string name="empty_body">Paste any link. We check it from this device and highlight exactly what changes. No account, your saved pages stay on this device.</string>
+    <string name="empty_body">Paste any link. We check it from this device and highlight exactly what changes. No account needed: your pages stay on this device.</string>
     <string name="empty_clipboard_label">Copied link</string>
     <string name="empty_watch">Watch</string>
     <string name="turbo_hours_left">%1$d h %2$d min left</string>
@@ -269,13 +269,13 @@
     <string name="settings_screenshot_wait">Screenshot wait</string>
     <string name="settings_screenshot_wait_value">%1$d seconds before capture</string>
     <string name="settings_notifications">Notifications</string>
-    <string name="settings_notifications_body">Sounds, style and which apps can interrupt</string>
+    <string name="settings_notifications_body">Alerts, sounds and banners in system settings</string>
     <string name="settings_saved_versions">Saved versions</string>
     <string name="settings_storage_value">%1$s on this device</string>
     <string name="settings_about_value">Version %1$s · open source</string>
     <string name="settings_feedback">Send feedback</string>
     <string name="settings_privacy_line">Everything stays on this device. No account, no tracking.</string>
-    <string name="palette_highlighter_body">Ink and marker yellow</string>
+    <string name="palette_highlighter_body">The app’s own colors</string>
     <string name="palette_dynamic_body">Matches your wallpaper</string>
     <string name="palette_more">More colors</string>
     <string name="palette_note">Added and removed text always keep their highlight colors, whatever you pick, so changes stay easy to read.</string>

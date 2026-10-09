@@ -236,7 +236,7 @@ class AddEditViewModelTest {
         assertEquals(AddEditError.InvalidUrl, viewModel.uiState.value.urlError)
 
         viewModel.setUrl("example.com")
-        assertEquals("example", viewModel.uiState.value.title)
+        assertEquals("example.com", viewModel.uiState.value.title)
         assertEquals(null, viewModel.uiState.value.urlError)
 
         viewModel.setTitle("Important page")
@@ -270,7 +270,7 @@ class AddEditViewModelTest {
         assertEquals(dataSource.savedSite, viewModel.uiState.value.savedSite)
         assertFalse(viewModel.uiState.value.isSaving)
         assertEquals("https://example.com", dataSource.savedSite?.url)
-        assertEquals("example", dataSource.savedSite?.title)
+        assertEquals("example.com", dataSource.savedSite?.title)
     }
 
     @Test

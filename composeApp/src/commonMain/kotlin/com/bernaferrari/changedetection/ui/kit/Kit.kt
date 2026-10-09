@@ -401,7 +401,7 @@ fun AppMark(modifier: Modifier = Modifier) {
     val marks = MaterialTheme.marks
     androidx.compose.foundation.Canvas(modifier) {
         val corner = size.minDimension * 0.3f
-        drawRoundRect(Color(0xFF17160F), cornerRadius = androidx.compose.ui.geometry.CornerRadius(corner, corner))
+        drawRoundRect(Color(0xFF3F4AB8), cornerRadius = androidx.compose.ui.geometry.CornerRadius(corner, corner))
         val w = size.width
         val h = size.height
         val stroke = h * 0.07f

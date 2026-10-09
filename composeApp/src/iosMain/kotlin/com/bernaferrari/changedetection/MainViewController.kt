@@ -44,6 +44,12 @@ fun MainViewController(): UIViewController {
             if (schedule.enabled) runCatching { koin.get<SyncEngine>().syncDueSites(schedule.intervalMinutes) }
         }
     }
+    // Turbo only runs while the app is open; keep the screen on for the length of a session.
+    kotlinx.coroutines.MainScope().launch {
+        koin.get<com.bernaferrari.changedetection.background.MonitoringManager>().quickMonitorState.collect { state ->
+            UIApplication.sharedApplication.idleTimerDisabled = state.isActive
+        }
+    }
     return ComposeUIViewController {
         val link by IosDeepLinks.pending.collectAsState()
         ChangeDetectionRootApp(
