@@ -735,7 +735,7 @@
     <string name="setup_receipt_open">Abrir página</string>
     <string name="setup_receipt_done">Ir para a lista</string>
     <string name="setup_receipt_status_unavailable">Não foi possível carregar o estado da última verificação. Sua página foi salva.</string>
-    <string name="palette_default">Marca-texto</string>
+    <string name="palette_default">Índigo</string>
     <string name="turbo_closer_eye">Acompanhe de perto.</string>
     <string name="turbo_seconds_unit">segundos</string>
     <string name="turbo_minutes_unit">minutos</string>

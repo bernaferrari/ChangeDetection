@@ -461,15 +461,15 @@ private fun ReaderBar(reader: ReaderState, showNav: Boolean, canMarkRead: Boolea
         Surface(
             modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth(),
             shape = MaterialTheme.shapes.extraLarge,
-            color = MaterialTheme.colorScheme.inverseSurface,
-            contentColor = MaterialTheme.colorScheme.inverseOnSurface,
-            shadowElevation = 6.dp,
+            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            shadowElevation = 3.dp,
         ) {
             BoxWithConstraints(Modifier.padding(6.dp)) {
                 val stacked = canMarkRead && (maxWidth < 360.dp || LocalDensity.current.fontScale > 1.3f)
                 val navigation: @Composable (Modifier) -> Unit = { modifier ->
                     Row(modifier.heightIn(min = 52.dp), verticalAlignment = Alignment.CenterVertically) {
-                        val colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.inverseOnSurface)
+                        val colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
                         IconButton(onClick = { scope.launch { reader.go(-1) } }, enabled = reader.current > 0, colors = colors) {
                             Icon(Icons.Rounded.KeyboardArrowUp, stringResource(Res.string.reader_previous))
                         }
@@ -488,7 +488,7 @@ private fun ReaderBar(reader: ReaderState, showNav: Boolean, canMarkRead: Boolea
                     Button(
                         onClick = onMarkRead,
                         modifier = modifier.heightIn(min = 48.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.marks.highlight, contentColor = MaterialTheme.marks.onHighlight),
+                        shapes = ButtonDefaults.shapes(),
                     ) {
                         Icon(Icons.Rounded.Check, null, Modifier.size(18.dp))
                         Spacer(Modifier.size(6.dp))

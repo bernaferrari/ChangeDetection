@@ -37,7 +37,7 @@ class CreationJourneyUiTest {
         }
         compose.onNodeWithText("Save").performClick()
         compose.onNodeWithText("Saving…").assertIsNotEnabled()
-        compose.onNodeWithText("Name (optional)").assertIsNotEnabled()
+        compose.onNodeWithText("Name").assertIsNotEnabled()
         compose.onNodeWithContentDescription("Navigate back").assertIsNotEnabled()
         compose.onNodeWithText("Page address").assertIsNotEnabled()
     }
@@ -59,21 +59,16 @@ class CreationJourneyUiTest {
             }
         }
         compose.onNodeWithText("What should we watch?").assertIsDisplayed()
-        compose.onNodeWithText("Start watching").assertDoesNotExist()
+        compose.onNodeWithText("Start watching").assertIsNotEnabled()
         capture("creation-page-light")
-        compose.onNode(hasSetTextAction()).performTextInput("https://example.test/program")
-        compose.onNodeWithText("Continue").performClick()
-        compose.onNodeWithText("What we’ll compare").assertIsDisplayed()
-        compose.runOnIdle {
-            assertEquals(1, previews)
-            assertEquals(0, saves)
-        }
-        compose.onNodeWithText("Name (optional)").performScrollTo().performTextInput("Program")
+        compose.onNode(hasSetTextAction() and hasText("Page address")).performTextInput("https://example.test/program")
+        // The preview starts by itself once typing pauses; no extra step.
+        compose.mainClock.advanceTimeBy(1_000)
+        compose.waitUntil(3_000) { previews == 1 }
+        compose.onNodeWithText("Name").performTextInput("Program")
         capture("creation-content-light")
-        compose.onNodeWithContentDescription("Navigate back").performClick()
-        compose.onNode(hasSetTextAction()).assertTextContains("https://example.test/program")
-        compose.onNodeWithText("Continue").performClick()
-        compose.onNodeWithText("Name (optional)").performScrollTo().assertTextContains("Program")
+        compose.runOnIdle { assertEquals(0, saves) }
+        compose.onNode(hasText("Page address")).assertTextContains("https://example.test/program")
         compose.onNodeWithText("Start watching").performClick()
         compose.runOnIdle { assertEquals(1, saves) }
     }

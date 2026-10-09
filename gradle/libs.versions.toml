@@ -1,58 +1,58 @@
 [versions]
 activityCompose = "1.13.0"
 # Matches the local Webwright composite, which shares the native browser implementation.
-androidGradlePlugin = "9.1.1"
+androidGradlePlugin = "9.4.1"
 androidx-test = "1.7.0"
 browser = "1.10.0"
-coil = "3.5.0"
+coil = "3.6.3"
 commonsText = "1.15.0"
-composeBom = "2026.06.01"
+composeBom = "2026.09.00"
 coroutines = "1.11.0"
 datastore = "1.2.1"
-glance = "1.1.1"
-gradle-versions = "0.56.0"
+glance = "1.2.0"
+gradle-versions = "0.65.0"
 graphicsShapes = "1.1.0"
 jetbrainsAndroidxLifecycle = "2.11.0"
 jetbrainsAndroidxNavigation = "2.9.2"
-jetbrainsAndroidxNavigation3Ui = "1.1.1"
+jetbrainsAndroidxNavigation3Ui = "1.1.2"
 jetbrainsAndroidxSavedState = "1.4.0"
 jetbrainsAndroidxWindow = "1.5.1"
-jetbrainsCompose = "1.12.0-beta03"
-jetbrainsComposeAdaptive = "1.3.0-beta02"
-jsoup = "1.22.2"
+jetbrainsCompose = "1.12.1"
+jetbrainsMaterial3 = "1.12.0-alpha03"
+jetbrainsComposeAdaptive = "1.3.0"
+jsoup = "1.23.2"
 junit = "4.13.2"
 koin = "4.2.2"
-koinCompiler = "1.0.2"
-kotlin = "2.4.10"
+koinCompiler = "1.2.1"
+kotlin = "2.4.21"
 kotlinxDatetime = "0.8.0"
 kotlinxSerializationJson = "1.11.0"
-ksp = "2.3.10"
-ktor = "3.5.1"
-ktx = "1.19.0"
+ksp = "2.3.12"
+ktor = "3.6.0"
+ktx = "1.19.1"
 lifecycle = "2.11.0"
-material3 = "1.5.0-alpha25"
-material3AdaptiveNav3 = "1.3.0-rc01"
-materialKolor = "5.0.0-alpha07"
-mockito = "5.23.0"
-mockito-kotlin = "6.3.0"
+material3 = "1.5.0-beta01"
+material3AdaptiveNav3 = "1.3.0"
+materialKolor = "5.0.1"
+mockito = "5.24.0"
+mockito-kotlin = "6.4.0"
 napier = "2.7.1"
-nav3 = "1.1.5"
+nav3 = "1.2.0"
 nav3Lifecycle = "2.11.0"
-navigation = "2.9.8"
-okio = "3.18.1"
-paging = "3.5.0"
+navigation = "2.10.2"
+okio = "3.18.2"
+paging = "3.5.2"
 paletteKtx = "1.0.0"
-room = "3.0.0"
-sqlite = "2.7.0"
-spotless = "8.9.0"
+room = "3.0.3"
+spotless = "8.10.4"
+sqlite = "2.7.1"
 startup = "1.2.0"
 subsamplingScaleImageView = "3.10.0"
 timeAgo = "4.3.0"
-version-catalog-update = "1.1.0"
-work = "2.11.2"
+version-catalog-update = "1.1.1"
+work = "2.12.0"
 
 [libraries]
-kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
@@ -110,8 +110,8 @@ jetbrains-androidx-window-core = { module = "org.jetbrains.androidx.window:windo
 jetbrains-compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "jetbrainsCompose" }
 jetbrains-compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "jetbrainsCompose" }
 jetbrains-compose-material-icons-extended = "org.jetbrains.compose.material:material-icons-extended:1.7.3"
-jetbrains-compose-material3 = "org.jetbrains.compose.material3:material3:1.12.0-alpha03"
-jetbrains-compose-material3-adaptive-navigation-suite = { module = "org.jetbrains.compose.material3:material3-adaptive-navigation-suite", version.ref = "jetbrainsCompose" }
+jetbrains-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "jetbrainsMaterial3" }
+jetbrains-compose-material3-adaptive-navigation-suite = { module = "org.jetbrains.compose.material3:material3-adaptive-navigation-suite", version.ref = "jetbrainsMaterial3" }
 jetbrains-compose-material3-adaptive-navigation3 = { module = "org.jetbrains.compose.material3.adaptive:adaptive-navigation3", version.ref = "jetbrainsComposeAdaptive" }
 jetbrains-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "jetbrainsCompose" }
 jetbrains-compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "jetbrainsCompose" }
@@ -131,6 +131,7 @@ kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "
 kotlinx-browser = "org.jetbrains.kotlinx:kotlinx-browser:0.5.0"
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
@@ -164,11 +165,11 @@ androidx-room = { id = "androidx.room3", version.ref = "room" }
 compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 gradle-versions = { id = "io.github.ben-manes.versions", version.ref = "gradle-versions" }
 jetbrains-compose = { id = "org.jetbrains.compose", version.ref = "jetbrainsCompose" }
+koin-compiler = { id = "io.insert-koin.compiler.plugin", version.ref = "koinCompiler" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-koin-compiler = { id = "io.insert-koin.compiler.plugin", version.ref = "koinCompiler" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "version-catalog-update" }

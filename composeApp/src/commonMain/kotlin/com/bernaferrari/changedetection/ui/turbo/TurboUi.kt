@@ -6,6 +6,8 @@
 
 package com.bernaferrari.changedetection.ui.turbo
 
+import androidx.compose.material3.toShape
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -181,9 +183,9 @@ fun TurboLiveCard(state: TurboState, onClick: () -> Unit, modifier: Modifier = M
 @Composable
 private fun BoltBadge(size: androidx.compose.ui.unit.Dp = 40.dp) {
     Box(
-        Modifier.size(size).clip(MaterialTheme.shapes.medium).background(MaterialTheme.marks.highlight),
+        Modifier.size(size).clip(androidx.compose.material3.MaterialShapes.Cookie9Sided.toShape()).background(MaterialTheme.colorScheme.primaryContainer),
         contentAlignment = Alignment.Center,
-    ) { Icon(Icons.Rounded.Bolt, null, tint = MaterialTheme.marks.onHighlight) }
+    ) { Icon(Icons.Rounded.Bolt, null, tint = MaterialTheme.colorScheme.onPrimaryContainer) }
 }
 
 /** Three decisions in one sheet: which pages, how often, for how long. */
@@ -209,7 +211,11 @@ fun TurboSetupSheet(
         )
     }
     var interval by remember { mutableIntStateOf(state.intervalSeconds.takeIf { it in TURBO_INTERVAL_SECONDS } ?: 30) }
-    var duration by remember { mutableIntStateOf(state.durationMinutes.takeIf { it in TURBO_DURATION_MINUTES } ?: 60) }
+    var duration by remember {
+        val last = state.durationMinutes.takeIf { it in TURBO_DURATION_MINUTES } ?: 60
+        // Where Turbo needs the app open, a long default session is unrealistic.
+        mutableIntStateOf(if (com.bernaferrari.changedetection.background.monitoringCapabilities.osScheduled && last > 60) 30 else last)
+    }
     // A page can be paused or removed while the setup sheet remains open.
     val selectedEligible = selected.intersect(eligibleIds)
     val endsAt = rememberNow(true) + duration * 60_000L
@@ -284,7 +290,7 @@ fun TurboSetupSheet(
                 }
                 Row(Modifier.align(Alignment.CenterHorizontally).padding(start = 24.dp, end = 24.dp, top = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Icon(Icons.Outlined.BatteryAlert, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(stringResource(Res.string.turbo_sheet_caption, formatTime(endsAt)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(if (com.bernaferrari.changedetection.background.monitoringCapabilities.osScheduled) Res.string.turbo_sheet_caption_open else Res.string.turbo_sheet_caption, formatTime(endsAt)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -330,7 +336,7 @@ fun TurboLiveScreen(
                         FilledTonalButton(
                             onClick = onStop,
                             modifier = Modifier.weight(1f).heightIn(min = 56.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer),
+                            colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.12f), contentColor = MaterialTheme.colorScheme.error),
                         ) {
                             Icon(Icons.Rounded.Stop, null)
                             Spacer(Modifier.size(8.dp))
@@ -354,15 +360,15 @@ fun TurboLiveScreen(
                 item(key = "hero") {
                     Column(Modifier.padding(horizontal = 24.dp)) {
                         Row(
-                            Modifier.clip(CircleShape).background(if (state.isActive) MaterialTheme.marks.highlight else MaterialTheme.colorScheme.surfaceContainer).padding(horizontal = 12.dp, vertical = 5.dp),
+                            Modifier.clip(CircleShape).background(if (state.isActive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest).padding(horizontal = 12.dp, vertical = 5.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                         ) {
-                            Icon(Icons.Rounded.Bolt, null, Modifier.size(16.dp), tint = if (state.isActive) MaterialTheme.marks.onHighlight else MaterialTheme.colorScheme.onSurfaceVariant)
+                            Icon(Icons.Rounded.Bolt, null, Modifier.size(16.dp), tint = if (state.isActive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(
                                 if (state.isActive) pluralStringResource(Res.plurals.turbo_card_title_n, state.siteIds.size, state.siteIds.size) else endedLabel(state.endReason),
                                 style = MaterialTheme.typography.labelLarge,
-                                color = if (state.isActive) MaterialTheme.marks.onHighlight else MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = if (state.isActive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         Spacer(Modifier.size(14.dp))

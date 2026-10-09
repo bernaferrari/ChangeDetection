@@ -28,4 +28,7 @@
     <string name="digest_numbers_body">Contadores, horas y precios. Suele ser ruido.</string>
     <string name="digest_show_full">Ver comparación completa</string>
     <string name="digest_changed">Cambiado</string>
+    <string name="activity_started_short">Empezó la monitorización</string>
+    <string name="checks_ios_note">iOS decide cuándo se ejecutan las comprobaciones en segundo plano, normalmente unas pocas veces al día. Al abrir la app se comprueba al momento lo pendiente.</string>
+    <string name="turbo_sheet_caption_open">Termina a las %1$s · funciona mientras la app siga abierta</string>
 </resources>

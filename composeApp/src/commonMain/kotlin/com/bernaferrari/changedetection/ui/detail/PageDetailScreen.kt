@@ -43,6 +43,7 @@ import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -338,7 +339,9 @@ private fun DetailList(
                 }
                 Row(Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     HeroAction(Icons.Rounded.Refresh, stringResource(if (item.isSyncing) Res.string.home_row_checking else Res.string.home_check_now), onCheck, Modifier.weight(1f), enabled = !item.isSyncing, busy = item.isSyncing)
-                    if (monitoringCapabilities.turbo && site.isSyncEnabled) {
+                    if (paused) {
+                        HeroAction(Icons.Rounded.PlayArrow, stringResource(Res.string.home_resume_checks), { onSetPaused(false) }, Modifier.weight(1f), emphasized = true)
+                    } else if (monitoringCapabilities.turbo) {
                         val running = turbo.isActive && site.id in turbo.siteIds
                         HeroAction(Icons.Rounded.Bolt, stringResource(if (running) Res.string.detail_turbo_on else Res.string.turbo_mode), onTurbo, Modifier.weight(1f), emphasized = true)
                     }
@@ -392,24 +395,9 @@ private fun DetailList(
                             else -> Res.string.detail_what_page
                         },
                     ),
-                    icon = Icons.Outlined.CropFree,
-                    onClick = onEdit,
-                )
-                GroupRow(
-                    title = stringResource(Res.string.detail_compare),
-                    supporting = stringResource(
-                        when (site.captureMode) {
-                            CaptureMode.SCREENSHOT -> Res.string.mode_screenshot
-                            CaptureMode.SOURCE -> Res.string.mode_source
-                            CaptureMode.HTML -> Res.string.mode_html
-                            CaptureMode.DEFAULT -> Res.string.mode_default
-                            CaptureMode.TEXT -> Res.string.mode_text
-                        },
-                    ),
                     icon = if (site.captureMode == CaptureMode.SCREENSHOT) Icons.Outlined.Image else Icons.Outlined.TextSnippet,
-                    showDivider = true,
                     onClick = onEdit,
-                )
+                ) { Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.outline) }
                 GroupRow(
                     title = stringResource(Res.string.detail_how_often),
                     supporting = if (schedule.enabled) cadence(schedule.intervalMinutes).replaceFirstChar { it.uppercase() } else stringResource(Res.string.settings_background_sync_disabled),

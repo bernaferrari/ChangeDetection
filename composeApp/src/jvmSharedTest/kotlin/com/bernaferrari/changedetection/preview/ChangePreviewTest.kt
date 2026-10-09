@@ -119,6 +119,11 @@ class ChangePreviewTest {
         assertTrue(!onlyNumbersDiffer("Ships in 2 weeks", "In stock today"))
     }
 
+    @Test fun priceChangesLeadEvenWhenOtherTextChanged() {
+        val preview = textPreview(listOf("Price", "$1,599.00", "Availability", "Ships in 2 weeks"), listOf("Price", "$1,349.00", "Availability", "In stock today")) as ChangePreview.Words
+        assertTrue(preview.segments.render(), preview.segments.render().contains("{+$1,349.00+}"))
+    }
+
     @Test fun identicalReadableTextIsInvisible() {
         assertEquals(ChangePreview.Invisible, textPreview(listOf("Same"), listOf("Same")))
     }

@@ -117,7 +117,6 @@ class DesignReviewTest {
                 }
                 step("31-add-review") {
                     onNodeWithText("Page address").performTextInput(fixtureUrl)
-                    onNodeWithText("Continue").performClick()
                     waitForText("Applications are open", substring = true, timeout = 15_000)
                 }
                 runCatching { onNodeWithContentDescription("Navigate back").performClick() }
@@ -224,6 +223,8 @@ class DesignReviewTest {
         waitForTag("home-list")
         onNodeWithTag("home-list").performScrollToKey("row-studio")
         onAllNodesWithText("Studio Display").onLast().performClick()
+        waitForTag("page-details")
+        onNodeWithTag("page-details").performScrollToKey("latest")
         waitForText("Latest change")
         runCatching { waitForText("of the page", substring = true, timeout = 8_000) }
         shot("${p}11-detail")
@@ -235,14 +236,11 @@ class DesignReviewTest {
         waitForText("What should we watch?")
         shot("${p}30-add-url")
         onNodeWithText("Page address").performTextInput(fixtureUrl)
-        onNodeWithText("Continue").performClick()
         waitForText("Applications are open", substring = true, timeout = 15_000)
         shot("${p}31-add-review")
         onNodeWithText("Start watching").performClick()
-        runCatching { waitForText("First version saved", timeout = 15_000) }
-        shot("${p}32-add-receipt")
-        runCatching { onNodeWithText("Go to watchlist").performClick() }
-        runCatching { onNodeWithText("Done").performClick() }
+        runCatching { waitForText("Now watching", substring = true, timeout = 15_000) }
+        shot("${p}32-added")
         waitForIdle()
         waitForTag("home-list")
         onNodeWithTag("home-list").performScrollToKey("row-roles")

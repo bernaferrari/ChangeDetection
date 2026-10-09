@@ -177,8 +177,11 @@ internal fun onlyNumbersDiffer(before: String, after: String): Boolean =
     before != after && mask(before) == mask(after)
 
 /** How much real wording a change carries, so previews lead with words rather than counters. */
+private val currency = Regex("[$€£¥₹₩₽]|R\\$|\\b(USD|EUR|GBP|BRL|JPY|CHF|CAD|AUD)\\b")
+
 private fun meaning(before: String, after: String): Int {
-    if (onlyNumbersDiffer(before, after)) return 0
+    // Prices are numbers people care about; counters and times are not.
+    if (onlyNumbersDiffer(before, after)) return if (currency.containsMatchIn(after)) 1_000 else 0
     val words = wordDiff(before.take(400), after.take(400)).filter { it.kind != EditSegment.Kind.Same }.sumOf { segment -> segment.text.count { it.isLetter() } }
     return words.coerceAtLeast(1)
 }
@@ -279,7 +282,8 @@ internal fun textPreview(oldLines: List<String>, newLines: List<String>, heading
         }
         return ChangePreview.Large(changedLines, total, samples, numbersOnly || (addedLines.isEmpty() && removedLines.isEmpty() && digest.edited.isEmpty() && updated > 0), addedLines.size, removedLines.size, updated)
     }
-    val (first, before, after) = scored.maxBy { it.third }.second
+    // Page order among meaningful changes; only counter/time churn is skipped.
+    val (first, before, after) = (scored.firstOrNull { it.third > 0 } ?: scored.first()).second
     val segments = wordDiff(before, after)
     val (trimmed, leading, trailing) = trimAroundFirstEdit(segments)
     val section = first.context?.takeIf { headings.isEmpty() || it in headings }?.takeIf { it.length <= 60 }

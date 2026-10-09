@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.Close
@@ -63,6 +64,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -214,19 +218,22 @@ internal fun ActivityFeed(
         LazyColumn(Modifier.widthIn(max = 720.dp).fillMaxSize().testTag("activity-list"), contentPadding = PaddingValues(bottom = 32.dp)) {
             if (failing.isNotEmpty()) {
                 item(key = "failures-header") { SectionHeader(stringResource(Res.string.home_section_attention), count = failing.size) }
-                items(failing, key = { "failure-" + it.id }) { site ->
-                    Surface(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.errorContainer) {
-                        Row(
-                            Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = { onOpenPage(site.id) }).heightIn(min = 64.dp).padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            Icon(Icons.Outlined.ErrorOutline, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.error)
-                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                Text(site.name(), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onErrorContainer, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                Text(checkFailureTitle(site.lastFailureCode), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onErrorContainer)
-                            }
+                itemsIndexed(failing, key = { _, it -> "failure-" + it.id }) { index, site ->
+                    Row(
+                        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 1.dp).clip(com.bernaferrari.changedetection.ui.kit.segmentShape(index, failing.size))
+                            .background(com.bernaferrari.changedetection.ui.kit.tileColor)
+                            .clickable(role = Role.Button, onClick = { onOpenPage(site.id) }).heightIn(min = 72.dp).padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        Box(Modifier.size(40.dp).clip(androidx.compose.foundation.shape.CircleShape).background(MaterialTheme.colorScheme.error.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Outlined.ErrorOutline, null, Modifier.size(22.dp), tint = MaterialTheme.colorScheme.error)
                         }
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(site.name(), style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            Text(checkFailureTitle(site.lastFailureCode), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+                        }
+                        Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.outline)
                     }
                 }
             }
@@ -250,6 +257,12 @@ internal fun ActivityFeed(
                     is LogUiModel.Header -> DayHeader(model.date, if (index + 1 < items.itemCount) items.peek(index + 1) else null)
 
                     is LogUiModel.Item -> ActivityRow(
+                        shape = run {
+                            val first = index == 0 || items.peek(index - 1) is LogUiModel.Header
+                            val last = index + 1 >= items.itemCount || items.peek(index + 1) is LogUiModel.Header
+                            val position = if (first) 0 else 1
+                            com.bernaferrari.changedetection.ui.kit.segmentShape(position, if (last) position + 1 else position + 2)
+                        },
                         snap = model.snap,
                         site = sites[model.snap.siteId],
                         onOpen = { onOpenChange(model.snap.siteId, model.snap.snapId) },
@@ -286,54 +299,52 @@ private fun DayHeader(date: String, next: LogUiModel?) {
     val timestamp = (next as? LogUiModel.Item)?.snap?.timestamp
     Text(
         if (timestamp != null) friendlyDay(timestamp) else date,
-        Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 6.dp).semantics { heading() },
+        Modifier.padding(start = 28.dp, end = 20.dp, top = 24.dp, bottom = 8.dp).semantics { heading() },
         style = MaterialTheme.typography.titleMedium,
     )
 }
 
 @Composable
-private fun ActivityRow(snap: Snap, site: Site?, onOpen: () -> Unit, onDelete: () -> Unit, canDelete: Boolean) {
+private fun ActivityRow(shape: androidx.compose.ui.graphics.Shape, snap: Snap, site: Site?, onOpen: () -> Unit, onDelete: () -> Unit, canDelete: Boolean) {
     val preview = rememberVersionPreview(snap)
     var menu by remember { mutableStateOf(false) }
     val name = site?.name() ?: stringResource(Res.string.activity_deleted_page)
     val first = preview == ChangePreview.FirstVersion
     val deleteLabel = stringResource(Res.string.activity_delete_version)
-    Box {
+    Box(Modifier.padding(horizontal = 16.dp, vertical = 1.dp)) {
         Row(
-            Modifier.fillMaxWidth().combinedClickable(onClick = onOpen, onLongClick = { menu = true }, onLongClickLabel = deleteLabel, role = Role.Button).heightIn(min = 72.dp).padding(start = 20.dp, end = 8.dp, top = 10.dp, bottom = 10.dp),
+            Modifier.fillMaxWidth().clip(shape).background(com.bernaferrari.changedetection.ui.kit.tileColor)
+                .combinedClickable(onClick = onOpen, onLongClick = { menu = true }, onLongClickLabel = deleteLabel, role = Role.Button)
+                .heightIn(min = 72.dp).padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            PageAvatar(name, snap.siteId, size = 36.dp)
-            Column(Modifier.weight(1f)) {
-                Text(
-                    stringResource(if (first) Res.string.activity_started else Res.string.activity_changed, name),
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            PageAvatar(name, snap.siteId, size = 40.dp)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (preview is ChangePreview.Crop) Icon(Icons.Outlined.Image, null, Modifier.size(15.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(previewLabel(preview), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        if (first) stringResource(Res.string.activity_started_short) else previewLabel(preview),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
             }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(formatTime(snap.timestamp), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Box {
-                    IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreVert, stringResource(Res.string.more_options)) }
-                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(Res.string.activity_delete_version)) },
-                            leadingIcon = { Icon(Icons.Outlined.DeleteOutline, null) },
-                            enabled = canDelete,
-                            onClick = {
-                                menu = false
-                                onDelete()
-                            },
-                        )
-                    }
-                }
-            }
+            Text(formatTime(snap.timestamp), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.activity_delete_version)) },
+                leadingIcon = { Icon(Icons.Outlined.DeleteOutline, null) },
+                enabled = canDelete,
+                onClick = {
+                    menu = false
+                    onDelete()
+                },
+            )
         }
     }
 }

@@ -28,4 +28,7 @@
     <string name="digest_numbers_body">Counters, times and prices. Usually noise.</string>
     <string name="digest_show_full">Show full comparison</string>
     <string name="digest_changed">Changed</string>
+    <string name="activity_started_short">Started watching</string>
+    <string name="checks_ios_note">iOS decides when background checks run, usually a few times a day. Opening the app checks anything that’s due right away.</string>
+    <string name="turbo_sheet_caption_open">Ends at %1$s · runs while the app stays open</string>
 </resources>

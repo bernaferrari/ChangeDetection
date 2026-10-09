@@ -98,8 +98,7 @@ fun HomeEmptyState(onAddPage: (String?) -> Unit, onHowItWorks: () -> Unit, modif
             Button(
                 onClick = { onAddPage(null) },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
-                shape = MaterialTheme.shapes.extraLarge,
+                shapes = ButtonDefaults.shapes(),
             ) {
                 Icon(Icons.Rounded.Add, null)
                 Spacer(Modifier.size(8.dp))

@@ -28,4 +28,7 @@
     <string name="digest_numbers_body">Contatori, orari e prezzi. Di solito è rumore.</string>
     <string name="digest_show_full">Mostra confronto completo</string>
     <string name="digest_changed">Modificato</string>
+    <string name="activity_started_short">Monitoraggio avviato</string>
+    <string name="checks_ios_note">iOS decide quando eseguire i controlli in background, di solito qualche volta al giorno. Aprendo l’app, ciò che è in scadenza viene controllato subito.</string>
+    <string name="turbo_sheet_caption_open">Termina alle %1$s · funziona finché l’app resta aperta</string>
 </resources>

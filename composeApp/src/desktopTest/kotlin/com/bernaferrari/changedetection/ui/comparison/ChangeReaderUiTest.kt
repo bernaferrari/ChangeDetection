@@ -82,6 +82,10 @@ class ChangeReaderUiTest {
         val before = (1..100).joinToString("\n") { "Old line $it" }
         val after = (1..100).joinToString("\n") { "New line $it" }
         show(before, after)
+        // A change this big opens as a digest first; the full comparison is one tap away.
+        compose.waitUntil(5_000) { compose.onAllNodesWithTag("comparison-digest").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithTag("comparison-digest").performScrollToNode(hasText("Show full comparison"))
+        compose.onNodeWithText("Show full comparison").performClick()
         compose.waitUntil(5_000) { state.changeCount == 1 }
         compose.onAllNodesWithText("Show 88 more lines").onFirst().performScrollTo().performClick()
         compose.onNodeWithContentDescription("After: New line 100").assertDoesNotExist()
@@ -90,6 +94,16 @@ class ChangeReaderUiTest {
         compose.onNodeWithTag("comparison-lines").performScrollToNode(hasText("Show fewer lines"))
         compose.onNodeWithText("Show fewer lines").performClick()
         compose.onNodeWithContentDescription("After: New line 100").assertDoesNotExist()
+    }
+
+    @Test fun busyPagesOpenAsNewRemovedAndNumberDigest() {
+        val words = listOf("apple", "bridge", "cloud", "desert", "engine", "forest", "garden", "harbor", "island", "jungle", "kettle", "lantern")
+        val before = words.flatMap { listOf("Story about the $it", "${it.length * 7} points · 3 hours ago") }.joinToString("\n")
+        val after = (listOf("A brand new headline appears") + words.dropLast(1)).flatMap { listOf(if (it.contains(' ')) it else "Story about the $it", "${it.length * 7 + 4} points · 5 hours ago") }.joinToString("\n")
+        show(before, after)
+        compose.waitUntil(5_000) { compose.onAllNodesWithText("New").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("Removed").assertExists()
+        compose.onNodeWithText("Numbers changed in", substring = true).assertExists()
     }
 
     @Test fun inlineChangesDescribeBeforeAndAfterForScreenReaders() {

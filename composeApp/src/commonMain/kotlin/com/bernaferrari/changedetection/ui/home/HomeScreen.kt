@@ -642,6 +642,7 @@ private fun ChangeCard(
     modifier: Modifier = Modifier,
 ) {
     val preview = rememberLatestPreview(row.site.id, row.snap?.snapId)
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
     val largeText = LocalDensity.current.fontScale > 1.3f
     val selectLabel = stringResource(Res.string.home_select_page)
     val container by androidx.compose.animation.animateColorAsState(
@@ -655,7 +656,10 @@ private fun ChangeCard(
     ) {
         Column(
             Modifier
-                .combinedClickable(onClick = onOpen, onLongClick = onLongPress, onLongClickLabel = selectLabel, role = Role.Button)
+                .combinedClickable(onClick = onOpen, onLongClick = {
+                    haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                    onLongPress()
+                }, onLongClickLabel = selectLabel, role = Role.Button)
                 .semantics { if (selecting) this.selected = selected }
                 .padding(16.dp),
         ) {
@@ -676,7 +680,10 @@ private fun ChangeCard(
                 }
                 if (!selecting) {
                     FilledTonalIconButton(
-                        onClick = onMarkRead,
+                        onClick = {
+                            haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.Confirm)
+                            onMarkRead()
+                        },
                         shapes = IconButtonDefaults.shapes(),
                     ) { Icon(Icons.Rounded.Check, stringResource(Res.string.mark_read_short)) }
                 }
@@ -734,6 +741,7 @@ private fun PageRow(
     modifier: Modifier = Modifier,
 ) {
     val site = row.site
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
     val largeText = LocalDensity.current.fontScale > 1.3f
     val selectLabel = stringResource(Res.string.home_select_page)
     val paused = !site.isSyncEnabled
@@ -751,7 +759,10 @@ private fun PageRow(
             .fillMaxWidth()
             .clip(shape)
             .background(background)
-            .combinedClickable(onClick = onClick, onLongClick = onLongPress, onLongClickLabel = selectLabel, role = Role.Button)
+            .combinedClickable(onClick = onClick, onLongClick = {
+                haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                onLongPress()
+            }, onLongClickLabel = selectLabel, role = Role.Button)
             .heightIn(min = 72.dp)
             .padding(horizontal = 16.dp, vertical = 12.dp)
             .semantics { if (selecting) this.selected = selected },
