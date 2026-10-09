@@ -4,6 +4,8 @@
  */
 package com.bernaferrari.changedetection.preview
 
+import com.bernaferrari.changedetection.image.computeVisualChange
+
 import com.bernaferrari.changedetection.image.ChangedBounds
 import com.bernaferrari.changedetection.image.PlatformImageDiff
 import com.bernaferrari.changedetection.repo.Snap
@@ -76,7 +78,17 @@ sealed interface ChangePreview {
         val bounds: ChangedBounds?,
         val percent: Double,
         val sizeChanged: Boolean,
-    ) : ChangePreview
+        /** Row-aligned areas of change (handles pages that shifted or grew); biggest first is not guaranteed. */
+        val regions: List<com.bernaferrari.changedetection.image.VisualRegion> = emptyList(),
+    ) : ChangePreview {
+        /**
+         * The one area worth showing on a card: the top-most thing that is new or different (what a person reads
+         * first). Tiny slivers are skipped; removals only lead when nothing was added or changed.
+         */
+        val lead: com.bernaferrari.changedetection.image.VisualRegion?
+            get() = regions.filter { it.kind != com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed && it.afterBottom - it.afterTop > 0.004f }.minByOrNull { it.afterTop }
+                ?: regions.maxByOrNull { it.weight }
+    }
 
     /** The pair cannot be compared (missing file, mixed capture methods). */
     data object Unavailable : ChangePreview
@@ -127,13 +139,16 @@ class ChangePreviewRepository(
                 afterBytes = snaps.getSnapContent(after.snapId),
                 includeDiffImage = false,
             )
-            if (diff.error != null) return ChangePreview.Unavailable
+            if (diff.error != null && diff.dimensionMismatch == null) return ChangePreview.Unavailable
+            val visual = diff.visualChange ?: computeVisualChange(snaps.getSnapContent(before.snapId), snaps.getSnapContent(after.snapId))
+            if (visual != null && visual.regions.isEmpty()) return ChangePreview.Invisible
             return ChangePreview.Crop(
                 beforeSnapId = before.snapId,
                 afterSnapId = after.snapId,
                 bounds = diff.changedBounds,
                 percent = diff.mismatchPercentage,
                 sizeChanged = diff.dimensionMismatch != null,
+                regions = visual?.regions.orEmpty(),
             )
         }
         if (!before.isTextSnapshot() || !after.isTextSnapshot()) return ChangePreview.Unavailable
@@ -207,8 +222,10 @@ fun textDigest(oldLines: List<String>, newLines: List<String>): TextDigest {
     val oldByNorm = old.groupBy(::norm)
     val newNorms = new.mapTo(HashSet(), ::norm)
     val oldExact = old.toHashSet()
-    val addedAll = new.filter { norm(it) !in oldByNorm }.distinct()
-    val removedAll = old.filter { norm(it) !in newNorms }.distinct()
+    // "1.", "·", "|" and other letterless fragments are layout, not content.
+    fun words(line: String) = line.count { it.isLetter() } >= 3
+    val addedAll = new.filter { words(it) && norm(it) !in oldByNorm }.distinct()
+    val removedAll = old.filter { words(it) && norm(it) !in newNorms }.distinct()
     val updates = new.filter { it !in oldExact }.mapNotNull { line -> oldByNorm[norm(line)]?.firstOrNull()?.let { it to line } }.distinct()
     // A "new" line that mostly repeats the words of a "gone" line is an edit of it, not a new item.
     val edited = mutableListOf<Pair<String, String>>()
@@ -225,7 +242,12 @@ fun textDigest(oldLines: List<String>, newLines: List<String>): TextDigest {
         }
     }
     val removed = removedAll.filter { gone -> edited.none { it.first == gone } }
-    return TextDigest(added, removed, edited, updates, reordered = false)
+    // Lines that repeat one template with different values ("12 points by ana 3 hours ago") are churn: when three
+    // or more edits keep the same unchanged words, they join the folded updates instead of reading as edits.
+    fun template(pair: Pair<String, String>) = wordDiff(pair.first, pair.second).filter { it.kind == EditSegment.Kind.Same }.joinToString(" ") { it.text.trim() }.trim()
+    val templates = edited.groupBy(::template)
+    val (churn, realEdits) = edited.partition { pair -> template(pair).length >= 8 && (templates[template(pair)]?.size ?: 0) >= 3 }
+    return TextDigest(added, removed, realEdits, updates + churn, reordered = false)
 }
 
 private fun wordSet(line: String): Set<String> = mask(line.lowercase()).split(Regex("[^\\p{L}#]+")).filter { it.length > 1 || it == "#" }.toSet()
@@ -264,7 +286,7 @@ internal fun textPreview(oldLines: List<String>, newLines: List<String>, heading
         val removedLines = digest.removed
         val updated = digest.numberUpdates.size + digest.edited.size
         val samples = buildList {
-            digest.edited.sortedByDescending { meaning(it.first, it.second) }.take(1).filter { meaning(it.first, it.second) >= 12 }.forEach { (before, after) ->
+            digest.edited.sortedByDescending { meaning(it.first, it.second) }.take(1).filter { meaning(it.first, it.second) >= 24 && meaning(it.first, it.second) < 1_000 }.forEach { (before, after) ->
                 add(trimAroundFirstEdit(wordDiff(before.take(300), after.take(300)), SAMPLE_CHARS).first)
             }
             addedLines.sortedByDescending { line -> line.count { it.isLetter() } }.take(3 - size).forEach { add(listOf(EditSegment(clip(it), EditSegment.Kind.Added))) }

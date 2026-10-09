@@ -67,13 +67,14 @@ class DesktopAppJourneyTest {
         try {
             compose.setContent {
                 CompositionLocalProvider(LocalViewModelStoreOwner provides owner, LocalLifecycleOwner provides lifecycleOwner) {
-                    ChangeDetectionRootApp(PlatformActions(appVersion = "Journey test"))
+                    androidx.compose.runtime.CompositionLocalProvider(com.bernaferrari.changedetection.addedit.LocalBrowserAvailable provides false) { ChangeDetectionRootApp(PlatformActions(appVersion = "Journey test")) }
                 }
             }
             compose.waitForIdle()
             compose.waitUntil(10_000) { compose.onAllNodesWithText("Watch a page").fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithText("Watch a page").performClick()
             compose.onNodeWithText("Page address").performTextInput("http://127.0.0.1:${server.address.port}/program")
+            compose.onNodeWithText("Open page").performClick()
             compose.waitUntil(10_000) { compose.onAllNodesWithText("Opening session 09:00", substring = true).fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithText("Opening session 09:00", substring = true).assertIsDisplayed()
             capture("app-journey-setup-preview")

@@ -36,12 +36,13 @@ import androidx.datastore.preferences.core.edit
 class IosMonitoringManager(
     private val syncEngine: SyncEngine,
     private val dataStore: DataStore<Preferences>,
+    private val runner: com.bernaferrari.changedetection.sync.IosCheckRunner,
 ) : MonitoringManager {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val backgroundScheduler = createBackgroundScheduler()
 
-    private val turboSession = TurboSession(scope, com.bernaferrari.changedetection.sync.CheckRunner { syncEngine.syncSite(it) })
+    private val turboSession = TurboSession(scope, runner)
     override val quickMonitorState = turboSession.state
     private val _syncStatus = MutableStateFlow<List<SyncJobInfo>>(emptyList())
 
@@ -60,7 +61,7 @@ class IosMonitoringManager(
         scope.launch {
             updateSyncStatus(site.id, SyncState.RUNNING)
             try {
-                val result = syncEngine.syncSite(site.id)
+                val result = runner.check(site.id)
                 updateSyncStatus(site.id, if (result is com.bernaferrari.changedetection.sync.SyncResult.Success) SyncState.SUCCEEDED else SyncState.FAILED)
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled

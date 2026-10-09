@@ -323,7 +323,10 @@ class ComparisonViewModel(
                                 PlatformImageDiff.compare(
                                     beforeBytes = secondBytes,
                                     afterBytes = firstBytes,
-                                )
+                                ).let { diff ->
+                                    // Row-aligned areas, so a shifted page reads as "a story was added" instead of "everything changed".
+                                    if (diff.visualChange != null) diff else diff.copy(visualChange = com.bernaferrari.changedetection.image.computeVisualChange(secondBytes, firstBytes))
+                                }
                             } else {
                                 null
                             }

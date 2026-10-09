@@ -11,7 +11,7 @@ import com.bernaferrari.changedetection.sync.SyncEngine
 
 sealed interface CapturePreview {
     data class Html(val text: String, val totalBytes: Int, val selectableDocument: com.bernaferrari.changedetection.detection.SelectableTextDocument? = null, val pageTitle: String? = null) : CapturePreview
-    data class Image(val bytes: ByteArray) : CapturePreview
+    data class Image(val bytes: ByteArray, val pageTitle: String? = null) : CapturePreview
 }
 
 /** A read-only sample: no monitor creation, baseline commit, scheduling or notification. */
@@ -75,7 +75,12 @@ private val ogTitle = Regex("<meta[^>]+property=[\"']og:title[\"'][^>]*content=(
 internal fun htmlTitle(html: String): String? {
     val head = html.take(600_000)
     val raw = ogTitle.find(head)?.groupValues?.get(2) ?: titleTag.find(head)?.groupValues?.get(1) ?: return null
-    val text = com.fleeksoft.ksoup.Ksoup.parse(raw).text().replace(Regex("\\s+"), " ").trim()
+    return cleanTitle(com.fleeksoft.ksoup.Ksoup.parse(raw).text())
+}
+
+/** "BBC News - Breaking news, video and…" reads better as "BBC News"; short titles stay whole. */
+internal fun cleanTitle(title: String): String? {
+    val text = title.replace(Regex("\\s+"), " ").trim()
     // "BBC News - Breaking news, video and…" reads better as "BBC News"; short titles stay whole.
     val short = if (text.length > 40) text.split(" - ", " | ", " – ", " — ", " · ").first().trim() else text
     return short.takeIf { it.length >= 2 }?.let { if (it.length > 60) it.take(60).substringBeforeLast(' ') + "…" else it }

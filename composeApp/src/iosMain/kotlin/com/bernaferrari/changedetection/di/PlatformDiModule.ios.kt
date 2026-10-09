@@ -32,7 +32,7 @@ import platform.Foundation.NSUserDomainMask
 @Module
 actual class PlatformDiModule {
     @Single
-    fun capturePreviewer(engine: com.bernaferrari.changedetection.sync.SyncEngine): com.bernaferrari.changedetection.addedit.CapturePreviewer = com.bernaferrari.changedetection.addedit.HtmlCapturePreviewer(engine)
+    fun capturePreviewer(engine: com.bernaferrari.changedetection.sync.SyncEngine, dataStore: DataStore<Preferences>): com.bernaferrari.changedetection.addedit.CapturePreviewer = com.bernaferrari.changedetection.addedit.IosCapturePreviewer(engine, dataStore)
 
     @Single
     fun database(): ChangeDatabase = getRoomDatabase(getDatabaseBuilder(), BundledSQLiteDriver())
@@ -56,10 +56,18 @@ actual class PlatformDiModule {
     )
 
     @Single
+    fun checkRunner(
+        sites: com.bernaferrari.changedetection.repo.source.SitesRepository,
+        syncEngine: SyncEngine,
+        dataStore: DataStore<Preferences>,
+    ): com.bernaferrari.changedetection.sync.IosCheckRunner = com.bernaferrari.changedetection.sync.IosCheckRunner(sites, syncEngine, dataStore)
+
+    @Single
     fun monitoringManager(
         syncEngine: SyncEngine,
         dataStore: DataStore<Preferences>,
-    ): MonitoringManager = IosMonitoringManager(syncEngine, dataStore)
+        runner: com.bernaferrari.changedetection.sync.IosCheckRunner,
+    ): MonitoringManager = IosMonitoringManager(syncEngine, dataStore, runner)
 
     @Single
     fun shareManager(): ShareManager = IosShareManager()

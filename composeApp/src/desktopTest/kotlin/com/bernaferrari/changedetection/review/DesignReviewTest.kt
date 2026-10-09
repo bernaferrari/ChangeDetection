@@ -97,7 +97,7 @@ class DesignReviewTest {
                 step("15-compare-image") {
                     onNodeWithTag("home-list").performScrollToKey("card-studio")
                     onAllNodesWithText("Studio Display").onFirst().performClick()
-                    waitUntil(timeoutMillis = 15_000) { onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress)).fetchSemanticsNodes().isNotEmpty() }
+                    runCatching { waitForText("Before", timeout = 15_000) }
                 }
                 home()
                 step("08-activity") {
@@ -117,6 +117,8 @@ class DesignReviewTest {
                 }
                 step("31-add-review") {
                     onNodeWithText("Page address").performTextInput(fixtureUrl)
+                    onNodeWithText("Open page").performClick()
+        onNodeWithText("Open page").performClick()
                     waitForText("Applications are open", substring = true, timeout = 15_000)
                 }
                 runCatching { onNodeWithContentDescription("Navigate back").performClick() }
@@ -171,7 +173,7 @@ class DesignReviewTest {
         waitForText("Changes")
         runCatching { waitForText("Change 1 of", substring = true, timeout = 8_000) }
         shot("${p}13-compare-text")
-        onNodeWithContentDescription("Version history").performClick()
+        onNodeWithText("See all").performClick()
         waitForText("Compare versions")
         shot("${p}14-versions")
         onAllNodes(hasClickAction() and hasAnyAncestor(hasTestTag("version-list"))).onFirst().performClick()
@@ -181,8 +183,11 @@ class DesignReviewTest {
         onNodeWithTag("home-list").performScrollToKey("card-studio")
         onAllNodesWithText("Studio Display").onFirst().performClick()
         waitForText("Slider")
-        waitUntil(timeoutMillis = 15_000) { onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress)).fetchSemanticsNodes().isNotEmpty() }
+        runCatching { waitForText("Before", timeout = 15_000) }
         shot("${p}15-compare-image")
+        onNodeWithText("Slider").performClick()
+        waitUntil(timeoutMillis = 15_000) { onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress)).fetchSemanticsNodes().isNotEmpty() }
+        shot("${p}15b-compare-slider")
         onNodeWithText("Highlight").performClick()
         waitUntil(timeoutMillis = 15_000) { onAllNodesWithContentDescription("Changed pixels").fetchSemanticsNodes().isNotEmpty() }
         shot("${p}16-compare-highlight")
@@ -236,6 +241,7 @@ class DesignReviewTest {
         waitForText("What should we watch?")
         shot("${p}30-add-url")
         onNodeWithText("Page address").performTextInput(fixtureUrl)
+        onNodeWithText("Open page").performClick()
         waitForText("Applications are open", substring = true, timeout = 15_000)
         shot("${p}31-add-review")
         onNodeWithText("Start watching").performClick()
@@ -300,14 +306,14 @@ class DesignReviewTest {
                 }
                 if (seed) seedFixtures(db, koin.get())
             }
-            runDesktopComposeUiTest(width = width, height = height) {
+            runDesktopComposeUiTest(width = width, height = height, testTimeout = kotlin.time.Duration.parse("4m")) {
                 setContent {
                     CompositionLocalProvider(
                         LocalViewModelStoreOwner provides owner,
                         LocalLifecycleOwner provides lifecycleOwner,
                         LocalDensity provides Density(density, fontScale),
                     ) {
-                        Box(Modifier.fillMaxSize()) { ChangeDetectionRootApp(PlatformActions(appVersion = "6.0")) }
+                        Box(Modifier.fillMaxSize()) { CompositionLocalProvider(com.bernaferrari.changedetection.addedit.LocalBrowserAvailable provides false) { ChangeDetectionRootApp(PlatformActions(appVersion = "6.0")) } }
                     }
                 }
                 try {

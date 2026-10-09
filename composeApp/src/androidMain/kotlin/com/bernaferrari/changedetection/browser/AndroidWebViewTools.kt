@@ -18,6 +18,7 @@ data class WebViewScreenshot(
     val bytes: ByteArray,
     val width: Int,
     val height: Int,
+    val title: String? = null,
 )
 
 internal fun WebView.configureChangeDetectionWebView(
@@ -37,6 +38,8 @@ internal fun WebView.configureChangeDetectionWebView(
         displayZoomControls = false
     }
 
+    // Every WebView in the app shares one cookie jar, so signing in once in the browser keeps checks signed in.
+    CookieManager.getInstance().setAcceptCookie(true)
     if (acceptThirdPartyCookies) {
         CookieManager.getInstance().apply {
             setAcceptCookie(true)

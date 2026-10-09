@@ -31,4 +31,47 @@
     <string name="activity_started_short">Começou a monitorar</string>
     <string name="checks_ios_note">O iOS decide quando as verificações em segundo plano acontecem, geralmente algumas vezes por dia. Ao abrir o app, o que estiver pendente é verificado na hora.</string>
     <string name="turbo_sheet_caption_open">Termina às %1$s · funciona enquanto o app estiver aberto</string>
+    <string name="picker_title">Escolher partes</string>
+    <string name="picker_hint">Toque em qualquer parte da página.</string>
+    <string name="picker_smaller">Menor</string>
+    <string name="picker_larger">Maior</string>
+    <string name="picker_watch_only">Monitorar só isto</string>
+    <string name="picker_ignore">Ignorar</string>
+    <string name="picker_watching_part">Monitorando uma parte</string>
+    <string name="picker_ignored_part">Parte ignorada</string>
+    <string name="picker_remove">Remover</string>
+    <string name="browser_forward">Avançar</string>
+    <string name="watch_this_page">Monitorar esta página</string>
+    <string name="parts_one">Monitorando uma parte da página</string>
+    <string name="parts_whole">Monitorando a página inteira</string>
+    <string name="parts_hint">Toque para escolher partes para monitorar ou ignorar</string>
+    <string name="editor_open_page">Abrir página</string>
+    <plurals name="parts_ignored">
+        <item quantity="one">%1$d parte ignorada</item>
+        <item quantity="other">%1$d partes ignoradas</item>
+    </plurals>
+    <string name="visual_changed">Mudou</string>
+    <string name="visual_added">Novo na página</string>
+    <string name="visual_removed">Saiu da página</string>
+    <string name="visual_no_areas">Nada visível mudou. A página pode ter se deslocado um pouco.</string>
+    <string name="visual_area_n">Área %1$d</string>
+    <plurals name="visual_summary">
+        <item quantity="one">%1$d área · %2$d mudou, %3$d nova, %4$d saiu</item>
+        <item quantity="other">%1$d áreas · %2$d mudaram, %3$d novas, %4$d saíram</item>
+    </plurals>
+    <plurals name="crop_changed">
+        <item quantity="one">%1$d área mudou</item>
+        <item quantity="other">%1$d áreas mudaram</item>
+    </plurals>
+    <plurals name="crop_added">
+        <item quantity="one">%1$d nova</item>
+        <item quantity="other">%1$d novas</item>
+    </plurals>
+    <plurals name="crop_removed">
+        <item quantity="one">%1$d saiu</item>
+        <item quantity="other">%1$d saíram</item>
+    </plurals>
+    <string name="detail_sign_in">Entrar</string>
+    <string name="browser_session_note">Entrou aqui? As verificações usam esta sessão.</string>
+    <string name="turbo_next_check">Próxima verificação em %1$d s</string>
 </resources>

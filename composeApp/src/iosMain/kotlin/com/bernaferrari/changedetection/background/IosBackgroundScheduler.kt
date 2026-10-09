@@ -113,7 +113,7 @@ class IosBackgroundScheduler : BackgroundScheduler {
 
     /** Swift entry point: background refresh runs every active page through the shared sync engine. */
     fun registerDefaultBackgroundWork() {
-        registerBackgroundWork { com.bernaferrari.changedetection.di.KoinHelper.getSyncEngine().syncAllSites() }
+        registerBackgroundWork { org.koin.mp.KoinPlatformTools.defaultContext().get().get<com.bernaferrari.changedetection.sync.IosCheckRunner>().checkAll() }
     }
 
     /**

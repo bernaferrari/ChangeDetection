@@ -31,4 +31,47 @@
     <string name="activity_started_short">Monitoraggio avviato</string>
     <string name="checks_ios_note">iOS decide quando eseguire i controlli in background, di solito qualche volta al giorno. Aprendo l’app, ciò che è in scadenza viene controllato subito.</string>
     <string name="turbo_sheet_caption_open">Termina alle %1$s · funziona finché l’app resta aperta</string>
+    <string name="picker_title">Scegli parti</string>
+    <string name="picker_hint">Tocca una parte della pagina.</string>
+    <string name="picker_smaller">Più piccola</string>
+    <string name="picker_larger">Più grande</string>
+    <string name="picker_watch_only">Monitora solo questo</string>
+    <string name="picker_ignore">Ignora</string>
+    <string name="picker_watching_part">Monitori una parte</string>
+    <string name="picker_ignored_part">Parte ignorata</string>
+    <string name="picker_remove">Rimuovi</string>
+    <string name="browser_forward">Avanti</string>
+    <string name="watch_this_page">Monitora questa pagina</string>
+    <string name="parts_one">Monitori una parte della pagina</string>
+    <string name="parts_whole">Monitori tutta la pagina</string>
+    <string name="parts_hint">Tocca per scegliere parti da monitorare o ignorare</string>
+    <string name="editor_open_page">Apri pagina</string>
+    <plurals name="parts_ignored">
+        <item quantity="one">%1$d parte ignorata</item>
+        <item quantity="other">%1$d parti ignorate</item>
+    </plurals>
+    <string name="visual_changed">Cambiato</string>
+    <string name="visual_added">Nuovo nella pagina</string>
+    <string name="visual_removed">Non è più nella pagina</string>
+    <string name="visual_no_areas">Non è cambiato nulla di visibile. La pagina potrebbe essersi spostata.</string>
+    <string name="visual_area_n">Area %1$d</string>
+    <plurals name="visual_summary">
+        <item quantity="one">%1$d area · %2$d cambiata, %3$d nuova, %4$d rimossa</item>
+        <item quantity="other">%1$d aree · %2$d cambiate, %3$d nuove, %4$d rimosse</item>
+    </plurals>
+    <plurals name="crop_changed">
+        <item quantity="one">%1$d area cambiata</item>
+        <item quantity="other">%1$d aree cambiate</item>
+    </plurals>
+    <plurals name="crop_added">
+        <item quantity="one">%1$d nuova</item>
+        <item quantity="other">%1$d nuove</item>
+    </plurals>
+    <plurals name="crop_removed">
+        <item quantity="one">%1$d rimossa</item>
+        <item quantity="other">%1$d rimosse</item>
+    </plurals>
+    <string name="detail_sign_in">Accedi</string>
+    <string name="browser_session_note">Hai fatto l’accesso qui? I controlli usano questa sessione.</string>
+    <string name="turbo_next_check">Prossimo controllo tra %1$d s</string>
 </resources>

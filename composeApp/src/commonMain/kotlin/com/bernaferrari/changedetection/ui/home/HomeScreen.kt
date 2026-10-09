@@ -705,7 +705,7 @@ private fun ChangeCard(
 
 @Composable
 private fun previewFooter(preview: ChangePreview?): String = when (preview) {
-    is ChangePreview.Crop -> if (preview.sizeChanged) stringResource(Res.string.preview_size_changed) else stringResource(Res.string.preview_percent, formatPercent(preview.percent))
+    is ChangePreview.Crop -> com.bernaferrari.changedetection.ui.kit.cropSummary(preview)
     is ChangePreview.Words -> if (preview.otherChanges > 0) pluralStringResource(Res.plurals.preview_more_changes, preview.otherChanges, preview.otherChanges) else ""
     else -> ""
 }

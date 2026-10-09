@@ -69,7 +69,7 @@ class TextRegionTest {
     @Test fun `invalid include and exclude selectors are rejected before matching`() {
         assertFailure(TextRegionFailure.INVALID_SELECTOR) { TextRegion("[").validate() }
         assertFailure(TextRegionFailure.INVALID_SELECTOR) { TextRegion(exclude = "[").validate() }
-        assertFailure(TextRegionFailure.INVALID_SELECTOR) { TextRegion("x".repeat(513)).validate() }
+        assertFailure(TextRegionFailure.INVALID_SELECTOR) { TextRegion("x".repeat(4_097)).validate() }
         assertFailure(TextRegionFailure.INVALID_SELECTOR) { TextRegion(":matches((a+)+)").validate() }
     }
 

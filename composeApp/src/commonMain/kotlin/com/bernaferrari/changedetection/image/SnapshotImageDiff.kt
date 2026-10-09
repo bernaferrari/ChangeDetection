@@ -55,6 +55,8 @@ data class SnapshotImageDiff(
     val dimensionMismatch: SnapshotDimensionMismatch? = null,
     val error: String? = null,
     val changedBounds: ChangedBounds? = null,
+    /** The change explained as areas (row-aligned, so shifted content is not "changed"). */
+    val visualChange: VisualChange? = null,
 ) {
     val isSampled: Boolean
         get() = totalPixels > 0 && totalPixels < beforeWidth.toLong() * beforeHeight
@@ -103,4 +105,17 @@ internal expect object PlatformImageDiff {
         threshold: Double = DEFAULT_IMAGE_DIFF_THRESHOLD,
         includeDiffImage: Boolean = true,
     ): SnapshotImageDiff
+}
+
+/** ARGB pixels decoded at [targetWidth] (aspect kept), or null if the bytes are not an image. */
+internal expect suspend fun decodeArgbAtWidth(bytes: ByteArray, targetWidth: Int): Triple<IntArray, Int, Int>?
+
+/** Row-aligned areas of change between two captures; works even when the page height changed. */
+internal suspend fun computeVisualChange(beforeBytes: ByteArray, afterBytes: ByteArray, threshold: Double = DEFAULT_IMAGE_DIFF_THRESHOLD): VisualChange? {
+    val before = decodeArgbAtWidth(beforeBytes, REGION_WORKING_WIDTH) ?: return null
+    val after = decodeArgbAtWidth(afterBytes, REGION_WORKING_WIDTH) ?: return null
+    if (before.second != after.second) return null
+    return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+        VisualRegions.compare(before.first, before.third, after.first, after.third, before.second, threshold)
+    }
 }

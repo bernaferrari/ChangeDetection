@@ -196,7 +196,7 @@
     <string name="detail_check_less">Comprobar con menos frecuencia</string>
     <string name="advice_temporary">El sitio está ocupado o caído. Suele ser temporal; seguiremos intentándolo.</string>
     <string name="advice_connection">Este dispositivo no pudo conectarse a internet. Lo intentaremos de nuevo cuando vuelva la conexión.</string>
-    <string name="advice_login">La página requiere iniciar sesión, y esta app no puede hacerlo. Prueba con una página pública.</string>
+    <string name="advice_login">Esta página requiere iniciar sesión. Inicia sesión una vez en el navegador de la app y las próximas comprobaciones seguirán con la sesión iniciada.</string>
     <string name="advice_not_found">La página ya no existe. Comprueba si el enlace sigue siendo correcto.</string>
     <string name="advice_rate">El sitio pide que reduzcamos la frecuencia. Comprobar menos a menudo suele solucionarlo.</string>
     <string name="advice_region">La parte que elegiste ya no está en la página. Vuelve a seleccionarla.</string>

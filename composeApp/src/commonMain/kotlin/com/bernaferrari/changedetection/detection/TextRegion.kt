@@ -52,7 +52,7 @@ data class TextRegion(val include: String = "", val exclude: String = "") {
     private fun validateSelector(selector: String) {
         if (selector.isBlank()) return
         // Regex pseudos are not needed for region selection and can block a capture thread.
-        if (selector.length > 512 || selector.contains(Regex(":matches(?:Own|WholeText|WholeOwnText)?\\s*\\(", RegexOption.IGNORE_CASE))) {
+        if (selector.length > 4_096 || selector.contains(Regex(":matches(?:Own|WholeText|WholeOwnText)?\\s*\\(", RegexOption.IGNORE_CASE))) {
             throw TextRegionException(TextRegionFailure.INVALID_SELECTOR)
         }
         try {
@@ -68,7 +68,7 @@ enum class TextRegionFailure { INVALID_SELECTOR, REGION_MISSING, HTML_REQUIRED }
 class TextRegionException(val failure: TextRegionFailure, cause: Throwable? = null) :
     IllegalArgumentException(
         when (failure) {
-            TextRegionFailure.INVALID_SELECTOR -> "Use a valid CSS selector of at most 512 characters, without regular-expression selectors."
+            TextRegionFailure.INVALID_SELECTOR -> "Use a valid CSS selector without regular-expression selectors."
             TextRegionFailure.REGION_MISSING -> "The selected region was not found. Check the selection or preview the page again."
             TextRegionFailure.HTML_REQUIRED -> "Region selection requires an HTML response."
         },

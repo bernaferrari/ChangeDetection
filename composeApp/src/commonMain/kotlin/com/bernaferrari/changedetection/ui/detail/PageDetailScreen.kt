@@ -446,6 +446,8 @@ private fun FailureCallout(code: String?, lastSuccess: Long?, checking: Boolean,
 
                 CheckFailure.RATE_LIMITED -> Button(onClick = onSchedule) { Text(stringResource(Res.string.detail_check_less)) }
 
+                CheckFailure.LOGIN, CheckFailure.ACCESS_DENIED -> Button(onClick = onEdit) { Text(stringResource(Res.string.detail_sign_in)) }
+
                 else -> Button(onClick = onCheck, enabled = !checking) { Text(stringResource(if (checking) Res.string.home_row_checking else Res.string.retry)) }
             }
             OutlinedButton(onClick = onOpenUrl) { Text(stringResource(Res.string.open_in_browser)) }
