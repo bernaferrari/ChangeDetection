@@ -196,7 +196,7 @@
     <string name="detail_check_less">Verificar com menos frequência</string>
     <string name="advice_temporary">O site está ocupado ou fora do ar. Isso costuma ser temporário; continuaremos tentando.</string>
     <string name="advice_connection">Este dispositivo não conseguiu acessar a internet. Tentaremos novamente quando a conexão voltar.</string>
-    <string name="advice_login">A página exige login, e o app não pode fazer isso. Tente uma página pública.</string>
+    <string name="advice_login">Esta página exige login. Entre uma vez no navegador do app e as próximas verificações continuam conectadas.</string>
     <string name="advice_not_found">A página não existe mais. Confira se o link ainda está correto.</string>
     <string name="advice_rate">O site está pedindo menos verificações. Verificar com menos frequência costuma resolver.</string>
     <string name="advice_region">A parte escolhida não está mais na página. Selecione-a novamente.</string>

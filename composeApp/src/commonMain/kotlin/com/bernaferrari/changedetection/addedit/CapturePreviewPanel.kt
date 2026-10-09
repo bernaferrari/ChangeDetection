@@ -13,6 +13,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.shared.generated.resources.*
@@ -23,7 +26,11 @@ import com.bernaferrari.changedetection.shared.generated.resources.editor_words
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun CapturePreviewPanel(state: CapturePreviewState, enabled: Boolean, onPreview: () -> Unit, onClose: () -> Unit, onSelectRegion: ((com.bernaferrari.changedetection.detection.TextRegion) -> Unit)? = null, initialRegion: com.bernaferrari.changedetection.detection.TextRegion = com.bernaferrari.changedetection.detection.TextRegion()) {
+internal fun CapturePreviewPanel(state: CapturePreviewState, enabled: Boolean, onPreview: () -> Unit, onClose: () -> Unit, onSelectRegion: ((com.bernaferrari.changedetection.detection.TextRegion) -> Unit)? = null, initialRegion: com.bernaferrari.changedetection.detection.TextRegion = com.bernaferrari.changedetection.detection.TextRegion(), bare: Boolean = false) {
+    if (bare && state is CapturePreviewState.Ready && state.content is CapturePreview.Image) {
+        ScreenshotPreview(state.content)
+        return
+    }
     if (state is CapturePreviewState.Idle) {
         OutlinedButton(onClick = onPreview, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
             Text(stringResource(Res.string.capture_preview_action))
@@ -71,13 +78,7 @@ internal fun CapturePreviewPanel(state: CapturePreviewState, enabled: Boolean, o
                         }
                     }
 
-                    is CapturePreview.Image -> {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(stringResource(Res.string.capture_mode_screenshot), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
-                            TextButton(onClick = onPreview, enabled = enabled) { Text(stringResource(Res.string.refresh)) }
-                        }
-                        ScreenshotPreview(content)
-                    }
+                    is CapturePreview.Image -> ScreenshotPreview(content)
                 }
 
                 CapturePreviewState.Idle -> Unit
@@ -89,14 +90,21 @@ internal fun CapturePreviewPanel(state: CapturePreviewState, enabled: Boolean, o
 @Composable
 private fun ScreenshotPreview(content: CapturePreview.Image) {
     var expanded by remember(content.bytes) { mutableStateOf(false) }
-    SnapshotImage(
-        content.bytes,
-        stringResource(Res.string.capture_preview_title),
-        Modifier.fillMaxWidth().height(240.dp),
-        ContentScale.Fit,
-    )
-    TextButton(onClick = { expanded = true }) {
-        Text(stringResource(Res.string.capture_preview_expand))
+    // The top of the page at full width, fading out: that is what people recognise, not a full-page sliver.
+    Box(
+        Modifier.fillMaxWidth().height(320.dp).clip(MaterialTheme.shapes.large)
+            .background(androidx.compose.ui.graphics.Color.White)
+            .clickable { expanded = true },
+    ) {
+        com.bernaferrari.changedetection.ui.comparison.SnapshotImage(content.bytes, stringResource(Res.string.capture_preview_title), Modifier.fillMaxWidth().wrapContentHeight(Alignment.Top, unbounded = true), ContentScale.FillWidth)
+        Box(
+            Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(96.dp).background(
+                androidx.compose.ui.graphics.Brush.verticalGradient(listOf(androidx.compose.ui.graphics.Color.Transparent, MaterialTheme.colorScheme.surfaceBright)),
+            ),
+        )
+        FilledTonalButton(onClick = { expanded = true }, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp)) {
+            Text(stringResource(Res.string.capture_preview_expand))
+        }
     }
     if (expanded) {
         Dialog(onDismissRequest = { expanded = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {

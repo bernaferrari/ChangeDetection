@@ -127,14 +127,15 @@ class AddEditViewModelTest {
     }
 
     @Test
-    fun `new monitor defaults to readable text and stores that rule`() = runTest {
+    fun `new monitor defaults to screenshots where supported and stores that rule`() = runTest {
         val source = FakeSitesDataSource()
         val editor = createViewModel(dataSource = source)
-        assertEquals(com.bernaferrari.changedetection.repo.CaptureMode.TEXT, editor.uiState.value.captureMode)
+        val expected = if (com.bernaferrari.changedetection.repo.supportsVisualMonitoring) com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT else com.bernaferrari.changedetection.repo.CaptureMode.TEXT
+        assertEquals(expected, editor.uiState.value.captureMode)
         editor.setUrl("example.com")
         editor.saveSite()
         mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
-        assertEquals(com.bernaferrari.changedetection.repo.CaptureMode.TEXT, source.savedSite?.captureMode)
+        assertEquals(expected, source.savedSite?.captureMode)
         assertEquals(0, source.savedSite?.threshold)
     }
 

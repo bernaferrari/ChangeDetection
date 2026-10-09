@@ -102,6 +102,8 @@ import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
 internal enum class ComparisonMode {
+    /** Screenshots: each changed area as a before/after card. */
+    ImageChanges,
     Text,
     Source,
     Html,
@@ -113,7 +115,7 @@ internal enum class ComparisonMode {
 
 internal fun ComparisonMode.labelResource(): StringResource = when (this) {
     ComparisonMode.Source -> Res.string.comparison_mode_source
-    ComparisonMode.Text -> Res.string.comparison_mode_text
+    ComparisonMode.Text, ComparisonMode.ImageChanges -> Res.string.comparison_mode_text
     ComparisonMode.Html -> Res.string.comparison_mode_rendered
     ComparisonMode.ImageDiff -> Res.string.comparison_mode_pixel_diff
     ComparisonMode.ImageSwipe -> Res.string.comparison_mode_swipe
@@ -163,6 +165,8 @@ internal fun ImageComparisonContent(
         }
 
         when (mode) {
+            ComparisonMode.ImageChanges -> VisualChangesView(beforeBytes, afterBytes, imageDiff, Modifier.fillMaxSize())
+
             ComparisonMode.ImageDiff -> {
                 BoxWithConstraints(Modifier.fillMaxSize()) {
                     val summaryMaxHeight = maxHeight * 0.35f

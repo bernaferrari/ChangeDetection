@@ -49,26 +49,26 @@ class CreationJourneyUiTest {
             var url by remember { mutableStateOf("") }
             var title by remember { mutableStateOf("") }
             ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
-                Box(Modifier.width(390.dp).height(844.dp)) {
-                    AddEditConfirmScreen(
-                        url = url, urlError = null, title = title, captureMode = CaptureMode.TEXT,
-                        isSaving = false, saveError = null, onUrlChange = { url = it }, onTitleChange = { title = it },
-                        onNavigateUp = {}, onSave = { saves++ }, onPreview = { previews++ },
-                    )
+                androidx.compose.runtime.CompositionLocalProvider(LocalBrowserAvailable provides false) {
+                    Box(Modifier.width(390.dp).height(844.dp)) {
+                        AddEditConfirmScreen(
+                            url = url, urlError = null, title = title, captureMode = CaptureMode.TEXT,
+                            isSaving = false, saveError = null, onUrlChange = { url = it }, onTitleChange = { title = it },
+                            onNavigateUp = {}, onSave = { saves++ }, onPreview = { previews++ },
+                        )
+                    }
                 }
             }
         }
         compose.onNodeWithText("What should we watch?").assertIsDisplayed()
-        compose.onNodeWithText("Start watching").assertIsNotEnabled()
+        compose.onNodeWithText("Open page").assertIsNotEnabled()
         capture("creation-page-light")
         compose.onNode(hasSetTextAction() and hasText("Page address")).performTextInput("https://example.test/program")
-        // The preview starts by itself once typing pauses; no extra step.
-        compose.mainClock.advanceTimeBy(1_000)
+        compose.onNodeWithText("Open page").performClick()
         compose.waitUntil(3_000) { previews == 1 }
         compose.onNodeWithText("Name").performTextInput("Program")
         capture("creation-content-light")
         compose.runOnIdle { assertEquals(0, saves) }
-        compose.onNode(hasText("Page address")).assertTextContains("https://example.test/program")
         compose.onNodeWithText("Start watching").performClick()
         compose.runOnIdle { assertEquals(1, saves) }
     }
@@ -76,6 +76,6 @@ class CreationJourneyUiTest {
     private fun capture(name: String) {
         val file = File("../build/desktop-review/$name.png")
         file.parentFile.mkdirs()
-        ImageIO.write(compose.onRoot().captureToImage().toAwtImage(), "png", file)
+        ImageIO.write(compose.onAllNodes(isRoot()).onLast().captureToImage().toAwtImage(), "png", file)
     }
 }

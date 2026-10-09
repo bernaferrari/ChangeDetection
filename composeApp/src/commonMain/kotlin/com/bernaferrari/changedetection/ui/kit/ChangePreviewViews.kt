@@ -56,6 +56,11 @@ import com.bernaferrari.changedetection.shared.generated.resources.preview_invis
 import com.bernaferrari.changedetection.shared.generated.resources.preview_invisible_body
 import com.bernaferrari.changedetection.shared.generated.resources.preview_large
 import com.bernaferrari.changedetection.shared.generated.resources.preview_numbers_only
+import com.bernaferrari.changedetection.shared.generated.resources.visual_added
+import com.bernaferrari.changedetection.shared.generated.resources.visual_removed
+import com.bernaferrari.changedetection.shared.generated.resources.crop_changed
+import com.bernaferrari.changedetection.shared.generated.resources.crop_added
+import com.bernaferrari.changedetection.shared.generated.resources.crop_removed
 import com.bernaferrari.changedetection.shared.generated.resources.preview_added
 import com.bernaferrari.changedetection.shared.generated.resources.preview_reordered
 import com.bernaferrari.changedetection.shared.generated.resources.preview_reordered_body
@@ -126,7 +131,7 @@ private suspend fun loadPreview(load: suspend () -> ChangePreview?): ChangePrevi
 fun previewLabel(preview: ChangePreview?): String = when (preview) {
     null -> " "
     is ChangePreview.Words -> if (preview.numbersOnly) stringResource(Res.string.preview_numbers_only) else preview.section ?: stringResource(Res.string.label_text_changed)
-    is ChangePreview.Crop -> if (preview.sizeChanged) stringResource(Res.string.preview_size_changed) else stringResource(Res.string.label_percent, com.bernaferrari.changedetection.ui.home.formatPercent(preview.percent))
+    is ChangePreview.Crop -> cropSummary(preview)
     is ChangePreview.Large -> largeSummary(preview)
     ChangePreview.Invisible -> stringResource(Res.string.preview_invisible)
     ChangePreview.FirstVersion -> stringResource(Res.string.label_first_version)
@@ -159,7 +164,10 @@ fun ChangePreviewBlock(preview: ChangePreview?, modifier: Modifier = Modifier, c
                 DiffText(editText(current.segments, MaterialTheme.marks, current.leadingEllipsis, current.trailingEllipsis), maxLines = 4)
             }
 
-            is ChangePreview.Crop -> CropPair(current.beforeSnapId, current.afterSnapId, current.bounds, cropHeight)
+            is ChangePreview.Crop -> {
+                val lead = current.lead
+                if (lead != null) RegionPair(current.beforeSnapId, current.afterSnapId, lead, cropHeight) else CropPair(current.beforeSnapId, current.afterSnapId, current.bounds, cropHeight)
+            }
 
             is ChangePreview.Large -> if (current.reordered) {
                 QuietFact(Icons.Outlined.Layers, stringResource(Res.string.preview_reordered), stringResource(Res.string.preview_reordered_body))
@@ -222,6 +230,40 @@ private fun QuietFact(icon: androidx.compose.ui.graphics.vector.ImageVector, tit
             Text(title, style = MaterialTheme.typography.titleSmall)
             Text(body, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+    }
+}
+
+/** "3 areas changed · 1 new" for screenshot changes; falls back to the share of pixels. */
+@Composable
+fun cropSummary(preview: ChangePreview.Crop): String {
+    if (preview.regions.isEmpty()) {
+        return if (preview.sizeChanged) stringResource(Res.string.preview_size_changed) else stringResource(Res.string.label_percent, com.bernaferrari.changedetection.ui.home.formatPercent(preview.percent))
+    }
+    val added = preview.regions.count { it.kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Added }
+    val removed = preview.regions.count { it.kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed }
+    val changed = preview.regions.size - added - removed
+    return listOfNotNull(
+        changed.takeIf { it > 0 }?.let { org.jetbrains.compose.resources.pluralStringResource(Res.plurals.crop_changed, it, it) },
+        added.takeIf { it > 0 }?.let { org.jetbrains.compose.resources.pluralStringResource(Res.plurals.crop_added, it, it) },
+        removed.takeIf { it > 0 }?.let { org.jetbrains.compose.resources.pluralStringResource(Res.plurals.crop_removed, it, it) },
+    ).joinToString(" · ")
+}
+
+/**
+ * The most important area of a screenshot change. Each side is cropped from its own capture, so content that
+ * moved down the page still lines up; a new area shows only the new capture.
+ */
+@Composable
+fun RegionPair(beforeSnapId: String, afterSnapId: String, region: com.bernaferrari.changedetection.image.VisualRegion, height: Dp, modifier: Modifier = Modifier) {
+    val before = ChangedBounds(region.left, region.beforeTop, region.right, region.beforeBottom)
+    val after = ChangedBounds(region.left, region.afterTop, region.right, region.afterBottom)
+    when (region.kind) {
+        com.bernaferrari.changedetection.image.VisualRegion.Kind.Changed -> Row(modifier.fillMaxWidth().height(height), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            CropTile(beforeSnapId, before, stringResource(Res.string.preview_before), highlighted = false, Modifier.weight(1f))
+            CropTile(afterSnapId, after, stringResource(Res.string.preview_after), highlighted = true, Modifier.weight(1f))
+        }
+        com.bernaferrari.changedetection.image.VisualRegion.Kind.Added -> CropTile(afterSnapId, after, stringResource(Res.string.visual_added), highlighted = true, modifier.fillMaxWidth().height(height))
+        com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed -> CropTile(beforeSnapId, before, stringResource(Res.string.visual_removed), highlighted = false, modifier.fillMaxWidth().height(height))
     }
 }
 

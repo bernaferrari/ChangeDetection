@@ -196,7 +196,7 @@
     <string name="detail_check_less">Check less often</string>
     <string name="advice_temporary">The site is busy or down. This is usually temporary; we’ll keep trying.</string>
     <string name="advice_connection">This device couldn’t reach the internet. We’ll try again when you’re back online.</string>
-    <string name="advice_login">The page needs you to sign in, which this app can’t do. Try a public page instead.</string>
+    <string name="advice_login">This page needs you to be signed in. Sign in once in the app’s browser and future checks stay signed in.</string>
     <string name="advice_not_found">The page doesn’t exist anymore. Check that the link is still right.</string>
     <string name="advice_rate">The site is asking us to slow down. Checking less often usually fixes this.</string>
     <string name="advice_region">The part you picked isn’t on the page anymore. Pick it again.</string>

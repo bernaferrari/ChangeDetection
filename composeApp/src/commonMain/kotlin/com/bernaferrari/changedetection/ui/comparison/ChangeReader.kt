@@ -323,6 +323,8 @@ private fun DigestView(digest: com.bernaferrari.changedetection.preview.TextDige
                     }
                 }
             }
+            group("new", newTitle, digest.added, EditSegment.Kind.Added)
+            group("gone", removedTitle, digest.removed, EditSegment.Kind.Removed)
             if (digest.edited.isNotEmpty()) {
                 item("edited-h") { DigestHeader(changedTitle, digest.edited.size) }
                 itemsIndexed(digest.edited.take(200), key = { index, _ -> "edited-$index" }) { index, (before, after) ->
@@ -331,8 +333,6 @@ private fun DigestView(digest: com.bernaferrari.changedetection.preview.TextDige
                     }
                 }
             }
-            group("new", newTitle, digest.added, EditSegment.Kind.Added)
-            group("gone", removedTitle, digest.removed, EditSegment.Kind.Removed)
             if (digest.numberUpdates.isNotEmpty()) {
                 item("numbers-h") {
                     Row(

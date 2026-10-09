@@ -24,6 +24,7 @@ sealed interface ScreenshotCaptureOutcome {
     data class Success(
         val contentType: String,
         val bytes: ByteArray,
+        val title: String? = null,
     ) : ScreenshotCaptureOutcome
 
     data class Failure(
@@ -131,7 +132,7 @@ class AndroidScreenshotBrowserFactory(context: Context) : ScreenshotBrowserFacto
         val webView = WebView(themedContext)
         try {
             webView.layout(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)
-            webView.configureChangeDetectionWebView(overviewMode = true)
+            webView.configureChangeDetectionWebView(overviewMode = true, acceptThirdPartyCookies = true)
             return AndroidScreenshotBrowser(webView, AndroidPageCapture(webView))
         } catch (error: Throwable) {
             webView.destroySafely(clearCache = false)
@@ -147,8 +148,8 @@ class AndroidScreenshotBrowserFactory(context: Context) : ScreenshotBrowserFacto
             site: Site,
             delayMs: Long,
         ): ScreenshotCaptureOutcome {
-            val screenshot = session.capture(site.url, delayMs, MAX_HEIGHT_PIXELS)
-            return ScreenshotCaptureOutcome.Success(screenshot.contentType, screenshot.bytes)
+            val screenshot = session.capture(site.url, delayMs, MAX_HEIGHT_PIXELS, hide = site.textExcludeSelector, only = site.textIncludeSelector)
+            return ScreenshotCaptureOutcome.Success(screenshot.contentType, screenshot.bytes, screenshot.title)
         }
 
         override fun close() {

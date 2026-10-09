@@ -37,11 +37,34 @@ fun MainViewController(): UIViewController {
             com.bernaferrari.changedetection.debug.seedDemoContent(koin.get(), koin.get(), com.bernaferrari.changedetection.util.getCurrentTimeMillis())
         }
     }
+    val args = platform.Foundation.NSProcessInfo.processInfo.arguments.map { it.toString() }
+    // Debug aid: `-seedCaptures <url> <minutes>` captures the page now and again after <minutes>, as a real screenshot page.
+    args.indexOf("-seedCaptures").takeIf { it >= 0 }?.let { i -> args.getOrNull(i + 1)?.let { it to (args.getOrNull(i + 2)?.toLongOrNull() ?: 3L) } }?.let { (url, minutes) ->
+        kotlinx.coroutines.MainScope().launch {
+            kotlinx.coroutines.delay(3_000)
+            val sites = koin.get<com.bernaferrari.changedetection.repo.source.SitesRepository>()
+            val existing = sites.getSiteByUrl(url)
+            val site = existing ?: com.bernaferrari.changedetection.repo.Site(null, url, 0L, "", "seed-" + com.bernaferrari.changedetection.util.getCurrentTimeMillis(), 0 to 0)
+                .copy(captureMode = com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT).also { sites.saveSite(it, false) }
+            val runner = koin.get<com.bernaferrari.changedetection.sync.IosCheckRunner>()
+            runner.check(site.id)
+            kotlinx.coroutines.delay(minutes * 60_000)
+            runner.check(site.id)
+        }
+    }
+    // Debug aid: `-captureTest <url>` writes one WebKit capture to tmp/last-capture.png.
+    args.indexOf("-captureTest").takeIf { it >= 0 }?.let { args.getOrNull(it + 1) }?.let { url ->
+        kotlinx.coroutines.MainScope().launch {
+            kotlinx.coroutines.delay(3_000)
+            runCatching { com.bernaferrari.changedetection.browser.IosPageCapture.capture(url, 2_500) }
+                .onFailure { io.github.aakira.napier.Napier.e("captureTest failed", it) }
+        }
+    }
     // iOS gives background refresh only occasionally, so returning to the app catches up on due pages.
     NSNotificationCenter.defaultCenter.addObserverForName(UIApplicationDidBecomeActiveNotification, null, NSOperationQueue.mainQueue) { _ ->
         foreground.launch {
             val schedule = MonitoringSchedule.from(koin.get<androidx.datastore.core.DataStore<androidx.datastore.preferences.core.Preferences>>().data.first())
-            if (schedule.enabled) runCatching { koin.get<SyncEngine>().syncDueSites(schedule.intervalMinutes) }
+            if (schedule.enabled) runCatching { koin.get<com.bernaferrari.changedetection.sync.IosCheckRunner>().checkAll(onlyDueAfterMinutes = schedule.intervalMinutes) }
         }
     }
     // Turbo only runs while the app is open; keep the screen on for the length of a session.

@@ -31,4 +31,47 @@
     <string name="activity_started_short">Started watching</string>
     <string name="checks_ios_note">iOS decides when background checks run, usually a few times a day. Opening the app checks anything that’s due right away.</string>
     <string name="turbo_sheet_caption_open">Ends at %1$s · runs while the app stays open</string>
+    <string name="picker_title">Pick parts</string>
+    <string name="picker_hint">Tap any part of the page.</string>
+    <string name="picker_smaller">Smaller</string>
+    <string name="picker_larger">Larger</string>
+    <string name="picker_watch_only">Watch only this</string>
+    <string name="picker_ignore">Ignore</string>
+    <string name="picker_watching_part">Watching one part</string>
+    <string name="picker_ignored_part">Ignored part</string>
+    <string name="picker_remove">Remove</string>
+    <string name="browser_forward">Forward</string>
+    <string name="watch_this_page">Watch this page</string>
+    <string name="parts_one">Watching one part of the page</string>
+    <string name="parts_whole">Watching the whole page</string>
+    <string name="parts_hint">Tap to pick parts to watch or ignore</string>
+    <string name="editor_open_page">Open page</string>
+    <plurals name="parts_ignored">
+        <item quantity="one">%1$d part ignored</item>
+        <item quantity="other">%1$d parts ignored</item>
+    </plurals>
+    <string name="visual_changed">Changed</string>
+    <string name="visual_added">New on the page</string>
+    <string name="visual_removed">Gone from the page</string>
+    <string name="visual_no_areas">Nothing visible changed. The page may have moved slightly.</string>
+    <string name="visual_area_n">Area %1$d</string>
+    <plurals name="visual_summary">
+        <item quantity="one">%1$d area · %2$d changed, %3$d new, %4$d gone</item>
+        <item quantity="other">%1$d areas · %2$d changed, %3$d new, %4$d gone</item>
+    </plurals>
+    <plurals name="crop_changed">
+        <item quantity="one">%1$d area changed</item>
+        <item quantity="other">%1$d areas changed</item>
+    </plurals>
+    <plurals name="crop_added">
+        <item quantity="one">%1$d new</item>
+        <item quantity="other">%1$d new</item>
+    </plurals>
+    <plurals name="crop_removed">
+        <item quantity="one">%1$d gone</item>
+        <item quantity="other">%1$d gone</item>
+    </plurals>
+    <string name="detail_sign_in">Sign in</string>
+    <string name="browser_session_note">Signed in here? Checks reuse this session.</string>
+    <string name="turbo_next_check">Next check in %1$d s</string>
 </resources>

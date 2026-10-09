@@ -29,12 +29,51 @@ import kotlin.math.sqrt
 internal class AndroidPageCapture(private val view: WebView) {
     private var rendererFailure: IOException? = null
 
-    suspend fun capture(url: String, settleDelayMs: Long, maxHeight: Int): WebViewScreenshot = withContext(Dispatchers.Main.immediate) {
+    /**
+     * @param hide CSS selectors of parts to ignore; made invisible (layout kept) before capture.
+     * @param only CSS selector of the single part to watch; the capture is cropped to it.
+     */
+    suspend fun capture(url: String, settleDelayMs: Long, maxHeight: Int, hide: String = "", only: String = ""): WebViewScreenshot = withContext(Dispatchers.Main.immediate) {
         navigate(url)
         delay(settleDelayMs.coerceIn(0, 30_000))
+        val title = evaluate(PageCleanup.TITLE).trim('"').takeIf { it.isNotBlank() && it != "null" }
+        evaluate(PageCleanup.HIDE_CONSENT)
+        evaluate(PageCleanup.HIDE_ADS)
+        evaluate(PageCleanup.HIDE_BOTTOM_FLOATING)
+        if (hide.isNotBlank()) evaluate(PageCleanup.hide(hide))
         awaitFrame()
         rendererFailure?.let { throw it }
-        captureDocument(maxHeight)
+        val clip = if (only.isNotBlank()) {
+            evaluate(PageCleanup.rectOf(only)).trim('"').split(',').mapNotNull { it.toDoubleOrNull() }.takeIf { it.size == 6 }
+                ?: throw IOException("The part you picked is no longer on the page")
+        } else {
+            null
+        }
+        val full = captureDocument(maxHeight)
+        (if (clip == null) full else crop(full, clip)).copy(title = title)
+    }
+
+    private suspend fun evaluate(script: String): String = suspendCancellableCoroutine { continuation ->
+        view.evaluateJavascript(script) { result -> if (continuation.isActive) continuation.resumeWith(Result.success(result.orEmpty())) }
+    }
+
+    /** [clip] is left, top, right, bottom, documentHeight, documentWidth in CSS pixels. */
+    private suspend fun crop(full: WebViewScreenshot, clip: List<Double>): WebViewScreenshot = withContext(Dispatchers.Default) {
+        val bitmap = android.graphics.BitmapFactory.decodeByteArray(full.bytes, 0, full.bytes.size) ?: return@withContext full
+        val factor = full.height / clip[4].coerceAtLeast(1.0)
+        val sx = full.width / clip[5].coerceAtLeast(1.0)
+        val left = (clip[0] * sx).roundToInt().coerceIn(0, bitmap.width - 1)
+        val top = (clip[1] * factor).roundToInt().coerceIn(0, bitmap.height - 1)
+        val right = (clip[2] * sx).roundToInt().coerceIn(left + 1, bitmap.width)
+        val bottom = (clip[3] * factor).roundToInt().coerceIn(top + 1, bitmap.height)
+        val cropped = Bitmap.createBitmap(bitmap, left, top, right - left, bottom - top)
+        val bytes = ByteArrayOutputStream().use { stream ->
+            cropped.compress(Bitmap.CompressFormat.PNG, 100, stream)
+            stream.toByteArray()
+        }
+        if (cropped !== bitmap) cropped.recycle()
+        bitmap.recycle()
+        WebViewScreenshot("image/png", bytes, right - left, bottom - top)
     }
 
     private suspend fun navigate(url: String) = withTimeout(30_000) {
@@ -118,6 +157,10 @@ internal class AndroidPageCapture(private val view: WebView) {
                     Rect(0, (y * scale).roundToInt(), outputWidth, ((y + capturedHeight) * scale).roundToInt().coerceAtMost(outputHeight)),
                     null,
                 )
+                if (y == 0) {
+                    evaluate(PageCleanup.HIDE_PINNED)
+                    awaitFrame()
+                }
                 y += capturedHeight
             }
             val bytes = withContext(Dispatchers.Default) {

@@ -72,6 +72,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.material3.Checkbox
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
@@ -180,6 +183,59 @@ fun TurboLiveCard(state: TurboState, onClick: () -> Unit, modifier: Modifier = M
     }
 }
 
+/** A bar that fills over each interval, so it is obvious when the next check happens. Smooth, not ticking. */
+@Composable
+private fun NextCheck(state: TurboState, checking: Boolean) {
+    val intervalMs = state.intervalSeconds * 1_000L
+    val anchor = state.lastCheckTime.takeIf { it > 0 } ?: state.startTime
+    val frame by produceState(getCurrentTimeMillis(), anchor) {
+        while (true) {
+            value = getCurrentTimeMillis()
+            delay(50)
+        }
+    }
+    val elapsed = (frame - anchor).coerceAtLeast(0)
+    val progress = if (intervalMs > 0) (elapsed % intervalMs).toFloat() / intervalMs else 0f
+    val secondsLeft = ((intervalMs - elapsed % intervalMs + 999) / 1_000).toInt()
+    Column(Modifier.widthIn(max = 280.dp).fillMaxWidth().padding(top = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        if (checking) {
+            LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth())
+        } else {
+            LinearWavyProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth(), trackColor = MaterialTheme.colorScheme.surfaceContainerHighest)
+        }
+        Text(
+            if (checking) stringResource(Res.string.home_row_checking) else stringResource(Res.string.turbo_next_check, secondsLeft),
+            Modifier.padding(top = 6.dp),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+        )
+    }
+}
+
+/** The live session at a glance: an expressive ring for time remaining, the minutes in the middle. */
+@Composable
+private fun TurboRing(state: TurboState, now: Long) {
+    Box(Modifier.size(208.dp), contentAlignment = Alignment.Center) {
+        if (state.isActive) {
+            androidx.compose.material3.CircularWavyProgressIndicator(
+                progress = { 1f - state.progress(now) },
+                modifier = Modifier.fillMaxSize(),
+                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                stroke = androidx.compose.ui.graphics.drawscope.Stroke(width = with(androidx.compose.ui.platform.LocalDensity.current) { 10.dp.toPx() }, cap = androidx.compose.ui.graphics.StrokeCap.Round),
+                trackStroke = androidx.compose.ui.graphics.drawscope.Stroke(width = with(androidx.compose.ui.platform.LocalDensity.current) { 10.dp.toPx() }, cap = androidx.compose.ui.graphics.StrokeCap.Round),
+            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(Icons.Rounded.Bolt, null, Modifier.size(28.dp), tint = MaterialTheme.colorScheme.primary)
+                Text(minutesLeftLabel(state, now), style = MaterialTheme.typography.titleLarge, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            }
+        } else {
+            Box(Modifier.size(160.dp).clip(androidx.compose.material3.MaterialShapes.Cookie9Sided.toShape()).background(if (state.updatesSaved > 0) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest), contentAlignment = Alignment.Center) {
+                Icon(if (state.updatesSaved > 0) Icons.Rounded.Bolt else Icons.Rounded.Check, null, Modifier.size(56.dp), tint = if (state.updatesSaved > 0) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
 @Composable
 private fun BoltBadge(size: androidx.compose.ui.unit.Dp = 40.dp) {
     Box(
@@ -188,7 +244,7 @@ private fun BoltBadge(size: androidx.compose.ui.unit.Dp = 40.dp) {
     ) { Icon(Icons.Rounded.Bolt, null, tint = MaterialTheme.colorScheme.onPrimaryContainer) }
 }
 
-/** Three decisions in one sheet: which pages, how often, for how long. */
+/** Three decisions: which pages, how often, for how long. A clear way out at the top, Start always visible. */
 @Composable
 fun TurboSetupSheet(
     sites: List<SiteAndLastSnap>,
@@ -222,78 +278,91 @@ fun TurboSetupSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = MaterialTheme.colorScheme.surfaceBright,
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        dragHandle = null,
     ) {
-        Column(modifier.fillMaxWidth().padding(bottom = 16.dp).testTag("turbo-setup")) {
-            Column(Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 20.dp)) {
-                Row(Modifier.padding(horizontal = 24.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    BoltBadge()
-                    Text(stringResource(Res.string.turbo_mode), style = MaterialTheme.typography.headlineSmall)
-                }
-                Text(
-                    stringResource(Res.string.turbo_sheet_body),
-                    Modifier.padding(horizontal = 24.dp, vertical = 10.dp),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (!monitoringCapabilities.turbo) {
-                    Text(stringResource(Res.string.turbo_unavailable_description), Modifier.padding(24.dp), style = MaterialTheme.typography.bodyLarge)
-                    return@Column
-                }
-                SheetLabel(stringResource(Res.string.turbo_sheet_pages))
-                if (eligible.isEmpty()) {
-                    Text(stringResource(Res.string.turbo_sheet_no_pages), Modifier.padding(horizontal = 24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                } else if (sites.any { !it.site.isSyncEnabled }) {
-                    Text(stringResource(Res.string.turbo_sheet_paused_note), Modifier.padding(start = 24.dp, end = 24.dp, bottom = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                FlowRow(Modifier.padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    eligible.forEach { row ->
-                        val on = row.site.id in selectedEligible
-                        FilterChip(
-                            selected = on,
-                            onClick = { selected = if (on) selected - row.site.id else selected + row.site.id },
-                            label = { Text(row.site.name(), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 200.dp)) },
-                            leadingIcon = if (on) {
-                                { Icon(Icons.Rounded.Check, null, Modifier.size(FilterChipDefaults.IconSize)) }
-                            } else {
-                                { PageAvatar(row.site.name(), row.site.id, size = 22.dp) }
-                            },
-                            shape = MaterialTheme.shapes.medium,
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
-                            ),
-                            modifier = Modifier.heightIn(min = 48.dp),
-                        )
-                    }
-                }
-                SheetLabel(stringResource(Res.string.turbo_sheet_every))
-                ConnectedChoice(TURBO_INTERVAL_SECONDS.sorted(), interval, { interval = it }) { intervalLabel(it) }
-                SheetLabel(stringResource(Res.string.turbo_sheet_for))
-                ConnectedChoice(TURBO_DURATION_MINUTES.sorted(), duration, { duration = it }) { durationLabel(it) }
+        Column(modifier.fillMaxWidth().testTag("turbo-setup")) {
+            Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 16.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onDismiss) { Icon(Icons.Rounded.Close, stringResource(Res.string.a11y_close)) }
+                Spacer(Modifier.weight(1f))
             }
-            if (monitoringCapabilities.turbo) {
-                Button(
-                    onClick = { onStart(selectedEligible, interval, duration) },
-                    enabled = selectedEligible.isNotEmpty(),
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).heightIn(min = 60.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
-                    shape = MaterialTheme.shapes.extraLarge,
-                ) {
-                    Icon(Icons.Rounded.Bolt, null)
-                    Spacer(Modifier.size(8.dp))
+            Column(Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    BoltBadge(64.dp)
+                    Text(stringResource(Res.string.turbo_mode), Modifier.padding(top = 12.dp), style = MaterialTheme.typography.headlineMedium)
                     Text(
-                        if (selectedEligible.isEmpty()) stringResource(Res.string.turbo_sheet_pick) else pluralStringResource(Res.plurals.turbo_sheet_start, selectedEligible.size, selectedEligible.size),
-                        style = MaterialTheme.typography.titleMedium,
+                        stringResource(Res.string.turbo_sheet_body),
+                        Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     )
                 }
-                Row(Modifier.align(Alignment.CenterHorizontally).padding(start = 24.dp, end = 24.dp, top = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(Icons.Outlined.BatteryAlert, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(stringResource(if (com.bernaferrari.changedetection.background.monitoringCapabilities.osScheduled) Res.string.turbo_sheet_caption_open else Res.string.turbo_sheet_caption, formatTime(endsAt)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (!monitoringCapabilities.turbo) {
+                    Text(stringResource(Res.string.turbo_unavailable_description), Modifier.padding(8.dp), style = MaterialTheme.typography.bodyLarge)
+                    return@Column
+                }
+                TileLabel(stringResource(Res.string.turbo_sheet_pages), trailing = if (sites.any { !it.site.isSyncEnabled }) stringResource(Res.string.turbo_sheet_paused_note) else null)
+                if (eligible.isEmpty()) {
+                    Text(stringResource(Res.string.turbo_sheet_no_pages), Modifier.padding(horizontal = 8.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    eligible.forEachIndexed { index, row ->
+                        val on = row.site.id in selectedEligible
+                        Row(
+                            Modifier.fillMaxWidth().clip(com.bernaferrari.changedetection.ui.kit.segmentShape(index, eligible.size))
+                                .background(if (on) MaterialTheme.colorScheme.secondaryContainer else com.bernaferrari.changedetection.ui.kit.tileColor)
+                                .toggleable(on, role = Role.Checkbox) { selected = if (on) selected - row.site.id else selected + row.site.id }
+                                .heightIn(min = 60.dp).padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(14.dp),
+                        ) {
+                            PageAvatar(row.site.name(), row.site.id, size = 36.dp)
+                            Column(Modifier.weight(1f)) {
+                                Text(row.site.name(), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(row.site.domain(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
+                            Checkbox(checked = on, onCheckedChange = null)
+                        }
+                    }
+                }
+                TileLabel(stringResource(Res.string.turbo_sheet_every))
+                ConnectedChoice(TURBO_INTERVAL_SECONDS.sorted(), interval, { interval = it }, Modifier) { intervalLabel(it) }
+                TileLabel(stringResource(Res.string.turbo_sheet_for))
+                ConnectedChoice(TURBO_DURATION_MINUTES.sorted(), duration, { duration = it }, Modifier) { durationLabel(it) }
+            }
+            if (monitoringCapabilities.turbo) {
+                Column(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainer).navigationBarsPadding().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Button(
+                        onClick = { onStart(selectedEligible, interval, duration) },
+                        enabled = selectedEligible.isNotEmpty(),
+                        shapes = ButtonDefaults.shapes(),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                    ) {
+                        Icon(Icons.Rounded.Bolt, null)
+                        Spacer(Modifier.size(8.dp))
+                        Text(
+                            if (selectedEligible.isEmpty()) stringResource(Res.string.turbo_sheet_pick) else pluralStringResource(Res.plurals.turbo_sheet_start, selectedEligible.size, selectedEligible.size),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                    }
+                    Text(
+                        stringResource(if (com.bernaferrari.changedetection.background.monitoringCapabilities.osScheduled) Res.string.turbo_sheet_caption_open else Res.string.turbo_sheet_caption, formatTime(endsAt)),
+                        Modifier.padding(top = 8.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun TileLabel(text: String, trailing: String? = null) {
+    Row(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp), verticalAlignment = Alignment.Bottom) {
+        Text(text, Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
+        if (trailing != null) Text(trailing, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -358,46 +427,30 @@ fun TurboLiveScreen(
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
             LazyColumn(Modifier.widthIn(max = 720.dp).fillMaxSize().testTag("turbo-live"), contentPadding = PaddingValues(bottom = 24.dp)) {
                 item(key = "hero") {
-                    Column(Modifier.padding(horizontal = 24.dp)) {
-                        Row(
-                            Modifier.clip(CircleShape).background(if (state.isActive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest).padding(horizontal = 12.dp, vertical = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            Icon(Icons.Rounded.Bolt, null, Modifier.size(16.dp), tint = if (state.isActive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(
-                                if (state.isActive) pluralStringResource(Res.plurals.turbo_card_title_n, state.siteIds.size, state.siteIds.size) else endedLabel(state.endReason),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = if (state.isActive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        Spacer(Modifier.size(14.dp))
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        TurboRing(state, now)
                         Text(
                             if (state.isActive) {
                                 if (state.intervalSeconds < 60) stringResource(Res.string.turbo_live_every_seconds, state.intervalSeconds) else pluralStringResource(Res.plurals.turbo_live_every_minutes, state.intervalSeconds / 60, state.intervalSeconds / 60)
                             } else {
                                 if (state.updatesSaved == 0) stringResource(Res.string.turbo_found_none) else pluralStringResource(Res.plurals.turbo_saved_updates, state.updatesSaved, state.updatesSaved)
                             },
-                            style = MaterialTheme.typography.displaySmall,
+                            Modifier.padding(top = 20.dp),
+                            style = MaterialTheme.typography.headlineSmall,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         )
-                        if (state.isActive) {
-                            LinearWavyProgressIndicator(
-                                progress = { state.progress(now) },
-                                modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
-                                trackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            )
-                            Row(Modifier.fillMaxWidth().padding(top = 10.dp)) {
-                                Text(minutesLeftLabel(state, now), Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text(stringResource(Res.string.turbo_ends_at, formatTime(state.deadlineTime)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        } else {
-                            Text(
-                                pluralStringResource(Res.plurals.turbo_summary_checks, state.successfulChecks + state.failedChecks, state.successfulChecks + state.failedChecks, sessionPages.size),
-                                Modifier.padding(top = 8.dp),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
+                        if (state.isActive) NextCheck(state, sessionPages.any { it.isSyncing })
+                        Text(
+                            if (state.isActive) {
+                                pluralStringResource(Res.plurals.turbo_card_title_n, state.siteIds.size, state.siteIds.size) + " · " + stringResource(Res.string.turbo_ends_at, formatTime(state.deadlineTime))
+                            } else {
+                                endedLabel(state.endReason) + " · " + pluralStringResource(Res.plurals.turbo_summary_checks, state.successfulChecks + state.failedChecks, state.successfulChecks + state.failedChecks, sessionPages.size)
+                            },
+                            Modifier.padding(top = 4.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        )
                     }
                 }
                 if (changed.isNotEmpty()) {
@@ -420,7 +473,7 @@ fun TurboLiveScreen(
                 if (state.isActive) {
                     item(key = "note") {
                         Text(
-                            stringResource(if (!monitoringCapabilities.notifications) Res.string.turbo_live_note_while_open else Res.string.turbo_live_note),
+                            stringResource(if (!monitoringCapabilities.notifications || com.bernaferrari.changedetection.background.monitoringCapabilities.osScheduled) Res.string.turbo_live_note_while_open else Res.string.turbo_live_note),
                             Modifier.padding(horizontal = 24.dp, vertical = 24.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,

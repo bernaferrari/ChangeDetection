@@ -43,7 +43,8 @@ data class AddEditUiState(
     val visualChangeThresholdBps: Int = 0,
     val textRegion: com.bernaferrari.changedetection.detection.TextRegion = com.bernaferrari.changedetection.detection.TextRegion(),
     val regionError: Boolean = false,
-    val captureMode: com.bernaferrari.changedetection.repo.CaptureMode = com.bernaferrari.changedetection.repo.CaptureMode.TEXT,
+    // Screenshots are how most pages are watched; text is the light alternative.
+    val captureMode: com.bernaferrari.changedetection.repo.CaptureMode = if (com.bernaferrari.changedetection.repo.supportsVisualMonitoring) com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT else com.bernaferrari.changedetection.repo.CaptureMode.TEXT,
     val url: String = "",
     val title: String = "",
     val selectedColors: Pair<Int, Int> = Pair(0xFF2196F3.toInt(), 0xFF1976D2.toInt()),
@@ -107,11 +108,10 @@ class AddEditViewModel(
         _uiState.update { it.copy(preview = CapturePreviewState.Loading) }
         previewJob = viewModelScope.launch {
             try {
-                val content = previewer.capture(url, state.captureMode, if (state.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT) state.textRegion else com.bernaferrari.changedetection.detection.TextRegion())
+                val content = previewer.capture(url, state.captureMode, state.textRegion)
                 if (generation == previewGeneration) {
                     // A page's own first heading names it better than its host; never override a typed name.
-                    val html = content as? CapturePreview.Html
-                    val heading = html?.pageTitle
+                    val heading = (content as? CapturePreview.Html)?.pageTitle ?: (content as? CapturePreview.Image)?.pageTitle
                     _uiState.update {
                         it.copy(
                             preview = CapturePreviewState.Ready(content),
@@ -238,7 +238,6 @@ class AddEditViewModel(
     }
 
     private fun validateRegion(state: AddEditUiState): Boolean {
-        if (state.captureMode != com.bernaferrari.changedetection.repo.CaptureMode.TEXT) return true
         return try {
             state.textRegion.validate()
             true

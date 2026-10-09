@@ -35,6 +35,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -119,6 +120,8 @@ fun AddEditConfirmScreen(
     val clipboard = LocalClipboard.current
     var copiedLink by remember { mutableStateOf<String?>(null) }
     var moreOptions by rememberSaveable { mutableStateOf(false) }
+    var browsing by rememberSaveable { mutableStateOf(false) }
+    var reviewing by rememberSaveable { mutableStateOf(false) }
     val validUrl = url.normalizeUrl() != null && url.contains('.')
     val textMode = captureMode == CaptureMode.TEXT
     val visualMode = captureMode == CaptureMode.SCREENSHOT || captureMode == CaptureMode.DEFAULT
@@ -131,20 +134,75 @@ fun AddEditConfirmScreen(
     LaunchedEffect(Unit) { if (!isEditing && url.isBlank()) urlFocus.requestFocus() }
     // The preview follows the address: once typing pauses on something that looks like a page, load it.
     LaunchedEffect(url, captureMode) {
-        if (validUrl && preview is CapturePreviewState.Idle) {
-            delay(if (isEditing) 0 else 700)
-            onPreview()
-        }
+        if (isEditing && validUrl && preview is CapturePreviewState.Idle) onPreview()
     }
 
-    LaunchedEffect(preview is CapturePreviewState.Ready) {
-        if (preview is CapturePreviewState.Ready && !isEditing) focusManager.clearFocus()
-    }
 
     fun changeMode(mode: CaptureMode) {
         if (isSaving || mode == captureMode) return
         onCaptureModeChange(mode)
-        if (validUrl) onPreview()
+        if (validUrl && (reviewing || isEditing)) onPreview()
+    }
+
+    val browserAvailable = LocalBrowserAvailable.current
+    val ignoredParts = remember(textRegion.exclude) { textRegion.exclude.split(", ").map { it.trim() }.filter { it.isNotEmpty() } }
+    val reviewSheet: @Composable () -> Unit = {
+            ModalBottomSheet(onDismissRequest = { if (!isSaving) reviewing = false }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = MaterialTheme.colorScheme.surfaceContainer) {
+                Column(Modifier.fillMaxWidth()) {
+                    Column(
+                        Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        PagePreviewCard(
+                            url = url, title = title, onTitleChange = onTitleChange, preview = preview, enabled = !isSaving,
+                            onRetry = onPreview, onEditAddress = { reviewing = false }, onSelectRegion = null, textRegion = textRegion,
+                        )
+                        if (browserAvailable) PartsSummary(textRegion.include, ignoredParts.size, onEdit = { reviewing = false; browsing = true })
+                        OptionsCard(captureMode, ::changeMode, textRegion, { onTextRegionChange(it); onPreview() }, enabled = !isSaving, onMore = { moreOptions = true }, showRegionChips = false)
+                        saveError?.localizedMessage()?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
+                        Text(stringResource(Res.string.monitor_editor_cadence_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                    }
+                    // Always reachable, whatever the preview's height.
+                    Button(
+                        onClick = onSave,
+                        enabled = !isSaving && preview !is CapturePreviewState.Loading,
+                        shapes = ButtonDefaults.shapes(),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).navigationBarsPadding().heightIn(min = 56.dp),
+                    ) {
+                        if (isSaving) LoadingIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary) else Text(stringResource(Res.string.editor_start), style = MaterialTheme.typography.titleMedium)
+                    }
+                }
+            }
+            }
+
+    if (browsing && validUrl) {
+        WatchBrowser(
+            startUrl = remember { url.normalizeUrl() ?: url },
+            only = textRegion.include,
+            ignored = ignoredParts,
+            onPicksChange = { only, ignored -> onTextRegionChange(com.bernaferrari.changedetection.detection.TextRegion(only, ignored.joinToString(", "))) },
+            onPageChange = { page -> if (!isEditing && page.trimEnd('/') != (url.normalizeUrl() ?: url).trimEnd('/')) onUrlChange(page) },
+            onWatch = {
+                if (isEditing) {
+                    browsing = false
+                    onPreview()
+                } else {
+                    reviewing = true
+                    onPreview()
+                }
+            },
+            onClose = {
+                browsing = false
+                reviewing = false
+            },
+            watchLabel = stringResource(if (isEditing) Res.string.done else Res.string.watch_this_page),
+        )
+        if (reviewing) reviewSheet()
+        if (moreOptions) MoreOptionsSheet(captureMode, ::changeMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange, onTextRegionChange, isSaving, isEditing, onDismiss = {
+            moreOptions = false
+            if (validUrl) onPreview()
+        })
+        return
     }
 
     Scaffold(
@@ -172,9 +230,16 @@ fun AddEditConfirmScreen(
                     Button(
                         onClick = {
                             keyboard?.hide()
-                            onSave()
+                            when {
+                                isEditing -> onSave()
+                                browserAvailable -> browsing = true
+                                else -> {
+                                    reviewing = true
+                                    onPreview()
+                                }
+                            }
                         },
-                        enabled = !isSaving && validUrl && preview !is CapturePreviewState.Loading,
+                        enabled = !isSaving && validUrl && (!isEditing || preview !is CapturePreviewState.Loading),
                         shapes = ButtonDefaults.shapes(),
                         modifier = Modifier.widthIn(max = 600.dp).fillMaxWidth().heightIn(min = 56.dp),
                     ) {
@@ -183,7 +248,7 @@ fun AddEditConfirmScreen(
                             Spacer(Modifier.size(8.dp))
                             Text(stringResource(Res.string.saving), style = MaterialTheme.typography.titleMedium)
                         } else {
-                            Text(stringResource(if (isEditing) Res.string.save else Res.string.editor_start), style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(if (isEditing) Res.string.save else Res.string.editor_open_page), style = MaterialTheme.typography.titleMedium)
                         }
                     }
                 }
@@ -200,7 +265,7 @@ fun AddEditConfirmScreen(
                 Modifier.widthIn(max = 600.dp).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                if (!isEditing && !validUrl) {
+                if (!isEditing) {
                     Text(
                         stringResource(Res.string.editor_paste_title),
                         Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp),
@@ -221,7 +286,16 @@ fun AddEditConfirmScreen(
                     onChange = onUrlChange,
                     onGo = {
                         keyboard?.hide()
-                        if (validUrl) onPreview()
+                        if (validUrl) {
+                            when {
+                                isEditing -> onPreview()
+                                browserAvailable -> browsing = true
+                                else -> {
+                                    reviewing = true
+                                    onPreview()
+                                }
+                            }
+                        }
                     },
                 )
                 val link = copiedLink
@@ -231,6 +305,7 @@ fun AddEditConfirmScreen(
                             onClick = {
                                 onUrlChange(link)
                                 keyboard?.hide()
+                                browsing = true
                             },
                             icon = { Icon(Icons.Default.ContentPaste, null, Modifier.size(18.dp)) },
                             label = { Text(stringResource(Res.string.paste) + " · " + link.removePrefix("https://").removePrefix("http://").removePrefix("www."), maxLines = 1, overflow = TextOverflow.Ellipsis) },
@@ -242,7 +317,7 @@ fun AddEditConfirmScreen(
 
                 if (duplicateSiteId != null) DuplicatePageWarning(duplicateSiteId, onOpenDuplicate, onDismissDuplicate)
 
-                AnimatedVisibility(validUrl || isEditing, enter = fadeIn(), exit = fadeOut()) {
+                AnimatedVisibility(isEditing, enter = fadeIn(), exit = fadeOut()) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         PagePreviewCard(
                             url = url,
@@ -274,6 +349,7 @@ fun AddEditConfirmScreen(
                                 actions = { Button(enabled = !isSaving, onClick = { changeMode(CaptureMode.SCREENSHOT) }) { Text(stringResource(Res.string.editor_use_screenshot)) } },
                             )
                         }
+                        if (browserAvailable) PartsSummary(textRegion.include, ignoredParts.size, onEdit = { browsing = true })
                         OptionsCard(
                             captureMode = captureMode,
                             onMode = ::changeMode,
@@ -284,6 +360,7 @@ fun AddEditConfirmScreen(
                             },
                             enabled = !isSaving,
                             onMore = { moreOptions = true },
+                            showRegionChips = false,
                         )
                         if (legacyThreshold > 0 && !(visualMode && visualChangeThresholdBps > 0) && captureMode != CaptureMode.TEXT && captureMode != CaptureMode.SOURCE) {
                             LegacyThresholdNotice(legacyThreshold, !isSaving, onRemoveLegacyThreshold)
@@ -315,29 +392,63 @@ fun AddEditConfirmScreen(
         }
     }
 
-    if (moreOptions) {
-        ModalBottomSheet(onDismissRequest = { moreOptions = false }, containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
-            Column(
-                Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Text(stringResource(Res.string.editor_more_options), style = MaterialTheme.typography.headlineSmall)
-                CaptureModeField(captureMode, ::changeMode, enabled = !isSaving, isEditing = isEditing)
-                if (textMode) {
-                    TextRegionFields(textRegion, regionError, !isSaving) { onTextRegionChange(it) }
-                }
-                if (visualMode) {
-                    VisualChangeFilterField(visualChangeThresholdBps, !isSaving, onVisualChangeThresholdChange)
-                }
-                Button(onClick = {
-                    moreOptions = false
-                    if (validUrl) onPreview()
-                }, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text(stringResource(Res.string.done)) }
+    if (moreOptions) MoreOptionsSheet(captureMode, ::changeMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange, onTextRegionChange, isSaving, isEditing, onDismiss = {
+        moreOptions = false
+        if (validUrl) onPreview()
+    })
+
+    if (reviewing && !browsing) reviewSheet()
+    if (showUrlChangeDialog) AddressChangeDialog(onCancel, onKeepHistory, onStartFresh)
+}
+
+@Composable
+private fun MoreOptionsSheet(
+    captureMode: CaptureMode,
+    onMode: (CaptureMode) -> Unit,
+    textRegion: com.bernaferrari.changedetection.detection.TextRegion,
+    regionError: Boolean,
+    visualChangeThresholdBps: Int,
+    onVisualChangeThresholdChange: (Int) -> Unit,
+    onTextRegionChange: (com.bernaferrari.changedetection.detection.TextRegion) -> Unit,
+    isSaving: Boolean,
+    isEditing: Boolean,
+    onDismiss: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
+        Column(
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(stringResource(Res.string.editor_more_options), style = MaterialTheme.typography.headlineSmall)
+            CaptureModeField(captureMode, onMode, enabled = !isSaving, isEditing = isEditing)
+            TextRegionFields(textRegion, regionError, !isSaving) { onTextRegionChange(it) }
+            if (captureMode == CaptureMode.SCREENSHOT || captureMode == CaptureMode.DEFAULT) {
+                VisualChangeFilterField(visualChangeThresholdBps, !isSaving, onVisualChangeThresholdChange)
             }
+            Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text(stringResource(Res.string.done)) }
         }
     }
+}
 
-    if (showUrlChangeDialog) AddressChangeDialog(onCancel, onKeepHistory, onStartFresh)
+/** What the picks add up to, with a way back into the page to change them. */
+@Composable
+private fun PartsSummary(only: String, ignored: Int, onEdit: () -> Unit) {
+    Surface(onClick = onEdit, shape = MaterialTheme.shapes.extraLarge, color = tileColor, modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.heightIn(min = 64.dp).padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            Box(Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondaryContainer), contentAlignment = Alignment.Center) {
+                Icon(Icons.Rounded.TouchApp, null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+            }
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(if (only.isNotBlank()) Res.string.parts_one else Res.string.parts_whole), style = MaterialTheme.typography.titleSmall)
+                Text(
+                    if (ignored > 0) pluralStringResource(Res.plurals.parts_ignored, ignored, ignored) else stringResource(Res.string.parts_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.outline)
+        }
+    }
 }
 
 @Composable
@@ -482,7 +593,7 @@ private fun PagePreviewCard(
                                 }
                             }
 
-                            is CapturePreview.Image -> CapturePreviewPanel(state, enabled, onRetry, {})
+                            is CapturePreview.Image -> CapturePreviewPanel(state, enabled, onRetry, {}, bare = true)
                         }
                     }
                 }
@@ -500,10 +611,11 @@ private fun OptionsCard(
     onRegion: (com.bernaferrari.changedetection.detection.TextRegion) -> Unit,
     enabled: Boolean,
     onMore: () -> Unit,
+    showRegionChips: Boolean = true,
 ) {
     val modes = buildList {
-        add(CaptureMode.TEXT)
         if (supportsVisualMonitoring || captureMode == CaptureMode.SCREENSHOT) add(CaptureMode.SCREENSHOT)
+        add(CaptureMode.TEXT)
         if (captureMode !in this) add(captureMode)
     }
     Surface(shape = MaterialTheme.shapes.extraLarge, color = tileColor, modifier = Modifier.fillMaxWidth()) {
@@ -512,7 +624,7 @@ private fun OptionsCard(
                 Text(stringResource(Res.string.editor_compare), style = MaterialTheme.typography.titleSmall)
                 if (modes.size > 1) ConnectedChoice(modes, captureMode, onMode, Modifier, enabled = enabled) { modeName(it) }
                 Text(stringResource(modeExplanation(captureMode)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (captureMode == CaptureMode.TEXT) {
+                if (captureMode == CaptureMode.TEXT && showRegionChips) {
                     val main = textRegion.include == MAIN_TEXT_REGION && textRegion.exclude.isBlank()
                     Text(stringResource(Res.string.text_region_title), Modifier.padding(top = 6.dp), style = MaterialTheme.typography.titleSmall)
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -589,3 +701,6 @@ private fun AddEditError.localizedMessage(): String = stringResource(
         AddEditError.SaveFailed -> Res.string.monitor_editor_error_save
     },
 )
+
+/** Whether this platform can embed a browser for navigating, signing in and picking parts. Tests turn it off. */
+val LocalBrowserAvailable = androidx.compose.runtime.staticCompositionLocalOf { com.bernaferrari.changedetection.browser.supportsPageRegionSelection }
