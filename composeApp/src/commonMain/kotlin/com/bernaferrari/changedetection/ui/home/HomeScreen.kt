@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -59,6 +60,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -92,6 +94,7 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -117,6 +120,8 @@ import com.bernaferrari.changedetection.ui.kit.Callout
 import com.bernaferrari.changedetection.ui.kit.ChangePreviewBlock
 import com.bernaferrari.changedetection.ui.kit.NewBadge
 import com.bernaferrari.changedetection.ui.kit.PageAvatar
+import com.bernaferrari.changedetection.ui.kit.segmentShape
+import com.bernaferrari.changedetection.ui.kit.tileColor
 import com.bernaferrari.changedetection.ui.kit.SectionHeader
 import com.bernaferrari.changedetection.ui.kit.domain
 import com.bernaferrari.changedetection.ui.kit.name
@@ -177,11 +182,17 @@ fun HomeScreen(
 
     val prunedText = stringResource(Res.string.pruned_snapshots)
     val turboEndedText = stringResource(Res.string.turbo_ended)
+    val nowWatching = stringResource(Res.string.home_now_watching)
+    val openLabel = stringResource(Res.string.detail_open_short)
     LaunchedEffect(Unit) {
         viewModel.uiMessage.collect { message ->
             when (message) {
                 UiMessage.SnapshotsPruned -> snackbar.showSnackbar(prunedText)
                 UiMessage.TurboEnded -> snackbar.showSnackbar(turboEndedText)
+                is UiMessage.PageAdded -> launch {
+                    val open = snackbar.showSnackbar(nowWatching.replace("%1\$s", message.name), actionLabel = openLabel, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed
+                    if (open) onOpenPage(message.siteId)
+                }
             }
         }
     }
@@ -318,7 +329,7 @@ fun HomeScreen(
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.align(Alignment.TopCenter).widthIn(max = 720.dp).fillMaxSize().testTag("home-list"),
-                    contentPadding = PaddingValues(bottom = 112.dp),
+                    contentPadding = PaddingValues(top = 4.dp, bottom = 120.dp),
                     verticalArrangement = Arrangement.spacedBy(0.dp),
                 ) {
                     if (turbo.isActive && !searching) {
@@ -345,7 +356,7 @@ fun HomeScreen(
                             onOpen = { if (selecting) selection = selection.toggle(row.site.id) else onOpenChange(row.site.id, row.snap?.snapId) },
                             onLongPress = { selection = selection.toggle(row.site.id) },
                             onMarkRead = { viewModel.markRead(row) },
-                            modifier = Modifier.animateItem().padding(horizontal = 12.dp, vertical = 5.dp),
+                            modifier = Modifier.animateItem().padding(horizontal = 16.dp, vertical = 6.dp),
                         )
                     }
                     item(key = "pages-header") {
@@ -365,16 +376,17 @@ fun HomeScreen(
                             )
                         }
                     }
-                    items(filtered, key = { "row-" + it.site.id }) { row ->
+                    itemsIndexed(filtered, key = { _, it -> "row-" + it.site.id }) { index, row ->
                         PageRow(
                             row = row,
+                            shape = segmentShape(index, filtered.size),
                             checking = row.site.id in loading || row.isSyncing,
                             selected = row.site.id in selection.ids,
                             current = row.site.id == selectedSiteId,
                             selecting = selecting,
                             onClick = { if (selecting) selection = selection.toggle(row.site.id) else onOpenPage(row.site.id) },
                             onLongPress = { selection = selection.toggle(row.site.id) },
-                            modifier = Modifier.animateItem(),
+                            modifier = Modifier.animateItem().padding(horizontal = 16.dp, vertical = 1.dp),
                         )
                     }
                 }
@@ -587,7 +599,7 @@ internal fun SelectionBar(
                 }
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.marks.highlightSoft),
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
     )
 }
 
@@ -633,53 +645,52 @@ private fun ChangeCard(
     val largeText = LocalDensity.current.fontScale > 1.3f
     val selectLabel = stringResource(Res.string.home_select_page)
     val container by androidx.compose.animation.animateColorAsState(
-        if (selected) MaterialTheme.marks.highlightSoft else MaterialTheme.colorScheme.surfaceContainerLowest,
+        if (selected) MaterialTheme.colorScheme.secondaryContainer else tileColor,
         label = "card",
     )
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
+        shape = MaterialTheme.shapes.extraLarge,
         color = container,
     ) {
         Column(
             Modifier
                 .combinedClickable(onClick = onOpen, onLongClick = onLongPress, onLongClickLabel = selectLabel, role = Role.Button)
                 .semantics { if (selecting) this.selected = selected }
-                .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 10.dp),
+                .padding(16.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (selecting) SelectMark(selected) else PageAvatar(row.site.name(), row.site.id)
+                if (selecting) SelectMark(selected) else PageAvatar(row.site.name(), row.site.id, size = 44.dp)
                 Column(Modifier.weight(1f)) {
                     Text(row.site.name(), style = MaterialTheme.typography.titleMedium, maxLines = if (largeText) 3 else 1, overflow = TextOverflow.Ellipsis)
-                    if (largeText) {
-                        Text(row.site.domain(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
                     Text(
-                        (if (largeText) "" else row.site.domain() + " · ") + getRelativeTimeLabel(row.snap?.timestamp ?: row.site.timestamp),
+                        if (largeText) row.site.domain() else row.site.domain() + " · " + getRelativeTimeLabel(row.snap?.timestamp ?: row.site.timestamp),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = if (largeText) 3 else 1,
                         overflow = TextOverflow.Ellipsis,
                     )
+                    if (largeText) {
+                        Text(getRelativeTimeLabel(row.snap?.timestamp ?: row.site.timestamp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
-                NewBadge(text = stringResource(Res.string.badge_new))
+                if (!selecting) {
+                    FilledTonalIconButton(
+                        onClick = onMarkRead,
+                        shapes = IconButtonDefaults.shapes(),
+                    ) { Icon(Icons.Rounded.Check, stringResource(Res.string.mark_read_short)) }
+                }
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(14.dp))
             ChangePreviewBlock(preview)
-            Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+            val footer = previewFooter(preview)
+            if (footer.isNotEmpty()) {
                 Text(
-                    previewFooter(preview),
-                    Modifier.weight(1f),
+                    footer,
+                    Modifier.padding(start = 4.dp, top = 10.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                if (!selecting) {
-                    FilledTonalButton(onClick = onMarkRead, contentPadding = PaddingValues(horizontal = 16.dp)) {
-                        Icon(Icons.Rounded.Check, null, Modifier.size(18.dp))
-                        Spacer(Modifier.size(6.dp))
-                        Text(stringResource(Res.string.mark_read_short))
-                    }
-                }
             }
         }
     }
@@ -713,6 +724,7 @@ private fun SelectMark(selected: Boolean) {
 @Composable
 private fun PageRow(
     row: SiteAndLastSnap,
+    shape: androidx.compose.ui.graphics.Shape,
     checking: Boolean,
     selected: Boolean,
     current: Boolean,
@@ -728,19 +740,20 @@ private fun PageRow(
     val failing = !paused && !site.isSuccessful
     val background by androidx.compose.animation.animateColorAsState(
         when {
-            selected -> MaterialTheme.marks.highlightSoft
-            current -> MaterialTheme.colorScheme.surfaceContainer
-            else -> Color.Transparent
+            selected -> MaterialTheme.colorScheme.secondaryContainer
+            current -> MaterialTheme.colorScheme.surfaceContainerHighest
+            else -> tileColor
         },
         label = "row",
     )
     Row(
         modifier
             .fillMaxWidth()
+            .clip(shape)
             .background(background)
             .combinedClickable(onClick = onClick, onLongClick = onLongPress, onLongClickLabel = selectLabel, role = Role.Button)
             .heightIn(min = 72.dp)
-            .padding(horizontal = 20.dp, vertical = 10.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
             .semantics { if (selecting) this.selected = selected },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -754,15 +767,11 @@ private fun PageRow(
                 maxLines = if (largeText) 3 else 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            if (largeText && !paused && !failing && !checking) {
-                Text(site.domain(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 val statusColor = if (failing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                 when {
-                    paused -> Icon(Icons.Outlined.Pause, null, Modifier.size(15.dp), tint = statusColor)
-                    failing -> Icon(Icons.Outlined.ErrorOutline, null, Modifier.size(15.dp), tint = statusColor)
-                    site.captureMode == CaptureMode.SCREENSHOT -> Icon(Icons.Outlined.Image, null, Modifier.size(15.dp), tint = statusColor)
+                    paused -> Icon(Icons.Outlined.Pause, null, Modifier.size(16.dp), tint = statusColor)
+                    failing -> Icon(Icons.Outlined.ErrorOutline, null, Modifier.size(16.dp), tint = statusColor)
                     else -> Unit
                 }
                 Text(
@@ -770,9 +779,9 @@ private fun PageRow(
                         checking -> stringResource(Res.string.home_row_checking)
                         paused -> stringResource(Res.string.home_row_paused)
                         failing -> checkFailureTitle(site.lastFailureCode)
-                        row.snap == null -> (if (largeText) "" else site.domain() + " · ") + stringResource(Res.string.home_row_waiting)
-                        row.snapshotCount <= 1 -> (if (largeText) "" else site.domain() + " · ") + stringResource(Res.string.home_row_no_changes)
-                        else -> (if (largeText) "" else site.domain() + " · ") + stringResource(Res.string.home_row_changed, getRelativeTimeLabel(row.snap.timestamp))
+                        row.snap == null -> stringResource(Res.string.home_row_waiting)
+                        row.snapshotCount <= 1 -> stringResource(Res.string.home_row_no_changes)
+                        else -> stringResource(Res.string.home_row_changed, getRelativeTimeLabel(row.snap.timestamp))
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = statusColor,
@@ -783,7 +792,9 @@ private fun PageRow(
         }
         AnimatedVisibility(checking, enter = fadeIn(), exit = fadeOut()) { LoadingIndicator(Modifier.size(28.dp)) }
         if (!site.isRead && row.snapshotCount > 1 && !checking) {
-            Box(Modifier.size(10.dp).background(MaterialTheme.marks.highlight, CircleShape))
+            Box(Modifier.size(10.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
+        } else if (site.captureMode == CaptureMode.SCREENSHOT && !checking) {
+            Icon(Icons.Outlined.Image, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.outline)
         }
     }
 }

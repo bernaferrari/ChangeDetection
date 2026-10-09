@@ -38,7 +38,7 @@ class CaptureEditorUiTest {
         }
         compose.onNodeWithText("Main content").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(MAIN_TEXT_REGION, region.include) }
-        compose.onNodeWithText("Advanced CSS").performScrollTo().performClick()
+        compose.onNodeWithText("CSS selectors").performScrollTo().performClick()
         compose.onNodeWithText("Include CSS selector (optional)").performScrollTo().performTextReplacement("#price")
         compose.onNodeWithText("Ignore CSS selector (optional)").performScrollTo().performTextReplacement(".timer")
         compose.runOnIdle { assertEquals(com.bernaferrari.changedetection.detection.TextRegion("#price", ".timer"), region) }

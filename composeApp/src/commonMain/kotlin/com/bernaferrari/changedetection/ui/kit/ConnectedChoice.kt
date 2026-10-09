@@ -65,7 +65,7 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
                                 else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                             },
                             colors = ToggleButtonDefaults.toggleButtonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                containerColor = MaterialTheme.colorScheme.surfaceBright,
                                 contentColor = MaterialTheme.colorScheme.onSurface,
                                 checkedContainerColor = MaterialTheme.colorScheme.primary,
                                 checkedContentColor = MaterialTheme.colorScheme.onPrimary,

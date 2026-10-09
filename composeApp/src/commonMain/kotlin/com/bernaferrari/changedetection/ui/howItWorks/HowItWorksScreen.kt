@@ -154,7 +154,7 @@ internal fun HowItWorksContent(onBackClick: () -> Unit, capabilities: Monitoring
                     )
                 }
                 item(key = "example") {
-                    androidx.compose.material3.Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+                    androidx.compose.material3.Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceBright) {
                         Column(Modifier.fillMaxWidth().padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(stringResource(Res.string.how_example_label), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             com.bernaferrari.changedetection.ui.kit.DiffText(

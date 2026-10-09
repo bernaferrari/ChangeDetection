@@ -38,7 +38,6 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.bernaferrari.changedetection.addedit.AddEditFlow
-import com.bernaferrari.changedetection.addedit.AddPageDialog
 import com.bernaferrari.changedetection.localBrowser.LocalBrowserScreen
 import com.bernaferrari.changedetection.ui.logs.ActivityScreen
 import com.bernaferrari.changedetection.ui.detail.PageDetailScreen
@@ -123,13 +122,11 @@ fun ChangeDetectionApp(
 ) {
     val backStack = rememberNavBackStack(appNavSavedStateConfiguration, MainDestination)
     val mainViewModel: MainViewModel = koinViewModel()
-    var addPageSession by remember { mutableIntStateOf(0) }
     var turboSetup by remember { mutableStateOf<Set<String>?>(null) }
-    var addPageUrl by remember { mutableStateOf<String?>(null) }
 
     fun openAddPage(url: String? = null) {
-        addPageUrl = url
-        addPageSession += 1
+        if (backStack.lastOrNull() is AddEditDestination) backStack.removeLastOrNull()
+        backStack.add(AddEditDestination(url))
     }
 
     // Handle deep link from notification
@@ -260,6 +257,26 @@ fun ChangeDetectionApp(
                     )
                 }
 
+                entry<AddEditDestination>(metadata = forwardTransitionMetadata) { key ->
+                    AddEditFlow(
+                        selectedUrl = key.initialUrl,
+                        onNavigateUp = { backStack.removeLastOrNull() },
+                        onSaveComplete = {
+                            platformActions.requestNotifications()
+                            backStack.removeLastOrNull()
+                        },
+                        onOpenSite = { siteId ->
+                            backStack.removeLastOrNull()
+                            backStack.openPage(siteId)
+                        },
+                        onPageAdded = { siteId, name ->
+                            backStack.removeLastOrNull()
+                            mainViewModel.announcePageAdded(siteId, name)
+                            platformActions.requestNotifications()
+                        },
+                    )
+                }
+
                 entry<EditSiteDestination>(metadata = forwardTransitionMetadata) { key ->
                     AddEditFlow(
                         siteId = key.siteId,
@@ -327,25 +344,6 @@ fun ChangeDetectionApp(
                 turboSetup = null
                 platformActions.startTurbo?.invoke(ids, interval, duration) ?: mainViewModel.startQuickMonitor(ids, interval, duration)
                 if (backStack.lastOrNull() !is TurboDestination) backStack.add(TurboDestination)
-            },
-        )
-    }
-
-    if (addPageSession > 0) {
-        AddPageDialog(
-            sessionKey = addPageSession,
-            selectedUrl = addPageUrl,
-            onDismiss = {
-                addPageSession = 0
-                addPageUrl = null
-            },
-            onSaveComplete = {
-                platformActions.requestNotifications()
-                addPageSession = 0
-                addPageUrl = null
-            },
-            onOpenSite = { siteId ->
-                backStack.openPage(siteId)
             },
         )
     }

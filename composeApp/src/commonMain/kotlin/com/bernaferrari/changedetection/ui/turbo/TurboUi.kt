@@ -153,7 +153,7 @@ fun TurboLiveCard(state: TurboState, onClick: () -> Unit, modifier: Modifier = M
         onClick = onClick,
         modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp),
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.marks.highlightSoft,
+        color = MaterialTheme.colorScheme.secondaryContainer,
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -216,7 +216,7 @@ fun TurboSetupSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+        containerColor = MaterialTheme.colorScheme.surfaceBright,
     ) {
         Column(modifier.fillMaxWidth().padding(bottom = 16.dp).testTag("turbo-setup")) {
             Column(Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 20.dp)) {
@@ -440,7 +440,7 @@ private fun endedLabel(reason: TurboEndReason?): String = stringResource(
 @Composable
 private fun TurboChangeCard(row: SiteAndLastSnap, onOpen: () -> Unit, modifier: Modifier = Modifier) {
     val preview = rememberLatestPreview(row.site.id, row.snap?.snapId)
-    Surface(onClick = onOpen, modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+    Surface(onClick = onOpen, modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceBright) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 PageAvatar(row.site.name(), row.site.id)

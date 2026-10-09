@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="editor_preview_failed_title">Couldn’t open this page</string>
+    <string name="editor_change_address">Change address</string>
+    <string name="editor_region_custom">Selected text</string>
+    <string name="editor_selectors">CSS selectors</string>
+    <string name="editor_name">Name</string>
+    <string name="detail_open_short">Open</string>
+    <string name="editor_more_options">More options</string>
+    <string name="show_more">Show more</string>
+    <string name="show_less">Show less</string>
+    <string name="alert_title">%1$s changed</string>
+    <string name="alert_generic">Tap to see what changed.</string>
+    <string name="alert_was">(was “%1$s”)</string>
+    <string name="alert_removed">Text was removed</string>
+    <string name="alert_visual">%1$s% of the page changed. Tap to compare.</string>
+    <string name="alert_large">Most of the page changed. Tap to compare.</string>
+    <string name="home_now_watching">Now watching %1$s</string>
+    <string name="preview_numbers_only">Only numbers changed</string>
+    <string name="preview_added">%1$d new</string>
+    <string name="preview_removed">%1$d removed</string>
+    <string name="preview_updated">%1$d updated</string>
+    <string name="preview_reordered">Only the order changed</string>
+    <string name="preview_reordered_body">Same items, rearranged. Nothing was added or removed.</string>
+    <string name="digest_new">New</string>
+    <string name="digest_removed">Removed</string>
+    <string name="digest_numbers">Numbers changed in %1$d lines</string>
+    <string name="digest_numbers_body">Counters, times and prices. Usually noise.</string>
+    <string name="digest_show_full">Show full comparison</string>
+    <string name="digest_changed">Changed</string>
+</resources>

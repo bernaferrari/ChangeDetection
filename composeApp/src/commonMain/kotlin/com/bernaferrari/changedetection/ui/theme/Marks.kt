@@ -11,8 +11,6 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 /**
@@ -53,12 +51,12 @@ private val LightMarks = Marks(
     page = Color.White,
     onPage = Color(0xFF1D1D1D),
     identity = listOf(
-        Color(0xFFF1E2C6),
-        Color(0xFFD9E7D2),
-        Color(0xFFD5E4F2),
-        Color(0xFFF3DAD6),
-        Color(0xFFE3DCF1),
-        Color(0xFFE4E1D8),
+        Color(0xFFDDE1FF),
+        Color(0xFFC9F0D8),
+        Color(0xFFFFDCC2),
+        Color(0xFFFFD8E4),
+        Color(0xFFE9DDFF),
+        Color(0xFFC4EEF0),
     ),
 )
 
@@ -75,12 +73,12 @@ private val DarkMarks = Marks(
     page = Color(0xFFF4F2EC),
     onPage = Color(0xFF1D1D1D),
     identity = listOf(
-        Color(0xFF3B3222),
-        Color(0xFF26331F),
-        Color(0xFF1F2C3A),
-        Color(0xFF3A2522),
-        Color(0xFF2C2638),
-        Color(0xFF2C2A23),
+        Color(0xFF353F8C),
+        Color(0xFF1E5A3C),
+        Color(0xFF6B3B12),
+        Color(0xFF7A2949),
+        Color(0xFF4F3A86),
+        Color(0xFF1C5457),
     ),
 )
 
@@ -93,10 +91,14 @@ val MaterialTheme.marks: Marks
     @ReadOnlyComposable
     get() = LocalMarks.current
 
-/** Page content is set in a serif so it reads as the page, while the app itself stays sans. */
+/** Page content: the app's text face, a touch larger and airier so quoted pages read comfortably. */
 object Reading {
-    val body = TextStyle(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 17.sp, lineHeight = 26.sp)
-    val snippet = TextStyle(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 16.5.sp, lineHeight = 24.sp)
-    val heading = TextStyle(fontFamily = FontFamily.Serif, fontWeight = FontWeight.SemiBold, fontSize = 24.sp, lineHeight = 30.sp)
-    val small = TextStyle(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 15.sp, lineHeight = 22.sp)
+    val body: TextStyle
+        @Composable get() = MaterialTheme.typography.bodyLarge.copy(fontSize = 17.sp, lineHeight = 26.sp)
+    val snippet: TextStyle
+        @Composable get() = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp, lineHeight = 24.sp)
+    val heading: TextStyle
+        @Composable get() = MaterialTheme.typography.headlineSmall
+    val small: TextStyle
+        @Composable get() = MaterialTheme.typography.bodyMedium.copy(fontSize = 15.sp, lineHeight = 22.sp)
 }

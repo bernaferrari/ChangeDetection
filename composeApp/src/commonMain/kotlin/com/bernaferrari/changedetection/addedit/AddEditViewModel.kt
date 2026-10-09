@@ -110,7 +110,8 @@ class AddEditViewModel(
                 val content = previewer.capture(url, state.captureMode, if (state.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT) state.textRegion else com.bernaferrari.changedetection.detection.TextRegion())
                 if (generation == previewGeneration) {
                     // A page's own first heading names it better than its host; never override a typed name.
-                    val heading = (content as? CapturePreview.Html)?.text?.lineSequence()?.map { it.trim() }?.firstOrNull { it.isNotEmpty() }?.takeIf { it.length in 3..70 }
+                    val html = content as? CapturePreview.Html
+                    val heading = html?.pageTitle
                     _uiState.update {
                         it.copy(
                             preview = CapturePreviewState.Ready(content),
@@ -190,9 +191,8 @@ class AddEditViewModel(
             val updatedTitle =
                 if (!titleEditedByUser && normalized != null) {
                     runCatching {
-                        val host = Url(normalized).host.replace("www.", "")
-                        // Get the first part of the domain (e.g. "g1" from "g1.globo.com")
-                        host.split(".").firstOrNull() ?: host
+                        // Until the page's own title arrives, the readable host is the honest name.
+                        Url(normalized).host.removePrefix("www.")
                     }.getOrElse { current.title }
                 } else if (!titleEditedByUser) {
                     ""

@@ -283,7 +283,7 @@
     <string name="editor_review_title">Rivedi</string>
     <string name="editor_start">Inizia il monitoraggio</string>
     <string name="editor_paste_title">Cosa vuoi monitorare?</string>
-    <string name="editor_paste_body">Incolla un link. Poi vedrai esattamente cosa confronteremo prima di salvare.</string>
+    <string name="editor_paste_body">Incolla un link e vedrai esattamente cosa confronteremo prima di salvare.</string>
     <string name="editor_use_link">Usa</string>
     <string name="editor_compare">Confronta</string>
     <string name="editor_preview">Cosa confronteremo</string>

@@ -39,6 +39,9 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.material3.toShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
@@ -72,7 +75,8 @@ fun Site.domain(): String = url.displayPageAddress().substringBefore('/').substr
 
 fun Site.name(): String = displayPageTitle()
 
-/** The first letter of the page name on a soft tint that is stable for the page. */
+/** The first letter of the page name inside an expressive shape and tint, both stable for the page. */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PageAvatar(
     name: String,
@@ -82,22 +86,45 @@ fun PageAvatar(
     dimmed: Boolean = false,
 ) {
     val tints = MaterialTheme.marks.identity
-    val tint = remember(key, tints) { tints[(key.hashCode() and Int.MAX_VALUE) % tints.size] }
+    val hash = remember(key) { mixHash(key.hashCode()) }
+    val tint = tints[(hash ushr 16) % tints.size]
+    val shape = AvatarShapes[(hash ushr 4) % AvatarShapes.size].toShape()
     val letter = remember(name) { name.trim().firstOrNull { it.isLetterOrDigit() }?.uppercaseChar()?.toString() ?: "•" }
+    val dark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
     Box(
         modifier
             .size(size)
-            .clip(RoundedCornerShape(size * 0.32f))
-            .background(if (dimmed) MaterialTheme.colorScheme.surfaceContainer else tint),
+            .clip(shape)
+            .background(if (dimmed) MaterialTheme.colorScheme.surfaceContainerHighest else tint),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             letter,
-            style = MaterialTheme.typography.titleMedium.copy(fontSize = (size.value * 0.42f).sp, fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (dimmed) 0.5f else 1f),
+            style = MaterialTheme.typography.titleMedium.copy(fontSize = (size.value * 0.4f).sp, fontWeight = FontWeight.Bold),
+            color = (if (dark) Color.White else Color(0xFF1B1B21)).copy(alpha = if (dimmed) 0.45f else 0.92f),
         )
     }
 }
+
+/** Spreads similar keys apart so neighbouring pages rarely share a tint or shape. */
+private fun mixHash(value: Int): Int {
+    var h = value
+    h = h xor (h ushr 16)
+    h *= 0x45d9f3b
+    h = h xor (h ushr 16)
+    return h and Int.MAX_VALUE
+}
+
+@OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+private val AvatarShapes = listOf(
+    androidx.compose.material3.MaterialShapes.Cookie9Sided,
+    androidx.compose.material3.MaterialShapes.Clover4Leaf,
+    androidx.compose.material3.MaterialShapes.Sunny,
+    androidx.compose.material3.MaterialShapes.Cookie6Sided,
+    androidx.compose.material3.MaterialShapes.Gem,
+    androidx.compose.material3.MaterialShapes.Cookie4Sided,
+    androidx.compose.material3.MaterialShapes.Puffy,
+)
 
 /** Removed text struck through in red, added text on marker yellow. */
 fun editText(
@@ -199,10 +226,10 @@ fun NewBadge(modifier: Modifier = Modifier, text: String = "New") {
     Box(
         modifier
             .clip(CircleShape)
-            .background(MaterialTheme.marks.highlight)
+            .background(MaterialTheme.colorScheme.primary)
             .padding(horizontal = 10.dp, vertical = 3.dp),
     ) {
-        Text(text, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.marks.onHighlight)
+        Text(text, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onPrimary)
     }
 }
 
@@ -229,14 +256,16 @@ fun SectionHeader(
     trailingText: String? = null,
 ) {
     Row(
-        modifier.fillMaxWidth().heightIn(min = 48.dp).padding(start = 20.dp, end = 8.dp, top = 8.dp),
+        modifier.fillMaxWidth().heightIn(min = 48.dp).padding(start = 24.dp, end = 12.dp, top = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-            Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f, fill = false).semantics { heading() })
+            Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f, fill = false).semantics { heading() })
             if (count != null) {
-                Spacer(Modifier.width(6.dp))
-                Text(count.toString(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.width(8.dp))
+                Box(Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest).padding(horizontal = 8.dp, vertical = 1.dp)) {
+                    Text(count.toString(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
         if (trailingText != null) {
@@ -248,25 +277,47 @@ fun SectionHeader(
     }
 }
 
-/** A white rounded group of rows; rows decide their own dividers. */
+/** Shape of item [index] of [count] in a lazy segmented list: big outer corners, small inner ones. */
+fun segmentShape(index: Int, count: Int, outer: Dp = 24.dp, inner: Dp = 4.dp): RoundedCornerShape = RoundedCornerShape(
+    topStart = if (index == 0) outer else inner,
+    topEnd = if (index == 0) outer else inner,
+    bottomStart = if (index == count - 1) outer else inner,
+    bottomEnd = if (index == count - 1) outer else inner,
+)
+
+/** The color of content tiles: bright on the container-toned screen. */
+val tileColor: Color
+    @Composable get() = MaterialTheme.colorScheme.surfaceBright
+
+private val LocalInGroup = androidx.compose.runtime.staticCompositionLocalOf { false }
+
+/**
+ * A segmented group (Android 16 style): rows are separate bright tiles with tight gaps,
+ * large outer corners and small inner ones.
+ */
 @Composable
 fun ListGroup(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    Surface(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerLowest,
-    ) {
-        Column(content = content)
+    androidx.compose.runtime.CompositionLocalProvider(LocalInGroup provides true) {
+        Column(
+            modifier.fillMaxWidth().padding(horizontal = 16.dp).clip(RoundedCornerShape(24.dp)),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+            content = content,
+        )
     }
+}
+
+/** Wraps any custom row so it becomes one tile of the surrounding [ListGroup]. */
+fun Modifier.groupTile(): Modifier = composed {
+    if (LocalInGroup.current) clip(RoundedCornerShape(4.dp)).background(tileColor) else this
 }
 
 @Composable
 fun GroupLabel(text: String, modifier: Modifier = Modifier) {
     Text(
         text,
-        modifier = modifier.padding(start = 32.dp, end = 32.dp, top = 20.dp, bottom = 8.dp).semantics { heading() },
+        modifier = modifier.padding(start = 28.dp, end = 28.dp, top = 24.dp, bottom = 8.dp).semantics { heading() },
         style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        color = MaterialTheme.colorScheme.primary,
     )
 }
 
@@ -276,7 +327,7 @@ fun GroupRow(
     modifier: Modifier = Modifier,
     supporting: String? = null,
     icon: ImageVector? = null,
-    showDivider: Boolean = false,
+    @Suppress("UNUSED_PARAMETER") showDivider: Boolean = false,
     titleColor: Color = MaterialTheme.colorScheme.onSurface,
     supportingColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     enabled: Boolean = true,
@@ -285,37 +336,34 @@ fun GroupRow(
     checked: Boolean? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
-    Column(modifier) {
-        if (showDivider) {
-            HorizontalDivider(
-                Modifier.padding(start = if (icon != null) 60.dp else 20.dp, end = 20.dp),
-                color = MaterialTheme.colorScheme.outlineVariant,
+    Row(
+        modifier
+            .groupTile()
+            .fillMaxWidth()
+            .then(
+                when {
+                    onClick != null && checked != null -> Modifier.toggleable(value = checked, enabled = enabled, role = role, onValueChange = { onClick() })
+                    onClick != null -> Modifier.clickable(enabled = enabled, role = role, onClick = onClick)
+                    else -> Modifier
+                },
             )
-        }
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .then(
-                    when {
-                        onClick != null && checked != null -> Modifier.toggleable(value = checked, enabled = enabled, role = role, onValueChange = { onClick() })
-                        onClick != null -> Modifier.clickable(enabled = enabled, role = role, onClick = onClick)
-                        else -> Modifier
-                    },
-                )
-                .heightIn(min = 60.dp)
-                .padding(horizontal = 20.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            if (icon != null) Icon(icon, null, Modifier.size(24.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(title, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium), color = if (enabled) titleColor else titleColor.copy(alpha = 0.4f))
-                if (supporting != null) {
-                    Text(supporting, style = MaterialTheme.typography.bodyMedium, color = supportingColor)
-                }
+            .heightIn(min = 64.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        if (icon != null) {
+            Box(Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondaryContainer), contentAlignment = Alignment.Center) {
+                Icon(icon, null, Modifier.size(22.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = if (enabled) 1f else 0.4f))
             }
-            if (trailing != null) trailing()
         }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium), color = if (enabled) titleColor else titleColor.copy(alpha = 0.4f))
+            if (supporting != null) {
+                Text(supporting, style = MaterialTheme.typography.bodyMedium, color = supportingColor)
+            }
+        }
+        if (trailing != null) trailing()
     }
 }
 
@@ -326,18 +374,18 @@ fun Callout(
     body: String,
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
-    container: Color = MaterialTheme.colorScheme.surfaceContainer,
+    container: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
     iconTint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     actions: (@Composable RowScope.() -> Unit)? = null,
 ) {
-    Surface(modifier.fillMaxWidth().padding(horizontal = 12.dp), shape = MaterialTheme.shapes.large, color = container) {
-        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+    Surface(modifier.fillMaxWidth().padding(horizontal = 16.dp), shape = MaterialTheme.shapes.extraLarge, color = container) {
+        Row(Modifier.padding(20.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             if (icon != null) Icon(icon, null, Modifier.size(24.dp), tint = iconTint)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(title, style = MaterialTheme.typography.titleMedium)
                 Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (actions != null) {
-                    FlowRow(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) { actions() }
+                    FlowRow(Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) { actions() }
                 }
             }
         }

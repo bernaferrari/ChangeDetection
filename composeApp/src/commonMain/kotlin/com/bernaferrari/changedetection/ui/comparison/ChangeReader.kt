@@ -25,10 +25,12 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.rounded.UnfoldMore
+import androidx.compose.material.icons.rounded.Numbers
 import androidx.compose.material.icons.rounded.UnfoldLess
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -62,6 +64,14 @@ import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.preview.EditSegment
 import com.bernaferrari.changedetection.preview.wordDiff
 import com.bernaferrari.changedetection.shared.generated.resources.Res
+import com.bernaferrari.changedetection.shared.generated.resources.digest_new
+import com.bernaferrari.changedetection.shared.generated.resources.digest_changed
+import com.bernaferrari.changedetection.shared.generated.resources.digest_removed
+import com.bernaferrari.changedetection.shared.generated.resources.digest_numbers
+import com.bernaferrari.changedetection.shared.generated.resources.digest_numbers_body
+import com.bernaferrari.changedetection.shared.generated.resources.digest_show_full
+import com.bernaferrari.changedetection.shared.generated.resources.preview_reordered
+import com.bernaferrari.changedetection.shared.generated.resources.preview_reordered_body
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_no_changes_text
 import com.bernaferrari.changedetection.shared.generated.resources.reader_hidden_body
 import com.bernaferrari.changedetection.shared.generated.resources.reader_hidden_title
@@ -164,7 +174,7 @@ internal class ReaderState {
     }
 }
 
-private data class ReaderContent(val blocks: List<ReaderBlock>, val changes: Int)
+private data class ReaderContent(val blocks: List<ReaderBlock>, val changes: Int, val digest: com.bernaferrari.changedetection.preview.TextDigest? = null)
 
 private sealed interface ReaderItem {
     val key: String
@@ -226,12 +236,12 @@ internal fun ChangeReader(
             } else {
                 emptySet()
             }
-            val blocks = readerBlocks(
-                readableSnapshotText(oldContent, oldIsHtml).lines(),
-                readableSnapshotText(newContent, newIsHtml).lines(),
-                headings,
-            )
-            ReaderContent(blocks, blocks.count { it is ReaderBlock.Change })
+            val oldLines = readableSnapshotText(oldContent, oldIsHtml).lines()
+            val newLines = readableSnapshotText(newContent, newIsHtml).lines()
+            val blocks = readerBlocks(oldLines, newLines, headings)
+            // Busy pages read better as "what's new / gone / only ticked" than as a positional diff.
+            val busy = com.bernaferrari.changedetection.preview.textPreview(oldLines, newLines, headings) is com.bernaferrari.changedetection.preview.ChangePreview.Large
+            ReaderContent(blocks, blocks.count { it is ReaderBlock.Change }, if (busy) com.bernaferrari.changedetection.preview.textDigest(oldLines, newLines) else null)
         }
     }
     val loaded = content
@@ -243,6 +253,13 @@ internal fun ChangeReader(
     if (loaded.changes == 0) {
         SideEffect { state.changeIndices = emptyList() }
         NothingVisible(oldIsHtml || newIsHtml, onShowSource, modifier)
+        return
+    }
+    var showFull by remember(loaded) { mutableStateOf(false) }
+    val digest = loaded.digest
+    if (digest != null && !showFull) {
+        SideEffect { state.changeIndices = emptyList() }
+        DigestView(digest, onShowFull = { showFull = true }, modifier = modifier)
         return
     }
     val expanded: SnapshotStateList<Int> = remember(loaded) { emptyList<Int>().toMutableStateList() }
@@ -278,13 +295,110 @@ internal fun ChangeReader(
     }
 }
 
+/** A busy page's change as three plain lists: new, removed, and (folded) lines where only numbers moved. */
+@Composable
+private fun DigestView(digest: com.bernaferrari.changedetection.preview.TextDigest, onShowFull: () -> Unit, modifier: Modifier = Modifier) {
+    val marks = MaterialTheme.marks
+    var numbersOpen by remember(digest) { mutableStateOf(false) }
+    val newTitle = stringResource(Res.string.digest_new)
+    val removedTitle = stringResource(Res.string.digest_removed)
+    val changedTitle = stringResource(Res.string.digest_changed)
+    Box(modifier, contentAlignment = Alignment.TopCenter) {
+        LazyColumn(
+            Modifier.widthIn(max = 720.dp).fillMaxSize().testTag("comparison-digest"),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            if (digest.reordered) {
+                item("reordered") {
+                    DigestNote(Icons.Rounded.UnfoldMore, stringResource(Res.string.preview_reordered), stringResource(Res.string.preview_reordered_body))
+                }
+            }
+            fun group(key: String, title: String, lines: List<String>, kind: EditSegment.Kind) {
+                if (lines.isEmpty()) return
+                item("$key-h") { DigestHeader(title, lines.size) }
+                itemsIndexed(lines.take(200), key = { index, _ -> "$key-$index" }) { index, line ->
+                    Box(Modifier.fillMaxWidth().clip(com.bernaferrari.changedetection.ui.kit.segmentShape(index, minOf(lines.size, 200), outer = 20.dp)).background(MaterialTheme.colorScheme.surfaceBright).padding(horizontal = 16.dp, vertical = 12.dp)) {
+                        DiffText(editText(listOf(EditSegment(line.take(600), kind)), marks), style = Reading.body.copy(color = MaterialTheme.colorScheme.onSurface))
+                    }
+                }
+            }
+            if (digest.edited.isNotEmpty()) {
+                item("edited-h") { DigestHeader(changedTitle, digest.edited.size) }
+                itemsIndexed(digest.edited.take(200), key = { index, _ -> "edited-$index" }) { index, (before, after) ->
+                    Box(Modifier.fillMaxWidth().clip(com.bernaferrari.changedetection.ui.kit.segmentShape(index, minOf(digest.edited.size, 200), outer = 20.dp)).background(MaterialTheme.colorScheme.surfaceBright).padding(horizontal = 16.dp, vertical = 12.dp)) {
+                        DiffText(editText(com.bernaferrari.changedetection.preview.wordDiff(before.take(600), after.take(600)), marks), style = Reading.body.copy(color = MaterialTheme.colorScheme.onSurface))
+                    }
+                }
+            }
+            group("new", newTitle, digest.added, EditSegment.Kind.Added)
+            group("gone", removedTitle, digest.removed, EditSegment.Kind.Removed)
+            if (digest.numberUpdates.isNotEmpty()) {
+                item("numbers-h") {
+                    Row(
+                        Modifier.fillMaxWidth().padding(top = 20.dp).clip(MaterialTheme.shapes.extraLarge).clickable(role = Role.Button) { numbersOpen = !numbersOpen }
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh).heightIn(min = 56.dp).padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Icon(Icons.Rounded.Numbers, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(Res.string.digest_numbers, digest.numberUpdates.size), style = MaterialTheme.typography.titleSmall)
+                            Text(stringResource(Res.string.digest_numbers_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Icon(if (numbersOpen) Icons.Rounded.UnfoldLess else Icons.Rounded.UnfoldMore, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                if (numbersOpen) {
+                    itemsIndexed(digest.numberUpdates.take(200), key = { index, _ -> "num-$index" }) { _, (before, after) ->
+                        DiffText(
+                            editText(com.bernaferrari.changedetection.preview.wordDiff(before.take(400), after.take(400)), marks),
+                            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                            style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
+                        )
+                    }
+                }
+            }
+            item("full") {
+                Box(Modifier.fillMaxWidth().padding(top = 16.dp), contentAlignment = Alignment.Center) {
+                    TextButton(onClick = onShowFull, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(Res.string.digest_show_full)) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DigestHeader(title: String, count: Int) {
+    Row(Modifier.fillMaxWidth().padding(start = 8.dp, top = 20.dp, bottom = 8.dp).semantics { heading() }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(title, style = MaterialTheme.typography.titleMedium)
+        Box(Modifier.clip(androidx.compose.foundation.shape.CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest).padding(horizontal = 8.dp, vertical = 1.dp)) {
+            Text(count.toString(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun DigestNote(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, body: String) {
+    Row(
+        Modifier.fillMaxWidth().padding(top = 8.dp).clip(MaterialTheme.shapes.extraLarge).background(MaterialTheme.colorScheme.surfaceBright).padding(20.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Icon(icon, null, tint = MaterialTheme.colorScheme.primary)
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(title, style = MaterialTheme.typography.titleMedium)
+            Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
 @Composable
 private fun ChangeBlock(block: ReaderBlock.Change, total: Int, expanded: Boolean, onExpand: () -> Unit, modifier: Modifier = Modifier) {
     val marks = MaterialTheme.marks
     val beforeText = block.before.joinToString(" ").trim()
     val afterText = block.after.joinToString(" ").trim()
     val inline = beforeText.length + afterText.length <= INLINE_CHARS && block.before.size <= 4 && block.after.size <= 4
-    Surface(modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+    Surface(modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceBright) {
         Row(Modifier.padding(start = 0.dp, top = 14.dp, bottom = 14.dp, end = 16.dp)) {
             Box(Modifier.padding(start = 10.dp, end = 12.dp).width(4.dp).heightIn(min = 24.dp).clip(RoundedCornerShape(2.dp)).background(marks.highlightEdge))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -339,7 +453,7 @@ private fun CappedLines(lines: List<String>, kind: EditSegment.Kind, onExpand: (
 @Composable
 private fun ChangedLine(item: ReaderItem.ChangedLine) {
     val label = stringResource(if (item.kind == EditSegment.Kind.Removed) Res.string.preview_before else Res.string.preview_after)
-    Surface(Modifier.fillMaxWidth().padding(vertical = 2.dp), shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+    Surface(Modifier.fillMaxWidth().padding(vertical = 2.dp), shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceBright) {
         DiffText(
             editText(listOf(EditSegment(item.text, item.kind)), MaterialTheme.marks),
             Modifier.padding(start = 32.dp, end = 16.dp, top = 8.dp, bottom = 8.dp).clearAndSetSemantics { contentDescription = "$label: ${item.text}" },

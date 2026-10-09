@@ -251,7 +251,7 @@ internal fun AppearanceSheet(
     onPalette: (AppPalette) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = MaterialTheme.colorScheme.surfaceContainerLowest) {
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 32.dp).selectableGroup()) {
             Text(stringResource(Res.string.settings_section_appearance), Modifier.padding(horizontal = 24.dp), style = MaterialTheme.typography.headlineSmall)
             GroupLabel(stringResource(Res.string.settings_theme_label))

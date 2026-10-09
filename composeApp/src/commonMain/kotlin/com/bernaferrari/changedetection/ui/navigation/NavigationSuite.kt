@@ -86,25 +86,14 @@ fun ChangeDetectionNavigationSuite(
             Scaffold(
                 contentWindowInsets = WindowInsets(0),
                 bottomBar = {
-                    NavigationBar(
-                        containerColor = MaterialTheme.colorScheme.background,
-                        tonalElevation = 0.dp,
-                        windowInsets = NavigationBarDefaults.windowInsets,
-                    ) {
+                    ShortNavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
                         appNavItems.forEachIndexed { index, item ->
                             val selected = item.destination.matches(currentTab)
-                            NavigationBarItem(
+                            ShortNavigationBarItem(
                                 selected = selected,
                                 onClick = { if (!selected) navigateToTab(backStack, item.destination) },
                                 icon = { NavIcon(if (selected) item.selectedIcon else item.unselectedIcon, if (item.destination is MainDestination) homeBadge else 0) },
-                                label = { Text(labels[index], style = MaterialTheme.typography.labelMedium) },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    selectedTextColor = MaterialTheme.colorScheme.onSurface,
-                                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                ),
+                                label = { Text(labels[index]) },
                             )
                         }
                     }

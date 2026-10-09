@@ -18,7 +18,6 @@ import com.bernaferrari.changedetection.repo.source.local.ChangeDatabase
 import com.bernaferrari.changedetection.repo.source.local.getDatabaseBuilder
 import com.bernaferrari.changedetection.repo.source.local.getRoomDatabase
 import com.bernaferrari.changedetection.sync.ChangeNotifier
-import com.bernaferrari.changedetection.sync.NoOpChangeNotifier
 import com.bernaferrari.changedetection.sync.SyncEngine
 import com.bernaferrari.changedetection.util.FileStorage
 import com.bernaferrari.changedetection.util.IosFileStorage
@@ -69,7 +68,7 @@ actual class PlatformDiModule {
     fun fileStorage(): FileStorage = IosFileStorage()
 
     @Single
-    fun changeNotifier(): ChangeNotifier = NoOpChangeNotifier
+    fun changeNotifier(): ChangeNotifier = com.bernaferrari.changedetection.sync.IosChangeNotifier()
 }
 
 fun initKoinIos(): KoinApplication = initKoin()

@@ -84,7 +84,7 @@ fun HomeEmptyState(onAddPage: (String?) -> Unit, onHowItWorks: () -> Unit, modif
             Text(stringResource(Res.string.empty_body), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Spacer(Modifier.weight(1f).heightIn(min = 28.dp))
             AnimatedVisibility(copied != null, enter = fadeIn() + expandVertically()) {
-                Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.marks.highlightSoft, modifier = Modifier.padding(bottom = 10.dp)) {
+                Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.padding(bottom = 10.dp)) {
                     Row(Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Icon(Icons.Outlined.ContentPaste, null, Modifier.size(20.dp))
                         Column(Modifier.weight(1f)) {
@@ -148,7 +148,7 @@ private fun DemoCard(modifier: Modifier, letter: String, domain: String, content
     Surface(
         modifier.shadow(10.dp, MaterialTheme.shapes.large, ambientColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.08f), spotColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.12f)),
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        color = MaterialTheme.colorScheme.surfaceBright,
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {

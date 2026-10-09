@@ -283,7 +283,7 @@
     <string name="editor_review_title">Review</string>
     <string name="editor_start">Start watching</string>
     <string name="editor_paste_title">What should we watch?</string>
-    <string name="editor_paste_body">Paste a link. Next, you’ll see exactly what we’ll compare before anything is saved.</string>
+    <string name="editor_paste_body">Paste a link and you’ll see exactly what we’ll compare before anything is saved.</string>
     <string name="editor_use_link">Use</string>
     <string name="editor_compare">Compare</string>
     <string name="editor_preview">What we’ll compare</string>
