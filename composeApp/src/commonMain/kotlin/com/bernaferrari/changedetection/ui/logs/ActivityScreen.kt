@@ -120,6 +120,8 @@ fun ActivityScreen(
     val retryText = stringResource(Res.string.retry)
     val undoText = stringResource(Res.string.undo)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    // Nothing to search until there is activity.
+    val canSearch = items.itemCount > 0 || query.isNotBlank()
     BackHandler(enabled = searching) {
         viewModel.setSearchQuery("")
         searching = false
@@ -128,51 +130,29 @@ fun ActivityScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            if (searching) {
-                val focus = remember { FocusRequester() }
-                LaunchedEffect(Unit) { focus.requestFocus() }
+            com.bernaferrari.changedetection.ui.kit.TopBarSwitcher(searching) { searchMode ->
+            if (searchMode) {
                 com.bernaferrari.changedetection.ui.navigation.HideNativeBar()
-                TopAppBar(
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            viewModel.setSearchQuery("")
-                            searching = false
-                        }) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(Res.string.home_search_close)) }
-                    },
-                    title = {
-                        TextField(
-                            value = query,
-                            onValueChange = viewModel::setSearchQuery,
-                            placeholder = { Text(stringResource(Res.string.logs_search_pages)) },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth().focusRequester(focus),
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent,
-                            ),
-                        )
-                    },
-                    actions = {
-                        if (query.isNotEmpty()) IconButton(onClick = { viewModel.setSearchQuery("") }) { Icon(Icons.Outlined.Close, stringResource(Res.string.home_search_clear)) }
-                    },
-                )
+                com.bernaferrari.changedetection.ui.kit.SearchTopBar(query, viewModel::setSearchQuery, stringResource(Res.string.logs_search_pages)) {
+                    viewModel.setSearchQuery("")
+                    searching = false
+                }
             } else {
                 if (com.bernaferrari.changedetection.ui.navigation.usesNativeNavigation()) {
                     com.bernaferrari.changedetection.ui.navigation.AppTopBar(
                         title = stringResource(Res.string.nav_activity),
                         onBack = null,
-                        actions = listOf(com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.logs_search_pages), Icons.Outlined.Search, "magnifyingglass") { searching = true }),
+                        actions = if (canSearch) listOf(com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.logs_search_pages), Icons.Outlined.Search, "magnifyingglass") { searching = true }) else emptyList(),
                     )
                 } else {
                     LargeFlexibleTopAppBar(
                         title = { Text(stringResource(Res.string.nav_activity)) },
-                        actions = { IconButton(onClick = { searching = true }) { Icon(Icons.Outlined.Search, stringResource(Res.string.logs_search_pages)) } },
+                        actions = { if (canSearch) IconButton(onClick = { searching = true }) { Icon(Icons.Outlined.Search, stringResource(Res.string.logs_search_pages)) } },
                         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface, scrolledContainerColor = MaterialTheme.colorScheme.surface),
                         scrollBehavior = scrollBehavior,
                     )
                 }
+            }
             }
         },
         snackbarHost = { SnackbarHost(snackbar) },

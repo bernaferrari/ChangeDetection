@@ -27,6 +27,7 @@ import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation3.runtime.NavBackStack
@@ -75,30 +76,38 @@ fun ChangeDetectionNavigationSuite(
     )
 
     // Subsequent pages get the full canvas. M3 toolbars and the primary navigation bar should not
-    // compete at the bottom of the same compact screen.
-    if (backStack.lastOrNull()?.isRootTab() != true && !retainNavigationForDetail) {
-        content()
-        return
-    }
+    // compete at the bottom of the same compact screen. The content keeps one place in the tree whether
+    // or not the bar shows: rebuilding it would drop every screen's state and skip the push animation.
+    val showBar = backStack.lastOrNull()?.isRootTab() == true || retainNavigationForDetail
+    val currentContent by androidx.compose.runtime.rememberUpdatedState(content)
+    val movableContent = androidx.compose.runtime.remember { androidx.compose.runtime.movableContentOf { currentContent() } }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         if (maxWidth < 600.dp) {
             Scaffold(
                 contentWindowInsets = WindowInsets(0),
                 bottomBar = {
-                    ShortNavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
-                        appNavItems.forEachIndexed { index, item ->
-                            val selected = item.destination.matches(currentTab)
-                            ShortNavigationBarItem(
-                                selected = selected,
-                                onClick = { if (!selected) navigateToTab(backStack, item.destination) },
-                                icon = { NavIcon(if (selected) item.selectedIcon else item.unselectedIcon, if (item.destination is MainDestination && !selected) homeBadge else 0) },
-                                label = { Text(labels[index]) },
-                            )
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = showBar,
+                        enter = androidx.compose.animation.expandVertically(expandFrom = androidx.compose.ui.Alignment.Top),
+                        exit = androidx.compose.animation.shrinkVertically(shrinkTowards = androidx.compose.ui.Alignment.Top),
+                    ) {
+                        ShortNavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
+                            appNavItems.forEachIndexed { index, item ->
+                                val selected = item.destination.matches(currentTab)
+                                ShortNavigationBarItem(
+                                    selected = selected,
+                                    onClick = { if (!selected) navigateToTab(backStack, item.destination) },
+                                    icon = { NavIcon(if (selected) item.selectedIcon else item.unselectedIcon, if (item.destination is MainDestination && !selected) homeBadge else 0) },
+                                    label = { Text(labels[index]) },
+                                )
+                            }
                         }
                     }
                 },
-            ) { padding -> Box(Modifier.fillMaxSize().padding(padding)) { content() } }
+            ) { padding -> Box(Modifier.fillMaxSize().padding(padding)) { movableContent() } }
+        } else if (!showBar) {
+            Box(Modifier.fillMaxSize()) { movableContent() }
         } else {
             BoundedNavigationSuiteScaffold(
                 navigationSuiteItems = {
@@ -115,7 +124,7 @@ fun ChangeDetectionNavigationSuite(
                         )
                     }
                 },
-                content = content,
+                content = movableContent,
             )
         }
     }
