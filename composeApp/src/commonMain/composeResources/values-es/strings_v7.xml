@@ -73,7 +73,7 @@
         <item quantity="other">%1$d eliminadas</item>
     </plurals>
     <string name="detail_sign_in">Iniciar sesión</string>
-    <string name="browser_session_note">¿Iniciaste sesión aquí? Las comprobaciones usan esta sesión.</string>
+    <string name="browser_session_note">¿Iniciaste sesión en esta página? Seguirás con la sesión iniciada: las comprobaciones usan la sesión de este navegador, en este dispositivo.</string>
     <string name="turbo_next_check">Próxima comprobación en %1$d s</string>
     <string name="picker_selected_image">Una imagen</string>
     <string name="picker_selected_frame">Un marco incrustado (a menudo un anuncio)</string>

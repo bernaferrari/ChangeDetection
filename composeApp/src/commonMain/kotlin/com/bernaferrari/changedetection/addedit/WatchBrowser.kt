@@ -114,13 +114,15 @@ internal fun WatchBrowser(
     Box(Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.surface,
+            // Browser controls sit where browsers put them: close, back, forward and the address (with reload) on top.
             topBar = {
                 Row(
-                    Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 8.dp, vertical = 6.dp),
+                    Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 4.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, stringResource(Res.string.a11y_close)) }
+                    IconButton(onClick = { navigator.navigateBack() }, enabled = navigator.canGoBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(Res.string.a11y_navigate_back)) }
+                    IconButton(onClick = { navigator.navigateForward() }, enabled = navigator.canGoForward) { Icon(Icons.AutoMirrored.Rounded.ArrowForward, stringResource(Res.string.browser_forward)) }
                     AddressPill(
                         url = state.lastLoadedUrl ?: startUrl,
                         editing = editingAddress,
@@ -129,19 +131,15 @@ internal fun WatchBrowser(
                             editingAddress = false
                             typed.normalizeUrl()?.let { navigator.loadUrl(it) }
                         },
-                        modifier = Modifier.weight(1f),
+                        onReload = { navigator.reload() },
+                        modifier = Modifier.weight(1f).padding(start = 4.dp, end = 8.dp),
                     )
-                    IconButton(onClick = { navigator.reload() }) { Icon(Icons.Rounded.Refresh, stringResource(Res.string.refresh)) }
                 }
             },
             // Docked, not floating: many pages have their own bottom bar, and it must stay reachable.
             bottomBar = {
                 BrowseToolbar(
-                    canBack = navigator.canGoBack,
-                    canForward = navigator.canGoForward,
                     picks = (if (only.isNotBlank()) 1 else 0) + ignored.size,
-                    onBack = { navigator.navigateBack() },
-                    onForward = { navigator.navigateForward() },
                     onPick = { picking = true },
                     onWatch = onWatch,
                     watchLabel = watchLabel,
@@ -170,10 +168,11 @@ internal fun WatchBrowser(
                 only = only,
                 ignored = ignored,
                 onDepth = { depth -> if (depth != current?.depth) navigator.evaluateJavaScript("window.__cdPick&&window.__cdPick.setDepth($depth)") },
+                // Watching one part completes the choice, so picking ends; ignoring can go on for several parts.
                 onWatchOnly = { part ->
                     onPicksChange(part.selector, ignored - part.selector)
                     current = null
-                    navigator.evaluateJavaScript("window.__cdPick&&window.__cdPick.clear()")
+                    picking = false
                 },
                 onIgnore = { part ->
                     onPicksChange(only.takeUnless { it == part.selector }.orEmpty(), (ignored + part.selector).distinct())
@@ -182,14 +181,14 @@ internal fun WatchBrowser(
                 },
                 onRemoveOnly = { onPicksChange("", ignored) },
                 onRemoveIgnored = { selector -> onPicksChange(only, ignored - selector) },
-                onDone = { picking = false },
+                onBack = { picking = false },
             )
         }
     }
 }
 
 @Composable
-private fun AddressPill(url: String, editing: Boolean, onEdit: (Boolean) -> Unit, onGo: (String) -> Unit, modifier: Modifier = Modifier) {
+private fun AddressPill(url: String, editing: Boolean, onEdit: (Boolean) -> Unit, onGo: (String) -> Unit, onReload: () -> Unit, modifier: Modifier = Modifier) {
     val display = remember(url) { url.removePrefix("https://").removePrefix("http://").removePrefix("www.").trimEnd('/') }
     if (editing) {
         var typed by remember(url) { mutableStateOf(url) }
@@ -213,46 +212,32 @@ private fun AddressPill(url: String, editing: Boolean, onEdit: (Boolean) -> Unit
         )
     } else {
         Surface(onClick = { onEdit(true) }, shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHighest, modifier = modifier.heightIn(min = 44.dp)) {
-            Row(Modifier.padding(horizontal = 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(Modifier.padding(start = 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (url.startsWith("https://")) Icon(Icons.Rounded.Lock, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(display, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(display, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                IconButton(onClick = onReload, modifier = Modifier.size(44.dp)) { Icon(Icons.Rounded.Refresh, stringResource(Res.string.refresh), Modifier.size(20.dp)) }
             }
         }
     }
 }
 
 @Composable
-private fun BrowseToolbar(
-    canBack: Boolean,
-    canForward: Boolean,
-    picks: Int,
-    onBack: () -> Unit,
-    onForward: () -> Unit,
-    onPick: () -> Unit,
-    onWatch: () -> Unit,
-    watchLabel: String,
-) {
+private fun BrowseToolbar(picks: Int, onPick: () -> Unit, onWatch: () -> Unit, watchLabel: String) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(start = 8.dp, end = 12.dp, top = 6.dp, bottom = 8.dp)) {
-            Row(Modifier.padding(start = 8.dp, bottom = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Rounded.Lock, null, Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(stringResource(Res.string.browser_session_note), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(
+            Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            BadgedBox(badge = { if (picks > 0) Badge { Text(picks.toString()) } }) {
+                FilledTonalButton(onClick = onPick, shapes = ButtonDefaults.shapes(), contentPadding = PaddingValues(horizontal = 16.dp), modifier = Modifier.heightIn(min = 48.dp)) {
+                    Icon(Icons.Rounded.TouchApp, null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(Res.string.picker_title_short))
+                }
             }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                IconButton(onClick = onBack, enabled = canBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(Res.string.a11y_navigate_back)) }
-                IconButton(onClick = onForward, enabled = canForward) { Icon(Icons.AutoMirrored.Rounded.ArrowForward, stringResource(Res.string.browser_forward)) }
-                Spacer(Modifier.width(4.dp))
-                BadgedBox(badge = { if (picks > 0) Badge { Text(picks.toString()) } }) {
-                    FilledTonalButton(onClick = onPick, shapes = ButtonDefaults.shapes(), contentPadding = PaddingValues(horizontal = 14.dp), modifier = Modifier.heightIn(min = 48.dp)) {
-                        Icon(Icons.Rounded.TouchApp, null, Modifier.size(18.dp))
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(Res.string.picker_title_short))
-                    }
-                }
-                Spacer(Modifier.weight(1f))
-                Button(onClick = onWatch, shapes = ButtonDefaults.shapes(), modifier = Modifier.heightIn(min = 48.dp)) {
-                    Text(watchLabel, style = MaterialTheme.typography.titleSmall)
-                }
+            Spacer(Modifier.weight(1f))
+            Button(onClick = onWatch, shapes = ButtonDefaults.shapes(), modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(watchLabel, style = MaterialTheme.typography.titleSmall)
             }
         }
     }
@@ -269,7 +254,7 @@ private fun PickerPanel(
     onIgnore: (PickedPart) -> Unit,
     onRemoveOnly: () -> Unit,
     onRemoveIgnored: (String) -> Unit,
-    onDone: () -> Unit,
+    onBack: () -> Unit,
 ) {
     Surface(
         shape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
@@ -280,10 +265,14 @@ private fun PickerPanel(
         Column(
             Modifier.fillMaxWidth().navigationBarsPadding().wrapContentWidth().widthIn(max = 560.dp).fillMaxWidth()
                 .heightIn(min = 96.dp).animateContentSize(androidx.compose.animation.core.spring(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow))
-                .padding(start = 20.dp, end = 16.dp, top = 16.dp, bottom = 12.dp),
+                .padding(start = 12.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            // Picks apply as soon as they are made, so leaving is a plain back, not a "Done" that might save something.
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                IconButton(onClick = onBack, modifier = Modifier.offset(x = (-8).dp)) {
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(Res.string.a11y_navigate_back))
+                }
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(Res.string.picker_title), style = MaterialTheme.typography.titleMedium)
                     Text(
@@ -299,11 +288,6 @@ private fun PickerPanel(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
-                }
-                FilledTonalButton(onClick = onDone, shapes = ButtonDefaults.shapes()) {
-                    Icon(Icons.Rounded.Check, null, Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text(stringResource(Res.string.done))
                 }
             }
             val part = current

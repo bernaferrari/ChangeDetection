@@ -33,6 +33,8 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.rounded.TouchApp
@@ -206,7 +208,9 @@ fun AddEditConfirmScreen(
                         advanced = { AdvancedOptions(captureMode, ::changeMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange, { onTextRegionChange(it); onPreview() }, { typedRegion = true; onTextRegionChange(it) }, isSaving, isEditing) },
                     )
                     saveError?.localizedMessage()?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
-                    Text(stringResource(Res.string.monitor_editor_cadence_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                    FootNote(Icons.Outlined.Schedule, stringResource(Res.string.monitor_editor_cadence_hint))
+                    // Explained where it matters: right before watching a page you may have signed in to.
+                    if (browserAvailable) FootNote(Icons.Outlined.Lock, stringResource(Res.string.browser_session_note))
                 }
             }
         }
@@ -456,6 +460,15 @@ fun AddEditConfirmScreen(
     reviewOverlay(reviewing && !browsing)
     }
     if (showUrlChangeDialog) AddressChangeDialog(onCancel, onKeepHistory, onStartFresh)
+}
+
+/** A quiet line of context under the options, with an icon saying what it is about. */
+@Composable
+private fun FootNote(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String) {
+    Row(Modifier.padding(horizontal = 8.dp, vertical = 2.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Icon(icon, null, Modifier.padding(top = 1.dp).size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }
 
 /** What the picks add up to, with a way back into the page to change them. */
