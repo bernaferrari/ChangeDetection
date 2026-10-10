@@ -82,5 +82,5 @@
     <string name="preview_nothing_visible_body">La pagina si è solo spostata o è stata ridisegnata</string>
     <string name="version_older_change">Modifica precedente</string>
     <string name="version_newer_change">Modifica successiva</string>
-    <string name="version_compared_with">Confrontata con %1$s</string>
+    <string name="version_compared_with">vs %1$s</string>
 </resources>

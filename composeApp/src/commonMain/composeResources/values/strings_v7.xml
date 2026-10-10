@@ -82,5 +82,5 @@
     <string name="preview_nothing_visible_body">The page only moved or re-rendered</string>
     <string name="version_older_change">Older change</string>
     <string name="version_newer_change">Newer change</string>
-    <string name="version_compared_with">Compared with %1$s</string>
+    <string name="version_compared_with">vs %1$s</string>
 </resources>
