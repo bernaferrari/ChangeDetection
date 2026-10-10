@@ -7,6 +7,7 @@ package com.bernaferrari.changedetection.ui.kit
 import io.ktor.http.hostWithPortIfSpecified
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
@@ -101,19 +102,23 @@ fun PageAvatar(
         coil3.compose.rememberAsyncImagePainter(remember(url) { coil3.request.ImageRequest.Builder(context).data(url).size(192).build() })
     }
     val loaded = painter?.state?.collectAsState()?.value is coil3.compose.AsyncImagePainter.State.Success
+    // A real icon is the page's identity, shown large on a plain rounded tile; the tinted shape and letter
+    // stand in only while it loads or when the page has none.
+    val tileShape = RoundedCornerShape(size * 0.28f)
     Box(
         modifier
             .size(size)
-            .clip(shape)
+            .clip(if (loaded) tileShape else shape)
             // Icons are drawn for light backgrounds, so they sit on a light tile in both themes.
-            .background(if (loaded) IconTile else if (dimmed) MaterialTheme.colorScheme.surfaceContainerHighest else tint),
+            .background(if (loaded) IconTile else if (dimmed) MaterialTheme.colorScheme.surfaceContainerHighest else tint)
+            .then(if (loaded) Modifier.border(1.dp, Color.Black.copy(alpha = 0.06f), tileShape) else Modifier),
         contentAlignment = Alignment.Center,
     ) {
         if (painter != null) {
             androidx.compose.foundation.Image(
                 painter,
                 contentDescription = null,
-                modifier = Modifier.size(size * 0.6f).clip(RoundedCornerShape(size * 0.14f)),
+                modifier = Modifier.size(size * 0.72f).clip(RoundedCornerShape(size * 0.18f)),
                 alpha = if (!loaded) 0f else if (dimmed) 0.45f else 1f,
             )
         }
