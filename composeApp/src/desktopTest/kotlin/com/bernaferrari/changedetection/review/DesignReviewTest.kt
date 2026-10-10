@@ -173,7 +173,7 @@ class DesignReviewTest {
         waitForText("Changes")
         runCatching { waitForText("Change 1 of", substring = true, timeout = 8_000) }
         shot("${p}13-compare-text")
-        onNodeWithText("See all").performClick()
+        onNodeWithText("Compared with", substring = true).performClick()
         waitForText("Compare versions")
         shot("${p}14-versions")
         onAllNodes(hasClickAction() and hasAnyAncestor(hasTestTag("version-list"))).onFirst().performClick()
@@ -188,7 +188,7 @@ class DesignReviewTest {
         onNodeWithText("Slider").performClick()
         waitUntil(timeoutMillis = 15_000) { onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress)).fetchSemanticsNodes().isNotEmpty() }
         shot("${p}15b-compare-slider")
-        onNodeWithText("Highlight").performClick()
+        onNodeWithText("Page").performClick()
         waitUntil(timeoutMillis = 15_000) { onAllNodesWithTag("highlight-changes").fetchSemanticsNodes().isNotEmpty() }
         shot("${p}16-compare-highlight")
         onNodeWithContentDescription("Navigate back").performClick()

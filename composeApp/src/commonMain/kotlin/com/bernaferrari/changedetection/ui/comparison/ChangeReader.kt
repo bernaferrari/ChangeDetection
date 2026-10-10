@@ -46,6 +46,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -152,19 +153,43 @@ private fun boundedReaderLines(lines: List<String>): List<String> = displayDiffR
 
 /** Lets the floating navigator move between changes in the reader below it. */
 @Stable
-internal class ReaderState {
+/** Steps through the changes of whatever comparison is on screen; drives the shared bottom bar. */
+internal interface ChangeCursor {
+    val current: Int
+    val changeCount: Int
+    suspend fun go(delta: Int)
+}
+
+/**
+ * The changed areas of a screenshot comparison. One cursor is shared by the Changes and Page views, so
+ * switching between them keeps your place; the visible view registers how to scroll to an area.
+ */
+@Stable
+internal class RegionCursor : ChangeCursor {
+    override var current by mutableIntStateOf(0)
+    override var changeCount by mutableIntStateOf(0)
+    var scroller: (suspend (Int) -> Unit)? = null
+
+    override suspend fun go(delta: Int) {
+        if (changeCount == 0) return
+        current = (current + delta).coerceIn(0, changeCount - 1)
+        scroller?.invoke(current)
+    }
+}
+
+internal class ReaderState : ChangeCursor {
     val list = LazyListState()
     var changeIndices by mutableStateOf(emptyList<Int>())
-    val changeCount: Int get() = changeIndices.size
+    override val changeCount: Int get() = changeIndices.size
     private var destination by mutableStateOf<Pair<Int, Pair<Int, Int>>?>(null)
-    val current: Int by derivedStateOf {
+    override val current: Int by derivedStateOf {
         if (changeIndices.isEmpty()) return@derivedStateOf 0
         val position = list.firstVisibleItemIndex to list.firstVisibleItemScrollOffset
         destination?.takeIf { it.second == position }?.first?.coerceAtMost(changeIndices.lastIndex)
             ?: changeIndices.indexOfLast { it <= position.first }.coerceAtLeast(0)
     }
 
-    suspend fun go(delta: Int) {
+    override suspend fun go(delta: Int) {
         if (changeIndices.isEmpty()) return
         val target = (current + delta).coerceIn(0, changeIndices.lastIndex)
         // Intentional navigation is immediate, including when system animations are disabled.

@@ -6,6 +6,12 @@
 
 package com.bernaferrari.changedetection.ui.comparison
 
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import com.bernaferrari.changedetection.ui.kit.localDate
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -164,10 +170,11 @@ fun ComparisonScreen(
     val newer = uiState.snaps.getOrNull(pairIndex)
     val older = uiState.snaps.getOrNull(pairIndex + 1)
     val reader = remember(siteId, newer?.snapId, older?.snapId, uiState.singleSnap?.snapId) { ReaderState() }
+    val regionCursor = remember(siteId, newer?.snapId, older?.snapId) { RegionCursor() }
     val isImagePair = newer?.isImageSnapshot() == true && older?.isImageSnapshot() == true
     val isHtmlPair = newer?.isHtmlSnapshot() == true || older?.isHtmlSnapshot() == true
     val modes = when {
-        isImagePair -> listOf(ComparisonMode.ImageChanges, ComparisonMode.ImageSwipe, ComparisonMode.ImageDiff)
+        isImagePair -> listOf(ComparisonMode.ImageChanges, ComparisonMode.ImageDiff, ComparisonMode.ImageSwipe)
         isHtmlPair -> listOf(ComparisonMode.Text, ComparisonMode.Html, ComparisonMode.Source)
         else -> listOf(ComparisonMode.Text)
     }
@@ -239,9 +246,16 @@ fun ComparisonScreen(
             )
         },
         bottomBar = {
-            val showNav = mode == ComparisonMode.Text && reader.changeCount > 1 && uiState.snaps.size > 1 && uiState.singleSnap == null && !uiState.isLoadingDiff
+            val comparing = uiState.snaps.size > 1 && uiState.singleSnap == null && !uiState.isLoadingDiff
+            // One bar steps through changes in every mode that has them, next to Mark read.
+            val cursor: ChangeCursor = if (isImagePair) regionCursor else reader
+            val showNav = comparing && cursor.changeCount > 1 && when (mode) {
+                ComparisonMode.Text -> true
+                ComparisonMode.ImageChanges, ComparisonMode.ImageDiff -> isImagePair
+                else -> false
+            }
             AnimatedVisibility(showNav || canMarkRead, enter = slideInVertically { it } + fadeIn(), exit = slideOutVertically { it } + fadeOut()) {
-                ReaderBar(reader, showNav, canMarkRead, onMarkRead = markRead)
+                ReaderBar(cursor, showNav, canMarkRead, onMarkRead = markRead)
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -303,9 +317,9 @@ fun ComparisonScreen(
                         )
                     }
                     Column(Modifier.widthIn(max = 720.dp).align(Alignment.CenterHorizontally)) {
-                        VersionStrip(uiState.snaps, pairIndex, onSelect = { viewModel.selectPairForComparison(it) }, onShowAll = { showVersions = true })
+                        VersionNavigator(uiState.snaps, pairIndex, onSelect = { viewModel.selectPairForComparison(it) }, onShowAll = { showVersions = true })
                         if (modes.size > 1) {
-                            ConnectedChoice(modes, mode, { mode = it }, Modifier.padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 4.dp)) { modeLabel(it) }
+                            ConnectedChoice(modes, mode, { mode = it }, Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)) { modeLabel(it) }
                         }
                     }
                     Box(Modifier.fillMaxWidth().weight(1f).testTag("comparison-reader"), contentAlignment = Alignment.TopCenter) {
@@ -314,7 +328,7 @@ fun ComparisonScreen(
                         when {
                             uiState.isLoadingDiff -> LoadingIndicator(Modifier.align(Alignment.Center))
 
-                            isImagePair -> ImageComparisonContent(uiState.snapBytes2, uiState.snapBytes1, uiState.imageDiff, mode, Modifier.fillMaxSize(), onRetry = viewModel::retryComparison)
+                            isImagePair -> ImageComparisonContent(uiState.snapBytes2, uiState.snapBytes1, uiState.imageDiff, mode, Modifier.fillMaxSize(), onRetry = viewModel::retryComparison, cursor = regionCursor)
 
                             content1 != null && content2 != null -> when (mode) {
                                 ComparisonMode.Html -> RenderedHtmlComparison(oldContent = content2, newContent = content1, modifier = Modifier.fillMaxSize())
@@ -417,88 +431,94 @@ private fun modeLabel(mode: ComparisonMode): String = stringResource(
         ComparisonMode.Html -> Res.string.reader_mode_page
         ComparisonMode.Source -> Res.string.reader_mode_source
         ComparisonMode.ImageSwipe -> Res.string.reader_mode_slider
-        ComparisonMode.ImageDiff -> Res.string.reader_mode_highlight
+        ComparisonMode.ImageDiff -> Res.string.reader_mode_page
         ComparisonMode.ImageBefore -> Res.string.preview_before
         ComparisonMode.ImageAfter -> Res.string.preview_after
     },
 )
 
 /**
- * Version history as a filmstrip: each saved version is a thumbnail (the top of the page for screenshots,
- * what changed for text), newest first. Tapping one compares it with the version saved before it.
+ * Which two versions are on screen, in one line: the newer one, what it is compared with, and arrows to
+ * step to the change before or after. Tapping the middle lists every version.
  */
 @Composable
-private fun VersionStrip(snaps: List<Snap>, selectedIndex: Int, onSelect: (Int) -> Unit, onShowAll: () -> Unit) {
-    val list = androidx.compose.foundation.lazy.rememberLazyListState()
-    LaunchedEffect(selectedIndex) { if (selectedIndex in snaps.indices) list.animateScrollToItem((selectedIndex - 1).coerceAtLeast(0)) }
-    androidx.compose.foundation.lazy.LazyRow(
-        state = list,
-        modifier = Modifier.fillMaxWidth().testTag("version-strip"),
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        // The oldest version has nothing before it, so it is never the "after" of a comparison.
-        itemsIndexed(snaps.dropLast(1), key = { _, snap -> snap.snapId }) { index, snap ->
-            VersionThumb(snap, snaps[index + 1], selected = index == selectedIndex, latest = index == 0, onClick = { onSelect(index) })
-        }
-        item("all") {
-            Surface(onClick = onShowAll, shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceBright, modifier = Modifier.size(width = 72.dp, height = 112.dp)) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Icon(Icons.Outlined.History, null)
-                    Text(stringResource(Res.string.detail_see_all), style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 4.dp))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun VersionThumb(snap: Snap, previous: Snap, selected: Boolean, latest: Boolean, onClick: () -> Unit) {
-    val preview = rememberPairPreview(previous.snapId, snap.snapId)
+private fun VersionNavigator(snaps: List<Snap>, selectedIndex: Int, onSelect: (Int) -> Unit, onShowAll: () -> Unit) {
+    val newer = snaps.getOrNull(selectedIndex) ?: return
+    val older = snaps.getOrNull(selectedIndex + 1)
+    val canOlder = selectedIndex + 2 < snaps.size
+    val canNewer = selectedIndex > 0
     Surface(
-        onClick = onClick,
-        shape = MaterialTheme.shapes.large,
-        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceBright,
-        border = androidx.compose.foundation.BorderStroke(2.dp, if (selected) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.Transparent),
-        modifier = Modifier.width(104.dp).semantics { this.selected = selected },
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).testTag("version-navigator"),
     ) {
-        Column(Modifier.padding(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Box(Modifier.fillMaxWidth().height(60.dp).clip(MaterialTheme.shapes.medium).background(androidx.compose.ui.graphics.Color.White)) {
-                if (snap.isImageSnapshot()) {
-                    val bytes by produceState<ByteArray?>(null, snap.snapId) {
-                        value = runCatching { com.bernaferrari.changedetection.ui.kit.optional<com.bernaferrari.changedetection.repo.source.SnapsRepository>()?.getSnapContent(snap.snapId) }.getOrNull()
-                    }
-                    // Each version shows what changed in it, not the same page header every time.
-                    val lead = (preview as? com.bernaferrari.changedetection.preview.ChangePreview.Crop)?.lead
-                    bytes?.let { data ->
-                        if (lead != null) {
-                            com.bernaferrari.changedetection.ui.kit.CroppedImage(data, com.bernaferrari.changedetection.image.ChangedBounds(lead.left, lead.afterTop, lead.right, lead.afterBottom), Modifier.fillMaxSize())
-                        } else {
-                            SnapshotImage(data, null, Modifier.fillMaxWidth().wrapContentHeight(Alignment.Top, unbounded = true), androidx.compose.ui.layout.ContentScale.FillWidth)
+        Row(Modifier.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = { onSelect(selectedIndex + 1) }, enabled = canOlder) {
+                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowLeft, stringResource(Res.string.version_older_change))
+            }
+            Row(
+                Modifier.weight(1f).clip(MaterialTheme.shapes.large).clickable(onClickLabel = stringResource(Res.string.reader_versions_title), onClick = onShowAll)
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                ChangeThumb(newer, older, Modifier.size(width = 40.dp, height = 40.dp))
+                Column(Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(friendlyDateTime(newer.timestamp), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                        if (selectedIndex == 0) {
+                            Text(
+                                stringResource(Res.string.version_latest),
+                                Modifier.clip(MaterialTheme.shapes.small).background(MaterialTheme.colorScheme.primary).padding(horizontal = 6.dp, vertical = 1.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                            )
                         }
                     }
+                    if (older != null) {
+                        Text(
+                            stringResource(Res.string.version_compared_with, friendlyDateTime(older.timestamp)),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+                Icon(Icons.Rounded.UnfoldMore, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            IconButton(onClick = { onSelect(selectedIndex - 1) }, enabled = canNewer) {
+                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, stringResource(Res.string.version_newer_change))
+            }
+        }
+    }
+}
+
+/** What changed in [snap] since [previous]: the changed area for screenshots, the changed words for text. */
+@Composable
+private fun ChangeThumb(snap: Snap, previous: Snap?, modifier: Modifier = Modifier) {
+    val preview = if (previous != null) rememberPairPreview(previous.snapId, snap.snapId) else null
+    Box(modifier.clip(MaterialTheme.shapes.small).background(androidx.compose.ui.graphics.Color.White).border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small)) {
+        if (snap.isImageSnapshot()) {
+            val bytes by produceState<ByteArray?>(null, snap.snapId) {
+                value = runCatching { com.bernaferrari.changedetection.ui.kit.optional<com.bernaferrari.changedetection.repo.source.SnapsRepository>()?.getSnapContent(snap.snapId) }.getOrNull()
+            }
+            val lead = (preview as? com.bernaferrari.changedetection.preview.ChangePreview.Crop)?.lead
+            bytes?.let { data ->
+                if (lead != null) {
+                    com.bernaferrari.changedetection.ui.kit.CroppedImage(data, com.bernaferrari.changedetection.image.ChangedBounds(lead.left, lead.afterTop, lead.right, lead.afterBottom), Modifier.fillMaxSize())
                 } else {
-                    Text(previewLabel(preview), Modifier.padding(6.dp), style = MaterialTheme.typography.labelSmall, color = androidx.compose.ui.graphics.Color(0xFF1B1B21), maxLines = 3, overflow = TextOverflow.Ellipsis)
+                    com.bernaferrari.changedetection.ui.kit.CaptureTop(snap.snapId, Modifier.fillMaxSize(), decodeWidth = 240)
                 }
             }
-            Row(Modifier.padding(start = 2.dp, top = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(formatTime(snap.timestamp), style = MaterialTheme.typography.labelLarge, maxLines = 1, color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface)
-                if (latest) Box(Modifier.size(6.dp).clip(androidx.compose.foundation.shape.CircleShape).background(MaterialTheme.colorScheme.primary))
-            }
-            Text(
-                friendlyDay(snap.timestamp),
-                Modifier.padding(start = 2.dp),
-                style = MaterialTheme.typography.labelSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        } else {
+            Text(previewLabel(preview), Modifier.padding(4.dp), style = MaterialTheme.typography.labelSmall.copy(fontSize = androidx.compose.ui.unit.TextUnit(8f, androidx.compose.ui.unit.TextUnitType.Sp)), color = androidx.compose.ui.graphics.Color(0xFF1B1B21), maxLines = 4, overflow = TextOverflow.Clip)
         }
     }
 }
 
 @Composable
-private fun ReaderBar(reader: ReaderState, showNav: Boolean, canMarkRead: Boolean, onMarkRead: () -> Unit) {
+private fun ReaderBar(reader: ChangeCursor, showNav: Boolean, canMarkRead: Boolean, onMarkRead: () -> Unit) {
     val scope = rememberCoroutineScope()
     if (!showNav) {
         Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp), contentAlignment = Alignment.Center) {
@@ -568,38 +588,92 @@ private fun ReaderBar(reader: ReaderState, showNav: Boolean, canMarkRead: Boolea
     }
 }
 
-/** Each version labelled by what changed, so "the one where the dates moved" is easy to find. */
+/**
+ * Every saved version, newest first and grouped by day. Each row shows what changed in that version, so
+ * "the one where the price dropped" is easy to spot; the pair on screen is marked.
+ */
 @Composable
 private fun VersionSheet(snaps: List<Snap>, selectedIndex: Int, selectedSingleSnapId: String?, onDismiss: () -> Unit, onSelect: (Int) -> Unit) {
+    val list = androidx.compose.foundation.lazy.rememberLazyListState()
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
-        LazyColumn(Modifier.fillMaxWidth().testTag("version-list"), contentPadding = PaddingValues(bottom = 24.dp, top = 8.dp)) {
+        LazyColumn(Modifier.fillMaxWidth().testTag("version-list"), state = list, contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp, top = 4.dp)) {
             item(key = "title") {
-                Text(stringResource(Res.string.reader_versions_title), Modifier.padding(horizontal = 24.dp), style = MaterialTheme.typography.headlineSmall)
-                Text(stringResource(Res.string.reader_versions_body), Modifier.padding(horizontal = 24.dp, vertical = 6.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Column(Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp)) {
+                    Text(stringResource(Res.string.reader_versions_title), style = MaterialTheme.typography.headlineSmall)
+                    Text(stringResource(Res.string.reader_versions_body), Modifier.padding(top = 4.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
-            itemsIndexed(snaps, key = { _, snap -> snap.snapId }) { index, snap ->
-                val previous = snaps.getOrNull(index + 1)
-                val preview = rememberPairPreview(previous?.snapId, snap.snapId)
-                GroupRow(
-                    title = friendlyDateTime(snap.timestamp),
-                    supporting = previewLabel(preview),
-                    onClick = { onSelect(index) },
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                ) {
-                    when {
-                        snap.snapId == selectedSingleSnapId -> SelectionTag(stringResource(Res.string.comparison_selected))
-                        index == selectedIndex -> SelectionTag(stringResource(Res.string.preview_after))
-                        index == selectedIndex + 1 -> SelectionTag(stringResource(Res.string.preview_before))
+            snaps.indices.groupBy { snaps[it].timestamp.localDate() }.forEach { (_, indices) ->
+                item(key = "day-" + snaps[indices.first()].snapId) {
+                    Text(
+                        friendlyDay(snaps[indices.first()].timestamp),
+                        Modifier.padding(start = 8.dp, top = 16.dp, bottom = 8.dp),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+                indices.forEachIndexed { position, index ->
+                    val snap = snaps[index]
+                    item(key = snap.snapId) {
+                        val previous = snaps.getOrNull(index + 1)
+                        val isAfter = index == selectedIndex || snap.snapId == selectedSingleSnapId
+                        val isBefore = index == selectedIndex + 1
+                        val shape = groupShape(position, indices.size)
+                        Surface(
+                            onClick = { onSelect(index) },
+                            enabled = previous != null || snaps.size == 1,
+                            shape = shape,
+                            color = if (isAfter) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceBright,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp),
+                        ) {
+                            Row(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                ChangeThumb(snap, previous, Modifier.size(width = 64.dp, height = 48.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(formatTime(snap.timestamp), style = MaterialTheme.typography.titleMedium, color = if (isAfter) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface)
+                                    Text(
+                                        if (previous == null) stringResource(Res.string.label_first_version) else previewLabel(rememberPairPreview(previous.snapId, snap.snapId)),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = if (isAfter) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                                when {
+                                    snap.snapId == selectedSingleSnapId -> SelectionTag(stringResource(Res.string.comparison_selected))
+                                    isAfter -> SelectionTag(stringResource(Res.string.preview_after))
+                                    isBefore -> SelectionTag(stringResource(Res.string.preview_before), quiet = true)
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
+    // Open with the pair on screen in view.
+    LaunchedEffect(Unit) { if (selectedIndex > 2) list.scrollToItem(selectedIndex) }
+}
+
+/** Rounded at the ends of a day's group, like the app's other grouped lists. */
+@Composable
+private fun groupShape(position: Int, count: Int): androidx.compose.ui.graphics.Shape {
+    val large = 20.dp
+    val small = 4.dp
+    return androidx.compose.foundation.shape.RoundedCornerShape(
+        topStart = if (position == 0) large else small,
+        topEnd = if (position == 0) large else small,
+        bottomStart = if (position == count - 1) large else small,
+        bottomEnd = if (position == count - 1) large else small,
+    )
 }
 
 @Composable
-private fun SelectionTag(text: String) {
-    Surface(shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary) {
+private fun SelectionTag(text: String, quiet: Boolean = false) {
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = if (quiet) MaterialTheme.colorScheme.surfaceContainerHighest else MaterialTheme.colorScheme.primary,
+        contentColor = if (quiet) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary,
+    ) {
         Text(text, Modifier.padding(horizontal = 10.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium)
     }
 }

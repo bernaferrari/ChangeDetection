@@ -131,6 +131,7 @@ internal fun ImageComparisonContent(
     mode: ComparisonMode,
     modifier: Modifier = Modifier,
     onRetry: (() -> Unit)? = null,
+    cursor: RegionCursor = remember { RegionCursor() },
 ) {
     Box(modifier = modifier) {
         val singleImage = when (mode) {
@@ -165,10 +166,10 @@ internal fun ImageComparisonContent(
         }
 
         when (mode) {
-            ComparisonMode.ImageChanges -> VisualChangesView(beforeBytes, afterBytes, imageDiff, Modifier.fillMaxSize())
+            ComparisonMode.ImageChanges -> VisualChangesView(beforeBytes, afterBytes, imageDiff, cursor, Modifier.fillMaxSize())
 
             ComparisonMode.ImageDiff -> if (imageDiff?.visualChange?.regions?.isNotEmpty() == true) {
-                HighlightView(afterBytes, imageDiff.visualChange.regions, Modifier.fillMaxSize())
+                HighlightView(afterBytes, imageDiff.visualChange.regions, cursor, Modifier.fillMaxSize())
             } else {
                 BoxWithConstraints(Modifier.fillMaxSize()) {
                     val summaryMaxHeight = maxHeight * 0.35f

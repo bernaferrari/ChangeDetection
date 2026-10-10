@@ -21,6 +21,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
@@ -63,11 +66,23 @@ import kotlin.math.roundToInt
  * without hunting through a 10,000-pixel page.
  */
 @Composable
-internal fun VisualChangesView(beforeBytes: ByteArray, afterBytes: ByteArray, diff: SnapshotImageDiff?, modifier: Modifier = Modifier) {
+internal fun VisualChangesView(beforeBytes: ByteArray, afterBytes: ByteArray, diff: SnapshotImageDiff?, cursor: RegionCursor, modifier: Modifier = Modifier) {
     val change = diff?.visualChange
     val regions = change?.regions.orEmpty()
-    val list = rememberLazyListState()
+    // Item 0 is the summary; area n is item n + 1. Opens on the shared cursor's area.
+    val list = rememberLazyListState(initialFirstVisibleItemIndex = if (cursor.current in regions.indices && cursor.current > 0) cursor.current + 1 else 0)
     val scope = rememberCoroutineScope()
+    DisposableEffect(cursor, regions) {
+        cursor.changeCount = regions.size
+        cursor.scroller = { index -> list.animateScrollToItem(index + 1) }
+        onDispose { cursor.scroller = null }
+    }
+    LaunchedEffect(cursor, regions) {
+        if (regions.isEmpty()) return@LaunchedEffect
+        snapshotFlow { list.isScrollInProgress to list.firstVisibleItemIndex }.collect { (moving, first) ->
+            if (!moving) cursor.current = (first - 1).coerceIn(0, regions.lastIndex)
+        }
+    }
     if (change == null || regions.isEmpty()) {
         Box(modifier.padding(32.dp), contentAlignment = Alignment.Center) {
             Text(stringResource(Res.string.visual_no_areas), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -76,7 +91,7 @@ internal fun VisualChangesView(beforeBytes: ByteArray, afterBytes: ByteArray, di
     }
     Row(modifier.fillMaxSize()) {
         PageOverview(afterBytes, regions, Modifier.width(64.dp).fillMaxHeight().padding(start = 12.dp, top = 8.dp, bottom = 16.dp)) { index ->
-            scope.launch { list.animateScrollToItem(index + 1) }
+            scope.launch { cursor.go(index - cursor.current) }
         }
         LazyColumn(
             state = list,
