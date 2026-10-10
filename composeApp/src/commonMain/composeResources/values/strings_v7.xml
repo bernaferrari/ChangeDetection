@@ -85,4 +85,11 @@
     <string name="version_compared_with">since %1$s</string>
     <string name="home_status_checked">Checked %1$s</string>
     <string name="home_status_first_check">Waiting for the first check</string>
+    <string name="ignore_small_title">Ignore small changes</string>
+    <string name="ignore_small_off">Off</string>
+    <string name="ignore_small_body">Only save a new screenshot when at least this much of the page looks different.</string>
+    <string name="ignore_small_off_body">Every visible change is saved, however small.</string>
+    <string name="editor_formats">Other formats</string>
+    <string name="editor_formats_body">For developers: compare the page’s code. Usually noisier than text.</string>
+    <string name="editor_part_picked">Picked</string>
 </resources>

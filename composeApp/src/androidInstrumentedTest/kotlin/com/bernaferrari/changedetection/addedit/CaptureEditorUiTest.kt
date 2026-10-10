@@ -31,7 +31,7 @@ class CaptureEditorUiTest {
             CompositionLocalProvider(androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(density.density, 2f)) {
                 ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
                     Column(Modifier.verticalScroll(rememberScrollState())) {
-                        TextRegionFields(region, error = false, enabled = true, onChange = { region = it })
+                        TextRegionFields(region, error = false, enabled = true, onChoose = { region = it })
                     }
                 }
             }
@@ -67,15 +67,13 @@ class CaptureEditorUiTest {
             val density = androidx.compose.ui.platform.LocalDensity.current
             CompositionLocalProvider(androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(density.density, 2f)) {
                 ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
-                    CaptureModeField(chosen, { chosen = it }, enabled = true)
+                    OtherFormatsField(chosen, { chosen = it }, enabled = true, isEditing = false)
                 }
             }
         }
-        compose.onNodeWithText("Readable text").performClick()
         compose.onNodeWithText("Any source change").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(CaptureMode.SOURCE, chosen) }
         compose.onNodeWithText("Any source change").performClick()
-        compose.onNodeWithText("Readable text").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(CaptureMode.TEXT, chosen) }
     }
 
@@ -150,8 +148,7 @@ class CaptureEditorUiTest {
                 )
             }
         }
-        compose.onNodeWithText("Advanced").performScrollTo().performClick()
-        compose.onNodeWithText("Check using").performScrollTo().performClick()
+        compose.onNodeWithText("More options").performScrollTo().performClick()
         compose.onNodeWithText("Page HTML").performScrollTo().performClick()
         compose.onNodeWithText("Changing what’s watched starts fresh from the next check. Your history stays, and the switch itself won’t send an alert.").assertExists()
         compose.onNodeWithText("Preview capture").performScrollTo().performClick()

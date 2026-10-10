@@ -15,20 +15,44 @@ import com.bernaferrari.changedetection.detection.TextRegion
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 
+private enum class RegionChoice { Whole, Main, Custom }
+
 internal const val MAIN_TEXT_REGION = "main, [role=main], article"
 
 @Composable
-internal fun TextRegionFields(region: TextRegion, error: Boolean, enabled: Boolean, onChange: (TextRegion) -> Unit) {
+internal fun TextRegionFields(region: TextRegion, error: Boolean, enabled: Boolean, onChoose: (TextRegion) -> Unit, onType: (TextRegion) -> Unit = onChoose) {
     val main = region.include == MAIN_TEXT_REGION && region.exclude.isBlank()
     val custom = !region.isEmpty && !main
     var selectors by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(stringResource(Res.string.text_region_title), style = MaterialTheme.typography.titleSmall)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(region.isEmpty, { onChange(TextRegion()) }, enabled = enabled, label = { Text(stringResource(Res.string.text_region_whole)) })
-            FilterChip(main, { onChange(TextRegion(MAIN_TEXT_REGION)) }, enabled = enabled, label = { Text(stringResource(Res.string.text_region_main)) })
-            // A picked or typed region is shown as a chosen chip; its CSS stays out of sight unless asked for.
-            if (custom) FilterChip(true, { selectors = !selectors }, enabled = enabled, label = { Text(stringResource(Res.string.editor_region_custom)) })
+        // The same button group as Screenshot / Text; a picked or typed region shows as a third, chosen option.
+        val options = if (custom) listOf(RegionChoice.Whole, RegionChoice.Main, RegionChoice.Custom) else listOf(RegionChoice.Whole, RegionChoice.Main)
+        val whole = stringResource(Res.string.text_region_whole)
+        val mainLabel = stringResource(Res.string.text_region_main)
+        val picked = stringResource(Res.string.editor_part_picked)
+        com.bernaferrari.changedetection.ui.kit.ConnectedChoice(
+            options = options,
+            selected = when {
+                custom -> RegionChoice.Custom
+                main -> RegionChoice.Main
+                else -> RegionChoice.Whole
+            },
+            onSelect = { choice ->
+                when (choice) {
+                    RegionChoice.Whole -> onChoose(TextRegion())
+                    RegionChoice.Main -> onChoose(TextRegion(MAIN_TEXT_REGION))
+                    RegionChoice.Custom -> selectors = true
+                }
+            },
+            modifier = Modifier,
+            enabled = enabled,
+        ) {
+            when (it) {
+                RegionChoice.Whole -> whole
+                RegionChoice.Main -> mainLabel
+                RegionChoice.Custom -> picked
+            }
         }
         TextButton(onClick = { selectors = !selectors }, enabled = enabled, contentPadding = PaddingValues(horizontal = 4.dp)) {
             Text(stringResource(Res.string.editor_selectors))
@@ -38,7 +62,7 @@ internal fun TextRegionFields(region: TextRegion, error: Boolean, enabled: Boole
             Text(stringResource(Res.string.text_region_description), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             OutlinedTextField(
                 value = region.include,
-                onValueChange = { onChange(region.copy(include = it)) },
+                onValueChange = { onType(region.copy(include = it)) },
                 label = { Text(stringResource(Res.string.text_region_include)) },
                 placeholder = { Text("#price, .availability") },
                 modifier = Modifier.fillMaxWidth(),
@@ -49,7 +73,7 @@ internal fun TextRegionFields(region: TextRegion, error: Boolean, enabled: Boole
             )
             OutlinedTextField(
                 value = region.exclude,
-                onValueChange = { onChange(region.copy(exclude = it)) },
+                onValueChange = { onType(region.copy(exclude = it)) },
                 label = { Text(stringResource(Res.string.text_region_exclude)) },
                 placeholder = { Text(".advert, .countdown") },
                 modifier = Modifier.fillMaxWidth(),

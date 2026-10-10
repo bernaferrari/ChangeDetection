@@ -23,7 +23,7 @@ import org.junit.Test
 class VisualFilterUiTest {
     @get:Rule val compose = createComposeRule()
 
-    @Test fun filterChoicesAreExplicitAndReopenWithTheSelectedValue() = exercise(1f)
+    @Test fun filterChoicesAreOneRowAndShowTheSelectedValue() = exercise(1f)
 
     @Test fun filterChoicesRemainReachableAtLargeText() = exercise(1.8f)
 
@@ -43,18 +43,14 @@ class VisualFilterUiTest {
                 }
             }
         }
-        compose.onNodeWithText("Visual change filter").performClick()
-        compose.onNodeWithText("At least 1%").performScrollTo().performClick()
+        compose.onNodeWithText("Ignore small changes").assertIsDisplayed()
+        compose.onNodeWithText("1%").performClick()
         compose.runOnIdle { assertEquals(100, changed) }
-        compose.onNodeWithText("Visual change filter").performClick()
-        compose.onNode(hasText("At least 1%") and isSelected()).performScrollTo().assertIsSelected()
+        compose.onNode(hasText("1%") and isSelected()).assertIsSelected()
         val output = File("../build/desktop-review/visual-filter-${if (scale == 1f) "normal" else "large"}.png")
         output.parentFile.mkdirs()
-        ImageIO.write(compose.onNode(isDialog()).captureToImage().toAwtImage(), "png", output)
-        compose.onNodeWithText("Cancel").performClick()
-        compose.runOnIdle { assertEquals(100, changed) }
-        compose.onNodeWithText("Visual change filter").performClick()
-        compose.onNodeWithText("Off · no visual filtering").performScrollTo().performClick()
+        ImageIO.write(compose.onRoot().captureToImage().toAwtImage(), "png", output)
+        compose.onNodeWithText("Off").performClick()
         compose.runOnIdle { assertEquals(0, changed) }
     }
 }

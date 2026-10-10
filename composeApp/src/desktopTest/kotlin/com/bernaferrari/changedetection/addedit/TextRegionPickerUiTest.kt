@@ -328,10 +328,10 @@ class TextRegionPickerUiTest {
         var result: TextRegion? = null
         compose.setContent {
             ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
-                TextRegionFields(TextRegion("#stock"), false, true) { result = it }
+                TextRegionFields(TextRegion("#stock"), false, true, onChoose = { result = it })
             }
         }
-        compose.onNodeWithText("Selected text").assertIsDisplayed()
+        compose.onNodeWithText("Picked").assertIsDisplayed()
         compose.onNodeWithText("#stock").assertDoesNotExist()
         compose.onNodeWithText("Whole page").performClick()
         compose.runOnIdle { assertEquals(TextRegion(), result) }

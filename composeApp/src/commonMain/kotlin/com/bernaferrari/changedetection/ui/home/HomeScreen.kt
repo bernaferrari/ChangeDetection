@@ -9,7 +9,7 @@ package com.bernaferrari.changedetection.ui.home
 import com.bernaferrari.changedetection.ui.kit.avatarIcon
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -85,7 +85,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -238,12 +238,19 @@ fun HomeScreen(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         contentWindowInsets = WindowInsets(0),
         topBar = {
-            Crossfade(
+            // The bars change height (large title → one line), so the swap animates its size, not just a fade.
+            androidx.compose.animation.AnimatedContent(
                 targetState = when {
                     selecting -> TopMode.Select
                     searching -> TopMode.Search
                     else -> TopMode.Normal
                 },
+                transitionSpec = {
+                    val spatial = androidx.compose.animation.core.spring<androidx.compose.ui.unit.IntSize>(dampingRatio = 0.9f, stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow)
+                    (fadeIn(androidx.compose.animation.core.tween(180, delayMillis = 60)) togetherWith fadeOut(androidx.compose.animation.core.tween(120)))
+                        .using(androidx.compose.animation.SizeTransform(clip = false) { _, _ -> spatial })
+                },
+                contentAlignment = Alignment.TopStart,
                 label = "top-bar",
             ) { mode ->
                 when (mode) {
@@ -300,7 +307,11 @@ fun HomeScreen(
             }
         },
         floatingActionButton = {
-            if (!all.isNullOrEmpty() && !selecting && !searching) {
+            AnimatedVisibility(
+                visible = !all.isNullOrEmpty() && !selecting && !searching,
+                enter = androidx.compose.animation.scaleIn(initialScale = 0.6f) + fadeIn(),
+                exit = androidx.compose.animation.scaleOut(targetScale = 0.6f) + fadeOut(),
+            ) {
                 ExtendedFloatingActionButton(
                     onClick = { onAddPage(null) },
                     expanded = fabExpanded,
@@ -324,8 +335,9 @@ fun HomeScreen(
 
             all.isEmpty() -> HomeEmptyState(onAddPage = onAddPage, onHowItWorks = onHowItWorks, modifier = Modifier.padding(padding))
 
-            else -> PullToRefreshBox(
-                isRefreshing = pullRequested && loading.isNotEmpty(),
+            else -> PullToCheckBox(
+                refreshing = pullRequested && loading.isNotEmpty(),
+                enabled = !selecting && !searching,
                 onRefresh = {
                     pullRequested = true
                     viewModel.refreshAllSites()
@@ -402,6 +414,30 @@ fun HomeScreen(
 }
 
 private enum class TopMode { Normal, Search, Select }
+
+/**
+ * Pull down to check every page now. It asks for a longer, deliberate pull than the default, since a check
+ * of every page is not free, and it is off while searching or selecting.
+ */
+@Composable
+private fun PullToCheckBox(
+    refreshing: Boolean,
+    enabled: Boolean,
+    onRefresh: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable androidx.compose.foundation.layout.BoxScope.() -> Unit,
+) {
+    val state = androidx.compose.material3.pulltorefresh.rememberPullToRefreshState()
+    val threshold = 120.dp
+    Box(modifier.pullToRefresh(isRefreshing = refreshing, state = state, enabled = enabled, threshold = threshold, onRefresh = onRefresh)) {
+        content()
+        androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.LoadingIndicator(
+            state = state,
+            isRefreshing = refreshing,
+            modifier = Modifier.align(Alignment.TopCenter),
+        )
+    }
+}
 
 /** Empty selection is a real mode: the user chooses the first page explicitly. */
 internal data class HomeSelection(val active: Boolean = false, val ids: Set<String> = emptySet()) {
@@ -628,18 +664,23 @@ private fun SearchBar(query: String, onQuery: (String) -> Unit, onClose: () -> U
                 onValueChange = onQuery,
                 placeholder = { Text(stringResource(Res.string.home_search_hint)) },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth().focusRequester(focus),
+                leadingIcon = { Icon(Icons.Outlined.Search, null) },
+                trailingIcon = if (query.isNotEmpty()) {
+                    { IconButton(onClick = { onQuery("") }) { Icon(Icons.Outlined.Close, stringResource(Res.string.home_search_clear)) } }
+                } else {
+                    null
+                },
+                shape = CircleShape,
+                modifier = Modifier.fillMaxWidth().padding(end = 12.dp).heightIn(min = 52.dp).focusRequester(focus),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                 ),
             )
         },
-        actions = {
-            if (query.isNotEmpty()) IconButton(onClick = { onQuery("") }) { Icon(Icons.Outlined.Close, stringResource(Res.string.home_search_clear)) }
-        },
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
     )
 }
 

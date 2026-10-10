@@ -4,60 +4,43 @@
  */
 package com.bernaferrari.changedetection.addedit
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.shared.generated.resources.*
+import com.bernaferrari.changedetection.ui.kit.ConnectedChoice
 import org.jetbrains.compose.resources.stringResource
 
+/** How much of a screenshot must change before a new version is saved, as one row of choices. */
 @Composable
 internal fun VisualChangeFilterField(basisPoints: Int, enabled: Boolean, onChange: (Int) -> Unit) {
-    var choosing by remember { mutableStateOf(false) }
-    val options = listOf(
-        0 to stringResource(Res.string.visual_filter_off),
-        10 to stringResource(Res.string.visual_filter_small),
-        100 to stringResource(Res.string.visual_filter_medium),
-        500 to stringResource(Res.string.visual_filter_large),
-    ).let { if (basisPoints in 1..10_000 && it.none { entry -> entry.first == basisPoints }) it + (basisPoints to "${basisPoints / 100.0}%") else it }
-    val selectedLabel = options.firstOrNull { it.first == basisPoints }?.second ?: options.first().second
-    Surface(onClick = { choosing = true }, enabled = enabled, color = MaterialTheme.colorScheme.surfaceContainer, shape = MaterialTheme.shapes.large, modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(stringResource(Res.string.visual_filter_title), style = MaterialTheme.typography.bodyMedium)
-            Text(selectedLabel, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+    val options = listOf(0, 10, 100, 500).let { if (basisPoints in 1..10_000 && basisPoints !in it) (it + basisPoints).sorted() else it }
+    val off = stringResource(Res.string.ignore_small_off)
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(Res.string.ignore_small_title), style = MaterialTheme.typography.titleSmall)
+        ConnectedChoice(options, basisPoints.takeIf { it in options } ?: 0, onChange, Modifier, enabled = enabled) { value ->
+            if (value == 0) off else percent(value)
         }
-    }
-    if (choosing) {
-        AlertDialog(
-            onDismissRequest = { choosing = false },
-            title = { Text(stringResource(Res.string.visual_filter_title)) },
-            text = {
-                Column(Modifier.verticalScroll(rememberScrollState()).selectableGroup()) {
-                    Text(stringResource(Res.string.visual_filter_description), style = MaterialTheme.typography.bodyMedium)
-                    Spacer(Modifier.height(12.dp))
-                    options.forEach { (value, label) ->
-                        Row(
-                            Modifier.fillMaxWidth().heightIn(min = 48.dp).selectable(basisPoints == value, role = Role.RadioButton) {
-                                onChange(value)
-                                choosing = false
-                            }.padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            RadioButton(selected = basisPoints == value, onClick = null)
-                            Spacer(Modifier.width(12.dp))
-                            Text(label, style = MaterialTheme.typography.bodyLarge)
-                        }
-                    }
-                }
-            },
-            confirmButton = { TextButton(onClick = { choosing = false }) { Text(stringResource(Res.string.cancel)) } },
+        Text(
+            stringResource(if (basisPoints == 0) Res.string.ignore_small_off_body else Res.string.ignore_small_body),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+/** Basis points as a short percentage: 10 → "0.1%", 100 → "1%". */
+private fun percent(basisPoints: Int): String {
+    val whole = basisPoints / 100
+    val fraction = basisPoints % 100
+    return when {
+        fraction == 0 -> "$whole%"
+        fraction % 10 == 0 -> "$whole.${fraction / 10}%"
+        else -> "$whole.${fraction.toString().padStart(2, '0')}%"
     }
 }
