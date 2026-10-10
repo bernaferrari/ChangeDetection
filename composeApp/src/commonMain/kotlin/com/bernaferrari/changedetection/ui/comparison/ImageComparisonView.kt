@@ -526,13 +526,13 @@ internal fun ImageViewport(
     }
 }
 
-/** Preserve screenshot text size at the available width; tall captures scroll vertically. */
+/** Edge to edge: the capture fills the width like the page did in the browser; tall captures scroll vertically. */
 @Composable
 private fun WidthSizedImage(bytes: ByteArray, contentDescription: String?) {
     SnapshotImage(
         bytes = bytes,
         contentDescription = contentDescription,
-        modifier = Modifier.fillMaxWidth().padding(12.dp),
+        modifier = Modifier.fillMaxWidth(),
         contentScale = ContentScale.FillWidth,
     )
 }

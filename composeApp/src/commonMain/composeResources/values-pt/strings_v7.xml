@@ -82,7 +82,7 @@
     <string name="preview_nothing_visible_body">A página só se moveu ou foi redesenhada</string>
     <string name="version_older_change">Alteração anterior</string>
     <string name="version_newer_change">Próxima alteração</string>
-    <string name="version_compared_with">vs. %1$s</string>
+    <string name="version_compared_with">desde %1$s</string>
     <string name="home_status_checked">Verificado %1$s</string>
     <string name="home_status_first_check">Aguardando a primeira verificação</string>
 </resources>
