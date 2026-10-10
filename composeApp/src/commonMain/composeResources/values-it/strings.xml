@@ -735,7 +735,7 @@
     <string name="setup_receipt_open">Apri pagina</string>
     <string name="setup_receipt_done">Vai alla lista</string>
     <string name="setup_receipt_status_unavailable">Impossibile caricare lo stato dell’ultimo controllo. La pagina è salvata.</string>
-    <string name="palette_default">Indaco</string>
+    <string name="palette_default">Originale</string>
     <string name="turbo_closer_eye">Tieni d’occhio i cambiamenti.</string>
     <string name="turbo_seconds_unit">secondi</string>
     <string name="turbo_minutes_unit">minuti</string>

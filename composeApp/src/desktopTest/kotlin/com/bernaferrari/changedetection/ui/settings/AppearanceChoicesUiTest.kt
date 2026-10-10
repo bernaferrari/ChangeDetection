@@ -16,6 +16,9 @@ import com.bernaferrari.changedetection.model.AppPalette
 import com.bernaferrari.changedetection.model.ThemeMode
 import com.bernaferrari.changedetection.ui.theme.ChangeDetectionTheme
 import org.junit.Assert.assertEquals
+import androidx.compose.ui.graphics.toAwtImage
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.unit.dp
 import org.junit.Rule
 import org.junit.Test
 
@@ -32,16 +35,20 @@ class AppearanceChoicesUiTest {
         compose.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, scale)) {
-                ChangeDetectionTheme(darkTheme = theme == ThemeMode.DARK, dynamicColor = false) {
-                    AppearanceSheet(theme, palette, { theme = it }, { palette = it }, {})
+                ChangeDetectionTheme(darkTheme = theme == ThemeMode.DARK, dynamicColor = false, seedColor = palette.seedColor) {
+                    androidx.compose.foundation.layout.Column(androidx.compose.ui.Modifier.width(400.dp)) { AppearanceControls(theme, palette, { theme = it }, { palette = it }) }
                 }
             }
         }
         compose.onNodeWithText("Dark").performClick()
         compose.runOnIdle { assertEquals(ThemeMode.DARK, theme) }
-        compose.onNodeWithContentDescription("Blue").performScrollTo().performClick()
+        compose.onNodeWithContentDescription("Blue").performClick()
         compose.runOnIdle { assertEquals(AppPalette.BLUE, palette) }
-        compose.onNodeWithText("Indigo").performScrollTo().performClick()
+        compose.waitForIdle()
+        val output = java.io.File("../build/desktop-review/appearance-${if (scale == 1f) "regular" else "large"}-dark.png")
+        output.parentFile.mkdirs()
+        javax.imageio.ImageIO.write(compose.onRoot().captureToImage().toAwtImage(), "png", output)
+        compose.onNodeWithContentDescription("Original").performClick()
         compose.runOnIdle { assertEquals(AppPalette.DEFAULT, palette) }
     }
 }

@@ -80,6 +80,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.ui.kit.GroupLabel
 import com.bernaferrari.changedetection.ui.kit.GroupRow
 import com.bernaferrari.changedetection.ui.kit.ListGroup
+import com.bernaferrari.changedetection.ui.kit.groupTile
 import com.bernaferrari.changedetection.ui.kit.cadence
 import com.bernaferrari.changedetection.ui.theme.marks
 import com.bernaferrari.changedetection.ui.theme.supportsDynamicColors
@@ -102,7 +103,6 @@ fun SettingsScreen(
     var showChecks by remember { mutableStateOf(false) }
     var showDelay by remember { mutableStateOf(false) }
     var showMethod by remember { mutableStateOf(false) }
-    var showAppearance by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
@@ -158,6 +158,10 @@ fun SettingsScreen(
                         }
                     }
                 }
+                item(key = "appearance") {
+                    GroupLabel(stringResource(Res.string.settings_section_appearance))
+                    AppearanceControls(uiState.themeMode, uiState.appPalette, viewModel::updateThemeMode, viewModel::updateAppPalette)
+                }
                 item(key = "app") {
                     GroupLabel(stringResource(Res.string.settings_group_app))
                     ListGroup {
@@ -170,13 +174,6 @@ fun SettingsScreen(
                             )
                         }
                         GroupRow(
-                            title = stringResource(Res.string.settings_section_appearance),
-                            supporting = stringResource(uiState.themeMode.titleRes) + " · " + stringResource(uiState.appPalette.titleRes),
-                            icon = Icons.Outlined.Palette,
-                            showDivider = onNotificationSettings != null,
-                            onClick = { showAppearance = true },
-                        )
-                        GroupRow(
                             title = stringResource(Res.string.settings_saved_versions),
                             supporting = when {
                                 uiState.storageLoadFailed -> stringResource(Res.string.retry)
@@ -184,7 +181,7 @@ fun SettingsScreen(
                                 else -> stringResource(Res.string.settings_storage_value, formatStorage(uiState.storageBytes!!))
                             },
                             icon = Icons.Outlined.Storage,
-                            showDivider = true,
+                            showDivider = onNotificationSettings != null,
                             onClick = if (uiState.storageLoadFailed) viewModel::retryStorageLoading else null,
                         )
                     }
@@ -220,9 +217,6 @@ fun SettingsScreen(
             showMethod = false
         })
     }
-    if (showAppearance) {
-        AppearanceSheet(uiState.themeMode, uiState.appPalette, viewModel::updateThemeMode, viewModel::updateAppPalette) { showAppearance = false }
-    }
 }
 
 @Composable
@@ -246,72 +240,49 @@ private fun formatStorage(bytes: Long): String = when {
     else -> "${(bytes * 10 / (1024L * 1024 * 1024)) / 10.0} GB"
 }
 
-/** Theme as three connected buttons; color as the brand look, wallpaper colors, or a seed swatch. */
+/**
+ * Appearance, right on the Settings page: the theme as three connected buttons and every palette as one row
+ * of swatches (wallpaper colors first, marked with a sparkle). Choices apply instantly; the app is the preview.
+ */
 @Composable
-internal fun AppearanceSheet(
+internal fun AppearanceControls(
     theme: ThemeMode,
     palette: AppPalette,
     onTheme: (ThemeMode) -> Unit,
     onPalette: (AppPalette) -> Unit,
-    onDismiss: () -> Unit,
 ) {
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
-        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 32.dp).selectableGroup()) {
-            Text(stringResource(Res.string.settings_section_appearance), Modifier.padding(horizontal = 24.dp), style = MaterialTheme.typography.headlineSmall)
-            GroupLabel(stringResource(Res.string.settings_theme_label))
+    val highlight = MaterialTheme.marks.highlight
+    ListGroup {
+        Column(Modifier.groupTile().padding(vertical = 16.dp).selectableGroup()) {
             ConnectedChoice(ThemeMode.entries, theme, onTheme) { stringResource(it.titleRes) }
-            GroupLabel(stringResource(Res.string.settings_palette_label))
-            PaletteRow(AppPalette.DEFAULT, palette, Icons.Outlined.Palette, stringResource(Res.string.palette_highlighter_body), onPalette)
-            if (supportsDynamicColors()) {
-                PaletteRow(AppPalette.DYNAMIC, palette, Icons.Outlined.AutoAwesome, stringResource(Res.string.palette_dynamic_body), onPalette)
+        }
+        Column(Modifier.groupTile().padding(vertical = 16.dp).selectableGroup(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Row(Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(Res.string.settings_palette_label), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                Text(stringResource(palette.titleRes), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Text(stringResource(Res.string.palette_more), Modifier.padding(start = 24.dp, top = 16.dp, bottom = 10.dp), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            FlowRow(Modifier.padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                AppPalette.entries.filter { it != AppPalette.DEFAULT && it != AppPalette.DYNAMIC }.forEach { option ->
-                    val selected = option == palette
-                    val name = stringResource(option.titleRes)
-                    Box(
-                        Modifier
-                            .size(48.dp)
-                            .clip(CircleShape)
-                            .background(option.seedColor)
-                            .border(if (selected) 3.dp else 0.dp, if (selected) MaterialTheme.colorScheme.onSurface else Color.Transparent, CircleShape)
-                            .selectable(selected = selected, role = Role.RadioButton) { onPalette(option) }
-                            .semantics {
-                                this.selected = selected
-                                contentDescription = name
+            FlowRow(
+                Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                AppPalette.entries
+                    .filter { it != AppPalette.DYNAMIC || supportsDynamicColors() }
+                    .sortedBy { if (it == AppPalette.DYNAMIC) 0 else 1 }
+                    .forEach { option ->
+                        com.bernaferrari.changedetection.ui.components.PaletteSwatch(
+                            colors = when (option) {
+                                AppPalette.DEFAULT -> listOf(com.bernaferrari.changedetection.ui.theme.BrandSeed, highlight)
+                                AppPalette.DYNAMIC -> listOf(Color(0xFF7C4DFF), Color(0xFF00BFA5))
+                                else -> listOf(option.seedColor, androidx.compose.ui.graphics.lerp(option.seedColor, Color.White, 0.45f))
                             },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        if (selected) Icon(Icons.Rounded.Check, null, tint = if (option.seedColor.luminance() > 0.179f) Color.Black else Color.White)
+                            selected = option == palette,
+                            label = stringResource(option.titleRes),
+                            onClick = { onPalette(option) },
+                            icon = if (option == AppPalette.DYNAMIC) Icons.Outlined.AutoAwesome else null,
+                        )
                     }
-                }
             }
-            Text(
-                stringResource(Res.string.palette_note),
-                Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
-    }
-}
-
-@Composable
-private fun PaletteRow(option: AppPalette, current: AppPalette, icon: androidx.compose.ui.graphics.vector.ImageVector, body: String, onSelect: (AppPalette) -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().selectable(selected = option == current, role = Role.RadioButton) { onSelect(option) }.padding(horizontal = 24.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Box(
-            Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(if (option == AppPalette.DEFAULT) MaterialTheme.marks.highlight else MaterialTheme.colorScheme.surfaceContainer),
-            contentAlignment = Alignment.Center,
-        ) { Icon(icon, null, tint = if (option == AppPalette.DEFAULT) MaterialTheme.marks.onHighlight else MaterialTheme.colorScheme.onSurface) }
-        Column(Modifier.weight(1f)) {
-            Text(stringResource(option.titleRes), style = MaterialTheme.typography.titleMedium)
-            Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        RadioButton(selected = option == current, onClick = null)
     }
 }

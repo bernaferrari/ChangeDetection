@@ -4,108 +4,111 @@
  */
 package com.bernaferrari.changedetection.ui.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.LinearGradientShader
+import androidx.compose.ui.graphics.Shader
+import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.bernaferrari.changedetection.repo.ColorGroup
-import com.bernaferrari.changedetection.shared.generated.resources.Res
-import com.bernaferrari.changedetection.shared.generated.resources.a11y_color_theme
-import org.jetbrains.compose.resources.stringResource
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
- * A calm, touch-sized swatch picker. Selection is communicated by both a border and check mark;
- * colour is never the only indicator of state.
+ * A gradient color swatch with expressive motion: unselected it is a disc turned 45°; chosen, it springs
+ * upright into a rounded square, lifts, and gains a ring. The gradient counter-rotates, so the colors hold
+ * still while the shape turns. The change of shape (not only color) shows which one is selected.
  */
 @Composable
-fun ColorPickerList(
-    currentColors: ColorGroup,
-    colorGroups: List<ColorGroup>,
-    onColorSelected: (ColorGroup) -> Unit,
+fun PaletteSwatch(
+    colors: List<Color>,
+    selected: Boolean,
+    label: String,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    size: Dp = 44.dp,
+    icon: ImageVector? = null,
 ) {
-    LazyRow(
-        modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        itemsIndexed(colorGroups) { index, colorGroup ->
-            val colorThemeDescription = stringResource(Res.string.a11y_color_theme, index + 1)
-            ColorPickerButton(
-                colorGroup = colorGroup,
-                isSelected = currentColors == colorGroup,
-                onClick = { onColorSelected(colorGroup) },
-                modifier = Modifier.semantics {
-                    contentDescription = colorThemeDescription
-                },
-            )
+    val haptics = LocalHapticFeedback.current
+    val bouncy = spring<Dp>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
+    val corner by animateDpAsState(if (selected) size * 0.3f else size / 2, bouncy, label = "corner")
+    val elevation by animateDpAsState(if (selected) 6.dp else 1.dp, bouncy, label = "elevation")
+    val ringAnimated by animateDpAsState(if (selected) 3.dp else 0.dp, bouncy, label = "ring")
+    // The bounce overshoots; widths and elevation never go below zero.
+    val ring = ringAnimated.coerceAtLeast(0.dp)
+    val rotation by animateFloatAsState(
+        if (selected) 0f else 45f,
+        spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "rotation",
+    )
+    val ringColor by animateColorAsState(if (selected) MaterialTheme.colorScheme.surfaceContainerLow else Color.Transparent, label = "ring-color")
+
+    // Counter-rotate the gradient so it stays put on screen while the swatch turns.
+    val stops = if (colors.size == 1) colors + colors else colors
+    val angle = -rotation * PI.toFloat() / 180f
+    val brush = object : ShaderBrush() {
+        override fun createShader(size: Size): Shader {
+            // The diagonal, turned by the counter-rotation, centred on the swatch.
+            val half = Offset(size.width * cos(angle) - size.height * sin(angle), size.width * sin(angle) + size.height * cos(angle)) / 2f
+            val center = Offset(size.width / 2, size.height / 2)
+            return LinearGradientShader(from = center - half, to = center + half, colors = stops)
         }
     }
-}
-
-@Composable
-fun ColorPickerButton(
-    colorGroup: ColorGroup,
-    isSelected: Boolean,
-    onClick: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-    allowReselection: Boolean = false,
-) {
-    val selectionColor = MaterialTheme.colorScheme.primary
-    Surface(
-        modifier = modifier
-            .size(48.dp)
-            .selectable(
-                selected = isSelected,
-                role = Role.RadioButton,
-                onClick = {
-                    if (!isSelected || allowReselection) {
-                        onClick(!isSelected)
-                    }
-                },
-            ),
-        shape = CircleShape,
-        border = if (isSelected) BorderStroke(2.dp, selectionColor) else null,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-    ) {
-        Box(
-            modifier = Modifier
-                .padding(4.dp)
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(Color(colorGroup.first)),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (isSelected) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp),
-                )
+    val outer = RoundedCornerShape(corner.coerceAtLeast(0.dp))
+    val inner = RoundedCornerShape((corner - ring).coerceAtLeast(0.dp))
+    val core = RoundedCornerShape((corner - ring - 2.dp).coerceAtLeast(0.dp))
+    Box(
+        modifier
+            .size(size)
+            .semantics { contentDescription = label }
+            .selectable(selected = selected, role = Role.RadioButton) {
+                if (!selected) {
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onClick()
+                }
             }
+            .rotate(rotation)
+            .shadow(elevation.coerceAtLeast(0.dp), outer, clip = false)
+            .clip(outer)
+            .background(brush)
+            .padding(ring)
+            .clip(inner)
+            .background(ringColor)
+            .padding(if (selected) 2.dp else 0.dp)
+            .clip(core)
+            .background(brush),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (icon != null) {
+            Icon(icon, null, Modifier.size(size * 0.45f).rotate(-rotation), tint = Color.White)
         }
     }
 }

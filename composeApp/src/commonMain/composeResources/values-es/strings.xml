@@ -735,7 +735,7 @@
     <string name="setup_receipt_open">Abrir página</string>
     <string name="setup_receipt_done">Ir a la lista</string>
     <string name="setup_receipt_status_unavailable">No pudimos cargar el estado de la última comprobación. Tu página está guardada.</string>
-    <string name="palette_default">Índigo</string>
+    <string name="palette_default">Original</string>
     <string name="turbo_closer_eye">Sigue los cambios de cerca.</string>
     <string name="turbo_seconds_unit">segundos</string>
     <string name="turbo_minutes_unit">minutos</string>

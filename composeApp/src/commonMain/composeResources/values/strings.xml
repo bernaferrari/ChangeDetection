@@ -735,7 +735,7 @@
     <string name="setup_receipt_open">Open page</string>
     <string name="setup_receipt_done">Go to watchlist</string>
     <string name="setup_receipt_status_unavailable">We couldn’t load the latest check status. Your page is saved.</string>
-    <string name="palette_default">Indigo</string>
+    <string name="palette_default">Original</string>
     <string name="turbo_closer_eye">Keep a closer eye.</string>
     <string name="turbo_seconds_unit">seconds</string>
     <string name="turbo_minutes_unit">minutes</string>
