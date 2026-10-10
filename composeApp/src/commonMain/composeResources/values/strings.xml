@@ -328,9 +328,9 @@
     <string name="about_signal_badge">Focused alerts</string>
     <string name="about_view_on_github">View on GitHub</string>
     <string name="about_contact_developer">Contact Developer</string>
-    <string name="about_view_licenses">View Open Source Licenses</string>
-    <string name="about_licenses_title">Open Source</string>
-    <string name="about_licenses_subtitle">Built with love using amazing libraries</string>
+    <string name="about_view_licenses">Open-source licenses</string>
+    <string name="about_licenses_title">Open-source licenses</string>
+    <string name="about_licenses_subtitle">Change Detection is built on these projects.</string>
     <string name="about_stat_libraries">Libraries</string>
     <string name="about_stat_categories">Categories</string>
     <string name="about_stat_apache">Apache 2.0</string>

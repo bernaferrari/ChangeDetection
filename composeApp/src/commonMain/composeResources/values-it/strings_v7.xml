@@ -92,4 +92,8 @@
     <string name="editor_formats">Altri formati</string>
     <string name="editor_formats_body">Per sviluppatori: confronta il codice della pagina. Di solito più rumoroso del testo.</string>
     <string name="editor_part_picked">Scelta</string>
+    <string name="settings_capture_body">Come vengono confrontate le nuove pagine. Ogni pagina può sceglierne uno suo.</string>
+    <string name="settings_wait_body">Le pagine aspettano già che immagini e caricamento finiscano. Aggiungi tempo per i siti lenti.</string>
+    <string name="about_license_short">Open source · Apache 2.0</string>
+    <string name="settings_wait_seconds">secondi</string>
 </resources>

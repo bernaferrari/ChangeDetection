@@ -92,4 +92,8 @@
     <string name="editor_formats">Outros formatos</string>
     <string name="editor_formats_body">Para desenvolvedores: compara o código da página. Costuma ter mais ruído que o texto.</string>
     <string name="editor_part_picked">Escolhida</string>
+    <string name="settings_capture_body">Como as páginas novas são comparadas. Cada página ainda pode escolher o seu.</string>
+    <string name="settings_wait_body">As páginas já esperam imagens e carregamento terminarem. Adicione tempo para sites lentos.</string>
+    <string name="about_license_short">Código aberto · Apache 2.0</string>
+    <string name="settings_wait_seconds">segundos</string>
 </resources>
