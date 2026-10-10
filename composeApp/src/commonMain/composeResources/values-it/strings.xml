@@ -328,9 +328,9 @@
     <string name="about_signal_badge">Avvisi essenziali</string>
     <string name="about_view_on_github">Vedi su GitHub</string>
     <string name="about_contact_developer">Contatta lo sviluppatore</string>
-    <string name="about_view_licenses">Vedi licenze open source</string>
-    <string name="about_licenses_title">Open source</string>
-    <string name="about_licenses_subtitle">Creato con passione usando librerie straordinarie</string>
+    <string name="about_view_licenses">Licenze open source</string>
+    <string name="about_licenses_title">Licenze open source</string>
+    <string name="about_licenses_subtitle">Change Detection è costruito su questi progetti.</string>
     <string name="about_stat_libraries">Librerie</string>
     <string name="about_stat_categories">Categorie</string>
     <string name="about_stat_apache">Apache 2.0</string>

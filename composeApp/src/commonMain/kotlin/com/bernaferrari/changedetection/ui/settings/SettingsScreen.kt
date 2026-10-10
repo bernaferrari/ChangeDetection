@@ -60,6 +60,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.Color
@@ -101,8 +102,6 @@ fun SettingsScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val writeFailed by viewModel.writeFailed.collectAsStateWithLifecycle()
     var showChecks by remember { mutableStateOf(false) }
-    var showDelay by remember { mutableStateOf(false) }
-    var showMethod by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
@@ -141,20 +140,15 @@ fun SettingsScreen(
                             onClick = { showChecks = true },
                         )
                         if (supportsVisualMonitoring) {
-                            GroupRow(
+                            // Small choices apply in place, like Appearance: no dialog, no Done.
+                            InlineChoice(
                                 title = stringResource(Res.string.settings_default_detection),
-                                supporting = stringResource(if (uiState.comparisonMethod == ComparisonMethod.HTML) Res.string.mode_text else Res.string.mode_screenshot),
-                                icon = Icons.Outlined.Code,
-                                showDivider = true,
-                                onClick = { showMethod = true },
-                            )
-                            GroupRow(
-                                title = stringResource(Res.string.settings_screenshot_wait),
-                                supporting = stringResource(Res.string.settings_screenshot_wait_value, (uiState.browserDelayMs / 1000).toInt()),
-                                icon = Icons.Outlined.Schedule,
-                                showDivider = true,
-                                onClick = { showDelay = true },
-                            )
+                                body = stringResource(Res.string.settings_capture_body),
+                                options = ComparisonMethod.entries,
+                                selected = uiState.comparisonMethod,
+                                onSelect = viewModel::updateComparisonMethod,
+                            ) { stringResource(if (it == ComparisonMethod.HTML) Res.string.mode_text else Res.string.mode_screenshot) }
+                            ScreenshotWaitChoice(uiState.browserDelayMs, viewModel::updateBrowserDelay)
                         }
                     }
                 }
@@ -205,17 +199,61 @@ fun SettingsScreen(
     }
 
     if (showChecks) BackgroundSyncDialog(onDismiss = { showChecks = false }, viewModel = viewModel)
-    if (showDelay) {
-        BrowserDelayChoiceDialog(selectedDelay = uiState.browserDelayMs, onDismiss = { showDelay = false }, onConfirm = {
-            viewModel.updateBrowserDelay(it)
-            showDelay = false
-        })
+}
+
+/**
+ * The wait before a screenshot: common values as buttons, and "Custom…" for anything from 0 to 60 seconds (iOS stops a capture after 90),
+ * typed right in the row and saved as soon as it is valid.
+ */
+@Composable
+private fun ScreenshotWaitChoice(delayMs: Long, onChange: (Long) -> Unit) {
+    val presets = listOf(2000L, 5000L, 10000L, 15000L)
+    var custom by remember { mutableStateOf(delayMs !in presets) }
+    val customLabel = stringResource(Res.string.checks_custom)
+    Column(Modifier.groupTile().padding(vertical = 16.dp).selectableGroup(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(stringResource(Res.string.settings_screenshot_wait), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+            Text(stringResource(Res.string.settings_wait_body), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        ConnectedChoice(presets + -1L, if (custom) -1L else delayMs, { value ->
+            if (value == -1L) {
+                custom = true
+            } else {
+                custom = false
+                onChange(value)
+            }
+        }) { if (it == -1L) customLabel else "${it / 1000} s" }
+        androidx.compose.animation.AnimatedVisibility(custom) {
+            var text by remember { mutableStateOf((delayMs / 1000).toString()) }
+            val seconds = text.toIntOrNull()
+            val valid = seconds != null && seconds in 0..60
+            OutlinedTextField(
+                value = text,
+                onValueChange = { typed ->
+                    text = typed.filter(Char::isDigit).take(3)
+                    text.toIntOrNull()?.takeIf { it in 0..60 }?.let { onChange(it * 1000L) }
+                },
+                singleLine = true,
+                isError = !valid,
+                suffix = { Text(stringResource(Res.string.settings_wait_seconds)) },
+                supportingText = if (valid) null else { { Text("0–60") } },
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                shape = MaterialTheme.shapes.large,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            )
+        }
     }
-    if (showMethod) {
-        ComparisonMethodChoiceDialog(selectedMethod = uiState.comparisonMethod, onDismiss = { showMethod = false }, onConfirm = {
-            viewModel.updateComparisonMethod(it)
-            showMethod = false
-        })
+}
+
+/** A titled tile with a one-line explanation and a connected button group that applies on tap. */
+@Composable
+private fun <T> InlineChoice(title: String, body: String, options: List<T>, selected: T, onSelect: (T) -> Unit, label: @Composable (T) -> String) {
+    Column(Modifier.groupTile().padding(vertical = 16.dp).selectableGroup(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+            Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        ConnectedChoice(options, selected, onSelect, label = label)
     }
 }
 

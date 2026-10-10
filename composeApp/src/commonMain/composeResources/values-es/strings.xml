@@ -328,9 +328,9 @@
     <string name="about_signal_badge">Alertas al grano</string>
     <string name="about_view_on_github">Ver en GitHub</string>
     <string name="about_contact_developer">Contactar con el desarrollador</string>
-    <string name="about_view_licenses">Ver licencias de código abierto</string>
-    <string name="about_licenses_title">Código abierto</string>
-    <string name="about_licenses_subtitle">Hecho con cariño usando bibliotecas increíbles</string>
+    <string name="about_view_licenses">Licencias de código abierto</string>
+    <string name="about_licenses_title">Licencias de código abierto</string>
+    <string name="about_licenses_subtitle">Change Detection se basa en estos proyectos.</string>
     <string name="about_stat_libraries">Bibliotecas</string>
     <string name="about_stat_categories">Categorías</string>
     <string name="about_stat_apache">Apache 2.0</string>

@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 
 /** An M3 Expressive connected button group behaving as a single-choice control. */
 @Composable
-fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier.padding(horizontal = 16.dp), enabled: Boolean = true, label: @Composable (T) -> String) {
+fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier.padding(horizontal = 16.dp), enabled: Boolean = true, columns: Int? = null, label: @Composable (T) -> String) {
     val labels = options.map { label(it) }
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
@@ -44,7 +44,9 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
     }?.plus(24.dp)?.coerceAtLeast(48.dp) ?: 48.dp
     BoxWithConstraints(modifier.fillMaxWidth().selectableGroup()) {
         val spacing = ButtonGroupDefaults.ConnectedSpaceBetween
-        val columns = ((maxWidth + spacing) / (minimumWidth + spacing)).toInt().coerceAtLeast(1)
+        val fitting = ((maxWidth + spacing) / (minimumWidth + spacing)).toInt().coerceAtLeast(1)
+        // A requested column count wins when the labels fit, so a grid can come out even (3 × 3, not 4 + 4 + 1).
+        val columns = columns?.takeIf { it <= fitting } ?: fitting
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             options.indices.toList().chunked(columns).forEach { row ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(spacing)) {

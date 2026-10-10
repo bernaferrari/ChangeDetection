@@ -363,6 +363,7 @@ fun ChangeDetectionApp(
                         onLicenseUrlClick = { url ->
                             platformActions.openUrl(url)
                         },
+                        appVersion = platformActions.appVersion,
                     )
                 }
 

@@ -145,30 +145,23 @@ internal fun BackgroundSyncDialogContent(
                     }
                     if (draft.backgroundSync && available) {
                         GroupLabel(stringResource(Res.string.checks_every))
-                        FlowRow(Modifier.padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            presets.forEach { minutes ->
-                                FilterChip(
-                                    selected = !custom && draft.syncInterval == minutes,
-                                    enabled = !saving,
-                                    onClick = {
-                                        custom = false
-                                        valid = true
-                                        draft = draft.copy(syncInterval = minutes)
-                                    },
-                                    label = { Text(presetLabel(minutes)) },
-                                    modifier = Modifier.heightIn(min = 48.dp),
-                                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primary, selectedLabelColor = MaterialTheme.colorScheme.onPrimary),
-                                )
-                            }
-                            FilterChip(
-                                selected = custom,
-                                enabled = !saving,
-                                onClick = { custom = true },
-                                label = { Text(stringResource(Res.string.checks_custom)) },
-                                modifier = Modifier.heightIn(min = 48.dp),
-                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = MaterialTheme.colorScheme.primary, selectedLabelColor = MaterialTheme.colorScheme.onPrimary),
-                            )
-                        }
+                        // One even grid of connected buttons; "Custom" is its last button and opens the field below.
+                        val customLabel = stringResource(Res.string.checks_custom)
+                        com.bernaferrari.changedetection.ui.kit.ConnectedChoice(
+                            options = presets + CUSTOM_INTERVAL,
+                            selected = if (custom) CUSTOM_INTERVAL else draft.syncInterval,
+                            onSelect = { minutes ->
+                                if (minutes == CUSTOM_INTERVAL) {
+                                    custom = true
+                                } else {
+                                    custom = false
+                                    valid = true
+                                    draft = draft.copy(syncInterval = minutes)
+                                }
+                            },
+                            enabled = !saving,
+                            columns = 3,
+                        ) { if (it == CUSTOM_INTERVAL) customLabel else presetLabel(it) }
                         if (custom) {
                             Box(Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
                                 SyncIntervalInput(
@@ -244,6 +237,9 @@ internal fun BackgroundSyncDialogContent(
         }
     }
 }
+
+/** Marks the "Custom" button among the interval presets. */
+private const val CUSTOM_INTERVAL = -1L
 
 @Composable
 private fun presetLabel(minutes: Long): String = when {
