@@ -131,6 +131,7 @@ fun ActivityScreen(
             if (searching) {
                 val focus = remember { FocusRequester() }
                 LaunchedEffect(Unit) { focus.requestFocus() }
+                com.bernaferrari.changedetection.ui.navigation.HideNativeBar()
                 TopAppBar(
                     navigationIcon = {
                         IconButton(onClick = {
@@ -158,12 +159,20 @@ fun ActivityScreen(
                     },
                 )
             } else {
-                LargeFlexibleTopAppBar(
-                    title = { Text(stringResource(Res.string.nav_activity)) },
-                    actions = { IconButton(onClick = { searching = true }) { Icon(Icons.Outlined.Search, stringResource(Res.string.logs_search_pages)) } },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface, scrolledContainerColor = MaterialTheme.colorScheme.surface),
-                    scrollBehavior = scrollBehavior,
-                )
+                if (com.bernaferrari.changedetection.ui.navigation.usesNativeNavigation()) {
+                    com.bernaferrari.changedetection.ui.navigation.AppTopBar(
+                        title = stringResource(Res.string.nav_activity),
+                        onBack = null,
+                        actions = listOf(com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.logs_search_pages), Icons.Outlined.Search, "magnifyingglass") { searching = true }),
+                    )
+                } else {
+                    LargeFlexibleTopAppBar(
+                        title = { Text(stringResource(Res.string.nav_activity)) },
+                        actions = { IconButton(onClick = { searching = true }) { Icon(Icons.Outlined.Search, stringResource(Res.string.logs_search_pages)) } },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface, scrolledContainerColor = MaterialTheme.colorScheme.surface),
+                        scrollBehavior = scrollBehavior,
+                    )
+                }
             }
         },
         snackbarHost = { SnackbarHost(snackbar) },

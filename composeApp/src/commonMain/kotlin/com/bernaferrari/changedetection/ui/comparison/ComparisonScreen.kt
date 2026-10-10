@@ -192,57 +192,23 @@ fun ComparisonScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(uiState.site?.name() ?: stringResource(Res.string.app_name), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        uiState.site?.let {
-                            Text(it.url.displayPageAddress(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
-                    }
+            val canShare = (isImagePair && uiState.imageDiff != null) || (uiState.snapContent1 != null && uiState.snapContent2 != null)
+            com.bernaferrari.changedetection.ui.navigation.AppTopBar(
+                title = uiState.site?.name() ?: stringResource(Res.string.app_name),
+                subtitle = uiState.site?.url?.displayPageAddress(),
+                onBack = if (showNavigateUp) onNavigateUp else null,
+                actions = if (canShare && uiState.snaps.size > 1) {
+                    listOf(com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.comparison_share), Icons.Outlined.Share, "square.and.arrow.up") { share(viewModel, uiState, mode) })
+                } else {
+                    emptyList()
                 },
-                navigationIcon = {
-                    if (showNavigateUp) IconButton(onClick = onNavigateUp) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(Res.string.a11y_navigate_back)) }
-                },
-                actions = {
-                    val canShare = (isImagePair && uiState.imageDiff != null) || (uiState.snapContent1 != null && uiState.snapContent2 != null)
-                    if (canShare && uiState.snaps.size > 1) {
-                        IconButton(onClick = { share(viewModel, uiState, mode) }) { Icon(Icons.Outlined.Share, stringResource(Res.string.comparison_share)) }
-                    }
-                    var menu by remember { mutableStateOf(false) }
-                    Box {
-                        IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreVert, stringResource(Res.string.more_options)) }
-                        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                            DropdownMenuItem(text = { Text(stringResource(Res.string.home_check_now)) }, leadingIcon = { Icon(Icons.Outlined.Refresh, null) }, enabled = uiState.site != null, onClick = {
-                                viewModel.reloadSite()
-                                menu = false
-                            })
-                            DropdownMenuItem(text = { Text(stringResource(Res.string.open_in_browser)) }, leadingIcon = { Icon(Icons.AutoMirrored.Outlined.OpenInNew, null) }, onClick = {
-                                uiState.site?.url?.let { runCatching { uriHandler.openUri(it) } }
-                                menu = false
-                            })
-                            DropdownMenuItem(text = { Text(stringResource(Res.string.edit)) }, leadingIcon = { Icon(Icons.Outlined.Edit, null) }, onClick = {
-                                onSiteEdit(siteId)
-                                menu = false
-                            })
-                            DropdownMenuItem(text = { Text(stringResource(Res.string.prune_history)) }, leadingIcon = { Icon(Icons.Outlined.CleaningServices, null) }, onClick = {
-                                showPruneDialog = true
-                                menu = false
-                            })
-                            HorizontalDivider()
-                            DropdownMenuItem(
-                                text = { Text(stringResource(Res.string.detail_delete)) },
-                                leadingIcon = { Icon(Icons.Outlined.DeleteOutline, null, tint = MaterialTheme.colorScheme.error) },
-                                colors = MenuDefaults.itemColors(textColor = MaterialTheme.colorScheme.error),
-                                onClick = {
-                                    showDeleteDialog = true
-                                    menu = false
-                                },
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+                menu = listOf(
+                    com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.home_check_now), Icons.Outlined.Refresh, "arrow.clockwise", enabled = uiState.site != null) { viewModel.reloadSite() },
+                    com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.open_in_browser), Icons.AutoMirrored.Outlined.OpenInNew, "safari") { uiState.site?.url?.let { runCatching { uriHandler.openUri(it) } } },
+                    com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.edit), Icons.Outlined.Edit, "pencil") { onSiteEdit(siteId) },
+                    com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.prune_history), Icons.Outlined.CleaningServices, "scissors") { showPruneDialog = true },
+                    com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.detail_delete), Icons.Outlined.DeleteOutline, "trash", destructive = true) { showDeleteDialog = true },
+                ),
             )
         },
         bottomBar = {

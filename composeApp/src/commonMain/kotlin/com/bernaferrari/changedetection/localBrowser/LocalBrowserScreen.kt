@@ -84,16 +84,9 @@ fun LocalBrowserScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    val titleRes = if (isLocalSnapshot) Res.string.local_browser_title_snapshot else Res.string.local_browser_title_live
-                    Text(stringResource(titleRes))
-                },
-                navigationIcon = {
-                    IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = stringResource(Res.string.a11y_close))
-                    }
-                },
+            com.bernaferrari.changedetection.ui.navigation.AppTopBar(
+                title = stringResource(if (isLocalSnapshot) Res.string.local_browser_title_snapshot else Res.string.local_browser_title_live),
+                onBack = onDismiss,
             )
         },
     ) { paddingValues ->

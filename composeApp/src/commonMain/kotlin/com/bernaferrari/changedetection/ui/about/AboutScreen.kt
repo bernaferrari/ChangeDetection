@@ -87,13 +87,7 @@ fun AboutScreen(
     var showLicensesDialog by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(Res.string.a11y_navigate_back)) }
-                },
-                colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
-            )
+            com.bernaferrari.changedetection.ui.navigation.AppTopBar(title = null, onBack = onBack)
         },
     ) { paddingValues ->
         Box(Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.TopCenter) {

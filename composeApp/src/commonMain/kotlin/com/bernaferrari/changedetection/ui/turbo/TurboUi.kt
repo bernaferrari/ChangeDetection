@@ -394,11 +394,7 @@ fun TurboLiveScreen(
     val quiet = sessionPages - changed.toSet()
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(Res.string.a11y_navigate_back)) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
-            )
+            com.bernaferrari.changedetection.ui.navigation.AppTopBar(title = null, onBack = onBack)
         },
         bottomBar = {
             Surface(color = MaterialTheme.colorScheme.surface) {
