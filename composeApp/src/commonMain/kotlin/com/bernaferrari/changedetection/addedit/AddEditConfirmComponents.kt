@@ -156,41 +156,71 @@ fun AddEditConfirmScreen(
     }
 
     val browserAvailable = LocalBrowserAvailable.current
+    val nativeChrome = com.bernaferrari.changedetection.ui.navigation.usesNativeNavigation()
     val ignoredParts = remember(textRegion.exclude) { textRegion.exclude.split(", ").map { it.trim() }.filter { it.isNotEmpty() } }
-    val reviewSheet: @Composable () -> Unit = {
-            ModalBottomSheet(onDismissRequest = { if (!isSaving) reviewing = false }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = MaterialTheme.colorScheme.surfaceContainer) {
-                Column(Modifier.fillMaxWidth()) {
-                    Column(
-                        Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        PagePreviewCard(
-                            url = url, title = title, iconUrl = iconUrl, onTitleChange = onTitleChange, preview = preview, enabled = !isSaving,
-                            onRetry = onPreview, onEditAddress = { reviewing = false }, onSelectRegion = null, textRegion = textRegion, screenshot = visualMode,
-                        )
-                        if (browserAvailable) PartsSummary(textRegion.include, ignoredParts.size, onEdit = { reviewing = false; browsing = true })
-                        OptionsCard(
-                            captureMode, ::changeMode, textRegion, { onTextRegionChange(it); onPreview() }, enabled = !isSaving,
-                            expanded = moreOptions, onExpandedChange = { moreOptions = it },
-                            advanced = { AdvancedOptions(captureMode, ::changeMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange, { onTextRegionChange(it); onPreview() }, { typedRegion = true; onTextRegionChange(it) }, isSaving, isEditing) },
-                        )
-                        saveError?.localizedMessage()?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
-                        Text(stringResource(Res.string.monitor_editor_cadence_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
-                    }
-                    // Always reachable, whatever the preview's height.
-                    Button(
-                        onClick = onSave,
-                        enabled = !isSaving && preview !is CapturePreviewState.Loading,
-                        shapes = ButtonDefaults.shapes(),
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp).navigationBarsPadding().heightIn(min = 56.dp),
-                    ) {
-                        if (isSaving) LoadingIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary) else Text(stringResource(Res.string.editor_start), style = MaterialTheme.typography.titleMedium)
+    // Reviewing is a step of its own that slides over the browser (a sheet inside the iOS sheet fought its
+    // swipe-to-dismiss); back returns to the page with everything picked so far.
+    val reviewStep: @Composable () -> Unit = {
+        com.bernaferrari.changedetection.util.BackHandler(enabled = !isSaving) { reviewing = false }
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.surface,
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(Res.string.watch_this_page)) },
+                    navigationIcon = {
+                        IconButton(enabled = !isSaving, onClick = { reviewing = false }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(Res.string.a11y_navigate_back))
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+                )
+            },
+            bottomBar = {
+                Surface(color = MaterialTheme.colorScheme.surface) {
+                    Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp), contentAlignment = Alignment.Center) {
+                        Button(
+                            onClick = onSave,
+                            enabled = !isSaving && preview !is CapturePreviewState.Loading,
+                            shapes = ButtonDefaults.shapes(),
+                            modifier = Modifier.widthIn(max = 600.dp).fillMaxWidth().heightIn(min = 56.dp),
+                        ) {
+                            if (isSaving) LoadingIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary) else Text(stringResource(Res.string.editor_start), style = MaterialTheme.typography.titleMedium)
+                        }
                     }
                 }
+            },
+        ) { padding ->
+            Box(Modifier.fillMaxSize().padding(padding).nestedScroll(dismissKeyboardOnScroll), contentAlignment = Alignment.TopCenter) {
+                Column(
+                    Modifier.widthIn(max = 600.dp).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    PagePreviewCard(
+                        url = url, title = title, iconUrl = iconUrl, onTitleChange = onTitleChange, preview = preview, enabled = !isSaving,
+                        onRetry = onPreview, onEditAddress = { reviewing = false; browsing = false }, onSelectRegion = null, textRegion = textRegion, screenshot = visualMode,
+                    )
+                    if (browserAvailable) PartsSummary(textRegion.include, ignoredParts.size, onEdit = { reviewing = false; browsing = true })
+                    OptionsCard(
+                        captureMode, ::changeMode, textRegion, { onTextRegionChange(it); onPreview() }, enabled = !isSaving,
+                        expanded = moreOptions, onExpandedChange = { moreOptions = it },
+                        advanced = { AdvancedOptions(captureMode, ::changeMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange, { onTextRegionChange(it); onPreview() }, { typedRegion = true; onTextRegionChange(it) }, isSaving, isEditing) },
+                    )
+                    saveError?.localizedMessage()?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
+                    Text(stringResource(Res.string.monitor_editor_cadence_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                }
             }
-            }
+        }
+    }
+    val reviewOverlay: @Composable (Boolean) -> Unit = { visible ->
+        AnimatedVisibility(
+            visible = visible,
+            enter = androidx.compose.animation.slideInHorizontally(androidx.compose.animation.core.spring(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow)) { it } + fadeIn(),
+            exit = androidx.compose.animation.slideOutHorizontally { it } + fadeOut(),
+        ) { reviewStep() }
+    }
 
     if (browsing && validUrl) {
+        Box(Modifier.fillMaxSize()) {
         WatchBrowser(
             startUrl = remember { url.normalizeUrl() ?: url },
             only = textRegion.include,
@@ -212,9 +242,12 @@ fun AddEditConfirmScreen(
             },
             watchLabel = stringResource(if (isEditing) Res.string.done else Res.string.watch_this_page),
         )
-        if (reviewing) reviewSheet()
+        reviewOverlay(reviewing)
+        }
         return
     }
+
+    Box(Modifier.fillMaxSize()) {
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -420,7 +453,8 @@ fun AddEditConfirmScreen(
         }
     }
 
-    if (reviewing && !browsing) reviewSheet()
+    reviewOverlay(reviewing && !browsing)
+    }
     if (showUrlChangeDialog) AddressChangeDialog(onCancel, onKeepHistory, onStartFresh)
 }
 
