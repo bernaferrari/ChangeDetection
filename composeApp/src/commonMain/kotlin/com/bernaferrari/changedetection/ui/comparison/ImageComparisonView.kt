@@ -167,7 +167,9 @@ internal fun ImageComparisonContent(
         when (mode) {
             ComparisonMode.ImageChanges -> VisualChangesView(beforeBytes, afterBytes, imageDiff, Modifier.fillMaxSize())
 
-            ComparisonMode.ImageDiff -> {
+            ComparisonMode.ImageDiff -> if (imageDiff?.visualChange?.regions?.isNotEmpty() == true) {
+                HighlightView(afterBytes, imageDiff.visualChange.regions, Modifier.fillMaxSize())
+            } else {
                 BoxWithConstraints(Modifier.fillMaxSize()) {
                     val summaryMaxHeight = maxHeight * 0.35f
                     Column(Modifier.fillMaxSize()) {

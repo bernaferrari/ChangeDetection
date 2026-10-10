@@ -189,7 +189,7 @@ class DesignReviewTest {
         waitUntil(timeoutMillis = 15_000) { onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress)).fetchSemanticsNodes().isNotEmpty() }
         shot("${p}15b-compare-slider")
         onNodeWithText("Highlight").performClick()
-        waitUntil(timeoutMillis = 15_000) { onAllNodesWithContentDescription("Changed pixels").fetchSemanticsNodes().isNotEmpty() }
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithTag("highlight-changes").fetchSemanticsNodes().isNotEmpty() }
         shot("${p}16-compare-highlight")
         onNodeWithContentDescription("Navigate back").performClick()
         waitForTag("home-list")
