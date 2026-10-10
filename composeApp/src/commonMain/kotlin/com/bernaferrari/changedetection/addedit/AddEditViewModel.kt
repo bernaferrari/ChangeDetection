@@ -47,6 +47,8 @@ data class AddEditUiState(
     val captureMode: com.bernaferrari.changedetection.repo.CaptureMode = if (com.bernaferrari.changedetection.repo.supportsVisualMonitoring) com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT else com.bernaferrari.changedetection.repo.CaptureMode.TEXT,
     val url: String = "",
     val title: String = "",
+    /** The page's icon, from the preview capture or the saved page. */
+    val iconUrl: String = "",
     val selectedColors: Pair<Int, Int> = Pair(0xFF2196F3.toInt(), 0xFF1976D2.toInt()),
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
@@ -112,9 +114,11 @@ class AddEditViewModel(
                 if (generation == previewGeneration) {
                     // A page's own first heading names it better than its host; never override a typed name.
                     val heading = (content as? CapturePreview.Html)?.pageTitle ?: (content as? CapturePreview.Image)?.pageTitle
+                    val icon = (content as? CapturePreview.Html)?.pageIcon ?: (content as? CapturePreview.Image)?.pageIcon
                     _uiState.update {
                         it.copy(
                             preview = CapturePreviewState.Ready(content),
+                            iconUrl = icon ?: it.iconUrl,
                             title = if (!titleEditedByUser && heading != null) heading else it.title,
                         )
                     }
@@ -153,6 +157,7 @@ class AddEditViewModel(
                     state.copy(
                         url = site.url,
                         title = site.title ?: "",
+                        iconUrl = site.iconUrl,
                         selectedColors = site.colors,
                         loadedSiteUrl = site.url,
                         legacyThreshold = site.threshold.coerceAtLeast(0),
@@ -341,6 +346,7 @@ class AddEditViewModel(
                         textIncludeSelector = state.textRegion.include.trim(),
                         textExcludeSelector = state.textRegion.exclude.trim(),
                         title = resolvedTitle,
+                        iconUrl = state.iconUrl.ifBlank { existingSite.iconUrl },
                         colors = state.selectedColors,
                         threshold = if ((state.visualChangeThresholdBps > 0 && state.captureMode in setOf(com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT, com.bernaferrari.changedetection.repo.CaptureMode.DEFAULT)) || state.captureMode in setOf(com.bernaferrari.changedetection.repo.CaptureMode.TEXT, com.bernaferrari.changedetection.repo.CaptureMode.SOURCE)) 0 else state.legacyThreshold,
                         timestamp = if (startFresh) 0L else existingSite.timestamp,
@@ -352,6 +358,7 @@ class AddEditViewModel(
                         textIncludeSelector = state.textRegion.include.trim(),
                         textExcludeSelector = state.textRegion.exclude.trim(),
                         title = resolvedTitle,
+                        iconUrl = state.iconUrl,
                         colors = state.selectedColors,
                         isBrowser = true,
                         isSyncEnabled = true,

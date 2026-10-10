@@ -38,7 +38,7 @@ class AndroidCapturePreviewer(context: Context, engine: SyncEngine, private val 
                     val browser = browsers.create()
                     try {
                         when (val result = browser.capture(previewSite(url).copy(textIncludeSelector = region.include, textExcludeSelector = region.exclude), settings[SettingsViewModel.BROWSER_DELAY_KEY] ?: 5_000L)) {
-                            is ScreenshotCaptureOutcome.Success -> CapturePreview.Image(result.bytes, result.title?.let { cleanTitle(it) })
+                            is ScreenshotCaptureOutcome.Success -> CapturePreview.Image(result.bytes, result.title?.let { cleanTitle(it) }, result.icon)
                             is ScreenshotCaptureOutcome.Failure -> error(result.message)
                         }
                     } finally {

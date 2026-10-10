@@ -4,14 +4,16 @@
  */
 package com.bernaferrari.changedetection.addedit
 
+import io.ktor.http.hostWithPortIfSpecified
+
 import com.bernaferrari.changedetection.repo.CaptureMode
 import com.bernaferrari.changedetection.repo.ColorGroup
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.sync.SyncEngine
 
 sealed interface CapturePreview {
-    data class Html(val text: String, val totalBytes: Int, val selectableDocument: com.bernaferrari.changedetection.detection.SelectableTextDocument? = null, val pageTitle: String? = null) : CapturePreview
-    data class Image(val bytes: ByteArray, val pageTitle: String? = null) : CapturePreview
+    data class Html(val text: String, val totalBytes: Int, val selectableDocument: com.bernaferrari.changedetection.detection.SelectableTextDocument? = null, val pageTitle: String? = null, val pageIcon: String? = null) : CapturePreview
+    data class Image(val bytes: ByteArray, val pageTitle: String? = null, val pageIcon: String? = null) : CapturePreview
 }
 
 /** A read-only sample: no monitor creation, baseline commit, scheduling or notification. */
@@ -61,6 +63,7 @@ class HtmlCapturePreviewer(private val engine: SyncEngine) : CapturePreviewer {
                             null
                         },
                         pageTitle = if (result.contentType.contains("html", true)) htmlTitle(result.data.decodeToString()) else null,
+                        pageIcon = if (result.contentType.contains("html", true)) htmlIcon(result.data.decodeToString(), url) else null,
                     )
                 }
             }
@@ -78,10 +81,42 @@ internal fun htmlTitle(html: String): String? {
     return cleanTitle(com.fleeksoft.ksoup.Ksoup.parse(raw).text())
 }
 
+private val linkTag = Regex("<link\\b[^>]*>", RegexOption.IGNORE_CASE)
+private fun attr(tag: String, name: String) = Regex("\\b$name\\s*=\\s*([\"'])(.*?)\\1", RegexOption.IGNORE_CASE).find(tag)?.groupValues?.get(2)
+
+/** Same choice as [com.bernaferrari.changedetection.browser.PageCleanup.ICON], from raw HTML. */
+internal fun htmlIcon(html: String, pageUrl: String): String? {
+    val base = io.ktor.http.Url(pageUrl)
+    val origin = "${base.protocol.name}://${base.hostWithPortIfSpecified}"
+    var best: String? = null
+    var score = -1
+    linkTag.findAll(html.take(600_000)).forEach { match ->
+        val tag = match.value
+        val rel = attr(tag, "rel")?.lowercase() ?: return@forEach
+        val href = attr(tag, "href")?.takeIf { it.isNotBlank() } ?: return@forEach
+        if ("icon" !in rel || "mask" in rel || href.substringBefore('?').endsWith(".svg", true) || attr(tag, "type")?.contains("svg") == true) return@forEach
+        val apple = "apple" in rel
+        val size = attr(tag, "sizes")?.substringBefore('x')?.toIntOrNull() ?: if (apple) 180 else 16
+        val s = (if (apple) 1000 else 0) + minOf(size, 512)
+        if (s > score) {
+            score = s
+            best = resolveUrl(origin, base.encodedPath, href)
+        }
+    }
+    return best ?: "$origin/favicon.ico"
+}
+
+private fun resolveUrl(origin: String, path: String, href: String): String = when {
+    href.startsWith("http://") || href.startsWith("https://") -> href
+    href.startsWith("//") -> origin.substringBefore("//") + href
+    href.startsWith("/") -> origin + href
+    else -> origin + path.substringBeforeLast('/', "") + "/" + href
+}.replace("&amp;", "&")
+
 /** "BBC News - Breaking news, video and…" reads better as "BBC News"; short titles stay whole. */
 internal fun cleanTitle(title: String): String? {
     val text = title.replace(Regex("\\s+"), " ").trim()
     // "BBC News - Breaking news, video and…" reads better as "BBC News"; short titles stay whole.
-    val short = if (text.length > 40) text.split(" - ", " | ", " – ", " — ", " · ").first().trim() else text
+    val short = if (text.length > 28) text.split(" - ", " | ", " – ", " — ", " · ").first().trim() else text
     return short.takeIf { it.length >= 2 }?.let { if (it.length > 60) it.take(60).substringBeforeLast(' ') + "…" else it }
 }

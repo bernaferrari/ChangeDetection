@@ -88,6 +88,7 @@ import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.ui.components.checkFailureTitle
 import com.bernaferrari.changedetection.ui.kit.PageAvatar
+import com.bernaferrari.changedetection.ui.kit.avatarIcon
 import com.bernaferrari.changedetection.ui.kit.SectionHeader
 import com.bernaferrari.changedetection.ui.kit.friendlyDay
 import com.bernaferrari.changedetection.ui.kit.name
@@ -319,7 +320,7 @@ private fun ActivityRow(shape: androidx.compose.ui.graphics.Shape, snap: Snap, s
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            PageAvatar(name, snap.siteId, size = 40.dp)
+            PageAvatar(name, snap.siteId, size = 40.dp, icon = site?.avatarIcon())
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {

@@ -103,10 +103,12 @@ actual class PlatformDiModule {
         syncEngine: SyncEngine,
         dataStore: DataStore<Preferences>,
         progressTracker: SyncProgressTracker,
+        sites: com.bernaferrari.changedetection.repo.source.SitesRepository,
     ): AndroidScreenshotSyncer = AndroidScreenshotSyncer(
         syncEngine,
         dataStore,
         progressTracker,
-        AndroidScreenshotBrowserFactory(context),
+        onIcon = sites::updateIcon,
+        browserFactory = AndroidScreenshotBrowserFactory(context),
     )
 }

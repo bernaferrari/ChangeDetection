@@ -6,6 +6,8 @@
 
 package com.bernaferrari.changedetection.ui.detail
 
+import com.bernaferrari.changedetection.ui.kit.avatarIcon
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -116,6 +118,9 @@ import com.bernaferrari.changedetection.util.getRelativeTimeLabel
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.minus
 import org.jetbrains.compose.resources.pluralStringResource
+import com.bernaferrari.changedetection.ui.comparison.isImageSnapshot
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
@@ -302,7 +307,7 @@ private fun DetailList(
     ) {
         item(key = "identity") {
             Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                PageAvatar(site.name(), site.id, size = 88.dp, dimmed = paused)
+                PageAvatar(site.name(), site.id, size = 88.dp, dimmed = paused, icon = site.avatarIcon())
                 Spacer(Modifier.height(16.dp))
                 Text(site.name(), style = MaterialTheme.typography.headlineMedium, maxLines = 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
                 Text(
@@ -388,13 +393,18 @@ private fun DetailList(
             ListGroup {
                 GroupRow(
                     title = stringResource(Res.string.detail_what),
-                    supporting = stringResource(
-                        when {
-                            site.captureMode == CaptureMode.SCREENSHOT -> Res.string.detail_what_page_screenshot
-                            site.captureMode == CaptureMode.TEXT && (site.textIncludeSelector.isNotBlank() || site.textExcludeSelector.isNotBlank()) -> Res.string.detail_what_part
-                            else -> Res.string.detail_what_page
-                        },
-                    ),
+                    supporting = run {
+                        // Picked parts apply to every mode, so the summary always says what is watched and what is ignored.
+                        val ignored = site.textExcludeSelector.split(", ").count { it.isNotBlank() }
+                        val base = stringResource(
+                            when {
+                                site.textIncludeSelector.isNotBlank() -> Res.string.detail_what_part
+                                site.captureMode == CaptureMode.SCREENSHOT -> Res.string.detail_what_page_screenshot
+                                else -> Res.string.detail_what_page
+                            },
+                        )
+                        if (ignored > 0) base + " · " + pluralStringResource(Res.plurals.parts_ignored, ignored, ignored) else base
+                    },
                     icon = if (site.captureMode == CaptureMode.SCREENSHOT) Icons.Outlined.Image else Icons.Outlined.TextSnippet,
                     onClick = onEdit,
                 ) { Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.outline) }
@@ -485,6 +495,14 @@ private fun LatestChange(item: SiteAndLastSnap, onCompare: (String) -> Unit, onM
                 }
 
                 item.snapshotCount <= 1 -> {
+                    if (snap.isImageSnapshot()) {
+                        com.bernaferrari.changedetection.ui.kit.CaptureTop(
+                            snap.snapId,
+                            Modifier.fillMaxWidth().height(180.dp).clip(MaterialTheme.shapes.large)
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.large)
+                                .clickable(onClickLabel = stringResource(Res.string.detail_view_saved)) { onCompare(snap.snapId) },
+                        )
+                    }
                     Text(stringResource(Res.string.detail_first_saved_title), style = MaterialTheme.typography.titleMedium)
                     Text(stringResource(Res.string.detail_first_saved_body, friendlyDateTime(snap.timestamp)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     OutlinedButton(onClick = { onCompare(snap.snapId) }) { Text(stringResource(Res.string.detail_view_saved)) }

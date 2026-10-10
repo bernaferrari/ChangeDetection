@@ -32,6 +32,7 @@
     <string name="checks_ios_note">iOS decides when background checks run, usually a few times a day. Opening the app checks anything that’s due right away.</string>
     <string name="turbo_sheet_caption_open">Ends at %1$s · runs while the app stays open</string>
     <string name="picker_title">Pick parts</string>
+    <string name="picker_title_short">Parts</string>
     <string name="picker_hint">Tap any part of the page.</string>
     <string name="picker_smaller">Smaller</string>
     <string name="picker_larger">Larger</string>
@@ -74,4 +75,9 @@
     <string name="detail_sign_in">Sign in</string>
     <string name="browser_session_note">Signed in here? Checks reuse this session.</string>
     <string name="turbo_next_check">Next check in %1$d s</string>
+    <string name="picker_selected_image">An image</string>
+    <string name="picker_selected_frame">An embedded frame (often an ad)</string>
+    <string name="picker_selected_area">An area without text</string>
+    <string name="preview_nothing_visible">Nothing visible changed</string>
+    <string name="preview_nothing_visible_body">The page only moved or re-rendered</string>
 </resources>

@@ -342,7 +342,7 @@
     <string name="how_it_works_hero_subtitle">Change Detection comprueba las páginas que elijas y guarda un historial local que puedes comparar.</string>
     <string name="how_it_works_steps_header">El flujo</string>
     <string name="how_it_works_step_add_title">Añade cualquier página</string>
-    <string name="how_it_works_step_add_description">Pega un enlace o compártelo desde tu navegador y dale un nombre reconocible.</string>
+    <string name="how_it_works_step_add_description">Abre la página en el navegador integrado (o compártela desde el tuyo), inicia sesión si hace falta y elige las partes a vigilar.</string>
     <string name="how_it_works_step_add_highlight">La primera comprobación correcta guarda un punto de partida. Las alertas comienzan con el siguiente cambio.</string>
     <string name="how_it_works_step_monitor_title">Elige cada cuánto comprobar</string>
     <string name="how_it_works_step_monitor_description">Usa comprobaciones en segundo plano respetuosas con la batería para el día a día.</string>

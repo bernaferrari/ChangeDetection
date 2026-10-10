@@ -43,6 +43,10 @@ class SitesRepository(
         mSitesLocalDataSource.updateSite(site)
     }
 
+    override suspend fun updateIcon(siteId: String, iconUrl: String) {
+        if (iconUrl.startsWith("http")) mSitesLocalDataSource.updateIcon(siteId, iconUrl)
+    }
+
     override suspend fun markSiteRead(siteId: String, snapId: String): Boolean = mSitesLocalDataSource.markSiteRead(siteId, snapId)
 
     override suspend fun undoSiteRead(siteId: String, snapId: String): Boolean = mSitesLocalDataSource.undoSiteRead(siteId, snapId)

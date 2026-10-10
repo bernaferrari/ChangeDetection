@@ -25,6 +25,7 @@ sealed interface ScreenshotCaptureOutcome {
         val contentType: String,
         val bytes: ByteArray,
         val title: String? = null,
+        val icon: String? = null,
     ) : ScreenshotCaptureOutcome
 
     data class Failure(
@@ -55,6 +56,8 @@ class AndroidScreenshotSyncer(
     private val syncEngine: SyncEngine,
     private val dataStore: DataStore<Preferences>,
     private val progressTracker: SyncProgressTracker,
+    /** Remembers the page's icon found during a capture. */
+    private val onIcon: suspend (siteId: String, iconUrl: String) -> Unit = { _, _ -> },
     private val browserFactory: ScreenshotBrowserFactory,
 ) {
     suspend fun syncSites(sites: List<Site>): List<SyncResult> {
@@ -85,11 +88,14 @@ class AndroidScreenshotSyncer(
         return try {
             browser = browserFactory.create()
             when (val capture = browser.capture(site, delayMs)) {
-                is ScreenshotCaptureOutcome.Success -> syncEngine.processFetchResult(
+                is ScreenshotCaptureOutcome.Success -> {
+                    capture.icon?.let { runCatching { onIcon(site.id, it) } }
+                    syncEngine.processFetchResult(
                     site,
                     SyncEngine.FetchResult.Success(capture.contentType, capture.bytes),
                     site.threshold,
                 )
+                }
 
                 is ScreenshotCaptureOutcome.Failure -> recordFailure(site, capture.message, capture.error)
             }
@@ -149,7 +155,7 @@ class AndroidScreenshotBrowserFactory(context: Context) : ScreenshotBrowserFacto
             delayMs: Long,
         ): ScreenshotCaptureOutcome {
             val screenshot = session.capture(site.url, delayMs, MAX_HEIGHT_PIXELS, hide = site.textExcludeSelector, only = site.textIncludeSelector)
-            return ScreenshotCaptureOutcome.Success(screenshot.contentType, screenshot.bytes, screenshot.title)
+            return ScreenshotCaptureOutcome.Success(screenshot.contentType, screenshot.bytes, screenshot.title, screenshot.icon)
         }
 
         override fun close() {

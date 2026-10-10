@@ -49,13 +49,21 @@ object IosPageCapture {
     /** A phone-sized viewport, so pages render their mobile layout like they would in Safari. */
     private const val VIEWPORT_WIDTH = 390.0
     private const val VIEWPORT_HEIGHT = 844.0
-    private const val OUTPUT_WIDTH_PX = 720.0
-    /** ~13,000 px tall at 720 px wide; WebKit returns an empty image for much larger snapshots. */
-    private const val MAX_PAGE_POINTS = 7_000.0
+    /**
+     * Exactly two pixels per CSS point. A whole number matters: content that moves down by N points lands
+     * exactly 2N rows lower, pixel for pixel, so the comparison sees it moved instead of re-rendered.
+     */
+    private const val OUTPUT_WIDTH_PX = VIEWPORT_WIDTH * 2
+    /** 12,000 px tall at 780 px wide, about the memory the capture always used. */
+    private const val MAX_PAGE_POINTS = 6_000.0
     private val single = Mutex()
 
     /** The `og:title` / `<title>` of the most recent capture; used to name new pages. */
     var lastTitle: String? = null
+        private set
+
+    /** The page's best icon URL from the most recent capture. */
+    var lastIcon: String? = null
         private set
 
     /**
@@ -79,6 +87,7 @@ object IosPageCapture {
             awaitLoad(web) { web.loadRequest(NSURLRequest.requestWithURL(target)) }
             delay(settleMs.coerceIn(500, 15_000))
             lastTitle = (evaluate(web, PageCleanup.TITLE) as? String)?.takeIf { it.isNotBlank() }
+            lastIcon = (evaluate(web, PageCleanup.ICON) as? String)?.takeIf { it.startsWith("http") }
             evaluate(web, PageCleanup.HIDE_CONSENT)
             evaluate(web, PageCleanup.HIDE_ADS)
             if (hide.isNotBlank()) evaluate(web, PageCleanup.hide(hide))
@@ -175,7 +184,7 @@ object IosPageCapture {
     private suspend fun snapshot(web: WKWebView, rect: kotlinx.cinterop.CValue<platform.CoreGraphics.CGRect>): ByteArray = suspendCancellableCoroutine { continuation ->
         val configuration = WKSnapshotConfiguration().apply {
             this.rect = rect
-            // snapshotWidth is in points and WebKit multiplies by the screen scale; aim for ~720 px wide.
+            // snapshotWidth is in points and WebKit multiplies by the screen scale; aim for exactly 780 px wide.
             snapshotWidth = NSNumber(OUTPUT_WIDTH_PX / platform.UIKit.UIScreen.mainScreen.scale)
             afterScreenUpdates = true
         }

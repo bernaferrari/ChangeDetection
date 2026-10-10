@@ -18,6 +18,9 @@ interface SitesDataSource {
 
     suspend fun getSites(): List<Site>
 
+    /** Remember the page's icon, found during a capture. */
+    suspend fun updateIcon(siteId: String, iconUrl: String) {}
+
     fun getDataWithChanges(): Flow<List<Site>>
 
     suspend fun getSiteById(siteId: String): Site?

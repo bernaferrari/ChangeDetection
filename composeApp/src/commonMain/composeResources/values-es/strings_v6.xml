@@ -60,9 +60,9 @@
     <string name="home_schedule_turn_on">Activar</string>
     <string name="home_row_checking">Comprobando…</string>
     <string name="home_row_paused">En pausa</string>
-    <string name="home_row_waiting">esperando la primera comprobación</string>
-    <string name="home_row_no_changes">aún sin cambios</string>
-    <string name="home_row_changed">cambió %1$s</string>
+    <string name="home_row_waiting">Esperando la primera comprobación</string>
+    <string name="home_row_no_changes">Aún sin cambios</string>
+    <string name="home_row_changed">Cambió %1$s</string>
     <string name="badge_new">Nueva</string>
     <string name="mark_read_short">Marcar como leída</string>
     <string name="preview_percent">Cambió el %1$s% de la página</string>
@@ -72,7 +72,7 @@
         <item quantity="other">+%1$d cambios más</item>
     </plurals>
     <string name="empty_title">Deja de actualizar. Te avisamos de lo que cambió.</string>
-    <string name="empty_body">Pega cualquier enlace. Comprobamos la página desde este dispositivo y resaltamos exactamente qué cambia. Sin cuenta; tus páginas guardadas se quedan en este dispositivo.</string>
+    <string name="empty_body">Abre cualquier página, inicia sesión si hace falta, y te mostraremos exactamente qué cambió, en la propia página. Sin cuenta: todo se queda en este dispositivo.</string>
     <string name="empty_clipboard_label">Enlace copiado</string>
     <string name="empty_watch">Monitorizar</string>
     <string name="turbo_hours_left">Quedan %1$d h y %2$d min</string>
@@ -283,7 +283,7 @@
     <string name="editor_review_title">Revisar</string>
     <string name="editor_start">Empezar a monitorizar</string>
     <string name="editor_paste_title">¿Qué quieres monitorizar?</string>
-    <string name="editor_paste_body">Pega un enlace y verás exactamente qué compararemos antes de guardar nada.</string>
+    <string name="editor_paste_body">Escribe una dirección o pega un enlace. La página se abre en un navegador para que inicies sesión, encuentres la página exacta y elijas las partes que importan.</string>
     <string name="editor_use_link">Usar</string>
     <string name="editor_compare">Comparar</string>
     <string name="editor_preview">Qué compararemos</string>

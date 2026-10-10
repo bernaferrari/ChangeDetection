@@ -342,7 +342,7 @@
     <string name="how_it_works_hero_subtitle">Change Detection controlla le pagine che scegli e conserva uno storico locale da confrontare.</string>
     <string name="how_it_works_steps_header">Il flusso</string>
     <string name="how_it_works_step_add_title">Aggiungi qualsiasi pagina</string>
-    <string name="how_it_works_step_add_description">Incolla un link o condividilo dal browser, poi dagli un nome riconoscibile.</string>
+    <string name="how_it_works_step_add_description">Apri la pagina nel browser integrato (o condividila dal tuo), accedi se serve e scegli le parti da controllare.</string>
     <string name="how_it_works_step_add_highlight">Il primo controllo riuscito salva un punto di partenza. Gli avvisi iniziano dalla modifica successiva.</string>
     <string name="how_it_works_step_monitor_title">Scegli ogni quanto controllare</string>
     <string name="how_it_works_step_monitor_description">Per il quotidiano usa controlli in background che rispettano la batteria.</string>

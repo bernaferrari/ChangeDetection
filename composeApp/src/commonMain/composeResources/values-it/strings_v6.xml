@@ -60,9 +60,9 @@
     <string name="home_schedule_turn_on">Attiva</string>
     <string name="home_row_checking">Controllo in corso…</string>
     <string name="home_row_paused">In pausa</string>
-    <string name="home_row_waiting">in attesa del primo controllo</string>
-    <string name="home_row_no_changes">ancora nessuna modifica</string>
-    <string name="home_row_changed">modificata %1$s</string>
+    <string name="home_row_waiting">In attesa del primo controllo</string>
+    <string name="home_row_no_changes">Ancora nessuna modifica</string>
+    <string name="home_row_changed">Modificata %1$s</string>
     <string name="badge_new">Nuova</string>
     <string name="mark_read_short">Segna come letta</string>
     <string name="preview_percent">È cambiato il %1$s% della pagina</string>
@@ -72,7 +72,7 @@
         <item quantity="other">+%1$d altre modifiche</item>
     </plurals>
     <string name="empty_title">Smetti di aggiornare. Ti diciamo cosa è cambiato.</string>
-    <string name="empty_body">Incolla un link. Controlliamo la pagina da questo dispositivo ed evidenziamo esattamente cosa cambia. Nessun account: le pagine salvate restano su questo dispositivo.</string>
+    <string name="empty_body">Apri qualsiasi pagina, accedi se serve, e ti mostreremo esattamente cosa è cambiato, direttamente sulla pagina. Nessun account: tutto resta su questo dispositivo.</string>
     <string name="empty_clipboard_label">Link copiato</string>
     <string name="empty_watch">Monitora</string>
     <string name="turbo_hours_left">Restano %1$d h e %2$d min</string>
@@ -283,7 +283,7 @@
     <string name="editor_review_title">Rivedi</string>
     <string name="editor_start">Inizia il monitoraggio</string>
     <string name="editor_paste_title">Cosa vuoi monitorare?</string>
-    <string name="editor_paste_body">Incolla un link e vedrai esattamente cosa confronteremo prima di salvare.</string>
+    <string name="editor_paste_body">Scrivi un indirizzo o incolla un link. La pagina si apre in un browser per accedere, trovare la pagina giusta e scegliere le parti importanti.</string>
     <string name="editor_use_link">Usa</string>
     <string name="editor_compare">Confronta</string>
     <string name="editor_preview">Cosa confronteremo</string>

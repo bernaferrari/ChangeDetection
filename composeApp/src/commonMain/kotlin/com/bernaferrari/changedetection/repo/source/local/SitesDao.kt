@@ -82,6 +82,10 @@ interface SitesDao {
     @Query("UPDATE sites SET isSyncEnabled = :enabled, isNotificationEnabled = :notifications WHERE siteId = :siteId")
     suspend fun updateMonitoringOptions(siteId: String, enabled: Boolean, notifications: Boolean)
 
+    /** Only the icon column, so it can never overwrite a check result written at the same time. */
+    @Query("UPDATE sites SET iconUrl = :iconUrl WHERE siteId = :siteId AND iconUrl != :iconUrl")
+    suspend fun updateIcon(siteId: String, iconUrl: String)
+
     /** Editing a name or options must not overwrite a check completed while the form was open. */
     @Transaction
     suspend fun savePreservingStatus(site: Site) {
@@ -97,6 +101,7 @@ interface SitesDao {
                     isSuccessful = current.isSuccessful,
                     isBrowser = current.isBrowser,
                     isRead = current.isRead,
+                    iconUrl = site.iconUrl.ifBlank { current.iconUrl },
                 )
             },
         )

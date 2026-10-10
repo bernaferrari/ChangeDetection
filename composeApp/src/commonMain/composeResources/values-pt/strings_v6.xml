@@ -60,9 +60,9 @@
     <string name="home_schedule_turn_on">Ativar</string>
     <string name="home_row_checking">Verificando…</string>
     <string name="home_row_paused">Pausada</string>
-    <string name="home_row_waiting">aguardando a primeira verificação</string>
-    <string name="home_row_no_changes">nenhuma alteração ainda</string>
-    <string name="home_row_changed">alterada %1$s</string>
+    <string name="home_row_waiting">Aguardando a primeira verificação</string>
+    <string name="home_row_no_changes">Nenhuma alteração ainda</string>
+    <string name="home_row_changed">Alterada %1$s</string>
     <string name="badge_new">Nova</string>
     <string name="mark_read_short">Marcar como lida</string>
     <string name="preview_percent">%1$s% da página mudou</string>
@@ -72,7 +72,7 @@
         <item quantity="other">+%1$d outras alterações</item>
     </plurals>
     <string name="empty_title">Pare de atualizar. Nós mostramos o que mudou.</string>
-    <string name="empty_body">Cole qualquer link. Verificamos a página neste dispositivo e destacamos exatamente o que muda. Sem conta; suas páginas salvas ficam neste dispositivo.</string>
+    <string name="empty_body">Abra qualquer página, entre na sua conta se precisar, e mostramos exatamente o que mudou, na própria página. Sem conta: tudo fica neste dispositivo.</string>
     <string name="empty_clipboard_label">Link copiado</string>
     <string name="empty_watch">Monitorar</string>
     <string name="turbo_hours_left">Restam %1$d h e %2$d min</string>
@@ -283,7 +283,7 @@
     <string name="editor_review_title">Revisar</string>
     <string name="editor_start">Começar a monitorar</string>
     <string name="editor_paste_title">O que vamos monitorar?</string>
-    <string name="editor_paste_body">Cole um link e você verá exatamente o que será comparado antes de salvar.</string>
+    <string name="editor_paste_body">Digite um endereço ou cole um link. A página abre em um navegador para você entrar, achar a página certa e escolher as partes que importam.</string>
     <string name="editor_use_link">Usar</string>
     <string name="editor_compare">Comparar</string>
     <string name="editor_preview">O que será comparado</string>

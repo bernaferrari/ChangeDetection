@@ -313,7 +313,7 @@ class DesignReviewTest {
                         LocalLifecycleOwner provides lifecycleOwner,
                         LocalDensity provides Density(density, fontScale),
                     ) {
-                        Box(Modifier.fillMaxSize()) { CompositionLocalProvider(com.bernaferrari.changedetection.addedit.LocalBrowserAvailable provides false) { ChangeDetectionRootApp(PlatformActions(appVersion = "6.0")) } }
+                        Box(Modifier.fillMaxSize()) { CompositionLocalProvider(com.bernaferrari.changedetection.addedit.LocalBrowserAvailable provides false, com.bernaferrari.changedetection.ui.kit.LocalPageIcons provides false) { ChangeDetectionRootApp(PlatformActions(appVersion = "6.0")) } }
                     }
                 }
                 try {

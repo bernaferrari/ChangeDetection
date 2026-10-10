@@ -102,85 +102,79 @@ internal fun WatchBrowser(
         if (!picking) current = null
     }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            Row(
-                Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 8.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, stringResource(Res.string.a11y_close)) }
-                AddressPill(
-                    url = state.lastLoadedUrl ?: startUrl,
-                    editing = editingAddress,
-                    onEdit = { editingAddress = it },
-                    onGo = { typed ->
-                        editingAddress = false
-                        typed.normalizeUrl()?.let { navigator.loadUrl(it) }
-                    },
-                    modifier = Modifier.weight(1f),
+    Box(Modifier.fillMaxSize()) {
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.surface,
+            topBar = {
+                Row(
+                    Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 8.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, stringResource(Res.string.a11y_close)) }
+                    AddressPill(
+                        url = state.lastLoadedUrl ?: startUrl,
+                        editing = editingAddress,
+                        onEdit = { editingAddress = it },
+                        onGo = { typed ->
+                            editingAddress = false
+                            typed.normalizeUrl()?.let { navigator.loadUrl(it) }
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                    IconButton(onClick = { navigator.reload() }) { Icon(Icons.Rounded.Refresh, stringResource(Res.string.refresh)) }
+                }
+            },
+            // Docked, not floating: many pages have their own bottom bar, and it must stay reachable.
+            bottomBar = {
+                BrowseToolbar(
+                    canBack = navigator.canGoBack,
+                    canForward = navigator.canGoForward,
+                    picks = (if (only.isNotBlank()) 1 else 0) + ignored.size,
+                    onBack = { navigator.navigateBack() },
+                    onForward = { navigator.navigateForward() },
+                    onPick = { picking = true },
+                    onWatch = onWatch,
+                    watchLabel = watchLabel,
                 )
-                IconButton(onClick = { navigator.reload() }) { Icon(Icons.Rounded.Refresh, stringResource(Res.string.refresh)) }
-            }
-        },
-    ) { padding ->
-        Box(Modifier.fillMaxSize().padding(top = padding.calculateTopPadding())) {
-            BrowserRuntimeHost(Modifier.fillMaxSize()) {
-                WebView(state = state, modifier = Modifier.fillMaxSize(), navigator = navigator, webViewJsBridge = bridge)
-            }
-            val loading = state.loadingState as? LoadingState.Loading
-            if (loading != null) {
-                LinearWavyProgressIndicator(progress = { loading.progress.coerceAtLeast(0.05f) }, modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter))
-            }
-            Box(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(12.dp)) {
-                AnimatedContent(
-                    targetState = picking,
-                    transitionSpec = { (slideInVertically { it / 2 } + fadeIn()) togetherWith (slideOutVertically { it / 2 } + fadeOut()) },
-                    label = "browser-tools",
-                ) { isPicking ->
-                    if (isPicking) {
-                        PickerPanel(
-                            current = current,
-                            only = only,
-                            ignored = ignored,
-                            onDepth = { depth -> if (depth != current?.depth) navigator.evaluateJavaScript("window.__cdPick&&window.__cdPick.setDepth($depth)") },
-                            onWatchOnly = { part ->
-                                onPicksChange(part.selector, ignored - part.selector)
-                                current = null
-                                navigator.evaluateJavaScript("window.__cdPick&&window.__cdPick.clear()")
-                            },
-                            onIgnore = { part ->
-                                onPicksChange(only.takeUnless { it == part.selector }.orEmpty(), (ignored + part.selector).distinct())
-                                current = null
-                                navigator.evaluateJavaScript("window.__cdPick&&window.__cdPick.clear()")
-                            },
-                            onRemoveOnly = { onPicksChange("", ignored) },
-                            onRemoveIgnored = { selector -> onPicksChange(only, ignored - selector) },
-                            onDone = { picking = false },
-                        )
-                    } else {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.88f)) {
-                            Row(Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Icon(Icons.Rounded.Lock, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.inverseOnSurface)
-                                Text(stringResource(Res.string.browser_session_note), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.inverseOnSurface)
-                            }
-                        }
-                        BrowseToolbar(
-                            canBack = navigator.canGoBack,
-                            canForward = navigator.canGoForward,
-                            picks = (if (only.isNotBlank()) 1 else 0) + ignored.size,
-                            onBack = { navigator.navigateBack() },
-                            onForward = { navigator.navigateForward() },
-                            onPick = { picking = true },
-                            onWatch = onWatch,
-                            watchLabel = watchLabel,
-                        )
-                        }
-                    }
+            },
+        ) { padding ->
+            Box(Modifier.fillMaxSize().padding(padding)) {
+                BrowserRuntimeHost(Modifier.fillMaxSize()) {
+                    WebView(state = state, modifier = Modifier.fillMaxSize(), navigator = navigator, webViewJsBridge = bridge)
+                }
+                val loading = state.loadingState as? LoadingState.Loading
+                if (loading != null) {
+                    LinearWavyProgressIndicator(progress = { loading.progress.coerceAtLeast(0.05f) }, modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter))
                 }
             }
+        }
+        // The picker floats over the page (and the toolbar) so the page does not reflow while choosing.
+        AnimatedVisibility(
+            visible = picking,
+            enter = slideInVertically { it / 2 } + fadeIn(),
+            exit = slideOutVertically { it / 2 } + fadeOut(),
+            modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(12.dp),
+        ) {
+            PickerPanel(
+                current = current,
+                only = only,
+                ignored = ignored,
+                onDepth = { depth -> if (depth != current?.depth) navigator.evaluateJavaScript("window.__cdPick&&window.__cdPick.setDepth($depth)") },
+                onWatchOnly = { part ->
+                    onPicksChange(part.selector, ignored - part.selector)
+                    current = null
+                    navigator.evaluateJavaScript("window.__cdPick&&window.__cdPick.clear()")
+                },
+                onIgnore = { part ->
+                    onPicksChange(only.takeUnless { it == part.selector }.orEmpty(), (ignored + part.selector).distinct())
+                    current = null
+                    navigator.evaluateJavaScript("window.__cdPick&&window.__cdPick.clear()")
+                },
+                onRemoveOnly = { onPicksChange("", ignored) },
+                onRemoveIgnored = { selector -> onPicksChange(only, ignored - selector) },
+                onDone = { picking = false },
+            )
         }
     }
 }
@@ -229,16 +223,27 @@ private fun BrowseToolbar(
     onWatch: () -> Unit,
     watchLabel: String,
 ) {
-    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHigh, shadowElevation = 6.dp) {
-        Row(Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-            IconButton(onClick = onBack, enabled = canBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(Res.string.a11y_navigate_back)) }
-            IconButton(onClick = onForward, enabled = canForward) { Icon(Icons.AutoMirrored.Rounded.ArrowForward, stringResource(Res.string.browser_forward)) }
-            BadgedBox(badge = { if (picks > 0) Badge { Text(picks.toString()) } }) {
-                FilledTonalIconButton(onClick = onPick, shapes = IconButtonDefaults.shapes()) { Icon(Icons.Rounded.TouchApp, stringResource(Res.string.picker_title)) }
+    Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(start = 8.dp, end = 12.dp, top = 6.dp, bottom = 8.dp)) {
+            Row(Modifier.padding(start = 8.dp, bottom = 2.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Rounded.Lock, null, Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(Res.string.browser_session_note), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Spacer(Modifier.width(6.dp))
-            Button(onClick = onWatch, shapes = ButtonDefaults.shapes(), modifier = Modifier.heightIn(min = 48.dp)) {
-                Text(watchLabel, style = MaterialTheme.typography.titleSmall)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                IconButton(onClick = onBack, enabled = canBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(Res.string.a11y_navigate_back)) }
+                IconButton(onClick = onForward, enabled = canForward) { Icon(Icons.AutoMirrored.Rounded.ArrowForward, stringResource(Res.string.browser_forward)) }
+                Spacer(Modifier.width(4.dp))
+                BadgedBox(badge = { if (picks > 0) Badge { Text(picks.toString()) } }) {
+                    FilledTonalButton(onClick = onPick, shapes = ButtonDefaults.shapes(), contentPadding = PaddingValues(horizontal = 14.dp), modifier = Modifier.heightIn(min = 48.dp)) {
+                        Icon(Icons.Rounded.TouchApp, null, Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(Res.string.picker_title_short))
+                    }
+                }
+                Spacer(Modifier.weight(1f))
+                Button(onClick = onWatch, shapes = ButtonDefaults.shapes(), modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(watchLabel, style = MaterialTheme.typography.titleSmall)
+                }
             }
         }
     }
@@ -263,7 +268,13 @@ private fun PickerPanel(
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(Res.string.picker_title), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        current?.text?.takeIf { it.isNotBlank() }?.let { "“$it”" } ?: stringResource(Res.string.picker_hint),
+                        when {
+                            current == null -> stringResource(Res.string.picker_hint)
+                            current.text.isNotBlank() -> "“${current.text}”"
+                            current.tag in setOf("img", "picture", "video", "svg", "canvas") -> stringResource(Res.string.picker_selected_image)
+                            current.tag == "iframe" -> stringResource(Res.string.picker_selected_frame)
+                            else -> stringResource(Res.string.picker_selected_area)
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 2,
@@ -284,8 +295,9 @@ private fun PickerPanel(
                             Text(stringResource(Res.string.picker_smaller), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Slider(
                                 value = part.depth.toFloat(),
-                                onValueChange = { onDepth(it.toInt()) },
+                                onValueChange = { onDepth(kotlin.math.round(it).toInt()) },
                                 valueRange = 0f..part.maxDepth.toFloat(),
+                                steps = (part.maxDepth - 1).coerceAtLeast(0),
                                 modifier = Modifier.weight(1f),
                             )
                             Text(stringResource(Res.string.picker_larger), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -331,10 +343,19 @@ private val PICKER_SCRIPT = """
   document.documentElement.appendChild(box);
   var marks = document.createElement('style');
   document.documentElement.appendChild(marks);
-  var base = null, depth = 0, on = false;
+  var base = null, steps = [], depth = 0, on = false;
   function stop(e){ return !e || !e.parentElement || e.parentElement === document.body || e.parentElement === document.documentElement; }
-  function target(){ var e = base; for (var i = 0; i < depth && !stop(e); i++) e = e.parentElement; return e; }
-  function maxDepth(){ var n = 0, e = base; while (!stop(e) && n < 12) { n++; e = e.parentElement; } return n; }
+  // Each slider step is the next ancestor that is visibly bigger; wrappers with the same box are skipped.
+  function chain(e){
+    var out = [e], last = e.getBoundingClientRect();
+    while (!stop(e) && out.length < 10) {
+      e = e.parentElement; var r = e.getBoundingClientRect();
+      if (r.width - last.width > 6 || r.height - last.height > 6) { out.push(e); last = r; }
+    }
+    return out;
+  }
+  function target(){ return steps[Math.min(depth, steps.length - 1)] || null; }
+  function maxDepth(){ return Math.max(0, steps.length - 1); }
   function esc(s){ return window.CSS && CSS.escape ? CSS.escape(s) : s.replace(/[^a-zA-Z0-9_-]/g, '\\${'$'}&'); }
   function unique(sel){ try { return document.querySelectorAll(sel).length === 1; } catch (x) { return false; } }
   function selector(e){
@@ -362,12 +383,12 @@ private val PICKER_SCRIPT = """
   document.addEventListener('click', function(ev){
     if (!on) return;
     ev.preventDefault(); ev.stopPropagation();
-    base = document.elementFromPoint(ev.clientX, ev.clientY); depth = 0; show(); report();
+    base = document.elementFromPoint(ev.clientX, ev.clientY); steps = base ? chain(base) : []; depth = 0; show(); report();
   }, true);
   window.__cdPick = {
     enable: function(){ on = true; return 0; },
-    disable: function(){ on = false; base = null; box.style.display = 'none'; return 0; },
-    clear: function(){ base = null; box.style.display = 'none'; return 0; },
+    disable: function(){ on = false; base = null; steps = []; box.style.display = 'none'; return 0; },
+    clear: function(){ base = null; steps = []; box.style.display = 'none'; return 0; },
     setDepth: function(d){ depth = Math.max(0, Math.min(d, maxDepth())); show(); report(); return 0; },
     mark: function(only, ignored){
       var css = '';

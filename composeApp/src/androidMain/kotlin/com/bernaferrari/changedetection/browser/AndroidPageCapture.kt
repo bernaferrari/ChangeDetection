@@ -23,7 +23,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.resume
 import kotlin.math.roundToInt
-import kotlin.math.sqrt
 
 /** The app needs a cancellable page capture, not a second browser automation runtime. */
 internal class AndroidPageCapture(private val view: WebView) {
@@ -37,6 +36,7 @@ internal class AndroidPageCapture(private val view: WebView) {
         navigate(url)
         delay(settleDelayMs.coerceIn(0, 30_000))
         val title = evaluate(PageCleanup.TITLE).trim('"').takeIf { it.isNotBlank() && it != "null" }
+        val icon = evaluate(PageCleanup.ICON).trim('"').takeIf { it.startsWith("http") }
         evaluate(PageCleanup.HIDE_CONSENT)
         evaluate(PageCleanup.HIDE_ADS)
         evaluate(PageCleanup.HIDE_BOTTOM_FLOATING)
@@ -50,7 +50,7 @@ internal class AndroidPageCapture(private val view: WebView) {
             null
         }
         val full = captureDocument(maxHeight)
-        (if (clip == null) full else crop(full, clip)).copy(title = title)
+        (if (clip == null) full else crop(full, clip)).copy(title = title, icon = icon)
     }
 
     private suspend fun evaluate(script: String): String = suspendCancellableCoroutine { continuation ->
@@ -60,8 +60,9 @@ internal class AndroidPageCapture(private val view: WebView) {
     /** [clip] is left, top, right, bottom, documentHeight, documentWidth in CSS pixels. */
     private suspend fun crop(full: WebViewScreenshot, clip: List<Double>): WebViewScreenshot = withContext(Dispatchers.Default) {
         val bitmap = android.graphics.BitmapFactory.decodeByteArray(full.bytes, 0, full.bytes.size) ?: return@withContext full
-        val factor = full.height / clip[4].coerceAtLeast(1.0)
-        val sx = full.width / clip[5].coerceAtLeast(1.0)
+        // Output is exactly CSS_TO_OUTPUT pixels per CSS pixel (and may be cut short on very long pages).
+        val factor = CSS_TO_OUTPUT.toDouble()
+        val sx = CSS_TO_OUTPUT.toDouble()
         val left = (clip[0] * sx).roundToInt().coerceIn(0, bitmap.width - 1)
         val top = (clip[1] * factor).roundToInt().coerceIn(0, bitmap.height - 1)
         val right = (clip[2] * sx).roundToInt().coerceIn(left + 1, bitmap.width)
@@ -111,16 +112,30 @@ internal class AndroidPageCapture(private val view: WebView) {
         }
     }
 
-    /** Tile only the visible viewport, with a hard allocation limit regardless of page height. */
+    /**
+     * Tile only the visible viewport, with a hard allocation limit regardless of page height.
+     *
+     * The output is exactly [CSS_TO_OUTPUT] pixels per CSS pixel, and every tile starts on a whole output row.
+     * Content that moves down by N CSS pixels then lands exactly 2N rows lower, pixel for pixel, so the
+     * comparison sees it moved instead of re-rendered. (A fractional scale blurs moved content differently
+     * and makes everything below a new banner look changed.) Very long pages are cut, never squeezed.
+     */
     private suspend fun captureDocument(maxHeight: Int): WebViewScreenshot {
         @Suppress("DEPRECATION")
         val pageHeight = maxOf(view.height, (view.contentHeight * view.scale).roundToInt())
         require(pageHeight in 1..100_000) { "This page is too tall for a screenshot. Use page text monitoring." }
+        val density = view.resources.displayMetrics.density.coerceAtLeast(0.5f)
+        val scale = CSS_TO_OUTPUT / density
+        // Device pixels covering 8 CSS pixels; a whole number for every common density (2.625 → 21).
+        val unit = (density * 8).roundToInt().coerceAtLeast(1)
         val pageWidth = view.width.coerceAtLeast(1)
-        val scale = minOf(1.0, maxHeight.toDouble() / pageHeight, sqrt(MAX_PIXELS.toDouble() / (pageWidth.toLong() * pageHeight)))
-        val outputWidth = (pageWidth * scale).toInt().coerceAtLeast(1)
-        val outputHeight = (pageHeight * scale).toInt().coerceAtLeast(1)
+        val outputWidth = (pageWidth * scale).roundToInt().coerceAtLeast(1)
+        val budgetRows = minOf(maxHeight.toLong(), MAX_PIXELS / outputWidth).toInt()
+        val capturedPageHeight = minOf(pageHeight, (budgetRows / scale).toInt() / unit * unit).coerceAtLeast(minOf(pageHeight, unit))
+        val outputHeight = (capturedPageHeight * scale).roundToInt().coerceAtLeast(1)
+        val step = (view.height / unit * unit).coerceAtLeast(unit)
         val output = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888)
+        output.eraseColor(android.graphics.Color.WHITE)
         val tile = try {
             Bitmap.createBitmap(outputWidth, (view.height * scale).roundToInt().coerceAtLeast(1), Bitmap.Config.ARGB_8888)
         } catch (error: Throwable) {
@@ -129,39 +144,39 @@ internal class AndroidPageCapture(private val view: WebView) {
         }
         val canvas = Canvas(output)
         val oldScroll = view.scrollY
+        // The last aligned position that still shows a full viewport; Chromium clamps anything further.
+        val lastTop = ((pageHeight - view.height).coerceAtLeast(0) / unit) * unit
         view.isVerticalScrollBarEnabled = false
         view.isHorizontalScrollBarEnabled = false
         try {
             var y = 0
-            while (y < pageHeight) {
+            while (y < capturedPageHeight) {
                 currentCoroutineContext().ensureActive()
                 rendererFailure?.let { throw it }
-                // View.scrollTo does not clamp to the document's scroll range. Chromium does,
-                // so requesting y past the final viewport misaligns the canvas and omits the footer.
-                val viewportTop = minOf(y, (pageHeight - view.height).coerceAtLeast(0))
+                val viewportTop = minOf(y, lastTop)
                 view.scrollTo(0, viewportTop)
                 view.invalidate()
                 awaitFrame()
-                val offset = (y - view.scrollY).coerceAtLeast(0)
-                val capturedHeight = minOf(view.height - offset, pageHeight - y)
+                check(view.scrollY == viewportTop || viewportTop == 0) { "The page changed size while taking its screenshot. Try again." }
+                val offset = y - viewportTop
+                val capturedHeight = minOf(view.height - offset, capturedPageHeight - y)
                 check(capturedHeight > 0) { "The page changed size while taking its screenshot. Try again." }
                 tile.eraseColor(android.graphics.Color.WHITE)
                 Canvas(tile).apply {
-                    scale(scale.toFloat(), scale.toFloat())
-                    translate(-view.scrollX.toFloat(), -view.scrollY.toFloat())
+                    scale(scale, scale)
+                    translate(-view.scrollX.toFloat(), -viewportTop.toFloat())
                     view.draw(this)
                 }
-                canvas.drawBitmap(
-                    tile,
-                    Rect(0, (offset * scale).roundToInt(), outputWidth, ((offset + capturedHeight) * scale).roundToInt().coerceAtMost(tile.height)),
-                    Rect(0, (y * scale).roundToInt(), outputWidth, ((y + capturedHeight) * scale).roundToInt().coerceAtMost(outputHeight)),
-                    null,
-                )
+                val srcTop = (offset * scale).roundToInt()
+                val dstTop = (y * scale).roundToInt()
+                val rows = minOf((capturedHeight * scale).roundToInt(), tile.height - srcTop, outputHeight - dstTop)
+                if (rows > 0) canvas.drawBitmap(tile, Rect(0, srcTop, outputWidth, srcTop + rows), Rect(0, dstTop, outputWidth, dstTop + rows), null)
                 if (y == 0) {
                     evaluate(PageCleanup.HIDE_PINNED)
                     awaitFrame()
                 }
-                y += capturedHeight
+                if (viewportTop == lastTop) break
+                y += minOf(step, capturedHeight)
             }
             val bytes = withContext(Dispatchers.Default) {
                 ByteArrayOutputStream().use { stream ->
@@ -189,6 +204,8 @@ internal class AndroidPageCapture(private val view: WebView) {
     }
 
     private companion object {
-        const val MAX_PIXELS = 4_000_000L
+        const val MAX_PIXELS = 7_000_000L
+        /** Output pixels per CSS pixel: sharp text, and a whole number so moved content stays pixel-identical. */
+        const val CSS_TO_OUTPUT = 2f
     }
 }

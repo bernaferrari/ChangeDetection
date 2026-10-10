@@ -32,6 +32,7 @@
     <string name="checks_ios_note">iOS decide cuándo se ejecutan las comprobaciones en segundo plano, normalmente unas pocas veces al día. Al abrir la app se comprueba al momento lo pendiente.</string>
     <string name="turbo_sheet_caption_open">Termina a las %1$s · funciona mientras la app siga abierta</string>
     <string name="picker_title">Elegir partes</string>
+    <string name="picker_title_short">Partes</string>
     <string name="picker_hint">Toca cualquier parte de la página.</string>
     <string name="picker_smaller">Menor</string>
     <string name="picker_larger">Mayor</string>
@@ -74,4 +75,9 @@
     <string name="detail_sign_in">Iniciar sesión</string>
     <string name="browser_session_note">¿Iniciaste sesión aquí? Las comprobaciones usan esta sesión.</string>
     <string name="turbo_next_check">Próxima comprobación en %1$d s</string>
+    <string name="picker_selected_image">Una imagen</string>
+    <string name="picker_selected_frame">Un marco incrustado (a menudo un anuncio)</string>
+    <string name="picker_selected_area">Una zona sin texto</string>
+    <string name="preview_nothing_visible">No cambió nada visible</string>
+    <string name="preview_nothing_visible_body">La página solo se movió o se volvió a dibujar</string>
 </resources>

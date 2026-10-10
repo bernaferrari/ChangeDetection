@@ -32,6 +32,7 @@
     <string name="checks_ios_note">O iOS decide quando as verificações em segundo plano acontecem, geralmente algumas vezes por dia. Ao abrir o app, o que estiver pendente é verificado na hora.</string>
     <string name="turbo_sheet_caption_open">Termina às %1$s · funciona enquanto o app estiver aberto</string>
     <string name="picker_title">Escolher partes</string>
+    <string name="picker_title_short">Partes</string>
     <string name="picker_hint">Toque em qualquer parte da página.</string>
     <string name="picker_smaller">Menor</string>
     <string name="picker_larger">Maior</string>
@@ -74,4 +75,9 @@
     <string name="detail_sign_in">Entrar</string>
     <string name="browser_session_note">Entrou aqui? As verificações usam esta sessão.</string>
     <string name="turbo_next_check">Próxima verificação em %1$d s</string>
+    <string name="picker_selected_image">Uma imagem</string>
+    <string name="picker_selected_frame">Um quadro incorporado (geralmente um anúncio)</string>
+    <string name="picker_selected_area">Uma área sem texto</string>
+    <string name="preview_nothing_visible">Nada visível mudou</string>
+    <string name="preview_nothing_visible_body">A página só se moveu ou foi redesenhada</string>
 </resources>
