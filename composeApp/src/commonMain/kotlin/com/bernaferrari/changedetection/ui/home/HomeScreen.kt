@@ -477,15 +477,22 @@ private fun HomeTopBar(
                     val (color, text) = when {
                         checking > 0 -> MaterialTheme.colorScheme.primary to pluralStringResource(Res.plurals.home_checking, checking, checking)
                         failing > 0 -> MaterialTheme.colorScheme.error to pluralStringResource(Res.plurals.home_failing, failing, failing)
-                        lastCheck != null -> MaterialTheme.marks.healthy to pluralStringResource(Res.plurals.home_status_ok, pages.size, pages.size, getRelativeTimeLabel(lastCheck).lowercase())
-                        else -> MaterialTheme.colorScheme.outline to pluralStringResource(Res.plurals.home_status_waiting, pages.size, pages.size)
+                        // The page count is already in the Pages section; this line answers "is it working?".
+                        lastCheck != null -> MaterialTheme.marks.healthy to stringResource(Res.string.home_status_checked, getRelativeTimeLabel(lastCheck).lowercase())
+                        else -> MaterialTheme.colorScheme.outline to stringResource(Res.string.home_status_first_check)
                     }
                     if (checking > 0) {
                         LoadingIndicator(Modifier.size(18.dp))
                     } else {
                         Box(Modifier.size(8.dp).background(color, CircleShape))
                     }
-                    Text(text, style = MaterialTheme.typography.bodyMedium, color = if (failing > 0 && checking == 0) color else MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (failing > 0 && checking == 0) color else MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
             }
         },

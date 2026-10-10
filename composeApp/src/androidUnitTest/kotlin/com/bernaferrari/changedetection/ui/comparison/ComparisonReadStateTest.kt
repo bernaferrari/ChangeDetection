@@ -219,28 +219,32 @@ class ComparisonReadStateTest {
     }
 
     @Test fun sharingReadableTextMatchesTheDisplayedComparison() = runTest(dispatcher) {
-        val output = CompletableDeferred<String>()
-        doAnswer {
-            output.complete(it.getArgument(1))
-            null
-        }.whenever(share).shareFile(any(), any(), any())
-        model.shareDiff(history[1], history[0], "<p>Sold out</p>", "<p>Available</p>", readableText = true)
-        val diff = output.await()
-        assertTrue(diff.contains("-Sold out"))
-        assertTrue(diff.contains("+Available"))
-        assertFalse(diff.contains("<p>"))
+        val text = sharedText(readable = true)
+        assertTrue(text, text.contains("Sold out → Available"))
+        assertFalse(text, text.contains("<p>"))
+        assertTrue(text, text.endsWith(site.url))
     }
 
     @Test fun sharingSourcePreservesMarkup() = runTest(dispatcher) {
+        val text = sharedText(readable = false)
+        assertTrue(text, text.contains("<p>Sold out</p> → <p>Available</p>"))
+    }
+
+    /** Shares the visible comparison and returns what would go to the share sheet. */
+    private suspend fun sharedText(readable: Boolean): String {
+        prepare()
+        model.loadSiteAndSnaps(site.id, "older")
+        model.uiState.first { it.site != null && !it.isLoadingDiff }
         val output = CompletableDeferred<String>()
         doAnswer {
-            output.complete(it.getArgument(1))
+            output.complete(it.getArgument(0))
             null
-        }.whenever(share).shareFile(any(), any(), any())
-        model.shareDiff(history[1], history[0], "<p>Sold out</p>", "<p>Available</p>")
-        val diff = output.await()
-        assertTrue(diff.contains("-<p>Sold out</p>"))
-        assertTrue(diff.contains("+<p>Available</p>"))
+        }.whenever(share).shareText(any(), any())
+        model.shareDiff(history[1], history[0], "<p>Sold out</p>", "<p>Available</p>", readableText = readable)
+        val text = output.await()
+        // Let the share coroutine finish here, not after this test resets the main dispatcher.
+        dispatcher.scheduler.advanceUntilIdle()
+        return text
     }
 
     @Test fun retryHealthUpdatesWithoutReplacingTheHistoricalComparison() = runTest(dispatcher) {

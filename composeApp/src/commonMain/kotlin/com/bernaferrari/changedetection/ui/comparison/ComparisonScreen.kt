@@ -405,57 +405,37 @@ private fun modeLabel(mode: ComparisonMode): String = stringResource(
 )
 
 /**
- * Which two versions are on screen, in one line: the newer one, what it is compared with, and arrows to
- * step to the change before or after. Tapping the middle lists every version.
+ * Which two versions are on screen, in one line: the newer one and what it is compared with. One tap lists
+ * every version; the only arrows on screen step through the changes themselves.
  */
 @Composable
 private fun VersionNavigator(snaps: List<Snap>, selectedIndex: Int, onSelect: (Int) -> Unit, onShowAll: () -> Unit) {
     val newer = snaps.getOrNull(selectedIndex) ?: return
     val older = snaps.getOrNull(selectedIndex + 1)
-    val canOlder = selectedIndex + 2 < snaps.size
-    val canNewer = selectedIndex > 0
     Surface(
         shape = MaterialTheme.shapes.extraLarge,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).testTag("version-navigator"),
     ) {
         Row(Modifier.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { onSelect(selectedIndex + 1) }, enabled = canOlder) {
-                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowLeft, stringResource(Res.string.version_older_change))
-            }
             Row(
                 Modifier.weight(1f).clip(MaterialTheme.shapes.large).clickable(onClickLabel = stringResource(Res.string.reader_versions_title), onClick = onShowAll)
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                ChangeThumb(newer, older, Modifier.size(width = 40.dp, height = 40.dp))
                 Column(Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(friendlyDateTime(newer.timestamp), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
-                        if (selectedIndex == 0) {
-                            Text(
-                                stringResource(Res.string.version_latest),
-                                Modifier.clip(MaterialTheme.shapes.small).background(MaterialTheme.colorScheme.primary).padding(horizontal = 6.dp, vertical = 1.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                            )
-                        }
-                    }
-                    if (older != null) {
-                        Text(
-                            stringResource(Res.string.version_compared_with, friendlyDateTime(older.timestamp)),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
+                    Text(friendlyDateTime(newer.timestamp), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    val versus = older?.let { stringResource(Res.string.version_compared_with, friendlyDateTime(it.timestamp)) }
+                    Text(
+                        listOfNotNull(if (selectedIndex == 0) stringResource(Res.string.version_latest) else null, versus).joinToString(" · "),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
-                Icon(Icons.Rounded.UnfoldMore, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            IconButton(onClick = { onSelect(selectedIndex - 1) }, enabled = canNewer) {
-                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, stringResource(Res.string.version_newer_change))
+                Icon(Icons.Rounded.KeyboardArrowDown, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -473,7 +453,17 @@ private fun ChangeThumb(snap: Snap, previous: Snap?, modifier: Modifier = Modifi
             val lead = (preview as? com.bernaferrari.changedetection.preview.ChangePreview.Crop)?.lead
             bytes?.let { data ->
                 if (lead != null) {
-                    com.bernaferrari.changedetection.ui.kit.CroppedImage(data, com.bernaferrari.changedetection.image.ChangedBounds(lead.left, lead.afterTop, lead.right, lead.afterBottom), Modifier.fillMaxSize())
+                    // Only the changed rectangle is decoded (cached), not the whole page.
+                    val top = if (lead.kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed) lead.beforeTop else lead.afterTop
+                    val bottom = if (lead.kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed) lead.beforeBottom else lead.afterBottom
+                    val source = if (lead.kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed) previous?.snapId else snap.snapId
+                    val sourceBytes by produceState<ByteArray?>(null, source) {
+                        value = source?.let { id -> runCatching { com.bernaferrari.changedetection.ui.kit.optional<com.bernaferrari.changedetection.repo.source.SnapsRepository>()?.getSnapContent(id) }.getOrNull() }
+                    }
+                    val crop by produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, sourceBytes, top, bottom) {
+                        value = sourceBytes?.let { com.bernaferrari.changedetection.image.CropCache.get(it, 0f, top, 1f, bottom, 256) }
+                    }
+                    crop?.let { androidx.compose.foundation.Image(it, null, Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
                 } else {
                     com.bernaferrari.changedetection.ui.kit.CaptureTop(snap.snapId, Modifier.fillMaxSize(), decodeWidth = 240)
                 }
@@ -510,16 +500,19 @@ private fun ReaderBar(reader: ChangeCursor, showNav: Boolean, canMarkRead: Boole
             shadowElevation = 3.dp,
         ) {
             BoxWithConstraints(Modifier.padding(6.dp)) {
-                val stacked = canMarkRead && (maxWidth < 360.dp || LocalDensity.current.fontScale > 1.3f)
+                // Always one row: with large text or a narrow screen the position reads "2 / 9" instead of a sentence.
+                val compact = maxWidth < 360.dp || LocalDensity.current.fontScale > 1.3f
                 val navigation: @Composable (Modifier) -> Unit = { modifier ->
                     Row(modifier.heightIn(min = 52.dp), verticalAlignment = Alignment.CenterVertically) {
                         val colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
                         IconButton(onClick = { scope.launch { reader.go(-1) } }, enabled = reader.current > 0, colors = colors) {
                             Icon(Icons.Rounded.KeyboardArrowUp, stringResource(Res.string.reader_previous))
                         }
+                        val position = stringResource(Res.string.reader_position, reader.current + 1, reader.changeCount)
                         Text(
-                            stringResource(Res.string.reader_position, reader.current + 1, reader.changeCount),
-                            Modifier.weight(1f),
+                            if (compact) "${reader.current + 1} / ${reader.changeCount}" else position,
+                            Modifier.weight(1f).semantics { contentDescription = position },
+                            maxLines = 1,
                             style = MaterialTheme.typography.titleSmall,
                             textAlign = TextAlign.Center,
                         )
@@ -539,16 +532,9 @@ private fun ReaderBar(reader: ChangeCursor, showNav: Boolean, canMarkRead: Boole
                         Text(stringResource(Res.string.mark_read_short))
                     }
                 }
-                if (stacked) {
-                    Column(Modifier.fillMaxWidth()) {
-                        navigation(Modifier.fillMaxWidth())
-                        readButton(Modifier.fillMaxWidth())
-                    }
-                } else {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        navigation(Modifier.weight(1f))
-                        if (canMarkRead) readButton(Modifier)
-                    }
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    navigation(Modifier.weight(1f))
+                    if (canMarkRead) readButton(Modifier)
                 }
             }
         }

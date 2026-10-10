@@ -382,11 +382,20 @@ internal object VisualRegions {
         val b = if (showsBefore) range(region.beforeTop, region.beforeBottom, beforeBlank) else null
         val a = if (showsAfter) range(region.afterTop, region.afterBottom, afterBlank) else null
         if (b == null && a == null) return null
+        // A "changed" area whose one side is empty (a story replaced by a blank, still-loading slot) is really
+        // content that appeared or disappeared: show it as such instead of an empty crop.
+        val kind = when {
+            region.kind != VisualRegion.Kind.Changed -> region.kind
+            a == null -> VisualRegion.Kind.Removed
+            b == null -> VisualRegion.Kind.Added
+            else -> region.kind
+        }
         return region.copy(
+            kind = kind,
             beforeTop = b?.first?.toFloat()?.div(beforeBlank.size) ?: region.beforeTop,
             beforeBottom = b?.second?.toFloat()?.div(beforeBlank.size) ?: if (showsBefore) region.beforeTop else region.beforeBottom,
             afterTop = a?.first?.toFloat()?.div(afterBlank.size) ?: region.afterTop,
-            afterBottom = a?.second?.toFloat()?.div(afterBlank.size) ?: if (showsAfter) region.afterTop else region.afterBottom,
+            afterBottom = a?.second?.toFloat()?.div(afterBlank.size) ?: region.afterTop,
         )
     }
 

@@ -13,7 +13,7 @@
     <string name="image_diff_dimensions_supporting">Compara las capturas de abajo; sus distintos tamaños impiden comparar los píxeles directamente.</string>
     <string name="turbo_card_cadence">Cada %1$s · %2$s</string>
     <string name="preview_before">Antes</string>
-    <string name="preview_after">Después</string>
+    <string name="preview_after">Ahora</string>
     <string name="preview_first_version">Primera versión guardada. Los cambios aparecerán aquí.</string>
     <string name="preview_invisible">Solo cambiaron partes ocultas</string>
     <string name="preview_invisible_body">Scripts o marcado, sin cambios en el contenido legible</string>
@@ -34,14 +34,6 @@
     <plurals name="home_failing">
         <item quantity="one">No se puede comprobar %1$d página</item>
         <item quantity="other">No se pueden comprobar %1$d páginas</item>
-    </plurals>
-    <plurals name="home_status_ok">
-        <item quantity="one">%1$d página · última comprobación %2$s</item>
-        <item quantity="other">%1$d páginas · última comprobación %2$s</item>
-    </plurals>
-    <plurals name="home_status_waiting">
-        <item quantity="one">%1$d página · esperando la primera comprobación</item>
-        <item quantity="other">%1$d páginas · esperando la primera comprobación</item>
     </plurals>
     <string name="home_search">Buscar páginas</string>
     <string name="home_search_hint">Busca en tus páginas</string>

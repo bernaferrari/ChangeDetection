@@ -68,6 +68,6 @@ class KitAccessibilityTest {
         compose.setContent {
             ChangeDetectionTheme(darkTheme = false, dynamicColor = false) { DiffText(text) }
         }
-        compose.onNodeWithContentDescription("Price  Before: 1599.  After: 1349. ").assertExists()
+        compose.onNodeWithContentDescription("Price  Before: 1599.  Now: 1349. ").assertExists()
     }
 }
