@@ -289,7 +289,7 @@ private fun PickerPanel(
                     Text(
                         when {
                             current == null -> stringResource(Res.string.picker_hint)
-                            current.text.isNotBlank() -> "“${current.text}”"
+                            current.text.isNotBlank() -> "“${current.text.trim()}”"
                             current.tag in setOf("img", "picture", "video", "svg", "canvas") -> stringResource(Res.string.picker_selected_image)
                             current.tag == "iframe" -> stringResource(Res.string.picker_selected_frame)
                             else -> stringResource(Res.string.picker_selected_area)
