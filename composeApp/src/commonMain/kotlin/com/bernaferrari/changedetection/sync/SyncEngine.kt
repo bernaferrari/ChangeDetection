@@ -207,6 +207,18 @@ open class SyncEngine(
         }
     }
 
+    /** Unknown (undecodable, different widths) counts as changed, so nothing is ever silently dropped. */
+    private suspend fun visiblyChanged(before: ByteArray, after: ByteArray): Boolean {
+        val change = try {
+            com.bernaferrari.changedetection.image.computeVisualChange(before, after)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            null
+        } ?: return true
+        return change.regions.isNotEmpty() || kotlin.math.abs(change.heightDelta) > 0.002f
+    }
+
     private suspend fun processSuccessResult(
         site: Site,
         incoming: FetchResult.Success,
@@ -253,6 +265,10 @@ open class SyncEngine(
             } catch (error: Exception) {
                 return processErrorResult(site, FetchResult.Error("Could not compare screenshots", error))
             }
+        } else if (result.contentType.startsWith("image/", true) && !isFirstSnap && hasContentChanged && !explicitRule) {
+            // A new screenshot only counts when something visible changed. Re-rendering noise changes the bytes
+            // (and would otherwise be saved and notified) while the comparison would find nothing to show.
+            visiblyChanged(fileStorage.readBytes(requireNotNull(lastSnap).snapId), result.data)
         } else {
             visualThreshold > 0 || explicitRule || isFirstSnap || threshold <= 0 || !hasContentChanged ||
                 ContentHasher.changedByteCount(result.data, fileStorage.readBytes(lastSnap!!.snapId), result.contentType) >= threshold

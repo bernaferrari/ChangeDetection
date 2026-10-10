@@ -32,6 +32,7 @@
     <string name="checks_ios_note">iOS decide quando eseguire i controlli in background, di solito qualche volta al giorno. Aprendo l’app, ciò che è in scadenza viene controllato subito.</string>
     <string name="turbo_sheet_caption_open">Termina alle %1$s · funziona finché l’app resta aperta</string>
     <string name="picker_title">Scegli parti</string>
+    <string name="picker_title_short">Parti</string>
     <string name="picker_hint">Tocca una parte della pagina.</string>
     <string name="picker_smaller">Più piccola</string>
     <string name="picker_larger">Più grande</string>
@@ -74,4 +75,9 @@
     <string name="detail_sign_in">Accedi</string>
     <string name="browser_session_note">Hai fatto l’accesso qui? I controlli usano questa sessione.</string>
     <string name="turbo_next_check">Prossimo controllo tra %1$d s</string>
+    <string name="picker_selected_image">Un’immagine</string>
+    <string name="picker_selected_frame">Un riquadro incorporato (spesso una pubblicità)</string>
+    <string name="picker_selected_area">Un’area senza testo</string>
+    <string name="preview_nothing_visible">Niente di visibile è cambiato</string>
+    <string name="preview_nothing_visible_body">La pagina si è solo spostata o è stata ridisegnata</string>
 </resources>

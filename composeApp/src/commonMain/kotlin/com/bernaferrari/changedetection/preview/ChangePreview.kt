@@ -71,6 +71,9 @@ sealed interface ChangePreview {
     /** The content changed, but not in a way that is visible as text (scripts, markup, whitespace). */
     data object Invisible : ChangePreview
 
+    /** Two screenshots that differ only by re-rendering or movement: nothing visible changed. */
+    data object NothingVisible : ChangePreview
+
     /** Screenshot pages: the two captures plus the box around changed pixels. */
     data class Crop(
         val beforeSnapId: String,
@@ -141,7 +144,7 @@ class ChangePreviewRepository(
             )
             if (diff.error != null && diff.dimensionMismatch == null) return ChangePreview.Unavailable
             val visual = diff.visualChange ?: computeVisualChange(snaps.getSnapContent(before.snapId), snaps.getSnapContent(after.snapId))
-            if (visual != null && visual.regions.isEmpty()) return ChangePreview.Invisible
+            if (visual != null && visual.regions.isEmpty()) return ChangePreview.NothingVisible
             return ChangePreview.Crop(
                 beforeSnapId = before.snapId,
                 afterSnapId = after.snapId,

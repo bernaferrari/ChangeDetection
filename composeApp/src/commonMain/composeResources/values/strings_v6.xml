@@ -60,9 +60,9 @@
     <string name="home_schedule_turn_on">Turn on</string>
     <string name="home_row_checking">Checking…</string>
     <string name="home_row_paused">Paused</string>
-    <string name="home_row_waiting">waiting for first check</string>
-    <string name="home_row_no_changes">no changes yet</string>
-    <string name="home_row_changed">changed %1$s</string>
+    <string name="home_row_waiting">Waiting for first check</string>
+    <string name="home_row_no_changes">No changes yet</string>
+    <string name="home_row_changed">Changed %1$s</string>
     <string name="badge_new">New</string>
     <string name="mark_read_short">Mark read</string>
     <string name="preview_percent">%1$s% of the page changed</string>
@@ -72,7 +72,7 @@
         <item quantity="other">+%1$d more changes</item>
     </plurals>
     <string name="empty_title">Stop refreshing. We’ll tell you what changed.</string>
-    <string name="empty_body">Paste any link. We check it from this device and highlight exactly what changes. No account needed: your pages stay on this device.</string>
+    <string name="empty_body">Open any page, sign in if it needs it, and we’ll show you exactly what changed, right on the page. No account needed: everything stays on this device.</string>
     <string name="empty_clipboard_label">Copied link</string>
     <string name="empty_watch">Watch</string>
     <string name="turbo_hours_left">%1$d h %2$d min left</string>
@@ -283,7 +283,7 @@
     <string name="editor_review_title">Review</string>
     <string name="editor_start">Start watching</string>
     <string name="editor_paste_title">What should we watch?</string>
-    <string name="editor_paste_body">Paste a link and you’ll see exactly what we’ll compare before anything is saved.</string>
+    <string name="editor_paste_body">Type an address or paste a link. The page opens in a browser so you can sign in, find the exact page and pick the parts that matter.</string>
     <string name="editor_use_link">Use</string>
     <string name="editor_compare">Compare</string>
     <string name="editor_preview">What we’ll compare</string>

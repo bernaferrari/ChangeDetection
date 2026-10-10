@@ -120,6 +120,12 @@ fun ChangeDetectionApp(
     onInitialSnapIdHandled: () -> Unit = {},
     onInitialUrlHandled: () -> Unit = {},
 ) {
+    // Page icons: fetched once, then served from Coil's memory and disk caches.
+    coil3.compose.setSingletonImageLoaderFactory { context ->
+        coil3.ImageLoader.Builder(context)
+            .components { add(coil3.network.ktor3.KtorNetworkFetcherFactory()) }
+            .build()
+    }
     val backStack = rememberNavBackStack(appNavSavedStateConfiguration, MainDestination)
     val mainViewModel: MainViewModel = koinViewModel()
     var turboSetup by remember { mutableStateOf<Set<String>?>(null) }

@@ -12,10 +12,7 @@ import kotlinx.serialization.Serializable
  * Inspired from Architecture Components MVVM sample app
  */
 @Serializable
-@Entity(
-    tableName = "sites",
-    indices = [(Index(value = ["siteId"], unique = true))],
-)
+@Entity(tableName = "sites")
 @ColumnTypeConverters(
     Site.ConstraintsConverter::class,
     Site.PairConverter::class,
@@ -49,6 +46,9 @@ data class Site(
     val textExcludeSelector: String = "",
     @ColumnInfo(defaultValue = "0")
     val visualChangeThresholdBps: Int = 0,
+    /** The page's own icon (apple-touch-icon or favicon), found while capturing; blank until the first capture. */
+    @ColumnInfo(defaultValue = "''")
+    val iconUrl: String = "",
 ) {
     /** Zero disables filtering; one basis point is 0.01% of sampled pixels. */
     fun visualFilterBasisPoints(): Int = if (captureMode == CaptureMode.SCREENSHOT || captureMode == CaptureMode.DEFAULT) {

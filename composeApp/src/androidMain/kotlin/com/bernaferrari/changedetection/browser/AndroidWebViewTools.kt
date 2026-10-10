@@ -19,6 +19,7 @@ data class WebViewScreenshot(
     val width: Int,
     val height: Int,
     val title: String? = null,
+    val icon: String? = null,
 )
 
 internal fun WebView.configureChangeDetectionWebView(

@@ -31,6 +31,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.ContentScale
@@ -54,6 +56,8 @@ import com.bernaferrari.changedetection.shared.generated.resources.preview_befor
 import com.bernaferrari.changedetection.shared.generated.resources.preview_first_version
 import com.bernaferrari.changedetection.shared.generated.resources.preview_invisible
 import com.bernaferrari.changedetection.shared.generated.resources.preview_invisible_body
+import com.bernaferrari.changedetection.shared.generated.resources.preview_nothing_visible
+import com.bernaferrari.changedetection.shared.generated.resources.preview_nothing_visible_body
 import com.bernaferrari.changedetection.shared.generated.resources.preview_large
 import com.bernaferrari.changedetection.shared.generated.resources.preview_numbers_only
 import com.bernaferrari.changedetection.shared.generated.resources.visual_added
@@ -134,6 +138,7 @@ fun previewLabel(preview: ChangePreview?): String = when (preview) {
     is ChangePreview.Crop -> cropSummary(preview)
     is ChangePreview.Large -> largeSummary(preview)
     ChangePreview.Invisible -> stringResource(Res.string.preview_invisible)
+    ChangePreview.NothingVisible -> stringResource(Res.string.preview_nothing_visible)
     ChangePreview.FirstVersion -> stringResource(Res.string.label_first_version)
     ChangePreview.Unavailable -> stringResource(Res.string.label_saved)
 }
@@ -149,9 +154,19 @@ fun ChangePreviewBlock(preview: ChangePreview?, modifier: Modifier = Modifier, c
         label = "preview",
     ) { current ->
         when (current) {
-            null -> Box(
-                Modifier.fillMaxWidth().height(64.dp).clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow),
-            )
+            // Comparing two full-page captures takes a moment; a gentle pulse says it is on its way.
+            null -> {
+                val pulse = androidx.compose.animation.core.rememberInfiniteTransition(label = "preview-loading")
+                val alpha by pulse.animateFloat(
+                    initialValue = 0.45f,
+                    targetValue = 1f,
+                    animationSpec = androidx.compose.animation.core.infiniteRepeatable(androidx.compose.animation.core.tween(900), androidx.compose.animation.core.RepeatMode.Reverse),
+                    label = "preview-loading-alpha",
+                )
+                Box(
+                    Modifier.fillMaxWidth().height(cropHeight).graphicsLayer { this.alpha = alpha }.clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow),
+                )
+            }
 
             is ChangePreview.Words -> Column(
                 Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(horizontal = 14.dp, vertical = 12.dp),
@@ -178,6 +193,7 @@ fun ChangePreviewBlock(preview: ChangePreview?, modifier: Modifier = Modifier, c
             }
 
             ChangePreview.Invisible -> QuietFact(Icons.Outlined.VisibilityOff, stringResource(Res.string.preview_invisible), stringResource(Res.string.preview_invisible_body))
+            ChangePreview.NothingVisible -> QuietFact(Icons.Outlined.VisibilityOff, stringResource(Res.string.preview_nothing_visible), stringResource(Res.string.preview_nothing_visible_body))
 
             ChangePreview.FirstVersion -> Text(stringResource(Res.string.preview_first_version), Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(14.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
@@ -352,3 +368,29 @@ fun CroppedImage(bytes: ByteArray, bounds: ChangedBounds?, modifier: Modifier = 
 
 /** Resolves a dependency when the app's container is running; previews and UI tests may not have one. */
 internal inline fun <reified T : Any> optional(): T? = KoinPlatformTools.defaultContext().getOrNull()?.getOrNull<T>()
+
+/**
+ * The top of a saved capture, cropped to fill [modifier]. Decoded small and cached by snapshot, so long
+ * full-page screenshots stay cheap in lists.
+ */
+@Composable
+fun CaptureTop(snapId: String, modifier: Modifier, alpha: Float = 1f, decodeWidth: Int = 720) {
+    val bytes by produceState<ByteArray?>(null, snapId) {
+        value = runCatching { optional<com.bernaferrari.changedetection.repo.source.SnapsRepository>()?.getSnapContent(snapId) }.getOrNull()
+    }
+    val context = coil3.compose.LocalPlatformContext.current
+    Box(modifier.background(androidx.compose.ui.graphics.Color.White)) {
+        bytes?.let { data ->
+            coil3.compose.AsyncImage(
+                model = remember(snapId, decodeWidth) {
+                    coil3.request.ImageRequest.Builder(context).data(data).memoryCacheKey("top-$snapId-$decodeWidth").size(coil3.size.Size(coil3.size.Dimension(decodeWidth), coil3.size.Dimension.Undefined)).build()
+                },
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                alignment = Alignment.TopCenter,
+                alpha = alpha,
+                modifier = Modifier.matchParentSize(),
+            )
+        }
+    }
+}

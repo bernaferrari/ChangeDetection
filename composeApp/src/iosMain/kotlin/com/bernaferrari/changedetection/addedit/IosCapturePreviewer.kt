@@ -24,6 +24,6 @@ class IosCapturePreviewer(engine: SyncEngine, private val preferences: DataStore
         val defaultMethod = ComparisonMethod.entries.firstOrNull { it.name == settings[SettingsViewModel.COMPARISON_METHOD_KEY] } ?: ComparisonMethod.SCREENSHOT
         if (mode.resolve(defaultMethod) == ComparisonMethod.HTML) return html.capture(url, mode, region)
         val png = IosPageCapture.capture(url, settings[SettingsViewModel.BROWSER_DELAY_KEY] ?: 2_500L, hide = region.exclude, only = region.include)
-        return CapturePreview.Image(png, IosPageCapture.lastTitle?.let { cleanTitle(it) })
+        return CapturePreview.Image(png, IosPageCapture.lastTitle?.let { cleanTitle(it) }, IosPageCapture.lastIcon)
     }
 }

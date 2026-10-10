@@ -4,6 +4,8 @@
  */
 package com.bernaferrari.changedetection.ui.kit
 
+import io.ktor.http.hostWithPortIfSpecified
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.toggleable
@@ -30,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -84,6 +87,8 @@ fun PageAvatar(
     modifier: Modifier = Modifier,
     size: Dp = 40.dp,
     dimmed: Boolean = false,
+    /** The page's icon; the letter shows while it loads, or if the page has none. */
+    icon: String? = null,
 ) {
     val tints = MaterialTheme.marks.identity
     val hash = remember(key) { mixHash(key.hashCode()) }
@@ -91,20 +96,47 @@ fun PageAvatar(
     val shape = AvatarShapes[(hash ushr 4) % AvatarShapes.size].toShape()
     val letter = remember(name) { name.trim().firstOrNull { it.isLetterOrDigit() }?.uppercaseChar()?.toString() ?: "•" }
     val dark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val context = coil3.compose.LocalPlatformContext.current
+    val painter = icon?.takeIf { it.startsWith("http") && LocalPageIcons.current }?.let { url ->
+        coil3.compose.rememberAsyncImagePainter(remember(url) { coil3.request.ImageRequest.Builder(context).data(url).size(192).build() })
+    }
+    val loaded = painter?.state?.collectAsState()?.value is coil3.compose.AsyncImagePainter.State.Success
     Box(
         modifier
             .size(size)
             .clip(shape)
-            .background(if (dimmed) MaterialTheme.colorScheme.surfaceContainerHighest else tint),
+            // Icons are drawn for light backgrounds, so they sit on a light tile in both themes.
+            .background(if (loaded) IconTile else if (dimmed) MaterialTheme.colorScheme.surfaceContainerHighest else tint),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            letter,
-            style = MaterialTheme.typography.titleMedium.copy(fontSize = (size.value * 0.4f).sp, fontWeight = FontWeight.Bold),
-            color = (if (dark) Color.White else Color(0xFF1B1B21)).copy(alpha = if (dimmed) 0.45f else 0.92f),
-        )
+        if (painter != null) {
+            androidx.compose.foundation.Image(
+                painter,
+                contentDescription = null,
+                modifier = Modifier.size(size * 0.6f).clip(RoundedCornerShape(size * 0.14f)),
+                alpha = if (!loaded) 0f else if (dimmed) 0.45f else 1f,
+            )
+        }
+        if (!loaded) {
+            Text(
+                letter,
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = (size.value * 0.4f).sp, fontWeight = FontWeight.Bold),
+                color = (if (dark) Color.White else Color(0xFF1B1B21)).copy(alpha = if (dimmed) 0.45f else 0.92f),
+            )
+        }
     }
 }
+
+private val IconTile = Color(0xFFF6F6FA)
+
+/** Page icons come from the network; offline UI tests turn them off so nothing waits on a request. */
+val LocalPageIcons = androidx.compose.runtime.staticCompositionLocalOf { true }
+
+/** The page's saved icon, or its site's /favicon.ico until a capture finds a better one. */
+fun Site.avatarIcon(): String? = iconUrl.takeIf { it.startsWith("http") } ?: runCatching {
+    val parsed = io.ktor.http.Url(url)
+    if (parsed.host.isBlank()) null else "${parsed.protocol.name}://${parsed.hostWithPortIfSpecified}/favicon.ico"
+}.getOrNull()
 
 /** Spreads similar keys apart so neighbouring pages rarely share a tint or shape. */
 private fun mixHash(value: Int): Int {

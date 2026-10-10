@@ -60,7 +60,11 @@ class VisualFilterJourneyTest {
             assertTrue(engine.processFetchResult(healthy, SyncEngine.FetchResult.Success("image/png", png(101, 1000))) is SyncResult.Skipped)
             assertEquals(saved, db.snapsDao().getLastSnapForSiteId(site.id))
             db.siteDao().updateSite(updated.copy(visualChangeThresholdBps = 0))
-            assertTrue((capture(201, 101) as SyncResult.Success).hadChanges)
+            // Without a filter, one stray pixel is still re-rendering noise: not saved, not notified.
+            assertFalse((capture(201, 101) as SyncResult.Success).hadChanges)
+            assertEquals(3, notices.size)
+            // Anything visible is: a block with real detail (solid bands read as empty space, like a blank ad slot).
+            assertTrue((engine.processFetchResult(requireNotNull(db.siteDao().getSiteById(site.id)), SyncEngine.FetchResult.Success("image/png", png(101, 201, detail = true))) as SyncResult.Success).hadChanges)
             assertEquals(4, notices.size)
         } finally {
             client.close()
@@ -69,10 +73,12 @@ class VisualFilterJourneyTest {
         }
     }
 
-    private fun png(width: Int, changedPixels: Int): ByteArray {
+    private fun png(width: Int, changedPixels: Int, detail: Boolean = false): ByteArray {
         val image = BufferedImage(width, 100, BufferedImage.TYPE_INT_RGB)
         return try {
             repeat(changedPixels) { index -> image.setRGB(index % width, index / width, 0xffffff) }
+            // A small checkered patch, like a few glyphs of text.
+            if (detail) for (y in 40 until 52) for (x in 30 until 60) if ((x + y) % 3 == 0) image.setRGB(x, y, 0xffffff)
             ByteArrayOutputStream().use { output ->
                 check(ImageIO.write(image, "png", output))
                 output.toByteArray()

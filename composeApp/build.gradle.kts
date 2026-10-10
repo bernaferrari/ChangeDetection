@@ -116,15 +116,16 @@ kotlin {
             // Core
             implementation(libs.jetbrains.androidx.savedstate)
             implementation(libs.jetbrains.androidx.window.core)
+            // Page icons
+            implementation(libs.coil.compose)
+            implementation(libs.coil.core)
+            implementation(libs.coil.network.ktor3)
         }
         androidMain.dependencies {
             implementation(libs.koin.android)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.koin.workmanager)
-            implementation(libs.coil.compose)
-            implementation(libs.coil.core)
-            implementation(libs.coil.network.ktor3)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.androidx.activity.compose)

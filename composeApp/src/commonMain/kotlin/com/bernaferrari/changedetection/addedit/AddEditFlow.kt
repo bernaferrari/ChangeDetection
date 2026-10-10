@@ -85,6 +85,7 @@ fun AddEditFlow(
                 url = uiState.url,
                 urlError = uiState.urlError,
                 title = uiState.title,
+                iconUrl = uiState.iconUrl,
                 isEditing = siteId != null,
                 isSaving = uiState.isSaving,
                 saveError = uiState.saveError,

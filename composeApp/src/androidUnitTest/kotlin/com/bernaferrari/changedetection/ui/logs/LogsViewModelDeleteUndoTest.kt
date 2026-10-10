@@ -336,6 +336,7 @@ class LogsViewModelDeleteUndoTest {
 
     private class FakeSitesDao : SitesDao {
         override suspend fun updateMonitoringOptions(siteId: String, enabled: Boolean, notifications: Boolean) = Unit
+        override suspend fun updateIcon(siteId: String, iconUrl: String) = Unit
         val sites = mutableMapOf<String, Site>()
 
         override suspend fun getSitesList(): List<Site> = emptyList()

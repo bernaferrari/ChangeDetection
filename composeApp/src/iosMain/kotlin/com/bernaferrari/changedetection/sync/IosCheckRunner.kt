@@ -27,6 +27,7 @@ class IosCheckRunner(
         if (site.captureMode.resolve(defaultMethod) == ComparisonMethod.HTML) return engine.syncSite(siteId)
         return try {
             val png = IosPageCapture.capture(site.url, settings[SettingsViewModel.BROWSER_DELAY_KEY] ?: DEFAULT_SETTLE_MS, hide = site.textExcludeSelector, only = site.textIncludeSelector)
+            IosPageCapture.lastIcon?.let { sites.updateIcon(site.id, it) }
             engine.processFetchResult(site, SyncEngine.FetchResult.Success("image/png", png), site.threshold)
         } catch (cancelled: CancellationException) {
             throw cancelled

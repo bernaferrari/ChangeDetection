@@ -49,7 +49,7 @@ class CreationJourneyUiTest {
             var url by remember { mutableStateOf("") }
             var title by remember { mutableStateOf("") }
             ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
-                androidx.compose.runtime.CompositionLocalProvider(LocalBrowserAvailable provides false) {
+                androidx.compose.runtime.CompositionLocalProvider(LocalBrowserAvailable provides false, com.bernaferrari.changedetection.ui.kit.LocalPageIcons provides false) {
                     Box(Modifier.width(390.dp).height(844.dp)) {
                         AddEditConfirmScreen(
                             url = url, urlError = null, title = title, captureMode = CaptureMode.TEXT,

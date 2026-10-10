@@ -67,7 +67,7 @@ class DesktopAppJourneyTest {
         try {
             compose.setContent {
                 CompositionLocalProvider(LocalViewModelStoreOwner provides owner, LocalLifecycleOwner provides lifecycleOwner) {
-                    androidx.compose.runtime.CompositionLocalProvider(com.bernaferrari.changedetection.addedit.LocalBrowserAvailable provides false) { ChangeDetectionRootApp(PlatformActions(appVersion = "Journey test")) }
+                    androidx.compose.runtime.CompositionLocalProvider(com.bernaferrari.changedetection.addedit.LocalBrowserAvailable provides false, com.bernaferrari.changedetection.ui.kit.LocalPageIcons provides false) { ChangeDetectionRootApp(PlatformActions(appVersion = "Journey test")) }
                 }
             }
             compose.waitForIdle()

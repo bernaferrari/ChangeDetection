@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <style name="Theme.ChangeDetection" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/launch_surface</item>
+    </style>
+    <color name="launch_surface">#1D1B22</color>
+</resources>

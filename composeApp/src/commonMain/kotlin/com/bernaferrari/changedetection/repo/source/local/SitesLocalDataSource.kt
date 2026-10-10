@@ -50,6 +50,10 @@ class SitesLocalDataSource(
         mSitesDao.updateMonitoringOptions(site.id, site.isSyncEnabled, site.isNotificationEnabled)
     }
 
+    override suspend fun updateIcon(siteId: String, iconUrl: String) = withContext(mAppExecutors.ioContext) {
+        mSitesDao.updateIcon(siteId, iconUrl)
+    }
+
     override suspend fun markSiteRead(siteId: String, snapId: String): Boolean = withContext(mAppExecutors.ioContext) {
         mSitesDao.markSiteRead(siteId, snapId) > 0
     }

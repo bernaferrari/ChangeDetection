@@ -6,6 +6,8 @@
 
 package com.bernaferrari.changedetection.ui.home
 
+import com.bernaferrari.changedetection.ui.kit.avatarIcon
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
@@ -22,6 +24,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.border
+import androidx.compose.runtime.produceState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -664,7 +668,7 @@ private fun ChangeCard(
                 .padding(16.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (selecting) SelectMark(selected) else PageAvatar(row.site.name(), row.site.id, size = 44.dp)
+                if (selecting) SelectMark(selected) else PageAvatar(row.site.name(), row.site.id, size = 44.dp, icon = row.site.avatarIcon())
                 Column(Modifier.weight(1f)) {
                     Text(row.site.name(), style = MaterialTheme.typography.titleMedium, maxLines = if (largeText) 3 else 1, overflow = TextOverflow.Ellipsis)
                     Text(
@@ -745,7 +749,8 @@ private fun PageRow(
     val largeText = LocalDensity.current.fontScale > 1.3f
     val selectLabel = stringResource(Res.string.home_select_page)
     val paused = !site.isSyncEnabled
-    val failing = !paused && !site.isSuccessful
+    // While a new check runs, the last failure is old news: show progress, not an error.
+    val failing = !paused && !site.isSuccessful && !checking
     val background by androidx.compose.animation.animateColorAsState(
         when {
             selected -> MaterialTheme.colorScheme.secondaryContainer
@@ -769,7 +774,7 @@ private fun PageRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        if (selecting) SelectMark(selected) else PageAvatar(site.name(), site.id, dimmed = paused)
+        if (selecting) SelectMark(selected) else PageAvatar(site.name(), site.id, dimmed = paused, icon = site.avatarIcon())
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 site.name(),
@@ -804,8 +809,20 @@ private fun PageRow(
         AnimatedVisibility(checking, enter = fadeIn(), exit = fadeOut()) { LoadingIndicator(Modifier.size(28.dp)) }
         if (!site.isRead && row.snapshotCount > 1 && !checking) {
             Box(Modifier.size(10.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
-        } else if (site.captureMode == CaptureMode.SCREENSHOT && !checking) {
-            Icon(Icons.Outlined.Image, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.outline)
+        } else if (site.captureMode == CaptureMode.SCREENSHOT && !checking && row.snap != null) {
+            CaptureThumb(row.snap.snapId, dimmed = paused)
         }
     }
+}
+
+/** The top of the latest capture, so a screenshot page is recognisable at a glance. */
+@Composable
+private fun CaptureThumb(snapId: String, dimmed: Boolean) {
+    val shape = MaterialTheme.shapes.small
+    com.bernaferrari.changedetection.ui.kit.CaptureTop(
+        snapId,
+        Modifier.size(width = 40.dp, height = 52.dp).clip(shape).border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape),
+        alpha = if (dimmed) 0.5f else 1f,
+        decodeWidth = 160,
+    )
 }

@@ -342,7 +342,7 @@
     <string name="how_it_works_hero_subtitle">O Change Detection verifica as páginas que você escolher e mantém um histórico local para comparação.</string>
     <string name="how_it_works_steps_header">O fluxo</string>
     <string name="how_it_works_step_add_title">Adicione qualquer página</string>
-    <string name="how_it_works_step_add_description">Cole um link ou compartilhe do navegador e dê um nome fácil de reconhecer.</string>
+    <string name="how_it_works_step_add_description">Abra a página no navegador do app (ou compartilhe do seu), entre se precisar e escolha as partes a acompanhar.</string>
     <string name="how_it_works_step_add_highlight">A primeira verificação bem-sucedida salva um ponto de partida. Os alertas começam na próxima mudança.</string>
     <string name="how_it_works_step_monitor_title">Escolha com que frequência verificar</string>
     <string name="how_it_works_step_monitor_description">Use verificações em segundo plano econômicas para o dia a dia.</string>

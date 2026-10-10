@@ -342,7 +342,7 @@
     <string name="how_it_works_hero_subtitle">Change Detection checks the pages you choose and keeps a local history you can compare.</string>
     <string name="how_it_works_steps_header">The flow</string>
     <string name="how_it_works_step_add_title">Add any page</string>
-    <string name="how_it_works_step_add_description">Paste a link or share one from your browser, then give it a recognizable name.</string>
+    <string name="how_it_works_step_add_description">Open the page in the built-in browser (or share it from yours), sign in if needed, and pick the parts to watch.</string>
     <string name="how_it_works_step_add_highlight">The first successful check saves a starting point. Alerts begin with the next change.</string>
     <string name="how_it_works_step_monitor_title">Choose how often to check</string>
     <string name="how_it_works_step_monitor_description">Use battery-friendly background checks for everyday tracking.</string>

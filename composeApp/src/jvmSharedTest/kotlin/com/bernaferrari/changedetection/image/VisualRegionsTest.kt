@@ -45,4 +45,26 @@ class VisualRegionsTest {
         val (before, h) = page(40, listOf(1, 2, 3))
         assertTrue(requireNotNull(VisualRegions.compare(before, h, before.copyOf(), h, 40)).regions.isEmpty())
     }
+
+    /** A wide line of text where only one small glyph changes, like a single digit of a price. */
+    @Test fun oneChangedDigitInAWideRowIsAChange() {
+        val width = 360
+        val (before, h) = page(width, listOf(1, 2, 3))
+        val after = before.copyOf()
+        // A 6 x 5 dense glyph change inside block 2 (rows 10..15): 30 pixels in a 360-wide band.
+        for (y in 11..15) for (x in 200..205) after[y * width + x] = if (after[y * width + x] == ink) white else ink
+        val change = requireNotNull(VisualRegions.compare(before, h, after, h, width))
+        val region = change.regions.single()
+        assertEquals(VisualRegion.Kind.Changed, region.kind)
+        assertTrue(region.left <= 200f / width && region.right >= 206f / width)
+    }
+
+    /** Anti-aliasing jitter: a few isolated pixels spread across a wide row are not a change. */
+    @Test fun scatteredSinglePixelsAreNoise() {
+        val width = 360
+        val (before, h) = page(width, listOf(1, 2, 3))
+        val after = before.copyOf()
+        for (x in 0 until width step 40) after[12 * width + x] = if (after[12 * width + x] == ink) white else ink
+        assertTrue(requireNotNull(VisualRegions.compare(before, h, after, h, width)).regions.isEmpty())
+    }
 }

@@ -24,16 +24,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Entity(
     tableName = "snaps",
+    // Every history query is "this page, newest first", so the main index matches that order exactly.
     indices = [
-        (Index(value = ["siteId", "snapId"], unique = true)),
-        (Index(value = ["siteId", "timestamp"], name = "index_snaps_siteId_timestamp")),
-        (Index(value = ["siteId", "contentType"], name = "index_snaps_siteId_contentType")),
-        (Index(value = ["timestamp"], name = "index_snaps_timestamp")),
-        (Index(value = ["contentType"], name = "index_snaps_contentType")),
+        (Index(value = ["siteId", "timestamp", "snapId"], name = "index_snaps_siteId_timestamp_snapId")),
         (Index(value = ["siteId", "contentType", "timestamp"], name = "index_snaps_composite")),
-        (Index(value = ["contentHash"], name = "index_snaps_contentHash")),
-        (Index(value = ["processedContentHash"], name = "index_snaps_processedContentHash")),
         (Index(value = ["siteId", "contentHash"], name = "index_snaps_siteId_contentHash")),
+        (Index(value = ["timestamp"], name = "index_snaps_timestamp")),
     ],
     foreignKeys = [
         (

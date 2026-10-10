@@ -78,6 +78,7 @@ fun AddEditConfirmScreen(
     url: String,
     urlError: AddEditError?,
     title: String,
+    iconUrl: String = "",
     captureMode: CaptureMode = CaptureMode.DEFAULT,
     onCaptureModeChange: (CaptureMode) -> Unit = {},
     preview: CapturePreviewState = CapturePreviewState.Idle,
@@ -154,7 +155,7 @@ fun AddEditConfirmScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         PagePreviewCard(
-                            url = url, title = title, onTitleChange = onTitleChange, preview = preview, enabled = !isSaving,
+                            url = url, title = title, iconUrl = iconUrl, onTitleChange = onTitleChange, preview = preview, enabled = !isSaving,
                             onRetry = onPreview, onEditAddress = { reviewing = false }, onSelectRegion = null, textRegion = textRegion,
                         )
                         if (browserAvailable) PartsSummary(textRegion.include, ignoredParts.size, onEdit = { reviewing = false; browsing = true })
@@ -322,6 +323,7 @@ fun AddEditConfirmScreen(
                         PagePreviewCard(
                             url = url,
                             title = title,
+                            iconUrl = iconUrl,
                             onTitleChange = onTitleChange,
                             preview = preview,
                             enabled = !isSaving,
@@ -488,6 +490,7 @@ private fun AddressField(url: String, error: String?, enabled: Boolean, focus: F
 private fun PagePreviewCard(
     url: String,
     title: String,
+    iconUrl: String,
     onTitleChange: (String) -> Unit,
     preview: CapturePreviewState,
     enabled: Boolean,
@@ -500,7 +503,7 @@ private fun PagePreviewCard(
     Surface(shape = MaterialTheme.shapes.extraLarge, color = tileColor, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(Modifier.padding(start = 16.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                PageAvatar(title.ifBlank { host }, url.normalizeUrl() ?: url, size = 48.dp)
+                PageAvatar(title.ifBlank { host }, url.normalizeUrl() ?: url, size = 48.dp, icon = iconUrl.ifBlank { null })
                 TextField(
                     value = title,
                     onValueChange = onTitleChange,
