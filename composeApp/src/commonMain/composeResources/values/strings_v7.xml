@@ -73,7 +73,7 @@
         <item quantity="other">%1$d gone</item>
     </plurals>
     <string name="detail_sign_in">Sign in</string>
-    <string name="browser_session_note">Signed in here? Checks reuse this session.</string>
+    <string name="browser_session_note">Signed in to this page? You’ll stay signed in: checks use this browser’s session, on this device.</string>
     <string name="turbo_next_check">Next check in %1$d s</string>
     <string name="picker_selected_image">An image</string>
     <string name="picker_selected_frame">An embedded frame (often an ad)</string>
