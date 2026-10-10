@@ -62,12 +62,12 @@ internal fun HighlightView(afterBytes: ByteArray, regions: List<VisualRegion>, c
     val scope = rememberCoroutineScope()
     val aspect by produceState(0f, afterBytes) { value = imageAspect(afterBytes) }
     val ordered = regions
-    val current = cursor.current
 
     BoxWithConstraints(modifier.background(MaterialTheme.colorScheme.surfaceBright).testTag("highlight-changes")) {
         val density = LocalDensity.current
         val pad = 12.dp
-        val imageWidthPx = with(density) { (maxWidth - pad * 2).toPx() }
+        // Edge to edge, like the page in a browser.
+        val imageWidthPx = with(density) { maxWidth.toPx() }
         val imageHeightPx = if (aspect > 0f) imageWidthPx / aspect else 0f
         val padPx = with(density) { pad.toPx() }
         val viewportPx = with(density) { maxHeight.toPx() }
@@ -94,14 +94,17 @@ internal fun HighlightView(afterBytes: ByteArray, regions: List<VisualRegion>, c
         // After a manual scroll, the bar follows the change nearest to that quarter line.
         LaunchedEffect(ordered, imageHeightPx) {
             if (imageHeightPx <= 0f || ordered.isEmpty()) return@LaunchedEffect
-            snapshotFlow { scroll.isScrollInProgress to scroll.value }.collectLatest { (moving, value) ->
-                if (moving) return@collectLatest
+            // Live while scrolling, like the Changes view.
+            snapshotFlow { scroll.value }.collectLatest { value ->
+                // Scrolling by hand drops the emphasis; only an explicit jump highlights a change.
+                if (cursor.navigating || !scroll.isScrollInProgress) return@collectLatest
+                cursor.emphasized = null
                 val line = (value + viewportPx * 0.25f - padPx) / imageHeightPx
                 cursor.current = ordered.indices.minBy { abs(ordered[it].afterTop - line) }
             }
         }
 
-        Box(Modifier.fillMaxSize().verticalScroll(scroll).padding(start = pad, end = pad, top = pad, bottom = 24.dp)) {
+        Box(Modifier.fillMaxSize().verticalScroll(scroll).padding(top = pad, bottom = 24.dp)) {
             if (aspect > 0f) {
                 Box(Modifier.fillMaxWidth().aspectRatio(aspect)) {
                     SnapshotImage(afterBytes, null, Modifier.fillMaxSize(), ContentScale.FillBounds)
@@ -110,27 +113,27 @@ internal fun HighlightView(afterBytes: ByteArray, regions: List<VisualRegion>, c
                         val accent = 4.dp.toPx()
                         val pad = 4.dp.toPx()
                         ordered.forEachIndexed { index, region ->
-                            val selected = index == current
                             val color = if (region.kind == VisualRegion.Kind.Removed) marks.removed else marks.highlightEdge
                             val top = region.afterTop * size.height - pad
                             val height = if (region.kind == VisualRegion.Kind.Removed) 2.dp.toPx() + pad * 2 else (region.afterBottom - region.afterTop) * size.height + pad * 2
-                            drawRect(color.copy(alpha = if (selected) 0.22f else 0.10f), Offset(0f, top), Size(size.width, height))
-                            drawRect(color, Offset(0f, top), Size(if (selected) accent * 1.5f else accent, height))
+                            // Scrolling never restyles the page; only a change you jumped to (arrows, tap) stands out.
+                            val emphasized = index == cursor.emphasized
+                            drawRect(color.copy(alpha = if (emphasized) 0.28f else 0.14f), Offset(0f, top), Size(size.width, height))
+                            drawRect(color, Offset(0f, top), Size(if (emphasized) accent * 1.5f else accent, height))
                         }
                     }
                     ordered.forEachIndexed { index, region ->
-                        val selected = index == current
                         val y = with(density) { (region.afterTop * imageHeightPx).toDp() }
                         Box(
                             // At the right edge, where it never covers the start of a line.
                             Modifier.align(Alignment.TopEnd).offset(x = (-6).dp, y = y - 11.dp).size(22.dp).clip(CircleShape)
-                                .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest),
+                                .background(MaterialTheme.colorScheme.primary),
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
                                 (index + 1).toString(),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                                color = MaterialTheme.colorScheme.onPrimary,
                             )
                         }
                     }

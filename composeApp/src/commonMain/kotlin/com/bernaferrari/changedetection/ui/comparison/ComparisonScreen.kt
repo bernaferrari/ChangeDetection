@@ -6,6 +6,18 @@
 
 package com.bernaferrari.changedetection.ui.comparison
 
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.SpanStyle
+
+import androidx.compose.material.icons.rounded.ViewAgenda
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.rounded.Compare
+import androidx.compose.material.icons.rounded.Code
+import androidx.compose.material3.FilledIconToggleButton
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.role
+
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.foundation.clickable
@@ -283,9 +295,10 @@ fun ComparisonScreen(
                         )
                     }
                     Column(Modifier.widthIn(max = 720.dp).align(Alignment.CenterHorizontally)) {
-                        VersionNavigator(uiState.snaps, pairIndex, onSelect = { viewModel.selectPairForComparison(it) }, onShowAll = { showVersions = true })
-                        if (modes.size > 1) {
-                            ConnectedChoice(modes, mode, { mode = it }, Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)) { modeLabel(it) }
+                        // One row: which versions (tap to pick another) and how to look at them.
+                        Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 12.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            VersionNavigator(uiState.snaps, pairIndex, onSelect = { viewModel.selectPairForComparison(it) }, onShowAll = { showVersions = true }, modifier = Modifier.weight(1f))
+                            if (modes.size > 1) ModeSwitcher(modes, mode) { mode = it }
                         }
                     }
                     // One readable column on tablets, aligned with the version navigator and modes above.
@@ -409,36 +422,80 @@ private fun modeLabel(mode: ComparisonMode): String = stringResource(
  * every version; the only arrows on screen step through the changes themselves.
  */
 @Composable
-private fun VersionNavigator(snaps: List<Snap>, selectedIndex: Int, onSelect: (Int) -> Unit, onShowAll: () -> Unit) {
+private fun VersionNavigator(snaps: List<Snap>, selectedIndex: Int, onSelect: (Int) -> Unit, onShowAll: () -> Unit, modifier: Modifier = Modifier) {
     val newer = snaps.getOrNull(selectedIndex) ?: return
     val older = snaps.getOrNull(selectedIndex + 1)
     Surface(
         shape = MaterialTheme.shapes.extraLarge,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).testTag("version-navigator"),
+        modifier = modifier.testTag("version-navigator"),
     ) {
-        Row(Modifier.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Row(
-                Modifier.weight(1f).clip(MaterialTheme.shapes.large).clickable(onClickLabel = stringResource(Res.string.reader_versions_title), onClick = onShowAll)
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(friendlyDateTime(newer.timestamp), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    val versus = older?.let { stringResource(Res.string.version_compared_with, friendlyDateTime(it.timestamp)) }
-                    Text(
-                        listOfNotNull(if (selectedIndex == 0) stringResource(Res.string.version_latest) else null, versus).joinToString(" · "),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+        // One line, as tall as the mode icons: "Today, 16:48 · vs 16:12". The older side drops its day when it is
+        // the same day, so the line stays short.
+        val sameDay = older != null && newer.timestamp.localDate() == older.timestamp.localDate()
+        val olderLabel = older?.let { if (sameDay) formatTime(it.timestamp) else friendlyDateTime(it.timestamp) }
+        // Today needs no word: "16:48 · since 16:12".
+        val today = newer.timestamp.localDate() == com.bernaferrari.changedetection.util.getCurrentTimeMillis().localDate()
+        val newerLabel = if (today) formatTime(newer.timestamp) else friendlyDateTime(newer.timestamp)
+        Row(
+            Modifier.heightIn(min = 52.dp).clip(MaterialTheme.shapes.extraLarge)
+                .clickable(onClickLabel = stringResource(Res.string.reader_versions_title), onClick = onShowAll)
+                .padding(start = 16.dp, end = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                buildAnnotatedString {
+                    withStyle(SpanStyle(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)) { append(newerLabel) }
+                    if (olderLabel != null) {
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) { append(" · " + stringResource(Res.string.version_compared_with, olderLabel)) }
+                    }
+                },
+                Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Icon(Icons.Rounded.KeyboardArrowDown, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+/** The ways to look at a comparison, as icons: their names are short on meaning, the icons say it at a glance. */
+@Composable
+private fun ModeSwitcher(modes: List<ComparisonMode>, selected: ComparisonMode, onSelect: (ComparisonMode) -> Unit) {
+    Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+        Row(Modifier.padding(4.dp).selectableGroup(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+            modes.forEach { mode ->
+                val label = modeLabel(mode)
+                val isSelected = mode == selected
+                FilledIconToggleButton(
+                    checked = isSelected,
+                    onCheckedChange = { if (it) onSelect(mode) },
+                    modifier = Modifier.size(44.dp).semantics {
+                        role = androidx.compose.ui.semantics.Role.RadioButton
+                        this.selected = isSelected
+                        contentDescription = label
+                    },
+                    colors = IconButtonDefaults.filledIconToggleButtonColors(
+                        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        checkedContainerColor = MaterialTheme.colorScheme.primary,
+                        checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                ) {
+                    Icon(modeIcon(mode), null, Modifier.size(22.dp))
                 }
-                Icon(Icons.Rounded.KeyboardArrowDown, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
+}
+
+private fun modeIcon(mode: ComparisonMode): androidx.compose.ui.graphics.vector.ImageVector = when (mode) {
+    ComparisonMode.Text, ComparisonMode.ImageChanges -> Icons.Rounded.ViewAgenda
+    ComparisonMode.Html, ComparisonMode.ImageDiff -> Icons.Outlined.Description
+    ComparisonMode.ImageSwipe -> Icons.Rounded.Compare
+    ComparisonMode.Source -> Icons.Rounded.Code
+    else -> Icons.Outlined.Description
 }
 
 /** What changed in [snap] since [previous]: the changed area for screenshots, the changed words for text. */

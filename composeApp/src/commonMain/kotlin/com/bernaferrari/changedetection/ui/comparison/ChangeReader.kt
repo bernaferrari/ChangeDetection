@@ -170,10 +170,23 @@ internal class RegionCursor : ChangeCursor {
     override var changeCount by mutableIntStateOf(0)
     var scroller: (suspend (Int) -> Unit)? = null
 
+    /** The change the reader asked for (arrows, a tap); cleared as soon as they scroll by hand. */
+    var emphasized by mutableStateOf<Int?>(null)
+
+    /** True while [go] is scrolling, so views can tell their own scrolling from the reader's. */
+    var navigating = false
+        private set
+
     override suspend fun go(delta: Int) {
         if (changeCount == 0) return
         current = (current + delta).coerceIn(0, changeCount - 1)
-        scroller?.invoke(current)
+        emphasized = current
+        navigating = true
+        try {
+            scroller?.invoke(current)
+        } finally {
+            navigating = false
+        }
     }
 }
 

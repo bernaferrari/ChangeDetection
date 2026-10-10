@@ -70,7 +70,8 @@ internal fun VisualChangesView(beforeBytes: ByteArray, afterBytes: ByteArray, di
     val change = diff?.visualChange
     val regions = change?.regions.orEmpty()
     // Item 0 is the summary; area n is item n + 1. Opens on the shared cursor's area.
-    val list = rememberLazyListState(initialFirstVisibleItemIndex = if (cursor.current in regions.indices && cursor.current > 0) cursor.current + 1 else 0)
+    // Opens at the top, unless the reader had jumped to a change (arrows, a tap) in the other view.
+    val list = rememberLazyListState(initialFirstVisibleItemIndex = cursor.emphasized?.takeIf { it in regions.indices && it > 0 }?.plus(1) ?: 0)
     val scope = rememberCoroutineScope()
     DisposableEffect(cursor, regions) {
         cursor.changeCount = regions.size
@@ -82,9 +83,14 @@ internal fun VisualChangesView(beforeBytes: ByteArray, afterBytes: ByteArray, di
         // Live while scrolling: the change whose card crosses the top third of the screen is the one being read.
         snapshotFlow {
             val info = list.layoutInfo
-            val line = info.viewportStartOffset + (info.viewportEndOffset - info.viewportStartOffset) / 3
-            info.visibleItemsInfo.lastOrNull { it.index > 0 && it.offset <= line }?.index ?: list.firstVisibleItemIndex
-        }.collect { index -> cursor.current = (index - 1).coerceIn(0, regions.lastIndex) }
+            // A line near the top: the first card still crossing it is the one being read.
+            val line = info.viewportStartOffset + (info.viewportEndOffset - info.viewportStartOffset) / 8
+            info.visibleItemsInfo.firstOrNull { it.index > 0 && it.offset + it.size > line }?.index ?: list.firstVisibleItemIndex
+        }.collect { index ->
+            // Only follow the reader's own scrolling: after an arrow jump, the change they asked for stays selected.
+            if (cursor.navigating || !list.isScrollInProgress) return@collect
+            cursor.current = (index - 1).coerceIn(0, regions.lastIndex)
+        }
     }
     if (change == null || regions.isEmpty()) {
         Box(modifier.padding(32.dp), contentAlignment = Alignment.Center) {
