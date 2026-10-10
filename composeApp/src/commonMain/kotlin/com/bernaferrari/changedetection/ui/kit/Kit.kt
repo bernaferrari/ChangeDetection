@@ -7,6 +7,7 @@ package com.bernaferrari.changedetection.ui.kit
 import io.ktor.http.hostWithPortIfSpecified
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.toggleable
@@ -102,7 +103,7 @@ fun PageAvatar(
         coil3.compose.rememberAsyncImagePainter(remember(url) { coil3.request.ImageRequest.Builder(context).data(url).size(192).build() })
     }
     val loaded = painter?.state?.collectAsState()?.value is coil3.compose.AsyncImagePainter.State.Success
-    // A real icon is the page's identity, shown large on a plain rounded tile; the tinted shape and letter
+    // A real icon is the page's identity: it fills a rounded tile edge to edge, like an app icon; the tinted shape and letter
     // stand in only while it loads or when the page has none.
     val tileShape = RoundedCornerShape(size * 0.28f)
     Box(
@@ -118,7 +119,8 @@ fun PageAvatar(
             androidx.compose.foundation.Image(
                 painter,
                 contentDescription = null,
-                modifier = Modifier.size(size * 0.72f).clip(RoundedCornerShape(size * 0.18f)),
+                modifier = Modifier.fillMaxSize(),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                 alpha = if (!loaded) 0f else if (dimmed) 0.45f else 1f,
             )
         }
