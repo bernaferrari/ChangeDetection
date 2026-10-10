@@ -129,15 +129,7 @@ internal fun HowItWorksContent(onBackClick: () -> Unit, capabilities: Monitoring
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.a11y_navigate_back))
-                    }
-                },
-                colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
-            )
+            com.bernaferrari.changedetection.ui.navigation.AppTopBar(title = null, onBack = onBackClick)
         },
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {

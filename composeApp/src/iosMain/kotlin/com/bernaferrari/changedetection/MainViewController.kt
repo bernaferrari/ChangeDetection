@@ -73,21 +73,24 @@ fun MainViewController(): UIViewController {
             UIApplication.sharedApplication.idleTimerDisabled = state.isActive
         }
     }
+    val platformActions = PlatformActions(
+        openUrl = ::openUrl,
+        openEmail = ::openEmail,
+        requestNotifications = ::requestIosNotificationPermission,
+        openNotificationSettings = {
+            NSURL.URLWithString(UIApplicationOpenSettingsURLString)?.let { UIApplication.sharedApplication.openURL(it, emptyMap<Any?, Any>(), null) }
+        },
+        appVersion = platform.Foundation.NSBundle.mainBundle
+            .objectForInfoDictionaryKey("CFBundleShortVersionString")
+            ?.toString()
+            .orEmpty(),
+    )
+    // Native tab bar and navigation stacks around shared Compose screens; `-composeNav` keeps the all-Compose shell.
+    if ("-composeNav" !in args) return IosNativeShell(platformActions).root
     return ComposeUIViewController {
         val link by IosDeepLinks.pending.collectAsState()
         ChangeDetectionRootApp(
-            platformActions = PlatformActions(
-                openUrl = ::openUrl,
-                openEmail = ::openEmail,
-                requestNotifications = ::requestIosNotificationPermission,
-                openNotificationSettings = {
-                    NSURL.URLWithString(UIApplicationOpenSettingsURLString)?.let { UIApplication.sharedApplication.openURL(it, emptyMap<Any?, Any>(), null) }
-                },
-                appVersion = platform.Foundation.NSBundle.mainBundle
-                    .objectForInfoDictionaryKey("CFBundleShortVersionString")
-                    ?.toString()
-                    .orEmpty(),
-            ),
+            platformActions = platformActions,
             initialSiteId = link?.first,
             initialSnapId = link?.second,
             onInitialSiteIdHandled = IosDeepLinks::consume,

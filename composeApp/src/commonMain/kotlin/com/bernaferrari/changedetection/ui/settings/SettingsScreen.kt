@@ -108,11 +108,15 @@ fun SettingsScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeFlexibleTopAppBar(
-                title = { Text(stringResource(Res.string.settings_title)) },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface, scrolledContainerColor = MaterialTheme.colorScheme.surface),
-            )
+            if (com.bernaferrari.changedetection.ui.navigation.usesNativeNavigation()) {
+                com.bernaferrari.changedetection.ui.navigation.AppTopBar(title = stringResource(Res.string.settings_title), onBack = null)
+            } else {
+                LargeFlexibleTopAppBar(
+                    title = { Text(stringResource(Res.string.settings_title)) },
+                    scrollBehavior = scrollBehavior,
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface, scrolledContainerColor = MaterialTheme.colorScheme.surface),
+                )
+            }
         },
         contentWindowInsets = WindowInsets(0),
     ) { padding ->

@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -83,6 +84,7 @@ fun ChangeDetectionRootApp(
     onInitialSiteIdHandled: () -> Unit = {},
     onInitialSnapIdHandled: () -> Unit = {},
     onInitialUrlHandled: () -> Unit = {},
+    startDestination: NavKey = MainDestination,
 ) {
     val themeViewModel: ThemeViewModel = koinViewModel()
     val appPalette by themeViewModel.appPalette.collectAsStateWithLifecycle()
@@ -104,6 +106,7 @@ fun ChangeDetectionRootApp(
                 onInitialSiteIdHandled = onInitialSiteIdHandled,
                 onInitialSnapIdHandled = onInitialSnapIdHandled,
                 onInitialUrlHandled = onInitialUrlHandled,
+                startDestination = startDestination,
             )
         }
     }
@@ -119,15 +122,21 @@ fun ChangeDetectionApp(
     onInitialSiteIdHandled: () -> Unit = {},
     onInitialSnapIdHandled: () -> Unit = {},
     onInitialUrlHandled: () -> Unit = {},
+    /** The first screen; native iOS navigation hosts one destination per view controller. */
+    startDestination: NavKey = MainDestination,
 ) {
+    val native = com.bernaferrari.changedetection.ui.navigation.LocalNativeNavigation.current
     // Page icons: fetched once, then served from Coil's memory and disk caches.
     coil3.compose.setSingletonImageLoaderFactory { context ->
         coil3.ImageLoader.Builder(context)
             .components { add(coil3.network.ktor3.KtorNetworkFetcherFactory()) }
             .build()
     }
-    val backStack = rememberNavBackStack(appNavSavedStateConfiguration, MainDestination)
-    val mainViewModel: MainViewModel = koinViewModel()
+    val backStack = rememberNavBackStack(appNavSavedStateConfiguration, startDestination)
+    // One MainViewModel for the whole app, even when every screen is its own view controller (iOS).
+    val mainViewModel: MainViewModel = koinViewModel(
+        viewModelStoreOwner = LocalAppViewModelStoreOwner.current ?: requireNotNull(androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner.current),
+    )
     var turboSetup by remember { mutableStateOf<Set<String>?>(null) }
 
     fun openAddPage(url: String? = null) {
@@ -154,6 +163,36 @@ fun ChangeDetectionApp(
     val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>(
         directive = paneScaffoldDirective,
     )
+    // With native navigation, Compose only ever shows this host's own screen: anything opened from it is
+    // handed to UIKit (pushed, or presented as a sheet). On wide screens, Home keeps its list-detail panes.
+    if (native != null) {
+        androidx.compose.runtime.LaunchedEffect(backStack, singlePaneLayout) {
+            androidx.compose.runtime.snapshotFlow { backStack.toList() }.collect { keys ->
+                val forward = keys.drop(1).filterNot { key ->
+                    !singlePaneLayout && startDestination == MainDestination && (key is ComparisonDestination || key is PageDetailDestination)
+                }
+                if (forward.isEmpty()) return@collect
+                forward.forEach { key -> if (key is AddEditDestination || key is EditSiteDestination) native.present(key) else native.push(key) }
+                backStack.removeAll(forward.toSet())
+            }
+        }
+    }
+
+    /** Closes [key]; with native navigation, closing this host's only screen pops or dismisses it in UIKit. */
+    fun close(key: NavKey) {
+        if (native != null && backStack.size <= 1) native.close() else backStack.pop(key)
+    }
+
+    /** Detail panes shown next to Home on wide screens draw their own bar, even under native navigation. */
+    @Composable
+    fun InPane(content: @Composable () -> Unit) {
+        if (native != null && !singlePaneLayout && startDestination == MainDestination) {
+            androidx.compose.runtime.CompositionLocalProvider(com.bernaferrari.changedetection.ui.navigation.LocalNativeNavigation provides null, content = content)
+        } else {
+            content()
+        }
+    }
+
     val forwardTransitionMetadata = rememberForwardTransitionMetadata()
     val comparisonMetadata = remember(singlePaneLayout, forwardTransitionMetadata) {
         val paneMetadata = ListDetailSceneStrategy.detailPane()
@@ -171,11 +210,27 @@ fun ChangeDetectionApp(
 
     val navSites by mainViewModel.sitesFlow.collectAsStateWithLifecycle()
     val unreadCount = navSites.orEmpty().count { !it.site.isRead && it.snap != null && it.snapshotCount > 1 }
-    ChangeDetectionNavigationSuite(
-        backStack = backStack,
-        homeBadge = unreadCount,
-        retainNavigationForDetail = !singlePaneLayout && (backStack.lastOrNull() is ComparisonDestination || backStack.lastOrNull() is PageDetailDestination),
-    ) {
+    if (native != null && startDestination == MainDestination) {
+        androidx.compose.runtime.LaunchedEffect(unreadCount) { native.setHomeBadge(unreadCount) }
+    }
+    if (native != null) {
+        val background = MaterialTheme.colorScheme.background
+        androidx.compose.runtime.LaunchedEffect(background) { native.setBackground(background.toArgb()) }
+    }
+    // The native tab bar replaces the Compose navigation bar and rail.
+    val suite: @Composable (@Composable () -> Unit) -> Unit = { content ->
+        if (native != null) {
+            content()
+        } else {
+            ChangeDetectionNavigationSuite(
+                backStack = backStack,
+                homeBadge = unreadCount,
+                retainNavigationForDetail = !singlePaneLayout && (backStack.lastOrNull() is ComparisonDestination || backStack.lastOrNull() is PageDetailDestination),
+                content = content,
+            )
+        }
+    }
+    suite {
         NavDisplay(
             backStack = backStack,
             onBack = { backStack.pop() },
@@ -206,7 +261,7 @@ fun ChangeDetectionApp(
                 entry<TurboDestination> { navKey ->
                     TurboRoute(
                         mainViewModel = mainViewModel,
-                        onBack = { backStack.pop(navKey) },
+                        onBack = { close(navKey) },
                         onStop = { platformActions.stopTurbo?.invoke() ?: mainViewModel.stopQuickMonitor() },
                         onRunAgain = { ids -> turboSetup = ids },
                         onOpenPage = { backStack.openPage(it) },
@@ -237,10 +292,10 @@ fun ChangeDetectionApp(
 
                 entry<PageDetailDestination>(metadata = comparisonMetadata) { key ->
                     var showSchedule by remember { mutableStateOf(false) }
-                    PageDetailScreen(
+                    InPane { PageDetailScreen(
                         siteId = key.siteId,
                         viewModel = mainViewModel,
-                        onBack = { backStack.pop(key) },
+                        onBack = { close(key) },
                         onCompare = { snapId -> backStack.openComparison(key.siteId, snapId) },
                         onHistory = { snapId -> backStack.openComparison(key.siteId, snapId, showHistory = true) },
                         onEdit = { backStack.add(EditSiteDestination(key.siteId)) },
@@ -248,14 +303,14 @@ fun ChangeDetectionApp(
                         onSchedule = { showSchedule = true },
                         onOpenUrl = platformActions.openUrl,
                         onEnableNotifications = platformActions.requestNotifications,
-                    )
+                    ) }
                     if (showSchedule) BackgroundSyncDialog(onDismiss = { showSchedule = false })
                 }
 
                 entry<PageTurboDestination>(metadata = forwardTransitionMetadata) { navKey ->
                     TurboRoute(
                         mainViewModel = mainViewModel,
-                        onBack = { backStack.pop(navKey) },
+                        onBack = { close(navKey) },
                         onStop = { platformActions.stopTurbo?.invoke() ?: mainViewModel.stopQuickMonitor() },
                         onRunAgain = { ids -> turboSetup = ids },
                         onOpenPage = { backStack.openPage(it) },
@@ -266,17 +321,17 @@ fun ChangeDetectionApp(
                 entry<AddEditDestination>(metadata = forwardTransitionMetadata) { key ->
                     AddEditFlow(
                         selectedUrl = key.initialUrl,
-                        onNavigateUp = { backStack.pop(key) },
+                        onNavigateUp = { close(key) },
                         onSaveComplete = {
                             platformActions.requestNotifications()
-                            backStack.pop(key)
+                            close(key)
                         },
                         onOpenSite = { siteId ->
-                            backStack.pop(key)
+                            close(key)
                             backStack.openPage(siteId)
                         },
                         onPageAdded = { siteId, name ->
-                            backStack.pop(key)
+                            close(key)
                             mainViewModel.announcePageAdded(siteId, name)
                             platformActions.requestNotifications()
                         },
@@ -286,14 +341,14 @@ fun ChangeDetectionApp(
                 entry<EditSiteDestination>(metadata = forwardTransitionMetadata) { key ->
                     AddEditFlow(
                         siteId = key.siteId,
-                        onNavigateUp = { backStack.pop(key) },
-                        onSaveComplete = { backStack.pop(key) },
+                        onNavigateUp = { close(key) },
+                        onSaveComplete = { close(key) },
                     )
                 }
 
                 entry<AboutDestination>(metadata = forwardTransitionMetadata) { navKey ->
                     AboutScreen(
-                        onBack = { backStack.pop(navKey) },
+                        onBack = { close(navKey) },
                         onSocialClick = { url ->
                             platformActions.openUrl(url)
                         },
@@ -311,7 +366,7 @@ fun ChangeDetectionApp(
 
                 entry<HowItWorksDestination>(metadata = forwardTransitionMetadata) { navKey ->
                     HowItWorksScreen(
-                        onBackClick = { backStack.pop(navKey) },
+                        onBackClick = { close(navKey) },
                     )
                 }
 
@@ -319,20 +374,20 @@ fun ChangeDetectionApp(
                     LocalBrowserScreen(
                         snapId = key.snapId,
                         url = key.url,
-                        onDismiss = { backStack.pop(key) },
+                        onDismiss = { close(key) },
                     )
                 }
 
                 entry<ComparisonDestination>(metadata = comparisonMetadata) { key ->
-                    ComparisonScreen(
+                    InPane { ComparisonScreen(
                         siteId = key.siteId,
-                        onNavigateUp = { backStack.pop(key) },
+                        onNavigateUp = { close(key) },
                         showNavigateUp = singlePaneLayout,
                         initialSnapId = key.initialSnapId,
                         showHistoryInitially = key.showHistory,
                         onSiteEdit = { id -> backStack.add(EditSiteDestination(siteId = id)) },
-                        onSiteDelete = { backStack.pop(key) },
-                    )
+                        onSiteDelete = { close(key) },
+                    ) }
                 }
             },
         )
@@ -418,6 +473,9 @@ private fun TurboRoute(
  * Closes [screen] if it is still on top (taps that land during the closing animation do nothing), and never
  * removes the last screen: an empty back stack crashes navigation.
  */
+/** The app-wide owner for view models shared by every screen (set by the iOS shell, where each screen has its own host). */
+val LocalAppViewModelStoreOwner = androidx.compose.runtime.staticCompositionLocalOf<androidx.lifecycle.ViewModelStoreOwner?> { null }
+
 internal fun androidx.navigation3.runtime.NavBackStack<NavKey>.pop(screen: NavKey? = null) {
     if (size <= 1) return
     if (screen != null && lastOrNull() != screen) return

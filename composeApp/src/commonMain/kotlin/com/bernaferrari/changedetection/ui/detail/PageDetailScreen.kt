@@ -216,28 +216,11 @@ internal fun PageDetailContent(
     var menu by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(Res.string.a11y_navigate_back)) } },
-                actions = {
-                    if (item != null) {
-                        IconButton(onClick = onEdit) { Icon(Icons.Outlined.Edit, stringResource(Res.string.edit)) }
-                        Box {
-                            IconButton(onClick = { menu = true }) { Icon(Icons.Rounded.MoreVert, stringResource(Res.string.more_options)) }
-                            DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(Res.string.detail_delete), color = MaterialTheme.colorScheme.error) },
-                                    leadingIcon = { Icon(Icons.Outlined.DeleteOutline, null, tint = MaterialTheme.colorScheme.error) },
-                                    onClick = {
-                                        menu = false
-                                        onDelete()
-                                    },
-                                )
-                            }
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+            com.bernaferrari.changedetection.ui.navigation.AppTopBar(
+                title = null,
+                onBack = onBack,
+                actions = if (item != null) listOf(com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.edit), Icons.Outlined.Edit, "pencil", onClick = onEdit)) else emptyList(),
+                menu = if (item != null) listOf(com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.detail_delete), Icons.Outlined.DeleteOutline, "trash", destructive = true, onClick = onDelete)) else emptyList(),
             )
         },
     ) { insets ->

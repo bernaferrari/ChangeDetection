@@ -155,6 +155,8 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     selectedSiteId: String? = null,
 ) {
+    // Home draws its own header; on iOS the native bar is hidden here, while push, pop and swipe-back stay native.
+    com.bernaferrari.changedetection.ui.navigation.HideNativeBar()
     val sites by viewModel.sitesFlow.collectAsStateWithLifecycle()
     val schedule by viewModel.monitoringSchedule.collectAsStateWithLifecycle()
     val turbo by viewModel.quickMonitorState.collectAsStateWithLifecycle()
