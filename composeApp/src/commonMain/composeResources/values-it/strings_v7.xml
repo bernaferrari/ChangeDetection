@@ -85,4 +85,11 @@
     <string name="version_compared_with">rispetto a %1$s</string>
     <string name="home_status_checked">Controllato %1$s</string>
     <string name="home_status_first_check">In attesa del primo controllo</string>
+    <string name="ignore_small_title">Ignora piccole modifiche</string>
+    <string name="ignore_small_off">No</string>
+    <string name="ignore_small_body">Salva un nuovo screenshot solo quando almeno questa parte della pagina appare diversa.</string>
+    <string name="ignore_small_off_body">Ogni modifica visibile viene salvata, anche minima.</string>
+    <string name="editor_formats">Altri formati</string>
+    <string name="editor_formats_body">Per sviluppatori: confronta il codice della pagina. Di solito più rumoroso del testo.</string>
+    <string name="editor_part_picked">Scelta</string>
 </resources>

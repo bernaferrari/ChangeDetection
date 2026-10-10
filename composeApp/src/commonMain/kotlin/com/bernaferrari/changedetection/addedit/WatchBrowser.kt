@@ -8,6 +8,7 @@ package com.bernaferrari.changedetection.addedit
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -92,6 +93,14 @@ internal fun WatchBrowser(
         bridge.register(handler)
         onDispose { bridge.unregister(handler) }
     }
+    // Back steps out one level at a time: picking, then the page's own history, then back to the address.
+    com.bernaferrari.changedetection.util.BackHandler {
+        when {
+            picking -> picking = false
+            navigator.canGoBack -> navigator.navigateBack()
+            else -> onClose()
+        }
+    }
     val loaded = state.loadingState is LoadingState.Finished
     LaunchedEffect(state.lastLoadedUrl) { state.lastLoadedUrl?.takeIf { it.startsWith("http") }?.let(currentOnPageChange) }
     // The picker script also outlines saved picks, so it is installed on every page, but only intercepts taps while picking.
@@ -149,12 +158,12 @@ internal fun WatchBrowser(
                 }
             }
         }
-        // The picker floats over the page (and the toolbar) so the page does not reflow while choosing.
+        // The picker slides up over the toolbar, covering it entirely, so the page does not reflow while choosing.
         AnimatedVisibility(
             visible = picking,
-            enter = slideInVertically { it / 2 } + fadeIn(),
-            exit = slideOutVertically { it / 2 } + fadeOut(),
-            modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(12.dp),
+            enter = slideInVertically(androidx.compose.animation.core.spring(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow)) { it },
+            exit = slideOutVertically { it } + fadeOut(),
+            modifier = Modifier.align(Alignment.BottomCenter),
         ) {
             PickerPanel(
                 current = current,
@@ -262,8 +271,18 @@ private fun PickerPanel(
     onRemoveIgnored: (String) -> Unit,
     onDone: () -> Unit,
 ) {
-    Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surfaceContainerHigh, shadowElevation = 8.dp, modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Surface(
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shadowElevation = 12.dp,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            Modifier.fillMaxWidth().navigationBarsPadding().wrapContentWidth().widthIn(max = 560.dp).fillMaxWidth()
+                .heightIn(min = 96.dp).animateContentSize(androidx.compose.animation.core.spring(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow))
+                .padding(start = 20.dp, end = 16.dp, top = 16.dp, bottom = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(Res.string.picker_title), style = MaterialTheme.typography.titleMedium)
@@ -287,8 +306,8 @@ private fun PickerPanel(
                     Text(stringResource(Res.string.done))
                 }
             }
-            AnimatedVisibility(current != null) {
-                val part = current ?: return@AnimatedVisibility
+            val part = current
+            if (part != null) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (part.maxDepth > 0) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

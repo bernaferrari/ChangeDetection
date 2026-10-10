@@ -36,6 +36,8 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.rounded.TouchApp
+import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -126,6 +128,14 @@ fun AddEditConfirmScreen(
     val validUrl = url.normalizeUrl() != null && url.contains('.')
     val textMode = captureMode == CaptureMode.TEXT
     val visualMode = captureMode == CaptureMode.SCREENSHOT || captureMode == CaptureMode.DEFAULT
+    // Typed selectors refresh the preview once typing pauses; choices refresh it right away.
+    var typedRegion by remember { mutableStateOf(false) }
+    LaunchedEffect(textRegion) {
+        if (!typedRegion) return@LaunchedEffect
+        delay(900)
+        typedRegion = false
+        if (validUrl && (reviewing || isEditing) && !regionError) onPreview()
+    }
 
     LaunchedEffect(url) {
         if (!isEditing && url.isBlank()) {
@@ -156,10 +166,14 @@ fun AddEditConfirmScreen(
                     ) {
                         PagePreviewCard(
                             url = url, title = title, iconUrl = iconUrl, onTitleChange = onTitleChange, preview = preview, enabled = !isSaving,
-                            onRetry = onPreview, onEditAddress = { reviewing = false }, onSelectRegion = null, textRegion = textRegion,
+                            onRetry = onPreview, onEditAddress = { reviewing = false }, onSelectRegion = null, textRegion = textRegion, screenshot = visualMode,
                         )
                         if (browserAvailable) PartsSummary(textRegion.include, ignoredParts.size, onEdit = { reviewing = false; browsing = true })
-                        OptionsCard(captureMode, ::changeMode, textRegion, { onTextRegionChange(it); onPreview() }, enabled = !isSaving, onMore = { moreOptions = true }, showRegionChips = false)
+                        OptionsCard(
+                            captureMode, ::changeMode, textRegion, { onTextRegionChange(it); onPreview() }, enabled = !isSaving,
+                            expanded = moreOptions, onExpandedChange = { moreOptions = it },
+                            advanced = { AdvancedOptions(captureMode, ::changeMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange, { onTextRegionChange(it); onPreview() }, { typedRegion = true; onTextRegionChange(it) }, isSaving, isEditing) },
+                        )
                         saveError?.localizedMessage()?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
                         Text(stringResource(Res.string.monitor_editor_cadence_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
                     }
@@ -199,10 +213,6 @@ fun AddEditConfirmScreen(
             watchLabel = stringResource(if (isEditing) Res.string.done else Res.string.watch_this_page),
         )
         if (reviewing) reviewSheet()
-        if (moreOptions) MoreOptionsSheet(captureMode, ::changeMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange, onTextRegionChange, isSaving, isEditing, onDismiss = {
-            moreOptions = false
-            if (validUrl) onPreview()
-        })
         return
     }
 
@@ -338,6 +348,7 @@ fun AddEditConfirmScreen(
                                 null
                             },
                             textRegion = textRegion,
+                            screenshot = visualMode,
                         )
                         val ready = (preview as? CapturePreviewState.Ready)?.content as? CapturePreview.Html
                         if (textMode && ready != null && ready.text.split(Regex("\\s+")).count { it.isNotBlank() } < 25 && supportsVisualMonitoring) {
@@ -361,8 +372,23 @@ fun AddEditConfirmScreen(
                                 onPreview()
                             },
                             enabled = !isSaving,
-                            onMore = { moreOptions = true },
-                            showRegionChips = false,
+                            expanded = moreOptions,
+                            onExpandedChange = { moreOptions = it },
+                            advanced = {
+                                AdvancedOptions(
+                                    captureMode, ::changeMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange,
+                                    onRegion = {
+                                        onTextRegionChange(it)
+                                        onPreview()
+                                    },
+                                    onRegionTyped = {
+                                        typedRegion = true
+                                        onTextRegionChange(it)
+                                    },
+                                    isSaving = isSaving,
+                                    isEditing = isEditing,
+                                )
+                            },
                         )
                         if (legacyThreshold > 0 && !(visualMode && visualChangeThresholdBps > 0) && captureMode != CaptureMode.TEXT && captureMode != CaptureMode.SOURCE) {
                             LegacyThresholdNotice(legacyThreshold, !isSaving, onRemoveLegacyThreshold)
@@ -394,42 +420,8 @@ fun AddEditConfirmScreen(
         }
     }
 
-    if (moreOptions) MoreOptionsSheet(captureMode, ::changeMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange, onTextRegionChange, isSaving, isEditing, onDismiss = {
-        moreOptions = false
-        if (validUrl) onPreview()
-    })
-
     if (reviewing && !browsing) reviewSheet()
     if (showUrlChangeDialog) AddressChangeDialog(onCancel, onKeepHistory, onStartFresh)
-}
-
-@Composable
-private fun MoreOptionsSheet(
-    captureMode: CaptureMode,
-    onMode: (CaptureMode) -> Unit,
-    textRegion: com.bernaferrari.changedetection.detection.TextRegion,
-    regionError: Boolean,
-    visualChangeThresholdBps: Int,
-    onVisualChangeThresholdChange: (Int) -> Unit,
-    onTextRegionChange: (com.bernaferrari.changedetection.detection.TextRegion) -> Unit,
-    isSaving: Boolean,
-    isEditing: Boolean,
-    onDismiss: () -> Unit,
-) {
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
-        Column(
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Text(stringResource(Res.string.editor_more_options), style = MaterialTheme.typography.headlineSmall)
-            CaptureModeField(captureMode, onMode, enabled = !isSaving, isEditing = isEditing)
-            TextRegionFields(textRegion, regionError, !isSaving) { onTextRegionChange(it) }
-            if (captureMode == CaptureMode.SCREENSHOT || captureMode == CaptureMode.DEFAULT) {
-                VisualChangeFilterField(visualChangeThresholdBps, !isSaving, onVisualChangeThresholdChange)
-            }
-            Button(onClick = onDismiss, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text(stringResource(Res.string.done)) }
-        }
-    }
 }
 
 /** What the picks add up to, with a way back into the page to change them. */
@@ -498,6 +490,8 @@ private fun PagePreviewCard(
     onEditAddress: () -> Unit,
     onSelectRegion: ((com.bernaferrari.changedetection.detection.TextRegion) -> Unit)?,
     textRegion: com.bernaferrari.changedetection.detection.TextRegion,
+    /** Screenshots preview at a fixed height; loading reserves it so the sheet does not jump when it arrives. */
+    screenshot: Boolean = false,
 ) {
     val host = remember(url) { url.removePrefix("https://").removePrefix("http://").removePrefix("www.").substringBefore('/') }
     Surface(shape = MaterialTheme.shapes.extraLarge, color = tileColor, modifier = Modifier.fillMaxWidth()) {
@@ -533,9 +527,9 @@ private fun PagePreviewCard(
                 Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     when (state) {
                         CapturePreviewState.Idle, CapturePreviewState.Loading -> Row(
-                            Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).heightIn(min = 120.dp).padding(16.dp),
+                            Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).height(if (screenshot) 320.dp else 120.dp).padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(14.dp),
+                            horizontalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterHorizontally),
                         ) {
                             LoadingIndicator(Modifier.size(40.dp))
                             Text(stringResource(Res.string.capture_preview_loading), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -605,50 +599,68 @@ private fun PagePreviewCard(
     }
 }
 
-/** How to compare and which part, as plain choices; everything technical lives in More options. */
+/** How to compare, as one plain choice; everything technical folds out under "More options", in place. */
 @Composable
 private fun OptionsCard(
     captureMode: CaptureMode,
     onMode: (CaptureMode) -> Unit,
-    textRegion: com.bernaferrari.changedetection.detection.TextRegion,
-    onRegion: (com.bernaferrari.changedetection.detection.TextRegion) -> Unit,
+    @Suppress("UNUSED_PARAMETER") textRegion: com.bernaferrari.changedetection.detection.TextRegion,
+    @Suppress("UNUSED_PARAMETER") onRegion: (com.bernaferrari.changedetection.detection.TextRegion) -> Unit,
     enabled: Boolean,
-    onMore: () -> Unit,
-    showRegionChips: Boolean = true,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    advanced: @Composable () -> Unit,
 ) {
     val modes = buildList {
         if (supportsVisualMonitoring || captureMode == CaptureMode.SCREENSHOT) add(CaptureMode.SCREENSHOT)
         add(CaptureMode.TEXT)
         if (captureMode !in this) add(captureMode)
     }
-    Surface(shape = MaterialTheme.shapes.extraLarge, color = tileColor, modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(top = 16.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    val spring = androidx.compose.animation.core.spring<androidx.compose.ui.unit.IntSize>(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow)
+    Surface(shape = MaterialTheme.shapes.extraLarge, color = tileColor, modifier = Modifier.fillMaxWidth().animateContentSize(spring)) {
+        Column(Modifier.padding(top = 16.dp, bottom = 4.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(stringResource(Res.string.editor_compare), style = MaterialTheme.typography.titleSmall)
                 if (modes.size > 1) ConnectedChoice(modes, captureMode, onMode, Modifier, enabled = enabled) { modeName(it) }
                 Text(stringResource(modeExplanation(captureMode)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (captureMode == CaptureMode.TEXT && showRegionChips) {
-                    val main = textRegion.include == MAIN_TEXT_REGION && textRegion.exclude.isBlank()
-                    Text(stringResource(Res.string.text_region_title), Modifier.padding(top = 6.dp), style = MaterialTheme.typography.titleSmall)
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(textRegion.isEmpty, { onRegion(com.bernaferrari.changedetection.detection.TextRegion()) }, enabled = enabled, label = { Text(stringResource(Res.string.text_region_whole)) })
-                        FilterChip(main, { onRegion(com.bernaferrari.changedetection.detection.TextRegion(MAIN_TEXT_REGION)) }, enabled = enabled, label = { Text(stringResource(Res.string.text_region_main)) })
-                        if (!textRegion.isEmpty && !main) FilterChip(true, onMore, enabled = enabled, label = { Text(stringResource(Res.string.editor_region_custom)) })
-                    }
-                }
             }
             HorizontalDivider(Modifier.padding(top = 4.dp), color = MaterialTheme.colorScheme.surfaceContainer)
+            val rotation by androidx.compose.animation.core.animateFloatAsState(if (expanded) 180f else 0f, label = "chevron")
             Row(
-                Modifier.fillMaxWidth().clickable(enabled = enabled, onClick = onMore).heightIn(min = 52.dp).padding(horizontal = 16.dp),
+                Modifier.fillMaxWidth().clickable(enabled = enabled, onClick = { onExpandedChange(!expanded) }).heightIn(min = 52.dp).padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Icon(Icons.Outlined.Tune, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(stringResource(Res.string.editor_more_options), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
-                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.outline)
+                Icon(Icons.Rounded.ExpandMore, null, Modifier.graphicsLayer { rotationZ = rotation }, tint = MaterialTheme.colorScheme.outline)
+            }
+            if (expanded) {
+                Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) { advanced() }
             }
         }
     }
+}
+
+/** The technical choices: which part of the page, how small a visual change to ignore, and raw formats. */
+@Composable
+private fun AdvancedOptions(
+    captureMode: CaptureMode,
+    onMode: (CaptureMode) -> Unit,
+    textRegion: com.bernaferrari.changedetection.detection.TextRegion,
+    regionError: Boolean,
+    visualChangeThresholdBps: Int,
+    onVisualChangeThresholdChange: (Int) -> Unit,
+    onRegion: (com.bernaferrari.changedetection.detection.TextRegion) -> Unit,
+    onRegionTyped: (com.bernaferrari.changedetection.detection.TextRegion) -> Unit,
+    isSaving: Boolean,
+    isEditing: Boolean,
+) {
+    TextRegionFields(textRegion, regionError, !isSaving, onChoose = onRegion, onType = onRegionTyped)
+    if (captureMode == CaptureMode.SCREENSHOT || captureMode == CaptureMode.DEFAULT) {
+        VisualChangeFilterField(visualChangeThresholdBps, !isSaving, onVisualChangeThresholdChange)
+    }
+    OtherFormatsField(captureMode, onMode, enabled = !isSaving, isEditing = isEditing)
 }
 
 @Composable
