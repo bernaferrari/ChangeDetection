@@ -14,6 +14,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
@@ -103,21 +105,33 @@ internal fun HighlightView(afterBytes: ByteArray, regions: List<VisualRegion>, c
             if (aspect > 0f) {
                 Box(Modifier.fillMaxWidth().aspectRatio(aspect)) {
                     SnapshotImage(afterBytes, null, Modifier.fillMaxSize(), ContentScale.FillBounds)
+                    // Every change is a full-width band: same look whether it is a headline or a timestamp.
                     Canvas(Modifier.matchParentSize()) {
-                        val edge = 2.dp.toPx()
-                        val corner = CornerRadius(6.dp.toPx())
+                        val accent = 4.dp.toPx()
+                        val pad = 4.dp.toPx()
                         ordered.forEachIndexed { index, region ->
                             val selected = index == current
-                            if (region.kind == VisualRegion.Kind.Removed) {
-                                // Removed content has no place in the new screenshot: mark where it used to be.
-                                val y = region.afterTop * size.height
-                                drawRect(marks.removed, Offset(0f, y - edge), Size(size.width, edge * if (selected) 2.5f else 1.5f))
-                            } else {
-                                val topLeft = Offset(region.left * size.width - edge, region.afterTop * size.height - edge)
-                                val box = Size((region.right - region.left) * size.width + edge * 2, (region.afterBottom - region.afterTop) * size.height + edge * 2)
-                                drawRoundRect(marks.highlight.copy(alpha = if (selected) 0.28f else 0.16f), topLeft, box, corner)
-                                drawRoundRect(marks.highlightEdge, topLeft, box, corner, style = Stroke(if (selected) edge * 1.75f else edge))
-                            }
+                            val color = if (region.kind == VisualRegion.Kind.Removed) marks.removed else marks.highlightEdge
+                            val top = region.afterTop * size.height - pad
+                            val height = if (region.kind == VisualRegion.Kind.Removed) 2.dp.toPx() + pad * 2 else (region.afterBottom - region.afterTop) * size.height + pad * 2
+                            drawRect(color.copy(alpha = if (selected) 0.22f else 0.10f), Offset(0f, top), Size(size.width, height))
+                            drawRect(color, Offset(0f, top), Size(if (selected) accent * 1.5f else accent, height))
+                        }
+                    }
+                    ordered.forEachIndexed { index, region ->
+                        val selected = index == current
+                        val y = with(density) { (region.afterTop * imageHeightPx).toDp() }
+                        Box(
+                            // At the right edge, where it never covers the start of a line.
+                            Modifier.align(Alignment.TopEnd).offset(x = (-6).dp, y = y - 11.dp).size(22.dp).clip(CircleShape)
+                                .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                (index + 1).toString(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                            )
                         }
                     }
                     // Tapping a marked area makes it the current one.

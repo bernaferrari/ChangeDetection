@@ -41,6 +41,12 @@ internal class AndroidPageCapture(private val view: WebView) {
         evaluate(PageCleanup.HIDE_ADS)
         evaluate(PageCleanup.HIDE_BOTTOM_FLOATING)
         if (hide.isNotBlank()) evaluate(PageCleanup.hide(hide))
+        // Run through the page once so lazy images start loading, then wait until it has really finished.
+        evaluate("(function(){var h=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight);var y=0;var step=window.innerHeight;var t=setInterval(function(){y+=step;window.scrollTo(0,y);if(y>=h){clearInterval(t);window.scrollTo(0,0);}},120);return 0;})()")
+        delay(1_500)
+        PageCleanup.awaitSettled({ script -> evaluate(script) })
+        evaluate("window.scrollTo(0,0);0")
+        evaluate(PageCleanup.MASK_RELATIVE_TIMES)
         awaitFrame()
         rendererFailure?.let { throw it }
         val clip = if (only.isNotBlank()) {

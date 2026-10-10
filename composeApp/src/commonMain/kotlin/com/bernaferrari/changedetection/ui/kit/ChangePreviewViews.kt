@@ -14,6 +14,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.clickable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -145,7 +151,7 @@ fun previewLabel(preview: ChangePreview?): String = when (preview) {
 
 /** The card body: a bounded preview, whatever the size of the real diff. */
 @Composable
-fun ChangePreviewBlock(preview: ChangePreview?, modifier: Modifier = Modifier, cropHeight: Dp = 112.dp) {
+fun ChangePreviewBlock(preview: ChangePreview?, modifier: Modifier = Modifier, cropHeight: Dp = 148.dp) {
     AnimatedContent(
         targetState = preview,
         transitionSpec = { fadeIn() togetherWith fadeOut() },
@@ -255,31 +261,151 @@ fun cropSummary(preview: ChangePreview.Crop): String {
     if (preview.regions.isEmpty()) {
         return if (preview.sizeChanged) stringResource(Res.string.preview_size_changed) else stringResource(Res.string.label_percent, com.bernaferrari.changedetection.ui.home.formatPercent(preview.percent))
     }
-    val added = preview.regions.count { it.kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Added }
-    val removed = preview.regions.count { it.kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed }
-    val changed = preview.regions.size - added - removed
-    return listOfNotNull(
-        changed.takeIf { it > 0 }?.let { org.jetbrains.compose.resources.pluralStringResource(Res.plurals.crop_changed, it, it) },
-        added.takeIf { it > 0 }?.let { org.jetbrains.compose.resources.pluralStringResource(Res.plurals.crop_added, it, it) },
-        removed.takeIf { it > 0 }?.let { org.jetbrains.compose.resources.pluralStringResource(Res.plurals.crop_removed, it, it) },
-    ).joinToString(" · ")
+    // One number: "4 changes". Whether each is new, updated or removed is shown on the change itself.
+    return org.jetbrains.compose.resources.pluralStringResource(Res.plurals.crop_changed, preview.regions.size, preview.regions.size)
 }
 
 /**
- * The most important area of a screenshot change. Each side is cropped from its own capture, so content that
- * moved down the page still lines up; a new area shows only the new capture.
+ * The most important area of a screenshot change, as one wide tile: zoomed to the change and outlined, so it
+ * is readable at a glance. The Before/After pill flips the tile in place (a tap elsewhere still opens the change); each side is cropped from its own
+ * capture, so content that moved down the page still lines up.
  */
 @Composable
 fun RegionPair(beforeSnapId: String, afterSnapId: String, region: com.bernaferrari.changedetection.image.VisualRegion, height: Dp, modifier: Modifier = Modifier) {
-    val before = ChangedBounds(region.left, region.beforeTop, region.right, region.beforeBottom)
-    val after = ChangedBounds(region.left, region.afterTop, region.right, region.afterBottom)
-    when (region.kind) {
-        com.bernaferrari.changedetection.image.VisualRegion.Kind.Changed -> Row(modifier.fillMaxWidth().height(height), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            CropTile(beforeSnapId, before, stringResource(Res.string.preview_before), highlighted = false, Modifier.weight(1f))
-            CropTile(afterSnapId, after, stringResource(Res.string.preview_after), highlighted = true, Modifier.weight(1f))
+    val kind = region.kind
+    val canFlip = kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Changed
+    var showBefore by remember(beforeSnapId, afterSnapId) { mutableStateOf(kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed) }
+    val marks = MaterialTheme.marks
+    val shape = RoundedCornerShape(16.dp)
+    val label = stringResource(
+        when {
+            kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Added -> Res.string.visual_added
+            kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed -> Res.string.visual_removed
+            showBefore -> Res.string.preview_before
+            else -> Res.string.preview_after
+        },
+    )
+    Box(
+        modifier
+            .fillMaxWidth()
+            .height(height)
+            .clip(shape)
+            .background(marks.page)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape)
+            .semantics { contentDescription = label },
+    ) {
+        androidx.compose.animation.Crossfade(showBefore, label = "flip") { before ->
+            val snapId = if (before) beforeSnapId else afterSnapId
+            val bounds = if (before) {
+                ChangedBounds(region.left, region.beforeTop, region.right, region.beforeBottom)
+            } else {
+                ChangedBounds(region.left, region.afterTop, region.right, region.afterBottom)
+            }
+            ChangeSpot(snapId, bounds, outline = marks.highlightEdge, modifier = Modifier.fillMaxSize())
         }
-        com.bernaferrari.changedetection.image.VisualRegion.Kind.Added -> CropTile(afterSnapId, after, stringResource(Res.string.visual_added), highlighted = true, modifier.fillMaxWidth().height(height))
-        com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed -> CropTile(beforeSnapId, before, stringResource(Res.string.visual_removed), highlighted = false, modifier.fillMaxWidth().height(height))
+        if (canFlip) {
+            BeforeAfterPill(showBefore, onSelect = { showBefore = it }, modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp))
+        } else {
+            Box(
+                Modifier.align(Alignment.BottomEnd).padding(8.dp).clip(RoundedCornerShape(8.dp))
+                    .background(if (showBefore) MaterialTheme.colorScheme.surfaceContainerHigh else marks.highlight)
+                    .padding(horizontal = 8.dp, vertical = 3.dp),
+            ) {
+                Text(label, style = MaterialTheme.typography.labelMedium, color = if (showBefore) MaterialTheme.colorScheme.onSurfaceVariant else marks.onHighlight)
+            }
+        }
+    }
+}
+
+@Composable
+private fun BeforeAfterPill(showBefore: Boolean, onSelect: (Boolean) -> Unit, modifier: Modifier = Modifier) {
+    val marks = MaterialTheme.marks
+    Row(
+        modifier.clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.94f)).padding(2.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        listOf(true to stringResource(Res.string.preview_before), false to stringResource(Res.string.preview_after)).forEach { (before, text) ->
+            val selected = showBefore == before
+            Text(
+                text,
+                Modifier.clip(RoundedCornerShape(8.dp))
+                    .background(if (!selected) androidx.compose.ui.graphics.Color.Transparent else if (before) MaterialTheme.colorScheme.surface else marks.highlight)
+                    .clickable { onSelect(before) }
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+                style = MaterialTheme.typography.labelMedium,
+                color = if (selected && !before) marks.onHighlight else MaterialTheme.colorScheme.onSurface.copy(alpha = if (selected) 1f else 0.7f),
+            )
+        }
+    }
+}
+
+/**
+ * One capture, zoomed so the changed area fills the tile's width (never past 3×), centered on it, with the area
+ * outlined. A change taller than the tile starts at its top.
+ */
+@Composable
+private fun ChangeSpot(snapId: String, bounds: ChangedBounds, outline: androidx.compose.ui.graphics.Color, modifier: Modifier = Modifier) {
+    val snaps = remember { optional<SnapsRepository>() }
+    val bytes by produceState<ByteArray?>(null, snapId) {
+        value = try {
+            snaps?.getSnapContent(snapId)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            null
+        }
+    }
+    val aspect by produceState(0f, bytes) { value = bytes?.let { com.bernaferrari.changedetection.ui.comparison.imageAspect(it) } ?: 0f }
+
+    BoxWithConstraints(modifier.clipToBounds()) {
+        val data = bytes ?: return@BoxWithConstraints
+        if (aspect <= 0f) return@BoxWithConstraints
+        val density = androidx.compose.ui.platform.LocalDensity.current
+        val boxW = constraints.maxWidth.toFloat()
+        val boxH = constraints.maxHeight.toFloat()
+        // Full page width, like the comparison: natural text size, nothing cut at the sides.
+        val l = 0f
+        val r = 1f
+        val imageW = boxW / (r - l)
+        val imageH = imageW / aspect
+        val top = bounds.top * imageH
+        val bottom = bounds.bottom * imageH
+        val pad = with(density) { 14.dp.toPx() }
+        val y = if (bottom - top + pad * 2 <= boxH) boxH / 2f - (top + bottom) / 2f else pad - top
+        val offsetY = y.coerceIn(minOf(0f, boxH - imageH), 0f)
+        val offsetX = -l * imageW
+        // Decode just the visible window of the capture (cached), not the whole page.
+        val windowTop = (-offsetY / imageH).coerceIn(0f, 1f)
+        val windowBottom = ((-offsetY + boxH) / imageH).coerceIn(windowTop, 1f)
+        val crop by produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, data, l, r, windowTop, windowBottom, boxW) {
+            value = com.bernaferrari.changedetection.image.CropCache.get(data, l, windowTop, r, windowBottom, boxW.roundToInt())
+        }
+        crop?.let {
+            androidx.compose.foundation.Image(
+                it,
+                null,
+                Modifier.fillMaxWidth().height(with(density) { ((windowBottom - windowTop) * imageH).toDp() }),
+                contentScale = ContentScale.FillBounds,
+                filterQuality = androidx.compose.ui.graphics.FilterQuality.Medium,
+            )
+        }
+        androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
+            val edge = 2.dp.toPx()
+            val inset = 3.dp.toPx()
+            val left = (bounds.left * imageW + offsetX - inset).coerceAtLeast(edge)
+            val right = (bounds.right * imageW + offsetX + inset).coerceAtMost(size.width - edge)
+            val rectTop = (top + offsetY - inset).coerceAtLeast(edge)
+            val rectBottom = (bottom + offsetY + inset).coerceAtMost(size.height - edge)
+            if (right > left && rectBottom > rectTop) {
+                drawRoundRect(
+                    outline,
+                    topLeft = androidx.compose.ui.geometry.Offset(left, rectTop),
+                    size = androidx.compose.ui.geometry.Size(right - left, rectBottom - rectTop),
+                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx()),
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(edge),
+                )
+            }
+        }
     }
 }
 

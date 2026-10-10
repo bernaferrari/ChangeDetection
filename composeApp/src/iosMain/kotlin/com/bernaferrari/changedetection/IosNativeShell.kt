@@ -78,7 +78,17 @@ class IosNativeShell(private val platformActions: PlatformActions) {
         }
     }
 
+    private var homeBadge = 0
+    private val tabDelegate = TabDelegate { refreshHomeBadge() }
+
+    /** The badge points to Home from other tabs; on Home the title already says how many changes are new. */
+    private fun refreshHomeBadge() {
+        val onHome = (root as UITabBarController).selectedIndex == 0uL
+        tabs[0].tabBarItem.badgeValue = if (homeBadge > 0 && !onHome) homeBadge.toString() else null
+    }
+
     val root: UIViewController = UITabBarController().apply {
+        delegate = tabDelegate
         setViewControllers(this@IosNativeShell.tabs, animated = false)
         tabBar.tintColor = brand
     }
@@ -91,6 +101,7 @@ class IosNativeShell(private val platformActions: PlatformActions) {
                 if (link != null) {
                     (root as UITabBarController).selectedIndex = 0u
                     tabs[0].popToRootViewControllerAnimated(false)
+                    refreshHomeBadge()
                 }
             }
         }
@@ -176,7 +187,8 @@ class IosNativeShell(private val platformActions: PlatformActions) {
         }
 
         override fun setHomeBadge(count: Int) {
-            tabs[0].tabBarItem.badgeValue = if (count > 0) count.toString() else null
+            homeBadge = count
+            refreshHomeBadge()
         }
 
         override fun setBar(title: String?, subtitle: String?, actions: List<BarAction>, menu: List<BarAction>, hidden: Boolean) {
@@ -211,6 +223,10 @@ class IosNativeShell(private val platformActions: PlatformActions) {
             UIAction.actionWithTitle(action.label, image = UIImage.systemImageNamed(action.iosSymbol), identifier = null) { _ -> onClick() }.apply {
                 attributes = (if (action.destructive) UIMenuElementAttributesDestructive else 0uL) or (if (action.enabled) 0uL else UIMenuElementAttributesDisabled)
             }
+    }
+
+    private class TabDelegate(private val onSelect: () -> Unit) : NSObject(), platform.UIKit.UITabBarControllerDelegateProtocol {
+        override fun tabBarController(tabBarController: UITabBarController, didSelectViewController: UIViewController) = onSelect()
     }
 
     /** Applies each screen's bar visibility as it appears, so Home (own header) and other screens can differ. */

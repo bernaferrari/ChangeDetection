@@ -85,6 +85,7 @@ class ComparisonViewModel(
     private val _actionMessages = Channel<String>(Channel.BUFFERED)
     val actionMessages: Flow<String> = _actionMessages.receiveAsFlow()
 
+    /** What changed, written for a person: the page, when, and the edits as "old → new". */
     fun shareDiff(
         snap1: Snap,
         snap2: Snap,
@@ -92,27 +93,28 @@ class ComparisonViewModel(
         content2: String,
         readableText: Boolean = false,
     ) {
-        viewModelScope.launch(Dispatchers.Default) {
-            val oldLines = readableSnapshotText(content1, readableText && snap1.isHtmlSnapshot()).lines()
-            val newLines = readableSnapshotText(content2, readableText && snap2.isHtmlSnapshot()).lines()
-            val patch =
-                com.bernaferrari.difflib.DiffUtils
-                    .diff(oldLines, newLines)
-            val diff =
-                UnifiedDiffUtils.generateUnifiedDiff(
-                    originalFileName = "v${snap1.timestamp}",
-                    revisedFileName = "v${snap2.timestamp}",
-                    originalLines = oldLines,
-                    patch = patch,
-                    contextSize = 3,
-                )
-            val diffText = diff.joinToString("\n")
-            val shareText = "Diff generated at ${kotlin.time.Clock.System.now().toEpochMilliseconds()}"
-            val fileName = "diff_${kotlin.time.Clock.System.now().toEpochMilliseconds()}.diff"
-
-            withContext(Dispatchers.Main) {
-                shareManager.shareFile(fileName, diffText, shareText)
+        val site = _uiState.value.site ?: return
+        viewModelScope.launch {
+            val text = withContext(Dispatchers.Default) {
+                val oldLines = readableSnapshotText(content1, readableText && snap1.isHtmlSnapshot()).lines().map { it.trim() }.filter { it.isNotEmpty() }
+                val newLines = readableSnapshotText(content2, readableText && snap2.isHtmlSnapshot()).lines().map { it.trim() }.filter { it.isNotEmpty() }
+                val deltas = com.bernaferrari.difflib.DiffUtils.diff(oldLines, newLines).deltas
+                buildString {
+                    appendLine("${site.title ?: site.url} changed")
+                    deltas.take(MAX_SHARED_EDITS).forEach { delta ->
+                        val before = delta.source.lines.joinToString(" ").take(160)
+                        val after = delta.target.lines.joinToString(" ").take(160)
+                        when {
+                            before.isNotEmpty() && after.isNotEmpty() -> appendLine("• $before → $after")
+                            after.isNotEmpty() -> appendLine("+ $after")
+                            else -> appendLine("− $before")
+                        }
+                    }
+                    if (deltas.size > MAX_SHARED_EDITS) appendLine("…and ${deltas.size - MAX_SHARED_EDITS} more")
+                    append(site.url)
+                }
             }
+            shareManager.shareText(text, site.title ?: site.url)
         }
     }
 
@@ -121,31 +123,19 @@ class ComparisonViewModel(
         olderSnap: Snap,
         imageDiff: SnapshotImageDiff,
     ) {
-        val summary =
-            buildString {
-                appendLine("Image diff")
-                appendLine("Before: ${olderSnap.timestamp}")
-                appendLine("After: ${newerSnap.timestamp}")
-                appendLine("Changed: ${formatPercent(imageDiff.mismatchPercentage)}")
-                appendLine("Changed pixels: ${imageDiff.differentPixels} / ${imageDiff.totalPixels}")
-                if (imageDiff.isSampled) appendLine("Pixel statistics use a reduced-size preview.")
-                appendLine("Before size: ${imageDiff.beforeWidth} x ${imageDiff.beforeHeight}")
-                appendLine("After size: ${imageDiff.afterWidth} x ${imageDiff.afterHeight}")
-                imageDiff.dimensionMismatch?.let {
-                    appendLine(
-                        "Dimension mismatch: ${it.beforeWidth} x ${it.beforeHeight} -> " +
-                            "${it.afterWidth} x ${it.afterHeight}",
-                    )
-                }
-                imageDiff.error?.let { appendLine("Error: $it") }
-            }
+        val site = _uiState.value.site ?: return
+        val areas = imageDiff.visualChange?.regions?.size ?: 0
+        val text = buildString {
+            append("${site.title ?: site.url} changed")
+            if (areas > 0) append(" · $areas ${if (areas == 1) "area" else "areas"}")
+            appendLine()
+            append(site.url)
+        }
+        shareManager.shareText(text, site.title ?: site.url)
+    }
 
-        val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
-        shareManager.shareFile(
-            fileName = "image_diff_$now.txt",
-            text = summary,
-            title = "Image diff",
-        )
+    private companion object {
+        const val MAX_SHARED_EDITS = 6
     }
 
     private val _uiState = MutableStateFlow(ComparisonUiState())

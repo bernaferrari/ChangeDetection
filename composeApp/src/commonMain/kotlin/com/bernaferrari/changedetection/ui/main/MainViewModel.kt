@@ -61,6 +61,7 @@ class MainViewModel(
     private val errorHandler: ErrorHandler,
     private val applicationScope: ApplicationScope,
     syncProgressTracker: SyncProgressTracker,
+    private val syncEngine: com.bernaferrari.changedetection.sync.SyncEngine,
 ) : ViewModel() {
 
     val syncStatusFlow = monitoringManager.getSyncStatusFlow()
@@ -222,6 +223,7 @@ class MainViewModel(
 
     // Initialize monitoring
     init {
+        applicationScope.scope.launch { runCatching { syncEngine.resolveMissingIcons() } }
         // Monitor work info changes to update loading states
         viewModelScope.launch {
             syncStatusFlow.collect { syncList ->

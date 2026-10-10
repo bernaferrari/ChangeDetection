@@ -92,7 +92,7 @@ fun ChangeDetectionNavigationSuite(
                             ShortNavigationBarItem(
                                 selected = selected,
                                 onClick = { if (!selected) navigateToTab(backStack, item.destination) },
-                                icon = { NavIcon(if (selected) item.selectedIcon else item.unselectedIcon, if (item.destination is MainDestination) homeBadge else 0) },
+                                icon = { NavIcon(if (selected) item.selectedIcon else item.unselectedIcon, if (item.destination is MainDestination && !selected) homeBadge else 0) },
                                 label = { Text(labels[index]) },
                             )
                         }
@@ -110,7 +110,7 @@ fun ChangeDetectionNavigationSuite(
                             onClick = {
                                 if (!selected) navigateToTab(backStack, item.destination)
                             },
-                            icon = { NavIcon(if (selected) item.selectedIcon else item.unselectedIcon, if (item.destination is MainDestination) homeBadge else 0) },
+                            icon = { NavIcon(if (selected) item.selectedIcon else item.unselectedIcon, if (item.destination is MainDestination && !selected) homeBadge else 0) },
                             label = { Text(label) },
                         )
                     }

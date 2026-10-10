@@ -51,9 +51,9 @@
         <item quantity="one">%1$d parte ignorata</item>
         <item quantity="other">%1$d parti ignorate</item>
     </plurals>
-    <string name="visual_changed">Cambiato</string>
-    <string name="visual_added">Nuovo nella pagina</string>
-    <string name="visual_removed">Non è più nella pagina</string>
+    <string name="visual_changed">Aggiornato</string>
+    <string name="visual_added">Nuovo</string>
+    <string name="visual_removed">Rimosso</string>
     <string name="visual_no_areas">Non è cambiato nulla di visibile. La pagina potrebbe essersi spostata.</string>
     <string name="visual_area_n">Area %1$d</string>
     <plurals name="visual_summary">
@@ -61,8 +61,8 @@
         <item quantity="other">%1$d aree · %2$d cambiate, %3$d nuove, %4$d rimosse</item>
     </plurals>
     <plurals name="crop_changed">
-        <item quantity="one">%1$d area cambiata</item>
-        <item quantity="other">%1$d aree cambiate</item>
+        <item quantity="one">%1$d modifica</item>
+        <item quantity="other">%1$d modifiche</item>
     </plurals>
     <plurals name="crop_added">
         <item quantity="one">%1$d nuova</item>
@@ -83,4 +83,6 @@
     <string name="version_older_change">Modifica precedente</string>
     <string name="version_newer_change">Modifica successiva</string>
     <string name="version_compared_with">vs %1$s</string>
+    <string name="home_status_checked">Controllato %1$s</string>
+    <string name="home_status_first_check">In attesa del primo controllo</string>
 </resources>

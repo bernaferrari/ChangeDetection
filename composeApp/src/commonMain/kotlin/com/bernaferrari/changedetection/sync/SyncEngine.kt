@@ -79,6 +79,19 @@ open class SyncEngine(
 ) {
     private val pageLocks = PageCheckLocks()
 
+    /**
+     * Finds the best icon for pages that have none yet (added before icons were captured, or screenshot pages
+     * not checked since). One light request per page, straight to the page's own site.
+     */
+    suspend fun resolveMissingIcons() {
+        sitesDao.getSitesList().filter { it.iconUrl.isBlank() }.forEach { site ->
+            val result = fetchFromServer(site) as? FetchResult.Success ?: return@forEach
+            if (!result.contentType.contains("html", true)) return@forEach
+            runCatching { com.bernaferrari.changedetection.addedit.htmlIcon(result.data.decodeToString(), site.url) }
+                .getOrNull()?.let { runCatching { sitesDao.updateIcon(site.id, it) } }
+        }
+    }
+
     private suspend fun <T> withSiteLock(siteId: String, block: suspend () -> T): T = pageLocks.withLock(siteId) {
         progressTracker.track(siteId, block)
     }
@@ -224,6 +237,11 @@ open class SyncEngine(
         incoming: FetchResult.Success,
         threshold: Int,
     ): SyncResult {
+        // Pages added before icons were captured get their real (high-resolution) icon from the HTML they already served.
+        if (site.iconUrl.isBlank() && incoming.contentType.contains("html", true)) {
+            runCatching { com.bernaferrari.changedetection.addedit.htmlIcon(incoming.data.decodeToString(), site.url) }
+                .getOrNull()?.let { runCatching { sitesDao.updateIcon(site.id, it) } }
+        }
         val prepared = try {
             if (site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT) {
                 com.bernaferrari.changedetection.detection.prepareTextCapture(incoming.data, incoming.contentType, site.textRegion())

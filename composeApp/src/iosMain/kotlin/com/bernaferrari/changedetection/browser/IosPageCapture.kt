@@ -100,7 +100,10 @@ object IosPageCapture {
                 y += VIEWPORT_HEIGHT
             }
             evaluate(web, "window.scrollTo(0, 0); 0")
-            delay(400)
+            // Lazy images and late content: wait until the page has really finished loading.
+            PageCleanup.awaitSettled({ script -> evaluate(web, script)?.toString() })
+            evaluate(web, PageCleanup.MASK_RELATIVE_TIMES)
+            delay(300)
             // Ads injected while scrolling, and bottom bars, are hidden right before the first tile.
             evaluate(web, PageCleanup.HIDE_ADS)
             evaluate(web, PageCleanup.HIDE_BOTTOM_FLOATING)
