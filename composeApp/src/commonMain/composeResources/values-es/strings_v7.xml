@@ -80,4 +80,7 @@
     <string name="picker_selected_area">Una zona sin texto</string>
     <string name="preview_nothing_visible">No cambió nada visible</string>
     <string name="preview_nothing_visible_body">La página solo se movió o se volvió a dibujar</string>
+    <string name="version_older_change">Cambio anterior</string>
+    <string name="version_newer_change">Cambio siguiente</string>
+    <string name="version_compared_with">Comparado con %1$s</string>
 </resources>

@@ -50,17 +50,17 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
- * The new screenshot with every changed area marked. It opens on the first change, and a small bar steps
- * through the rest; scrolling by hand keeps the bar in sync with whichever change is in view.
+ * The new screenshot with every changed area marked. It opens on the current change (the first, at first),
+ * and the shared bottom bar steps through the rest; scrolling by hand keeps that bar in sync.
  */
 @Composable
-internal fun HighlightView(afterBytes: ByteArray, regions: List<VisualRegion>, modifier: Modifier = Modifier) {
+internal fun HighlightView(afterBytes: ByteArray, regions: List<VisualRegion>, cursor: RegionCursor, modifier: Modifier = Modifier) {
     val marks = MaterialTheme.marks
     val scroll = rememberScrollState()
     val scope = rememberCoroutineScope()
     val aspect by produceState(0f, afterBytes) { value = imageAspect(afterBytes) }
-    var current by remember(regions) { mutableIntStateOf(0) }
-    val ordered = remember(regions) { regions.sortedBy { it.afterTop } }
+    val ordered = regions
+    val current = cursor.current
 
     BoxWithConstraints(modifier.background(MaterialTheme.colorScheme.surfaceBright).testTag("highlight-changes")) {
         val density = LocalDensity.current
@@ -76,13 +76,18 @@ internal fun HighlightView(afterBytes: ByteArray, regions: List<VisualRegion>, m
 
         fun go(index: Int) {
             if (index !in ordered.indices) return
-            current = index
-            scope.launch { scroll.animateScrollTo(targetFor(index)) }
+            scope.launch { cursor.go(index - cursor.current) }
         }
 
-        // Open on the first change as soon as the screenshot's size is known.
+        DisposableEffect(cursor, ordered, imageHeightPx) {
+            cursor.changeCount = ordered.size
+            cursor.scroller = { index -> scroll.animateScrollTo(targetFor(index)) }
+            onDispose { cursor.scroller = null }
+        }
+
+        // Open on the current change as soon as the screenshot's size is known.
         LaunchedEffect(ordered, imageHeightPx) {
-            if (imageHeightPx > 0f && ordered.isNotEmpty()) scroll.scrollTo(targetFor(current))
+            if (imageHeightPx > 0f && ordered.isNotEmpty()) scroll.scrollTo(targetFor(cursor.current.coerceIn(0, ordered.lastIndex)))
         }
         // After a manual scroll, the bar follows the change nearest to that quarter line.
         LaunchedEffect(ordered, imageHeightPx) {
@@ -90,12 +95,11 @@ internal fun HighlightView(afterBytes: ByteArray, regions: List<VisualRegion>, m
             snapshotFlow { scroll.isScrollInProgress to scroll.value }.collectLatest { (moving, value) ->
                 if (moving) return@collectLatest
                 val line = (value + viewportPx * 0.25f - padPx) / imageHeightPx
-                current = ordered.indices.minBy { abs(ordered[it].afterTop - line) }
+                cursor.current = ordered.indices.minBy { abs(ordered[it].afterTop - line) }
             }
         }
 
-        // Extra room at the end so the last change can scroll clear of the floating stepper.
-        Box(Modifier.fillMaxSize().verticalScroll(scroll).padding(start = pad, end = pad, top = pad, bottom = 88.dp)) {
+        Box(Modifier.fillMaxSize().verticalScroll(scroll).padding(start = pad, end = pad, top = pad, bottom = 24.dp)) {
             if (aspect > 0f) {
                 Box(Modifier.fillMaxWidth().aspectRatio(aspect)) {
                     SnapshotImage(afterBytes, null, Modifier.fillMaxSize(), ContentScale.FillBounds)
@@ -129,31 +133,6 @@ internal fun HighlightView(afterBytes: ByteArray, regions: List<VisualRegion>, m
             }
         }
 
-        AnimatedVisibility(
-            visible = ordered.size > 1 && aspect > 0f,
-            enter = slideInVertically { it } + fadeIn(),
-            exit = slideOutVertically { it } + fadeOut(),
-            modifier = Modifier.align(Alignment.BottomCenter).padding(12.dp),
-        ) {
-            ChangeStepper(current, ordered.size, onPrevious = { go(current - 1) }, onNext = { go(current + 1) })
-        }
     }
 }
 
-/** "Change 2 of 5" with up and down arrows; the same control as the text reader. */
-@Composable
-private fun ChangeStepper(current: Int, count: Int, onPrevious: () -> Unit, onNext: () -> Unit) {
-    val position = stringResource(Res.string.reader_position, current + 1, count)
-    Surface(
-        shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
-        shadowElevation = 6.dp,
-        modifier = Modifier.semantics { contentDescription = position },
-    ) {
-        Row(Modifier.padding(horizontal = 4.dp).heightIn(min = 52.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onPrevious, enabled = current > 0) { Icon(Icons.Rounded.KeyboardArrowUp, stringResource(Res.string.reader_previous)) }
-            Text(position, Modifier.widthIn(min = 112.dp), style = MaterialTheme.typography.titleSmall, textAlign = TextAlign.Center)
-            IconButton(onClick = onNext, enabled = current < count - 1) { Icon(Icons.Rounded.KeyboardArrowDown, stringResource(Res.string.reader_next)) }
-        }
-    }
-}
