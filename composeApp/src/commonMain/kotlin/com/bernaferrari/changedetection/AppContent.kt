@@ -234,7 +234,9 @@ fun ChangeDetectionApp(
         NavDisplay(
             backStack = backStack,
             onBack = { backStack.pop() },
-            sceneStrategies = listOf(listDetailStrategy),
+            // On phones every screen is its own scene, so pushes and pops animate (inside one list-detail
+            // scene the content swaps instantly) and Home keeps its scroll position.
+            sceneStrategies = if (singlePaneLayout) emptyList() else listOf(listDetailStrategy),
             entryDecorators = rememberAppEntryDecorators(),
             entryProvider = entryProvider {
                 entry<MainDestination>(

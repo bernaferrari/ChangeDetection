@@ -238,20 +238,12 @@ fun HomeScreen(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         contentWindowInsets = WindowInsets(0),
         topBar = {
-            // The bars change height (large title → one line), so the swap animates its size, not just a fade.
-            androidx.compose.animation.AnimatedContent(
-                targetState = when {
+            com.bernaferrari.changedetection.ui.kit.TopBarSwitcher(
+                when {
                     selecting -> TopMode.Select
                     searching -> TopMode.Search
                     else -> TopMode.Normal
                 },
-                transitionSpec = {
-                    val spatial = androidx.compose.animation.core.spring<androidx.compose.ui.unit.IntSize>(dampingRatio = 0.9f, stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow)
-                    (fadeIn(androidx.compose.animation.core.tween(180, delayMillis = 60)) togetherWith fadeOut(androidx.compose.animation.core.tween(120)))
-                        .using(androidx.compose.animation.SizeTransform(clip = false) { _, _ -> spatial })
-                },
-                contentAlignment = Alignment.TopStart,
-                label = "top-bar",
             ) { mode ->
                 when (mode) {
                     TopMode.Select -> SelectionBar(
@@ -286,7 +278,7 @@ fun HomeScreen(
                         },
                     )
 
-                    TopMode.Search -> SearchBar(query, { query = it }) {
+                    TopMode.Search -> com.bernaferrari.changedetection.ui.kit.SearchTopBar(query, { query = it }, stringResource(Res.string.home_search_hint)) {
                         searching = false
                         query = ""
                     }
@@ -649,38 +641,6 @@ internal fun SelectionBar(
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-    )
-}
-
-@Composable
-private fun SearchBar(query: String, onQuery: (String) -> Unit, onClose: () -> Unit) {
-    val focus = remember { FocusRequester() }
-    LaunchedEffect(Unit) { focus.requestFocus() }
-    TopAppBar(
-        navigationIcon = { IconButton(onClick = onClose) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(Res.string.home_search_close)) } },
-        title = {
-            TextField(
-                value = query,
-                onValueChange = onQuery,
-                placeholder = { Text(stringResource(Res.string.home_search_hint)) },
-                singleLine = true,
-                leadingIcon = { Icon(Icons.Outlined.Search, null) },
-                trailingIcon = if (query.isNotEmpty()) {
-                    { IconButton(onClick = { onQuery("") }) { Icon(Icons.Outlined.Close, stringResource(Res.string.home_search_clear)) } }
-                } else {
-                    null
-                },
-                shape = CircleShape,
-                modifier = Modifier.fillMaxWidth().padding(end = 12.dp).heightIn(min = 52.dp).focusRequester(focus),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                ),
-            )
-        },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
     )
 }
 

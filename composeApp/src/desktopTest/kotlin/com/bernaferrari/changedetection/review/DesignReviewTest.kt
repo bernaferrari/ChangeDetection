@@ -144,7 +144,7 @@ class DesignReviewTest {
         waitForText("Latest change")
         shot("wide-11-detail")
         onNodeWithText("Compare", substring = false).performClick()
-        waitForText("Changes")
+        waitForLabel("Changes")
         waitForText("Change 1 of", substring = true)
         shot("wide-13-reader")
         onNodeWithText("Settings", substring = false).performClick()
@@ -170,7 +170,7 @@ class DesignReviewTest {
         shot("${p}01-home")
         onNodeWithTag("home-list").performScrollToKey("card-fellowship")
         onAllNodesWithText("Fellowship guide").onFirst().performClick()
-        waitForText("Changes")
+        waitForLabel("Changes")
         runCatching { waitForText("Change 1 of", substring = true, timeout = 8_000) }
         shot("${p}13-compare-text")
         onNodeWithTag("version-navigator").performClick()
@@ -182,13 +182,13 @@ class DesignReviewTest {
         waitForTag("home-list")
         onNodeWithTag("home-list").performScrollToKey("card-studio")
         onAllNodesWithText("Studio Display").onFirst().performClick()
-        waitForText("Slider")
+        waitForLabel("Slider")
         runCatching { waitForText("Before", timeout = 15_000) }
         shot("${p}15-compare-image")
-        onNodeWithText("Slider").performClick()
+        onNodeWithContentDescription("Slider").performClick()
         waitUntil(timeoutMillis = 15_000) { onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress)).fetchSemanticsNodes().isNotEmpty() }
         shot("${p}15b-compare-slider")
-        onNodeWithText("Page").performClick()
+        onNodeWithContentDescription("Page").performClick()
         waitUntil(timeoutMillis = 15_000) { onAllNodesWithTag("highlight-changes").fetchSemanticsNodes().isNotEmpty() }
         shot("${p}16-compare-highlight")
         onNodeWithContentDescription("Navigate back").performClick()
@@ -338,6 +338,11 @@ class DesignReviewTest {
 
     private fun ComposeUiTest.waitForText(text: String, substring: Boolean = false, timeout: Long = 10_000) {
         waitUntil(timeoutMillis = timeout) { onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty() }
+    }
+
+    /** Icon-only controls (the comparison modes) carry their name as a content description. */
+    private fun ComposeUiTest.waitForLabel(label: String, timeout: Long = 10_000) {
+        waitUntil(timeoutMillis = timeout) { onAllNodesWithContentDescription(label).fetchSemanticsNodes().isNotEmpty() }
     }
 
     private fun ComposeUiTest.waitForTag(tag: String) {
