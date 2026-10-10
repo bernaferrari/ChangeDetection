@@ -45,10 +45,12 @@ data class VisualChange(
  * Inputs are ARGB pixels of the same width, already scaled down by the platform decoder.
  */
 internal object VisualRegions {
-    private const val MERGE_GAP_ROWS = 18
-    private const val MIN_REGION_ROWS = 3
+    // Distances in working-copy rows (REGION_WORKING_WIDTH wide); tuned on real pages so one story's
+    // headline, text and timestamp read as one area while neighbouring stories stay apart.
+    private const val MERGE_GAP_ROWS = 30
+    private const val MIN_REGION_ROWS = 4
     private const val MAX_REGIONS = 24
-    private const val MAX_GROW_ROWS = 60
+    private const val MAX_GROW_ROWS = 90
     /** Column block used to tell a dense edit from scattered noise. */
     private const val BLOCK = 16
     private const val MIN_CLUSTER_PIXELS = 14

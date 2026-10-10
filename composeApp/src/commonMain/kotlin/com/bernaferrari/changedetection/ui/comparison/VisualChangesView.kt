@@ -217,4 +217,4 @@ private fun CropLabelled(label: String?, bytes: ByteArray, left: Float, right: F
 }
 
 /** Width / height of an encoded image, read once per capture. */
-private suspend fun imageAspect(bytes: ByteArray): Float = com.bernaferrari.changedetection.image.decodeArgbAtWidth(bytes, 64)?.let { (_, w, h) -> w.toFloat() / h } ?: 0f
+internal suspend fun imageAspect(bytes: ByteArray): Float = com.bernaferrari.changedetection.image.decodeArgbAtWidth(bytes, 64)?.let { (_, w, h) -> w.toFloat() / h } ?: 0f
