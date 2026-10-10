@@ -807,7 +807,7 @@ private fun PageRow(
                         failing -> checkFailureTitle(site.lastFailureCode)
                         row.snap == null -> stringResource(Res.string.home_row_waiting)
                         row.snapshotCount <= 1 -> stringResource(Res.string.home_row_no_changes)
-                        else -> stringResource(Res.string.home_row_changed, getRelativeTimeLabel(row.snap.timestamp))
+                        else -> stringResource(Res.string.home_row_changed, getRelativeTimeLabel(row.snap.timestamp).replaceFirstChar { it.lowercase() })
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = statusColor,
