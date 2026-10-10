@@ -288,7 +288,8 @@ fun ComparisonScreen(
                             ConnectedChoice(modes, mode, { mode = it }, Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)) { modeLabel(it) }
                         }
                     }
-                    Box(Modifier.fillMaxWidth().weight(1f).testTag("comparison-reader"), contentAlignment = Alignment.TopCenter) {
+                    // One readable column on tablets, aligned with the version navigator and modes above.
+                    Box(Modifier.widthIn(max = 720.dp).fillMaxWidth().weight(1f).align(Alignment.CenterHorizontally).testTag("comparison-reader"), contentAlignment = Alignment.TopCenter) {
                         val content1 = uiState.snapContent1
                         val content2 = uiState.snapContent2
                         when {
