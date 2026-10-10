@@ -116,8 +116,10 @@ internal fun VisualChangesView(beforeBytes: ByteArray, afterBytes: ByteArray, di
 @Composable
 private fun PageOverview(afterBytes: ByteArray, regions: List<VisualRegion>, modifier: Modifier, onJump: (Int) -> Unit) {
     val marks = MaterialTheme.marks
+    val aspect by produceState(0f, afterBytes) { value = imageAspect(afterBytes) }
     BoxWithConstraints(modifier) {
-        val available = maxHeight
+        // Keep the page's proportions: a short page is a short overview, never a stretched one.
+        val available = if (aspect > 0f) minOf(maxHeight, maxWidth / aspect) else maxHeight
         Box(
             Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Color.White)
                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(10.dp)),
@@ -194,8 +196,7 @@ private fun CropLabelled(label: String?, bytes: ByteArray, left: Float, right: F
         l = (c - 1f / 6f).coerceIn(0f, 2f / 3f)
         r = l + 1f / 3f
     }
-    val t = (top - 0.004f).coerceAtLeast(0f)
-    val b = (bottom + 0.004f).coerceAtMost(1f)
+
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         if (label != null) Text(label, Modifier.padding(start = 4.dp), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         BoxWithConstraints(
@@ -207,6 +208,10 @@ private fun CropLabelled(label: String?, bytes: ByteArray, left: Float, right: F
             val imageWidth = (cardWidth / (r - l)).roundToInt()
             val aspect by produceState(0f, bytes) { value = imageAspect(bytes) }
             val imageHeight = if (aspect > 0f) imageWidth / aspect else 0f
+            // A little room above and below (about a line's breathing space), whatever the page's length.
+            val pad = if (imageHeight > 0f) with(androidx.compose.ui.platform.LocalDensity.current) { 10.dp.toPx() } / imageHeight else 0.004f
+            val t = (top - pad).coerceAtLeast(0f)
+            val b = (bottom + pad).coerceAtMost(1f)
             val cropHeightPx = ((b - t) * imageHeight).roundToInt().coerceIn(48, 1_400)
             Box(
                 Modifier.fillMaxWidth().height(with(androidx.compose.ui.platform.LocalDensity.current) { cropHeightPx.toDp() }).clipToBounds(),

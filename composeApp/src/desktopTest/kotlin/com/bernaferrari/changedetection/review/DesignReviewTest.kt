@@ -173,7 +173,7 @@ class DesignReviewTest {
         waitForText("Changes")
         runCatching { waitForText("Change 1 of", substring = true, timeout = 8_000) }
         shot("${p}13-compare-text")
-        onNodeWithText("Compared with", substring = true).performClick()
+        onNodeWithTag("version-navigator").performClick()
         waitForText("Compare versions")
         shot("${p}14-versions")
         onAllNodes(hasClickAction() and hasAnyAncestor(hasTestTag("version-list"))).onFirst().performClick()
