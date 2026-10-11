@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.gradle.versions)
     alias(libs.plugins.version.catalog.update)
     alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.play.publisher) apply false
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.android.kotlin.multiplatform.library) apply false
     alias(libs.plugins.kotlin.android) apply false
@@ -12,6 +13,14 @@ plugins {
     alias(libs.plugins.compose) apply false
     alias(libs.plugins.spotless) apply false
 }
+
+val sourceCopyrightHeader =
+    """
+    /*
+     * Copyright (c) 2024 ChangeDetection Contributors
+     * Licensed under the Apache License, Version 2.0
+     */
+    """.trimIndent() + "\n"
 
 subprojects {
     apply(plugin = "com.diffplug.spotless")
@@ -32,14 +41,14 @@ subprojects {
             target("**/*.kt")
             targetExclude("${layout.buildDirectory}/**/*.kt")
             ktlint().editorConfigOverride(ktlintOverrides)
-            licenseHeaderFile(rootProject.file("spotless/copyright.kt"))
+            licenseHeader(sourceCopyrightHeader)
         }
         kotlinGradle {
             target("*.gradle.kts")
             targetExclude("${layout.buildDirectory}/**/*.kt")
             ktlint().editorConfigOverride(ktlintOverrides)
             // Look for the first line that doesn't have a block comment (assumed to be the license)
-            licenseHeaderFile(rootProject.file("spotless/copyright.kt"), "(^(?![\\/ ]\\*).*$)")
+            licenseHeader(sourceCopyrightHeader, "(^(?![\\/ ]\\*).*$)")
         }
     }
 }

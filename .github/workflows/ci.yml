@@ -38,9 +38,9 @@ jobs:
       - name: Verify Desktop journeys and shared platform compilation
         run: >-
           ./gradlew
-          :composeApp:desktopTest
-          :composeApp:compileKotlinIosSimulatorArm64
-          :composeApp:spotlessCheck
+          :shared:desktopTest
+          :shared:compileKotlinIosSimulatorArm64
+          :shared:spotlessCheck
 
       - name: Save Desktop verification reports and renders
         if: always()
@@ -48,8 +48,8 @@ jobs:
         with:
           name: desktop-verification-reports
           path: |
-            composeApp/build/reports/tests/desktopTest/
-            composeApp/build/test-results/desktopTest/
+            shared/build/reports/tests/desktopTest/
+            shared/build/test-results/desktopTest/
             build/desktop-review/**/*.png
           retention-days: 14
           if-no-files-found: warn
@@ -75,12 +75,12 @@ jobs:
       - name: Build and verify Android
         run: >-
           ./gradlew
-          :composeApp:spotlessCheck
-          :composeApp:testAndroidHostTest
-          :composeApp:assembleAndroidDeviceTest
-          :app:lintDebug
-          :app:assembleDebug
-          :app:assembleRelease
+          :shared:spotlessCheck
+          :shared:testAndroidHostTest
+          :shared:assembleAndroidDeviceTest
+          :androidApp:lintDebug
+          :androidApp:assembleDebug
+          :androidApp:assembleRelease
 
       - name: Enable KVM
         run: |
@@ -98,7 +98,7 @@ jobs:
           ram-size: 4096M
           disk-size: 8G
           disable-animations: false
-          script: ./gradlew :composeApp:connectedAndroidDeviceTest
+          script: ./gradlew :shared:connectedAndroidDeviceTest
 
       - name: Save Android verification reports
         if: always()
@@ -106,10 +106,10 @@ jobs:
         with:
           name: android-verification-reports
           path: |
-            composeApp/build/reports/
-            composeApp/build/test-results/
-            composeApp/build/outputs/androidTest-results/
-            app/build/reports/
+            shared/build/reports/
+            shared/build/test-results/
+            shared/build/outputs/androidTest-results/
+            androidApp/build/reports/
           retention-days: 14
           if-no-files-found: warn
 
@@ -132,7 +132,13 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Build and verify the web demo
-        run: ./scripts/verify-web-demo.sh --ci
+        run: |
+          ./gradlew :webDemo:wasmJsBrowserDistribution --no-daemon --build-cache --configuration-cache
+          dist=webDemo/build/dist/wasmJs/productionExecutable
+          test -s "$dist/index.html"
+          test -s "$dist/changedetection-demo.js"
+          grep -q 'changedetection-demo.js' "$dist/index.html"
+          test -n "$(find "$dist" -maxdepth 1 -name '*.wasm' -print -quit)"
 
   web-site:
     name: Marketing site

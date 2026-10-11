@@ -22,7 +22,7 @@ dependencyResolutionManagement {
     }
 }
 
-include(":app")
-include(":composeApp")
+include(":androidApp")
+include(":shared")
 include(":sqliteWasmWorker")
 include(":webDemo")

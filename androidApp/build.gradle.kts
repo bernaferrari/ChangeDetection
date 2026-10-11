@@ -3,12 +3,14 @@
  * Licensed under the Apache License, Version 2.0
  */
 
+import com.github.triplet.gradle.androidpublisher.ReleaseStatus
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.play.publisher)
 
     alias(libs.plugins.compose)
 }
@@ -30,6 +32,21 @@ val hasReleaseSigningConfig =
         listOf("keyAlias", "keyPassword", "storePassword").all { property ->
             !releaseKeystoreProperties.getProperty(property).isNullOrBlank()
         }
+
+val playPublishingEnabled = providers.gradleProperty("playPublishing").map { it.toBooleanStrict() }.orElse(false).get()
+val playCredentialsFile = providers.environmentVariable("CHANGEDETECTION_PLAY_CREDENTIALS").orNull?.let { rootProject.file(it) }
+if (playPublishingEnabled) {
+    check(hasReleaseSigningConfig) { "Set CHANGEDETECTION_SIGNING_PROPERTIES to a valid external signing configuration before publishing." }
+    check(playCredentialsFile?.isFile == true) { "Set CHANGEDETECTION_PLAY_CREDENTIALS to an external Play service-account JSON file before publishing." }
+}
+
+play {
+    enabled.set(playPublishingEnabled)
+    if (playCredentialsFile != null) serviceAccountCredentials.set(playCredentialsFile)
+    defaultToAppBundles.set(true)
+    track.set("internal")
+    releaseStatus.set(ReleaseStatus.DRAFT)
+}
 
 android {
     namespace = "com.bernaferrari.changedetection"
@@ -103,7 +120,7 @@ android {
 
 dependencies {
     implementation(platform(libs.koin.bom))
-    implementation(project(":composeApp"))
+    implementation(project(":shared"))
     implementation(platform(libs.androidx.compose.bom))
 
     // Koin for dependency injection

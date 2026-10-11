@@ -43,6 +43,7 @@ navigation = "2.10.2"
 okio = "3.18.2"
 paging = "3.5.2"
 paletteKtx = "1.0.0"
+playPublisher = "4.1.1"
 room = "3.0.3"
 spotless = "8.10.4"
 sqlite = "2.7.1"
@@ -171,5 +172,6 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+play-publisher = { id = "com.github.triplet.play", version.ref = "playPublisher" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "version-catalog-update" }

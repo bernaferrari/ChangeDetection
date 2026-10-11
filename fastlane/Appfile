@@ -1,2 +1,0 @@
-package_name("com.bernaferrari.changedetection")
-json_key_file(ENV["CHANGEDETECTION_PLAY_CREDENTIALS"]) if ENV["CHANGEDETECTION_PLAY_CREDENTIALS"]

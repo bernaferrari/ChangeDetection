@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
-  <title id="title">Change Detection change-pulse mark</title>
-  <desc id="description">An open scan ring surrounding a change pulse.</desc>
-  <rect width="512" height="512" rx="144" fill="#303984"/>
-  <path d="M356 156A142 142 0 1 0 356 356" fill="none" stroke="#F0EFFF" stroke-width="34" stroke-linecap="round"/>
-  <path d="M158 266h56l26-56 42 112 34-70h48" fill="none" stroke="#F0EFFF" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="372" cy="142" r="34" fill="#FF7B9D"/>
-</svg>

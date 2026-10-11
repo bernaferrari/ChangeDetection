@@ -64,13 +64,6 @@ freeline.py
 freeline/
 freeline_project_description.json
 
-# fastlane
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/screenshots
-fastlane/test_output
-fastlane/readme.md
-
 # Version control
 vcs.xml
 
@@ -85,7 +78,7 @@ lint/tmp/
 !gradle/libs.versions.toml
 !package.json
 # Room schema definitions contain structure only and are needed for migration review.
-!composeApp/schemas/**/*.json
+!shared/schemas/**/*.json
 secrets.properties
 api-*.json
 *-keystore.*
