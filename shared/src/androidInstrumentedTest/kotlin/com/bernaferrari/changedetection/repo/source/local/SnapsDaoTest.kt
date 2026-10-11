@@ -130,38 +130,36 @@ class SnapsDaoTest {
     }
 
     @Test
-    fun versionFiveBeforeIconShapesPreservesHistoryAndDefault() = runBlocking {
+    fun retiredDevelopmentSchemasStartFresh() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        val name = "capture-migration-${java.util.UUID.randomUUID()}.db"
-        val path = context.getDatabasePath(name).absolutePath
-        fun open() = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(context, path), BundledSQLiteDriver())
-        try {
-            val original = open()
+        for (version in listOf(2, 3, 5, 6, 10)) {
+            val name = "retired-schema-$version-${java.util.UUID.randomUUID()}.db"
+            val path = context.getDatabasePath(name).absolutePath
+            fun open() = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(context, path), BundledSQLiteDriver())
             try {
-                original.siteDao().insertSite(site("garden"))
-                original.snapsDao().insertSnap(snap("old-version", "garden", 1_000))
+                val original = open()
+                try {
+                    original.siteDao().insertSite(site("garden"))
+                    original.snapsDao().insertSnap(snap("old-version", "garden", 1_000))
+                } finally {
+                    original.close()
+                }
+                BundledSQLiteDriver().open(path).use { connection ->
+                    connection.prepare("ALTER TABLE sites DROP COLUMN iconShape").use { it.step() }
+                    connection.prepare("PRAGMA user_version = $version").use { it.step() }
+                }
+                val reset = open()
+                try {
+                    assertTrue(reset.siteDao().getSitesList().isEmpty())
+                    assertTrue(reset.snapsDao().getAllSnapsForSiteId("garden").isEmpty())
+                    reset.siteDao().insertSite(site("new"))
+                    assertEquals(com.bernaferrari.changedetection.repo.PageIconShape.AUTOMATIC, reset.siteDao().getSiteById("new")?.iconShape)
+                } finally {
+                    reset.close()
+                }
             } finally {
-                original.close()
+                context.deleteDatabase(name)
             }
-            // Before icon shapes, development schema 5 had all other current columns.
-            BundledSQLiteDriver().open(path).use { connection ->
-                connection.prepare("ALTER TABLE sites DROP COLUMN iconShape").use { it.step() }
-                connection.prepare("PRAGMA user_version = 5").use { it.step() }
-            }
-            val migrated = open()
-            try {
-                val restored = requireNotNull(migrated.siteDao().getSiteById("garden"))
-                assertEquals("Synthetic garden", restored.title)
-                assertEquals(com.bernaferrari.changedetection.repo.CaptureMode.DEFAULT, restored.captureMode)
-                assertEquals(listOf("old-version"), migrated.snapsDao().getAllSnapsForSiteId("garden").map { it.snapId })
-                migrated.siteDao().savePreservingStatus(restored.copy(captureMode = com.bernaferrari.changedetection.repo.CaptureMode.HTML))
-                assertEquals(com.bernaferrari.changedetection.repo.CaptureMode.HTML, migrated.siteDao().getSiteById("garden")?.captureMode)
-                assertEquals(1, migrated.snapsDao().getAllSnapsForSiteId("garden").size)
-            } finally {
-                migrated.close()
-            }
-        } finally {
-            context.deleteDatabase(name)
         }
     }
 
@@ -288,72 +286,6 @@ class SnapsDaoTest {
         sitesDao.saveWithHistoryReset(requireNotNull(sitesDao.getSiteById("garden")))
         assertEquals(null, sitesDao.getSiteById("garden")?.lastSuccessfulCheck)
         assertEquals(0L, sitesDao.getSiteById("garden")?.timestamp)
-    }
-
-    @Test
-    fun versionFiveWithIconShapePreservesSelectorsAndHealth() = runBlocking {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        val path = context.getDatabasePath("region-migration-${java.util.UUID.randomUUID()}.db").absolutePath
-        fun open() = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(context, path), BundledSQLiteDriver())
-        try {
-            val original = open()
-            original.siteDao().insertSite(site("garden").copy(lastSuccessfulCheck = 100, lastFailureCode = "TIMEOUT", isRead = false))
-            original.snapsDao().insertSnap(snap("saved", "garden", 100))
-            original.close()
-            BundledSQLiteDriver().open(path).use { connection ->
-                connection.prepare("PRAGMA user_version = 5").use { it.step() }
-            }
-            val migrated = open()
-            try {
-                val restored = requireNotNull(migrated.siteDao().getSiteById("garden"))
-                assertEquals("", restored.textIncludeSelector)
-                assertEquals("", restored.textExcludeSelector)
-                assertEquals(100L, restored.lastSuccessfulCheck)
-                assertEquals("TIMEOUT", restored.lastFailureCode)
-                assertEquals(false, restored.isRead)
-                migrated.siteDao().savePreservingStatus(restored.copy(textIncludeSelector = "#price", textExcludeSelector = ".timer"))
-                assertEquals("#price", migrated.siteDao().getSiteById("garden")?.textIncludeSelector)
-                assertEquals(".timer", migrated.siteDao().getSiteById("garden")?.textExcludeSelector)
-                assertEquals(listOf("saved"), migrated.snapsDao().getAllSnapsForSiteId("garden").map { it.snapId })
-            } finally {
-                migrated.close()
-            }
-        } finally {
-            context.deleteDatabase(path)
-        }
-    }
-
-    @Test
-    fun versionFivePreservesExistingFailureStatus() = runBlocking {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        val path = context.getDatabasePath("failure-migration-${java.util.UUID.randomUUID()}.db").absolutePath
-        fun open() = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(context, path), BundledSQLiteDriver())
-        try {
-            val original = open()
-            try {
-                original.siteDao().insertSite(site("garden").copy(timestamp = 200, lastSuccessfulCheck = 100, isSuccessful = false, isRead = false))
-                original.snapsDao().insertSnap(snap("saved", "garden", 100))
-            } finally {
-                original.close()
-            }
-            BundledSQLiteDriver().open(path).use { connection ->
-                connection.prepare("ALTER TABLE sites DROP COLUMN iconShape").use { it.step() }
-                connection.prepare("PRAGMA user_version = 5").use { it.step() }
-            }
-            val migrated = open()
-            try {
-                val restored = requireNotNull(migrated.siteDao().getSiteById("garden"))
-                assertEquals(null, restored.lastFailureCode)
-                assertEquals(100L, restored.lastSuccessfulCheck)
-                assertEquals(false, restored.isSuccessful)
-                assertEquals(false, restored.isRead)
-                assertEquals(listOf("saved"), migrated.snapsDao().getAllSnapsForSiteId("garden").map { it.snapId })
-            } finally {
-                migrated.close()
-            }
-        } finally {
-            context.deleteDatabase(path)
-        }
     }
 
     @Test
