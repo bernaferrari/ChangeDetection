@@ -63,7 +63,7 @@ class SyncWorker(
         val notification =
             NotificationCompat
                 .Builder(applicationContext, CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.ic_popup_sync)
+                .setSmallIcon(R.drawable.ic_notification_change)
                 .setContentTitle(applicationContext.getString(R.string.app_name))
                 .setContentText(applicationContext.getString(R.string.status_sync_in_progress))
                 .setPriority(NotificationCompat.PRIORITY_LOW)
