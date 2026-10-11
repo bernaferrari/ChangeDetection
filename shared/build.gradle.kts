@@ -3,6 +3,8 @@
  * Licensed under the Apache License, Version 2.0
  */
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -234,6 +236,62 @@ dependencies {
 compose.desktop {
     application {
         mainClass = "com.bernaferrari.changedetection.DesktopMainKt"
+        javaHome = javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(25))
+            vendor.set(JvmVendorSpec.JETBRAINS)
+        }.get().metadata.installationPath.asFile.absolutePath
+        nativeDistributions {
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm)
+            packageName = "Change Detection"
+            packageVersion = "2.31.0"
+            modules("java.sql", "java.net.http", "jdk.unsupported", "jdk.crypto.ec")
+            macOS {
+                bundleID = "com.bernaferrari.changedetection.desktop"
+                minimumSystemVersion = "12.0"
+                iconFile.set(project.file("src/desktopMain/icons/AppIcon.icns"))
+                infoPlist {
+                    extraKeysRawXml = "<key>CFBundleIconName</key><string>AppIcon</string>"
+                }
+            }
+            windows {
+                iconFile.set(project.file("src/desktopMain/icons/AppIcon.ico"))
+                shortcut = true
+                menu = true
+            }
+            linux {
+                iconFile.set(project.file("src/desktopMain/composeResources/drawable/app_icon.png"))
+                packageName = "changedetection"
+                shortcut = true
+            }
+        }
+    }
+}
+
+if (System.getProperty("os.name").contains("Mac", ignoreCase = true)) {
+    val macIconResources = layout.buildDirectory.dir("macIcon/Resources")
+    val compileMacIcon = tasks.register<Exec>("compileMacIcon") {
+        group = "distribution"
+        description = "Compile the shared Icon Composer artwork for macOS"
+        val artwork = rootProject.file("iosApp/iosApp/AppIcon.icon")
+        inputs.dir(artwork)
+        outputs.dir(macIconResources)
+        val output = macIconResources.get().asFile
+        doFirst { output.mkdirs() }
+        commandLine(
+            "xcrun", "actool", artwork.absolutePath,
+            "--compile", output.absolutePath,
+            "--platform", "macosx", "--minimum-deployment-target", "12.0",
+            "--app-icon", "AppIcon",
+            "--output-partial-info-plist", output.resolve("icon-info.plist").absolutePath,
+        )
+    }
+    tasks.withType<AbstractJPackageTask>().configureEach {
+        if (targetFormat == TargetFormat.AppImage) {
+            dependsOn(compileMacIcon)
+            inputs.dir(macIconResources)
+            // jpackage copies Contents/Resources before signing, preserving the layered icon.
+            freeArgs.addAll("--app-content", macIconResources.get().asFile.absolutePath)
+        }
     }
 }
 

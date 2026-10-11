@@ -1,18 +1,69 @@
 {
-  "fill" : {
-    "automatic-gradient" : "extended-srgb:0.00000,0.53333,1.00000,1.00000"
-  },
+  "fill-specializations" : [
+    {
+      "value" : {
+        "automatic-gradient" : "extended-srgb:0.00000,0.53333,1.00000,1.00000"
+      }
+    },
+    {
+      "appearance" : "dark",
+      "value" : "system-dark"
+    }
+  ],
   "groups" : [
     {
       "layers" : [
         {
-          "image-name" : "Foreground.png",
-          "name" : "Foreground"
+          "image-name" : "DarkForeground.png",
+          "name" : "DarkForeground",
+          "opacity-specializations" : [
+            {
+              "value" : 0
+            },
+            {
+              "appearance" : "dark",
+              "value" : 1
+            },
+            {
+              "appearance" : "tinted",
+              "value" : 0
+            }
+          ]
+        },
+        {
+          "image-name" : "FrontPanel.png",
+          "name" : "FrontPanel",
+          "opacity-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : 0
+            }
+          ]
+        },
+        {
+          "image-name" : "RearPanel.png",
+          "name" : "RearPanel",
+          "opacity-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : 0
+            }
+          ]
         },
         {
           "glass" : false,
           "image-name" : "Background.png",
-          "name" : "Background"
+          "name" : "Background",
+          "opacity-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : 0
+            },
+            {
+              "appearance" : "tinted",
+              "value" : 0
+            }
+          ]
         }
       ],
       "name" : "Artwork",
@@ -27,8 +78,6 @@
     }
   ],
   "supported-platforms" : {
-    "squares" : [
-      "iOS"
-    ]
+    "squares" : "shared"
   }
 }
