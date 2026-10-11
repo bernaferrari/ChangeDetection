@@ -109,7 +109,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://github.com/bernaferrari/ChangeDetection/blob/master/LICENSE"
+                  href="https://github.com/bernaferrari/ChangeDetection/blob/main/LICENSE"
                   target="_blank"
                   rel="noreferrer"
                   className="hover:text-foreground transition-colors"

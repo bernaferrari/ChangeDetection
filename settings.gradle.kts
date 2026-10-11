@@ -25,4 +25,4 @@ dependencyResolutionManagement {
 include(":app")
 include(":composeApp")
 include(":sqliteWasmWorker")
-include(":webApp")
+include(":webDemo")

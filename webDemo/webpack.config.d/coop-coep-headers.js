@@ -1,5 +1,5 @@
 // Ensures OPFS / SharedArrayBuffer works for Room 3 WebWorkerSQLiteDriver during
-// :webApp:wasmJsBrowserDevelopmentRun (and any webpack-dev-server based preview).
+// :webDemo:wasmJsBrowserDevelopmentRun (and any webpack-dev-server based preview).
 ;(function (config) {
   const isolationHeaders = {
     'Cross-Origin-Opener-Policy': 'same-origin',
