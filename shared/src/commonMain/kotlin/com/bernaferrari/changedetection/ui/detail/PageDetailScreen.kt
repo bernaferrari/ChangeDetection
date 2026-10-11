@@ -26,6 +26,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -56,6 +58,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -69,8 +72,13 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import kotlin.math.roundToInt
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -221,6 +229,11 @@ internal fun PageDetailContent(
     notificationsAvailable: Boolean = monitoringCapabilities.notifications,
     errorContent: @Composable () -> Unit = {},
 ) {
+    val listState = rememberLazyListState()
+    var nameBottom by remember(item?.site?.id) { mutableIntStateOf(Int.MAX_VALUE) }
+    val showBarTitle by remember(listState, item?.site?.id) {
+        derivedStateOf { listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset >= nameBottom }
+    }
     var choosingShape by remember(item?.site?.id) { mutableStateOf(false) }
     if (choosingShape && item != null) {
         PageIconShapePicker(item.site.name(), item.site.id, item.site.avatarIcon(), item.site.iconShape, onSelect = onIconShapeChange, colors = item.site.colors, onColorSelect = onIconColorChange, onDismiss = { choosingShape = false })
@@ -228,7 +241,7 @@ internal fun PageDetailContent(
     Scaffold(
         topBar = {
             com.bernaferrari.changedetection.ui.navigation.AppTopBar(
-                title = null,
+                title = item?.site?.name()?.takeIf { showBarTitle },
                 onBack = onBack,
                 actions = if (item != null) listOf(com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.edit), Icons.Outlined.Edit, "pencil", onClick = onEdit)) else emptyList(),
                 menu = if (item != null) listOf(com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.detail_delete), Icons.Outlined.DeleteOutline, "trash", destructive = true, onClick = onDelete)) else emptyList(),
@@ -245,7 +258,7 @@ internal fun PageDetailContent(
                     TextButton(onClick = onBack) { Text(stringResource(Res.string.nav_home)) }
                 }
 
-                else -> DetailList(item, versions, schedule, turbo, onCompare, onEdit, onTurbo, onSchedule, onOpenUrl, onCheck, onMarkRead, onSetPaused, onSetNotify, onHistory, notificationsAvailable, errorContent, onChooseShape = { choosingShape = true })
+                else -> DetailList(item, versions, schedule, turbo, onCompare, onEdit, onTurbo, onSchedule, onOpenUrl, onCheck, onMarkRead, onSetPaused, onSetNotify, onHistory, notificationsAvailable, errorContent, onChooseShape = { choosingShape = true }, listState = listState, onNameMeasured = { nameBottom = it })
             }
         }
     }
@@ -292,6 +305,8 @@ private fun DetailList(
     notificationsAvailable: Boolean,
     errorContent: @Composable () -> Unit,
     onChooseShape: () -> Unit,
+    listState: LazyListState,
+    onNameMeasured: (Int) -> Unit,
 ) {
     val site = item.site
     val paused = !site.isSyncEnabled
@@ -299,6 +314,7 @@ private fun DetailList(
     LazyColumn(
         Modifier.widthIn(max = 720.dp).fillMaxSize().testTag("page-details"),
         contentPadding = PaddingValues(bottom = 32.dp),
+        state = listState,
     ) {
         item(key = "identity") {
             Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -308,7 +324,14 @@ private fun DetailList(
                     PageAvatar(site.name(), site.id, modifier = iconMotion.modifier, size = 88.dp, dimmed = paused, icon = site.avatarIcon(), iconShape = site.iconShape, colors = site.colors, selectionProgress = iconMotion.outlineProgress, selectionColor = if (iconMotion.focused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
                 }
                 Spacer(Modifier.height(16.dp))
-                Text(site.name(), style = MaterialTheme.typography.headlineMedium, maxLines = 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+                Text(
+                    site.name(),
+                    modifier = Modifier.testTag("page-name").onGloballyPositioned { onNameMeasured((it.positionInParent().y + it.size.height).roundToInt()) },
+                    style = MaterialTheme.typography.headlineMedium,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                )
                 Text(
                     site.url.displayPageAddress(),
                     style = MaterialTheme.typography.bodyMedium,
@@ -318,7 +341,7 @@ private fun DetailList(
                     modifier = Modifier.padding(top = 2.dp),
                 )
                 Row(
-                    Modifier.padding(top = 12.dp).clip(CircleShape).background(if (failing) MaterialTheme.colorScheme.error.copy(alpha = 0.12f) else tileColor).padding(horizontal = 12.dp, vertical = 6.dp),
+                    Modifier.padding(top = 12.dp).testTag("page-check-status"),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
@@ -342,12 +365,12 @@ private fun DetailList(
                     )
                 }
                 Row(Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 20.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    HeroAction(Icons.Rounded.Refresh, stringResource(if (item.isSyncing) Res.string.home_row_checking else Res.string.home_check_now), onCheck, Modifier.weight(1f), enabled = !item.isSyncing, busy = item.isSyncing)
+                    HeroAction(Icons.Rounded.Refresh, stringResource(if (item.isSyncing) Res.string.home_row_checking else Res.string.home_check_now), onCheck, Modifier.weight(1f), enabled = !item.isSyncing, filled = true, busy = item.isSyncing)
                     if (paused) {
-                        HeroAction(Icons.Rounded.PlayArrow, stringResource(Res.string.home_resume_checks), { onSetPaused(false) }, Modifier.weight(1f), emphasized = true)
+                        HeroAction(Icons.Rounded.PlayArrow, stringResource(Res.string.home_resume_checks), { onSetPaused(false) }, Modifier.weight(1f), filled = true)
                     } else if (monitoringCapabilities.turbo) {
                         val running = turbo.isActive && site.id in turbo.siteIds
-                        HeroAction(Icons.Rounded.Bolt, stringResource(if (running) Res.string.detail_turbo_on else Res.string.turbo_mode), onTurbo, Modifier.weight(1f), emphasized = true)
+                        HeroAction(Icons.Rounded.Bolt, stringResource(if (running) Res.string.detail_turbo_on else Res.string.turbo_mode), onTurbo, Modifier.weight(1f), filled = running)
                     }
                     HeroAction(Icons.AutoMirrored.Outlined.OpenInNew, stringResource(Res.string.detail_open_short), onOpenUrl, Modifier.weight(1f))
                 }
@@ -540,21 +563,33 @@ private fun LatestChange(item: SiteAndLastSnap, onCompare: (String) -> Unit, onM
     }
 }
 
-/** A Contacts-style action: a large tonal pill with the icon above its label. */
+/** Native expressive buttons keep primary actions distinct from idle secondary actions. */
 @Composable
-private fun HeroAction(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, emphasized: Boolean = false, busy: Boolean = false) {
-    Surface(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier.heightIn(min = 76.dp),
-        shape = MaterialTheme.shapes.extraLarge,
-        color = if (emphasized) MaterialTheme.colorScheme.primaryContainer else tileColor,
-        contentColor = if (emphasized) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
-    ) {
-        Column(Modifier.padding(horizontal = 8.dp, vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically)) {
-            if (busy) LoadingIndicator(Modifier.size(24.dp)) else Icon(icon, null, Modifier.size(24.dp))
+private fun HeroAction(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, filled: Boolean = false, busy: Boolean = false) {
+    val content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically)) {
+            if (busy) LoadingIndicator(Modifier.size(24.dp), color = LocalContentColor.current) else Icon(icon, null, Modifier.size(24.dp))
             Text(label, style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center, maxLines = 2)
         }
+    }
+    if (filled) {
+        Button(
+            onClick = onClick,
+            enabled = enabled,
+            modifier = modifier.heightIn(min = 76.dp),
+            shapes = ButtonDefaults.shapes(),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
+            content = content,
+        )
+    } else {
+        OutlinedButton(
+            onClick = onClick,
+            enabled = enabled,
+            modifier = modifier.heightIn(min = 76.dp),
+            shapes = ButtonDefaults.shapes(),
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
+            content = content,
+        )
     }
 }
 

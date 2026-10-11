@@ -7,7 +7,11 @@ package com.bernaferrari.changedetection.ui.detail
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.*
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.graphics.toAwtImage
+import java.io.File
+import javax.imageio.ImageIO
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.*
@@ -39,23 +43,64 @@ class PageDetailUiTest {
     private var notify: Boolean? = null
     private var schedules = 0
     private var read = 0
+    private var turbo by mutableStateOf(TurboState())
+    private var turboOpened = 0
+    private var browserOpened = 0
 
-    private fun show(item: SiteAndLastSnap?, versions: List<Snap> = listOf(latest, older), fontScale: Float = 1f, schedule: MonitoringSchedule = MonitoringSchedule()) {
+    private fun show(item: SiteAndLastSnap?, versions: List<Snap> = listOf(latest, older), fontScale: Float = 1f, schedule: MonitoringSchedule = MonitoringSchedule(), height: Int = 1600) {
         compose.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
                 ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
-                    Box(Modifier.width(400.dp).height(1600.dp)) {
+                    Box(Modifier.width(400.dp).height(height.dp)) {
                         PageDetailContent(
-                            item = item, isLoading = false, versions = versions, schedule = schedule, turbo = TurboState(),
-                            onBack = {}, onCompare = { opened = it }, onEdit = { edited++ }, onTurbo = {}, onSchedule = { schedules++ },
-                            onOpenUrl = {}, onCheck = { checks++ }, onMarkRead = { read++ }, onSetPaused = { paused = it },
+                            item = item, isLoading = false, versions = versions, schedule = schedule, turbo = turbo,
+                            onBack = {}, onCompare = { opened = it }, onEdit = { edited++ }, onTurbo = { turboOpened++ }, onSchedule = { schedules++ },
+                            onOpenUrl = { browserOpened++ }, onCheck = { checks++ }, onMarkRead = { read++ }, onSetPaused = { paused = it },
                             onSetNotify = { notify = it }, notificationsAvailable = true, onDelete = {},
                         )
                     }
                 }
             }
         }
+    }
+
+    @Test fun statusIsInformationalAndTurboOnlyLooksActiveForItsOwnPage() {
+        show(SiteAndLastSnap(site.copy(isSuccessful = true, lastFailureCode = null), latest, 2))
+        compose.onNodeWithTag("page-check-status").assertHasNoClickAction()
+        compose.onNodeWithText("Turbo").performClick()
+        compose.onNodeWithText("Open").performClick()
+        compose.runOnIdle {
+            assertEquals(1, turboOpened)
+            assertEquals(1, browserOpened)
+            turbo = TurboState(isActive = true, siteIds = setOf("another-page"))
+        }
+        compose.onNodeWithText("Turbo").assertIsDisplayed()
+        compose.onNodeWithText("Turbo is on").assertDoesNotExist()
+        capture("detail-actions-idle")
+        compose.runOnIdle { turbo = turbo.copy(siteIds = setOf(site.id)) }
+        compose.onNodeWithText("Turbo is on").assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(2, turboOpened) }
+        capture("detail-actions-active")
+    }
+
+    @Test fun topBarShowsThePageNameAfterItScrollsOutAndClearsOnReturn() {
+        show(SiteAndLastSnap(site.copy(isSuccessful = true, lastFailureCode = null), latest, 2), height = 760)
+        compose.onNodeWithTag("app-bar-title").assertDoesNotExist()
+        val list = compose.onNodeWithTag("page-details")
+        val name = compose.onNodeWithTag("page-name").fetchSemanticsNode().boundsInRoot
+        val distance = name.bottom - list.fetchSemanticsNode().boundsInRoot.top + 1f
+        list.performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, distance) }
+        compose.onNodeWithTag("app-bar-title").assertTextEquals("Conference program").assertIsDisplayed()
+        compose.onNodeWithTag("page-check-status").assertIsDisplayed()
+        list.performSemanticsAction(SemanticsActions.ScrollBy) { it(0f, -distance) }
+        compose.onNodeWithTag("app-bar-title").assertDoesNotExist()
+        compose.onNodeWithTag("page-name").assertIsDisplayed()
+    }
+
+    private fun capture(name: String) {
+        val file = File("../build/desktop-review/$name.png").apply { parentFile.mkdirs() }
+        ImageIO.write(compose.onRoot().captureToImage().toAwtImage(), "png", file)
     }
 
     @Test fun failingPageExplainsAndRetriesWhileKeepingHistory() {
