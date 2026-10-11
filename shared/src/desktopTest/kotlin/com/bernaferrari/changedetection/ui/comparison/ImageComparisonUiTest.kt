@@ -49,6 +49,21 @@ class ImageComparisonUiTest {
         }
     }
 
+    @Test fun aFlatColorChangeStillShowsItsEvidenceWhenNoDisplayRegionsSurvive() {
+        val image = BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB)
+        val after = try {
+            for (y in 0 until 10) for (x in 0 until 10) image.setRGB(x, y, 0xffffff)
+            ByteArrayOutputStream().also { ImageIO.write(image, "png", it) }.toByteArray()
+        } finally {
+            image.flush()
+        }
+        val diff = kotlinx.coroutines.runBlocking { PlatformImageDiff.compare(png, after) }
+        assertTrue(diff.differentPixels > 0)
+        show(ComparisonMode.ImageChanges, after = after, diff = diff)
+        compose.onNodeWithTag("pixel-diff-images").assertExists()
+        compose.onNodeWithText("Nothing visible changed. The page may have moved slightly.").assertDoesNotExist()
+    }
+
     @Test fun realDesktopDifferenceRendersHighlightsInsteadOfFallingBackToSwipe() {
         fun sample(changed: Boolean): ByteArray {
             val image = BufferedImage(240, 120, BufferedImage.TYPE_INT_RGB)

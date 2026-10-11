@@ -9,6 +9,7 @@ import java.io.File
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 /** Process-scoped: opening another view or hot-reloading composition must not reinitialize CEF. */
 internal object DesktopBrowserRuntime {
@@ -35,7 +36,7 @@ internal object DesktopBrowserRuntime {
                     val app = org.cef.CefApp.getInstance(settings)
                     app.onInitialization({ nativeState ->
                         if (nativeState == org.cef.CefApp.CefAppState.INITIALIZED) {
-                            mutableState.compareAndSet(State.Starting, State.Ready)
+                            markInitialized()
                         }
                     }, false)
                     return@launch
@@ -44,7 +45,7 @@ internal object DesktopBrowserRuntime {
                     builder = {
                         installDir(File(directory, "runtime"))
                         settings { cachePath = File(directory, "cache").absolutePath }
-                        progress { onInitialized { mutableState.compareAndSet(State.Starting, State.Ready) } }
+                        progress { onInitialized { markInitialized() } }
                     },
                     onError = { failure ->
                         io.github.aakira.napier.Napier.e("Desktop browser initialization failed", failure)
@@ -52,7 +53,7 @@ internal object DesktopBrowserRuntime {
                     },
                     onRestartRequired = { mutableState.value = State.Failed },
                 )
-                // Some KCEF runtime paths return without the progress callback.
+                // Only an actual initialization callback may recover a timeout or failure.
                 mutableState.compareAndSet(State.Starting, State.Ready)
             } catch (cancelled: CancellationException) {
                 throw cancelled
@@ -63,8 +64,15 @@ internal object DesktopBrowserRuntime {
         }
     }
 
+    private fun markInitialized() {
+        // A timeout is a UI deadline; initialization may still finish successfully afterward.
+        mutableState.update { if (it == State.Starting || it == State.Failed) State.Ready else it }
+    }
+
     fun dispose() {
         scope.cancel()
-        if (mutableState.value != State.Idle) org.cef.CefApp.getInstanceIfAny()?.dispose()
+        val wasStarted = mutableState.value != State.Idle
+        mutableState.value = State.Idle
+        if (wasStarted) org.cef.CefApp.getInstanceIfAny()?.dispose()
     }
 }

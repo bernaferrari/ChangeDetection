@@ -57,17 +57,8 @@ class SnapshotMaintenance(
         if (now - lastSweep < 3_600_000) return
         for (id in files.orphanCandidates(now - 24 * 3_600_000)) {
             currentCoroutineContext().ensureActive()
-            if (snaps.getSnapById(id) == null) deleteFile(id)
+            cleanup.removeOrphan(id)
         }
         lastSweep = now
-    }
-
-    private fun deleteFile(id: String) {
-        runCatching {
-            if (!files.deleteFile(id) && files.fileExists(id)) {
-                Napier.w("Snapshot file cleanup will retry on a later sweep: $id")
-            }
-        }
-            .onFailure { Napier.w("Snapshot file cleanup will retry on a later sweep", it) }
     }
 }

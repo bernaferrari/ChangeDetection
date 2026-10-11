@@ -34,6 +34,16 @@ class UndoableDeletionTest {
         )
     }
 
+    @Test fun `empty and already resolved batches finish without opening a decision`() = runTest {
+        val h = Harness(this)
+        h.owner.resolveAll(emptyList()) { error("No pages") }
+        val ticket = h.owner.stage("page")
+        h.owner.resolve(ticket) { true }
+        h.owner.resolveAll(listOf(ticket)) { error("Already decided") }
+        runCurrent()
+        assertTrue(h.deleted.isEmpty())
+    }
+
     @Test fun `visible accessible undo remains valid beyond fallback deadline`() = runTest {
         val h = Harness(this)
         val ticket = h.owner.stage("page")
@@ -45,6 +55,30 @@ class UndoableDeletionTest {
         assertTrue(h.deleted.isEmpty())
         decision.complete(true)
         visible.await()
+        advanceTimeBy(6_001)
+        runCurrent()
+        assertTrue(h.deleted.isEmpty())
+        assertTrue(h.hidden.isEmpty())
+    }
+
+    @Test fun `queued batch decision owns every ticket until its accessible snackbar ends`() = runTest {
+        val h = Harness(this)
+        val tickets = listOf("first", "second", "third").map(h.owner::stage)
+        val decision = CompletableDeferred<Boolean>()
+        var shown = 0
+        val home = async {
+            h.owner.resolveAll(tickets) {
+                shown++
+                decision.await()
+            }
+        }
+        runCurrent()
+        advanceTimeBy(60_000)
+        runCurrent()
+        assertTrue(h.deleted.isEmpty())
+        assertEquals(1, shown)
+        decision.complete(true)
+        home.await()
         advanceTimeBy(6_001)
         runCurrent()
         assertTrue(h.deleted.isEmpty())

@@ -234,6 +234,17 @@ class LogsViewModelDeleteUndoTest {
             snapsDao = dao,
             snapsRepository = SnapsRepository(source),
             fileStorage = storage,
+            cleanup = com.bernaferrari.changedetection.storage.SnapshotFileCleanup(
+                object : com.bernaferrari.changedetection.repo.source.local.PendingFileDeletionDao {
+                    override suspend fun lastId(): String? = null
+                    override suspend fun firstBatch(through: String): List<String> = emptyList()
+                    override suspend fun batch(after: String, through: String): List<String> = emptyList()
+                    override suspend fun complete(id: String) = Unit
+                },
+                dao,
+                storage,
+                mainDispatcherRule.dispatcher,
+            ),
             ioDispatcher = mainDispatcherRule.dispatcher,
         )
     }

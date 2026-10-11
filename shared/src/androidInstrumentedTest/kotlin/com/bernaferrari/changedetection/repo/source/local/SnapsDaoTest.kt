@@ -130,7 +130,7 @@ class SnapsDaoTest {
     }
 
     @Test
-    fun versionThreeUpgradePreservesHistoryAndUsesTheExistingDefault() = runBlocking {
+    fun versionFiveBeforeIconShapesPreservesHistoryAndDefault() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val name = "capture-migration-${java.util.UUID.randomUUID()}.db"
         val path = context.getDatabasePath(name).absolutePath
@@ -143,17 +143,10 @@ class SnapsDaoTest {
             } finally {
                 original.close()
             }
-            // Reconstruct schema 3 by removing columns and cleanup objects added later.
+            // Before icon shapes, development schema 5 had all other current columns.
             BundledSQLiteDriver().open(path).use { connection ->
-                connection.prepare("DROP TRIGGER queue_deleted_snapshot").use { it.step() }
-                connection.prepare("DROP TABLE pendingFileDeletions").use { it.step() }
-                connection.prepare("ALTER TABLE sites DROP COLUMN visualChangeThresholdBps").use { it.step() }
-                connection.prepare("ALTER TABLE sites DROP COLUMN textIncludeSelector").use { it.step() }
-                connection.prepare("ALTER TABLE sites DROP COLUMN textExcludeSelector").use { it.step() }
-                connection.prepare("ALTER TABLE sites DROP COLUMN lastFailureCode").use { it.step() }
-                connection.prepare("ALTER TABLE sites DROP COLUMN lastSuccessfulCheck").use { it.step() }
-                connection.prepare("ALTER TABLE sites DROP COLUMN captureMode").use { it.step() }
-                connection.prepare("PRAGMA user_version = 3").use { it.step() }
+                connection.prepare("ALTER TABLE sites DROP COLUMN iconShape").use { it.step() }
+                connection.prepare("PRAGMA user_version = 5").use { it.step() }
             }
             val migrated = open()
             try {
@@ -298,7 +291,7 @@ class SnapsDaoTest {
     }
 
     @Test
-    fun versionSixUpgradePreservesHistoryAndDefaultsToWholePage() = runBlocking {
+    fun versionFiveWithIconShapePreservesSelectorsAndHealth() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val path = context.getDatabasePath("region-migration-${java.util.UUID.randomUUID()}.db").absolutePath
         fun open() = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(context, path), BundledSQLiteDriver())
@@ -308,12 +301,7 @@ class SnapsDaoTest {
             original.snapsDao().insertSnap(snap("saved", "garden", 100))
             original.close()
             BundledSQLiteDriver().open(path).use { connection ->
-                connection.prepare("DROP TRIGGER queue_deleted_snapshot").use { it.step() }
-                connection.prepare("DROP TABLE pendingFileDeletions").use { it.step() }
-                connection.prepare("ALTER TABLE sites DROP COLUMN visualChangeThresholdBps").use { it.step() }
-                connection.prepare("ALTER TABLE sites DROP COLUMN textIncludeSelector").use { it.step() }
-                connection.prepare("ALTER TABLE sites DROP COLUMN textExcludeSelector").use { it.step() }
-                connection.prepare("PRAGMA user_version = 6").use { it.step() }
+                connection.prepare("PRAGMA user_version = 5").use { it.step() }
             }
             val migrated = open()
             try {
@@ -336,7 +324,7 @@ class SnapsDaoTest {
     }
 
     @Test
-    fun versionFiveUpgradeKeepsHistoryAndDoesNotInventFailureReasons() = runBlocking {
+    fun versionFivePreservesExistingFailureStatus() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val path = context.getDatabasePath("failure-migration-${java.util.UUID.randomUUID()}.db").absolutePath
         fun open() = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(context, path), BundledSQLiteDriver())
@@ -349,12 +337,7 @@ class SnapsDaoTest {
                 original.close()
             }
             BundledSQLiteDriver().open(path).use { connection ->
-                connection.prepare("DROP TRIGGER queue_deleted_snapshot").use { it.step() }
-                connection.prepare("DROP TABLE pendingFileDeletions").use { it.step() }
-                connection.prepare("ALTER TABLE sites DROP COLUMN visualChangeThresholdBps").use { it.step() }
-                connection.prepare("ALTER TABLE sites DROP COLUMN textIncludeSelector").use { it.step() }
-                connection.prepare("ALTER TABLE sites DROP COLUMN textExcludeSelector").use { it.step() }
-                connection.prepare("ALTER TABLE sites DROP COLUMN lastFailureCode").use { it.step() }
+                connection.prepare("ALTER TABLE sites DROP COLUMN iconShape").use { it.step() }
                 connection.prepare("PRAGMA user_version = 5").use { it.step() }
             }
             val migrated = open()
@@ -374,7 +357,7 @@ class SnapsDaoTest {
     }
 
     @Test
-    fun versionFourUpgradeBackfillsOnlyKnownSuccessfulChecks() = runBlocking {
+    fun publicVersionOneBackfillsOnlyKnownSuccessfulChecks() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val path = context.getDatabasePath("health-migration-${java.util.UUID.randomUUID()}.db").absolutePath
         fun open() = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(context, path), BundledSQLiteDriver())
@@ -391,12 +374,23 @@ class SnapsDaoTest {
             BundledSQLiteDriver().open(path).use { connection ->
                 connection.prepare("DROP TRIGGER queue_deleted_snapshot").use { it.step() }
                 connection.prepare("DROP TABLE pendingFileDeletions").use { it.step() }
+                connection.prepare("DROP INDEX IF EXISTS index_snaps_siteId_timestamp_snapId").use { it.step() }
+                connection.prepare("DROP INDEX IF EXISTS index_snaps_composite").use { it.step() }
+                connection.prepare("DROP INDEX IF EXISTS index_snaps_siteId_contentHash").use { it.step() }
+                connection.prepare("DROP INDEX IF EXISTS index_snaps_timestamp").use { it.step() }
                 connection.prepare("ALTER TABLE sites DROP COLUMN visualChangeThresholdBps").use { it.step() }
                 connection.prepare("ALTER TABLE sites DROP COLUMN textIncludeSelector").use { it.step() }
                 connection.prepare("ALTER TABLE sites DROP COLUMN textExcludeSelector").use { it.step() }
                 connection.prepare("ALTER TABLE sites DROP COLUMN lastFailureCode").use { it.step() }
                 connection.prepare("ALTER TABLE sites DROP COLUMN lastSuccessfulCheck").use { it.step() }
-                connection.prepare("PRAGMA user_version = 4").use { it.step() }
+                connection.prepare("ALTER TABLE sites DROP COLUMN captureMode").use { it.step() }
+                connection.prepare("ALTER TABLE sites DROP COLUMN iconUrl").use { it.step() }
+                connection.prepare("ALTER TABLE sites DROP COLUMN iconShape").use { it.step() }
+                connection.prepare("ALTER TABLE snaps DROP COLUMN contentHash").use { it.step() }
+                connection.prepare("ALTER TABLE snaps DROP COLUMN processedContentHash").use { it.step() }
+                connection.prepare("CREATE UNIQUE INDEX index_sites_siteId ON sites(siteId)").use { it.step() }
+                connection.prepare("CREATE UNIQUE INDEX index_snaps_siteId_snapId ON snaps(siteId,snapId)").use { it.step() }
+                connection.prepare("PRAGMA user_version = 1").use { it.step() }
             }
             val migrated = open()
             try {

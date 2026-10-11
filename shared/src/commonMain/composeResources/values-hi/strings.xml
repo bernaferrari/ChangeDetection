@@ -580,7 +580,7 @@
     <string name="detail_check_less">कम बार जाँचें</string>
     <string name="advice_temporary">वेबसाइट व्यस्त या बंद है। यह अक्सर अस्थायी होता है; हम कोशिश करते रहेंगे।</string>
     <string name="advice_connection">यह डिवाइस इंटरनेट से नहीं जुड़ सका। आपके ऑनलाइन होने पर फिर कोशिश करेंगे।</string>
-    <string name="advice_login">इस पेज पर लॉग इन ज़रूरी है। ऐप के ब्राउज़र में एक बार लॉग इन करें; आगे की जाँचें उसी खाते से होंगी।</string>
+    <string name="advice_login">इस पेज पर लॉग इन ज़रूरी है। Android पर स्क्रीनशॉट जाँचें ऐप के ब्राउज़र का लॉग इन इस्तेमाल कर सकती हैं। टेक्स्ट और सोर्स की जाँचें ऐसा नहीं कर सकतीं।</string>
     <string name="advice_not_found">पेज अब मौजूद नहीं है। जाँचें कि लिंक अब भी सही है।</string>
     <string name="advice_rate">वेबसाइट कम अनुरोध करने को कह रही है। कम बार जाँचने से अक्सर समस्या ठीक हो जाती है।</string>
     <string name="advice_region">आपका चुना हुआ हिस्सा अब पेज पर नहीं है। उसे फिर चुनें।</string>
@@ -752,7 +752,7 @@
         <item quantity="other">%1$d हटे</item>
     </plurals>
     <string name="detail_sign_in">लॉग इन करें</string>
-    <string name="browser_session_note">इस पेज पर लॉग इन किया है? आप लॉग इन रहेंगे: जाँचें इसी डिवाइस पर इस ब्राउज़र का सत्र इस्तेमाल करती हैं।</string>
+    <string name="browser_session_note">स्क्रीनशॉट जाँचें इस डिवाइस पर इस ब्राउज़र का लॉग इन इस्तेमाल करती हैं। टेक्स्ट और सोर्स की जाँचें इस सत्र का इस्तेमाल नहीं करतीं।</string>
     <string name="turbo_next_check">अगली जाँच %1$d सेकंड में</string>
     <string name="picker_selected_image">एक तस्वीर</string>
     <string name="picker_selected_frame">एम्बेडेड फ़्रेम (अक्सर विज्ञापन)</string>
@@ -786,4 +786,5 @@
     <string name="image_diff_changed_percent">%1$s हिस्सा बदला</string>
     <string name="error_invalid_input">इन सेटिंग की जाँच करें</string>
     <string name="error_invalid_input_detail">पेज का पता और सेटिंग जाँचें, फिर दोबारा कोशिश करें।</string>
+    <string name="comparison_new_version">नया संस्करण उपलब्ध है</string>
 </resources>

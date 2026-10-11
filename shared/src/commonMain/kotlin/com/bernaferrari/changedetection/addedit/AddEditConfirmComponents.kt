@@ -132,9 +132,10 @@ fun AddEditConfirmScreen(
     val clipboard = LocalClipboard.current
     var copiedLink by remember { mutableStateOf<String?>(null) }
     var moreOptions by rememberSaveable { mutableStateOf(false) }
-    var browsing by rememberSaveable { mutableStateOf(false) }
-    var reviewing by rememberSaveable { mutableStateOf(false) }
-    val validUrl = url.normalizeUrl() != null && url.contains('.')
+    // These steps belong to the in-memory draft; never restore them without that draft.
+    var browsing by remember { mutableStateOf(false) }
+    var reviewing by remember { mutableStateOf(false) }
+    val validUrl = url.normalizeUrl() != null
     val textMode = captureMode == CaptureMode.TEXT
     val visualMode = captureMode == CaptureMode.SCREENSHOT || captureMode == CaptureMode.DEFAULT
     // Typed selectors refresh the preview once typing pauses; choices refresh it right away.
@@ -169,7 +170,7 @@ fun AddEditConfirmScreen(
     // Reviewing is a step of its own that slides over the browser (a sheet inside the iOS sheet fought its
     // swipe-to-dismiss); back returns to the page with everything picked so far.
     val reviewStep: @Composable () -> Unit = {
-        com.bernaferrari.changedetection.util.BackHandler(enabled = !isSaving) { reviewing = false }
+        com.bernaferrari.changedetection.util.BackHandler { if (!isSaving) reviewing = false }
         Scaffold(
             containerColor = MaterialTheme.colorScheme.surface,
             topBar = {
@@ -192,7 +193,13 @@ fun AddEditConfirmScreen(
                             shapes = ButtonDefaults.shapes(),
                             modifier = Modifier.widthIn(max = 600.dp).fillMaxWidth().heightIn(min = 56.dp),
                         ) {
-                            if (isSaving) LoadingIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary) else Text(stringResource(Res.string.editor_start), style = MaterialTheme.typography.titleMedium)
+                            if (isSaving) {
+                                LoadingIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                                Spacer(Modifier.size(8.dp))
+                                Text(stringResource(Res.string.saving), style = MaterialTheme.typography.titleMedium)
+                            } else {
+                                Text(stringResource(Res.string.editor_start), style = MaterialTheme.typography.titleMedium)
+                            }
                         }
                     }
                 }
@@ -237,10 +244,17 @@ fun AddEditConfirmScreen(
                             }, isSaving, isEditing)
                         },
                     )
+                    if (duplicateSiteId != null) {
+                        DuplicatePageWarning(duplicateSiteId, onOpenDuplicate, enabled = !isSaving) {
+                            onDismissDuplicate()
+                            reviewing = false
+                            browsing = false
+                        }
+                    }
                     saveError?.localizedMessage()?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
                     FootNote(Icons.Outlined.Schedule, stringResource(Res.string.monitor_editor_cadence_hint))
                     // Explained where it matters: right before watching a page you may have signed in to.
-                    if (browserAvailable) FootNote(Icons.Outlined.Lock, stringResource(Res.string.browser_session_note))
+                    if (browserAvailable && visualMode) FootNote(Icons.Outlined.Lock, stringResource(Res.string.browser_session_note))
                 }
             }
         }
@@ -278,6 +292,11 @@ fun AddEditConfirmScreen(
             )
             reviewOverlay(reviewing)
         }
+        return
+    }
+
+    if (reviewing) {
+        reviewStep()
         return
     }
 
@@ -396,7 +415,7 @@ fun AddEditConfirmScreen(
                         }
                     }
 
-                    if (duplicateSiteId != null) DuplicatePageWarning(duplicateSiteId, onOpenDuplicate, onDismissDuplicate)
+                    if (duplicateSiteId != null) DuplicatePageWarning(duplicateSiteId, onOpenDuplicate, enabled = !isSaving, onDismissDuplicate)
 
                     AnimatedVisibility(isEditing, enter = fadeIn(), exit = fadeOut()) {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -794,6 +813,7 @@ private fun modeExplanation(mode: CaptureMode) = when (mode) {
 private fun DuplicatePageWarning(
     siteId: String,
     onOpen: (String) -> Unit,
+    enabled: Boolean = true,
     onDismiss: () -> Unit,
 ) {
     Surface(
@@ -808,8 +828,8 @@ private fun DuplicatePageWarning(
                 Text(stringResource(Res.string.monitor_editor_duplicate_warning), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = onDismiss) { Text(stringResource(Res.string.cancel)) }
-                TextButton(onClick = { onOpen(siteId) }) { Text(stringResource(Res.string.monitor_editor_duplicate_open)) }
+                TextButton(enabled = enabled, onClick = onDismiss) { Text(stringResource(Res.string.cancel)) }
+                TextButton(enabled = enabled, onClick = { onOpen(siteId) }) { Text(stringResource(Res.string.monitor_editor_duplicate_open)) }
             }
         }
     }

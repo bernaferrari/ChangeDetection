@@ -21,12 +21,11 @@ fun String.normalizeUrl(defaultScheme: String = "https"): String? {
 /**
  * Stable identity for an HTTP(S) page address.
  *
- * Host and scheme are case-insensitive, fragments never change the fetched
- * resource, default ports are redundant, and a trailing slash denotes the same
+ * Host and scheme are case-insensitive, fragments are retained for browser routes, default ports are redundant, and a trailing slash denotes the same
  * page in the app. Path and query casing remain untouched because servers may
  * treat them as significant.
  */
-fun String.canonicalUrlKey(): String? {
+fun String.canonicalUrlKey(includeFragment: Boolean = false): String? {
     val normalized = normalizeUrl() ?: return null
     return runCatching {
         val parsed = Url(normalized)
@@ -44,7 +43,8 @@ fun String.canonicalUrlKey(): String? {
         } else {
             ""
         }
-        "$scheme://$host$portSuffix$path$query"
+        val fragment = if (includeFragment && parsed.fragment.isNotEmpty()) "#${parsed.encodedFragment}" else ""
+        "$scheme://$host$portSuffix$path$query$fragment"
     }.getOrNull()
 }
 

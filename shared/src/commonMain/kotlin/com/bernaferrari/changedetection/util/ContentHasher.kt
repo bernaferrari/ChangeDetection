@@ -21,7 +21,7 @@ object ContentHasher {
     }
 
     fun detectionPolicy(hash: String): String = when {
-        hash.startsWith("text-region-v1:") || hash.startsWith("text-region-v2:") -> hash.substringBeforeLast(':')
+        hash.startsWith("screenshot-v1:") || hash.startsWith("text-region-v1:") || hash.startsWith("text-region-v2:") -> hash.substringBeforeLast(':')
         hash.startsWith("text-v1:") -> "text-v1"
         hash.startsWith("source-v1:") -> "source-v1"
         else -> "legacy"

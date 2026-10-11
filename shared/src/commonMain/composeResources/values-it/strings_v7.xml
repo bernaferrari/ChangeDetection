@@ -72,7 +72,7 @@
         <item quantity="other">%1$d rimosse</item>
     </plurals>
     <string name="detail_sign_in">Accedi</string>
-    <string name="browser_session_note">Hai fatto l’accesso a questa pagina? Resterai connesso: i controlli usano la sessione di questo browser, su questo dispositivo.</string>
+    <string name="browser_session_note">I controlli con screenshot usano l’accesso di questo browser su questo dispositivo. I controlli di testo e codice sorgente non usano questa sessione.</string>
     <string name="turbo_next_check">Prossimo controllo tra %1$d s</string>
     <string name="picker_selected_image">Un’immagine</string>
     <string name="picker_selected_frame">Un riquadro incorporato (spesso una pubblicità)</string>
@@ -98,4 +98,5 @@
     <string name="image_diff_changed_percent">%1$s modificato</string>
     <string name="error_invalid_input">Controlla queste impostazioni</string>
     <string name="error_invalid_input_detail">Controlla l’indirizzo della pagina e le impostazioni, poi riprova.</string>
+    <string name="comparison_new_version">Nuova versione disponibile</string>
 </resources>

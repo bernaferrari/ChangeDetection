@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.Preferences
 import com.bernaferrari.changedetection.repo.ComparisonMethod
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.ui.settings.SettingsViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -46,6 +47,10 @@ class AndroidCheckRunner(
             } catch (timeout: TimeoutCancellationException) {
                 currentCoroutineContext().ensureActive()
                 engine.processFetchResult(site, SyncEngine.FetchResult.Error("Page check timed out", timeout), site.threshold)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                engine.processFetchResult(site, SyncEngine.FetchResult.Error("Page check failed", error), site.threshold)
             }
         }
     }

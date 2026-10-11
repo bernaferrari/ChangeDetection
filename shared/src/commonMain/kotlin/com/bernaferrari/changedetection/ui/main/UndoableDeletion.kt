@@ -7,6 +7,10 @@ package com.bernaferrari.changedetection.ui.main
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -65,6 +69,17 @@ internal class UndoableDeletion<T>(
                     if (ticket.pending) armFallback(ticket)
                 }
             }
+        }
+    }
+
+    /** Claim all tickets before opening or queuing the single shared snackbar. */
+    suspend fun resolveAll(tickets: List<Ticket<T>>, chooseUndo: suspend () -> Boolean) = coroutineScope {
+        if (tickets.isEmpty()) return@coroutineScope
+        val decision = async(start = CoroutineStart.LAZY) { chooseUndo() }
+        try {
+            tickets.map { ticket -> async(start = CoroutineStart.UNDISPATCHED) { resolve(ticket) { decision.await() } } }.awaitAll()
+        } finally {
+            decision.cancel()
         }
     }
 

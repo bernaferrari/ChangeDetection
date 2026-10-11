@@ -63,6 +63,8 @@ import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.UnfoldMore
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -206,7 +208,7 @@ fun ComparisonScreen(
 
     Scaffold(
         topBar = {
-            val canShare = (isImagePair && uiState.imageDiff != null) || (uiState.snapContent1 != null && uiState.snapContent2 != null)
+            val canShare = !uiState.requestedSnapshotUnavailable && ((isImagePair && uiState.imageDiff != null) || (uiState.snapContent1 != null && uiState.snapContent2 != null))
             com.bernaferrari.changedetection.ui.navigation.AppTopBar(
                 title = uiState.site?.name() ?: stringResource(Res.string.app_name),
                 subtitle = uiState.site?.url?.displayPageAddress(),
@@ -266,6 +268,7 @@ fun ComparisonScreen(
                 uiState.snaps.isEmpty() -> EmptySnapshotState(Modifier.fillMaxSize())
 
                 uiState.snaps.size == 1 || uiState.singleSnap != null -> Column(Modifier.fillMaxSize()) {
+                    if (uiState.newVersionAvailable) NewVersionAction { viewModel.selectPairForComparison(0) }
                     val snap = uiState.singleSnap ?: uiState.snaps.first()
                     if (uiState.snaps.size > 1) {
                         GroupRow(
@@ -288,6 +291,7 @@ fun ComparisonScreen(
                 }
 
                 else -> Column(Modifier.fillMaxSize()) {
+                    if (uiState.newVersionAvailable) NewVersionAction { viewModel.selectPairForComparison(0) }
                     val site = requireNotNull(uiState.site)
                     if (!site.isSuccessful && site.isSyncEnabled) {
                         Text(
@@ -298,9 +302,9 @@ fun ComparisonScreen(
                         )
                     }
                     Column(Modifier.widthIn(max = 720.dp).align(Alignment.CenterHorizontally)) {
-                        // One row: which versions (tap to pick another) and how to look at them.
-                        Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 12.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            VersionNavigator(uiState.snaps, pairIndex, onSelect = { viewModel.selectPairForComparison(it) }, onShowAll = { showVersions = true }, modifier = Modifier.weight(1f))
+                        // Give the compared dates their own row, including at large text sizes.
+                        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            VersionNavigator(uiState.snaps, pairIndex, onShowAll = { showVersions = true }, modifier = Modifier.fillMaxWidth())
                             if (modes.size > 1) ModeSwitcher(modes, mode) { mode = it }
                         }
                     }
@@ -420,12 +424,19 @@ private fun modeLabel(mode: ComparisonMode): String = stringResource(
     },
 )
 
+@Composable
+private fun NewVersionAction(onLatest: () -> Unit) {
+    TextButton(onClick = onLatest, modifier = Modifier.fillMaxWidth().semantics { liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite }) {
+        Text(stringResource(Res.string.comparison_new_version))
+    }
+}
+
 /**
- * Which two versions are on screen, in one line: the newer one and what it is compared with. One tap lists
- * every version; the only arrows on screen step through the changes themselves.
+ * Which two versions are on screen: the newer one and what it is compared with. One tap lists
+ * every version; timestamps wrap instead of losing their meaning.
  */
 @Composable
-private fun VersionNavigator(snaps: List<Snap>, selectedIndex: Int, onSelect: (Int) -> Unit, onShowAll: () -> Unit, modifier: Modifier = Modifier) {
+private fun VersionNavigator(snaps: List<Snap>, selectedIndex: Int, onShowAll: () -> Unit, modifier: Modifier = Modifier) {
     val newer = snaps.getOrNull(selectedIndex) ?: return
     val older = snaps.getOrNull(selectedIndex + 1)
     Surface(
@@ -443,7 +454,7 @@ private fun VersionNavigator(snaps: List<Snap>, selectedIndex: Int, onSelect: (I
         Row(
             Modifier.heightIn(min = 52.dp).clip(MaterialTheme.shapes.extraLarge)
                 .clickable(onClickLabel = stringResource(Res.string.reader_versions_title), onClick = onShowAll)
-                .padding(start = 16.dp, end = 10.dp),
+                .padding(start = 16.dp, end = 10.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
@@ -455,50 +466,23 @@ private fun VersionNavigator(snaps: List<Snap>, selectedIndex: Int, onSelect: (I
                 },
                 Modifier.weight(1f),
                 style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
             Icon(Icons.Rounded.KeyboardArrowDown, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
-/** The ways to look at a comparison, as icons: their names are short on meaning, the icons say it at a glance. */
+/** Labeled connected choices keep comparison modes clear at every text size. */
 @Composable
 private fun ModeSwitcher(modes: List<ComparisonMode>, selected: ComparisonMode, onSelect: (ComparisonMode) -> Unit) {
-    Surface(shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surfaceContainerHigh) {
-        Row(Modifier.padding(4.dp).selectableGroup(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-            modes.forEach { mode ->
-                val label = modeLabel(mode)
-                val isSelected = mode == selected
-                FilledIconToggleButton(
-                    checked = isSelected,
-                    onCheckedChange = { if (it) onSelect(mode) },
-                    modifier = Modifier.size(44.dp).semantics {
-                        role = androidx.compose.ui.semantics.Role.RadioButton
-                        this.selected = isSelected
-                        contentDescription = label
-                    },
-                    colors = IconButtonDefaults.filledIconToggleButtonColors(
-                        containerColor = androidx.compose.ui.graphics.Color.Transparent,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        checkedContainerColor = MaterialTheme.colorScheme.primary,
-                        checkedContentColor = MaterialTheme.colorScheme.onPrimary,
-                    ),
-                ) {
-                    Icon(modeIcon(mode), null, Modifier.size(22.dp))
-                }
-            }
-        }
-    }
-}
-
-private fun modeIcon(mode: ComparisonMode): androidx.compose.ui.graphics.vector.ImageVector = when (mode) {
-    ComparisonMode.Text, ComparisonMode.ImageChanges -> Icons.Rounded.ViewAgenda
-    ComparisonMode.Html, ComparisonMode.ImageDiff -> Icons.Outlined.Description
-    ComparisonMode.ImageSwipe -> Icons.Rounded.Compare
-    ComparisonMode.Source -> Icons.Rounded.Code
-    else -> Icons.Outlined.Description
+    com.bernaferrari.changedetection.ui.kit.ConnectedChoice(
+        options = modes,
+        selected = selected,
+        onSelect = onSelect,
+        modifier = Modifier.fillMaxWidth(),
+        wrap = true,
+        label = { modeLabel(it) },
+    )
 }
 
 /** What changed in [snap] since [previous]: the changed area for screenshots, the changed words for text. */

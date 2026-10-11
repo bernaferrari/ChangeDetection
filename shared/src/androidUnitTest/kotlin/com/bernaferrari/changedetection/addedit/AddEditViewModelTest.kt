@@ -304,10 +304,11 @@ class AddEditViewModelTest {
     @Test
     fun `canonical duplicate is rejected before saving`() = runTest {
         val dataSource = FakeSitesDataSource().apply {
-            savedSite = existingSite("saved-page", "https://example.com/")
+            savedSite = existingSite("saved-page", "https://example.com/").copy(captureMode = com.bernaferrari.changedetection.repo.CaptureMode.TEXT)
         }
         val viewModel = createViewModel(dataSource = dataSource)
 
+        viewModel.setCaptureMode(com.bernaferrari.changedetection.repo.CaptureMode.TEXT)
         viewModel.setUrl("HTTPS://EXAMPLE.COM:443/#details")
         viewModel.saveSite()
         mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
@@ -317,16 +318,65 @@ class AddEditViewModelTest {
         assertEquals("saved-page", dataSource.savedSite?.id)
     }
 
+    @Test fun `new draft uses the saved text default and preserves explicit changes`() = runTest {
+        val source = FakeSitesDataSource()
+        val initial = androidx.datastore.preferences.core.preferencesOf(com.bernaferrari.changedetection.ui.settings.SettingsViewModel.COMPARISON_METHOD_KEY to com.bernaferrari.changedetection.repo.ComparisonMethod.HTML.name)
+        val store = object : DataStore<Preferences> {
+            override val data = flowOf(initial)
+            override suspend fun updateData(transform: suspend (Preferences) -> Preferences) = transform(initial)
+        }
+        val editor = createViewModel(dataSource = source, preferences = store)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(com.bernaferrari.changedetection.repo.CaptureMode.TEXT, editor.uiState.value.captureMode)
+        editor.setUrl("localhost")
+        editor.saveSite()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(com.bernaferrari.changedetection.repo.CaptureMode.TEXT, source.savedSite?.captureMode)
+        editor.setCaptureMode(com.bernaferrari.changedetection.repo.CaptureMode.SOURCE)
+        assertEquals(com.bernaferrari.changedetection.repo.CaptureMode.SOURCE, editor.uiState.value.captureMode)
+    }
+
+    @Test fun `late preference loading cannot overwrite the users chosen mode`() = runTest {
+        val ready = kotlinx.coroutines.CompletableDeferred<Preferences>()
+        val store = object : DataStore<Preferences> {
+            override val data = kotlinx.coroutines.flow.flow { emit(ready.await()) }
+            override suspend fun updateData(transform: suspend (Preferences) -> Preferences) = transform(ready.await())
+        }
+        val editor = createViewModel(preferences = store)
+        assertTrue(editor.uiState.value.isLoading)
+        editor.setCaptureMode(com.bernaferrari.changedetection.repo.CaptureMode.SOURCE)
+        ready.complete(androidx.datastore.preferences.core.preferencesOf(com.bernaferrari.changedetection.ui.settings.SettingsViewModel.COMPARISON_METHOD_KEY to com.bernaferrari.changedetection.repo.ComparisonMethod.HTML.name))
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(com.bernaferrari.changedetection.repo.CaptureMode.SOURCE, editor.uiState.value.captureMode)
+        assertFalse(editor.uiState.value.isLoading)
+    }
+
+    @Test fun `browser hash routes identify distinct saved pages`() = runTest {
+        val source = FakeSitesDataSource().apply { savedSite = existingSite("first", "https://example.com/#/product/a").copy(captureMode = com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT) }
+        val editor = createViewModel(dataSource = source)
+        editor.setCaptureMode(com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT)
+        editor.setUrl("https://example.com/#/product/b")
+        editor.saveSite()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertTrue(editor.uiState.value.saveComplete)
+        assertEquals(null, editor.uiState.value.duplicateSiteId)
+    }
+
     private fun createViewModel(
         siteId: String? = null,
         dataSource: FakeSitesDataSource = FakeSitesDataSource(),
         monitoringManager: MonitoringManager = FakeMonitoringManager(),
         previewer: CapturePreviewer = CapturePreviewer { _, _ -> CapturePreview.Html("Sample", 6) },
+        preferences: DataStore<Preferences> = object : DataStore<Preferences> {
+            override val data = flowOf(androidx.datastore.preferences.core.emptyPreferences())
+            override suspend fun updateData(transform: suspend (Preferences) -> Preferences) = transform(androidx.datastore.preferences.core.emptyPreferences())
+        },
     ) = AddEditViewModel(
         siteId,
         SitesRepository(dataSource),
         previewer,
         monitoringManager,
+        preferences,
     )
 
     private fun existingSite(id: String, url: String) = Site(

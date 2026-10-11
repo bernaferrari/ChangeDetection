@@ -300,10 +300,58 @@ class ComparisonReadStateTest {
         assertNotNull(model.markVisibleComparisonRead())
     }
 
+    @Test fun liveVersionsPreserveTheVisiblePairAndOfferTheNewChange() = runTest(dispatcher) {
+        prepare()
+        val changes = MutableStateFlow(history)
+        whenever(snaps.getSnaps(site.id)).thenReturn(changes)
+        model.openComparison(site.id)
+        model.uiState.first { it.snapContent1 == "new" && !it.isLoadingDiff }
+        val latest = snapshot("newest", 4)
+        whenever(snaps.getSnapContent(latest.snapId)).thenReturn("newest".encodeToByteArray())
+        changes.value = listOf(latest) + history
+        runCurrent()
+        val preserved = model.uiState.value
+        assertEquals(1, preserved.selectedPairIndex)
+        assertEquals("new", preserved.snapContent1)
+        assertEquals("older", preserved.snapContent2)
+        assertTrue(preserved.newVersionAvailable)
+        assertFalse(preserved.canMarkRead)
+        model.selectPairForComparison(0)
+        model.uiState.first { it.snapContent1 == "newest" && !it.isLoadingDiff }
+        assertFalse(model.uiState.value.newVersionAvailable)
+    }
+
+    @Test fun liveVersionsKeepTheSavedBaselineReadable() = runTest(dispatcher) {
+        prepare()
+        val changes = MutableStateFlow(listOf(history.last()))
+        whenever(snaps.getAllSnapsForSite(site.id)).thenReturn(changes.value)
+        whenever(snaps.getSnaps(site.id)).thenReturn(changes)
+        model.openComparison(site.id)
+        model.uiState.first { it.singleSnapContent == "baseline" && !it.isLoadingDiff }
+        changes.value = history
+        runCurrent()
+        assertEquals(3, model.uiState.value.snaps.size)
+        assertEquals("baseline", model.uiState.value.singleSnapContent)
+        assertTrue(model.uiState.value.newVersionAvailable)
+    }
+
+    @Test fun deletingHalfTheVisiblePairDoesNotInventAnotherComparison() = runTest(dispatcher) {
+        prepare()
+        val changes = MutableStateFlow(history)
+        whenever(snaps.getSnaps(site.id)).thenReturn(changes)
+        model.openComparison(site.id)
+        model.uiState.first { it.snapContent1 == "new" && !it.isLoadingDiff }
+        changes.value = history.filter { it.snapId != "older" }
+        runCurrent()
+        assertTrue(model.uiState.value.requestedSnapshotUnavailable)
+        assertNull(model.uiState.value.selectedPairIndex)
+    }
+
     private suspend fun prepare() {
         whenever(sites.getDataWithChanges()).thenReturn(emptyFlow())
         whenever(sites.getSiteById(site.id)).thenReturn(site)
         whenever(snaps.getAllSnapsForSite(site.id)).thenReturn(history)
+        whenever(snaps.getSnaps(site.id)).thenReturn(emptyFlow())
         history.forEach { whenever(snaps.getSnapContent(it.snapId)).thenReturn(it.snapId.encodeToByteArray()) }
     }
 

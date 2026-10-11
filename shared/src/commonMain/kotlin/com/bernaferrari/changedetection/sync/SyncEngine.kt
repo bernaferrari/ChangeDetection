@@ -5,6 +5,7 @@
 package com.bernaferrari.changedetection.sync
 
 import com.bernaferrari.changedetection.error.*
+import com.bernaferrari.changedetection.repo.capturePolicy
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.local.ChangeDatabase
@@ -193,7 +194,7 @@ open class SyncEngine(
     ): SyncResult = withContext(Dispatchers.Default) {
         val currentSite = sitesDao.getSiteById(site.id)
             ?: return@withContext SyncResult.Skipped(site.id, "Page deleted during check")
-        if (currentSite.url != site.url || currentSite.captureMode != site.captureMode || currentSite.threshold != site.threshold || currentSite.visualChangeThresholdBps != site.visualChangeThresholdBps || currentSite.textRegion() != site.textRegion() || !currentSite.isSyncEnabled) {
+        if (currentSite.url != site.url || currentSite.captureMode != site.captureMode || currentSite.threshold != site.threshold || currentSite.visualChangeThresholdBps != site.visualChangeThresholdBps || currentSite.capturePolicy() != site.capturePolicy() || !currentSite.isSyncEnabled) {
             return@withContext SyncResult.Skipped(site.id, "Page changed or paused during check")
         }
         try {
@@ -210,7 +211,13 @@ open class SyncEngine(
                 } else if (site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT && result.contentType.startsWith("image/", true)) {
                     processErrorResult(currentSite, FetchResult.Error("This address returns an image. Choose screenshots or source monitoring."))
                 } else {
-                    processSuccessResult(currentSite, result, threshold)
+                    try {
+                        processSuccessResult(currentSite, result, threshold)
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (error: Exception) {
+                        processErrorResult(currentSite, FetchResult.Error("Could not read the saved baseline", DatabaseError(DatabaseError.Operation.READ, "Could not read the saved baseline", error)))
+                    }
                 }
             }
 
@@ -220,16 +227,11 @@ open class SyncEngine(
         }
     }
 
-    /** Unknown (undecodable, different widths) counts as changed, so nothing is ever silently dropped. */
+    /** Detection uses pixel evidence; filtered regions are only an explanation for the reader. */
     private suspend fun visiblyChanged(before: ByteArray, after: ByteArray): Boolean {
-        val change = try {
-            com.bernaferrari.changedetection.image.computeVisualChange(before, after)
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (error: Exception) {
-            null
-        } ?: return true
-        return change.regions.isNotEmpty() || kotlin.math.abs(change.heightDelta) > 0.002f
+        val difference = com.bernaferrari.changedetection.image.PlatformImageDiff.compare(before, after, includeDiffImage = false)
+        check(difference.error == null && (difference.totalPixels > 0 || difference.dimensionMismatch != null)) { "Could not compare screenshots" }
+        return difference.dimensionMismatch != null || difference.differentPixels > 0
     }
 
     private suspend fun processSuccessResult(
@@ -253,7 +255,11 @@ open class SyncEngine(
         }
         val result = if (prepared != null) incoming.copy(data = prepared.data) else incoming
         val lastSnap = snapsDao.getLastSnapForSiteId(site.id)
-        val contentHash = prepared?.contentHash ?: ContentHasher.detectionHash(result.data, result.contentType, site.captureMode)
+        val contentHash = if (result.contentType.startsWith("image/", true)) {
+            "screenshot-v1:${site.capturePolicy().regionIdentity}:${ContentHasher.hashContent(result.data)}"
+        } else {
+            prepared?.contentHash ?: ContentHasher.detectionHash(result.data, result.contentType, site.captureMode)
+        }
         val isFirstSnap = lastSnap == null ||
             lastSnap.contentType.startsWith("image/", true) != result.contentType.startsWith("image/", true) ||
             ContentHasher.detectionPolicy(lastSnap.contentHash) != ContentHasher.detectionPolicy(contentHash)
@@ -284,8 +290,8 @@ open class SyncEngine(
                 return processErrorResult(site, FetchResult.Error("Could not compare screenshots", error))
             }
         } else if (result.contentType.startsWith("image/", true) && !isFirstSnap && hasContentChanged && !explicitRule) {
-            // A new screenshot only counts when something visible changed. Re-rendering noise changes the bytes
-            // (and would otherwise be saved and notified) while the comparison would find nothing to show.
+            // Encoding changes and pixel differences below the perceptual tolerance do not create a version.
+            // Region trimming must never discard the underlying pixel evidence.
             visiblyChanged(fileStorage.readBytes(requireNotNull(lastSnap).snapId), result.data)
         } else {
             visualThreshold > 0 || explicitRule || isFirstSnap || threshold <= 0 || !hasContentChanged ||
@@ -405,7 +411,7 @@ open class SyncEngine(
 
     /** Must be read under the same write transaction as the status or snapshot commit. */
     private suspend fun currentCaptureSite(site: Site): Site? = sitesDao.getSiteById(site.id)?.takeIf {
-        it.url == site.url && it.isSyncEnabled && it.threshold == site.threshold && it.visualChangeThresholdBps == site.visualChangeThresholdBps && it.captureMode == site.captureMode && it.textRegion() == site.textRegion()
+        it.url == site.url && it.isSyncEnabled && it.threshold == site.threshold && it.visualChangeThresholdBps == site.visualChangeThresholdBps && it.captureMode == site.captureMode && it.capturePolicy() == site.capturePolicy()
     }
 
     private suspend fun updateStatusIfCurrent(site: Site, successful: Boolean, isBrowser: Boolean, expectedSnapshot: Snap? = null, failureCode: String? = null): Boolean = inWriteTransaction {

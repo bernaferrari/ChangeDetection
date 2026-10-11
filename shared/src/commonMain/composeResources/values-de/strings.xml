@@ -580,7 +580,7 @@
     <string name="detail_check_less">Seltener prüfen</string>
     <string name="advice_temporary">Die Website ist ausgelastet oder nicht erreichbar. Das ist meist vorübergehend. Wir versuchen es weiter.</string>
     <string name="advice_connection">Dieses Gerät hat keine Internetverbindung. Sobald du wieder online bist, versuchen wir es erneut.</string>
-    <string name="advice_login">Diese Seite erfordert eine Anmeldung. Melde dich einmal im App-Browser an, damit künftige Prüfungen angemeldet bleiben.</string>
+    <string name="advice_login">Diese Seite erfordert eine Anmeldung. Unter Android können Screenshot-Prüfungen die Anmeldung im App-Browser verwenden. Text- und Quelltextprüfungen können das nicht.</string>
     <string name="advice_not_found">Die Seite existiert nicht mehr. Prüfe, ob der Link noch stimmt.</string>
     <string name="advice_rate">Die Website verlangt weniger Anfragen. Ein längeres Prüfintervall hilft meist.</string>
     <string name="advice_region">Der gewählte Teil ist nicht mehr auf der Seite. Wähle ihn erneut.</string>
@@ -752,7 +752,7 @@
         <item quantity="other">%1$d entfernt</item>
     </plurals>
     <string name="detail_sign_in">Anmelden</string>
-    <string name="browser_session_note">Auf dieser Seite angemeldet? Du bleibst angemeldet: Prüfungen verwenden die Sitzung dieses Browsers auf diesem Gerät.</string>
+    <string name="browser_session_note">Screenshot-Prüfungen verwenden die Anmeldung dieses Browsers auf diesem Gerät. Text- und Quelltextprüfungen verwenden diese Sitzung nicht.</string>
     <string name="turbo_next_check">Nächste Prüfung in %1$d Sek.</string>
     <string name="picker_selected_image">Ein Bild</string>
     <string name="picker_selected_frame">Eingebetteter Frame (oft eine Anzeige)</string>
@@ -786,4 +786,5 @@
     <string name="image_diff_changed_percent">%1$s geändert</string>
     <string name="error_invalid_input">Einstellungen prüfen</string>
     <string name="error_invalid_input_detail">Prüfe die Seitenadresse und die Einstellungen und versuche es erneut.</string>
+    <string name="comparison_new_version">Neue Version verfügbar</string>
 </resources>
