@@ -7,33 +7,32 @@ package com.bernaferrari.changedetection.ui.settings
 import com.bernaferrari.changedetection.background.MonitoringExecution
 import com.bernaferrari.changedetection.background.monitoringCapabilities
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.OutlinedToggleButton
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BatterySaver
-import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Power
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.ui.Alignment
@@ -42,7 +41,6 @@ import com.bernaferrari.changedetection.ui.kit.GroupLabel
 import com.bernaferrari.changedetection.ui.kit.GroupRow
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
@@ -58,7 +56,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CancellationException
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bernaferrari.changedetection.shared.generated.resources.Res
@@ -67,7 +65,6 @@ import com.bernaferrari.changedetection.shared.generated.resources.save
 import com.bernaferrari.changedetection.shared.generated.resources.schedule_save_failed
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_constraints_title
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_interval_label
-import com.bernaferrari.changedetection.ui.theme.spacing
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -85,7 +82,7 @@ fun BackgroundSyncDialog(
     BackgroundSyncDialogContent(uiState, onDismiss, viewModel::saveMonitoringSettings, viewModel::retryLoading)
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun BackgroundSyncDialogContent(
     uiState: SettingsUiState,
@@ -120,7 +117,7 @@ internal fun BackgroundSyncDialogContent(
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Column(Modifier.fillMaxWidth().padding(bottom = 16.dp)) {
-            Column(Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 16.dp)) {
+            Column(Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 16.dp).testTag("checks-scroll-content")) {
                 Text(stringResource(Res.string.checks_title), Modifier.padding(horizontal = 24.dp), style = MaterialTheme.typography.headlineSmall)
                 if (!uiState.isLoaded || !initialized) {
                     SettingsLoadState(uiState.loadFailed, onRetry)
@@ -145,23 +142,44 @@ internal fun BackgroundSyncDialogContent(
                     }
                     if (draft.backgroundSync && available) {
                         GroupLabel(stringResource(Res.string.checks_every))
-                        // One even grid of connected buttons; "Custom" is its last button and opens the field below.
                         val customLabel = stringResource(Res.string.checks_custom)
-                        com.bernaferrari.changedetection.ui.kit.ConnectedChoice(
-                            options = presets + CUSTOM_INTERVAL,
-                            selected = if (custom) CUSTOM_INTERVAL else draft.syncInterval,
-                            onSelect = { minutes ->
-                                if (minutes == CUSTOM_INTERVAL) {
-                                    custom = true
-                                } else {
-                                    custom = false
-                                    valid = true
-                                    draft = draft.copy(syncInterval = minutes)
-                                }
-                            },
-                            enabled = !saving,
-                            columns = 3,
-                        ) { if (it == CUSTOM_INTERVAL) customLabel else presetLabel(it) }
+                        // Standard expressive toggle buttons hug their labels, rather than forming
+                        // oversized connected tiles. Selection morphs the shape without changing width.
+                        FlowRow(
+                            Modifier.fillMaxWidth().padding(horizontal = 16.dp).selectableGroup(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            (presets + CUSTOM_INTERVAL).forEach { minutes ->
+                                val chosen = if (minutes == CUSTOM_INTERVAL) custom else !custom && draft.syncInterval == minutes
+                                OutlinedToggleButton(
+                                    checked = chosen,
+                                    onCheckedChange = { checked ->
+                                        if (checked) {
+                                            if (minutes == CUSTOM_INTERVAL) {
+                                                custom = true
+                                            } else {
+                                                custom = false
+                                                valid = true
+                                                draft = draft.copy(syncInterval = minutes)
+                                            }
+                                        }
+                                    },
+                                    enabled = !saving,
+                                    modifier = Modifier.heightIn(min = 48.dp).semantics {
+                                        role = Role.RadioButton
+                                        selected = chosen
+                                    },
+                                    colors = ToggleButtonDefaults.colors(
+                                        containerColor = Color.Transparent,
+                                        contentColor = MaterialTheme.colorScheme.onSurface,
+                                        checkedContainerColor = MaterialTheme.colorScheme.primary,
+                                        checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                                    ),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                                ) { Text(if (minutes == CUSTOM_INTERVAL) customLabel else presetLabel(minutes), style = MaterialTheme.typography.labelLarge) }
+                            }
+                        }
                         if (custom) {
                             Box(Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
                                 SyncIntervalInput(
@@ -230,7 +248,7 @@ internal fun BackgroundSyncDialogContent(
                         }
                     }
                 },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(horizontal = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp).testTag("checks-save").heightIn(min = 56.dp),
             ) {
                 Text(stringResource(if (saving) Res.string.saving else Res.string.save), style = MaterialTheme.typography.titleMedium)
             }

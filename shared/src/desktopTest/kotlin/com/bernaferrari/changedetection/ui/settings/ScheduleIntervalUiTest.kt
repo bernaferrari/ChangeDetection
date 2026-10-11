@@ -29,6 +29,21 @@ import kotlinx.coroutines.CompletableDeferred
 class ScheduleIntervalUiTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun compactPresetChoicesKeepTheSaveButtonClearOfTheScrollingContent() {
+        compose.setContent {
+            ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
+                BackgroundSyncDialogContent(SettingsUiState(syncInterval = 15L), {}, {})
+            }
+        }
+        compose.onNodeWithText("15 min").assertIsSelected()
+        compose.onNodeWithText("Daily").performScrollTo().performClick().assertIsSelected()
+        val content = compose.onNodeWithTag("checks-scroll-content").fetchSemanticsNode().boundsInRoot
+        val save = compose.onNodeWithTag("checks-save").fetchSemanticsNode().boundsInRoot
+        assertTrue("Save has its own space above the button", save.top >= content.bottom + 15f)
+        val output = File("../build/i18n/screens/checks-simple.png").apply { parentFile.mkdirs() }
+        ImageIO.write(compose.onNode(isRoot() and hasAnyDescendant(hasTestTag("checks-save")), useUnmergedTree = true).captureToImage().toAwtImage(), "png", output)
+    }
+
     @Test fun delayedCustomScheduleShowsItsSavedValue() {
         var source by mutableStateOf(SettingsUiState(isLoaded = false))
         compose.setContent {
