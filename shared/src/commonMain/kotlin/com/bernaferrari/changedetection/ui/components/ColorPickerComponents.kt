@@ -116,7 +116,7 @@ fun PaletteSwatch(
         contentAlignment = Alignment.Center,
     ) {
         if (icon != null) {
-            Icon(icon, null, Modifier.size(size * 0.45f).rotate(-rotation), tint = Color.White)
+            Icon(icon, null, Modifier.size(size * 0.45f).rotate(-rotation), tint = MaterialTheme.colorScheme.onPrimary)
         }
     }
 }
@@ -125,6 +125,11 @@ fun PaletteSwatch(
 @Composable
 internal fun paletteSwatchColors(palette: com.bernaferrari.changedetection.model.AppPalette): List<Color> = when (palette) {
     com.bernaferrari.changedetection.model.AppPalette.DEFAULT -> listOf(com.bernaferrari.changedetection.ui.theme.BrandSeed, MaterialTheme.marks.highlight)
-    com.bernaferrari.changedetection.model.AppPalette.DYNAMIC -> listOf(Color(0xFF7C4DFF), Color(0xFF00BFA5))
+
+    com.bernaferrari.changedetection.model.AppPalette.DYNAMIC -> {
+        val scheme = com.bernaferrari.changedetection.ui.theme.LocalWallpaperColorScheme.current ?: MaterialTheme.colorScheme
+        listOf(scheme.primary, scheme.secondary, scheme.tertiary)
+    }
+
     else -> listOf(palette.seedColor, androidx.compose.ui.graphics.lerp(palette.seedColor, Color.White, 0.45f))
 }

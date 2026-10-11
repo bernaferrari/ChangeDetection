@@ -20,10 +20,8 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.OutlinedToggleButton
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.role
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BatterySaver
@@ -170,12 +168,6 @@ internal fun BackgroundSyncDialogContent(
                                         role = Role.RadioButton
                                         selected = chosen
                                     },
-                                    colors = ToggleButtonDefaults.colors(
-                                        containerColor = Color.Transparent,
-                                        contentColor = MaterialTheme.colorScheme.onSurface,
-                                        checkedContainerColor = MaterialTheme.colorScheme.primary,
-                                        checkedContentColor = MaterialTheme.colorScheme.onPrimary,
-                                    ),
                                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                                 ) { Text(if (minutes == CUSTOM_INTERVAL) customLabel else presetLabel(minutes), style = MaterialTheme.typography.labelLarge) }
                             }
