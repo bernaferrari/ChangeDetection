@@ -309,7 +309,7 @@ private fun ActivityRow(shape: androidx.compose.ui.graphics.Shape, snap: Snap, s
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            PageAvatar(name, snap.siteId, size = 40.dp, icon = site?.avatarIcon())
+            PageAvatar(name, snap.siteId, size = 40.dp, icon = site?.avatarIcon(), iconShape = site?.iconShape ?: com.bernaferrari.changedetection.repo.PageIconShape.AUTOMATIC, colors = site?.colors ?: (0 to 0))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {

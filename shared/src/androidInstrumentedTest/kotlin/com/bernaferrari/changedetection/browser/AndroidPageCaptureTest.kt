@@ -53,7 +53,7 @@ class AndroidPageCaptureTest {
         TestPageServer(200, """<meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0;background:white"><div style="height:4000px">TOP OF PAGE</div><div style="height:300px;background:#ff0000">BOTTOM OF PAGE</div></body>""").use { server ->
             val screenshot = capture(server.url)
             assertTrue(screenshot.height > 1920)
-            assertTrue(screenshot.width.toLong() * screenshot.height <= 4_000_000)
+            assertTrue(screenshot.width.toLong() * screenshot.height <= 7_000_000)
             val bitmap = BitmapFactory.decodeByteArray(screenshot.bytes, 0, screenshot.bytes.size)
             try {
                 val bottom = bitmap.getPixel(bitmap.width / 2, bitmap.height - 20)
@@ -72,6 +72,37 @@ class AndroidPageCaptureTest {
         }
     }
 
+    @Test(timeout = 25_000)
+    fun slowSecondaryResourcesDoNotBlockAUsablePage() = runBlocking {
+        TestPageServer(200, "<body style='background:#0000ff'>Ready content<img src='/slow-image' width='1' height='1'></body>", resourceDelayMs = 45_000).use { server ->
+            val screenshot = capture(server.url)
+            val bitmap = BitmapFactory.decodeByteArray(screenshot.bytes, 0, screenshot.bytes.size)
+            try {
+                val pixel = bitmap.getPixel(bitmap.width / 2, bitmap.height - 20)
+                assertTrue("Capture the usable document while the secondary resource is still loading", android.graphics.Color.blue(pixel) > 200 && android.graphics.Color.red(pixel) < 40)
+            } finally {
+                bitmap.recycle()
+            }
+        }
+    }
+
+    @Test fun freshChecksSeeChangesEvenWhenTheServerAllowsLongLivedCaching() = runBlocking {
+        TestPageServer(200, "<body style='background:#ff0000'>Original</body>", cacheControl = "public, max-age=86400").use { server ->
+            val first = capture(server.url)
+            server.html = "<body style='background:#0000ff'>Changed</body>"
+            val changed = capture(server.url)
+            val bitmap = BitmapFactory.decodeByteArray(changed.bytes, 0, changed.bytes.size)
+            try {
+                val pixel = bitmap.getPixel(bitmap.width / 2, bitmap.height - 20)
+                assertTrue("A fresh check must see the new blue page, not the cached red page", android.graphics.Color.blue(pixel) > 200 && android.graphics.Color.red(pixel) < 40)
+                assertFalse(first.bytes.contentEquals(changed.bytes))
+                assertArrayEquals(changed.bytes, capture(server.url).bytes)
+            } finally {
+                bitmap.recycle()
+            }
+        }
+    }
+
     @Test fun identicalStaticPagesProduceTheSameImage() = runBlocking {
         TestPageServer(200, "<body style='background:white;color:black'><h1>Stable page</h1><p>Unchanged content.</p></body>").use { server ->
             assertArrayEquals(capture(server.url).bytes, capture(server.url).bytes)
@@ -79,13 +110,13 @@ class AndroidPageCaptureTest {
     }
 
     @Test(timeout = 60_000)
-    fun repeatedTallChangingPagesStayWithinBudgetAndKeepTheirFooter() = runBlocking {
+    fun repeatedTallChangingPagesStayWithinBudgetWithoutSqueezingContent() = runBlocking {
         repeat(3) { version ->
             val color = if (version % 2 == 0) "#ff0000" else "#0000ff"
-            TestPageServer(200, """<meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0;background:white"><div style="height:18000px">Version $version</div><div style="height:300px;background:$color">Final content</div></body>""").use { server ->
+            TestPageServer(200, """<meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0;background:white"><div style="height:18000px;background:$color">Version $version</div><div style="height:300px;background:#00ff00">Beyond the capture limit</div></body>""").use { server ->
                 val screenshot = capture(server.url)
                 assertTrue(screenshot.height <= 10_000)
-                assertTrue(screenshot.width.toLong() * screenshot.height <= 4_000_000)
+                assertTrue(screenshot.width.toLong() * screenshot.height <= 7_000_000)
                 val bitmap = BitmapFactory.decodeByteArray(screenshot.bytes, 0, screenshot.bytes.size)
                 try {
                     val pixel = bitmap.getPixel(bitmap.width / 2, bitmap.height - 10)

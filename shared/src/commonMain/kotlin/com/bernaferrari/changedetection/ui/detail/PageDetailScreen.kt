@@ -122,6 +122,8 @@ import com.bernaferrari.changedetection.ui.comparison.isImageSnapshot
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.addedit.PageIconShapePicker
+import com.bernaferrari.changedetection.repo.PageIconShape
 import org.koin.compose.koinInject
 
 @Composable
@@ -166,6 +168,8 @@ internal fun PageDetailScreen(
             item?.site?.let { viewModel.updateSite(it.copy(isNotificationEnabled = on)) }
         },
         onDelete = { confirmDelete = true },
+        onIconShapeChange = { shape -> item?.site?.let { viewModel.updateIconShape(it.id, shape) } },
+        onIconColorChange = { colors -> item?.site?.let { viewModel.updateIconColor(it.id, colors) } },
         errorContent = { error?.let { ErrorBanner(error = it, onDismiss = viewModel::dismissError, onRetry = viewModel::retryLastAction) } },
     )
     if (confirmDelete && item != null) {
@@ -210,10 +214,15 @@ internal fun PageDetailContent(
     onSetNotify: (Boolean) -> Unit,
     onDelete: () -> Unit,
     onHistory: (String) -> Unit = onCompare,
+    onIconShapeChange: (PageIconShape) -> Unit = {},
+    onIconColorChange: (com.bernaferrari.changedetection.repo.ColorGroup) -> Unit = {},
     notificationsAvailable: Boolean = monitoringCapabilities.notifications,
     errorContent: @Composable () -> Unit = {},
 ) {
-    var menu by remember { mutableStateOf(false) }
+    var choosingShape by remember(item?.site?.id) { mutableStateOf(false) }
+    if (choosingShape && item != null) {
+        PageIconShapePicker(item.site.name(), item.site.id, item.site.avatarIcon(), item.site.iconShape, onSelect = onIconShapeChange, colors = item.site.colors, onColorSelect = onIconColorChange, onDismiss = { choosingShape = false })
+    }
     Scaffold(
         topBar = {
             com.bernaferrari.changedetection.ui.navigation.AppTopBar(
@@ -234,7 +243,7 @@ internal fun PageDetailContent(
                     TextButton(onClick = onBack) { Text(stringResource(Res.string.nav_home)) }
                 }
 
-                else -> DetailList(item, versions, schedule, turbo, onCompare, onEdit, onTurbo, onSchedule, onOpenUrl, onCheck, onMarkRead, onSetPaused, onSetNotify, onHistory, notificationsAvailable, errorContent)
+                else -> DetailList(item, versions, schedule, turbo, onCompare, onEdit, onTurbo, onSchedule, onOpenUrl, onCheck, onMarkRead, onSetPaused, onSetNotify, onHistory, notificationsAvailable, errorContent, onChooseShape = { choosingShape = true })
             }
         }
     }
@@ -280,6 +289,7 @@ private fun DetailList(
     onHistory: (String) -> Unit,
     notificationsAvailable: Boolean,
     errorContent: @Composable () -> Unit,
+    onChooseShape: () -> Unit,
 ) {
     val site = item.site
     val paused = !site.isSyncEnabled
@@ -290,7 +300,9 @@ private fun DetailList(
     ) {
         item(key = "identity") {
             Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                PageAvatar(site.name(), site.id, size = 88.dp, dimmed = paused, icon = site.avatarIcon())
+                Box(Modifier.clickable(role = androidx.compose.ui.semantics.Role.Button, onClickLabel = stringResource(Res.string.editor_icon_shape_title), onClick = onChooseShape)) {
+                    PageAvatar(site.name(), site.id, size = 88.dp, dimmed = paused, icon = site.avatarIcon(), iconShape = site.iconShape, colors = site.colors)
+                }
                 Spacer(Modifier.height(16.dp))
                 Text(site.name(), style = MaterialTheme.typography.headlineMedium, maxLines = 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
                 Text(

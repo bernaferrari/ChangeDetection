@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -82,7 +83,7 @@ fun HomeEmptyState(onAddPage: (String?) -> Unit, onHowItWorks: () -> Unit, modif
             Text(stringResource(Res.string.empty_title), style = MaterialTheme.typography.headlineLarge)
             Spacer(Modifier.size(12.dp))
             Text(stringResource(Res.string.empty_body), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.weight(1f).heightIn(min = 28.dp))
+            Spacer(Modifier.height(28.dp))
             AnimatedVisibility(copied != null, enter = fadeIn() + expandVertically()) {
                 Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.padding(bottom = 10.dp)) {
                     Row(Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {

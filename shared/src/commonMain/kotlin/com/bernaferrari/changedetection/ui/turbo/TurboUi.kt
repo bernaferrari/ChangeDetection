@@ -319,7 +319,7 @@ fun TurboSetupSheet(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(14.dp),
                         ) {
-                            PageAvatar(row.site.name(), row.site.id, size = 36.dp, icon = row.site.avatarIcon())
+                            PageAvatar(row.site.name(), row.site.id, size = 36.dp, icon = row.site.avatarIcon(), iconShape = row.site.iconShape, colors = row.site.colors)
                             Column(Modifier.weight(1f)) {
                                 Text(row.site.name(), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 Text(row.site.domain(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -500,7 +500,7 @@ private fun TurboChangeCard(row: SiteAndLastSnap, onOpen: () -> Unit, modifier: 
     Surface(onClick = onOpen, modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceBright) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                PageAvatar(row.site.name(), row.site.id, icon = row.site.avatarIcon())
+                PageAvatar(row.site.name(), row.site.id, icon = row.site.avatarIcon(), iconShape = row.site.iconShape, colors = row.site.colors)
                 Column(Modifier.weight(1f)) {
                     Text(row.site.name(), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(formatTime(row.snap?.timestamp ?: 0), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -521,7 +521,7 @@ private fun QuietRow(row: SiteAndLastSnap, state: TurboState, now: Long, onClick
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        PageAvatar(row.site.name(), row.site.id, icon = row.site.avatarIcon())
+        PageAvatar(row.site.name(), row.site.id, icon = row.site.avatarIcon(), iconShape = row.site.iconShape, colors = row.site.colors)
         Column(Modifier.weight(1f)) {
             Text(row.site.name(), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
