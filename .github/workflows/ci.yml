@@ -19,21 +19,21 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
 
       - name: Set up JDK
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6.0.1
         with:
           distribution: temurin
           java-version: 21
 
       - name: Set up Android SDK for project configuration
-        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
         with:
-          packages: 'platform-tools platforms;android-37'
+          packages: 'platform-tools platforms;android-37.2'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.4.0
 
       - name: Verify Desktop journeys and shared platform compilation
         run: >-
@@ -44,7 +44,7 @@ jobs:
 
       - name: Save Desktop verification reports and renders
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: desktop-verification-reports
           path: |
@@ -61,16 +61,21 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
 
       - name: Set up JDK
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6.0.1
         with:
           distribution: temurin
           java-version: 21
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          packages: 'platform-tools platforms;android-37.2'
+
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.4.0
 
       - name: Build and verify Android
         run: >-
@@ -89,7 +94,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Run Android device tests
-        uses: reactivecircus/android-emulator-runner@4c44018e59b437e86cdfc41da381398f93ed8808 # v2
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
           api-level: 36
           target: google_apis
@@ -102,7 +107,7 @@ jobs:
 
       - name: Save Android verification reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: android-verification-reports
           path: |
@@ -120,16 +125,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
 
       - name: Set up JDK
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6.0.1
         with:
           distribution: temurin
           java-version: 21
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.4.0
 
       - name: Build and verify the web demo
         run: |
@@ -151,17 +156,17 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7.0.1
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6.1.0
         with:
-          version: 11.25.0
+          version: 12.11.2
 
       - name: Set up Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7.1.0
         with:
-          node-version: 24
+          node-version: 26.11.1
           cache: pnpm
           cache-dependency-path: website/pnpm-lock.yaml
 

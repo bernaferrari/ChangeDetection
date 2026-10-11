@@ -18,13 +18,14 @@ jetbrainsAndroidxNavigation3Ui = "1.1.2"
 jetbrainsAndroidxSavedState = "1.4.0"
 jetbrainsAndroidxWindow = "1.5.1"
 jetbrainsCompose = "1.12.1"
-jetbrainsMaterial3 = "1.12.0-alpha03"
+jetbrainsMaterial3 = "1.13.0-alpha02"
 jetbrainsComposeAdaptive = "1.3.0"
 jsoup = "1.23.2"
 junit = "4.13.2"
 koin = "4.2.2"
 koinCompiler = "1.2.1"
 kotlin = "2.4.21"
+ktlint = "1.8.0"
 kotlinxDatetime = "0.8.0"
 kotlinxSerializationJson = "1.11.0"
 ksp = "2.3.12"
@@ -40,11 +41,13 @@ napier = "2.7.1"
 nav3 = "1.2.0"
 nav3Lifecycle = "2.11.0"
 navigation = "2.10.2"
+node = "26.11.1"
 okio = "3.18.2"
 paging = "3.5.2"
 paletteKtx = "1.0.0"
 playPublisher = "4.1.1"
 room = "3.0.3"
+skiko = "0.153.0"
 spotless = "8.10.4"
 sqlite = "2.7.1"
 startup = "1.2.0"
@@ -152,6 +155,7 @@ mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "
 napier = { module = "io.github.aakira:napier", version.ref = "napier" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
+skiko-wasm-js = { module = "org.jetbrains.skiko:skiko-wasm-js", version.ref = "skiko" }
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
 subsampling-scale-imageview = { module = "com.davemorrissey.labs:subsampling-scale-image-view", version.ref = "subsamplingScaleImageView" }
 timeago = { module = "com.github.marlonlom:timeago", version.ref = "timeAgo" }

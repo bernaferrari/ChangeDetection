@@ -117,7 +117,7 @@ private fun RenderedVersionSwitcher(
                     } else {
                         ButtonGroupDefaults.connectedTrailingButtonShapes()
                     },
-                    colors = ToggleButtonDefaults.toggleButtonColors(
+                    colors = ToggleButtonDefaults.colors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,

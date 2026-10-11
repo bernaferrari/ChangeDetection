@@ -61,12 +61,12 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
                                 this.selected = option == selected
                             },
                             shapes = when {
-                                row.size == 1 -> ToggleButtonDefaults.shapes()
+                                row.size == 1 -> ToggleButtonDefaults.shapesFor(ToggleButtonDefaults.size)
                                 index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
                                 index == row.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                                 else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                             },
-                            colors = ToggleButtonDefaults.toggleButtonColors(
+                            colors = ToggleButtonDefaults.colors(
                                 containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                                 contentColor = MaterialTheme.colorScheme.onSurface,
                                 checkedContainerColor = MaterialTheme.colorScheme.primary,
