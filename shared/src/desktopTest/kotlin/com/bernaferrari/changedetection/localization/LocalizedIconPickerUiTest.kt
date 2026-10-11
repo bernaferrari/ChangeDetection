@@ -67,7 +67,16 @@ class LocalizedIconPickerUiTest(private val language: String, private val scale:
             }
         }
         compose.onNodeWithText(title).assertIsDisplayed()
-        compose.onNodeWithContentDescription(circle).performScrollTo().assertIsNotSelected().performClick().assertIsSelected()
+        val circleChoice = compose.onNodeWithContentDescription(circle).performScrollTo().assertIsNotSelected()
+        val targetBounds = circleChoice.fetchSemanticsNode().boundsInRoot
+        circleChoice.performMouseInput { moveTo(center) }
+        compose.waitForIdle()
+        circleChoice.assertIsNotSelected()
+        Assert.assertEquals("Hover keeps the hit target still", targetBounds, circleChoice.fetchSemanticsNode().boundsInRoot)
+        val hoverRoot = compose.onNode(isRoot() and hasAnyDescendant(hasText(title)), useUnmergedTree = true)
+        val hoverOutput = File("../build/i18n/screens/picker-hover-$language-$scale.png").apply { parentFile.mkdirs() }
+        ImageIO.write(hoverRoot.captureToImage().toAwtImage(), "png", hoverOutput)
+        circleChoice.performClick().assertIsSelected()
         compose.onNodeWithContentDescription(pink).performScrollTo().assertIsDisplayed().performClick().assertIsSelected()
         val root = compose.onNode(isRoot() and hasAnyDescendant(hasText(title)), useUnmergedTree = true)
         val output = File("../build/i18n/screens/picker-$language-$scale.png").apply { parentFile.mkdirs() }

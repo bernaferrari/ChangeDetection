@@ -4,7 +4,6 @@
  */
 package com.bernaferrari.changedetection.addedit
 
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.interaction.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.horizontalScroll
@@ -18,7 +17,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -27,12 +27,14 @@ import com.bernaferrari.changedetection.repo.ColorGroup
 import com.bernaferrari.changedetection.repo.PageIconColor
 import com.bernaferrari.changedetection.repo.PageIconShape
 import com.bernaferrari.changedetection.shared.generated.resources.*
+import com.bernaferrari.changedetection.ui.components.rememberPageIconMotion
 import com.bernaferrari.changedetection.ui.kit.PageAvatar
 import org.jetbrains.compose.resources.stringResource
 
 /** The caller decides whether each choice updates an editor draft or a saved page. */
 @Composable
 internal fun PageIconShapePicker(name: String, key: String, icon: String?, selected: PageIconShape, onSelect: (PageIconShape) -> Unit, colors: ColorGroup, onColorSelect: (ColorGroup) -> Unit, onDismiss: () -> Unit) {
+    val haptics = LocalHapticFeedback.current
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(Res.string.editor_icon_shape_title)) },
@@ -43,37 +45,29 @@ internal fun PageIconShapePicker(name: String, key: String, icon: String?, selec
                         shapes.forEach { shape ->
                             val chosen = selected == shape
                             val interactions = remember { MutableInteractionSource() }
-                            val hovered by interactions.collectIsHoveredAsState()
-                            val pressed by interactions.collectIsPressedAsState()
-                            val focused by interactions.collectIsFocusedAsState()
-                            val ringTarget = when {
-                                chosen || focused -> 1f
-                                pressed -> 0.65f
-                                hovered -> 0.35f
-                                else -> 0f
-                            }
-                            val ring by animateFloatAsState(ringTarget, if (focused) snap() else tween(160, easing = LinearOutSlowInEasing), label = "shape-ring-growth")
-                            val scale by animateFloatAsState(if (pressed) 0.97f else 1f, spring(dampingRatio = 1f, stiffness = 1000f), label = "shape-press")
+                            val motion = rememberPageIconMotion(interactions, chosen)
                             val label = shape.label()
                             Box(
                                 Modifier.weight(1f).height(80.dp)
                                     .semantics { contentDescription = label }
-                                    .selectable(selected = chosen, role = Role.RadioButton, interactionSource = interactions, indication = null, onClick = { onSelect(shape) }),
+                                    .selectable(selected = chosen, role = Role.RadioButton, interactionSource = interactions, indication = null, onClick = {
+                                        if (!chosen) {
+                                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            onSelect(shape)
+                                        }
+                                    }),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 PageAvatar(
                                     name,
                                     key,
-                                    modifier = Modifier.graphicsLayer {
-                                        scaleX = scale
-                                        scaleY = scale
-                                    },
+                                    modifier = motion.modifier,
                                     size = 48.dp,
                                     icon = icon,
                                     iconShape = shape,
                                     colors = colors,
-                                    selectionProgress = ring,
-                                    selectionColor = if (chosen || focused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                                    selectionProgress = motion.outlineProgress,
+                                    selectionColor = if (chosen || motion.focused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                                 )
                             }
                         }
