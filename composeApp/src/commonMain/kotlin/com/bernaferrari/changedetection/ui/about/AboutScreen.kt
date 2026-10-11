@@ -2,42 +2,50 @@
  * Copyright (c) 2024 ChangeDetection Contributors
  * Licensed under the Apache License, Version 2.0
  */
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+
 package com.bernaferrari.changedetection.ui.about
 
-import com.bernaferrari.changedetection.shared.generated.resources.about_story
-import com.bernaferrari.changedetection.shared.generated.resources.settings_feedback
-import com.bernaferrari.changedetection.shared.generated.resources.about_elsewhere
-
-import androidx.compose.material.icons.filled.Description
-
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.NotificationsActive
+import androidx.compose.material.icons.filled.FormatQuote
+import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,42 +53,38 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.shared.generated.resources.Res
-import com.bernaferrari.changedetection.shared.generated.resources.a11y_navigate_back
-import com.bernaferrari.changedetection.shared.generated.resources.about_contact_developer
 import com.bernaferrari.changedetection.shared.generated.resources.about_developer_name
-import com.bernaferrari.changedetection.shared.generated.resources.about_designed_by
-import com.bernaferrari.changedetection.shared.generated.resources.about_open_source_disclaimer
-import com.bernaferrari.changedetection.shared.generated.resources.about_title
+import com.bernaferrari.changedetection.shared.generated.resources.about_elsewhere
+import com.bernaferrari.changedetection.shared.generated.resources.about_license_short
+import com.bernaferrari.changedetection.shared.generated.resources.about_story
 import com.bernaferrari.changedetection.shared.generated.resources.about_view_licenses
 import com.bernaferrari.changedetection.shared.generated.resources.about_view_on_github
-import com.bernaferrari.changedetection.shared.generated.resources.about_hero_label
-import com.bernaferrari.changedetection.shared.generated.resources.about_hero_title
-import com.bernaferrari.changedetection.shared.generated.resources.about_local_badge
-import com.bernaferrari.changedetection.shared.generated.resources.about_signal_badge
 import com.bernaferrari.changedetection.shared.generated.resources.app_name
 import com.bernaferrari.changedetection.shared.generated.resources.brand_tagline
-import com.bernaferrari.changedetection.ui.theme.ChangeDetectionBrandMark
-import com.bernaferrari.changedetection.ui.theme.spacing
-import com.bernaferrari.changedetection.ui.components.SignalHeroShape
-import com.bernaferrari.changedetection.ui.components.SegmentPosition
-import com.bernaferrari.changedetection.ui.components.segmentShape
+import com.bernaferrari.changedetection.shared.generated.resources.settings_about_value
+import com.bernaferrari.changedetection.shared.generated.resources.settings_feedback
+import com.bernaferrari.changedetection.shared.generated.resources.settings_privacy_line
+import com.bernaferrari.changedetection.ui.kit.AppMark
+import com.bernaferrari.changedetection.ui.kit.GroupLabel
+import com.bernaferrari.changedetection.ui.kit.GroupRow
+import com.bernaferrari.changedetection.ui.kit.ListGroup
 import org.jetbrains.compose.resources.stringResource
 
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.outlined.VerifiedUser
-import com.bernaferrari.changedetection.shared.generated.resources.settings_about_value
-import com.bernaferrari.changedetection.shared.generated.resources.about_license_short
-import com.bernaferrari.changedetection.shared.generated.resources.settings_privacy_line
 /**
- * About, warm but brief: the app's mark, name and version up front, a short note from the person who
- * made it, the useful links in one group, and where else to find the author.
+ * About, in the Expressive style: the app mark on a slowly turning shape, the two things people come here
+ * for (the code and a way to reach the author) as bold container cards, a short personal note, and the
+ * author's other places as one connected group.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
     onBack: () -> Unit,
@@ -92,93 +96,65 @@ fun AboutScreen(
 ) {
     var showLicensesDialog by remember { mutableStateOf(false) }
     Scaffold(
-        topBar = {
-            com.bernaferrari.changedetection.ui.navigation.AppTopBar(title = null, onBack = onBack)
-        },
+        topBar = { com.bernaferrari.changedetection.ui.navigation.AppTopBar(title = null, onBack = onBack) },
     ) { paddingValues ->
         Box(Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.TopCenter) {
-            LazyColumn(Modifier.widthIn(max = 600.dp).fillMaxWidth(), contentPadding = PaddingValues(bottom = 40.dp)) {
-                item(key = "hero") {
-                    Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        com.bernaferrari.changedetection.ui.kit.AppMark(Modifier.size(96.dp))
-                        Text(stringResource(Res.string.app_name), Modifier.padding(top = 20.dp), style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
-                        Text(
-                            stringResource(Res.string.brand_tagline),
-                            Modifier.padding(top = 4.dp),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                        )
-                        if (appVersion.isNotBlank()) {
-                            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.padding(top = 14.dp)) {
-                                Text(
-                                    stringResource(Res.string.settings_about_value, appVersion),
-                                    Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                )
-                            }
-                        }
-                    }
-                }
-                item(key = "note") {
-                    Surface(
-                        shape = MaterialTheme.shapes.extraLarge,
-                        color = com.bernaferrari.changedetection.ui.kit.tileColor,
-                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 28.dp),
-                    ) {
-                        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Text(stringResource(Res.string.about_story), style = MaterialTheme.typography.bodyLarge)
-                            Text(
-                                "— " + stringResource(Res.string.about_developer_name),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                    }
-                }
-                item(key = "links") {
-                    com.bernaferrari.changedetection.ui.kit.ListGroup(Modifier.padding(top = 16.dp)) {
-                        com.bernaferrari.changedetection.ui.kit.GroupRow(
+            LazyColumn(Modifier.widthIn(max = 600.dp).fillMaxWidth().testTag("about-list"), contentPadding = PaddingValues(bottom = 40.dp)) {
+                item(key = "hero") { Hero(appVersion) }
+                item(key = "actions") {
+                    Row(Modifier.fillMaxWidth().height(androidx.compose.foundation.layout.IntrinsicSize.Min).padding(start = 16.dp, end = 16.dp, top = 32.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ActionCard(
                             title = stringResource(Res.string.about_view_on_github),
-                            supporting = stringResource(Res.string.about_license_short),
+                            body = stringResource(Res.string.about_license_short),
                             icon = Icons.Default.Code,
+                            container = MaterialTheme.colorScheme.primaryContainer,
+                            content = MaterialTheme.colorScheme.onPrimaryContainer,
+                            badge = MaterialShapes.Cookie9Sided.toShape(),
+                            shape = RoundedCornerShape(topStart = 32.dp, bottomStart = 32.dp, topEnd = 12.dp, bottomEnd = 12.dp),
                             onClick = { onGitHubClick("https://github.com/bernaferrari/ChangeDetection") },
-                        ) { Icon(Icons.AutoMirrored.Filled.OpenInNew, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.outline) }
-                        com.bernaferrari.changedetection.ui.kit.GroupRow(
+                            modifier = Modifier.weight(1f),
+                        )
+                        ActionCard(
                             title = stringResource(Res.string.settings_feedback),
+                            body = "bernaferrari2@gmail.com",
                             icon = Icons.Default.Email,
-                            showDivider = true,
+                            container = MaterialTheme.colorScheme.secondaryContainer,
+                            content = MaterialTheme.colorScheme.onSecondaryContainer,
+                            badge = MaterialShapes.Clover4Leaf.toShape(),
+                            shape = RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp, topEnd = 32.dp, bottomEnd = 32.dp),
                             onClick = onContactClick,
-                        ) { Icon(Icons.AutoMirrored.Filled.OpenInNew, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.outline) }
-                        com.bernaferrari.changedetection.ui.kit.GroupRow(
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+                item(key = "note") { Note(Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)) }
+                item(key = "licenses") {
+                    ListGroup(Modifier.padding(top = 8.dp)) {
+                        GroupRow(
                             title = stringResource(Res.string.about_view_licenses),
                             icon = Icons.Default.Description,
-                            showDivider = true,
                             onClick = { showLicensesDialog = true },
                         )
                     }
                 }
                 item(key = "elsewhere") {
-                    com.bernaferrari.changedetection.ui.kit.GroupLabel(stringResource(Res.string.about_elsewhere))
-                    androidx.compose.foundation.layout.FlowRow(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf(
-                            "GitHub" to "https://github.com/bernaferrari",
-                            "X" to "https://x.com/bernaferrari",
-                            "Reddit" to "https://www.reddit.com/user/bernaferrari",
-                            "LinkedIn" to "https://www.linkedin.com/in/bernaferrari",
-                        ).forEach { (label, url) ->
-                            androidx.compose.material3.FilledTonalButton(onClick = { onSocialClick(url) }, shapes = androidx.compose.material3.ButtonDefaults.shapes()) {
-                                Text(label)
-                                Icon(Icons.AutoMirrored.Filled.OpenInNew, null, Modifier.padding(start = 6.dp).size(14.dp))
-                            }
-                        }
-                    }
+                    GroupLabel(stringResource(Res.string.about_elsewhere))
+                    Elsewhere(onSocialClick)
                 }
                 item(key = "privacy") {
-                    androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth().padding(top = 32.dp, start = 32.dp, end = 32.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(top = 32.dp, start = 32.dp, end = 32.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                         Icon(Icons.Outlined.VerifiedUser, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(stringResource(Res.string.settings_privacy_line), Modifier.padding(start = 6.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+                        Text(
+                            stringResource(Res.string.settings_privacy_line),
+                            Modifier.padding(start = 6.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                        )
                     }
                 }
             }
@@ -187,5 +163,123 @@ fun AboutScreen(
 
     if (showLicensesDialog) {
         AboutLicensesDialog(onDismiss = { showLicensesDialog = false }, onUrlClick = onLicenseUrlClick)
+    }
+}
+
+/** The one hero moment: the mark on a soft, slowly turning Expressive shape, then name, tagline and version. */
+@Composable
+private fun Hero(appVersion: String) {
+    val spin by rememberInfiniteTransition(label = "hero").animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(40_000, easing = LinearEasing), RepeatMode.Restart),
+        label = "spin",
+    )
+    val shape = MaterialShapes.Cookie12Sided.toShape()
+    Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(Modifier.padding(top = 8.dp).size(168.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize().rotate(spin).clip(shape).background(MaterialTheme.colorScheme.primaryContainer))
+            AppMark(Modifier.size(96.dp))
+        }
+        Text(
+            stringResource(Res.string.app_name),
+            Modifier.padding(top = 20.dp),
+            style = MaterialTheme.typography.displaySmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+        Text(
+            stringResource(Res.string.brand_tagline),
+            Modifier.padding(top = 6.dp),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        if (appVersion.isNotBlank()) {
+            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHighest, modifier = Modifier.padding(top = 16.dp)) {
+                Text(
+                    stringResource(Res.string.settings_about_value, appVersion),
+                    Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+/** A bold, colored card for a primary action, with its icon on an Expressive shape. */
+@Composable
+private fun ActionCard(
+    title: String,
+    body: String,
+    icon: ImageVector,
+    container: Color,
+    content: Color,
+    badge: Shape,
+    shape: Shape,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(onClick = onClick, shape = shape, color = container, contentColor = content, modifier = modifier.fillMaxHeight().heightIn(min = 152.dp)) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.Top) {
+                Box(Modifier.size(48.dp).clip(badge).background(content), contentAlignment = Alignment.Center) {
+                    Icon(icon, null, Modifier.size(22.dp), tint = container)
+                }
+                Box(Modifier.weight(1f))
+                Icon(Icons.AutoMirrored.Filled.OpenInNew, null, Modifier.size(18.dp), tint = content.copy(alpha = 0.7f))
+            }
+            Text(title, Modifier.padding(top = 16.dp), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(body, style = MaterialTheme.typography.bodySmall, color = content.copy(alpha = 0.8f), maxLines = 2)
+        }
+    }
+}
+
+/** The author's note, set like a quote. */
+@Composable
+private fun Note(modifier: Modifier = Modifier) {
+    Surface(shape = RoundedCornerShape(12.dp, 12.dp, 32.dp, 32.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = modifier.fillMaxWidth()) {
+        Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Icon(Icons.Default.FormatQuote, null, Modifier.size(36.dp), tint = MaterialTheme.colorScheme.primary)
+            Text(stringResource(Res.string.about_story), style = MaterialTheme.typography.bodyLarge)
+            Text(
+                "— " + stringResource(Res.string.about_developer_name),
+                Modifier.padding(top = 4.dp),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+    }
+}
+
+/** The author's other places as one connected group: rounded outer ends, tight inner joins. */
+@Composable
+private fun Elsewhere(onClick: (String) -> Unit) {
+    val links = listOf(
+        "GitHub" to "https://github.com/bernaferrari",
+        "X" to "https://x.com/bernaferrari",
+        "Reddit" to "https://www.reddit.com/user/bernaferrari",
+        "LinkedIn" to "https://www.linkedin.com/in/bernaferrari",
+    )
+    FlowRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalArrangement = Arrangement.spacedBy(2.dp), maxItemsInEachRow = 4) {
+        links.forEachIndexed { index, (label, url) ->
+            val shape = when (index) {
+                0 -> RoundedCornerShape(topStart = 28.dp, bottomStart = 28.dp, topEnd = 8.dp, bottomEnd = 8.dp)
+                links.lastIndex -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 28.dp, bottomEnd = 28.dp)
+                else -> RoundedCornerShape(8.dp)
+            }
+            Surface(
+                onClick = { onClick(url) },
+                shape = shape,
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(label, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+                }
+            }
+        }
     }
 }
