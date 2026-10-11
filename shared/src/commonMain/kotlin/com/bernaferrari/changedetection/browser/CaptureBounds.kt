@@ -8,6 +8,14 @@ import kotlin.math.roundToInt
 
 internal data class CaptureBounds(val left: Int, val top: Int, val right: Int, val bottom: Int)
 
+/** A selected part is all-or-nothing, even when full-page captures have a height budget. */
+internal fun selectedCaptureHeight(top: Double, bottom: Double, maximum: Double): Double {
+    require(top.isFinite() && bottom.isFinite() && maximum.isFinite() && top >= 0 && bottom > top && maximum > 0) { "The selected part is outside the page." }
+    val height = bottom - top
+    require(height <= maximum) { "The selected area is too large for a screenshot. Choose a smaller part." }
+    return height
+}
+
 /** Reject invalid selections; clamping an absent rectangle can turn it into unrelated content. */
 internal fun selectedCaptureBounds(rect: List<Double>, cssToView: Double, width: Int, height: Int): CaptureBounds {
     require(rect.size == 6 && rect.all { it.isFinite() } && cssToView.isFinite() && cssToView > 0)

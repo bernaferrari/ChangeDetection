@@ -92,7 +92,7 @@ class AndroidScreenshotSyncer(
                     capture.icon?.let { runCatching { onIcon(site.id, it) } }
                     syncEngine.processFetchResult(
                         site,
-                        SyncEngine.FetchResult.Success(capture.contentType, capture.bytes),
+                        SyncEngine.FetchResult.Success(capture.contentType, capture.bytes, capturedWithBrowser = true),
                         site.threshold,
                     )
                 }

@@ -33,7 +33,7 @@ fun AddEditFlow(
     selectedUrl: String? = null,
     onNavigateUp: () -> Unit,
     onSaveComplete: () -> Unit,
-    onOpenSite: (String) -> Unit = {},
+    onOpenSite: (String) -> Unit,
     onPageAdded: (siteId: String, name: String) -> Unit = { _, _ -> onSaveComplete() },
     viewModel: AddEditViewModel = koinViewModel { parametersOf(siteId) },
 ) {
@@ -97,10 +97,7 @@ fun AddEditFlow(
                 saveError = uiState.saveError,
                 duplicateSiteId = uiState.duplicateSiteId,
                 onDismissDuplicate = viewModel::consumeDuplicate,
-                onOpenDuplicate = { id ->
-                    onNavigateUp()
-                    onOpenSite(id)
-                },
+                onOpenDuplicate = onOpenSite,
                 showUrlChangeDialog = uiState.showUrlChangeDialog,
                 onCancel = viewModel::onUrlChangeCancel,
                 onKeepHistory = viewModel::onUrlChangeKeepHistory,

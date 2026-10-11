@@ -113,6 +113,44 @@ class DesktopAppJourneyTest {
             compose.onNodeWithContentDescription("Close").performClick()
             compose.onNodeWithText("Page address").assertDoesNotExist()
             assertEquals(1, runBlocking { db.siteDao().getSitesList().size })
+            // Enter the actual edit destination: a component-injected callback cannot prove route wiring.
+            val duplicate = page.copy(id = "duplicate", title = "Other page", url = "http://127.0.0.1:${server.address.port}/duplicate")
+            runBlocking { db.siteDao().insertSite(duplicate) }
+            compose.waitUntil(10_000) { compose.onAllNodes(hasText("Journey schedule") and hasClickAction()).fetchSemanticsNodes().isNotEmpty() }
+            compose.onAllNodes(hasText("Journey schedule") and hasClickAction()).onLast().performClick()
+            compose.waitUntil(10_000) { compose.onAllNodesWithContentDescription("Edit").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithContentDescription("Edit").performClick()
+            compose.waitUntil(10_000) { compose.onAllNodesWithText("Edit page").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithText("Page address").performTextReplacement(duplicate.url)
+            compose.onNodeWithText("Save").performClick()
+            compose.onNodeWithText("Keep history").performClick()
+            compose.onNodeWithText("Continue").performClick()
+            compose.waitUntil(10_000) { compose.onAllNodesWithText("You're already monitoring this page").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithText("Open").performScrollTo().performClick()
+            compose.waitUntil(10_000) { compose.onAllNodes(hasTestTag("page-name") and hasText("Other page")).fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithTag("page-name").assertTextEquals("Other page")
+            compose.onNodeWithText("Edit page").assertDoesNotExist()
+            assertEquals(page.url, runBlocking { db.siteDao().getSiteById(page.id)?.url })
+            // Exercise the same repository through both real preview consumers, not just the comparison screen.
+            val beforeBytes = flatPng(0xff000000.toInt())
+            val afterBytes = flatPng(0xffffffff.toInt())
+            val beforeId = java.util.UUID.randomUUID().toString()
+            val afterId = java.util.UUID.randomUUID().toString()
+            val now = System.currentTimeMillis()
+            runBlocking {
+                val files = application.koin.get<com.bernaferrari.changedetection.util.FileStorage>()
+                db.siteDao().insertSite(page.copy(id = "visual", title = "Visual probe", url = "https://example.test/visual", captureMode = com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT, timestamp = now, isRead = false))
+                files.writeBytes(beforeId, beforeBytes)
+                files.writeBytes(afterId, afterBytes)
+                db.snapsDao().insertSnap(com.bernaferrari.changedetection.repo.Snap(beforeId, "visual", now - 10, "image/png", "UTF-8", beforeBytes.size))
+                db.snapsDao().insertSnap(com.bernaferrari.changedetection.repo.Snap(afterId, "visual", now, "image/png", "UTF-8", afterBytes.size))
+            }
+            compose.onNodeWithText("Home").performClick()
+            compose.waitUntil(10_000) { compose.onAllNodesWithText("Before").fetchSemanticsNodes().isNotEmpty() && compose.onAllNodesWithText("Now").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithText("No visual change detected").assertDoesNotExist()
+            compose.onNodeWithText("Activity").performClick()
+            compose.waitUntil(10_000) { compose.onAllNodesWithText("of the page", substring = true).fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithText("No visual change detected").assertDoesNotExist()
         } finally {
             compose.runOnIdle { owner.viewModelStore.clear() }
             application.koin.get<MonitoringManager>().cancelWork()
@@ -130,5 +168,15 @@ class DesktopAppJourneyTest {
         val file = File("../build/desktop-review/$name.png")
         file.parentFile.mkdirs()
         ImageIO.write(compose.onAllNodes(isRoot()).onLast().captureToImage().toAwtImage(), "png", file)
+    }
+
+    private fun flatPng(color: Int): ByteArray {
+        val image = java.awt.image.BufferedImage(64, 64, java.awt.image.BufferedImage.TYPE_INT_ARGB)
+        for (y in 0 until 64) for (x in 0 until 64) image.setRGB(x, y, color)
+        return java.io.ByteArrayOutputStream().use { output ->
+            ImageIO.write(image, "png", output)
+            image.flush()
+            output.toByteArray()
+        }
     }
 }

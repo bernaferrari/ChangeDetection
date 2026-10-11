@@ -64,7 +64,15 @@ fun MainViewController(): UIViewController {
     NSNotificationCenter.defaultCenter.addObserverForName(UIApplicationDidBecomeActiveNotification, null, NSOperationQueue.mainQueue) { _ ->
         foreground.launch {
             val schedule = MonitoringSchedule.from(koin.get<androidx.datastore.core.DataStore<androidx.datastore.preferences.core.Preferences>>().data.first())
-            if (schedule.enabled) runCatching { koin.get<com.bernaferrari.changedetection.sync.IosCheckRunner>().checkAll(onlyDueAfterMinutes = schedule.intervalMinutes) }
+            if (schedule.enabled) {
+                try {
+                    koin.get<com.bernaferrari.changedetection.sync.IosCheckRunner>().checkAll(onlyDueAfterMinutes = schedule.intervalMinutes)
+                } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    io.github.aakira.napier.Napier.w("Foreground checks failed", error)
+                }
+            }
         }
     }
     // Turbo only runs while the app is open; keep the screen on for the length of a session.

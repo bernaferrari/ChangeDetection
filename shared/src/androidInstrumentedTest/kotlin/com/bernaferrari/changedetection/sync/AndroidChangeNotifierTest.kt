@@ -42,7 +42,7 @@ class AndroidChangeNotifierTest {
         manager.cancelAll()
     }
 
-    @Test fun sameHashPagesKeepIndependentAlertsAndTapTokens() {
+    @Test fun sameHashPagesKeepIndependentAlertsAndTapTokens() = kotlinx.coroutines.runBlocking {
         assertEquals("Aa".hashCode(), "BB".hashCode())
         notifier.notifyChange(site("Aa"), "capture-A")
         notifier.notifyChange(site("BB"), "capture-B")
@@ -51,7 +51,7 @@ class AndroidChangeNotifierTest {
         assertNotEquals(alerts.getValue("Aa").notification.contentIntent, alerts.getValue("BB").notification.contentIntent)
     }
 
-    @Test fun replacementAlertGetsANewSnapshotTokenWithoutStackingNotifications() {
+    @Test fun replacementAlertGetsANewSnapshotTokenWithoutStackingNotifications() = kotlinx.coroutines.runBlocking {
         notifier.notifyChange(site("Aa"), "capture-1")
         val previous = awaitAlerts { it.size == 1 }.single().notification.contentIntent
         notifier.notifyChange(site("Aa"), "capture-2")

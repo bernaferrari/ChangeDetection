@@ -24,7 +24,13 @@ import com.bernaferrari.changedetection.localization.getString
 /** Title and body for a change alert, quoting the same bounded preview the app shows. */
 suspend fun changeAlertText(site: Site, snapId: String, snaps: SnapsRepository?, previews: ChangePreviewRepository?): Pair<String, String> {
     val title = getString(Res.string.alert_title, site.displayPageTitle())
-    val preview = runCatching { snaps?.getSnapById(snapId)?.let { previews?.forVersion(it) } }.getOrNull()
+    val preview = try {
+        snaps?.getSnapById(snapId)?.let { previews?.forVersion(it) }
+    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+        throw cancelled
+    } catch (_: Exception) {
+        null
+    }
     return title to (preview?.let { summary(it) } ?: getString(Res.string.alert_generic))
 }
 

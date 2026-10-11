@@ -6,6 +6,8 @@
 
 package com.bernaferrari.changedetection.addedit
 
+import kotlinx.coroutines.launch
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -70,6 +72,11 @@ internal fun decodePickedPart(payload: String, picking: Boolean): PickedPart? {
     }
 }
 
+internal fun decodeBrowserUrl(value: String): String? {
+    val url = runCatching { pickJson.decodeFromString<String>(value) }.getOrElse { value }
+    return url.takeIf { it.length <= 8_192 && (it.startsWith("https://") || it.startsWith("http://")) }?.normalizeUrl()
+}
+
 /**
  * Watching starts in a real browser: go to the exact page (search, menus, signing in all work, and the
  * session is reused by later screenshot checks on this device), optionally pick the parts that matter or that are noise, then watch.
@@ -81,7 +88,7 @@ internal fun WatchBrowser(
     ignored: List<String>,
     onPicksChange: (only: String, ignored: List<String>) -> Unit,
     onPageChange: (String) -> Unit,
-    onWatch: () -> Unit,
+    onWatch: (String) -> Unit,
     onClose: () -> Unit,
     watchLabel: String,
 ) {
@@ -94,6 +101,37 @@ internal fun WatchBrowser(
     var current by remember { mutableStateOf<PickedPart?>(null) }
     var editingAddress by remember { mutableStateOf(false) }
     val currentOnPageChange by rememberUpdatedState(onPageChange)
+    val currentOnWatch by rememberUpdatedState(onWatch)
+    val scope = rememberCoroutineScope()
+    var liveUrl by remember(startUrl) { mutableStateOf(startUrl) }
+    var resolvingWatch by remember { mutableStateOf(false) }
+    var watchFailed by remember { mutableStateOf(false) }
+
+    fun watchLivePage() {
+        if (resolvingWatch) return
+        scope.launch {
+            resolvingWatch = true
+            watchFailed = false
+            try {
+                val raw = kotlinx.coroutines.withTimeoutOrNull(3_000) {
+                    kotlinx.coroutines.suspendCancellableCoroutine<String> { continuation ->
+                        navigator.evaluateJavaScript("window.location.href") { value ->
+                            if (continuation.isActive) continuation.resumeWith(Result.success(value))
+                        }
+                    }
+                }
+                val url = raw?.let(::decodeBrowserUrl)
+                if (url == null) {
+                    watchFailed = true
+                } else {
+                    liveUrl = url
+                    currentOnWatch(url)
+                }
+            } finally {
+                resolvingWatch = false
+            }
+        }
+    }
 
     DisposableEffect(bridge) {
         val handler = object : IJsMessageHandler {
@@ -115,7 +153,12 @@ internal fun WatchBrowser(
         }
     }
     val loaded = state.loadingState is LoadingState.Finished
-    LaunchedEffect(state.lastLoadedUrl) { state.lastLoadedUrl?.takeIf { it.startsWith("http") }?.let(currentOnPageChange) }
+    LaunchedEffect(state.lastLoadedUrl) {
+        state.lastLoadedUrl?.takeIf { it.startsWith("http") }?.let {
+            liveUrl = it
+            currentOnPageChange(it)
+        }
+    }
     // The picker script also outlines saved picks, so it is installed on every page, but only intercepts taps while picking.
     LaunchedEffect(loaded, state.lastLoadedUrl) { if (loaded) navigator.evaluateJavaScript(PICKER_SCRIPT) }
     LaunchedEffect(loaded, picking, only, ignored) {
@@ -137,7 +180,7 @@ internal fun WatchBrowser(
                     IconButton(onClick = { navigator.navigateBack() }, enabled = navigator.canGoBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(Res.string.a11y_navigate_back)) }
                     IconButton(onClick = { navigator.navigateForward() }, enabled = navigator.canGoForward) { Icon(Icons.AutoMirrored.Rounded.ArrowForward, stringResource(Res.string.browser_forward)) }
                     AddressPill(
-                        url = state.lastLoadedUrl ?: startUrl,
+                        url = liveUrl,
                         editing = editingAddress,
                         onEdit = { editingAddress = it },
                         onGo = { typed ->
@@ -151,12 +194,16 @@ internal fun WatchBrowser(
             },
             // Docked, not floating: many pages have their own bottom bar, and it must stay reachable.
             bottomBar = {
-                BrowseToolbar(
-                    picks = (if (only.isNotBlank()) 1 else 0) + ignored.size,
-                    onPick = { picking = true },
-                    onWatch = onWatch,
-                    watchLabel = watchLabel,
-                )
+                Column {
+                    if (watchFailed) Text(stringResource(Res.string.failed_to_load_content), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(horizontal = 16.dp))
+                    BrowseToolbar(
+                        picks = (if (only.isNotBlank()) 1 else 0) + ignored.size,
+                        onPick = { picking = true },
+                        onWatch = ::watchLivePage,
+                        enabled = loaded && !resolvingWatch,
+                        watchLabel = watchLabel,
+                    )
+                }
             },
         ) { padding ->
             Box(Modifier.fillMaxSize().padding(padding)) {
@@ -235,7 +282,7 @@ private fun AddressPill(url: String, editing: Boolean, onEdit: (Boolean) -> Unit
 }
 
 @Composable
-private fun BrowseToolbar(picks: Int, onPick: () -> Unit, onWatch: () -> Unit, watchLabel: String) {
+private fun BrowseToolbar(picks: Int, onPick: () -> Unit, onWatch: () -> Unit, watchLabel: String, enabled: Boolean) {
     Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
         Row(
             Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 10.dp),
@@ -249,7 +296,7 @@ private fun BrowseToolbar(picks: Int, onPick: () -> Unit, onWatch: () -> Unit, w
                 }
             }
             Spacer(Modifier.weight(1f))
-            Button(onClick = onWatch, shapes = ButtonDefaults.shapes(), modifier = Modifier.heightIn(min = 48.dp)) {
+            Button(onClick = onWatch, enabled = enabled, shapes = ButtonDefaults.shapes(), modifier = Modifier.heightIn(min = 48.dp)) {
                 Text(watchLabel, style = MaterialTheme.typography.titleSmall)
             }
         }

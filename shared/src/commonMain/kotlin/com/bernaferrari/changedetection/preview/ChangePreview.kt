@@ -144,7 +144,7 @@ class ChangePreviewRepository(
             )
             if (diff.error != null && diff.dimensionMismatch == null) return ChangePreview.Unavailable
             val visual = diff.visualChange ?: computeVisualChange(snaps.getSnapContent(before.snapId), snaps.getSnapContent(after.snapId))
-            if (visual != null && visual.regions.isEmpty()) return ChangePreview.NothingVisible
+            if (diff.dimensionMismatch == null && diff.differentPixels == 0L && diff.totalPixels > 0) return ChangePreview.NothingVisible
             return ChangePreview.Crop(
                 beforeSnapId = before.snapId,
                 afterSnapId = after.snapId,
