@@ -81,6 +81,7 @@ lint/tmp/
 !package.json
 # Room schema definitions contain structure only and are needed for migration review.
 !shared/schemas/**/*.json
+!iosApp/iosApp/AppIcon.icon/icon.json
 secrets.properties
 api-*.json
 *-keystore.*
