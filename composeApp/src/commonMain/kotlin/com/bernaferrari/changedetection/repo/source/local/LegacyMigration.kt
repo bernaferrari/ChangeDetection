@@ -27,10 +27,10 @@ val MIGRATION_1_5: Migration = object : Migration(1, 5) {
     override suspend fun migrate(connection: SQLiteConnection) {
         val siteColumns = connection.columns("sites")
         val snapColumns = connection.columns("snaps")
-        fun addSite(column: String, definition: String) {
+        suspend fun addSite(column: String, definition: String) {
             if (column !in siteColumns) connection.exec("ALTER TABLE sites ADD COLUMN `$column` $definition")
         }
-        fun addSnap(column: String, definition: String) {
+        suspend fun addSnap(column: String, definition: String) {
             if (column !in snapColumns) connection.exec("ALTER TABLE snaps ADD COLUMN `$column` $definition")
         }
 
@@ -69,8 +69,8 @@ val MIGRATION_1_5: Migration = object : Migration(1, 5) {
     }
 }
 
-private fun SQLiteConnection.exec(sql: String) = prepare(sql).use { it.step() }
+private suspend fun SQLiteConnection.exec(sql: String) = prepare(sql).use { it.step() }
 
-private fun SQLiteConnection.columns(table: String): Set<String> = prepare("PRAGMA table_info(`$table`)").use { statement ->
+private suspend fun SQLiteConnection.columns(table: String): Set<String> = prepare("PRAGMA table_info(`$table`)").use { statement ->
     buildSet { while (statement.step()) add(statement.getText(1)) }
 }
