@@ -10,6 +10,9 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import com.bernaferrari.changedetection.ui.theme.marks
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,6 +63,8 @@ fun PaletteSwatch(
     icon: ImageVector? = null,
 ) {
     val haptics = LocalHapticFeedback.current
+    val interactions = remember { MutableInteractionSource() }
+    val focused by interactions.collectIsFocusedAsState()
     val bouncy = spring<Dp>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
     val corner by animateDpAsState(if (selected) size * 0.3f else size / 2, bouncy, label = "corner")
     val elevation by animateDpAsState(if (selected) 6.dp else 1.dp, bouncy, label = "elevation")
@@ -90,7 +96,7 @@ fun PaletteSwatch(
         modifier
             .size(size)
             .semantics { contentDescription = label }
-            .selectable(selected = selected, role = Role.RadioButton) {
+            .selectable(selected = selected, role = Role.RadioButton, interactionSource = interactions, indication = null) {
                 if (!selected) {
                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     onClick()
@@ -100,6 +106,7 @@ fun PaletteSwatch(
             .shadow(elevation.coerceAtLeast(0.dp), outer, clip = false)
             .clip(outer)
             .background(brush)
+            .then(if (focused) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, outer) else Modifier)
             .padding(ring)
             .clip(inner)
             .background(ringColor)

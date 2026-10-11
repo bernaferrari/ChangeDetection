@@ -36,19 +36,20 @@ import org.jetbrains.compose.resources.stringResource
 internal fun PageIconShapePicker(name: String, key: String, icon: String?, selected: PageIconShape, onSelect: (PageIconShape) -> Unit, colors: ColorGroup, onColorSelect: (ColorGroup) -> Unit, onDismiss: () -> Unit) {
     val haptics = LocalHapticFeedback.current
     AlertDialog(
+        modifier = Modifier.widthIn(max = 360.dp),
         onDismissRequest = onDismiss,
         title = { Text(stringResource(Res.string.editor_icon_shape_title)) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 PageIconShape.entries.chunked(3).forEach { shapes ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                         shapes.forEach { shape ->
                             val chosen = selected == shape
                             val interactions = remember { MutableInteractionSource() }
                             val motion = rememberPageIconMotion(interactions, chosen)
                             val label = shape.label()
                             Box(
-                                Modifier.weight(1f).height(80.dp)
+                                Modifier.width(72.dp).height(64.dp)
                                     .semantics { contentDescription = label }
                                     .selectable(selected = chosen, role = Role.RadioButton, interactionSource = interactions, indication = null, onClick = {
                                         if (!chosen) {

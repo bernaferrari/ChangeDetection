@@ -79,6 +79,11 @@ import com.bernaferrari.changedetection.ui.kit.GroupLabel
 import com.bernaferrari.changedetection.ui.kit.GroupRow
 import com.bernaferrari.changedetection.ui.kit.ListGroup
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.painterResource
+import com.bernaferrari.changedetection.shared.generated.resources.github_logo
+import com.bernaferrari.changedetection.shared.generated.resources.x_logo
+import com.bernaferrari.changedetection.shared.generated.resources.reddit_logo
+import com.bernaferrari.changedetection.shared.generated.resources.linkedin_logo
 
 /**
  * About, in the Expressive style: the app mark on a slowly turning shape, the two things people come here
@@ -142,15 +147,14 @@ fun AboutScreen(
                     Elsewhere(onSocialClick)
                 }
                 item(key = "privacy") {
-                    Row(
-                        Modifier.fillMaxWidth().padding(top = 32.dp, start = 32.dp, end = 32.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
+                    Column(
+                        Modifier.fillMaxWidth().padding(top = 24.dp, start = 32.dp, end = 32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Icon(Icons.Outlined.VerifiedUser, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(Icons.Outlined.VerifiedUser, null, Modifier.size(20.dp).testTag("privacy-shield"), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
                             stringResource(Res.string.settings_privacy_line),
-                            Modifier.padding(start = 6.dp),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
@@ -257,13 +261,13 @@ private fun Note(modifier: Modifier = Modifier) {
 @Composable
 private fun Elsewhere(onClick: (String) -> Unit) {
     val links = listOf(
-        "GitHub" to "https://github.com/bernaferrari",
-        "X" to "https://x.com/bernaferrari",
-        "Reddit" to "https://www.reddit.com/user/bernaferrari",
-        "LinkedIn" to "https://www.linkedin.com/in/bernaferrari",
+        Triple("GitHub", "https://github.com/bernaferrari", Res.drawable.github_logo),
+        Triple("X", "https://x.com/bernaferrari", Res.drawable.x_logo),
+        Triple("Reddit", "https://www.reddit.com/user/bernaferrari", Res.drawable.reddit_logo),
+        Triple("LinkedIn", "https://www.linkedin.com/in/bernaferrari", Res.drawable.linkedin_logo),
     )
     FlowRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalArrangement = Arrangement.spacedBy(2.dp), maxItemsInEachRow = 4) {
-        links.forEachIndexed { index, (label, url) ->
+        links.forEachIndexed { index, (label, url, icon) ->
             val shape = when (index) {
                 0 -> RoundedCornerShape(topStart = 28.dp, bottomStart = 28.dp, topEnd = 8.dp, bottomEnd = 8.dp)
                 links.lastIndex -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 28.dp, bottomEnd = 28.dp)
@@ -277,7 +281,7 @@ private fun Elsewhere(onClick: (String) -> Unit) {
                 modifier = Modifier.weight(1f).heightIn(min = 56.dp),
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(label, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+                    Icon(painterResource(icon), contentDescription = label, modifier = Modifier.size(24.dp))
                 }
             }
         }
