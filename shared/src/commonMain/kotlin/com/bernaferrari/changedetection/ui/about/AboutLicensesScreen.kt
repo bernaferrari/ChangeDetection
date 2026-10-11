@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.a11y_close
 import com.bernaferrari.changedetection.shared.generated.resources.a11y_open_license
@@ -65,6 +66,7 @@ private val licenses = listOf(
     License("AndroidX SQLite", "Android Open Source Project", "Apache License 2.0", "Data"),
     License("Ksoup", "Fleek Soft", "Apache License 2.0", "Networking"),
     License("MaterialKolor", "Jordond", "Apache License 2.0", "UI"),
+    License("Noto Sans (Devanagari, Bengali, Simplified Chinese)", "The Noto Project", "SIL Open Font License 1.1", "UI"),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -116,7 +118,18 @@ fun AboutLicensesDialog(
                         groupedLicenses.forEach { (category, categoryLicenses) ->
                             item(key = category) {
                                 Text(
-                                    text = category,
+                                    text = if (category == "Android") {
+                                        category
+                                    } else {
+                                        stringResource(
+                                            when (category) {
+                                                "Core" -> com.bernaferrari.changedetection.shared.generated.resources.Res.string.license_category_core
+                                                "Data" -> com.bernaferrari.changedetection.shared.generated.resources.Res.string.license_category_data
+                                                "Networking" -> com.bernaferrari.changedetection.shared.generated.resources.Res.string.license_category_networking
+                                                else -> com.bernaferrari.changedetection.shared.generated.resources.Res.string.license_category_ui
+                                            },
+                                        )
+                                    },
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.primary,

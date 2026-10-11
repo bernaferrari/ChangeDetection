@@ -25,7 +25,7 @@ class SharedDateUtilsTest {
         assertNotEquals(formatTime(first, includeSeconds = true), formatTime(second, includeSeconds = true))
         assertEquals(formatTimestamp(first), formatTimestamp(second))
         assertNotEquals(formatTimestamp(first, includeSeconds = true), formatTimestamp(second, includeSeconds = true))
-        assertTrue(formatTimestamp(first, includeSeconds = true).endsWith(":20"))
-        assertTrue(formatTimestamp(second, includeSeconds = true).endsWith(":35"))
+        assertTrue(formatTimestamp(first, includeSeconds = true).contains(":20"))
+        assertTrue(formatTimestamp(second, includeSeconds = true).contains(":35"))
     }
 }

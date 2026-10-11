@@ -14,6 +14,8 @@ Free and open source. No account, cloud service, or first-party tracking.
 
 Android is the main app. Screenshot capture and background monitoring are Android features. Desktop monitoring runs while the app is open; iOS is still in development. Pages requiring login are currently unsupported.
 
+The app supports English, Spanish, Italian, Portuguese, German, Hindi, Bengali, and Simplified Chinese. It follows your device language; Android 13 and newer also let you choose an app language in system settings.
+
 ## Run locally
 
 For Android, use JDK 21 and Android SDK platform `android-37.2`. The Gradle wrapper handles Gradle installation.

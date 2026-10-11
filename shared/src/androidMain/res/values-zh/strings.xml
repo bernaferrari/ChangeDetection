@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Change Detection</string>
+    <string name="status_sync_in_progress">正在同步</string>
+    <string name="change_notification_channel_name">检测到的变化</string>
+    <string name="change_notification_channel_description">关注的网站发生变化时提醒</string>
+    <string name="quick_monitor_banner_live_badge">实时</string>
+    <string name="quick_monitor_title">Turbo</string>
+    <string name="quick_monitor_channel_description">显示正在运行的 Turbo 会话。</string>
+    <string name="quick_monitor_notification_title">⚡ Turbo 已开启</string>
+    <plurals name="quick_monitor_notification_subtitle">
+        <item quantity="other">每 %2$d 秒检查 %1$d 个页面</item>
+    </plurals>
+    <string name="action_stop_monitoring">停止监测</string>
+    <string name="empty_add_site_hint">添加页面以启动 Turbo</string>
+    <string name="start">启动</string>
+    <string name="change_notification_named">%1$s 有变化</string>
+    <string name="change_notification_generic">点按查看变化。</string>
+</resources>

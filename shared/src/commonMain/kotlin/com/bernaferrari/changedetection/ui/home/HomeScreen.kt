@@ -730,9 +730,9 @@ private fun previewFooter(preview: ChangePreview?): String = when (preview) {
 }
 
 internal fun formatPercent(value: Double): String = when {
-    value < 0.1 -> "<0.1"
-    value < 10 -> ((value * 10).toInt() / 10.0).toString()
-    else -> value.toInt().toString()
+    value < 0.1 -> "<" + com.bernaferrari.changedetection.util.localizedPercent(0.1)
+    value < 10 -> com.bernaferrari.changedetection.util.localizedPercent((value * 10).toInt() / 10.0, minFractionDigits = 1)
+    else -> com.bernaferrari.changedetection.util.localizedPercent(value.toInt().toDouble(), maxFractionDigits = 0)
 }
 
 @Composable

@@ -1,3 +1,4 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="home_select_pages">Seleccionar páginas</string>
     <string name="reader_hide_unchanged">Ocultar líneas sin cambios</string>
@@ -57,7 +58,6 @@
     <string name="home_row_changed">Cambió %1$s</string>
     <string name="badge_new">Nueva</string>
     <string name="mark_read_short">Marcar como leída</string>
-    <string name="preview_percent">Cambió el %1$s% de la página</string>
     <string name="preview_size_changed">Cambió el tamaño de la página</string>
     <plurals name="preview_more_changes">
         <item quantity="one">+%1$d cambio más</item>
@@ -79,7 +79,6 @@
         <item quantity="one">%1$d hora</item>
         <item quantity="other">%1$d horas</item>
     </plurals>
-    <string name="turbo_card_status">Próxima comprobación en %1$d s · %2$s</string>
     <string name="turbo_sheet_body">Comprueba unas pocas páginas cada pocos segundos durante un rato. Tu programación habitual sigue activa.</string>
     <string name="turbo_sheet_pages">Páginas</string>
     <string name="turbo_sheet_every">Comprobar cada</string>
@@ -96,20 +95,13 @@
         <item quantity="one">Cada minuto</item>
         <item quantity="other">Cada %1$d minutos</item>
     </plurals>
-    <plurals name="turbo_found">
-        <item quantity="one">%1$d cambio encontrado</item>
-        <item quantity="other">%1$d cambios encontrados</item>
-    </plurals>
     <string name="turbo_ends_at">Termina a las %1$s</string>
-    <string name="turbo_summary_line">%1$d comprobaciones en %2$d páginas</string>
     <string name="turbo_changed">Con cambios</string>
     <string name="turbo_checking">Comprobando</string>
-    <string name="turbo_no_change">Sin cambios</string>
     <string name="turbo_ended_planned">Turbo terminó según lo previsto</string>
     <string name="turbo_ended_stopped">Has detenido Turbo</string>
     <string name="turbo_ended_interrupted">Turbo se interrumpió</string>
     <string name="turbo_ended_failed">No se pudo iniciar Turbo</string>
-    <string name="turbo_row_failed">No se pudo comprobar esta página</string>
     <string name="turbo_row_quiet">Sin cambios · comprobada hace %1$d s</string>
     <string name="nav_activity">Actividad</string>
     <plurals name="turbo_card_title_n">
@@ -149,7 +141,7 @@
     <string name="day_month">%1$d %2$s</string>
     <string name="day_time">%1$s, %2$s</string>
     <string name="label_text_changed">Texto modificado</string>
-    <string name="label_percent">%1$s% de la página</string>
+    <string name="label_percent">%1$s de la página</string>
     <string name="label_first_version">Primera versión</string>
     <string name="label_saved">Versión guardada</string>
     <string name="detail_delete">Eliminar página</string>
@@ -208,8 +200,6 @@
     <string name="cadence_hours">cada %1$d horas</string>
     <string name="cadence_minutes">cada %1$d min</string>
     <string name="activity_deleted_page">Página eliminada</string>
-    <string name="activity_started">Se empezó a monitorizar %1$s</string>
-    <string name="activity_changed">%1$s cambió</string>
     <string name="activity_delete_version">Eliminar esta versión</string>
     <string name="activity_empty_title">Aún no hay cambios</string>
     <string name="activity_empty_body">Cuando cambie una página que monitorizas, aparecerá aquí, con lo más reciente primero.</string>
@@ -229,7 +219,6 @@
     <string name="reader_mode_page">Página</string>
     <string name="reader_mode_source">Código fuente</string>
     <string name="reader_mode_slider">Deslizar</string>
-    <string name="reader_mode_highlight">Resaltado</string>
     <string name="reader_previous">Cambio anterior</string>
     <string name="reader_next">Siguiente cambio</string>
     <string name="reader_position">Cambio %1$d de %2$d</string>
@@ -259,7 +248,6 @@
     <string name="settings_group_app">App</string>
     <string name="settings_default_detection">Método de captura predeterminado</string>
     <string name="settings_screenshot_wait">Espera para la captura</string>
-    <string name="settings_screenshot_wait_value">%1$d segundos antes de capturar</string>
     <string name="settings_notifications">Notificaciones</string>
     <string name="settings_notifications_body">Avisos, sonidos y banners en los ajustes del sistema</string>
     <string name="settings_saved_versions">Versiones guardadas</string>
@@ -267,24 +255,15 @@
     <string name="settings_about_value">Versión %1$s · código abierto</string>
     <string name="settings_feedback">Enviar comentarios</string>
     <string name="settings_privacy_line">Todo se queda en este dispositivo. Sin cuenta ni seguimiento.</string>
-    <string name="palette_highlighter_body">Los colores propios de la app</string>
-    <string name="palette_dynamic_body">A juego con tu fondo de pantalla</string>
-    <string name="palette_more">Más colores</string>
-    <string name="palette_note">Los textos añadidos y eliminados conservan sus colores de resaltado, elijas lo que elijas, para que los cambios sean fáciles de leer.</string>
     <string name="editor_edit_title">Editar página</string>
-    <string name="editor_review_title">Revisar</string>
     <string name="editor_start">Empezar a monitorizar</string>
     <string name="editor_paste_title">¿Qué quieres monitorizar?</string>
     <string name="editor_paste_body">Escribe una dirección o pega un enlace. La página se abre en un navegador para que inicies sesión, encuentres la página exacta y elijas las partes que importan.</string>
-    <string name="editor_use_link">Usar</string>
     <string name="editor_compare">Comparar</string>
     <string name="editor_preview">Qué compararemos</string>
     <string name="editor_little_text_title">Esta página apenas tiene texto</string>
     <string name="editor_little_text_body">Probablemente carga el contenido con JavaScript, así que una comprobación de texto pasaría por alto cambios reales. Una captura ve la página como tú.</string>
     <string name="editor_use_screenshot">Usar Captura de pantalla</string>
-    <string name="editor_area">Parte de la página</string>
-    <string name="editor_sensitivity">Ignorar cambios pequeños</string>
-    <string name="editor_advanced">Avanzado</string>
     <string name="editor_baseline_note">Cambiar lo que se monitoriza crea un nuevo punto de partida en la siguiente comprobación. El historial se conserva y el cambio de configuración no envía avisos.</string>
     <string name="editor_text_body">Lee las palabras de la página. Rápido y con poco consumo de batería. Ideal para precios, fechas, ofertas de empleo y anuncios.</string>
     <string name="editor_screenshot_body">Compara el aspecto de la página. Detecta cambios en imágenes, diseño y páginas creadas con JavaScript. Más lento y consume más datos.</string>

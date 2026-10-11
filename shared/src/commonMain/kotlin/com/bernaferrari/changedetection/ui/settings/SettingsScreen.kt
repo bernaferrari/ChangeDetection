@@ -278,8 +278,8 @@ private fun settingsChecksSummary(state: SettingsUiState): String {
 private fun formatStorage(bytes: Long): String = when {
     bytes == 0L -> "0 MB"
     bytes < 1024 * 1024 -> "<1 MB"
-    bytes < 1024L * 1024 * 1024 -> "${bytes / (1024 * 1024)} MB"
-    else -> "${(bytes * 10 / (1024L * 1024 * 1024)) / 10.0} GB"
+    bytes < 1024L * 1024 * 1024 -> "${com.bernaferrari.changedetection.util.localizedNumber((bytes / (1024 * 1024)).toDouble(), maxFractionDigits = 0)} MB"
+    else -> "${com.bernaferrari.changedetection.util.localizedNumber((bytes * 10 / (1024L * 1024 * 1024)) / 10.0)} GB"
 }
 
 /**
@@ -293,7 +293,6 @@ internal fun AppearanceControls(
     onTheme: (ThemeMode) -> Unit,
     onPalette: (AppPalette) -> Unit,
 ) {
-    val highlight = MaterialTheme.marks.highlight
     ListGroup {
         Column(Modifier.groupTile().padding(vertical = 16.dp).selectableGroup()) {
             ConnectedChoice(ThemeMode.entries, theme, onTheme) { stringResource(it.titleRes) }
@@ -313,11 +312,7 @@ internal fun AppearanceControls(
                     .sortedBy { if (it == AppPalette.DYNAMIC) 0 else 1 }
                     .forEach { option ->
                         com.bernaferrari.changedetection.ui.components.PaletteSwatch(
-                            colors = when (option) {
-                                AppPalette.DEFAULT -> listOf(com.bernaferrari.changedetection.ui.theme.BrandSeed, highlight)
-                                AppPalette.DYNAMIC -> listOf(Color(0xFF7C4DFF), Color(0xFF00BFA5))
-                                else -> listOf(option.seedColor, androidx.compose.ui.graphics.lerp(option.seedColor, Color.White, 0.45f))
-                            },
+                            colors = com.bernaferrari.changedetection.ui.components.paletteSwatchColors(option),
                             selected = option == palette,
                             label = stringResource(option.titleRes),
                             onClick = { onPalette(option) },

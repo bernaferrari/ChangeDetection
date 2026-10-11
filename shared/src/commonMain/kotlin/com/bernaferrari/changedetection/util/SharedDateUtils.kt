@@ -19,21 +19,14 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.pluralStringResource
 import kotlin.time.Instant
 
-fun formatTimestamp(timestamp: Long, includeSeconds: Boolean = false): String = timestamp.toLocalDateTime().let { dateTime ->
-    "${dateTime.year.toString().padStart(4, '0')}-${(dateTime.month.ordinal + 1).twoDigits()}-" +
-        "${dateTime.day.twoDigits()}, ${dateTime.hour.twoDigits()}:${dateTime.minute.twoDigits()}" +
-        if (includeSeconds) ":${dateTime.second.twoDigits()}" else ""
-}
+fun formatTimestamp(timestamp: Long, includeSeconds: Boolean = false): String = localizedTimestamp(timestamp, includeSeconds)
 
 /** Formats the calendar day used to group history entries without splitting every timestamp. */
 fun formatDate(timestamp: Long): String = timestamp.toLocalDateTime().let { dateTime ->
     "${dateTime.year.toString().padStart(4, '0')}-${(dateTime.month.ordinal + 1).twoDigits()}-${dateTime.day.twoDigits()}"
 }
 
-fun formatTime(timestamp: Long, includeSeconds: Boolean = false): String = timestamp.toLocalDateTime().let { dateTime ->
-    "${dateTime.hour.twoDigits()}:${dateTime.minute.twoDigits()}" +
-        if (includeSeconds) ":${dateTime.second.twoDigits()}" else ""
-}
+fun formatTime(timestamp: Long, includeSeconds: Boolean = false): String = localizedTime(timestamp, includeSeconds)
 
 private fun Long.toLocalDateTime() = Instant.fromEpochMilliseconds(this)
     .toLocalDateTime(TimeZone.currentSystemDefault())

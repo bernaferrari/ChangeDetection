@@ -1,158 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">Change Detection</string>
     <string name="brand_tagline">Scopri cosa è cambiato. Tutto in locale.</string>
-    <string name="brand_descriptor">Elenco privato di pagine</string>
     <string name="refresh_all">Aggiorna tutto</string>
-    <string name="refresh_site">Controlla %1$s adesso</string>
     <string name="add_site">Aggiungi pagina</string>
     <string name="refresh">Aggiorna</string>
     <string name="delete">Elimina</string>
-    <string name="last_sync">Ultima sincronizzazione: %1$s</string>
-    <string name="last_change">Ultima modifica: %1$s</string>
-    <string name="connection_error">Errore di connessione</string>
     <string name="more_options">Altre opzioni</string>
     <string name="loading">Caricamento…</string>
     <string name="saving">Salvataggio…</string>
-    <string name="ok">OK</string>
-    <string name="error">Errore</string>
     <string name="turbo_mode">Turbo</string>
-    <string name="turbo_cadence">Frequenza di controllo</string>
-    <string name="turbo_live_label">Turbo è attivo</string>
-    <string name="turbo_cadence_value">Ogni %1$s</string>
-    <string name="turbo_select_pages">Pagine da controllare</string>
-    <string name="turbo_select_pages_supporting">Scegli cosa deve tenere d\'occhio Turbo</string>
     <string name="how_it_works">Come funziona</string>
-    <string name="turbo_help_title">Come funziona Turbo</string>
-    <string name="turbo_help_text">Turbo controlla solo le pagine selezionate, fino a ogni **15 secondi**.\n\nScegli una sessione da **15 minuti a 3 ore**. Turbo si ferma allo scadere del tempo o quando premi Interrompi. La normale pianificazione dei controlli continua.</string>
-    <string name="got_it">Ho capito</string>
-    <string name="status_active">Attivo</string>
-    <string name="status_inactive">Inattivo</string>
-    <plurals name="monitoring_sites">
-        <item quantity="one">Controllo di %1$d pagina</item>
-        <item quantity="other">Controllo di %1$d pagine</item>
-    </plurals>
-    <string name="select_sites_to_monitor">Seleziona le pagine per questa sessione Turbo</string>
-    <string name="select_sites">Scegli una pagina</string>
-    <string name="select_site_to_view_details">Scegli una pagina per vedere l\'ultima modifica e lo storico.</string>
     <string name="select_site_canvas_label">La tua scrivania dei cambiamenti</string>
     <string name="select_site_canvas_title">Ogni aggiornamento, in un unico posto tranquillo.</string>
     <string name="select_site_canvas_supporting">Scegli una pagina dalla lista. La versione più recente si apre qui senza portarti via dal resto.</string>
-    <string name="monitoring">Monitoraggio</string>
-    <string name="select_all">Seleziona tutto</string>
-    <string name="clear_all">Cancella tutto</string>
-    <plurals name="turbo_active_sites">
-        <item quantity="one">%1$d pagina · ogni %2$s</item>
-        <item quantity="other">%1$d pagine · ogni %2$s</item>
-    </plurals>
-    <string name="every_label">Ogni %1$s</string>
-    <string name="no_sites_yet">Ancora nessuna pagina</string>
-    <string name="add_sites_to_monitor">Aggiungi una pagina per iniziare il monitoraggio</string>
-    <string name="start">Avvia Turbo</string>
-    <string name="stop">Ferma Turbo</string>
     <string name="edit">Modifica</string>
     <string name="open_in_browser">Apri nel browser</string>
-    <string name="sync_disable">Disattiva sincronizzazione</string>
-    <string name="sync_enable">Attiva sincronizzazione</string>
-    <string name="notification_disable">Disattiva notifiche</string>
-    <string name="notification_enable">Attiva notifiche</string>
-    <string name="remove">Rimuovi</string>
-    <string name="turbo_mode_duration_hint">Turbo resta in primo piano fino a 3 ore o finché non lo fermi.</string>
     <string name="cancel">Annulla</string>
-    <string name="turbo_mode_button_start">Avvia Turbo</string>
-    <string name="turbo_mode_header">Turbo</string>
-    <string name="turbo_mode_subheader">Controlli ad alta frequenza con notifica fissa.</string>
-    <string name="label_interval">Intervallo</string>
-    <string name="quick_monitor_sites_selected_label">Pagine selezionate</string>
-    <string name="turbo_mode_dialog_warning_title">Consumo elevato di batteria</string>
-    <string name="turbo_mode_dialog_warning_body">Turbo controlla ogni %1$d s e tiene il dispositivo sveglio. Usalo quando ogni secondo conta.</string>
     <plurals name="turbo_mode_selected_sites">
         <item quantity="one">%1$d pagina selezionata</item>
         <item quantity="other">%1$d pagine selezionate</item>
     </plurals>
-    <plurals name="items">
-        <item quantity="one">%1$d elemento</item>
-        <item quantity="other">%1$d elementi</item>
-    </plurals>
-    <string name="min">min</string>
-    <string name="hour">1 ora</string>
-    <string name="hours">ore</string>
-    <string name="start_monitoring">Inizia il monitoraggio</string>
-    <string name="start_monitoring_description">Segui le modifiche su qualsiasi pagina e ricevi una notifica quando i contenuti cambiano.</string>
-    <string name="add_first_site">Aggiungi la tua prima pagina</string>
-    <string name="learn_how_it_works">Scopri come funziona</string>
-    <string name="quick_monitor_title">Turbo</string>
-    <string name="quick_monitor_next_check_in">Prossimo controllo tra %1$ds</string>
-    <string name="turbo_mode_button_stop">Ferma</string>
     <string name="nav_home">Home</string>
     <string name="nav_turbo">Turbo</string>
-    <string name="nav_logs">Modifiche</string>
     <string name="nav_settings">Impostazioni</string>
-    <string name="home_stats_quick_monitor_label">Turbo</string>
-    <string name="home_hero_quiet_title">Tutto è tranquillo</string>
-    <string name="home_hero_quiet_subtitle">La tua lista è aggiornata.</string>
-    <plurals name="home_hero_changes_title">
-        <item quantity="one">%1$d modifica richiede attenzione</item>
-        <item quantity="other">%1$d modifiche richiedono attenzione</item>
-    </plurals>
-    <string name="home_hero_changes_subtitle">Rivedi cosa è cambiato dall\'ultimo controllo.</string>
-    <plurals name="home_hero_errors_title">
-        <item quantity="one">%1$d pagina richiede attenzione</item>
-        <item quantity="other">%1$d pagine richiedono attenzione</item>
-    </plurals>
-    <string name="home_hero_errors_subtitle">Alcune pagine non sono state controllate.</string>
-    <string name="home_hero_checking_title">Controllo della tua lista in corso</string>
-    <string name="home_hero_checking_subtitle">I risultati freschi compaiono man mano che ogni pagina viene completata.</string>
-    <string name="home_metric_watching">Osservate</string>
-    <string name="home_metric_changed">Con modifiche</string>
-    <string name="home_metric_turbo">Turbo</string>
     <string name="home_action_check_now">Controlla ora</string>
-    <string name="home_action_checking">Controllo…</string>
     <string name="home_section_attention">Richiedono attenzione</string>
-    <string name="home_section_attention_subtitle">Pagine modificate e controlli che meritano un\'occhiata</string>
-    <string name="home_section_watching">Osservati</string>
-    <string name="home_section_watching_subtitle">Pagine monitorate da questo dispositivo</string>
-    <string name="home_search_monitors">Cerca pagine</string>
     <string name="home_search_clear">Cancella ricerca</string>
     <string name="home_search_close">Chiudi ricerca</string>
-    <string name="home_search_empty_title">Nessuna pagina corrispondente</string>
-    <string name="home_search_empty_subtitle">Prova con un altro nome o indirizzo di pagina.</string>
-    <string name="home_filter_changes_empty_title">Nessuna nuova modifica</string>
-    <string name="home_filter_changes_empty_subtitle">Le pagine con nuove modifiche appariranno qui.</string>
-    <string name="home_filter_errors_empty_title">Nessun problema</string>
-    <string name="home_filter_errors_empty_subtitle">Le pagine con un controllo non riuscito appariranno qui.</string>
-    <string name="home_filter_paused_empty_title">Nessuna pagina in pausa</string>
-    <string name="home_filter_paused_empty_subtitle">Le pagine che metti in pausa singolarmente appariranno qui.</string>
-    <string name="monitor_watchlist">Le tue pagine</string>
-    <string name="monitor_watchlist_supporting">Modifiche e problemi vengono mostrati per primi</string>
     <string name="monitor_review_changes">Rivedi modifiche</string>
-    <string name="monitor_review_error">Rivedi</string>
-    <string name="monitor_error_attention">%1$d controllo richiede attenzione</string>
-    <string name="monitor_filter_paused">In pausa</string>
-    <string name="monitor_filter_errors">Errori</string>
-    <string name="monitor_filter_new">Nuovi</string>
-    <string name="monitor_signal_label">Attività recente</string>
-    <plurals name="monitor_signal_watch_count">
-        <item quantity="one">Osservando %1$d pagina</item>
-        <item quantity="other">Osservando %1$d pagine</item>
-    </plurals>
     <string name="monitor_summary_checking">In ascolto di modifiche</string>
     <string name="monitor_summary_checking_supporting">I segnali freschi compaiono man mano che ogni pagina viene completata.</string>
     <plurals name="monitor_summary_error">
         <item quantity="one">%1$d controllo saltato</item>
         <item quantity="other">%1$d controlli saltati</item>
     </plurals>
-    <string name="monitor_summary_error_supporting">Una delle tue pagine non ha risposto questa volta.</string>
     <plurals name="monitor_summary_updated">
         <item quantity="one">%1$d pagina modificata</item>
         <item quantity="other">%1$d pagine modificate</item>
-    </plurals>
-    <plurals name="monitor_signal_changed_unit">
-        <item quantity="one">pagina modificata</item>
-        <item quantity="other">pagine modificate</item>
-    </plurals>
-    <plurals name="monitor_signal_error_unit">
-        <item quantity="one">controllo saltato</item>
-        <item quantity="other">controlli saltati</item>
     </plurals>
     <string name="monitor_summary_updated_supporting">Guarda cosa è cambiato quando vuoi tu.</string>
     <string name="monitor_summary_quiet">Tutto tranquillo</string>
@@ -160,33 +45,11 @@
         <item quantity="one">Nessuna modifica sulla tua %1$d pagina.</item>
         <item quantity="other">Nessuna modifica sulle tue %1$d pagine.</item>
     </plurals>
-    <string name="turbo_active_title">Turbo è attivo</string>
-    <string name="turbo_summary">%1$d pagine · ogni %2$d secondi</string>
-    <string name="turbo_card_title">Controlli Turbo</string>
-    <string name="turbo_card_subtitle">Controlla le pagine selezionate fino a ogni 15 secondi quando il tempismo conta.</string>
-    <string name="turbo_ready_label">Pronto per una sorveglianza dal vivo</string>
-    <string name="turbo_live_supporting">Tieni aperto questa schermata o continua a usare il telefono. Ti avvisiamo appena una pagina selezionata cambia.</string>
-    <string name="turbo_every_label">Ogni</string>
-    <string name="turbo_interval_unit_seconds">secondi</string>
-    <string name="turbo_interval_unit_minute">minuto</string>
-    <string name="turbo_interval_unit_minutes">minuti</string>
-    <string name="turbo_stops_in">Si interrompe tra %1$s</string>
-    <string name="turbo_deadline_missing">Fino a 3 ore</string>
-    <string name="turbo_runs_caption">Durata fino a 3 ore</string>
-    <string name="turbo_checked_ago">Ultimo controllo: %1$s</string>
-    <string name="turbo_changed_badge">Modificato</string>
     <string name="turbo_ended">Turbo terminato</string>
-    <string name="site_status_paused">In pausa</string>
-
-    <!-- Settings -->
     <string name="settings_title">Impostazioni</string>
-    <string name="settings_intro_label">Mettilo tuo</string>
-    <string name="settings_intro_title">Controlli che seguono il tuo ritmo.</string>
-    <string name="settings_intro_supporting">Scegli l\'aspetto, quando controllare e come catturare le modifiche.</string>
     <string name="settings_theme_label">Tema</string>
     <string name="settings_palette_label">Colore</string>
     <string name="settings_section_appearance">Aspetto</string>
-    <string name="settings_accent_color">Colore principale</string>
     <string name="palette_dynamic">Dispositivo</string>
     <string name="palette_orange">Arancione</string>
     <string name="palette_indigo">Indaco</string>
@@ -200,7 +63,6 @@
     <string name="palette_pink">Rosa</string>
     <string name="settings_monitoring_section">Monitoraggio</string>
     <string name="settings_background_sync_title">Sincronizzazione in background</string>
-    <string name="settings_background_sync_enable">Attiva sincronizzazione in background</string>
     <string name="settings_background_sync_disabled">Disattivata</string>
     <string name="settings_background_sync_every">Ogni %1$d minuti</string>
     <string name="settings_about_section">Info</string>
@@ -210,30 +72,23 @@
     <string name="settings_sync_constraint_wifi">Richiedi Wi‑Fi</string>
     <string name="settings_sync_constraint_charging">Richiedi in carica</string>
     <string name="settings_sync_constraint_battery">Richiedi batteria non scarica</string>
-    <string name="settings_sync_constraint_idle">Richiedi dispositivo inattivo</string>
     <string name="settings_sync_interval_label">Sincronizza ogni:</string>
-    <string name="settings_sync_interval_title">Intervallo di sincronizzazione</string>
     <string name="settings_sync_interval_value">Valore</string>
     <string name="settings_sync_unit_minutes">minuti</string>
     <string name="settings_sync_unit_hours">ore</string>
     <string name="settings_sync_unit_days">giorni</string>
     <string name="settings_version">Versione</string>
     <string name="dialog_cancel">Annulla</string>
-    <string name="dialog_ok">OK</string>
     <string name="done">Fine</string>
     <string name="settings_sync_monitoring_in_background">Monitoraggio in background</string>
-    <string name="settings_sync_not_syncing">Nessuna sincronizzazione in background</string>
-    <string name="settings_sync_constraints_description">Sincronizza solo quando queste condizioni sono soddisfatte</string>
     <string name="settings_background_sync_summary">Controlla le pagine automaticamente</string>
     <string name="step_number">Passo %1$d</string>
-
     <string name="theme_system_title">Sistema</string>
     <string name="theme_system_desc">Segui le impostazioni del dispositivo</string>
     <string name="theme_light_title">Chiaro</string>
     <string name="theme_light_desc">Usa sempre il tema chiaro</string>
     <string name="theme_dark_title">Scuro</string>
     <string name="theme_dark_desc">Usa sempre il tema scuro</string>
-
     <plurals name="settings_sync_every_minutes">
         <item quantity="one">Sincronizza ogni %1$d minuto</item>
         <item quantity="other">Sincronizza ogni %1$d minuti</item>
@@ -246,42 +101,19 @@
         <item quantity="one">Sincronizza ogni %1$d giorno</item>
         <item quantity="other">Sincronizza ogni %1$d giorni</item>
     </plurals>
-    <string name="comparison_hero_badge">Analisi dal vivo</string>
-    <string name="comparison_stats_snapshots_label">Versioni salvate</string>
-    <string name="comparison_stats_latest_label">Ultima modifica</string>
-    <string name="comparison_stats_latest_supporting">Aggiornato %1$s</string>
-    <string name="comparison_stats_unavailable">Ancora nessuna modifica</string>
-    <string name="comparison_stats_scope_label">Focus</string>
-    <string name="comparison_stats_scope_element">Elementi selezionati</string>
-    <string name="comparison_stats_scope_page">Pagina intera</string>
     <string name="comparison_section_snapshots">Storico versioni</string>
-    <string name="comparison_change_title">La pagina è cambiata</string>
-    <string name="comparison_change_supporting">Rivedi cosa è cambiato nell\'ultima versione acquisita.</string>
-    <string name="comparison_choose_older">Precedente</string>
     <string name="comparison_selected">Selezionata</string>
-    <string name="comparison_monitoring_section">Monitoraggio</string>
-    <string name="comparison_monitoring_supporting">Come viene controllata questa pagina</string>
-    <string name="comparison_monitoring_status">Stato</string>
-    <string name="comparison_monitoring_versions">Storico salvato</string>
-    <string name="comparison_monitoring_capture">Metodo di acquisizione</string>
     <string name="comparison_empty_title">Ancora nessuna versione</string>
     <string name="comparison_empty_subtitle">Salva la prima versione per iniziare il confronto.</string>
-    <string name="comparison_quick_tip">Tocca una coppia di versioni per aprire il diff.</string>
     <string name="comparison_pair_title">Versione %1$d → %2$d</string>
     <string name="comparison_pair_time_diff">%1$s di distanza</string>
     <string name="comparison_single_snapshot_hint">Servono almeno due versioni salvate per confrontare le modifiche.</string>
     <string name="comparison_single_snapshot_title">1 versione salvata</string>
     <string name="site_not_found">Pagina non trovata</string>
     <string name="prune_history">Rimuovi versioni vecchie</string>
-    <string name="share_comparison">Condividi confronto</string>
-    <string name="show_all">Tutte</string>
-    <string name="show_changes">Modifiche</string>
     <string name="show_context">Mostra contesto</string>
     <string name="show_only_changes">Solo modifiche</string>
     <string name="comparison_before">Prima</string>
-    <string name="comparison_now">Adesso</string>
-    <string name="older">Precedente</string>
-    <string name="newer">Successiva</string>
     <string name="comparison_mode_text">Testo</string>
     <string name="comparison_mode_rendered">Renderizzata</string>
     <string name="comparison_mode_pixel_diff">Evidenzia</string>
@@ -289,21 +121,16 @@
     <string name="comparison_mode_before">Prima</string>
     <string name="comparison_mode_after">Dopo</string>
     <string name="comparison_version_switcher">Scegli la versione precedente o successiva</string>
-    <string name="comparison_latest_capture">Acquisizione più recente</string>
     <string name="type_label">Tipo: %1$s</string>
     <string name="size_label">Dimensione: %1$s</string>
-    <string name="diff_comparison">Confronta versioni</string>
     <string name="older_label">Precedente • %1$s</string>
     <string name="newer_label">Successiva • %1$s</string>
-    <string name="text_diff">Diff del testo</string>
-    <string name="rendered_html">HTML renderizzato</string>
     <string name="failed_to_load_content">Impossibile caricare il contenuto</string>
     <string name="comparison_capture_changed_title">Metodo di acquisizione cambiato</string>
     <string name="comparison_capture_changed_supporting">Queste due versioni sono state acquisite con metodi diversi (testo vs. schermata), quindi non possono essere confrontate direttamente.</string>
     <string name="comparison_load_failed">Impossibile caricare questa pagina</string>
     <string name="comparison_no_changes_title">Nessuna differenza trovata</string>
     <string name="comparison_no_changes_text">Il contenuto testuale delle due versioni è identico.</string>
-    <string name="comparison_no_changes_html">Il contenuto visivo delle due versioni è identico.</string>
     <string name="settings_comparison_title">Acquisizione predefinita</string>
     <string name="settings_comparison_subtitle">Usata dalle pagine impostate per seguire l’app. Le altre mantengono il proprio metodo.</string>
     <string name="settings_comparison_summary">Per le pagine che seguono l’app</string>
@@ -316,28 +143,12 @@
     <string name="settings_interval_minimum">Scegli un intervallo da 15 minuti a 7 giorni.</string>
     <string name="settings_quick_presets">Preset rapidi</string>
     <string name="settings_24_hours">24 h</string>
-
-    <!-- About -->
     <string name="about_title">Info</string>
-    <string name="about_designed_by">Progettato e sviluppato da</string>
     <string name="about_developer_name">Bernardo Ferrari</string>
-    <string name="about_open_source_disclaimer">Questo progetto è open source ed è distribuito con licenza Apache 2.0.</string>
-    <string name="about_hero_label">Indipendente · privato · open source</string>
-    <string name="about_hero_title">Fatto per ciò che non vuoi perderti.</string>
-    <string name="about_local_badge">Storico sul dispositivo</string>
-    <string name="about_signal_badge">Avvisi essenziali</string>
     <string name="about_view_on_github">Vedi su GitHub</string>
-    <string name="about_contact_developer">Contatta lo sviluppatore</string>
     <string name="about_view_licenses">Licenze open source</string>
     <string name="about_licenses_title">Licenze open source</string>
     <string name="about_licenses_subtitle">Change Detection è costruito su questi progetti.</string>
-    <string name="about_stat_libraries">Librerie</string>
-    <string name="about_stat_categories">Categorie</string>
-    <string name="about_stat_apache">Apache 2.0</string>
-
-    <!-- How It Works -->
-    <string name="how_it_works_title">Come funziona</string>
-    <string name="how_it_works_hero_badge">Tour del prodotto</string>
     <string name="how_it_works_hero_title">Scopri quando una pagina cambia.</string>
     <string name="how_it_works_hero_subtitle">Change Detection controlla le pagine che scegli e conserva uno storico locale da confrontare.</string>
     <string name="how_it_works_steps_header">Il flusso</string>
@@ -356,30 +167,10 @@
     <string name="how_it_works_footer_title">Pronto quando vuoi tu</string>
     <string name="how_it_works_footer_description">Torna all’app per gestire le tue pagine e rivedere le modifiche salvate.</string>
     <string name="how_it_works_primary_cta">Torna all\'app</string>
-
-    <!-- Logs -->
     <string name="logs_error_loading">Errore nel caricamento dei dati</string>
-    <string name="logs_hero_title">Storico versioni</string>
-    <string name="logs_hero_subtitle">Ogni modifica salvata, privata e pronta da consultare.</string>
-    <string name="logs_metric_changes">Versioni</string>
-    <string name="logs_metric_sites">Pagine</string>
-    <plurals name="logs_editorial_versions">
-        <item quantity="one">1 versione salvata</item>
-        <item quantity="other">%1$d versioni salvate</item>
-    </plurals>
-    <plurals name="logs_editorial_sites">
-        <item quantity="one">In %1$d pagina</item>
-        <item quantity="other">In %1$d pagine</item>
-    </plurals>
-    <string name="logs_saved_moments_label">versioni salvate</string>
     <string name="logs_search_pages">Cerca nella cronologia per pagina</string>
     <string name="logs_search_empty_title">Nessuna versione corrispondente</string>
     <string name="logs_search_empty_subtitle">Prova un altro nome o indirizzo di pagina.</string>
-    <string name="logs_section_history">Attività recente</string>
-    <string name="logs_empty_title">Ancora nessuna modifica rilevata</string>
-    <string name="logs_empty_subtitle">Quando una pagina monitorata cambia, le sue versioni salvate compariranno qui.</string>
-    <string name="logs_remove_snapshot_title">Rimuovere la versione?</string>
-    <string name="logs_remove_snapshot_body">%1$s · %2$s</string>
     <string name="logs_just_now">Proprio ora</string>
     <string name="logs_min_ago">%1$d min fa</string>
     <string name="logs_hr_ago">%1$d h fa</string>
@@ -387,75 +178,16 @@
         <item quantity="one">%1$d giorno fa</item>
         <item quantity="other">%1$d giorni fa</item>
     </plurals>
-
-    <!-- Onboarding -->
-    <string name="onboarding_title_welcome">Benvenuto</string>
-    <string name="onboarding_description_welcome">Inizia a seguire le modifiche sul web senza sforzo.</string>
-    <string name="onboarding_title_element_selection">Seleziona elementi</string>
-    <string name="onboarding_description_element_selection">Scegli esattamente cosa monitorare.</string>
-    <string name="onboarding_title_zap">Elimina distrazioni</string>
-    <string name="onboarding_description_zap">Rimuovi le parti indesiderate della pagina prima di monitorarla.</string>
-    <string name="onboarding_title_turbo">Modalità Turbo</string>
-    <string name="onboarding_description_turbo">Ricevi notifiche immediate con controlli ad alta frequenza.</string>
-    <string name="onboarding_title_analytics">Analisi</string>
-    <string name="onboarding_description_analytics">Visualizza le modifiche nel tempo.</string>
-    <string name="onboarding_title_ready">Sei pronto</string>
-    <string name="onboarding_description_ready">Iniziamo!</string>
-    <string name="onboarding_badge_step">Passo %1$d di %2$d</string>
-    <string name="onboarding_section_title">Panoramica</string>
-    <string name="onboarding_button_get_started">Inizia</string>
     <string name="continue_label">Continua</string>
-    <string name="skip">Salta</string>
-    <string name="back">Indietro</string>
-
-    <!-- Add/Edit -->
     <string name="save">Salva</string>
-    <string name="site_name">Nome (facoltativo)</string>
-    <string name="site_name_placeholder">Pagina di esempio</string>
-    <string name="color_theme">Tema colore</string>
-    <string name="complete_setup">Completa configurazione</string>
-    <string name="success_title">Tutto pronto!</string>
-    <string name="site_added_successfully">Monitoraggio avviato correttamente.</string>
     <string name="website_url">Indirizzo della pagina</string>
-    <string name="monitor_editor_add_title">Aggiungi pagina</string>
-    <string name="monitor_editor_edit_title">Modifica pagina</string>
-    <string name="enter_website_url">Inserisci l\'indirizzo della pagina</string>
     <string name="website_url_placeholder">https://example.com</string>
-    <string name="monitor_editor_prompt_add">Pagina da monitorare</string>
-    <string name="monitor_editor_prompt_add_supporting">Incolla l\'indirizzo esatto. Salviamo una versione privata quando cambia, così puoi confrontare cosa è successo.</string>
-    <string name="monitor_editor_prompt_edit">Dettagli della pagina</string>
-    <string name="monitor_editor_prompt_edit_supporting">Aggiorna l\'indirizzo della pagina o il nome mostrato nella tua lista.</string>
-    <string name="monitor_editor_private_title">Privato per impostazione</string>
-    <string name="monitor_editor_private_supporting">Controlli e versioni salvate restano su questo dispositivo. Nessun account richiesto.</string>
     <string name="monitor_editor_error_invalid_url">Inserisci un indirizzo di pagina completo, come esempio.com.</string>
     <string name="monitor_editor_error_not_found">Questa pagina non esiste più.</string>
     <string name="monitor_editor_error_load">Non è stato possibile caricare questa pagina. Riprova.</string>
     <string name="monitor_editor_error_save">Non è stato possibile salvare questa pagina. Controlla la connessione e riprova.</string>
-    <string name="monitor_editor_step_label">Nuova pagina</string>
-    <string name="monitor_editor_preview_title">La tua pagina, sotto osservazione.</string>
-    <string name="monitor_editor_preview_supporting">Controlleremo questo indirizzo in silenzio e mostreremo solo ciò che cambia.</string>
-    <string name="clear">Cancella</string>
     <string name="clear_page_address">Cancella indirizzo della pagina</string>
     <string name="paste">Incolla</string>
-    <string name="add_edit_details_title">Dettagli</string>
-    <string name="add_edit_details_description">Aggiungi contesto così i prossimi avvisi saranno facili da capire.</string>
-    <string name="add_edit_tags_label">Tag o note (facoltativo)</string>
-    <string name="add_edit_tags_placeholder">lavoro, importante</string>
-    <string name="add_edit_monitoring_title">Preferenze di monitoraggio</string>
-    <string name="add_edit_monitoring_description">Regola con precisione come catturiamo le modifiche di questa pagina.</string>
-    <string name="add_edit_browser_rendering">Rendering nel browser</string>
-    <string name="add_edit_browser_rendering_description">Abilita JavaScript e CSS</string>
-    <string name="add_edit_change_threshold">Soglia di modifica</string>
-    <string name="add_edit_change_threshold_description">Differenza minima da rilevare</string>
-    <string name="add_edit_threshold_dialog_title">Soglia di modifica</string>
-    <string name="add_edit_threshold_dialog_body">Imposta la differenza minima di dimensione in byte per rilevare le modifiche.</string>
-    <string name="add_edit_threshold_label">Soglia (byte)</string>
-    <string name="add_edit_threshold_apply">Applica</string>
-    <string name="add_edit_color_theme_description">Scegli un gradiente per evidenziare le future schede di modifica.</string>
-    <string name="add_edit_compare_versions">Confronta versioni</string>
-    <string name="add_edit_threshold_value_bytes">%1$s byte</string>
-
-    <!-- LocalBrowser -->
     <string name="local_browser_title_snapshot">Versione salvata</string>
     <string name="local_browser_title_live">Browser dal vivo</string>
     <string name="a11y_saved_screenshot">Schermata salvata del sito</string>
@@ -465,116 +197,28 @@
     <string name="local_browser_error_title">Impossibile aprire questa pagina</string>
     <string name="local_browser_error_body">La versione salvata potrebbe non essere più disponibile.</string>
     <string name="local_browser_empty_snapshot">Questa versione non ha contenuto visualizzabile.</string>
-
-    <!-- Delete Confirmation -->
-    <string name="delete_site_title">Eliminare la pagina?</string>
     <string name="delete_site_message">Verranno eliminati definitivamente \"%1$s\" e tutte le versioni salvate.</string>
     <string name="site_unnamed">questa pagina</string>
-    <string name="delete_snapshot_title">Eliminare la versione?</string>
-    <string name="delete_snapshot_message">Questa versione verrà rimossa definitivamente.</string>
-    <string name="logs_load_failed">Impossibile caricare lo storico</string>
     <string name="retry">Riprova</string>
-    <string name="site_deleted">Pagina eliminata</string>
     <string name="undo">Annulla</string>
-
-    <!-- Version Selector -->
-    <string name="version_count">%1$d versioni</string>
-    <string name="version_pair_format">%1$s → %2$s</string>
-    <string name="version_latest">Più recente</string>
-    <string name="version_previous">Precedente</string>
-    <string name="version_older">Precedente</string>
-    <string name="version_pair_latest">Ultima modifica</string>
-    <string name="version_pair_previous">Modifica precedente %1$d</string>
-    <string name="compare_versions">Confronta</string>
-
-    <!-- Sync Status -->
-    <string name="sync_error">Sincronizzazione non riuscita</string>
-    <string name="sync_success">Sincronizzato</string>
-    <string name="sync_in_progress">Sincronizzazione…</string>
-    <string name="site_sync_failed">Sincronizzazione non riuscita</string>
-
-    <!-- Success Feedback -->
-    <string name="changes_detected">Modifiche rilevate!</string>
-    <string name="site_saved">Pagina salvata</string>
-    <string name="settings_updated">Impostazioni aggiornate</string>
     <string name="pruned_snapshots">Versioni vecchie rimosse</string>
-
-    <!-- Image comparison -->
     <string name="image_comparison_unavailable">Immagine non disponibile</string>
-    <string name="image_diff_unavailable">Diff immagini non disponibile</string>
     <string name="image_diff_preparing">Preparazione</string>
     <string name="image_diff_status_unavailable">Non disponibile</string>
     <string name="image_diff_changed">Modificato</string>
     <string name="image_diff_pixels">Pixel</string>
-    <string name="image_diff_waiting">In attesa</string>
     <string name="image_diff_no_detected_change">Nessuna differenza rilevata in questa anteprima.</string>
-    <string name="image_diff_missing_output">Le schermate sono state decodificate, ma non è stata generata alcuna immagine diff.</string>
     <string name="image_diff_changed_pixels">Pixel modificati</string>
     <string name="image_diff_pixels_different">%1$s pixel differenti</string>
     <string name="image_diff_drag_supporting">Trascina il cursore per ispezionare le acquisizioni prima e dopo.</string>
-    <string name="image_diff_same_dimensions">Acquisizione %1$d × %2$d</string>
     <string name="image_diff_size_changed">Dimensione schermata cambiata: %1$d × %2$d → %3$d × %4$d</string>
-
-    <!-- Accessibility -->
-    <string name="card_site_monitoring_active">Monitoraggio attivo</string>
-    <string name="card_last_sync">Ultima sincronizzazione: %1$s</string>
-    <string name="card_last_change">Ultima modifica: %1$s</string>
-    <string name="card_sync_failed">Sincronizzazione non riuscita</string>
-    <string name="card_refresh_site">Controlla pagina ora</string>
-    <string name="card_syncing">Sincronizzazione</string>
-    <string name="site_status_checking">Controllo</string>
-    <string name="site_status_error">Errore</string>
-    <string name="site_status_changed">Aggiornato %1$s</string>
-    <string name="site_status_unchanged">Controllato %1$s</string>
-    <string name="card_site_item">Pagina: %1$s</string>
-    <string name="card_more_options">Altre opzioni per %1$s</string>
-    <string name="a11y_site_card_content">%1$s. Ultima sincronizzazione: %2$s. Ultima modifica: %3$s.</string>
-    <string name="a11y_site_card_syncing">%1$s. Sincronizzazione in corso.</string>
-    <string name="a11y_site_card_error">%1$s. Sincronizzazione non riuscita. Tocca per riprovare.</string>
-    <string name="a11y_refresh_button">Aggiorna %1$s</string>
-    <string name="a11y_turbo_indicator">Turbo attivo per questa pagina</string>
-    <string name="a11y_color_theme">Tema colore: %1$s</string>
-    <string name="a11y_selected">Selezionato</string>
-    <string name="a11y_not_selected">Non selezionato</string>
-    <string name="a11y_expanded">Espanso</string>
-    <string name="a11y_collapsed">Compresso</string>
     <string name="a11y_navigate_back">Torna indietro</string>
-    <string name="a11y_navigate_up">Naviga verso l\'alto</string>
     <string name="a11y_close">Chiudi</string>
-    <string name="a11y_open_menu">Apri menu</string>
-    <string name="a11y_add_site">Aggiungi una pagina da monitorare</string>
-    <string name="a11y_delete_site">Elimina pagina</string>
-    <string name="a11y_edit_site">Modifica pagina</string>
-    <string name="a11y_site_url">URL: %1$s</string>
-    <string name="a11y_file_size">Dimensione: %1$s</string>
-    <string name="a11y_version">Versione %1$d di %2$d</string>
-    <string name="a11y_comparison_slider">Sovrapposizione di confronto. Trascina per fondere la versione vecchia e la nuova.</string>
     <string name="a11y_drag_screenshot_comparison">Trascina per confrontare gli screenshot</string>
     <string name="a11y_open_license">Apri licenza</string>
-    <string name="a11y_diff_mode">Modalità diff: %1$s</string>
-    <string name="a11y_no_changes">Nessuna modifica rilevata tra le versioni</string>
-
-    <!-- Export/Import -->
-    <string name="export_sites">Esporta pagine</string>
-    <string name="import_sites">Importa pagine</string>
-    <string name="export_success">%1$d pagine esportate</string>
-    <string name="import_success">%1$d pagine importate</string>
-    <string name="import_error">Importazione delle pagine non riuscita</string>
-    <string name="export_error">Esportazione delle pagine non riuscita</string>
-    <string name="no_sites_to_export">Nessuna pagina da esportare</string>
-
-    <!-- Offline -->
-    <string name="offline_mode">Modalità offline</string>
-    <string name="offline_queued">In coda per la sincronizzazione quando online</string>
-    <string name="pending_sync">Sincronizzazione in sospeso</string>
-
-    <!-- Add/Edit flow -->
-    <string name="monitor_editor_baseline_hint">Il primo controllo salva un punto di partenza: gli avvisi iniziano con la modifica successiva.</string>
     <string name="monitor_editor_cadence_hint">Controllo automatico in background: regolalo quando vuoi nelle Impostazioni.</string>
     <string name="monitor_editor_duplicate_warning">Stai già monitorando questa pagina</string>
     <string name="monitor_editor_duplicate_open">Apri</string>
-    <!-- Diff-first experience -->
-    <!-- Edit flow / destructive consistency -->
     <string name="address_changed_title">Indirizzo modificato</string>
     <string name="address_changed_message">I prossimi controlli verranno confrontati con le versioni della vecchia pagina. Conservi lo storico o ricominci da capo?</string>
     <string name="address_changed_keep_history">Conserva lo storico</string>
@@ -585,27 +229,9 @@
     <string name="delete_site_failed">Impossibile eliminare la pagina</string>
     <string name="snapshot_delete_failed">Impossibile eliminare questa versione</string>
     <string name="snapshot_deleted">Versione eliminata</string>
-    <string name="comparison_percent_of_text_differs">del testo è diverso</string>
-    <string name="comparison_text_differs_percent">Circa il %1$d%% del testo è diverso</string>
     <string name="comparison_check_now_hint">Finora questa pagina è stata controllata una sola volta: controllala di nuovo per vedere cosa è cambiato.</string>
     <string name="schedule_save_failed">Impossibile applicare la pianificazione. Riprova.</string>
-    <string name="pause_monitoring">Sospendi monitoraggio</string>
-    <string name="resume_monitoring">Riprendi monitoraggio</string>
-    <string name="turbo_watch_title">Tieni tutto sotto controllo</string>
-    <string name="turbo_watch_supporting">Scegli le pagine e controllale più spesso per le prossime tre ore.</string>
-    <string name="turbo_session_remaining">La sessione termina tra</string>
-    <plurals name="turbo_session_checks">
-        <item quantity="one">%1$d controllo completato</item>
-        <item quantity="other">%1$d controlli completati</item>
-    </plurals>
-    <string name="turbo_waiting_check">In attesa del primo controllo</string>
-    <string name="turbo_check_failed">Controllo non riuscito · apri i dettagli</string>
     <string name="turbo_stop_session">Ferma Turbo</string>
-    <string name="turbo_session_stopped">Sessione interrotta. Le modifiche salvate restano disponibili.</string>
-    <string name="turbo_session_finished">Sessione terminata. Avvia una nuova sessione quando servono controlli rapidi.</string>
-    <string name="turbo_session_interrupted">La sessione è stata interrotta. Avvia Turbo per riprendere i controlli rapidi.</string>
-    <string name="turbo_session_system_limit">Android ha terminato la sessione per limitare le attività in background.</string>
-    <string name="turbo_session_start_failed">Impossibile avviare Turbo. Tieni aperta l’app e riprova.</string>
     <string name="schedule_paused_title">Controlli programmati sospesi</string>
     <string name="schedule_paused_description">Riprendi il monitoraggio per controllare le pagine automaticamente.</string>
     <string name="schedule_waiting_title">In attesa dei primi controlli</string>
@@ -613,34 +239,20 @@
     <string name="storage_history_title">Cronologia salvata</string>
     <string name="storage_history_usage">%1$s MB di versioni salvate</string>
     <string name="storage_history_policy">Conserva fino a 100 versioni per pagina. Le versioni più vecchie vengono rimosse oltre 250 MB. Le ultime due versioni di ogni pagina vengono sempre conservate, anche oltre questo limite.</string>
-
-    <string name="capture_mode_title">Controlla usando</string>
     <string name="capture_mode_default">Predefinito dell’app</string>
     <string name="capture_mode_html">HTML della pagina</string>
     <string name="capture_mode_screenshot">Schermata</string>
-    <string name="capture_mode_default_description">Usa il metodo di acquisizione selezionato nelle Impostazioni.</string>
-    <string name="capture_mode_html_description">Confronta l’HTML restituito dal sito. Le pagine che caricano contenuti con JavaScript potrebbero richiedere schermate.</string>
-    <string name="capture_mode_screenshot_description">Confronta le schermate renderizzate, incluse le modifiche visive e al layout.</string>
     <string name="capture_mode_baseline">Cambiare metodo crea un nuovo riferimento. La cronologia esistente viene conservata.</string>
-
     <string name="capture_preview_action">Anteprima acquisizione</string>
     <string name="capture_preview_title">Anteprima acquisizione</string>
     <string name="capture_preview_loading">Caricamento della pagina…</string>
     <string name="capture_preview_html">Anteprima del testo della pagina</string>
     <string name="capture_preview_empty">Non è stato trovato testo leggibile. Questa pagina potrebbe richiedere schermate.</string>
-    <string name="capture_preview_unsaved">Questo campione non viene salvato nella cronologia e non avvia il monitoraggio.</string>
-    <string name="capture_preview_close">Chiudi anteprima</string>
     <string name="capture_preview_expand">Visualizza schermata completa</string>
-    <string name="turbo_session_limit">Limite della sessione</string>
-    <string name="turbo_auto_stop">Si ferma automaticamente dopo 3 ore</string>
-    <string name="turbo_check_every">Controlla ogni</string>
-    <string name="saved_change_needs_review">Modifica salvata da rivedere</string>
     <string name="schedule_running">Controllo programmato in corso</string>
     <string name="schedule_unconfirmed">Programmazione non ancora confermata</string>
     <string name="schedule_eligible_waiting">Controllo possibile · in attesa del dispositivo e delle tue condizioni</string>
     <string name="schedule_next_eligible">Prossimo controllo possibile: %1$s · l’orario può variare</string>
-    <string name="last_successful_check">Ultimo controllo riuscito: %1$s</string>
-    <string name="site_status_waiting">In attesa del primo controllo</string>
     <string name="watchlist_review_errors">Esamina le pagine con errori</string>
     <string name="watchlist_failed_description">Non è stato possibile controllare alcune pagine. Aggiorna per riprovare.</string>
     <string name="requested_comparison_unavailable">Questo confronto non è più disponibile</string>
@@ -675,8 +287,6 @@
     <string name="check_failure_unknown_detail">Controlla l’indirizzo e la connessione, poi riprova.</string>
     <string name="capture_mode_text">Testo leggibile</string>
     <string name="capture_mode_source">Qualsiasi modifica al codice</string>
-    <string name="capture_mode_text_description">Confronta il testo leggibile della risposta. Ignora markup, script, stili e contenuti esplicitamente nascosti. Il testo caricato con JavaScript richiede schermate.</string>
-    <string name="capture_mode_source_description">Rileva ogni modifica alla risposta, inclusi markup e script. Può generare molti avvisi.</string>
     <string name="legacy_threshold_title">Filtro precedente: %1$d byte</string>
     <string name="legacy_threshold_description">Questo filtro precedente ignora le modifiche sotto una soglia in byte. Confronta i dati salvati, non i pixel visibili. Rimuovilo per usare la regola selezionata senza questo filtro aggiuntivo.</string>
     <string name="legacy_threshold_remove">Rimuovi filtro al salvataggio</string>
@@ -685,19 +295,10 @@
     <string name="text_region_title">Monitora un’area</string>
     <string name="text_region_whole">Pagina intera</string>
     <string name="text_region_main">Contenuto principale</string>
-    <string name="text_region_custom">CSS avanzato</string>
     <string name="text_region_description">Viene salvato solo l’HTML selezionato. Le modifiche fuori dall’area o negli elementi ignorati non generano avvisi. Controlla l’anteprima prima di salvare. Lascia vuoto il selettore di inclusione per monitorare tutta la pagina.</string>
     <string name="text_region_include">Selettore CSS da includere (facoltativo)</string>
     <string name="text_region_exclude">Selettore CSS da ignorare (facoltativo)</string>
     <string name="text_region_invalid">Usa selettori CSS validi di massimo 512 caratteri ciascuno, senza selettori con espressioni regolari.</string>
-    <string name="turbo_schedule_continues">La programmazione normale resta invariata</string>
-    <string name="logs_more_failed">Impossibile caricare altro storico. Le voci già caricate restano disponibili.</string>
-    <plurals name="logs_saved_versions">
-        <item quantity="one">%1$d versione salvata</item>
-        <item quantity="other">%1$d versioni salvate</item>
-    </plurals>
-    <string name="detail_title">Dettagli della pagina</string>
-    <string name="detail_new">Nuova modifica</string>
     <string name="detail_last_saved">Ultima versione salvata</string>
     <string name="detail_compare">Confronta</string>
     <string name="detail_empty_text">Nessun testo leggibile in questa versione. Aprila per vedere il sorgente.</string>
@@ -706,60 +307,22 @@
     <string name="detail_missing">Questa pagina non è più nel tuo elenco.</string>
     <string name="detail_no_version">Nessuna versione salvata</string>
     <string name="detail_first_check">Controlla questa pagina per salvare una versione iniziale.</string>
-    <string name="detail_turbo_running">Una sessione è attiva. Visualizza pagine e controlli.</string>
-    <string name="detail_turbo_hint">Controlli più frequenti, ogni pochi secondi.</string>
-    <string name="detail_watching">Monitoraggio</string>
-    <string name="detail_selected_text">Testo selezionato · modifica selezione</string>
-    <string name="detail_whole_page">Pagina intera · modifica acquisizione</string>
-    <string name="detail_regular_checks">Controlli regolari · tutte le pagine</string>
-    <string name="detail_schedule_value">Circa ogni %1$d min</string>
-    <string name="detail_schedule_paused">In pausa</string>
-    <string name="detail_last_check">Ultimo controllo riuscito</string>
-    <string name="detail_never_checked">Nessun controllo riuscito</string>
-    <string name="detail_pause">Metti in pausa questa pagina</string>
-    <string name="detail_resume">Riprendi questa pagina</string>
-    <string name="detail_keep_history">Le versioni salvate restano disponibili</string>
-    <string name="turbo_duration_label">Interrompi automaticamente dopo</string>
-    <string name="turbo_running_title">Turbo è attivo</string>
     <string name="detail_open_saved">Apri versione</string>
-    <string name="comparison_mark_read">Segna come letta</string>
     <string name="comparison_marked_read">Segnata come letta</string>
     <string name="comparison_read_failed">Impossibile aggiornare lo stato di lettura. Riprova.</string>
     <string name="comparison_read_changed">L’ultimo aggiornamento è cambiato. Aprilo per segnarlo come letto.</string>
-    <string name="comparison_read">Letta</string>
-    <string name="setup_receipt_title">Stai seguendo la pagina</string>
-    <string name="setup_receipt_added">Pagina aggiunta</string>
-    <string name="setup_receipt_baseline">Prima versione salvata</string>
-    <string name="setup_receipt_baseline_detail">Confronteremo i prossimi controlli con questo punto di partenza salvato.</string>
-    <string name="setup_receipt_waiting_detail">La pagina è salvata. Il primo controllo riuscito creerà un punto di partenza.</string>
-    <string name="setup_receipt_open">Apri pagina</string>
-    <string name="setup_receipt_done">Vai alla lista</string>
-    <string name="setup_receipt_status_unavailable">Impossibile caricare lo stato dell’ultimo controllo. La pagina è salvata.</string>
     <string name="palette_default">Originale</string>
-    <string name="turbo_closer_eye">Tieni d’occhio i cambiamenti.</string>
-    <string name="turbo_seconds_unit">secondi</string>
-    <string name="turbo_minutes_unit">minuti</string>
-    <string name="turbo_for_how_long">Per quanto tempo?</string>
-    <string name="setup_page_question">Quale pagina vuoi monitorare?</string>
-    <string name="setup_page_supporting">Inizia dalla pagina. Poi scegli il contenuto che vuoi seguire.</string>
-    <string name="setup_content_heading">Scegli cosa seguire</string>
-    <string name="setup_step_page">Passaggio 1 di 2 · Pagina</string>
-    <string name="setup_step_content">Passaggio 2 di 2 · Contenuto</string>
-    <string name="notifications_platform_unavailable">Le modifiche vengono salvate nell’app. Le notifiche di sistema non sono disponibili su questa piattaforma.</string>
-    <string name="notification_system_settings">Notifiche di sistema</string>
     <string name="region_picker_title">Scegli il testo nella pagina</string>
     <string name="region_picker_description">Scegli una o più aree di testo. Le opzioni provengono dall’HTML della pagina; stili del browser e JavaScript non sono mostrati.</string>
     <string name="region_picker_limited">La pagina contiene più aree di quelle elencabili. Usa Contenuto principale o CSS avanzato per altre selezioni.</string>
     <string name="region_picker_empty">Nessun testo selezionabile trovato. Prova Contenuto principale o CSS avanzato.</string>
     <string name="region_picker_use">Usa selezione</string>
-    <string name="region_selection_active">Un’area di testo è selezionata. Visualizza l’anteprima o scegli Pagina intera per reimpostare.</string>
     <string name="image_diff_dimensions">Dimensioni cambiate</string>
     <string name="browser_runtime_loading">Preparazione del visualizzatore…</string>
     <string name="browser_runtime_failed">Impossibile avviare il visualizzatore. Riavvia l’app desktop e riprova. Il monitoraggio e le versioni salvate restano disponibili.</string>
     <string name="browser_text_fallback">Il visualizzatore non ha risposto. Ecco il testo della versione salvata.</string>
     <string name="region_picker_page">Pagina</string>
     <string name="region_picker_list">Elenco testi</string>
-    <string name="region_picker_page_hint">Tocca un’area e usa Aggiungi area per mantenerla mentre ne scegli un’altra. Alcuni stili possono differire dalla pagina originale.</string>
     <string name="region_picker_smaller">Più piccola</string>
     <string name="region_picker_larger">Più grande</string>
     <string name="region_picker_undo">Annulla</string>
@@ -782,34 +345,6 @@
         <item quantity="one">%1$d modifica salvata</item>
         <item quantity="other">%1$d modifiche salvate</item>
     </plurals>
-    <plurals name="turbo_successful_checks">
-        <item quantity="one">%1$d controllo riuscito</item>
-        <item quantity="other">%1$d controlli riusciti</item>
-    </plurals>
-    <plurals name="turbo_failed_checks">
-        <item quantity="one">%1$d controllo non riuscito</item>
-        <item quantity="other">%1$d controlli non riusciti</item>
-    </plurals>
-    <string name="turbo_session_no_sites">Turbo si è fermato perché non ci sono più pagine selezionate.</string>
-    <plurals name="turbo_session_length_minutes">
-        <item quantity="one">Sessione: %1$d minuto</item>
-        <item quantity="other">Sessione: %1$d minuti</item>
-    </plurals>
-    <plurals name="turbo_session_length_hours">
-        <item quantity="one">Sessione: %1$d ora</item>
-        <item quantity="other">Sessione: %1$d ore</item>
-    </plurals>
-    <string name="logs_load_failed_detail">Riprova a caricare le versioni salvate.</string>
-    <string name="logs_refresh_failed">Impossibile aggiornare la cronologia. Vengono mostrate le versioni caricate in precedenza.</string>
-    <string name="logs_search_results">Versioni salvate corrispondenti</string>
-    <plurals name="turbo_every_seconds">
-        <item quantity="one">Ogni %1$d secondo</item>
-        <item quantity="other">Ogni %1$d secondi</item>
-    </plurals>
-    <plurals name="turbo_every_minutes">
-        <item quantity="one">Ogni %1$d minuto</item>
-        <item quantity="other">Ogni %1$d minuti</item>
-    </plurals>
     <string name="region_picker_tools">Strumenti</string>
     <string name="comparison_load_failed_detail">Riprova a caricare questa pagina e le sue versioni salvate.</string>
     <string name="settings_automatic_checks_title">Controlli automatici</string>
@@ -821,16 +356,8 @@
     <string name="turbo_unavailable_title">Turbo non è disponibile in questa anteprima</string>
     <string name="turbo_unavailable_description">Usa l’app Android o desktop per avviare una sessione di monitoraggio.</string>
     <string name="image_diff_sampled_pixels_different">%1$s pixel campionati differiscono. Le statistiche usano un’anteprima ridotta.</string>
-    <string name="capture_mode_saved_unavailable">Questa modalità salvata non è disponibile su questa piattaforma. Rimane invariata finché non ne scegli un’altra.</string>
     <string name="check_failure_capture_unavailable">Controlli tramite screenshot non disponibili</string>
     <string name="check_failure_capture_unavailable_detail">Usa Android per controllare gli screenshot oppure modifica questa pagina per monitorare testo o codice sorgente. Le versioni salvate vengono conservate.</string>
-    <string name="visual_filter_title">Filtro delle modifiche visive</string>
-    <string name="visual_filter_off">Disattivato · nessun filtro visivo</string>
-    <string name="visual_filter_small">Almeno lo 0,1%</string>
-    <string name="visual_filter_medium">Almeno l’1%</string>
-    <string name="visual_filter_large">Almeno il 5%</string>
-    <string name="visual_filter_description">Salva un nuovo screenshot solo quando cambia questa parte dell’immagine confrontata. Usa un confronto a dimensione ridotta e ignora piccole variazioni di colore. Le piccole modifiche si accumulano rispetto all’ultima versione salvata. Le modifiche alle dimensioni vengono sempre salvate. Si applica solo ai controlli tramite screenshot.</string>
-    <string name="settings_storage_label">Archiviazione</string>
     <string name="settings_theme_and_color">Tema e colore</string>
     <string name="history_today">Oggi</string>
     <string name="history_yesterday">Ieri</string>
@@ -850,14 +377,35 @@
         <item>novembre</item>
         <item>dicembre</item>
     </string-array>
-    <string name="turbo_paused_open">In pausa · Apri per riprendere</string>
     <string name="comparison_show_previous">Mostra testo precedente</string>
     <string name="comparison_hide_previous">Nascondi testo precedente</string>
-    <plurals name="comparison_changed_passages"><item quantity="one">%1$d passaggio modificato</item><item quantity="other">%1$d passaggi modificati</item></plurals>
+    <plurals name="comparison_changed_passages">
+        <item quantity="one">%1$d passaggio modificato</item>
+        <item quantity="other">%1$d passaggi modificati</item>
+    </plurals>
     <string name="comparison_previous_passage">Passaggio precedente</string>
     <string name="comparison_next_passage">Passaggio successivo</string>
     <string name="comparison_passage_position">Passaggio %1$d di %2$d</string>
     <string name="settings_on_this_device">Su questo dispositivo</string>
     <string name="settings_help_section">Aiuto</string>
     <string name="how_it_works_schedule_range">I controlli normali possono essere programmati da ogni 15 minuti a ogni 7 giorni.</string>
+    <string name="icon_color_title">Colore</string>
+    <string name="editor_icon_shape_title">Icona della pagina</string>
+    <string name="icon_shape_automatic">Automatico</string>
+    <string name="icon_shape_circle">Cerchio</string>
+    <string name="icon_shape_rounded">Arrotondato</string>
+    <string name="icon_shape_flower">Fiore</string>
+    <string name="icon_shape_clover">Trifoglio</string>
+    <string name="icon_shape_sun">Sole</string>
+    <string name="icon_shape_cookie">Biscotto</string>
+    <string name="icon_shape_gem">Gemma</string>
+    <string name="icon_shape_puffy">Soffice</string>
+    <string name="demo_price">Prezzo</string>
+    <string name="demo_applications_close">Scadenza delle candidature</string>
+    <string name="demo_old_date">31 ottobre</string>
+    <string name="demo_new_date">14 novembre</string>
+    <string name="license_category_core">Base</string>
+    <string name="license_category_data">Dati</string>
+    <string name="license_category_networking">Rete</string>
+    <string name="license_category_ui">Interfaccia</string>
 </resources>

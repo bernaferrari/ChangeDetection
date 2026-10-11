@@ -1,8 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="editor_preview_failed_title">Couldn’t open this page</string>
     <string name="editor_change_address">Change address</string>
-    <string name="editor_region_custom">Selected text</string>
     <string name="editor_selectors">CSS selectors</string>
     <string name="editor_name">Name</string>
     <string name="detail_open_short">Open</string>
@@ -13,7 +12,7 @@
     <string name="alert_generic">Tap to see what changed.</string>
     <string name="alert_was">(was “%1$s”)</string>
     <string name="alert_removed">Text was removed</string>
-    <string name="alert_visual">%1$s% of the page changed. Tap to compare.</string>
+    <string name="alert_visual">%1$s of the page changed. Tap to compare.</string>
     <string name="alert_large">Most of the page changed. Tap to compare.</string>
     <string name="home_now_watching">Now watching %1$s</string>
     <string name="preview_numbers_only">Only numbers changed</string>
@@ -80,8 +79,6 @@
     <string name="picker_selected_area">An area without text</string>
     <string name="preview_nothing_visible">Nothing visible changed</string>
     <string name="preview_nothing_visible_body">The page only moved or re-rendered</string>
-    <string name="version_older_change">Older change</string>
-    <string name="version_newer_change">Newer change</string>
     <string name="version_compared_with">since %1$s</string>
     <string name="home_status_checked">Checked %1$s</string>
     <string name="home_status_first_check">Waiting for the first check</string>

@@ -4,6 +4,8 @@
  */
 package com.bernaferrari.changedetection.ui.home
 
+import com.bernaferrari.changedetection.shared.generated.resources.*
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -126,7 +128,7 @@ private fun DemoCards() {
             "store.example",
         ) {
             DiffText(
-                editText(listOf(EditSegment("Price ", EditSegment.Kind.Same), EditSegment("\$1,599", EditSegment.Kind.Removed), EditSegment(" ", EditSegment.Kind.Same), EditSegment("\$1,349", EditSegment.Kind.Added)), marks),
+                editText(listOf(EditSegment(stringResource(com.bernaferrari.changedetection.shared.generated.resources.Res.string.demo_price) + " ", EditSegment.Kind.Same), EditSegment("\$1,599", EditSegment.Kind.Removed), EditSegment(" ", EditSegment.Kind.Same), EditSegment("\$1,349", EditSegment.Kind.Added)), marks),
                 style = SerifSnippet.copy(fontSize = MaterialTheme.typography.titleLarge.fontSize),
             )
         }
@@ -138,7 +140,7 @@ private fun DemoCards() {
             "F",
             "opencall.example",
         ) {
-            DiffText(editText(listOf(EditSegment("Applications close ", EditSegment.Kind.Same), EditSegment("14 November", EditSegment.Kind.Added)), marks))
+            DiffText(editText(listOf(EditSegment(stringResource(com.bernaferrari.changedetection.shared.generated.resources.Res.string.demo_applications_close) + " ", EditSegment.Kind.Same), EditSegment(stringResource(com.bernaferrari.changedetection.shared.generated.resources.Res.string.demo_new_date), EditSegment.Kind.Added)), marks))
         }
     }
 }

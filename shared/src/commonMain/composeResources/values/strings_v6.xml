@@ -1,3 +1,4 @@
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="reader_hide_unchanged">Hide unchanged lines</string>
     <string name="reader_collapse_change">Show fewer lines</string>
@@ -57,7 +58,6 @@
     <string name="home_row_changed">Changed %1$s</string>
     <string name="badge_new">New</string>
     <string name="mark_read_short">Mark read</string>
-    <string name="preview_percent">%1$s% of the page changed</string>
     <string name="preview_size_changed">The page size changed</string>
     <plurals name="preview_more_changes">
         <item quantity="one">+%1$d more change</item>
@@ -79,7 +79,6 @@
         <item quantity="one">%1$d hour</item>
         <item quantity="other">%1$d hours</item>
     </plurals>
-    <string name="turbo_card_status">Next check in %1$d s · %2$s</string>
     <string name="turbo_sheet_body">Check a few pages every few seconds, for a short time. Your normal schedule keeps running.</string>
     <string name="turbo_sheet_pages">Pages</string>
     <string name="turbo_sheet_every">Check every</string>
@@ -96,20 +95,13 @@
         <item quantity="one">Every minute</item>
         <item quantity="other">Every %1$d minutes</item>
     </plurals>
-    <plurals name="turbo_found">
-        <item quantity="one">%1$d change found</item>
-        <item quantity="other">%1$d changes found</item>
-    </plurals>
     <string name="turbo_ends_at">Ends %1$s</string>
-    <string name="turbo_summary_line">%1$d checks across %2$d pages</string>
     <string name="turbo_changed">Changed</string>
     <string name="turbo_checking">Checking</string>
-    <string name="turbo_no_change">No change</string>
     <string name="turbo_ended_planned">Turbo ended as planned</string>
     <string name="turbo_ended_stopped">Turbo stopped by you</string>
     <string name="turbo_ended_interrupted">Turbo was interrupted</string>
     <string name="turbo_ended_failed">Turbo couldn’t start</string>
-    <string name="turbo_row_failed">Couldn’t check this page</string>
     <string name="turbo_row_quiet">No change · checked %1$d s ago</string>
     <string name="nav_activity">Activity</string>
     <plurals name="turbo_card_title_n">
@@ -149,7 +141,7 @@
     <string name="day_month">%1$d %2$s</string>
     <string name="day_time">%1$s, %2$s</string>
     <string name="label_text_changed">Text changed</string>
-    <string name="label_percent">%1$s% of the page</string>
+    <string name="label_percent">%1$s of the page</string>
     <string name="label_first_version">First version</string>
     <string name="label_saved">Saved version</string>
     <string name="detail_delete">Delete page</string>
@@ -208,8 +200,6 @@
     <string name="cadence_hours">every %1$d hours</string>
     <string name="cadence_minutes">every %1$d min</string>
     <string name="activity_deleted_page">Deleted page</string>
-    <string name="activity_started">Started watching %1$s</string>
-    <string name="activity_changed">%1$s changed</string>
     <string name="activity_delete_version">Delete this version</string>
     <string name="activity_empty_title">No changes yet</string>
     <string name="activity_empty_body">When a page you watch changes, it shows up here, newest first.</string>
@@ -229,7 +219,6 @@
     <string name="reader_mode_page">Page</string>
     <string name="reader_mode_source">Source</string>
     <string name="reader_mode_slider">Slider</string>
-    <string name="reader_mode_highlight">Highlight</string>
     <string name="reader_previous">Previous change</string>
     <string name="reader_next">Next change</string>
     <string name="reader_position">Change %1$d of %2$d</string>
@@ -259,7 +248,6 @@
     <string name="settings_group_app">App</string>
     <string name="settings_default_detection">Default capture method</string>
     <string name="settings_screenshot_wait">Screenshot wait</string>
-    <string name="settings_screenshot_wait_value">%1$d seconds before capture</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notifications_body">Alerts, sounds and banners in system settings</string>
     <string name="settings_saved_versions">Saved versions</string>
@@ -267,24 +255,15 @@
     <string name="settings_about_value">Version %1$s · open source</string>
     <string name="settings_feedback">Send feedback</string>
     <string name="settings_privacy_line">Everything stays on this device. No account, no tracking.</string>
-    <string name="palette_highlighter_body">The app’s own colors</string>
-    <string name="palette_dynamic_body">Matches your wallpaper</string>
-    <string name="palette_more">More colors</string>
-    <string name="palette_note">Added and removed text always keep their highlight colors, whatever you pick, so changes stay easy to read.</string>
     <string name="editor_edit_title">Edit page</string>
-    <string name="editor_review_title">Review</string>
     <string name="editor_start">Start watching</string>
     <string name="editor_paste_title">What should we watch?</string>
     <string name="editor_paste_body">Type an address or paste a link. The page opens in a browser so you can sign in, find the exact page and pick the parts that matter.</string>
-    <string name="editor_use_link">Use</string>
     <string name="editor_compare">Compare</string>
     <string name="editor_preview">What we’ll compare</string>
     <string name="editor_little_text_title">This page barely has any text</string>
     <string name="editor_little_text_body">It probably loads its content with JavaScript, so a text check would miss real changes. A screenshot sees the page the way you do.</string>
     <string name="editor_use_screenshot">Use Screenshot</string>
-    <string name="editor_area">Part of the page</string>
-    <string name="editor_sensitivity">Ignore tiny changes</string>
-    <string name="editor_advanced">Advanced</string>
     <string name="editor_baseline_note">Changing what’s watched starts fresh from the next check. Your history stays, and the switch itself won’t send an alert.</string>
     <string name="editor_text_body">Reads the words on the page. Fast and light on battery. Best for prices, dates, job posts and listings.</string>
     <string name="editor_screenshot_body">Compares how the page looks. Catches images, layout and pages built with JavaScript. Slower and uses more data.</string>

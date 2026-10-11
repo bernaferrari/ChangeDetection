@@ -46,8 +46,13 @@ internal fun PageIconShapePicker(name: String, key: String, icon: String?, selec
                             val hovered by interactions.collectIsHoveredAsState()
                             val pressed by interactions.collectIsPressedAsState()
                             val focused by interactions.collectIsFocusedAsState()
-                            val active = chosen || focused || hovered || pressed
-                            val ring by animateFloatAsState(if (active) 1f else 0f, if (focused) snap() else tween(160, easing = LinearOutSlowInEasing), label = "shape-ring-growth")
+                            val ringTarget = when {
+                                chosen || focused -> 1f
+                                pressed -> 0.65f
+                                hovered -> 0.35f
+                                else -> 0f
+                            }
+                            val ring by animateFloatAsState(ringTarget, if (focused) snap() else tween(160, easing = LinearOutSlowInEasing), label = "shape-ring-growth")
                             val scale by animateFloatAsState(if (pressed) 0.97f else 1f, spring(dampingRatio = 1f, stiffness = 1000f), label = "shape-press")
                             val label = shape.label()
                             Box(
@@ -68,6 +73,7 @@ internal fun PageIconShapePicker(name: String, key: String, icon: String?, selec
                                     iconShape = shape,
                                     colors = colors,
                                     selectionProgress = ring,
+                                    selectionColor = if (chosen || focused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                                 )
                             }
                         }
@@ -77,10 +83,12 @@ internal fun PageIconShapePicker(name: String, key: String, icon: String?, selec
                 Text(stringResource(Res.string.icon_color_title), style = MaterialTheme.typography.labelLarge)
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).selectableGroup(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                     PageIconColor.entries.forEach { color ->
-                        val swatch = com.bernaferrari.changedetection.model.AppPalette.entries.firstOrNull { it.name == color.name }?.seedColor ?: MaterialTheme.colorScheme.primary
-                        com.bernaferrari.changedetection.ui.components.PaletteColorSwatch(
-                            color = swatch,
-                            label = color.label(),
+                        val palette = com.bernaferrari.changedetection.model.AppPalette.entries.firstOrNull { it.name == color.name } ?: com.bernaferrari.changedetection.model.AppPalette.DEFAULT
+                        com.bernaferrari.changedetection.ui.components.PaletteSwatch(
+                            colors = com.bernaferrari.changedetection.ui.components.paletteSwatchColors(palette),
+                            label = if (color == PageIconColor.AUTOMATIC) stringResource(Res.string.icon_shape_automatic) else stringResource(palette.titleRes),
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
+                            size = 48.dp,
                             selected = PageIconColor.from(colors) == color,
                             onClick = { onColorSelect(color.colors) },
                             icon = if (color == PageIconColor.AUTOMATIC) Icons.Rounded.Palette else null,
@@ -105,18 +113,5 @@ private fun PageIconShape.label(): String = stringResource(
         PageIconShape.COOKIE -> Res.string.icon_shape_cookie
         PageIconShape.GEM -> Res.string.icon_shape_gem
         PageIconShape.PUFFY -> Res.string.icon_shape_puffy
-    },
-)
-
-@Composable
-private fun PageIconColor.label(): String = stringResource(
-    when (this) {
-        PageIconColor.AUTOMATIC -> Res.string.icon_shape_automatic
-        PageIconColor.BLUE -> Res.string.icon_color_blue
-        PageIconColor.GREEN -> Res.string.icon_color_green
-        PageIconColor.AMBER -> Res.string.icon_color_amber
-        PageIconColor.PINK -> Res.string.icon_color_pink
-        PageIconColor.PURPLE -> Res.string.icon_color_purple
-        PageIconColor.TEAL -> Res.string.icon_color_teal
     },
 )
