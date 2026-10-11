@@ -17,6 +17,7 @@ internal actual suspend fun decodeArgbAtWidth(bytes: ByteArray, targetWidth: Int
     if (sourceWidth <= 0 || bounds.outHeight <= 0) return@runCatching null
     val sourceHeight = minOf(bounds.outHeight, (MAX_ROWS.toLong() * sourceWidth / minOf(targetWidth, sourceWidth).coerceAtLeast(1)).toInt())
     val scaler = BoxDownscaler(sourceWidth, sourceHeight, targetWidth)
+
     @Suppress("DEPRECATION")
     val decoder = BitmapRegionDecoder.newInstance(bytes, 0, bytes.size, false) ?: return@runCatching null
     val options = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }

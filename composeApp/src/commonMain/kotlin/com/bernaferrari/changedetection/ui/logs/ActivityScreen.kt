@@ -131,28 +131,28 @@ fun ActivityScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             com.bernaferrari.changedetection.ui.kit.TopBarSwitcher(searching) { searchMode ->
-            if (searchMode) {
-                com.bernaferrari.changedetection.ui.navigation.HideNativeBar()
-                com.bernaferrari.changedetection.ui.kit.SearchTopBar(query, viewModel::setSearchQuery, stringResource(Res.string.logs_search_pages)) {
-                    viewModel.setSearchQuery("")
-                    searching = false
-                }
-            } else {
-                if (com.bernaferrari.changedetection.ui.navigation.usesNativeNavigation()) {
-                    com.bernaferrari.changedetection.ui.navigation.AppTopBar(
-                        title = stringResource(Res.string.nav_activity),
-                        onBack = null,
-                        actions = if (canSearch) listOf(com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.logs_search_pages), Icons.Outlined.Search, "magnifyingglass") { searching = true }) else emptyList(),
-                    )
+                if (searchMode) {
+                    com.bernaferrari.changedetection.ui.navigation.HideNativeBar()
+                    com.bernaferrari.changedetection.ui.kit.SearchTopBar(query, viewModel::setSearchQuery, stringResource(Res.string.logs_search_pages)) {
+                        viewModel.setSearchQuery("")
+                        searching = false
+                    }
                 } else {
-                    LargeFlexibleTopAppBar(
-                        title = { Text(stringResource(Res.string.nav_activity)) },
-                        actions = { if (canSearch) IconButton(onClick = { searching = true }) { Icon(Icons.Outlined.Search, stringResource(Res.string.logs_search_pages)) } },
-                        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface, scrolledContainerColor = MaterialTheme.colorScheme.surface),
-                        scrollBehavior = scrollBehavior,
-                    )
+                    if (com.bernaferrari.changedetection.ui.navigation.usesNativeNavigation()) {
+                        com.bernaferrari.changedetection.ui.navigation.AppTopBar(
+                            title = stringResource(Res.string.nav_activity),
+                            onBack = null,
+                            actions = if (canSearch) listOf(com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.logs_search_pages), Icons.Outlined.Search, "magnifyingglass") { searching = true }) else emptyList(),
+                        )
+                    } else {
+                        LargeFlexibleTopAppBar(
+                            title = { Text(stringResource(Res.string.nav_activity)) },
+                            actions = { if (canSearch) IconButton(onClick = { searching = true }) { Icon(Icons.Outlined.Search, stringResource(Res.string.logs_search_pages)) } },
+                            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface, scrolledContainerColor = MaterialTheme.colorScheme.surface),
+                            scrollBehavior = scrollBehavior,
+                        )
+                    }
                 }
-            }
             }
         },
         snackbarHost = { SnackbarHost(snackbar) },

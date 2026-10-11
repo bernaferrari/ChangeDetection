@@ -194,7 +194,9 @@ fun HomeScreen(
         viewModel.uiMessage.collect { message ->
             when (message) {
                 UiMessage.SnapshotsPruned -> snackbar.showSnackbar(prunedText)
+
                 UiMessage.TurboEnded -> snackbar.showSnackbar(turboEndedText)
+
                 is UiMessage.PageAdded -> launch {
                     val open = snackbar.showSnackbar(nowWatching.replace("%1\$s", message.name), actionLabel = openLabel, duration = SnackbarDuration.Short) == SnackbarResult.ActionPerformed
                     if (open) onOpenPage(message.siteId)
@@ -504,9 +506,12 @@ private fun HomeTopBar(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     val (color, text) = when {
                         checking > 0 -> MaterialTheme.colorScheme.primary to pluralStringResource(Res.plurals.home_checking, checking, checking)
+
                         failing > 0 -> MaterialTheme.colorScheme.error to pluralStringResource(Res.plurals.home_failing, failing, failing)
+
                         // The page count is already in the Pages section; this line answers "is it working?".
                         lastCheck != null -> MaterialTheme.marks.healthy to stringResource(Res.string.home_status_checked, getRelativeTimeLabel(lastCheck).lowercase())
+
                         else -> MaterialTheme.colorScheme.outline to stringResource(Res.string.home_status_first_check)
                     }
                     if (checking > 0) {

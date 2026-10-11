@@ -51,14 +51,18 @@ internal object VisualRegions {
     private const val MIN_REGION_ROWS = 4
     private const val MAX_REGIONS = 24
     private const val MAX_GROW_ROWS = 90
+
     /** Column block used to tell a dense edit from scattered noise. */
     private const val BLOCK = 16
     private const val MIN_CLUSTER_PIXELS = 14
+
     /** Largest blurred colour difference still explained by drawing the same thing a fraction of a pixel off. */
     private const val SUBPIXEL_TOLERANCE = 48
+
     /** Column bands in a row profile, and how far a band may drift and still be the same row. */
     private const val BANDS = 12
     private const val PROFILE_TOLERANCE = 36
+
     /** Above this many cells (rows × rows, after trimming the shared top and bottom) alignment falls back to exact rows. */
     private const val MAX_ALIGN_CELLS = 36_000_000L
     private const val BAND_GAP_ROWS = 2
@@ -89,9 +93,13 @@ internal object VisualRegions {
             if (paired > 0) {
                 // Something was replaced: show the old part and the new part.
                 raw += VisualRegion(
-                    VisualRegion.Kind.Changed, 0f, 1f,
-                    gap.sourceStart.toFloat() / beforeHeight, (gap.sourceStart + gap.sourceCount).toFloat() / beforeHeight,
-                    gap.targetStart.toFloat() / afterHeight, (gap.targetStart + gap.targetCount).toFloat() / afterHeight,
+                    VisualRegion.Kind.Changed,
+                    0f,
+                    1f,
+                    gap.sourceStart.toFloat() / beforeHeight,
+                    (gap.sourceStart + gap.sourceCount).toFloat() / beforeHeight,
+                    gap.targetStart.toFloat() / afterHeight,
+                    (gap.targetStart + gap.targetCount).toFloat() / afterHeight,
                 )
                 changedRows += gap.targetCount
             } else if (gap.targetCount > 0) {
@@ -118,7 +126,6 @@ internal object VisualRegions {
             heightDelta = (afterHeight - beforeHeight).toFloat() / beforeHeight,
         )
     }
-
 
     /** Consecutive rows paired one to one: old rows [sourceStart, +length) with new rows [targetStart, +length). */
     private class Run(val sourceStart: Int, val targetStart: Int, val length: Int)
@@ -238,8 +245,14 @@ internal object VisualRegions {
         while (i >= 0 && j >= 0) {
             val cell = i.toLong() * m + j
             when ((directions[(cell ushr 2).toInt()].toInt() ushr ((cell and 3L).toInt() * 2)) and 3) {
-                DIAGONAL -> { pairs += pack(i, j); i--; j-- }
+                DIAGONAL -> {
+                    pairs += pack(i, j)
+                    i--
+                    j--
+                }
+
                 UP -> i--
+
                 else -> j--
             }
         }
@@ -298,9 +311,12 @@ internal object VisualRegions {
             if (dense && right >= left) {
                 out += VisualRegion(
                     VisualRegion.Kind.Changed,
-                    left.toFloat() / width, (right + 1).toFloat() / width,
-                    (run.sourceStart + bandStart).toFloat() / beforeHeight, (run.sourceStart + lastChanged + 1).toFloat() / beforeHeight,
-                    (run.targetStart + bandStart).toFloat() / afterHeight, (run.targetStart + lastChanged + 1).toFloat() / afterHeight,
+                    left.toFloat() / width,
+                    (right + 1).toFloat() / width,
+                    (run.sourceStart + bandStart).toFloat() / beforeHeight,
+                    (run.sourceStart + lastChanged + 1).toFloat() / beforeHeight,
+                    (run.targetStart + bandStart).toFloat() / afterHeight,
+                    (run.targetStart + lastChanged + 1).toFloat() / afterHeight,
                 )
             }
             bandStart = -1
@@ -360,10 +376,9 @@ internal object VisualRegions {
         kotlin.math.abs((a and 255) - (b and 255)),
     )
 
-    private fun average(a: Int, b: Int): Int =
-        (((((a ushr 16) and 255) + ((b ushr 16) and 255)) / 2) shl 16) or
-            (((((a ushr 8) and 255) + ((b ushr 8) and 255)) / 2) shl 8) or
-            (((a and 255) + (b and 255)) / 2)
+    private fun average(a: Int, b: Int): Int = (((((a ushr 16) and 255) + ((b ushr 16) and 255)) / 2) shl 16) or
+        (((((a ushr 8) and 255) + ((b ushr 8) and 255)) / 2) shl 8) or
+        (((a and 255) + (b and 255)) / 2)
 
     /**
      * Empty space (an ad slot that was hidden, page background) is not worth showing: trim blank rows from the

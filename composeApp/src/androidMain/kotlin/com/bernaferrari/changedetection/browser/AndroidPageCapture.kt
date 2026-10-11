@@ -211,6 +211,7 @@ internal class AndroidPageCapture(private val view: WebView) {
 
     private companion object {
         const val MAX_PIXELS = 7_000_000L
+
         /** Output pixels per CSS pixel: sharp text, and a whole number so moved content stays pixel-identical. */
         const val CSS_TO_OUTPUT = 2f
     }

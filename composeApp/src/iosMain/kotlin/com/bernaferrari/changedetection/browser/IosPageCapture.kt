@@ -38,22 +38,24 @@ import platform.posix.memcpy
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+/** WebKit holds navigation delegates weakly; this keeps each one alive until its load ends. */
+private val aliveDelegates = mutableSetOf<Any>()
+
 /**
  * Full-page screenshots with WKWebView. It uses the app's persistent website data store, the same one the
  * in-app sign-in browser uses, so pages that need a login are captured signed in.
  */
-/** WebKit holds navigation delegates weakly; this keeps each one alive until its load ends. */
-private val aliveDelegates = mutableSetOf<Any>()
-
 object IosPageCapture {
     /** A phone-sized viewport, so pages render their mobile layout like they would in Safari. */
     private const val VIEWPORT_WIDTH = 390.0
     private const val VIEWPORT_HEIGHT = 844.0
+
     /**
      * Exactly two pixels per CSS point. A whole number matters: content that moves down by N points lands
      * exactly 2N rows lower, pixel for pixel, so the comparison sees it moved instead of re-rendered.
      */
     private const val OUTPUT_WIDTH_PX = VIEWPORT_WIDTH * 2
+
     /** 12,000 px tall at 780 px wide, about the memory the capture always used. */
     private const val MAX_PAGE_POINTS = 6_000.0
     private val single = Mutex()
@@ -117,8 +119,7 @@ object IosPageCapture {
         }
     }
 
-    private suspend fun pageHeight(web: WKWebView): Double =
-        (evaluate(web, "Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)") as? NSNumber)?.doubleValue ?: VIEWPORT_HEIGHT
+    private suspend fun pageHeight(web: WKWebView): Double = (evaluate(web, "Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)") as? NSNumber)?.doubleValue ?: VIEWPORT_HEIGHT
 
     private data class Clip(val left: Double, val top: Double, val right: Double, val bottom: Double)
 
@@ -167,7 +168,6 @@ object IosPageCapture {
 
     private fun jsString(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ") + "\""
 
-
     private fun hostWindow(): UIWindow? = UIApplication.sharedApplication.keyWindow
         ?: UIApplication.sharedApplication.windows.firstOrNull() as? UIWindow
 
@@ -204,7 +204,9 @@ object IosPageCapture {
         }
     }
 
-    private class LoadDelegate(private val continuation: CancellableContinuation<Unit>) : NSObject(), WKNavigationDelegateProtocol {
+    private class LoadDelegate(private val continuation: CancellableContinuation<Unit>) :
+        NSObject(),
+        WKNavigationDelegateProtocol {
         @kotlinx.cinterop.ObjCSignatureOverride
         override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
             if (continuation.isActive) continuation.resume(Unit)

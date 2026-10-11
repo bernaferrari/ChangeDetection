@@ -65,7 +65,10 @@ class DesignReviewTest {
         for (dark in listOf(false, true)) {
             withApp(dark, seed = true) {
                 val p = if (dark) "q-dark-" else "q-"
-                fun step(name: String, block: () -> Unit) = runCatching { block(); shot(p + name) }.onFailure { println("quick step $name failed: $it") }
+                fun step(name: String, block: () -> Unit) = runCatching {
+                    block()
+                    shot(p + name)
+                }.onFailure { println("quick step $name failed: $it") }
                 fun home() = runCatching {
                     repeat(3) { if (onAllNodesWithTag("home-list").fetchSemanticsNodes().isEmpty()) runCatching { onNodeWithContentDescription("Navigate back").performClick() } }
                     if (onAllNodesWithTag("home-list").fetchSemanticsNodes().isEmpty()) onNodeWithText("Home").performClick()
@@ -118,7 +121,7 @@ class DesignReviewTest {
                 step("31-add-review") {
                     onNodeWithText("Page address").performTextInput(fixtureUrl)
                     onNodeWithText("Open page").performClick()
-        onNodeWithText("Open page").performClick()
+                    onNodeWithText("Open page").performClick()
                     waitForText("Applications are open", substring = true, timeout = 15_000)
                 }
                 runCatching { onNodeWithContentDescription("Navigate back").performClick() }

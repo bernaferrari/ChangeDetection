@@ -199,6 +199,7 @@ fun ChangePreviewBlock(preview: ChangePreview?, modifier: Modifier = Modifier, c
             }
 
             ChangePreview.Invisible -> QuietFact(Icons.Outlined.VisibilityOff, stringResource(Res.string.preview_invisible), stringResource(Res.string.preview_invisible_body))
+
             ChangePreview.NothingVisible -> QuietFact(Icons.Outlined.VisibilityOff, stringResource(Res.string.preview_nothing_visible), stringResource(Res.string.preview_nothing_visible_body))
 
             ChangePreview.FirstVersion -> Text(stringResource(Res.string.preview_first_version), Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(14.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -329,7 +330,15 @@ private fun BeforeAfterPill(showBefore: Boolean, onSelect: (Boolean) -> Unit, mo
             Text(
                 text,
                 Modifier.clip(RoundedCornerShape(8.dp))
-                    .background(if (!selected) androidx.compose.ui.graphics.Color.Transparent else if (before) MaterialTheme.colorScheme.surface else marks.highlight)
+                    .background(
+                        if (!selected) {
+                            androidx.compose.ui.graphics.Color.Transparent
+                        } else if (before) {
+                            MaterialTheme.colorScheme.surface
+                        } else {
+                            marks.highlight
+                        },
+                    )
                     .clickable { onSelect(before) }
                     .padding(horizontal = 10.dp, vertical = 4.dp),
                 style = MaterialTheme.typography.labelMedium,

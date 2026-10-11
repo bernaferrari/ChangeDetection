@@ -16,8 +16,7 @@ class StringResourcesTest {
     private val root = File("src/commonMain/composeResources")
     private val name = Regex("""<(string|plurals)\s+name="([^"]+)"""")
 
-    private fun names(folder: String): List<String> =
-        root.resolve(folder).listFiles { f -> f.extension == "xml" }.orEmpty().flatMap { file -> name.findAll(file.readText()).map { it.groupValues[2] } }
+    private fun names(folder: String): List<String> = root.resolve(folder).listFiles { f -> f.extension == "xml" }.orEmpty().flatMap { file -> name.findAll(file.readText()).map { it.groupValues[2] } }
 
     @Test fun noNameIsDefinedTwice() {
         root.listFiles { f -> f.isDirectory && f.name.startsWith("values") }.orEmpty().forEach { folder ->

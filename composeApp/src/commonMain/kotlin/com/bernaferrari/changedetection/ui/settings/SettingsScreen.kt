@@ -236,7 +236,11 @@ private fun ScreenshotWaitChoice(delayMs: Long, onChange: (Long) -> Unit) {
                 singleLine = true,
                 isError = !valid,
                 suffix = { Text(stringResource(Res.string.settings_wait_seconds)) },
-                supportingText = if (valid) null else { { Text("0–60") } },
+                supportingText = if (valid) {
+                    null
+                } else {
+                    { Text("0–60") }
+                },
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
                 shape = MaterialTheme.shapes.large,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),

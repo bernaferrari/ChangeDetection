@@ -23,10 +23,15 @@ private fun decodedCapture(bytes: ByteArray): Bitmap? = synchronized(decoded) {
     // Keep memory bounded on very large captures (about 40 MB per capture at most).
     var sample = 1
     while (bounds.outWidth.toLong() * bounds.outHeight / (sample.toLong() * sample) > 10_000_000L) sample *= 2
-    val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply {
-        inSampleSize = sample
-        inPreferredConfig = Bitmap.Config.ARGB_8888
-    }) ?: return null
+    val bitmap = BitmapFactory.decodeByteArray(
+        bytes,
+        0,
+        bytes.size,
+        BitmapFactory.Options().apply {
+            inSampleSize = sample
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+        },
+    ) ?: return null
     decoded[bytes] = bitmap
     while (decoded.size > 2) decoded.remove(decoded.keys.first())
     bitmap

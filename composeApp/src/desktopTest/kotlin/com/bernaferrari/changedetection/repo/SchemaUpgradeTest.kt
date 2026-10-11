@@ -63,8 +63,10 @@ class SchemaUpgradeTest {
                 "INSERT INTO sites (title, url, timestamp, siteId, isSuccessful$browser, isRead, isSyncEnabled, isNotificationEnabled, notes, colors, constraints) " +
                     "VALUES ('Fellowship', 'https://example.test', 1560000000000, 'page', 1$browserValues, 0, 1, 1, 'grants', '-16728876,-12627531', 'false, true, false, false')",
             )
-            connection.exec("INSERT INTO sites (title, url, timestamp, siteId, isSuccessful$browser, isRead, isSyncEnabled, isNotificationEnabled, notes, colors, constraints) " +
-                "VALUES (NULL, 'https://broken.test', 1560000000000, 'broken', 0${if (withBrowserColumns) ", 0, 0" else ""}, 0, 0, 1, '', '0,0', 'false, false, false, false')")
+            connection.exec(
+                "INSERT INTO sites (title, url, timestamp, siteId, isSuccessful$browser, isRead, isSyncEnabled, isNotificationEnabled, notes, colors, constraints) " +
+                    "VALUES (NULL, 'https://broken.test', 1560000000000, 'broken', 0${if (withBrowserColumns) ", 0, 0" else ""}, 0, 0, 1, '', '0,0', 'false, false, false, false')",
+            )
             connection.exec("INSERT INTO snaps VALUES ('old', 'page', 1550000000000, 'text/html', 'utf-8', 1200)")
             connection.exec("INSERT INTO snaps VALUES ('new', 'page', 1560000000000, 'text/html', 'utf-8', 1250)")
             connection.exec("PRAGMA user_version = 1")

@@ -151,9 +151,8 @@ private fun boundedReaderLines(lines: List<String>): List<String> = displayDiffR
     lines.mapIndexed { index, line -> DiffRowModel(index + 1, line, DiffLineType.UNCHANGED) },
 ).map { it.content }
 
-/** Lets the floating navigator move between changes in the reader below it. */
-@Stable
 /** Steps through the changes of whatever comparison is on screen; drives the shared bottom bar. */
+@Stable
 internal interface ChangeCursor {
     val current: Int
     val changeCount: Int
