@@ -129,18 +129,18 @@ class IosNativeShell(private val platformActions: PlatformActions) {
                         (if (presented) androidx.compose.foundation.layout.WindowInsetsSides.Horizontal else androidx.compose.foundation.layout.WindowInsetsSides.Bottom),
                 )
                 androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.consumeWindowInsets(consumed)) {
-                if (key == MainDestination) {
-                    val link by IosDeepLinks.pending.collectAsState()
-                    ChangeDetectionRootApp(
-                        platformActions = platformActions,
-                        initialSiteId = link?.first,
-                        initialSnapId = link?.second,
-                        onInitialSiteIdHandled = IosDeepLinks::consume,
-                        startDestination = key,
-                    )
-                } else {
-                    ChangeDetectionRootApp(platformActions = platformActions, startDestination = key)
-                }
+                    if (key == MainDestination) {
+                        val link by IosDeepLinks.pending.collectAsState()
+                        ChangeDetectionRootApp(
+                            platformActions = platformActions,
+                            initialSiteId = link?.first,
+                            initialSnapId = link?.second,
+                            onInitialSiteIdHandled = IosDeepLinks::consume,
+                            startDestination = key,
+                        )
+                    } else {
+                        ChangeDetectionRootApp(platformActions = platformActions, startDestination = key)
+                    }
                 }
             }
         }
@@ -152,6 +152,7 @@ class IosNativeShell(private val platformActions: PlatformActions) {
 
     private inner class Host(private val presented: Boolean) : NativeNavigation {
         lateinit var controller: UIViewController
+
         /** Whether this screen hides the native bar (then Compose handles the status bar inset itself). */
         val barHidden = androidx.compose.runtime.mutableStateOf(false)
         private var signature: String? = null
@@ -159,8 +160,7 @@ class IosNativeShell(private val platformActions: PlatformActions) {
         private var menu: List<BarAction> = emptyList()
 
         /** Screens opened from a sheet land on the visible tab's stack. */
-        private fun stack(): UINavigationController? =
-            controller.navigationController ?: (root as UITabBarController).selectedViewController as? UINavigationController
+        private fun stack(): UINavigationController? = controller.navigationController ?: (root as UITabBarController).selectedViewController as? UINavigationController
 
         override fun push(key: NavKey) {
             stack()?.pushViewController(screen(key, presented = false), animated = true)
@@ -219,18 +219,21 @@ class IosNativeShell(private val platformActions: PlatformActions) {
             item.setRightBarButtonItems(buttons, animated = false)
         }
 
-        private fun action(action: BarAction, onClick: () -> Unit): UIAction =
-            UIAction.actionWithTitle(action.label, image = UIImage.systemImageNamed(action.iosSymbol), identifier = null) { _ -> onClick() }.apply {
-                attributes = (if (action.destructive) UIMenuElementAttributesDestructive else 0uL) or (if (action.enabled) 0uL else UIMenuElementAttributesDisabled)
-            }
+        private fun action(action: BarAction, onClick: () -> Unit): UIAction = UIAction.actionWithTitle(action.label, image = UIImage.systemImageNamed(action.iosSymbol), identifier = null) { _ -> onClick() }.apply {
+            attributes = (if (action.destructive) UIMenuElementAttributesDestructive else 0uL) or (if (action.enabled) 0uL else UIMenuElementAttributesDisabled)
+        }
     }
 
-    private class TabDelegate(private val onSelect: () -> Unit) : NSObject(), platform.UIKit.UITabBarControllerDelegateProtocol {
+    private class TabDelegate(private val onSelect: () -> Unit) :
+        NSObject(),
+        platform.UIKit.UITabBarControllerDelegateProtocol {
         override fun tabBarController(tabBarController: UITabBarController, didSelectViewController: UIViewController) = onSelect()
     }
 
     /** Applies each screen's bar visibility as it appears, so Home (own header) and other screens can differ. */
-    private class StackDelegate(private val visibility: MutableMap<UIViewController, Boolean>) : NSObject(), UINavigationControllerDelegateProtocol {
+    private class StackDelegate(private val visibility: MutableMap<UIViewController, Boolean>) :
+        NSObject(),
+        UINavigationControllerDelegateProtocol {
         override fun navigationController(navigationController: UINavigationController, willShowViewController: UIViewController, animated: Boolean) {
             navigationController.setNavigationBarHidden(visibility[willShowViewController] ?: false, animated = animated)
             // Forget screens that were popped or dismissed.

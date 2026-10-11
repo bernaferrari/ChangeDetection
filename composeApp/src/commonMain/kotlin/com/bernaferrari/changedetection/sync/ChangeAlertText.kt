@@ -45,10 +45,13 @@ private suspend fun summary(preview: ChangePreview): String? = when (preview) {
 
     is ChangePreview.Large -> when {
         preview.reordered -> getString(Res.string.preview_reordered)
+
         preview.samples.isNotEmpty() && (preview.added > 0 || preview.removed > 0) -> preview.samples.joinToString(" · ") { sample ->
             sample.filter { it.kind != EditSegment.Kind.Removed }.joinToString("") { it.text }.ifBlank { sample.joinToString("") { it.text } }
         }.take(220)
+
         preview.numbersOnly -> getString(Res.string.preview_numbers_only)
+
         else -> getString(Res.string.alert_large)
     }
 

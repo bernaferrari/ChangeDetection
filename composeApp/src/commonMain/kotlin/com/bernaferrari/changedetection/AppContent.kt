@@ -294,18 +294,20 @@ fun ChangeDetectionApp(
 
                 entry<PageDetailDestination>(metadata = comparisonMetadata) { key ->
                     var showSchedule by remember { mutableStateOf(false) }
-                    InPane { PageDetailScreen(
-                        siteId = key.siteId,
-                        viewModel = mainViewModel,
-                        onBack = { close(key) },
-                        onCompare = { snapId -> backStack.openComparison(key.siteId, snapId) },
-                        onHistory = { snapId -> backStack.openComparison(key.siteId, snapId, showHistory = true) },
-                        onEdit = { backStack.add(EditSiteDestination(key.siteId)) },
-                        onTurbo = { turboSetup = setOf(key.siteId) },
-                        onSchedule = { showSchedule = true },
-                        onOpenUrl = platformActions.openUrl,
-                        onEnableNotifications = platformActions.requestNotifications,
-                    ) }
+                    InPane {
+                        PageDetailScreen(
+                            siteId = key.siteId,
+                            viewModel = mainViewModel,
+                            onBack = { close(key) },
+                            onCompare = { snapId -> backStack.openComparison(key.siteId, snapId) },
+                            onHistory = { snapId -> backStack.openComparison(key.siteId, snapId, showHistory = true) },
+                            onEdit = { backStack.add(EditSiteDestination(key.siteId)) },
+                            onTurbo = { turboSetup = setOf(key.siteId) },
+                            onSchedule = { showSchedule = true },
+                            onOpenUrl = platformActions.openUrl,
+                            onEnableNotifications = platformActions.requestNotifications,
+                        )
+                    }
                     if (showSchedule) BackgroundSyncDialog(onDismiss = { showSchedule = false })
                 }
 
@@ -382,15 +384,17 @@ fun ChangeDetectionApp(
                 }
 
                 entry<ComparisonDestination>(metadata = comparisonMetadata) { key ->
-                    InPane { ComparisonScreen(
-                        siteId = key.siteId,
-                        onNavigateUp = { close(key) },
-                        showNavigateUp = singlePaneLayout,
-                        initialSnapId = key.initialSnapId,
-                        showHistoryInitially = key.showHistory,
-                        onSiteEdit = { id -> backStack.add(EditSiteDestination(siteId = id)) },
-                        onSiteDelete = { close(key) },
-                    ) }
+                    InPane {
+                        ComparisonScreen(
+                            siteId = key.siteId,
+                            onNavigateUp = { close(key) },
+                            showNavigateUp = singlePaneLayout,
+                            initialSnapId = key.initialSnapId,
+                            showHistoryInitially = key.showHistory,
+                            onSiteEdit = { id -> backStack.add(EditSiteDestination(siteId = id)) },
+                            onSiteDelete = { close(key) },
+                        )
+                    }
                 }
             },
         )
@@ -472,13 +476,13 @@ private fun TurboRoute(
     )
 }
 
+/** The app-wide owner for view models shared by every screen (set by the iOS shell, where each screen has its own host). */
+val LocalAppViewModelStoreOwner = androidx.compose.runtime.staticCompositionLocalOf<androidx.lifecycle.ViewModelStoreOwner?> { null }
+
 /**
  * Closes [screen] if it is still on top (taps that land during the closing animation do nothing), and never
  * removes the last screen: an empty back stack crashes navigation.
  */
-/** The app-wide owner for view models shared by every screen (set by the iOS shell, where each screen has its own host). */
-val LocalAppViewModelStoreOwner = androidx.compose.runtime.staticCompositionLocalOf<androidx.lifecycle.ViewModelStoreOwner?> { null }
-
 internal fun androidx.navigation3.runtime.NavBackStack<NavKey>.pop(screen: NavKey? = null) {
     if (size <= 1) return
     if (screen != null && lastOrNull() != screen) return

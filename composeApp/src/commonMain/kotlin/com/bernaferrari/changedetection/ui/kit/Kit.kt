@@ -111,7 +111,15 @@ fun PageAvatar(
             .size(size)
             .clip(if (loaded) tileShape else shape)
             // Icons are drawn for light backgrounds, so they sit on a light tile in both themes.
-            .background(if (loaded) IconTile else if (dimmed) MaterialTheme.colorScheme.surfaceContainerHighest else tint)
+            .background(
+                if (loaded) {
+                    IconTile
+                } else if (dimmed) {
+                    MaterialTheme.colorScheme.surfaceContainerHighest
+                } else {
+                    tint
+                },
+            )
             .then(if (loaded) Modifier.border(1.dp, Color.Black.copy(alpha = 0.06f), tileShape) else Modifier),
         contentAlignment = Alignment.Center,
     ) {
@@ -121,7 +129,13 @@ fun PageAvatar(
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                alpha = if (!loaded) 0f else if (dimmed) 0.45f else 1f,
+                alpha = if (!loaded) {
+                    0f
+                } else if (dimmed) {
+                    0.45f
+                } else {
+                    1f
+                },
             )
         }
         if (!loaded) {

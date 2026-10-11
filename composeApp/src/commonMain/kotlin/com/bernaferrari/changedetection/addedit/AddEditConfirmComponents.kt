@@ -150,7 +150,6 @@ fun AddEditConfirmScreen(
         if (isEditing && validUrl && preview is CapturePreviewState.Idle) onPreview()
     }
 
-
     fun changeMode(mode: CaptureMode) {
         if (isSaving || mode == captureMode) return
         onCaptureModeChange(mode)
@@ -199,13 +198,37 @@ fun AddEditConfirmScreen(
                 ) {
                     PagePreviewCard(
                         url = url, title = title, iconUrl = iconUrl, onTitleChange = onTitleChange, preview = preview, enabled = !isSaving,
-                        onRetry = onPreview, onEditAddress = { reviewing = false; browsing = false }, onSelectRegion = null, textRegion = textRegion, screenshot = visualMode,
+                        onRetry = onPreview, onEditAddress = {
+                            reviewing = false
+                            browsing = false
+                        }, onSelectRegion = null, textRegion = textRegion, screenshot = visualMode,
                     )
-                    if (browserAvailable) PartsSummary(textRegion.include, ignoredParts.size, onEdit = { reviewing = false; browsing = true })
+                    if (browserAvailable) {
+                        PartsSummary(textRegion.include, ignoredParts.size, onEdit = {
+                            reviewing = false
+                            browsing = true
+                        })
+                    }
                     OptionsCard(
-                        captureMode, ::changeMode, textRegion, { onTextRegionChange(it); onPreview() }, enabled = !isSaving,
-                        expanded = moreOptions, onExpandedChange = { moreOptions = it },
-                        advanced = { AdvancedOptions(captureMode, ::changeMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange, { onTextRegionChange(it); onPreview() }, { typedRegion = true; onTextRegionChange(it) }, isSaving, isEditing) },
+                        captureMode,
+                        ::changeMode,
+                        textRegion,
+                        {
+                            onTextRegionChange(it)
+                            onPreview()
+                        },
+                        enabled = !isSaving,
+                        expanded = moreOptions,
+                        onExpandedChange = { moreOptions = it },
+                        advanced = {
+                            AdvancedOptions(captureMode, ::changeMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange, {
+                                onTextRegionChange(it)
+                                onPreview()
+                            }, {
+                                typedRegion = true
+                                onTextRegionChange(it)
+                            }, isSaving, isEditing)
+                        },
                     )
                     saveError?.localizedMessage()?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
                     FootNote(Icons.Outlined.Schedule, stringResource(Res.string.monitor_editor_cadence_hint))
@@ -225,239 +248,242 @@ fun AddEditConfirmScreen(
 
     if (browsing && validUrl) {
         Box(Modifier.fillMaxSize()) {
-        WatchBrowser(
-            startUrl = remember { url.normalizeUrl() ?: url },
-            only = textRegion.include,
-            ignored = ignoredParts,
-            onPicksChange = { only, ignored -> onTextRegionChange(com.bernaferrari.changedetection.detection.TextRegion(only, ignored.joinToString(", "))) },
-            onPageChange = { page -> if (!isEditing && page.trimEnd('/') != (url.normalizeUrl() ?: url).trimEnd('/')) onUrlChange(page) },
-            onWatch = {
-                if (isEditing) {
+            WatchBrowser(
+                startUrl = remember { url.normalizeUrl() ?: url },
+                only = textRegion.include,
+                ignored = ignoredParts,
+                onPicksChange = { only, ignored -> onTextRegionChange(com.bernaferrari.changedetection.detection.TextRegion(only, ignored.joinToString(", "))) },
+                onPageChange = { page -> if (!isEditing && page.trimEnd('/') != (url.normalizeUrl() ?: url).trimEnd('/')) onUrlChange(page) },
+                onWatch = {
+                    if (isEditing) {
+                        browsing = false
+                        onPreview()
+                    } else {
+                        reviewing = true
+                        onPreview()
+                    }
+                },
+                onClose = {
                     browsing = false
-                    onPreview()
-                } else {
-                    reviewing = true
-                    onPreview()
-                }
-            },
-            onClose = {
-                browsing = false
-                reviewing = false
-            },
-            watchLabel = stringResource(if (isEditing) Res.string.done else Res.string.watch_this_page),
-        )
-        reviewOverlay(reviewing)
+                    reviewing = false
+                },
+                watchLabel = stringResource(if (isEditing) Res.string.done else Res.string.watch_this_page),
+            )
+            reviewOverlay(reviewing)
         }
         return
     }
 
     Box(Modifier.fillMaxSize()) {
-
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(if (isEditing) Res.string.editor_edit_title else Res.string.home_watch_page)) },
-                navigationIcon = {
-                    IconButton(enabled = !isSaving, onClick = onNavigateUp) {
-                        Icon(
-                            if (isEditing) Icons.AutoMirrored.Filled.ArrowBack else Icons.Default.Close,
-                            contentDescription = stringResource(if (isEditing) Res.string.a11y_navigate_back else Res.string.a11y_close),
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
-            )
-        },
-        bottomBar = {
-            Surface(color = MaterialTheme.colorScheme.surface) {
-                Box(
-                    Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.ime.union(WindowInsets.navigationBars)).padding(horizontal = 16.dp, vertical = 12.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Button(
-                        onClick = {
-                            keyboard?.hide()
-                            when {
-                                isEditing -> onSave()
-                                browserAvailable -> browsing = true
-                                else -> {
-                                    reviewing = true
-                                    onPreview()
-                                }
-                            }
-                        },
-                        enabled = !isSaving && validUrl && (!isEditing || preview !is CapturePreviewState.Loading),
-                        shapes = ButtonDefaults.shapes(),
-                        modifier = Modifier.widthIn(max = 600.dp).fillMaxWidth().heightIn(min = 56.dp),
-                    ) {
-                        if (isSaving) {
-                            LoadingIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                            Spacer(Modifier.size(8.dp))
-                            Text(stringResource(Res.string.saving), style = MaterialTheme.typography.titleMedium)
-                        } else {
-                            Text(stringResource(if (isEditing) Res.string.save else Res.string.editor_open_page), style = MaterialTheme.typography.titleMedium)
-                        }
-                    }
-                }
-            }
-        },
-    ) { padding ->
-        Box(
-            Modifier.fillMaxSize().padding(padding)
-                .nestedScroll(dismissKeyboardOnScroll)
-                .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
-            contentAlignment = Alignment.TopCenter,
-        ) {
-            Column(
-                Modifier.widthIn(max = 600.dp).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                if (!isEditing) {
-                    Text(
-                        stringResource(Res.string.editor_paste_title),
-                        Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp),
-                        style = MaterialTheme.typography.headlineMedium,
-                    )
-                    Text(
-                        stringResource(Res.string.editor_paste_body),
-                        Modifier.padding(horizontal = 8.dp).padding(bottom = 8.dp),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                AddressField(
-                    url = url,
-                    error = urlError?.takeIf { url.isNotBlank() }?.localizedMessage(),
-                    enabled = !isSaving,
-                    focus = urlFocus,
-                    onChange = onUrlChange,
-                    onGo = {
-                        keyboard?.hide()
-                        if (validUrl) {
-                            when {
-                                isEditing -> onPreview()
-                                browserAvailable -> browsing = true
-                                else -> {
-                                    reviewing = true
-                                    onPreview()
-                                }
-                            }
-                        }
-                    },
-                )
-                val link = copiedLink
-                AnimatedVisibility(!isEditing && url.isBlank() && link != null) {
-                    if (link != null) {
-                        SuggestionChip(
-                            onClick = {
-                                onUrlChange(link)
-                                keyboard?.hide()
-                                browsing = true
-                            },
-                            icon = { Icon(Icons.Default.ContentPaste, null, Modifier.size(18.dp)) },
-                            label = { Text(stringResource(Res.string.paste) + " · " + link.removePrefix("https://").removePrefix("http://").removePrefix("www."), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            shape = CircleShape,
-                            modifier = Modifier.padding(start = 4.dp),
-                        )
-                    }
-                }
-
-                if (duplicateSiteId != null) DuplicatePageWarning(duplicateSiteId, onOpenDuplicate, onDismissDuplicate)
-
-                AnimatedVisibility(isEditing, enter = fadeIn(), exit = fadeOut()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        PagePreviewCard(
-                            url = url,
-                            title = title,
-                            iconUrl = iconUrl,
-                            onTitleChange = onTitleChange,
-                            preview = preview,
-                            enabled = !isSaving,
-                            onRetry = onPreview,
-                            onEditAddress = { urlFocus.requestFocus() },
-                            onSelectRegion = if (textMode && !isSaving) {
-                                { selected ->
-                                    onTextRegionChange(selected)
-                                    onPreview()
-                                }
-                            } else {
-                                null
-                            },
-                            textRegion = textRegion,
-                            screenshot = visualMode,
-                        )
-                        val ready = (preview as? CapturePreviewState.Ready)?.content as? CapturePreview.Html
-                        if (textMode && ready != null && ready.text.split(Regex("\\s+")).count { it.isNotBlank() } < 25 && supportsVisualMonitoring) {
-                            com.bernaferrari.changedetection.ui.kit.Callout(
-                                title = stringResource(Res.string.editor_little_text_title),
-                                body = stringResource(Res.string.editor_little_text_body),
-                                icon = Icons.Outlined.Warning,
-                                container = MaterialTheme.marks.warningSoft,
-                                iconTint = MaterialTheme.marks.warning,
-                                modifier = Modifier.offset(x = (-16).dp).fillMaxWidth(),
-                                actions = { Button(enabled = !isSaving, onClick = { changeMode(CaptureMode.SCREENSHOT) }) { Text(stringResource(Res.string.editor_use_screenshot)) } },
+        Scaffold(
+            containerColor = MaterialTheme.colorScheme.surface,
+            topBar = {
+                TopAppBar(
+                    title = { Text(stringResource(if (isEditing) Res.string.editor_edit_title else Res.string.home_watch_page)) },
+                    navigationIcon = {
+                        IconButton(enabled = !isSaving, onClick = onNavigateUp) {
+                            Icon(
+                                if (isEditing) Icons.AutoMirrored.Filled.ArrowBack else Icons.Default.Close,
+                                contentDescription = stringResource(if (isEditing) Res.string.a11y_navigate_back else Res.string.a11y_close),
                             )
                         }
-                        if (browserAvailable) PartsSummary(textRegion.include, ignoredParts.size, onEdit = { browsing = true })
-                        OptionsCard(
-                            captureMode = captureMode,
-                            onMode = ::changeMode,
-                            textRegion = textRegion,
-                            onRegion = {
-                                onTextRegionChange(it)
-                                onPreview()
-                            },
-                            enabled = !isSaving,
-                            expanded = moreOptions,
-                            onExpandedChange = { moreOptions = it },
-                            advanced = {
-                                AdvancedOptions(
-                                    captureMode, ::changeMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange,
-                                    onRegion = {
-                                        onTextRegionChange(it)
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+                )
+            },
+            bottomBar = {
+                Surface(color = MaterialTheme.colorScheme.surface) {
+                    Box(
+                        Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.ime.union(WindowInsets.navigationBars)).padding(horizontal = 16.dp, vertical = 12.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Button(
+                            onClick = {
+                                keyboard?.hide()
+                                when {
+                                    isEditing -> onSave()
+
+                                    browserAvailable -> browsing = true
+
+                                    else -> {
+                                        reviewing = true
                                         onPreview()
-                                    },
-                                    onRegionTyped = {
-                                        typedRegion = true
-                                        onTextRegionChange(it)
-                                    },
-                                    isSaving = isSaving,
-                                    isEditing = isEditing,
-                                )
+                                    }
+                                }
                             },
-                        )
-                        if (legacyThreshold > 0 && !(visualMode && visualChangeThresholdBps > 0) && captureMode != CaptureMode.TEXT && captureMode != CaptureMode.SOURCE) {
-                            LegacyThresholdNotice(legacyThreshold, !isSaving, onRemoveLegacyThreshold)
+                            enabled = !isSaving && validUrl && (!isEditing || preview !is CapturePreviewState.Loading),
+                            shapes = ButtonDefaults.shapes(),
+                            modifier = Modifier.widthIn(max = 600.dp).fillMaxWidth().heightIn(min = 56.dp),
+                        ) {
+                            if (isSaving) {
+                                LoadingIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                                Spacer(Modifier.size(8.dp))
+                                Text(stringResource(Res.string.saving), style = MaterialTheme.typography.titleMedium)
+                            } else {
+                                Text(stringResource(if (isEditing) Res.string.save else Res.string.editor_open_page), style = MaterialTheme.typography.titleMedium)
+                            }
                         }
+                    }
+                }
+            },
+        ) { padding ->
+            Box(
+                Modifier.fillMaxSize().padding(padding)
+                    .nestedScroll(dismissKeyboardOnScroll)
+                    .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
+                contentAlignment = Alignment.TopCenter,
+            ) {
+                Column(
+                    Modifier.widthIn(max = 600.dp).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    if (!isEditing) {
                         Text(
-                            stringResource(if (isEditing) Res.string.editor_baseline_note else Res.string.monitor_editor_cadence_hint),
-                            Modifier.padding(horizontal = 8.dp),
-                            style = MaterialTheme.typography.bodySmall,
+                            stringResource(Res.string.editor_paste_title),
+                            Modifier.padding(start = 8.dp, end = 8.dp, top = 8.dp),
+                            style = MaterialTheme.typography.headlineMedium,
+                        )
+                        Text(
+                            stringResource(Res.string.editor_paste_body),
+                            Modifier.padding(horizontal = 8.dp).padding(bottom = 8.dp),
+                            style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                }
+                    AddressField(
+                        url = url,
+                        error = urlError?.takeIf { url.isNotBlank() }?.localizedMessage(),
+                        enabled = !isSaving,
+                        focus = urlFocus,
+                        onChange = onUrlChange,
+                        onGo = {
+                            keyboard?.hide()
+                            if (validUrl) {
+                                when {
+                                    isEditing -> onPreview()
 
-                saveError?.localizedMessage()?.let { message ->
-                    Surface(
-                        modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
-                        shape = MaterialTheme.shapes.extraLarge,
-                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.12f),
-                        contentColor = MaterialTheme.colorScheme.error,
-                    ) {
-                        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.ErrorOutline, null)
-                            Text(message, style = MaterialTheme.typography.bodyMedium)
+                                    browserAvailable -> browsing = true
+
+                                    else -> {
+                                        reviewing = true
+                                        onPreview()
+                                    }
+                                }
+                            }
+                        },
+                    )
+                    val link = copiedLink
+                    AnimatedVisibility(!isEditing && url.isBlank() && link != null) {
+                        if (link != null) {
+                            SuggestionChip(
+                                onClick = {
+                                    onUrlChange(link)
+                                    keyboard?.hide()
+                                    browsing = true
+                                },
+                                icon = { Icon(Icons.Default.ContentPaste, null, Modifier.size(18.dp)) },
+                                label = { Text(stringResource(Res.string.paste) + " · " + link.removePrefix("https://").removePrefix("http://").removePrefix("www."), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                shape = CircleShape,
+                                modifier = Modifier.padding(start = 4.dp),
+                            )
                         }
                     }
+
+                    if (duplicateSiteId != null) DuplicatePageWarning(duplicateSiteId, onOpenDuplicate, onDismissDuplicate)
+
+                    AnimatedVisibility(isEditing, enter = fadeIn(), exit = fadeOut()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            PagePreviewCard(
+                                url = url,
+                                title = title,
+                                iconUrl = iconUrl,
+                                onTitleChange = onTitleChange,
+                                preview = preview,
+                                enabled = !isSaving,
+                                onRetry = onPreview,
+                                onEditAddress = { urlFocus.requestFocus() },
+                                onSelectRegion = if (textMode && !isSaving) {
+                                    { selected ->
+                                        onTextRegionChange(selected)
+                                        onPreview()
+                                    }
+                                } else {
+                                    null
+                                },
+                                textRegion = textRegion,
+                                screenshot = visualMode,
+                            )
+                            val ready = (preview as? CapturePreviewState.Ready)?.content as? CapturePreview.Html
+                            if (textMode && ready != null && ready.text.split(Regex("\\s+")).count { it.isNotBlank() } < 25 && supportsVisualMonitoring) {
+                                com.bernaferrari.changedetection.ui.kit.Callout(
+                                    title = stringResource(Res.string.editor_little_text_title),
+                                    body = stringResource(Res.string.editor_little_text_body),
+                                    icon = Icons.Outlined.Warning,
+                                    container = MaterialTheme.marks.warningSoft,
+                                    iconTint = MaterialTheme.marks.warning,
+                                    modifier = Modifier.offset(x = (-16).dp).fillMaxWidth(),
+                                    actions = { Button(enabled = !isSaving, onClick = { changeMode(CaptureMode.SCREENSHOT) }) { Text(stringResource(Res.string.editor_use_screenshot)) } },
+                                )
+                            }
+                            if (browserAvailable) PartsSummary(textRegion.include, ignoredParts.size, onEdit = { browsing = true })
+                            OptionsCard(
+                                captureMode = captureMode,
+                                onMode = ::changeMode,
+                                textRegion = textRegion,
+                                onRegion = {
+                                    onTextRegionChange(it)
+                                    onPreview()
+                                },
+                                enabled = !isSaving,
+                                expanded = moreOptions,
+                                onExpandedChange = { moreOptions = it },
+                                advanced = {
+                                    AdvancedOptions(
+                                        captureMode, ::changeMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange,
+                                        onRegion = {
+                                            onTextRegionChange(it)
+                                            onPreview()
+                                        },
+                                        onRegionTyped = {
+                                            typedRegion = true
+                                            onTextRegionChange(it)
+                                        },
+                                        isSaving = isSaving,
+                                        isEditing = isEditing,
+                                    )
+                                },
+                            )
+                            if (legacyThreshold > 0 && !(visualMode && visualChangeThresholdBps > 0) && captureMode != CaptureMode.TEXT && captureMode != CaptureMode.SOURCE) {
+                                LegacyThresholdNotice(legacyThreshold, !isSaving, onRemoveLegacyThreshold)
+                            }
+                            Text(
+                                stringResource(if (isEditing) Res.string.editor_baseline_note else Res.string.monitor_editor_cadence_hint),
+                                Modifier.padding(horizontal = 8.dp),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+
+                    saveError?.localizedMessage()?.let { message ->
+                        Surface(
+                            modifier = Modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
+                            shape = MaterialTheme.shapes.extraLarge,
+                            color = MaterialTheme.colorScheme.error.copy(alpha = 0.12f),
+                            contentColor = MaterialTheme.colorScheme.error,
+                        ) {
+                            Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.ErrorOutline, null)
+                                Text(message, style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(24.dp))
                 }
-                Spacer(Modifier.height(24.dp))
             }
         }
-    }
 
-    reviewOverlay(reviewing && !browsing)
+        reviewOverlay(reviewing && !browsing)
     }
     if (showUrlChangeDialog) AddressChangeDialog(onCancel, onKeepHistory, onStartFresh)
 }

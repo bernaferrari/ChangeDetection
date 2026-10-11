@@ -44,7 +44,9 @@ internal actual fun SnapshotImage(
     }
     when (val current = state) {
         is IosImageState.Ready -> Image(current.image, contentDescription, modifier, contentScale = contentScale)
+
         IosImageState.Loading -> Box(modifier, contentAlignment = Alignment.Center) { LoadingIndicator() }
+
         IosImageState.Failed -> Box(modifier, contentAlignment = Alignment.Center) {
             Text(
                 stringResource(Res.string.image_comparison_unavailable),

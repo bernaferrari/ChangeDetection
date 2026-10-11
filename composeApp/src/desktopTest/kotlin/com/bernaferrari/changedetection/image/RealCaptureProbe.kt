@@ -20,7 +20,10 @@ class RealCaptureProbe {
         println("share=${change.changedShare} heightDelta=${change.heightDelta}")
         val before = ImageIO.read(a)
         val after = ImageIO.read(b)
-        val out = File("/tmp/regions").apply { deleteRecursively(); mkdirs() }
+        val out = File("/tmp/regions").apply {
+            deleteRecursively()
+            mkdirs()
+        }
         change.regions.forEachIndexed { i, r ->
             println("$i ${r.kind} x=${r.left}-${r.right} before=${r.beforeTop}-${r.beforeBottom} after=${r.afterTop}-${r.afterBottom}")
             fun crop(img: java.awt.image.BufferedImage, top: Float, bottom: Float, name: String) {

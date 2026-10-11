@@ -242,14 +242,12 @@ class AddEditViewModel(
         _uiState.update { it.copy(textRegion = region, regionError = false) }
     }
 
-    private fun validateRegion(state: AddEditUiState): Boolean {
-        return try {
-            state.textRegion.validate()
-            true
-        } catch (invalid: com.bernaferrari.changedetection.detection.TextRegionException) {
-            _uiState.update { it.copy(regionError = true) }
-            false
-        }
+    private fun validateRegion(state: AddEditUiState): Boolean = try {
+        state.textRegion.validate()
+        true
+    } catch (invalid: com.bernaferrari.changedetection.detection.TextRegionException) {
+        _uiState.update { it.copy(regionError = true) }
+        false
     }
 
     fun removeLegacyThreshold() {

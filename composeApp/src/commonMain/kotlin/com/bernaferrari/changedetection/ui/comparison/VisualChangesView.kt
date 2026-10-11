@@ -216,7 +216,9 @@ private fun RegionCard(number: Int, region: VisualRegion, beforeBytes: ByteArray
                     CropLabelled(stringResource(Res.string.preview_before), beforeBytes, region.left, region.right, region.beforeTop, region.beforeBottom, highlighted = false)
                     CropLabelled(stringResource(Res.string.preview_after), afterBytes, region.left, region.right, region.afterTop, region.afterBottom, highlighted = true)
                 }
+
                 VisualRegion.Kind.Added -> CropLabelled(null, afterBytes, region.left, region.right, region.afterTop, region.afterBottom, highlighted = true)
+
                 VisualRegion.Kind.Removed -> CropLabelled(null, beforeBytes, region.left, region.right, region.beforeTop, region.beforeBottom, highlighted = false, removed = true)
             }
         }
@@ -243,7 +245,17 @@ private fun CropLabelled(label: String?, bytes: ByteArray, left: Float, right: F
         }
         BoxWithConstraints(
             Modifier.fillMaxWidth().clip(shape).background(Color.White)
-                .border(if (highlighted) 2.dp else 1.dp, if (highlighted) marks.highlightEdge else if (removed) marks.removed else MaterialTheme.colorScheme.outlineVariant, shape),
+                .border(
+                    if (highlighted) 2.dp else 1.dp,
+                    if (highlighted) {
+                        marks.highlightEdge
+                    } else if (removed) {
+                        marks.removed
+                    } else {
+                        MaterialTheme.colorScheme.outlineVariant
+                    },
+                    shape,
+                ),
         ) {
             val cardWidth = constraints.maxWidth
             // Image width so that the [l, r] slice fills the card.

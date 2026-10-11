@@ -191,8 +191,7 @@ private val relativeTime = Regex(
 private fun mask(line: String): String = relativeTime.replace(digits.replace(line, "#"), "#t")
 
 /** True when two passages differ only in their numbers ("76 points · 1 hour ago" → "80 points · 2 hours ago" is not, "76 points" → "80 points" is). */
-internal fun onlyNumbersDiffer(before: String, after: String): Boolean =
-    before != after && mask(before) == mask(after)
+internal fun onlyNumbersDiffer(before: String, after: String): Boolean = before != after && mask(before) == mask(after)
 
 /** How much real wording a change carries, so previews lead with words rather than counters. */
 private val currency = Regex("[$€£¥₹₩₽]|R\\$|\\b(USD|EUR|GBP|BRL|JPY|CHF|CAD|AUD)\\b")
@@ -225,6 +224,7 @@ fun textDigest(oldLines: List<String>, newLines: List<String>): TextDigest {
     val oldByNorm = old.groupBy(::norm)
     val newNorms = new.mapTo(HashSet(), ::norm)
     val oldExact = old.toHashSet()
+
     // "1.", "·", "|" and other letterless fragments are layout, not content.
     fun words(line: String) = line.count { it.isLetter() } >= 3
     val addedAll = new.filter { words(it) && norm(it) !in oldByNorm }.distinct()
@@ -245,6 +245,7 @@ fun textDigest(oldLines: List<String>, newLines: List<String>): TextDigest {
         }
     }
     val removed = removedAll.filter { gone -> edited.none { it.first == gone } }
+
     // Lines that repeat one template with different values ("12 points by ana 3 hours ago") are churn: when three
     // or more edits keep the same unchanged words, they join the folded updates instead of reading as edits.
     fun template(pair: Pair<String, String>) = wordDiff(pair.first, pair.second).filter { it.kind == EditSegment.Kind.Same }.joinToString(" ") { it.text.trim() }.trim()

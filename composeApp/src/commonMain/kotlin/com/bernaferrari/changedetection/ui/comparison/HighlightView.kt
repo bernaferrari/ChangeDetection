@@ -71,6 +71,7 @@ internal fun HighlightView(afterBytes: ByteArray, regions: List<VisualRegion>, c
         val imageHeightPx = if (aspect > 0f) imageWidthPx / aspect else 0f
         val padPx = with(density) { pad.toPx() }
         val viewportPx = with(density) { maxHeight.toPx() }
+
         // A change sits a quarter of the way down the screen, so what comes before it is still visible.
         fun targetFor(index: Int): Int = ordered.getOrNull(index)?.let { region ->
             (padPx + region.afterTop * imageHeightPx - viewportPx * 0.25f).roundToInt().coerceAtLeast(0)
@@ -149,7 +150,5 @@ internal fun HighlightView(afterBytes: ByteArray, regions: List<VisualRegion>, c
                 }
             }
         }
-
     }
 }
-

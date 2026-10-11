@@ -91,10 +91,10 @@ class AndroidScreenshotSyncer(
                 is ScreenshotCaptureOutcome.Success -> {
                     capture.icon?.let { runCatching { onIcon(site.id, it) } }
                     syncEngine.processFetchResult(
-                    site,
-                    SyncEngine.FetchResult.Success(capture.contentType, capture.bytes),
-                    site.threshold,
-                )
+                        site,
+                        SyncEngine.FetchResult.Success(capture.contentType, capture.bytes),
+                        site.threshold,
+                    )
                 }
 
                 is ScreenshotCaptureOutcome.Failure -> recordFailure(site, capture.message, capture.error)

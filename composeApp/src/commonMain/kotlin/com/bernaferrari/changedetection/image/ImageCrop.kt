@@ -35,7 +35,13 @@ internal object CropCache {
         // Width is bucketed so tiny layout differences reuse the same crop.
         val width = ((targetWidth + 63) / 64) * 64
         val key = "${bytes.size}:${bytes.contentHashCodeSample()}:$left:$top:$right:$bottom:$width"
-        lock.withLock { entries[key]?.let { entries.remove(key); entries[key] = it; return it } }
+        lock.withLock {
+            entries[key]?.let {
+                entries.remove(key)
+                entries[key] = it
+                return it
+            }
+        }
         val bitmap = withContext(Dispatchers.Default) { runCatching { decodeCropPlatform(bytes, left, top, right, bottom, width) }.getOrNull() } ?: return null
         lock.withLock {
             entries[key] = bitmap
