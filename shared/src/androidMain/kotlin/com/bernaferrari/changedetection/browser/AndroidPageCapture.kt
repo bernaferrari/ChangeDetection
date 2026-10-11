@@ -175,11 +175,13 @@ internal class AndroidPageCapture(private val view: WebView) {
                 evaluate("window.scrollTo({left:0,top:${viewportTop / cssToView},behavior:'instant'});0")
                 awaitFrame()
                 awaitFrame()
-                view.scrollTo(0, viewportTop)
                 view.invalidate()
                 awaitVisualState()
                 awaitFrame()
-                check(view.scrollY == viewportTop || viewportTop == 0) { "The page changed size while taking its screenshot. Try again." }
+                // Chromium can deliver an older scroll callback while frames settle. Set the final native
+                // position only now; do not suspend between positioning, verifying and drawing this tile.
+                view.scrollTo(0, viewportTop)
+                check(view.scrollY == viewportTop) { "The page changed size while taking its screenshot. Try again." }
                 val offset = y - viewportTop
                 val rowsInView = minOf(view.height - offset, capturedEnd - y)
                 check(rowsInView > 0) { "The page changed size while taking its screenshot. Try again." }

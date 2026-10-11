@@ -111,7 +111,7 @@ object IosPageCapture {
             evaluate(web, PageCleanup.HIDE_BOTTOM_FLOATING)
             val clip = if (only.isNotBlank()) elementRect(web, only) ?: error("The part you picked is no longer on the page") else null
             val top = clip?.top ?: 0.0
-            val bottom = minOf(clip?.bottom ?: pageHeight(web), top + MAX_PAGE_POINTS)
+            val bottom = if (clip != null) top + selectedCaptureHeight(top, clip.bottom, MAX_PAGE_POINTS) else minOf(pageHeight(web), MAX_PAGE_POINTS)
             return stitch(web, top, bottom.coerceAtLeast(top + 1), clip?.left ?: 0.0, clip?.right ?: VIEWPORT_WIDTH)
         } finally {
             web.stopLoading()

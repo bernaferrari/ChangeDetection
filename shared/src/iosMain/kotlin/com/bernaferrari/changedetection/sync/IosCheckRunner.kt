@@ -11,6 +11,7 @@ import com.bernaferrari.changedetection.repo.ComparisonMethod
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.ui.settings.SettingsViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 
 /** One check on iOS: screenshot pages are captured with WebKit, text pages are fetched over HTTP. */
@@ -28,7 +29,10 @@ class IosCheckRunner(
         return try {
             val png = IosPageCapture.capture(site.url, settings[SettingsViewModel.BROWSER_DELAY_KEY] ?: DEFAULT_SETTLE_MS, hide = site.textExcludeSelector, only = site.textIncludeSelector)
             IosPageCapture.lastIcon?.let { sites.updateIcon(site.id, it) }
-            engine.processFetchResult(site, SyncEngine.FetchResult.Success("image/png", png), site.threshold)
+            engine.processFetchResult(site, SyncEngine.FetchResult.Success("image/png", png, capturedWithBrowser = true), site.threshold)
+        } catch (timeout: kotlinx.coroutines.TimeoutCancellationException) {
+            kotlinx.coroutines.currentCoroutineContext().ensureActive()
+            engine.processFetchResult(site, SyncEngine.FetchResult.Error("Page capture timed out", timeout), site.threshold)
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Exception) {
@@ -42,8 +46,7 @@ class IosCheckRunner(
         val due = sites.getSites().filter { site ->
             site.isSyncEnabled && (onlyDueAfterMinutes == null || now - site.timestamp >= onlyDueAfterMinutes * 60_000L)
         }
-        due.forEach { runCatching { check(it.id) } }
-        return due.size
+        return checkBatch(due.map { it.id }, ::check)
     }
 
     private companion object {

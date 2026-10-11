@@ -16,10 +16,67 @@ import java.io.ByteArrayOutputStream
 import java.nio.file.Files
 import javax.imageio.ImageIO
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
 import org.junit.Assert.*
 import org.junit.Test
 
 class VisualFilterJourneyTest {
+    @Test fun aCommittedChangeDoesNotFinishItsOwningCheckBeforeAlertSubmission() = runBlocking {
+        val directory = Files.createTempDirectory("awaited-alert").toFile()
+        val db = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = directory.resolve("test.db").path), BundledSQLiteDriver())
+        val files = DesktopFileStorage(directory.resolve("files").also { it.mkdirs() })
+        val client = HttpClient()
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val notices = mutableListOf<String>()
+        val delivery = ChangeAlertDelivery(prepare = { _, _ ->
+            entered.complete(Unit)
+            release.await()
+            null
+        }, publish = { _, id, _ -> notices.add(id) })
+        val engine = SyncEngine(client, db, db.siteDao(), db.snapsDao(), files, ErrorHandler(), ChangeNotifier { site, id -> delivery.deliver(site, id) })
+        val site = Site("Page", "https://example.test", 0L, "", "page", 0 to 0).copy(captureMode = CaptureMode.SCREENSHOT)
+        try {
+            db.siteDao().insertSite(site)
+            engine.processFetchResult(site, SyncEngine.FetchResult.Success("image/png", coloredPng(0xffffff)))
+            val owner = async { engine.processFetchResult(requireNotNull(db.siteDao().getSiteById(site.id)), SyncEngine.FetchResult.Success("image/png", coloredPng(0x000000))) }
+            entered.await()
+            assertEquals(2, db.snapsDao().getAllSnapsForSiteId(site.id).size)
+            assertFalse(owner.isCompleted)
+            assertTrue(notices.isEmpty())
+            release.complete(Unit)
+            assertTrue(owner.await() is SyncResult.Success)
+            assertEquals(1, notices.size)
+        } finally {
+            release.complete(Unit)
+            client.close()
+            db.close()
+            directory.deleteRecursively()
+        }
+    }
+
+    @Test fun defaultCapturePolicyDistinguishesBrowserRenderingFromTheFetchedImage() = runBlocking {
+        val directory = Files.createTempDirectory("default-image-policy").toFile()
+        val db = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = directory.resolve("test.db").path), BundledSQLiteDriver())
+        val files = DesktopFileStorage(directory.resolve("files").also { it.mkdirs() })
+        val client = HttpClient()
+        val notices = mutableListOf<String>()
+        val engine = SyncEngine(client, db, db.siteDao(), db.snapsDao(), files, ErrorHandler(), ChangeNotifier { _, id -> notices.add(id) })
+        val site = Site("Page", "https://example.test/image.png", 0L, "", "page", 0 to 0)
+        try {
+            db.siteDao().insertSite(site)
+            engine.processFetchResult(site, SyncEngine.FetchResult.Success("image/png", coloredPng(0xffffff), capturedWithBrowser = true))
+            val source = engine.processFetchResult(requireNotNull(db.siteDao().getSiteById(site.id)), SyncEngine.FetchResult.Success("image/png", coloredPng(0x000000))) as SyncResult.Success
+            assertFalse(source.hadChanges)
+            assertTrue(notices.isEmpty())
+        } finally {
+            client.close()
+            db.close()
+            directory.deleteRecursively()
+        }
+    }
+
     @Test(timeout = 20_000)
     fun thresholdAccumulatesAgainstSavedBaselineAndNeverSwallowsComparisonErrors() = runBlocking {
         val directory = Files.createTempDirectory("visual-filter").toFile()
@@ -82,11 +139,14 @@ class VisualFilterJourneyTest {
         val notices = mutableListOf<String>()
         val engine = SyncEngine(client, db, db.siteDao(), db.snapsDao(), files, ErrorHandler(), ChangeNotifier { _, id -> notices.add(id) })
         suspend fun capture(site: Site, bytes: ByteArray) = engine.processFetchResult(requireNotNull(db.siteDao().getSiteById(site.id)), SyncEngine.FetchResult.Success("image/png", bytes))
+        val repository = com.bernaferrari.changedetection.repo.source.SnapsRepository(SnapsLocalDataSource(AppExecutors(), db.snapsDao(), db.siteDao(), files, com.bernaferrari.changedetection.storage.SnapshotFileCleanup(db.pendingFileDeletionDao(), db.snapsDao(), files)))
+        val previews = com.bernaferrari.changedetection.preview.ChangePreviewRepository(repository) { db.snapsDao().getPrecedingSnap(it.siteId, it.timestamp, it.snapId) }
         try {
             for ((index, pair) in listOf(
                 coloredPng(0x000000) to coloredPng(0xffffff),
                 coloredPng(0xff0000) to coloredPng(0x00ff00),
                 coloredPng(0xffffff) to coloredPng(0xffffff, patch = true),
+                coloredPng(0xffffff) to coloredPng(0xe6e6e6),
             ).withIndex()) {
                 val site = Site("Page", "https://example.test/$index", 0L, "", "page-$index", 0 to 0).copy(captureMode = CaptureMode.SCREENSHOT)
                 db.siteDao().insertSite(site)
@@ -94,8 +154,40 @@ class VisualFilterJourneyTest {
                 assertFalse((capture(site, pair.first) as SyncResult.Success).hadChanges)
                 assertTrue("Visible evidence $index must survive presentation filtering", (capture(site, pair.second) as SyncResult.Success).hadChanges)
                 assertArrayEquals(pair.second, files.readBytes(requireNotNull(db.snapsDao().getLastSnapForSiteId(site.id)).snapId))
+                assertTrue("Home/activity must not deny real pixel evidence", previews.latest(site.id) is com.bernaferrari.changedetection.preview.ChangePreview.Crop)
+                assertTrue(previews.forVersion(requireNotNull(db.snapsDao().getLastSnapForSiteId(site.id))) is com.bernaferrari.changedetection.preview.ChangePreview.Crop)
             }
-            assertEquals(3, notices.size)
+            assertEquals(4, notices.size)
+            val quiet = Site("Quiet", "https://example.test/noise", 0L, "", "noise", 0 to 0).copy(captureMode = CaptureMode.SCREENSHOT)
+            db.siteDao().insertSite(quiet)
+            capture(quiet, coloredPng(0xffffff))
+            assertFalse((capture(quiet, coloredPng(0xfbfbfb)) as SyncResult.Success).hadChanges)
+            assertEquals(4, notices.size)
+        } finally {
+            client.close()
+            db.close()
+            directory.deleteRecursively()
+        }
+    }
+
+    @Test fun sourceImageToScreenshotEstablishesASilentBaselineThenAlertsForContent() = runBlocking {
+        val directory = Files.createTempDirectory("image-mode-policy").toFile()
+        val db = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = directory.resolve("test.db").path), BundledSQLiteDriver())
+        val files = DesktopFileStorage(directory.resolve("files").also { it.mkdirs() })
+        val client = HttpClient()
+        val notices = mutableListOf<String>()
+        val engine = SyncEngine(client, db, db.siteDao(), db.snapsDao(), files, ErrorHandler(), ChangeNotifier { _, id -> notices.add(id) })
+        val source = Site("Image", "https://example.test/image.png", 0L, "", "page", 0 to 0).copy(captureMode = CaptureMode.SOURCE)
+        suspend fun capture(bytes: ByteArray) = engine.processFetchResult(requireNotNull(db.siteDao().getSiteById(source.id)), SyncEngine.FetchResult.Success("image/png", bytes)) as SyncResult.Success
+        try {
+            db.siteDao().insertSite(source)
+            assertFalse(capture(coloredPng(0xff0000)).hadChanges)
+            db.siteDao().updateSite(requireNotNull(db.siteDao().getSiteById(source.id)).copy(captureMode = CaptureMode.SCREENSHOT))
+            assertFalse(capture(coloredPng(0x00ff00)).hadChanges)
+            assertTrue(notices.isEmpty())
+            assertTrue(capture(coloredPng(0x0000ff)).hadChanges)
+            assertEquals(1, notices.size)
+            assertEquals(3, db.snapsDao().getAllSnapsForSiteId(source.id).size)
         } finally {
             client.close()
             db.close()

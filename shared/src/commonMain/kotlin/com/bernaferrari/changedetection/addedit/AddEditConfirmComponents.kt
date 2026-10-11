@@ -275,7 +275,8 @@ fun AddEditConfirmScreen(
                 ignored = ignoredParts,
                 onPicksChange = { only, ignored -> onTextRegionChange(com.bernaferrari.changedetection.detection.TextRegion(only, ignored.joinToString(", "))) },
                 onPageChange = { page -> if (!isEditing && page.trimEnd('/') != (url.normalizeUrl() ?: url).trimEnd('/')) onUrlChange(page) },
-                onWatch = {
+                onWatch = { liveUrl ->
+                    onUrlChange(liveUrl)
                     if (isEditing) {
                         browsing = false
                         onPreview()

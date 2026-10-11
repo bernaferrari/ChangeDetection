@@ -10,6 +10,13 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class PickerBridgeTest {
+    @Test fun liveBrowserUrlsSupportNativeAndJsonCallbacksWithoutFallingBackToTheDraft() {
+        val live = "https://example.test/product/b?name=one%20two#/details"
+        assertEquals(live, decodeBrowserUrl(live))
+        assertEquals(live, decodeBrowserUrl(Json.encodeToString(live)))
+        for (invalid in listOf("null", "undefined", "about:blank", "file:///private/document", "\"https://example.test/")) assertNull(decodeBrowserUrl(invalid))
+    }
+
     @Test fun onlyBoundedReportsDuringActivePickingReachTheNativeControls() {
         val valid = PickedPart("#price", 2, 9, "Available", "div")
         assertEquals(valid, decodePickedPart(Json.encodeToString(valid), true))

@@ -132,11 +132,17 @@ class IosBackgroundScheduler : BackgroundScheduler {
             BGTaskScheduler.sharedScheduler.registerForTaskWithIdentifier(identifier = identifier, usingQueue = null) { task ->
                 if (task == null) return@registerForTaskWithIdentifier
                 val job = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default).launch {
-                    val ok = runCatching {
+                    try {
                         if (identifier == PERIODIC_SYNC_TASK_ID) reschedule()
                         work()
-                    }.isSuccess
-                    task.setTaskCompletedWithSuccess(ok)
+                        task.setTaskCompletedWithSuccess(true)
+                    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                        task.setTaskCompletedWithSuccess(false)
+                        throw cancelled
+                    } catch (error: Exception) {
+                        Napier.w("iOS background checks failed", error)
+                        task.setTaskCompletedWithSuccess(false)
+                    }
                 }
                 task.expirationHandler = { job.cancel() }
             }

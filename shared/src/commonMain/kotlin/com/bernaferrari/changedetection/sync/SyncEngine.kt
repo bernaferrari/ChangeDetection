@@ -103,12 +103,13 @@ open class SyncEngine(
      * Fetch result for internal use.
      */
     sealed class FetchResult {
-        data class Success(val contentType: String, val data: ByteArray) : FetchResult() {
+        data class Success(val contentType: String, val data: ByteArray, val capturedWithBrowser: Boolean = false) : FetchResult() {
             override fun equals(other: Any?): Boolean {
                 if (this === other) return true
                 if (other == null || this::class != other::class) return false
                 other as Success
                 if (contentType != other.contentType) return false
+                if (capturedWithBrowser != other.capturedWithBrowser) return false
                 if (!data.contentEquals(other.data)) return false
                 return true
             }
@@ -116,6 +117,7 @@ open class SyncEngine(
             override fun hashCode(): Int {
                 var result = contentType.hashCode()
                 result = 31 * result + data.contentHashCode()
+                result = 31 * result + capturedWithBrowser.hashCode()
                 return result
             }
         }
@@ -256,7 +258,7 @@ open class SyncEngine(
         val result = if (prepared != null) incoming.copy(data = prepared.data) else incoming
         val lastSnap = snapsDao.getLastSnapForSiteId(site.id)
         val contentHash = if (result.contentType.startsWith("image/", true)) {
-            "screenshot-v1:${site.capturePolicy().regionIdentity}:${ContentHasher.hashContent(result.data)}"
+            "image-v2:${site.capturePolicy().imageIdentity(result.capturedWithBrowser)}:${ContentHasher.hashContent(result.data)}"
         } else {
             prepared?.contentHash ?: ContentHasher.detectionHash(result.data, result.contentType, site.captureMode)
         }

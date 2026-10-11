@@ -6,16 +6,16 @@ package com.bernaferrari.changedetection.sync
 
 import com.bernaferrari.changedetection.repo.Site
 
-/** Delivers a user-facing alert after a real website change has been persisted. */
+/** Completion means the saved change alert has been submitted, or delivery is unavailable. */
 fun interface ChangeNotifier {
     /** Platform capability; runtime permission is a separate concern. */
     val supportsDelivery: Boolean get() = true
 
-    fun notifyChange(site: Site, snapId: String)
+    suspend fun notifyChange(site: Site, snapId: String)
 }
 
 /** Platforms without notification delivery still participate in the shared sync pipeline. */
 object NoOpChangeNotifier : ChangeNotifier {
     override val supportsDelivery: Boolean = false
-    override fun notifyChange(site: Site, snapId: String) = Unit
+    override suspend fun notifyChange(site: Site, snapId: String) = Unit
 }

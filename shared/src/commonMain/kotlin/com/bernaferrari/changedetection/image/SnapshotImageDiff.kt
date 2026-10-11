@@ -4,7 +4,8 @@
  */
 package com.bernaferrari.changedetection.image
 
-const val DEFAULT_IMAGE_DIFF_THRESHOLD = 0.1
+/** Suppress minor antialiasing jitter while retaining meaningful low-contrast changes. */
+const val DEFAULT_IMAGE_DIFF_THRESHOLD = 0.04
 
 data class SnapshotDimensionMismatch(
     val beforeWidth: Int,

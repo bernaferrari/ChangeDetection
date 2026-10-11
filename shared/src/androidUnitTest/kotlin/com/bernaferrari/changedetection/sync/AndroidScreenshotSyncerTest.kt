@@ -75,7 +75,7 @@ class AndroidScreenshotSyncerTest {
         assertTrue(browser.closed)
         verify(engine).processFetchResult(
             argThat { id == site.id },
-            argThat { this is SyncEngine.FetchResult.Success && data.contentEquals(PNG_BYTES) },
+            argThat { this is SyncEngine.FetchResult.Success && capturedWithBrowser && data.contentEquals(PNG_BYTES) },
             any(),
         )
     }

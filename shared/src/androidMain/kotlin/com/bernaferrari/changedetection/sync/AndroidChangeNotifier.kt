@@ -33,14 +33,12 @@ object ChangeNotificationContract {
 class AndroidChangeNotifier(
     private val context: Context,
 ) : ChangeNotifier {
-    private val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
-
-    private val delivery = ChangeAlertDelivery(scope, prepare = { site, snapId ->
+    private val delivery = ChangeAlertDelivery(prepare = { site, snapId ->
         val koin = org.koin.mp.KoinPlatformTools.defaultContext().getOrNull()
         if (koin == null) null else changeAlertText(site, snapId, koin.getOrNull(), koin.getOrNull()).second
     }, publish = ::post)
 
-    override fun notifyChange(site: Site, snapId: String) {
+    override suspend fun notifyChange(site: Site, snapId: String) {
         delivery.deliver(site, snapId)
     }
 

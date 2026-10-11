@@ -12,6 +12,16 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class RgbaDiffTest {
+    @Test fun defaultSensitivityRetainsBroadLowContrastButIgnoresAntialiasingNoise() {
+        fun image(channel: Int) = RgbaImage(64, 64, ByteArray(64 * 64 * 4) { if (it % 4 == 3) 255.toByte() else channel.toByte() })
+        val before = image(255)
+        val broad = RgbaDiff.compare(before, image(230), com.bernaferrari.changedetection.image.DEFAULT_IMAGE_DIFF_THRESHOLD, false)
+        assertEquals(4096L, broad.differentPixels)
+        val noisy = before.pixels.copyOf()
+        for (pixel in 0 until 16) for (channel in 0..2) noisy[pixel * 4 + channel] = 251.toByte()
+        assertTrue(RgbaDiff.compare(before, RgbaImage(64, 64, noisy), com.bernaferrari.changedetection.image.DEFAULT_IMAGE_DIFF_THRESHOLD, false).match)
+    }
+
     @Test fun unchangedPixelsMatchAndProduceNoRedHighlights() {
         val pixels = RgbaImage(1, 1, byteArrayOf(40, 50, 60, -1))
         val difference = RgbaDiff.compare(pixels, pixels, 0.1)

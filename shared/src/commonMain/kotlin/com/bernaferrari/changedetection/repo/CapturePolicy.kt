@@ -10,6 +10,7 @@ import com.bernaferrari.changedetection.util.ContentHasher
 /** The settings that define captured content, independent of presentation and alert filters. */
 internal data class CapturePolicy(val mode: CaptureMode, val region: TextRegion) {
     val regionIdentity: String get() = ContentHasher.hashContent("${region.include.length}:${region.include}${region.exclude.length}:${region.exclude}".encodeToByteArray())
+    fun imageIdentity(browserCapture: Boolean): String = "${mode.name}:${if (browserCapture || mode == CaptureMode.SCREENSHOT) "browser" else "source"}:$regionIdentity"
 }
 
 internal fun Site.capturePolicy(): CapturePolicy = CapturePolicy(

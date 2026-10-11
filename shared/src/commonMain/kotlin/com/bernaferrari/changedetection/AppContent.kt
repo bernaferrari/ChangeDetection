@@ -347,6 +347,10 @@ fun ChangeDetectionApp(
                         siteId = key.siteId,
                         onNavigateUp = { close(key) },
                         onSaveComplete = { close(key) },
+                        onOpenSite = { siteId ->
+                            close(key)
+                            backStack.openPage(siteId)
+                        },
                     )
                 }
 
