@@ -53,6 +53,10 @@ class SavedCaptureModeTest {
             override suspend fun updateSchedule() = Unit
             override fun cancelWork() = Unit
         }
+        val preferences = object : androidx.datastore.core.DataStore<androidx.datastore.preferences.core.Preferences> {
+            override val data = flowOf(androidx.datastore.preferences.core.emptyPreferences())
+            override suspend fun updateData(transform: suspend (androidx.datastore.preferences.core.Preferences) -> androidx.datastore.preferences.core.Preferences) = transform(androidx.datastore.preferences.core.emptyPreferences())
+        }
         val editors = mutableListOf<AddEditViewModel>()
         try {
             assertFalse(supportsVisualMonitoring)
@@ -63,12 +67,12 @@ class SavedCaptureModeTest {
                 files.writeBytes(id, byteArrayOf(1, 2, 3))
                 val baseline = Snap(id, id, 123L, "image/png", "", 3)
                 db.snapsDao().insertSnap(baseline)
-                val editor = AddEditViewModel(id, repository, CapturePreviewer { _, _ -> error("Rename must not preview") }, manager).also(editors::add)
+                val editor = AddEditViewModel(id, repository, CapturePreviewer { _, _ -> error("Rename must not preview") }, manager, preferences).also(editors::add)
                 withTimeout(5_000) { editor.uiState.first { !it.isLoading } }
                 assertEquals(mode, editor.uiState.value.captureMode)
                 editor.setVisualChangeThreshold(100)
                 assertEquals(0, repository.getSiteById(id)?.visualChangeThresholdBps)
-                val cancelled = AddEditViewModel(id, repository, CapturePreviewer { _, _ -> error("No preview") }, manager).also(editors::add)
+                val cancelled = AddEditViewModel(id, repository, CapturePreviewer { _, _ -> error("No preview") }, manager, preferences).also(editors::add)
                 withTimeout(5_000) { cancelled.uiState.first { !it.isLoading } }
                 assertEquals(0, cancelled.uiState.value.visualChangeThresholdBps)
                 editor.setTitle("Renamed")
@@ -78,7 +82,7 @@ class SavedCaptureModeTest {
                 assertEquals(mode, repository.getSiteById(id)?.captureMode)
                 assertEquals("Renamed", repository.getSiteById(id)?.title)
                 assertEquals(100, repository.getSiteById(id)?.visualChangeThresholdBps)
-                val reopened = AddEditViewModel(id, repository, CapturePreviewer { _, _ -> error("No preview") }, manager).also(editors::add)
+                val reopened = AddEditViewModel(id, repository, CapturePreviewer { _, _ -> error("No preview") }, manager, preferences).also(editors::add)
                 withTimeout(5_000) { reopened.uiState.first { !it.isLoading } }
                 assertEquals(100, reopened.uiState.value.visualChangeThresholdBps)
                 assertEquals(baseline, db.snapsDao().getLastSnapForSiteId(id))

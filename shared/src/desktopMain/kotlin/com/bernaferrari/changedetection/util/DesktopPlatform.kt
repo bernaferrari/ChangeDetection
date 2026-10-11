@@ -80,5 +80,5 @@ internal class DesktopFileStorage(
     override fun readBytes(fileName: String): ByteArray = file(fileName).readBytes()
     override fun deleteFile(fileName: String): Boolean = file(fileName).delete()
     override fun fileExists(fileName: String): Boolean = file(fileName).isFile
-    override fun orphanCandidates(olderThan: Long): List<String> = directory.listFiles().orEmpty().filter { it.isFile && it.lastModified() < olderThan && it.name.matches(Regex("[0-9a-fA-F-]{36}")) }.map { it.name }
+    override fun orphanCandidates(olderThan: Long): List<String> = directory.listFiles().orEmpty().filter { it.isFile && it.lastModified() < olderThan && (it.name.matches(Regex("[0-9a-fA-F-]{36}")) || it.name.matches(Regex("capture-[0-9]+\\.tmp"))) }.map { it.name }
 }

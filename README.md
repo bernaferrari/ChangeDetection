@@ -12,7 +12,7 @@ Free and open source. No account, cloud service, or first-party tracking.
 - Review saved versions and see what changed.
 - Use Turbo for short sessions with more frequent checks.
 
-Android is the main app. Screenshot capture and background monitoring are Android features. Desktop monitoring runs while the app is open; iOS is still in development. Pages requiring login are currently unsupported.
+Android is the main app. Screenshot capture and background monitoring are Android features. Desktop monitoring runs while the app is open; iOS is still in development. Android screenshots can reuse a browser login; text and source monitoring cannot.
 
 The app supports English, Spanish, Italian, Portuguese, German, Hindi, Bengali, and Simplified Chinese. It follows your device language; Android 13 and newer also let you choose an app language in system settings.
 
@@ -42,7 +42,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-For iOS, open `iosApp/iosApp.xcodeproj` in Xcode. Edit its layered app icon in Apple's Icon Composer.
+For iOS, open `iosApp/iosApp.xcodeproj` in Xcode; simulator builds require Apple silicon. Edit its layered app icon in Apple's Icon Composer.
 
 Desktop packages use the same icon on macOS, Windows, and Linux. macOS packaging requires Xcode for the layered icon.
 
@@ -64,6 +64,8 @@ Desktop packages use the same icon on macOS, Windows, and Linux. macOS packaging
 ```
 
 For the website, run `pnpm lint` and `pnpm build` from `website/`.
+
+Database upgrades preserve history from the original public schema (1) and both development schema-5 layouts. Other retired development schemas are unsupported.
 
 ## Android publishing
 

@@ -72,7 +72,7 @@
         <item quantity="other">%1$d eliminadas</item>
     </plurals>
     <string name="detail_sign_in">Iniciar sesión</string>
-    <string name="browser_session_note">¿Iniciaste sesión en esta página? Seguirás con la sesión iniciada: las comprobaciones usan la sesión de este navegador, en este dispositivo.</string>
+    <string name="browser_session_note">Las comprobaciones por captura de pantalla usan la sesión de este navegador en este dispositivo. Las de texto y código fuente no la usan.</string>
     <string name="turbo_next_check">Próxima comprobación en %1$d s</string>
     <string name="picker_selected_image">Una imagen</string>
     <string name="picker_selected_frame">Un marco incrustado (a menudo un anuncio)</string>
@@ -98,4 +98,5 @@
     <string name="image_diff_changed_percent">%1$s con cambios</string>
     <string name="error_invalid_input">Revisa estos ajustes</string>
     <string name="error_invalid_input_detail">Revisa la dirección de la página y los ajustes, y vuelve a intentarlo.</string>
+    <string name="comparison_new_version">Nueva versión disponible</string>
 </resources>

@@ -60,6 +60,7 @@ data class ComparisonUiState(
     val error: ComparisonLoadFailure? = null,
     val requestedSnapshotUnavailable: Boolean = false,
     val isUpdatingReadState: Boolean = false,
+    val newVersionAvailable: Boolean = false,
 ) {
     val showsLatestComparison: Boolean
         get() = !isLoading && !isLoadingDiff && error == null && imageDiff?.error == null &&
@@ -80,6 +81,7 @@ class ComparisonViewModel(
     private var contentLoadJob: Job? = null
     private var siteLoadJob: Job? = null
     private var siteObservationJob: Job? = null
+    private var snapshotObservationJob: Job? = null
 
     /** One-shot messages for the snackbar host (e.g. prune success). */
     private val _actionMessages = Channel<String>(Channel.BUFFERED)
@@ -167,6 +169,7 @@ class ComparisonViewModel(
         lastLoadRequest = siteId to initialSnapId
         siteLoadJob?.cancel()
         siteObservationJob?.cancel()
+        snapshotObservationJob?.cancel()
         contentLoadJob?.cancel()
         siteLoadJob = viewModelScope.launch {
             _uiState.value = ComparisonUiState()
@@ -189,6 +192,7 @@ class ComparisonViewModel(
 
                 if (initialSnapId != null && snaps.none { it.snapId == initialSnapId }) {
                     _uiState.update { it.copy(requestedSnapshotUnavailable = true) }
+                    observeHistory(siteId)
                     return@launch
                 }
 
@@ -201,6 +205,7 @@ class ComparisonViewModel(
                 if (snaps.size >= 2) {
                     selectPairForComparison(initialSnapId)
                 }
+                observeHistory(siteId)
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
             } catch (e: Exception) {
@@ -232,6 +237,42 @@ class ComparisonViewModel(
         }
     }
 
+    /** Metadata stays live; saved content is never silently switched beneath the reader. */
+    private fun observeHistory(siteId: String) {
+        snapshotObservationJob = viewModelScope.launch {
+            try {
+                snapsRepository.getSnaps(siteId).collect { rows ->
+                    val snaps = rows.sortedWith(compareByDescending<Snap> { it.timestamp }.thenByDescending { it.snapId })
+                    val before = _uiState.value
+                    if (before.site?.id != siteId || before.snaps == snaps) return@collect
+                    val selectedId = before.singleSnap?.snapId ?: before.selectedPairIndex?.let { before.snaps.getOrNull(it)?.snapId }
+                    val olderId = before.selectedPairIndex?.let { before.snaps.getOrNull(it + 1)?.snapId }
+                    val index = snaps.indexOfFirst { it.snapId == selectedId }
+                    val available = selectedId == null || (index >= 0 && (olderId == null || snaps.getOrNull(index + 1)?.snapId == olderId))
+                    _uiState.update { current ->
+                        current.copy(
+                            snaps = snaps,
+                            selectedPairIndex = index.takeIf { available && olderId != null },
+                            singleSnap = current.singleSnap?.takeIf { available },
+                            requestedSnapshotUnavailable = current.requestedSnapshotUnavailable || !available,
+                            newVersionAvailable = current.newVersionAvailable || snaps.firstOrNull()?.snapId != before.snaps.firstOrNull()?.snapId,
+                            isLoadingDiff = current.isLoadingDiff && available,
+                        )
+                    }
+                    if (!available) {
+                        contentLoadJob?.cancel()
+                    } else if (selectedId == null && !before.requestedSnapshotUnavailable && snaps.isNotEmpty()) {
+                        selectPairForComparison(0)
+                    }
+                }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Napier.w("Could not refresh saved versions", error)
+            }
+        }
+    }
+
     fun selectPairForComparison(pairIndex: Int) {
         val currentState = _uiState.value
         val snaps = currentState.snaps
@@ -245,7 +286,7 @@ class ComparisonViewModel(
         val snap1 = snaps[pairIndex]
         val snap2 = snaps[pairIndex + 1]
 
-        _uiState.update { it.copy(selectedPairIndex = pairIndex, singleSnap = null, singleSnapContent = null, singleSnapBytes = null, error = null, requestedSnapshotUnavailable = false) }
+        _uiState.update { it.copy(selectedPairIndex = pairIndex, singleSnap = null, singleSnapContent = null, singleSnapBytes = null, error = null, requestedSnapshotUnavailable = false, newVersionAvailable = if (pairIndex == 0) false else it.newVersionAvailable) }
         loadSnapContents(pairIndex, snap1, snap2)
     }
 
@@ -324,7 +365,7 @@ class ComparisonViewModel(
                     }
 
                 _uiState.update { current ->
-                    if (current.selectedPairIndex != pairIndex) return@update current
+                    if (current.snaps.getOrNull(current.selectedPairIndex ?: -1)?.snapId != snap1.snapId || current.snaps.getOrNull((current.selectedPairIndex ?: -2) + 1)?.snapId != snap2.snapId) return@update current
                     current.copy(
                         snapContent1 = content1,
                         snapContent2 = content2,
@@ -339,7 +380,7 @@ class ComparisonViewModel(
             } catch (e: Exception) {
                 Napier.w("Could not load saved comparison", e)
                 _uiState.update { current ->
-                    if (current.selectedPairIndex != pairIndex) return@update current
+                    if (current.snaps.getOrNull(current.selectedPairIndex ?: -1)?.snapId != snap1.snapId || current.snaps.getOrNull((current.selectedPairIndex ?: -2) + 1)?.snapId != snap2.snapId) return@update current
                     current.copy(
                         isLoadingDiff = false,
                         error = ComparisonLoadFailure.Content,
@@ -364,6 +405,7 @@ class ComparisonViewModel(
                     snapBytes2 = null,
                     imageDiff = null,
                     requestedSnapshotUnavailable = false,
+                    newVersionAvailable = if (it.snaps.firstOrNull()?.snapId == snap.snapId) false else it.newVersionAvailable,
                     singleSnapContent = null,
                     singleSnapBytes = null,
                 )
@@ -384,6 +426,7 @@ class ComparisonViewModel(
                     }
 
                 _uiState.update {
+                    if (it.singleSnap?.snapId != snap.snapId) return@update it
                     it.copy(
                         singleSnapContent = content,
                         singleSnapBytes = bytes.takeIf { snap.isImageSnapshot() },

@@ -108,26 +108,34 @@ class IosBackgroundScheduler : BackgroundScheduler {
      * ```
      */
     fun registerBackgroundTasks(onSync: () -> Unit) {
-        registerBackgroundWork { onSync() }
+        registerBackgroundWork(work = { onSync() })
     }
 
     /** Swift entry point: background refresh runs every active page through the shared sync engine. */
     fun registerDefaultBackgroundWork() {
-        registerBackgroundWork { org.koin.mp.KoinPlatformTools.defaultContext().get().get<com.bernaferrari.changedetection.sync.IosCheckRunner>().checkAll() }
+        registerBackgroundWork(
+            work = { org.koin.mp.KoinPlatformTools.defaultContext().get().get<com.bernaferrari.changedetection.sync.IosCheckRunner>().checkAll() },
+            reschedule = { org.koin.mp.KoinPlatformTools.defaultContext().get().get<MonitoringManager>().updateSchedule() },
+        )
     }
 
     /**
      * Registers handlers that keep iOS informed: the task completes only after the checks finish,
      * and an expiring task cancels the work instead of being killed mid-write.
      */
-    fun registerBackgroundWork(work: suspend () -> Unit) {
+    fun registerBackgroundWork(
+        work: suspend () -> Unit,
+        reschedule: suspend () -> Unit = { schedulePeriodicSync(periodicIntervalMinutes, periodicConstraints) },
+    ) {
         Napier.i("Registering iOS background task handlers", tag = "BackgroundScheduler")
         listOf(PERIODIC_SYNC_TASK_ID, QUICK_MONITOR_TASK_ID).forEach { identifier ->
             BGTaskScheduler.sharedScheduler.registerForTaskWithIdentifier(identifier = identifier, usingQueue = null) { task ->
                 if (task == null) return@registerForTaskWithIdentifier
-                if (identifier == PERIODIC_SYNC_TASK_ID) schedulePeriodicSync(periodicIntervalMinutes, periodicConstraints)
                 val job = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default).launch {
-                    val ok = runCatching { work() }.isSuccess
+                    val ok = runCatching {
+                        if (identifier == PERIODIC_SYNC_TASK_ID) reschedule()
+                        work()
+                    }.isSuccess
                     task.setTaskCompletedWithSuccess(ok)
                 }
                 task.expirationHandler = { job.cancel() }
@@ -137,4 +145,8 @@ class IosBackgroundScheduler : BackgroundScheduler {
 }
 
 // Provide the factory function for iOS
-actual fun createBackgroundScheduler(): BackgroundScheduler = IosBackgroundScheduler()
+private val sharedScheduler = IosBackgroundScheduler()
+
+fun registerIosBackgroundTasks() = sharedScheduler.registerDefaultBackgroundWork()
+
+actual fun createBackgroundScheduler(): BackgroundScheduler = sharedScheduler

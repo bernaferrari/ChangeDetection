@@ -49,6 +49,9 @@ fun AddEditFlow(
         }
     }
 
+    // A save owns its route until the committed result is delivered.
+    com.bernaferrari.changedetection.util.BackHandler(enabled = uiState.isSaving) {}
+
     // A new page goes straight back to Home, which shows it in the list and confirms with a message.
     val saved = uiState.savedSite
     LaunchedEffect(saved) {
@@ -70,7 +73,7 @@ fun AddEditFlow(
     }
 
     when {
-        siteId != null && uiState.isLoading -> {
+        uiState.isLoading -> {
             androidx.compose.foundation.layout.Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = androidx.compose.ui.Alignment.Center,

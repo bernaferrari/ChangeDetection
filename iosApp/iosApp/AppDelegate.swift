@@ -11,7 +11,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         UNUserNotificationCenter.current().delegate = self
 
         // Identifiers are declared in Info.plist (BGTaskSchedulerPermittedIdentifiers).
-        IosBackgroundScheduler().registerDefaultBackgroundWork()
+        IosBackgroundSchedulerKt.registerIosBackgroundTasks()
         return true
     }
 

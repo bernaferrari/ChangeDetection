@@ -72,7 +72,7 @@
         <item quantity="other">%1$d saíram</item>
     </plurals>
     <string name="detail_sign_in">Entrar</string>
-    <string name="browser_session_note">Entrou na sua conta nesta página? Você continua conectado: as verificações usam a sessão deste navegador, neste dispositivo.</string>
+    <string name="browser_session_note">Verificações por captura de tela usam a sessão deste navegador neste dispositivo. Verificações de texto e código-fonte não usam esta sessão.</string>
     <string name="turbo_next_check">Próxima verificação em %1$d s</string>
     <string name="picker_selected_image">Uma imagem</string>
     <string name="picker_selected_frame">Um quadro incorporado (geralmente um anúncio)</string>
@@ -98,4 +98,5 @@
     <string name="image_diff_changed_percent">%1$s alterado</string>
     <string name="error_invalid_input">Confira estas configurações</string>
     <string name="error_invalid_input_detail">Confira o endereço da página e as configurações e tente novamente.</string>
+    <string name="comparison_new_version">Nova versão disponível</string>
 </resources>

@@ -8,6 +8,8 @@ import com.bernaferrari.changedetection.repo.PageIconShape
 
 import com.bernaferrari.changedetection.extensions.canonicalUrlKey
 import com.bernaferrari.changedetection.repo.Site
+import com.bernaferrari.changedetection.repo.CaptureMode
+import com.bernaferrari.changedetection.repo.usesBrowserIdentity
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import kotlinx.coroutines.flow.Flow
 
@@ -29,12 +31,14 @@ class SitesRepository(
     override suspend fun getSiteByUrl(siteUrl: String): Site? {
         mSitesLocalDataSource.getSiteByUrl(siteUrl)?.let { return it }
 
-        // Older databases may contain addresses saved before canonical duplicate
-        // checks existed. Compare stable URL identities as a migration-free guard
-        // so host case, fragments, default ports, and trailing slashes cannot create
-        // another copy of the same page.
-        val requestedKey = siteUrl.canonicalUrlKey() ?: return null
-        return mSitesLocalDataSource.getSites().firstOrNull { it.url.canonicalUrlKey() == requestedKey }
+        // Callers without a capture rule (such as a shared URL) must preserve browser routes.
+        return findDuplicate(siteUrl, CaptureMode.SCREENSHOT)
+    }
+
+    suspend fun findDuplicate(siteUrl: String, mode: CaptureMode): Site? = mSitesLocalDataSource.getSites().firstOrNull { saved ->
+        val browserIdentity = mode.usesBrowserIdentity() || saved.captureMode.usesBrowserIdentity()
+        val key = siteUrl.canonicalUrlKey(browserIdentity)
+        key != null && saved.url.canonicalUrlKey(browserIdentity) == key
     }
 
     override suspend fun saveSite(site: Site, resetHistory: Boolean) {

@@ -65,11 +65,11 @@ class DesignReviewTest {
         for (dark in listOf(false, true)) {
             withApp(dark, seed = true) {
                 val p = if (dark) "q-dark-" else "q-"
-                fun step(name: String, block: () -> Unit) = runCatching {
+                fun step(name: String, block: () -> Unit) {
                     block()
                     shot(p + name)
-                }.onFailure { println("quick step $name failed: $it") }
-                fun home() = runCatching {
+                }
+                fun home() {
                     repeat(3) { if (onAllNodesWithTag("home-list").fetchSemanticsNodes().isEmpty()) runCatching { onNodeWithContentDescription("Navigate back").performClick() } }
                     if (onAllNodesWithTag("home-list").fetchSemanticsNodes().isEmpty()) onNodeWithText("Home").performClick()
                     waitForTag("home-list")
@@ -120,7 +120,6 @@ class DesignReviewTest {
                 }
                 step("31-add-review") {
                     onNodeWithText("Page address").performTextInput(fixtureUrl)
-                    onNodeWithText("Open page").performClick()
                     onNodeWithText("Open page").performClick()
                     waitForText("Applications are open", substring = true, timeout = 15_000)
                 }
@@ -188,10 +187,10 @@ class DesignReviewTest {
         waitForLabel("Slider")
         runCatching { waitForText("Before", timeout = 15_000) }
         shot("${p}15-compare-image")
-        onNodeWithContentDescription("Slider").performClick()
+        onNodeWithText("Slider").performClick()
         waitUntil(timeoutMillis = 15_000) { onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress)).fetchSemanticsNodes().isNotEmpty() }
         shot("${p}15b-compare-slider")
-        onNodeWithContentDescription("Page").performClick()
+        onNodeWithText("Page").performClick()
         waitUntil(timeoutMillis = 15_000) { onAllNodesWithTag("highlight-changes").fetchSemanticsNodes().isNotEmpty() }
         shot("${p}16-compare-highlight")
         onNodeWithContentDescription("Navigate back").performClick()
@@ -349,9 +348,9 @@ class DesignReviewTest {
         waitUntil(timeoutMillis = timeout) { onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty() }
     }
 
-    /** Icon-only controls (the comparison modes) carry their name as a content description. */
+    /** Controls can expose visible labels or an icon content description. */
     private fun ComposeUiTest.waitForLabel(label: String, timeout: Long = 10_000) {
-        waitUntil(timeoutMillis = timeout) { onAllNodesWithContentDescription(label).fetchSemanticsNodes().isNotEmpty() }
+        waitUntil(timeoutMillis = timeout) { onAllNodes(hasText(label) or hasContentDescription(label)).fetchSemanticsNodes().isNotEmpty() }
     }
 
     private fun ComposeUiTest.waitForTag(tag: String) {

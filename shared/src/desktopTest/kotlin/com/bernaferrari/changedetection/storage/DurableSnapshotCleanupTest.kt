@@ -74,6 +74,74 @@ class DurableSnapshotCleanupTest {
         }
     }
 
+    @Test fun desktopOrphanDiscoveryIncludesOldCrashTemporaryFilesButProtectsRecentWrites() {
+        val directory = Files.createTempDirectory("crashed-capture").toFile()
+        val files = DesktopFileStorage(directory)
+        try {
+            val old = directory.resolve("capture-1234.tmp").apply {
+                writeBytes(byteArrayOf(1))
+                setLastModified(1000)
+            }
+            val recent = directory.resolve("capture-5678.tmp").apply {
+                writeBytes(byteArrayOf(2))
+                setLastModified(3000)
+            }
+            directory.resolve("settings.json").apply {
+                writeText("{}")
+                setLastModified(1000)
+            }
+            assertEquals(listOf(old.name), files.orphanCandidates(2000))
+            assertTrue(files.deleteFile(old.name))
+            assertTrue(recent.exists())
+        } finally {
+            directory.deleteRecursively()
+        }
+    }
+
+    @Test fun undoWaitsForCleanupAlreadyPastItsExistenceCheck() = runBlocking {
+        val directory = Files.createTempDirectory("cleanup-undo-race").toFile()
+        val db = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = directory.resolve("test.db").path), BundledSQLiteDriver())
+        val files = DesktopFileStorage(directory.resolve("files").also { it.mkdirs() })
+        val inspected = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        val original = snap("saved", "page")
+        val bytes = byteArrayOf(9, 8, 7)
+        val dao = object : com.bernaferrari.changedetection.repo.source.local.SnapsDao by db.snapsDao() {
+            override suspend fun getSnapById(id: String): Snap? {
+                val row = db.snapsDao().getSnapById(id)
+                if (row == null) {
+                    inspected.complete(Unit)
+                    release.await()
+                }
+                return row
+            }
+        }
+        val cleanup = SnapshotFileCleanup(db.pendingFileDeletionDao(), dao, files)
+        try {
+            db.siteDao().insertSite(page("page"))
+            db.snapsDao().insertSnap(original)
+            files.writeBytes("saved", bytes)
+            db.snapsDao().deleteSnapById("saved")
+            val drain = async { cleanup.drain() }
+            withTimeout(5000) { inspected.await() }
+            val undo = async { cleanup.restore(original, bytes) }
+            delay(50)
+            assertFalse("Undo waits for the in-flight deletion", undo.isCompleted)
+            release.complete(Unit)
+            drain.await()
+            undo.await()
+            assertEquals(original, db.snapsDao().getSnapById("saved"))
+            assertArrayEquals(bytes, files.readBytes("saved"))
+            assertNull(db.pendingFileDeletionDao().lastId())
+            cleanup.drain()
+            assertArrayEquals(bytes, files.readBytes("saved"))
+        } finally {
+            release.complete(Unit)
+            db.close()
+            directory.deleteRecursively()
+        }
+    }
+
     @Test fun rollbackDoesNotQueueLiveFilesAndInterruptedAcknowledgementIsIdempotent() = runBlocking {
         val directory = Files.createTempDirectory("cleanup-rollback").toFile()
         val db = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = directory.resolve("test.db").path), BundledSQLiteDriver())

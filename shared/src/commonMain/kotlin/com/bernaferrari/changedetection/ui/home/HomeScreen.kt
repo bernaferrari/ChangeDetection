@@ -214,10 +214,9 @@ fun HomeScreen(
         selection = selection.clear()
         if (rows.isEmpty()) return
         val tickets = rows.map { viewModel.onDeleteSite(it.site) }
-        scope.launch {
+        scope.launch(start = kotlinx.coroutines.CoroutineStart.UNDISPATCHED) {
             val message = if (rows.size == 1) deletedOne.replace("%1\$s", rows.single().site.name()) else deletedMany.replace("%1\$d", com.bernaferrari.changedetection.util.localizedInteger(rows.size))
-            val undo = snackbar.showSnackbar(message, actionLabel = undoText, duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed
-            tickets.forEach { ticket -> launch { viewModel.resolveDeletion(ticket) { undo } } }
+            viewModel.resolveDeletions(tickets) { snackbar.showSnackbar(message, actionLabel = undoText, duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed }
         }
     }
 

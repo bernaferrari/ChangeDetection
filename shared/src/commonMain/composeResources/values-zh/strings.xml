@@ -558,7 +558,7 @@
     <string name="detail_check_less">降低检查频率</string>
     <string name="advice_temporary">网站繁忙或无法访问，通常是暂时的，我们会继续尝试。</string>
     <string name="advice_connection">此设备无法连接互联网，恢复联网后会重试。</string>
-    <string name="advice_login">此页面需要登录。在应用浏览器中登录一次，之后的检查会保持登录状态。</string>
+    <string name="advice_login">此页面需要登录。在 Android 上，截图检查可以使用应用浏览器的登录状态。文本和源代码检查无法使用此登录状态。</string>
     <string name="advice_not_found">此页面已不存在，请检查链接是否仍正确。</string>
     <string name="advice_rate">网站要求降低请求频率，减少检查次数通常可以解决。</string>
     <string name="advice_region">你选择的部分已不在页面中，请重新选择。</string>
@@ -722,7 +722,7 @@
         <item quantity="other">%1$d 个删除</item>
     </plurals>
     <string name="detail_sign_in">登录</string>
-    <string name="browser_session_note">已登录此网页？检查会使用此设备上的浏览器登录状态，无需重新登录。</string>
+    <string name="browser_session_note">截图检查会使用此设备上该浏览器的登录状态。文本和源代码检查不会使用此登录状态。</string>
     <string name="turbo_next_check">%1$d 秒后再次检查</string>
     <string name="picker_selected_image">图片</string>
     <string name="picker_selected_frame">嵌入式框架（通常是广告）</string>
@@ -756,4 +756,5 @@
     <string name="image_diff_changed_percent">%1$s 已变化</string>
     <string name="error_invalid_input">请检查这些设置</string>
     <string name="error_invalid_input_detail">请检查网页地址和设置，然后重试。</string>
+    <string name="comparison_new_version">有新版本可用</string>
 </resources>

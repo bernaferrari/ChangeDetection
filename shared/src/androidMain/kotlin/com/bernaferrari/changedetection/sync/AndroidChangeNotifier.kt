@@ -21,7 +21,6 @@ import com.bernaferrari.changedetection.MainActivityProvider
 import com.bernaferrari.changedetection.library.R
 import com.bernaferrari.changedetection.repo.Site
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.launch
 
 /** Intent contract shared by change alerts and the Android app entry point. */
 object ChangeNotificationContract {
@@ -36,16 +35,13 @@ class AndroidChangeNotifier(
 ) : ChangeNotifier {
     private val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
 
+    private val delivery = ChangeAlertDelivery(scope, prepare = { site, snapId ->
+        val koin = org.koin.mp.KoinPlatformTools.defaultContext().getOrNull()
+        if (koin == null) null else changeAlertText(site, snapId, koin.getOrNull(), koin.getOrNull()).second
+    }, publish = ::post)
+
     override fun notifyChange(site: Site, snapId: String) {
-        post(site, snapId, summary = null)
-        // Follow up with the same bounded preview the app shows, quietly replacing the first alert.
-        scope.launch {
-            val koin = org.koin.mp.KoinPlatformTools.defaultContext().getOrNull() ?: return@launch
-            val (_, summary) = runCatching {
-                changeAlertText(site, snapId, koin.getOrNull(), koin.getOrNull())
-            }.getOrNull() ?: return@launch
-            post(site, snapId, summary)
-        }
+        delivery.deliver(site, snapId)
     }
 
     @SuppressLint("MissingPermission")

@@ -59,9 +59,20 @@ import com.bernaferrari.changedetection.localization.stringResource
 @Serializable
 internal data class PickedPart(val selector: String, val depth: Int = 0, val maxDepth: Int = 0, val text: String = "", val tag: String = "")
 
+/** Page scripts share this bridge. Bound every value before it reaches native UI state. */
+internal fun decodePickedPart(payload: String, picking: Boolean): PickedPart? {
+    if (!picking || payload.length > 8_192) return null
+    val part = runCatching { pickJson.decodeFromString<PickedPart>(payload) }.getOrNull() ?: return null
+    return part.takeIf {
+        it.maxDepth in 0..9 && it.depth in 0..it.maxDepth &&
+            it.selector.isNotBlank() && it.selector.length <= 4_096 &&
+            it.selector.none { char -> char.code < 32 } && it.text.length <= 120 && it.tag.length <= 32
+    }
+}
+
 /**
  * Watching starts in a real browser: go to the exact page (search, menus, signing in all work, and the
- * session is reused by later checks), optionally pick the parts that matter or that are noise, then watch.
+ * session is reused by later screenshot checks on this device), optionally pick the parts that matter or that are noise, then watch.
  */
 @Composable
 internal fun WatchBrowser(
@@ -74,7 +85,9 @@ internal fun WatchBrowser(
     onClose: () -> Unit,
     watchLabel: String,
 ) {
-    val state = rememberWebViewState(startUrl)
+    val state = rememberWebViewState(startUrl).apply {
+        webSettings.androidWebSettings.domStorageEnabled = true
+    }
     val navigator = rememberWebViewNavigator()
     val bridge = rememberWebViewJsBridge(navigator)
     var picking by remember { mutableStateOf(false) }
@@ -86,7 +99,7 @@ internal fun WatchBrowser(
         val handler = object : IJsMessageHandler {
             override fun methodName() = "cdPick"
             override fun handle(message: JsMessage, navigator: WebViewNavigator?, callback: (String) -> Unit) {
-                current = runCatching { pickJson.decodeFromString<PickedPart>(message.params) }.getOrNull()
+                decodePickedPart(message.params, picking)?.let { current = it }
                 callback("")
             }
         }

@@ -5,6 +5,13 @@
 package com.bernaferrari.changedetection.addedit
 
 import com.bernaferrari.changedetection.repo.PageIconShape
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import com.bernaferrari.changedetection.repo.usesBrowserIdentity
+import com.bernaferrari.changedetection.repo.CaptureMode
+import com.bernaferrari.changedetection.repo.ComparisonMethod
+import com.bernaferrari.changedetection.ui.settings.SettingsViewModel
+import kotlinx.coroutines.flow.first
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.background.MonitoringManager
@@ -83,12 +90,14 @@ class AddEditViewModel(
     private val sitesRepository: SitesRepository,
     private val previewer: CapturePreviewer,
     private val monitoringManager: MonitoringManager,
+    private val preferences: DataStore<Preferences>,
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(AddEditUiState(isLoading = siteId != null))
+    private val _uiState = MutableStateFlow(AddEditUiState(isLoading = true))
     val uiState: StateFlow<AddEditUiState> = _uiState.asStateFlow()
     private val _events = Channel<AddEditEvent>(Channel.BUFFERED)
     val events: Flow<AddEditEvent> = _events.receiveAsFlow()
     private var titleEditedByUser = false
+    private var captureModeEditedByUser = false
     private var previewJob: kotlinx.coroutines.Job? = null
     private var previewGeneration = 0L
 
@@ -141,10 +150,21 @@ class AddEditViewModel(
     }
 
     init {
-        // Load site if editing
-        siteId?.let { id ->
-            viewModelScope.launch {
-                loadSite(id)
+        viewModelScope.launch {
+            if (siteId != null) {
+                loadSite(siteId)
+            } else {
+                try {
+                    val stored = preferences.data.first()[SettingsViewModel.COMPARISON_METHOD_KEY]
+                    val mode = if (stored == ComparisonMethod.HTML.name || !com.bernaferrari.changedetection.repo.supportsVisualMonitoring) CaptureMode.TEXT else CaptureMode.SCREENSHOT
+                    _uiState.update { if (captureModeEditedByUser) it else it.copy(captureMode = mode) }
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    Napier.w("Could not load the default capture method", error)
+                } finally {
+                    _uiState.update { it.copy(isLoading = false) }
+                }
             }
         }
     }
@@ -209,6 +229,7 @@ class AddEditViewModel(
                 }
             current.copy(
                 url = url,
+                duplicateSiteId = null,
                 urlError =
                 if (url.isNotEmpty() && normalized == null) {
                     AddEditError.InvalidUrl
@@ -231,6 +252,7 @@ class AddEditViewModel(
 
     fun setCaptureMode(mode: com.bernaferrari.changedetection.repo.CaptureMode) {
         if (!com.bernaferrari.changedetection.repo.supportsVisualMonitoring && mode in setOf(com.bernaferrari.changedetection.repo.CaptureMode.DEFAULT, com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT)) return
+        captureModeEditedByUser = true
         if (mode != _uiState.value.captureMode) dismissPreview()
         _uiState.update { it.copy(captureMode = mode, regionError = false) }
     }
@@ -281,7 +303,7 @@ class AddEditViewModel(
 
         // Edit-mode URL-change trap: confirm what happens with existing snapshots first.
         val currentUrl = if (siteId != null) _uiState.value.loadedSiteUrl else null
-        if (currentUrl != null && normalizedUrl.canonicalUrlKey() != currentUrl.canonicalUrlKey()) {
+        if (currentUrl != null && normalizedUrl.canonicalUrlKey(state.captureMode.usesBrowserIdentity()) != currentUrl.canonicalUrlKey(state.captureMode.usesBrowserIdentity())) {
             _uiState.update { it.copy(showUrlChangeDialog = true) }
             return
         }
@@ -330,7 +352,7 @@ class AddEditViewModel(
 
                 // Check before any destructive "Start fresh" work. This also
                 // protects edit mode from being changed to another saved page.
-                val duplicate = sitesRepository.getSiteByUrl(normalizedUrl)
+                val duplicate = sitesRepository.findDuplicate(normalizedUrl, state.captureMode)
                 if (duplicate != null && duplicate.id != siteId) {
                     _uiState.update {
                         it.copy(isSaving = false, duplicateSiteId = duplicate.id)

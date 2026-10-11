@@ -102,6 +102,8 @@ class MainViewModel(
 
     internal suspend fun resolveDeletion(ticket: UndoableDeletion.Ticket<Site>, chooseUndo: suspend () -> Boolean) = deletions.resolve(ticket, chooseUndo)
 
+    internal suspend fun resolveDeletions(tickets: List<UndoableDeletion.Ticket<Site>>, chooseUndo: suspend () -> Boolean) = deletions.resolveAll(tickets, chooseUndo)
+
     /** Deletes right away; used when the user already confirmed and no undo is offered. */
     internal fun commitDeletion(ticket: UndoableDeletion.Ticket<Site>) {
         applicationScope.scope.launch { deletions.resolve(ticket) { false } }

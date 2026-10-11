@@ -155,7 +155,7 @@ internal fun ImageComparisonContent(
             return@Box
         }
 
-        if (mode == ComparisonMode.ImageDiff && imageDiff?.error != null) {
+        if (mode in listOf(ComparisonMode.ImageChanges, ComparisonMode.ImageDiff) && imageDiff?.error != null) {
             ImageComparisonNotice(
                 icon = Icons.Default.Warning,
                 title = stringResource(Res.string.image_diff_status_unavailable),
@@ -167,7 +167,12 @@ internal fun ImageComparisonContent(
         }
 
         when (mode) {
-            ComparisonMode.ImageChanges -> VisualChangesView(beforeBytes, afterBytes, imageDiff, cursor, Modifier.fillMaxSize())
+            ComparisonMode.ImageChanges -> if (imageDiff?.visualChange?.regions?.isNotEmpty() == true) {
+                VisualChangesView(beforeBytes, afterBytes, imageDiff, cursor, Modifier.fillMaxSize())
+            } else {
+                // Cropping heuristics may have no useful areas even when pixel evidence is strong.
+                ImageComparisonContent(beforeBytes, afterBytes, imageDiff, ComparisonMode.ImageDiff, Modifier.fillMaxSize(), onRetry, cursor)
+            }
 
             ComparisonMode.ImageDiff -> if (imageDiff?.visualChange?.regions?.isNotEmpty() == true) {
                 HighlightView(afterBytes, imageDiff.visualChange.regions, cursor, Modifier.fillMaxSize())

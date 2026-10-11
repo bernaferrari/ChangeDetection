@@ -4,6 +4,8 @@
  */
 package com.bernaferrari.changedetection.storage
 
+import com.bernaferrari.changedetection.repo.Snap
+import kotlinx.coroutines.NonCancellable
 import com.bernaferrari.changedetection.repo.source.local.PendingFileDeletionDao
 import com.bernaferrari.changedetection.repo.source.local.SnapsDao
 import com.bernaferrari.changedetection.util.FileStorage
@@ -18,16 +20,17 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
-/** Durable, idempotent file cleanup. Snapshot IDs are immutable capture identities, never reused. */
+/** Durable, idempotent file cleanup and coordinated restoration of an existing capture identity. */
 class SnapshotFileCleanup(
     private val pending: PendingFileDeletionDao,
     private val snaps: SnapsDao,
     private val files: FileStorage,
+    private val ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = fileIoDispatcher,
 ) {
     private val mutex = Mutex()
 
     /** A fixed high-water mark and keyset batches avoid archive-sized allocations and retry loops. */
-    suspend fun drain() = withContext(fileIoDispatcher) {
+    suspend fun drain() = withContext(ioDispatcher) {
         mutex.withLock {
             val through = pending.lastId() ?: return@withLock
             var after: String? = null
@@ -43,6 +46,22 @@ class SnapshotFileCleanup(
                 after = batch.last()
             }
         }
+    }
+
+    /** Undo owns the same lock as deletion, including retries already past their row-existence check. */
+    suspend fun restore(snap: Snap, bytes: ByteArray) = withContext(ioDispatcher) {
+        mutex.withLock {
+            withContext(NonCancellable) {
+                files.writeBytes(snap.snapId, bytes)
+                snaps.insertSnap(snap)
+                pending.complete(snap.snapId)
+            }
+        }
+    }
+
+    /** Orphan discovery must use the same ownership boundary as durable deletion and Undo. */
+    suspend fun removeOrphan(id: String): Boolean = withContext(ioDispatcher) {
+        mutex.withLock { snaps.getSnapById(id) != null || removeFile(id) }
     }
 
     /** Starts at process initialization, even with no pages or scheduled monitoring disabled. */

@@ -72,7 +72,7 @@
         <item quantity="other">%1$d gone</item>
     </plurals>
     <string name="detail_sign_in">Sign in</string>
-    <string name="browser_session_note">Signed in to this page? You’ll stay signed in: checks use this browser’s session, on this device.</string>
+    <string name="browser_session_note">Screenshot checks reuse this browser’s sign-in on this device. Text and source checks do not use this session.</string>
     <string name="turbo_next_check">Next check in %1$d s</string>
     <string name="picker_selected_image">An image</string>
     <string name="picker_selected_frame">An embedded frame (often an ad)</string>
@@ -98,4 +98,5 @@
     <string name="image_diff_changed_percent">%1$s changed</string>
     <string name="error_invalid_input">Check these settings</string>
     <string name="error_invalid_input_detail">Review the page address and settings, then try again.</string>
+    <string name="comparison_new_version">New version available</string>
 </resources>

@@ -43,6 +43,17 @@ class IosFileStorage : FileStorage {
         return fileManager.fileExistsAtPath(path)
     }
 
+    override fun orphanCandidates(olderThan: Long): List<String> {
+        val directory = getDocumentsDirectory()
+        return fileManager.contentsOfDirectoryAtPath(directory, null).orEmpty().mapNotNull { entry ->
+            val name = entry as? String ?: return@mapNotNull null
+            if (!name.matches(Regex("[0-9a-fA-F-]{36}"))) return@mapNotNull null
+            val attributes = fileManager.attributesOfItemAtPath("$directory/$name", null) ?: return@mapNotNull null
+            val modified = attributes[NSFileModificationDate] as? NSDate ?: return@mapNotNull null
+            name.takeIf { attributes[NSFileType] == NSFileTypeRegular && modified.timeIntervalSince1970 * 1000 < olderThan }
+        }
+    }
+
     private fun ByteArray.toNSData(): NSData = memScoped {
         if (isEmpty()) return NSData.data()
         val data = NSMutableData.dataWithCapacity(size.toULong())!!

@@ -123,7 +123,7 @@ class AndroidPageCaptureTest {
                     if (version % 2 == 0) {
                         assertTrue(android.graphics.Color.red(pixel) > 200 && android.graphics.Color.blue(pixel) < 40)
                     } else {
-                        assertTrue(android.graphics.Color.blue(pixel) > 200 && android.graphics.Color.red(pixel) < 40)
+                        assertTrue("Selected pixel: ${Integer.toHexString(pixel)}", android.graphics.Color.blue(pixel) > 200 && android.graphics.Color.red(pixel) < 40)
                     }
                 } finally {
                     bitmap.recycle()
@@ -144,12 +144,64 @@ class AndroidPageCaptureTest {
         }
     }
 
-    private suspend fun capture(url: String) = withContext(Dispatchers.Main.immediate) {
+    @Test fun selectedPartBelowWholePageBudgetIsCapturedDirectly() = runBlocking {
+        TestPageServer(200, """<meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0;background:red"><div style="height:6000px"></div><div id="target" style="width:100px;height:120px;background:#00ff00"></div></body>""").use { server ->
+            val screenshot = capture(server.url, "#target")
+            assertEquals(200, screenshot.width)
+            assertEquals(240, screenshot.height)
+            val bitmap = BitmapFactory.decodeByteArray(screenshot.bytes, 0, screenshot.bytes.size)
+            try {
+                val pixel = bitmap.getPixel(100, 120)
+                assertTrue("Selected pixel: ${Integer.toHexString(pixel)}", android.graphics.Color.green(pixel) > 200 && android.graphics.Color.red(pixel) < 40)
+            } finally {
+                bitmap.recycle()
+            }
+        }
+    }
+
+    @Test fun selectedPartUsesActualOverviewScale() = runBlocking {
+        TestPageServer(200, """<meta name="viewport" content="width=1200"><body style="margin:0;width:1200px;background:red"><div style="height:6000px"></div><div id="target" style="margin-left:700px;width:160px;height:120px;background:#0000ff"></div></body>""").use { server ->
+            val screenshot = capture(server.url, "#target")
+            assertTrue(kotlin.math.abs(screenshot.width - 320) <= 3)
+            assertTrue(kotlin.math.abs(screenshot.height - 240) <= 3)
+            val bitmap = BitmapFactory.decodeByteArray(screenshot.bytes, 0, screenshot.bytes.size)
+            try {
+                val pixel = bitmap.getPixel(bitmap.width / 2, bitmap.height / 2)
+                assertTrue("Selected pixel: ${Integer.toHexString(pixel)}", android.graphics.Color.blue(pixel) > 200 && android.graphics.Color.red(pixel) < 40)
+            } finally {
+                bitmap.recycle()
+            }
+        }
+    }
+
+    @Test fun aTallSelectedPartIncludesItsLastTile() = runBlocking {
+        TestPageServer(200, """<meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0;background:red"><div style="height:6000px"></div><div id="target" style="width:100px"><div style="height:1600px;background:#0000ff"></div><div style="height:200px;background:#00ff00"></div></div></body>""").use { server ->
+            val screenshot = capture(server.url, "#target")
+            assertEquals(200, screenshot.width)
+            assertEquals(3600, screenshot.height)
+            val bitmap = BitmapFactory.decodeByteArray(screenshot.bytes, 0, screenshot.bytes.size)
+            try {
+                val pixel = bitmap.getPixel(bitmap.width / 2, bitmap.height - 20)
+                assertTrue(android.graphics.Color.green(pixel) > 200 && android.graphics.Color.red(pixel) < 40)
+            } finally {
+                bitmap.recycle()
+            }
+        }
+    }
+
+    @Test fun selectedPartExceedingBudgetFailsInsteadOfSavingPartialContent() = runBlocking {
+        TestPageServer(200, """<meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0"><div id="target" style="height:9000px">Too large</div></body>""").use { server ->
+            val error = runCatching { capture(server.url, "#target") }.exceptionOrNull()
+            assertTrue("Expected a budget rejection, got $error", error?.message.orEmpty().contains("too large"))
+        }
+    }
+
+    private suspend fun capture(url: String, only: String = "") = withContext(Dispatchers.Main.immediate) {
         val browser = com.bernaferrari.changedetection.sync.AndroidScreenshotBrowserFactory(
             ApplicationProvider.getApplicationContext<Context>(),
         ).create()
         try {
-            val site = com.bernaferrari.changedetection.repo.Site(null, url, 0L, "capture-test", com.bernaferrari.changedetection.repo.ColorGroup(0, 0), true, false)
+            val site = com.bernaferrari.changedetection.repo.Site(null, url, 0L, "capture-test", com.bernaferrari.changedetection.repo.ColorGroup(0, 0), true, false).copy(textIncludeSelector = only)
             val result = browser.capture(site, 300) as com.bernaferrari.changedetection.sync.ScreenshotCaptureOutcome.Success
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             BitmapFactory.decodeByteArray(result.bytes, 0, result.bytes.size, bounds)

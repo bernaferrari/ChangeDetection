@@ -59,6 +59,7 @@ class LogsViewModel(
     private val snapsDao: SnapsDao,
     private val snapsRepository: SnapsRepository,
     private val fileStorage: FileStorage,
+    private val cleanup: com.bernaferrari.changedetection.storage.SnapshotFileCleanup,
     // Injected so host tests can run deletes on a deterministic test dispatcher.
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
@@ -202,8 +203,7 @@ class LogsViewModel(
             }
             try {
                 val bytes = pending.contentBytes ?: return@async false
-                fileStorage.writeBytes(snap.snapId, bytes)
-                snapsDao.insertSnap(pending.snap)
+                cleanup.restore(pending.snap, bytes)
                 pendingDeletions.update { current ->
                     if (current[snap.snapId] === pending) current - snap.snapId else current
                 }

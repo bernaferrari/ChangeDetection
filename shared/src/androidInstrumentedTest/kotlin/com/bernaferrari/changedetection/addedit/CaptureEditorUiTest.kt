@@ -71,10 +71,12 @@ class CaptureEditorUiTest {
                 }
             }
         }
-        compose.onNodeWithText("Any source change").performScrollTo().performClick()
+        compose.onNodeWithText("Any source change").performClick()
         compose.runOnIdle { assertEquals(CaptureMode.SOURCE, chosen) }
         compose.onNodeWithText("Any source change").performClick()
-        compose.runOnIdle { assertEquals(CaptureMode.TEXT, chosen) }
+        compose.runOnIdle { assertEquals(CaptureMode.SOURCE, chosen) }
+        compose.onNodeWithText("Page HTML").performClick()
+        compose.runOnIdle { assertEquals(CaptureMode.HTML, chosen) }
     }
 
     @Test fun realScreenshotCanExpandAndReturnToTheUnsavedEditor() {
@@ -107,7 +109,9 @@ class CaptureEditorUiTest {
                     )
                 }
             }
-            compose.onNodeWithText("Continue").assertIsDisplayed().performClick()
+            compose.onNodeWithText("Open page").assertIsDisplayed().performClick()
+            compose.waitUntil(5000) { compose.onAllNodesWithText("Watch this page").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithText("Watch this page").performClick()
             compose.onNodeWithText("View full screenshot").performScrollTo().performClick()
             compose.onNodeWithText("Done").assertIsDisplayed()
             compose.waitUntil(5_000) {
@@ -132,6 +136,41 @@ class CaptureEditorUiTest {
         }
     }
 
+    @Test fun duplicateFeedbackIsVisibleInTheReviewStepAndBackIsConsumedWhileSaving() {
+        var saving by mutableStateOf(false)
+        var duplicate by mutableStateOf<String?>(null)
+        var back = 0
+        var opened: String? = null
+        compose.setContent {
+            CompositionLocalProvider(LocalBrowserAvailable provides false) {
+                ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
+                    com.bernaferrari.changedetection.util.BackHandler { back++ }
+                    AddEditConfirmScreen(
+                        url = "http://localhost", urlError = null, title = "Page", isEditing = false,
+                        isSaving = saving, saveError = null, captureMode = CaptureMode.TEXT, onCaptureModeChange = {},
+                        onUrlChange = {}, onTitleChange = {}, onNavigateUp = { back++ },
+                        onSave = { duplicate = "existing" }, duplicateSiteId = duplicate,
+                        onOpenDuplicate = { opened = it }, onDismissDuplicate = { duplicate = null },
+                        preview = CapturePreviewState.Ready(CapturePreview.Html("Available", 9)),
+                        onPreview = {}, onClosePreview = {},
+                    )
+                }
+            }
+        }
+        compose.onNodeWithText("Open page").assertIsEnabled().performClick()
+        compose.onNodeWithText("Start watching").performClick()
+        compose.onNodeWithText("You're already monitoring this page").assertExists()
+        compose.onNodeWithText("Open").performScrollTo().performClick()
+        compose.runOnIdle {
+            assertEquals("existing", opened)
+            saving = true
+        }
+        compose.waitForIdle()
+        compose.runOnUiThread { compose.activity.onBackPressedDispatcher.onBackPressed() }
+        compose.onNodeWithText("Saving…").assertExists()
+        compose.runOnIdle { assertEquals(0, back) }
+    }
+
     @Test fun editorOffersCaptureChoiceAndKeepsSaveReachable() {
         var mode by mutableStateOf(CaptureMode.DEFAULT)
         var saved: CaptureMode? = null
@@ -151,7 +190,6 @@ class CaptureEditorUiTest {
         compose.onNodeWithText("More options").performScrollTo().performClick()
         compose.onNodeWithText("Page HTML").performScrollTo().performClick()
         compose.onNodeWithText("Changing what’s watched starts fresh from the next check. Your history stays, and the switch itself won’t send an alert.").assertExists()
-        compose.onNodeWithText("Preview capture").performScrollTo().performClick()
         compose.onNodeWithText("Camera restock: available today").performScrollTo().assertIsDisplayed()
         compose.waitForIdle()
         android.os.ParcelFileDescriptor.AutoCloseInputStream(

@@ -12,7 +12,7 @@ import com.bernaferrari.changedetection.repo.source.local.getRoomDatabase
 import java.nio.file.Files
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.*
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -25,6 +25,34 @@ class SchemaUpgradeTest {
     @Test fun release22DatabaseUpgrades() = runBlocking { upgradeVersionOne(withBrowserColumns = false) }
 
     @Test fun releases2019To2024DatabaseUpgrades() = runBlocking { upgradeVersionOne(withBrowserColumns = true) }
+
+    @Test fun previousVersionFiveBuildPreservesPagesAndHistory() = runBlocking {
+        for (fixture in listOf("schemas/com.bernaferrari.changedetection.repo.source.local.ChangeDatabase/5.json", "src/desktopTest/resources/schema-5-with-icon.json")) {
+            withDatabaseFile { path, driver ->
+                val schema = Json.parseToJsonElement(java.io.File(fixture).readText()).jsonObject.getValue("database").jsonObject
+                driver.open(path).use { connection ->
+                    for (entity in schema.getValue("entities").jsonArray) {
+                        val table = entity.jsonObject
+                        val name = table.getValue("tableName").jsonPrimitive.content
+                        connection.exec(table.getValue("createSql").jsonPrimitive.content.replace("\${TABLE_NAME}", name))
+                        for (index in table["indices"]?.jsonArray.orEmpty()) connection.exec(index.jsonObject.getValue("createSql").jsonPrimitive.content.replace("\${TABLE_NAME}", name))
+                    }
+                    for (sql in schema.getValue("setupQueries").jsonArray) connection.exec(sql.jsonPrimitive.content)
+                    connection.exec("INSERT INTO sites (title,url,timestamp,siteId,isSuccessful,isBrowser,threshold,isRead,isSyncEnabled,isNotificationEnabled,notes,colors,constraints) VALUES ('Page','https://example.test',123,'page',1,0,0,0,1,1,'notes','0,0','false,false,false,false')")
+                    connection.exec("INSERT INTO snaps (snapId,siteId,timestamp,contentType,contentCharset,contentSize,contentHash,processedContentHash) VALUES ('saved','page',123,'text/plain','UTF-8',5,'hash','processed')")
+                    connection.exec("PRAGMA user_version = 5")
+                }
+                val db = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = path), driver)
+                try {
+                    assertEquals(PageIconShape.AUTOMATIC, db.siteDao().getSiteById("page")?.iconShape)
+                    assertEquals("notes", db.siteDao().getSiteById("page")?.notes)
+                    assertEquals("saved", db.snapsDao().getLastSnapForSiteId("page")?.snapId)
+                } finally {
+                    db.close()
+                }
+            }
+        }
+    }
 
     @Test fun historyQueriesUseTheirIndexWithoutSorting() = runBlocking {
         withDatabaseFile { path, driver ->
@@ -112,7 +140,7 @@ class SchemaUpgradeTest {
             reopened.close()
         }
         driver.open(path).use { connection ->
-            assertEquals("5", connection.queryAll("PRAGMA user_version").trim())
+            assertEquals("6", connection.queryAll("PRAGMA user_version").trim())
             val indexes = connection.queryAll("SELECT name FROM sqlite_master WHERE type = 'index' AND name LIKE 'index_%'")
             assertFalse(indexes, "index_sites_siteId" in indexes)
             assertTrue(indexes, "index_snaps_siteId_timestamp_snapId" in indexes)

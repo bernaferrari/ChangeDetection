@@ -46,7 +46,6 @@ val MIGRATION_1_5: Migration = object : Migration(1, 5) {
         addSite("textExcludeSelector", "TEXT NOT NULL DEFAULT ''")
         addSite("visualChangeThresholdBps", "INTEGER NOT NULL DEFAULT 0")
         addSite("iconUrl", "TEXT NOT NULL DEFAULT ''")
-        addSite("iconShape", "TEXT NOT NULL DEFAULT 'AUTOMATIC'")
         // Hashes are filled lazily on the next comparison.
         addSnap("contentHash", "TEXT NOT NULL DEFAULT ''")
         addSnap("processedContentHash", "TEXT NOT NULL DEFAULT ''")
@@ -67,6 +66,15 @@ val MIGRATION_1_5: Migration = object : Migration(1, 5) {
 
         // Files of deleted snapshots are removed in the background, even after the app restarts.
         connection.exec("CREATE TABLE IF NOT EXISTS pendingFileDeletions (snapId TEXT NOT NULL PRIMARY KEY)")
+    }
+}
+
+/** Both version-5 builds are supported: before iconShape, and the build that added it without a bump. */
+val MIGRATION_5_6: Migration = object : Migration(5, 6) {
+    override suspend fun migrate(connection: SQLiteConnection) {
+        if ("iconShape" !in connection.columns("sites")) {
+            connection.exec("ALTER TABLE sites ADD COLUMN `iconShape` TEXT NOT NULL DEFAULT 'AUTOMATIC'")
+        }
     }
 }
 

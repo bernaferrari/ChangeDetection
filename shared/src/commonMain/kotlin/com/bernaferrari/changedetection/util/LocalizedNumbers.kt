@@ -12,16 +12,8 @@ internal fun parseLocalizedWholeNumber(text: String): Long? {
     if (digits.isEmpty()) return null
     val normalized = StringBuilder(digits.length)
     for (character in digits) {
-        val zero = when (character) {
-            in '0'..'9' -> '0'
-            in '०'..'९' -> '०'
-            in '০'..'৯' -> '০'
-            in '０'..'９' -> '０'
-            in '٠'..'٩' -> '٠'
-            in '۰'..'۹' -> '۰'
-            else -> return null
-        }
-        normalized.append('0' + (character - zero))
+        val digit = character.digitToIntOrNull() ?: return null
+        normalized.append('0' + digit)
     }
     return normalized.toString().toLongOrNull()
 }

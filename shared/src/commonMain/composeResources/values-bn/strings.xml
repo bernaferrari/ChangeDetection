@@ -580,7 +580,7 @@
     <string name="detail_check_less">কম ঘনঘন পরীক্ষা করুন</string>
     <string name="advice_temporary">ওয়েবসাইট ব্যস্ত বা বন্ধ। সাধারণত এটি সাময়িক; আমরা চেষ্টা চালিয়ে যাব।</string>
     <string name="advice_connection">এই ডিভাইস ইন্টারনেটে পৌঁছাতে পারেনি। অনলাইনে ফিরলে আবার চেষ্টা করব।</string>
-    <string name="advice_login">এই পৃষ্ঠায় সাইন ইন দরকার। অ্যাপের ব্রাউজারে একবার সাইন ইন করলে পরের পরীক্ষাতেও সাইন ইন থাকবে।</string>
+    <string name="advice_login">এই পৃষ্ঠায় সাইন ইন দরকার। Android-এ স্ক্রিনশট পরীক্ষা অ্যাপের ব্রাউজারের সাইন ইন ব্যবহার করতে পারে। টেক্সট ও সোর্স পরীক্ষা তা পারে না।</string>
     <string name="advice_not_found">পৃষ্ঠা আর নেই। লিংক এখনও ঠিক আছে কি না দেখুন।</string>
     <string name="advice_rate">ওয়েবসাইট কম অনুরোধ করতে বলছে। কম ঘনঘন পরীক্ষা করলে সাধারণত ঠিক হয়।</string>
     <string name="advice_region">বাছাই করা অংশ আর পৃষ্ঠায় নেই। আবার বেছে নিন।</string>
@@ -752,7 +752,7 @@
         <item quantity="other">%1$dটি সরেছে</item>
     </plurals>
     <string name="detail_sign_in">সাইন ইন করুন</string>
-    <string name="browser_session_note">এই পৃষ্ঠায় সাইন ইন করেছেন? সাইন ইন থাকবেন: পরীক্ষা এই ডিভাইসে এই ব্রাউজারের সেশন ব্যবহার করে।</string>
+    <string name="browser_session_note">স্ক্রিনশট পরীক্ষা এই ডিভাইসে এই ব্রাউজারের সাইন ইন ব্যবহার করে। টেক্সট ও সোর্স পরীক্ষা এই সেশন ব্যবহার করে না।</string>
     <string name="turbo_next_check">পরের পরীক্ষা %1$d সেকেন্ডে</string>
     <string name="picker_selected_image">একটি ছবি</string>
     <string name="picker_selected_frame">এম্বেড করা ফ্রেম (প্রায়ই বিজ্ঞাপন)</string>
@@ -786,4 +786,5 @@
     <string name="image_diff_changed_percent">%1$s অংশ বদলেছে</string>
     <string name="error_invalid_input">এই সেটিংস পরীক্ষা করুন</string>
     <string name="error_invalid_input_detail">পৃষ্ঠার ঠিকানা ও সেটিংস পরীক্ষা করে আবার চেষ্টা করুন।</string>
+    <string name="comparison_new_version">নতুন সংস্করণ পাওয়া গেছে</string>
 </resources>
