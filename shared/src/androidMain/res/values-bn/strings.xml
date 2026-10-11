@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Change Detection</string>
+    <string name="status_sync_in_progress">সিঙ্ক হচ্ছে</string>
+    <string name="change_notification_channel_name">শনাক্ত করা পরিবর্তন</string>
+    <string name="change_notification_channel_description">নজরে রাখা ওয়েবসাইট বদলালে বিজ্ঞপ্তি</string>
+    <string name="quick_monitor_banner_live_badge">লাইভ</string>
+    <string name="quick_monitor_title">টার্বো</string>
+    <string name="quick_monitor_channel_description">চলমান টার্বো সেশন দেখায়।</string>
+    <string name="quick_monitor_notification_title">⚡ টার্বো চালু</string>
+    <plurals name="quick_monitor_notification_subtitle">
+        <item quantity="one">প্রতি %2$d সেকেন্ডে %1$dটি পৃষ্ঠা পরীক্ষা হচ্ছে</item>
+        <item quantity="other">প্রতি %2$d সেকেন্ডে %1$dটি পৃষ্ঠা পরীক্ষা হচ্ছে</item>
+    </plurals>
+    <string name="action_stop_monitoring">নজরদারি থামান</string>
+    <string name="empty_add_site_hint">টার্বো চালু করতে পৃষ্ঠা যোগ করুন</string>
+    <string name="start">শুরু করুন</string>
+    <string name="change_notification_named">%1$s বদলেছে</string>
+    <string name="change_notification_generic">পরিবর্তন দেখতে ট্যাপ করুন।</string>
+</resources>

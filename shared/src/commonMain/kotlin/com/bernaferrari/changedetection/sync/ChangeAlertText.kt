@@ -41,7 +41,7 @@ private suspend fun summary(preview: ChangePreview): String? = when (preview) {
         }
     }
 
-    is ChangePreview.Crop -> getString(Res.string.alert_visual, ((preview.percent * 10).toInt() / 10.0).toString())
+    is ChangePreview.Crop -> getString(Res.string.alert_visual, com.bernaferrari.changedetection.util.localizedPercent((preview.percent * 10).toInt() / 10.0))
 
     is ChangePreview.Large -> when {
         preview.reordered -> getString(Res.string.preview_reordered)

@@ -101,6 +101,7 @@ fun PageAvatar(
     iconShape: PageIconShape = PageIconShape.AUTOMATIC,
     colors: com.bernaferrari.changedetection.repo.ColorGroup = 0 to 0,
     selectionProgress: Float = 0f,
+    selectionColor: Color? = null,
 ) {
     val tints = MaterialTheme.marks.identity
     val hash = remember(key) { mixHash(key.hashCode()) }
@@ -119,7 +120,7 @@ fun PageAvatar(
     // stand in only while it loads or when the page has none.
     val tileShape = RoundedCornerShape(size * 0.28f)
     val outline = if (loaded && iconShape == PageIconShape.AUTOMATIC) tileShape else shape
-    val ringColor = MaterialTheme.colorScheme.primary
+    val ringColor = selectionColor ?: MaterialTheme.colorScheme.primary
     val ringGapColor = MaterialTheme.colorScheme.surfaceContainerHigh
     Box(
         modifier

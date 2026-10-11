@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Change Detection</string>
+    <string name="status_sync_in_progress">Abgleich läuft</string>
+    <string name="change_notification_channel_name">Erkannte Änderungen</string>
+    <string name="change_notification_channel_description">Meldungen bei Änderungen beobachteter Websites</string>
+    <string name="quick_monitor_banner_live_badge">LIVE</string>
+    <string name="quick_monitor_title">Turbo</string>
+    <string name="quick_monitor_channel_description">Zeigt die aktive Turbo-Sitzung.</string>
+    <string name="quick_monitor_notification_title">⚡ Turbo aktiv</string>
+    <plurals name="quick_monitor_notification_subtitle">
+        <item quantity="one">Prüft %1$d Seite alle %2$d Sekunden</item>
+        <item quantity="other">Prüft %1$d Seiten alle %2$d Sekunden</item>
+    </plurals>
+    <string name="action_stop_monitoring">Überwachung stoppen</string>
+    <string name="empty_add_site_hint">Seite hinzufügen, um Turbo zu starten</string>
+    <string name="start">Starten</string>
+    <string name="change_notification_named">%1$s hat sich geändert</string>
+    <string name="change_notification_generic">Tippe, um die Änderungen anzusehen.</string>
+</resources>

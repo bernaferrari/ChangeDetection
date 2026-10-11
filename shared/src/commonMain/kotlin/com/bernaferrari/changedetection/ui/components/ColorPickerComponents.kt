@@ -17,6 +17,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import com.bernaferrari.changedetection.ui.theme.marks
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -111,4 +112,12 @@ fun PaletteSwatch(
             Icon(icon, null, Modifier.size(size * 0.45f).rotate(-rotation), tint = Color.White)
         }
     }
+}
+
+/** Shared preview colors for Appearance and individual page icons. */
+@Composable
+internal fun paletteSwatchColors(palette: com.bernaferrari.changedetection.model.AppPalette): List<Color> = when (palette) {
+    com.bernaferrari.changedetection.model.AppPalette.DEFAULT -> listOf(com.bernaferrari.changedetection.ui.theme.BrandSeed, MaterialTheme.marks.highlight)
+    com.bernaferrari.changedetection.model.AppPalette.DYNAMIC -> listOf(Color(0xFF7C4DFF), Color(0xFF00BFA5))
+    else -> listOf(palette.seedColor, androidx.compose.ui.graphics.lerp(palette.seedColor, Color.White, 0.45f))
 }

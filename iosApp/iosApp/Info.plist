@@ -25,6 +25,10 @@
 		<string>es</string>
 		<string>it</string>
 		<string>pt</string>
+		<string>de</string>
+		<string>hi</string>
+		<string>bn</string>
+		<string>zh-Hans</string>
 	</array>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>

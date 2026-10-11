@@ -35,12 +35,4 @@ internal fun VisualChangeFilterField(basisPoints: Int, enabled: Boolean, onChang
 }
 
 /** Basis points as a short percentage: 10 → "0.1%", 100 → "1%". */
-private fun percent(basisPoints: Int): String {
-    val whole = basisPoints / 100
-    val fraction = basisPoints % 100
-    return when {
-        fraction == 0 -> "$whole%"
-        fraction % 10 == 0 -> "$whole.${fraction / 10}%"
-        else -> "$whole.${fraction.toString().padStart(2, '0')}%"
-    }
-}
+private fun percent(basisPoints: Int): String = com.bernaferrari.changedetection.util.localizedPercent(basisPoints / 100.0, maxFractionDigits = 2)

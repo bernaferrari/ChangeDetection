@@ -1,8 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="editor_preview_failed_title">Não foi possível abrir esta página</string>
     <string name="editor_change_address">Alterar endereço</string>
-    <string name="editor_region_custom">Texto escolhido</string>
     <string name="editor_selectors">Seletores CSS</string>
     <string name="editor_name">Nome</string>
     <string name="detail_open_short">Abrir</string>
@@ -13,7 +12,7 @@
     <string name="alert_generic">Toque para ver o que mudou.</string>
     <string name="alert_was">(antes “%1$s”)</string>
     <string name="alert_removed">Texto removido</string>
-    <string name="alert_visual">%1$s% da página mudou. Toque para comparar.</string>
+    <string name="alert_visual">%1$s da página mudou. Toque para comparar.</string>
     <string name="alert_large">Quase toda a página mudou. Toque para comparar.</string>
     <string name="home_now_watching">Monitorando %1$s</string>
     <string name="preview_numbers_only">Só os números mudaram</string>
@@ -80,8 +79,6 @@
     <string name="picker_selected_area">Uma área sem texto</string>
     <string name="preview_nothing_visible">Nada visível mudou</string>
     <string name="preview_nothing_visible_body">A página só se moveu ou foi redesenhada</string>
-    <string name="version_older_change">Alteração anterior</string>
-    <string name="version_newer_change">Próxima alteração</string>
     <string name="version_compared_with">desde %1$s</string>
     <string name="home_status_checked">Verificado %1$s</string>
     <string name="home_status_first_check">Aguardando a primeira verificação</string>

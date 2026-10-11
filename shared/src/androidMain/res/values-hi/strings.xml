@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Change Detection</string>
+    <string name="status_sync_in_progress">सिंक हो रहा है</string>
+    <string name="change_notification_channel_name">पहचाने गए बदलाव</string>
+    <string name="change_notification_channel_description">निगरानी वाली वेबसाइट बदलने पर सूचनाएँ</string>
+    <string name="quick_monitor_banner_live_badge">लाइव</string>
+    <string name="quick_monitor_title">टर्बो</string>
+    <string name="quick_monitor_channel_description">सक्रिय टर्बो सत्र दिखाता है।</string>
+    <string name="quick_monitor_notification_title">⚡ टर्बो चालू</string>
+    <plurals name="quick_monitor_notification_subtitle">
+        <item quantity="one">हर %2$d सेकंड में %1$d पेज जाँचा जा रहा है</item>
+        <item quantity="other">हर %2$d सेकंड में %1$d पेज जाँचे जा रहे हैं</item>
+    </plurals>
+    <string name="action_stop_monitoring">निगरानी रोकें</string>
+    <string name="empty_add_site_hint">टर्बो शुरू करने के लिए पेज जोड़ें</string>
+    <string name="start">शुरू करें</string>
+    <string name="change_notification_named">%1$s बदला</string>
+    <string name="change_notification_generic">बदलाव देखने के लिए टैप करें।</string>
+</resources>

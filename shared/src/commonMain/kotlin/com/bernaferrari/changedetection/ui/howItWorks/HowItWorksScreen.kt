@@ -6,6 +6,8 @@
 
 package com.bernaferrari.changedetection.ui.howItWorks
 
+import com.bernaferrari.changedetection.shared.generated.resources.*
+
 import androidx.compose.material3.toShape
 
 import androidx.compose.ui.draw.clip
@@ -154,10 +156,10 @@ internal fun HowItWorksContent(onBackClick: () -> Unit, capabilities: Monitoring
                             com.bernaferrari.changedetection.ui.kit.DiffText(
                                 com.bernaferrari.changedetection.ui.kit.editText(
                                     listOf(
-                                        com.bernaferrari.changedetection.preview.EditSegment("Applications close ", com.bernaferrari.changedetection.preview.EditSegment.Kind.Same),
-                                        com.bernaferrari.changedetection.preview.EditSegment("31 October", com.bernaferrari.changedetection.preview.EditSegment.Kind.Removed),
+                                        com.bernaferrari.changedetection.preview.EditSegment(stringResource(com.bernaferrari.changedetection.shared.generated.resources.Res.string.demo_applications_close) + " ", com.bernaferrari.changedetection.preview.EditSegment.Kind.Same),
+                                        com.bernaferrari.changedetection.preview.EditSegment(stringResource(com.bernaferrari.changedetection.shared.generated.resources.Res.string.demo_old_date), com.bernaferrari.changedetection.preview.EditSegment.Kind.Removed),
                                         com.bernaferrari.changedetection.preview.EditSegment(" ", com.bernaferrari.changedetection.preview.EditSegment.Kind.Same),
-                                        com.bernaferrari.changedetection.preview.EditSegment("14 November", com.bernaferrari.changedetection.preview.EditSegment.Kind.Added),
+                                        com.bernaferrari.changedetection.preview.EditSegment(stringResource(com.bernaferrari.changedetection.shared.generated.resources.Res.string.demo_new_date), com.bernaferrari.changedetection.preview.EditSegment.Kind.Added),
                                     ),
                                     com.bernaferrari.changedetection.ui.theme.LocalMarks.current,
                                 ),
