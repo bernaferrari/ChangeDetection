@@ -392,6 +392,7 @@ fun ChangeDetectionApp(
                             initialSnapId = key.initialSnapId,
                             showHistoryInitially = key.showHistory,
                             onSiteEdit = { id -> backStack.add(EditSiteDestination(siteId = id)) },
+                            onOpenPage = { id -> backStack.openPage(id) },
                             onSiteDelete = { close(key) },
                         )
                     }

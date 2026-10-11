@@ -93,4 +93,5 @@
     <string name="settings_wait_body">Las páginas ya esperan a que terminen de cargar las imágenes. Añade tiempo para sitios lentos.</string>
     <string name="about_license_short">Código abierto · Apache 2.0</string>
     <string name="settings_wait_seconds">segundos</string>
+    <string name="comparison_page_details">Detalles de la página</string>
 </resources>

@@ -20,6 +20,20 @@ class BackStackPopTest {
         assertEquals(listOf<NavKey>(MainDestination), stack.toList())
     }
 
+    @Test fun openingTheOwningPageReturnsToItsExistingOverview() {
+        val stack = NavBackStack<NavKey>(MainDestination, PageDetailDestination("a"), ComparisonDestination("a"))
+        stack.openPage("a")
+        assertEquals(listOf<NavKey>(MainDestination, PageDetailDestination("a")), stack.toList())
+        stack.pop()
+        assertEquals(listOf<NavKey>(MainDestination), stack.toList())
+    }
+
+    @Test fun aChangeOpenedFromHomeCanOpenItsPageWithoutKeepingASiblingReader() {
+        val stack = NavBackStack<NavKey>(MainDestination, ComparisonDestination("a"))
+        stack.openPage("a")
+        assertEquals(listOf<NavKey>(MainDestination, PageDetailDestination("a")), stack.toList())
+    }
+
     @Test fun aScreenOnlyClosesItself() {
         val stack = NavBackStack<NavKey>(MainDestination, PageDetailDestination("a"), ComparisonDestination("a"))
         stack.pop(PageDetailDestination("a"))

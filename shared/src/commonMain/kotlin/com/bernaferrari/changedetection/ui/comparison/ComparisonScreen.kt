@@ -50,6 +50,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
@@ -142,6 +143,7 @@ fun ComparisonScreen(
     initialSnapId: String? = null,
     showHistoryInitially: Boolean = false,
     onSiteEdit: (String) -> Unit,
+    onOpenPage: (String) -> Unit,
     onSiteDelete: () -> Unit,
     viewModel: ComparisonViewModel = koinViewModel(),
 ) {
@@ -215,6 +217,7 @@ fun ComparisonScreen(
                     emptyList()
                 },
                 menu = listOf(
+                    com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.comparison_page_details), Icons.Outlined.Info, "info.circle", enabled = uiState.site != null) { onOpenPage(siteId) },
                     com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.home_check_now), Icons.Outlined.Refresh, "arrow.clockwise", enabled = uiState.site != null) { viewModel.reloadSite() },
                     com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.open_in_browser), Icons.AutoMirrored.Outlined.OpenInNew, "safari") { uiState.site?.url?.let { runCatching { uriHandler.openUri(it) } } },
                     com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.edit), Icons.Outlined.Edit, "pencil") { onSiteEdit(siteId) },

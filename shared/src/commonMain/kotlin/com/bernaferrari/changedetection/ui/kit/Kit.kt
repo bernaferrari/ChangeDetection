@@ -361,7 +361,12 @@ fun SectionHeader(
         modifier.fillMaxWidth().heightIn(min = 48.dp).padding(start = 24.dp, end = 12.dp, top = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+        val titleModifier = if (onAction != null) {
+            Modifier.heightIn(min = 48.dp).clip(MaterialTheme.shapes.medium).clickable(role = Role.Button, onClick = onAction)
+        } else {
+            Modifier
+        }
+        Row(Modifier.weight(1f).then(titleModifier), verticalAlignment = Alignment.CenterVertically) {
             Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f, fill = false).semantics { heading() })
             if (count != null) {
                 Spacer(Modifier.width(8.dp))

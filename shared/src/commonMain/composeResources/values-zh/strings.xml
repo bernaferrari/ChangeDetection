@@ -751,4 +751,5 @@
     <string name="license_category_data">数据</string>
     <string name="license_category_networking">网络</string>
     <string name="license_category_ui">界面</string>
+    <string name="comparison_page_details">页面详情</string>
 </resources>

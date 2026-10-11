@@ -166,17 +166,7 @@ fun SettingsScreen(
                                 onClick = onNotificationSettings,
                             )
                         }
-                        GroupRow(
-                            title = stringResource(Res.string.settings_saved_versions),
-                            supporting = when {
-                                uiState.storageLoadFailed -> stringResource(Res.string.retry)
-                                uiState.storageBytes == null -> stringResource(Res.string.loading)
-                                else -> stringResource(Res.string.settings_storage_value, formatStorage(uiState.storageBytes!!))
-                            },
-                            icon = Icons.Outlined.Storage,
-                            showDivider = onNotificationSettings != null,
-                            onClick = if (uiState.storageLoadFailed) viewModel::retryStorageLoading else null,
-                        )
+                        SavedVersionsRow(uiState, viewModel::retryStorageLoading, showDivider = onNotificationSettings != null)
                     }
                 }
                 item(key = "help") {
@@ -224,13 +214,6 @@ private fun settingsChecksSummary(state: SettingsUiState): String {
         emptyList()
     }
     return (listOf(cadence(state.syncInterval).replaceFirstChar { it.uppercase() }) + conditions).joinToString(" · ")
-}
-
-private fun formatStorage(bytes: Long): String = when {
-    bytes == 0L -> "0 MB"
-    bytes < 1024 * 1024 -> "<1 MB"
-    bytes < 1024L * 1024 * 1024 -> "${com.bernaferrari.changedetection.util.localizedNumber((bytes / (1024 * 1024)).toDouble(), maxFractionDigits = 0)} MB"
-    else -> "${com.bernaferrari.changedetection.util.localizedNumber((bytes * 10 / (1024L * 1024 * 1024)) / 10.0)} GB"
 }
 
 /**

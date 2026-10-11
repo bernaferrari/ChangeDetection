@@ -16,25 +16,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.material3.OutlinedToggleButton
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BatterySaver
 import androidx.compose.material.icons.outlined.Power
 import androidx.compose.material.icons.outlined.Wifi
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.Role
+import com.bernaferrari.changedetection.ui.kit.ConnectedChoice
 import com.bernaferrari.changedetection.ui.kit.GroupLabel
 import com.bernaferrari.changedetection.ui.kit.GroupRow
 import com.bernaferrari.changedetection.shared.generated.resources.*
@@ -141,37 +136,19 @@ internal fun BackgroundSyncDialogContent(
                     if (draft.backgroundSync && available) {
                         GroupLabel(stringResource(Res.string.checks_every))
                         val customLabel = stringResource(Res.string.checks_custom)
-                        // Standard expressive toggle buttons hug their labels, rather than forming
-                        // oversized connected tiles. Selection morphs the shape without changing width.
-                        FlowRow(
-                            Modifier.fillMaxWidth().padding(horizontal = 16.dp).selectableGroup(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            (presets + CUSTOM_INTERVAL).forEach { minutes ->
-                                val chosen = if (minutes == CUSTOM_INTERVAL) custom else !custom && draft.syncInterval == minutes
-                                OutlinedToggleButton(
-                                    checked = chosen,
-                                    onCheckedChange = { checked ->
-                                        if (checked) {
-                                            if (minutes == CUSTOM_INTERVAL) {
-                                                custom = true
-                                            } else {
-                                                custom = false
-                                                valid = true
-                                                draft = draft.copy(syncInterval = minutes)
-                                            }
-                                        }
-                                    },
-                                    enabled = !saving,
-                                    modifier = Modifier.heightIn(min = 48.dp).semantics {
-                                        role = Role.RadioButton
-                                        selected = chosen
-                                    },
-                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-                                ) { Text(if (minutes == CUSTOM_INTERVAL) customLabel else presetLabel(minutes), style = MaterialTheme.typography.labelLarge) }
-                            }
-                        }
+                        ConnectedChoice(
+                            options = presets + CUSTOM_INTERVAL,
+                            selected = if (custom) CUSTOM_INTERVAL else draft.syncInterval,
+                            onSelect = { minutes ->
+                                custom = minutes == CUSTOM_INTERVAL
+                                if (!custom) {
+                                    valid = true
+                                    draft = draft.copy(syncInterval = minutes)
+                                }
+                            },
+                            enabled = !saving,
+                            wrap = true,
+                        ) { minutes -> if (minutes == CUSTOM_INTERVAL) customLabel else presetLabel(minutes) }
                         if (custom) {
                             Box(Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
                                 SyncIntervalInput(

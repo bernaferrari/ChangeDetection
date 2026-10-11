@@ -26,6 +26,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.bernaferrari.changedetection.detection.SelectableTextDocument
 import com.bernaferrari.changedetection.detection.selectionDocumentWithWatchedAreas
 import com.bernaferrari.changedetection.detection.RegionSelectionDraft
+import com.bernaferrari.changedetection.ui.kit.ConnectedChoice
 import com.bernaferrari.changedetection.detection.TextRegion
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
@@ -98,18 +99,8 @@ internal fun TextRegionPicker(document: SelectableTextDocument, onDismiss: () ->
                             }, text = { Text(stringResource(title)) })
                         }
                     }
-                    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                        val colors = SegmentedButtonDefaults.colors(activeContainerColor = MaterialTheme.colorScheme.primaryContainer, activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer)
-                        SegmentedButton(selected = !ignoreMode, onClick = {
-                            if (ignoreMode) {
-                                ignoreMode = false
-                            }
-                        }, shape = SegmentedButtonDefaults.itemShape(0, 2), colors = colors) { Text(stringResource(Res.string.region_picker_watch)) }
-                        SegmentedButton(selected = ignoreMode, onClick = {
-                            if (!ignoreMode) {
-                                ignoreMode = true
-                            }
-                        }, shape = SegmentedButtonDefaults.itemShape(1, 2), colors = colors) { Text(stringResource(Res.string.region_picker_ignore)) }
+                    ConnectedChoice(listOf(false, true), ignoreMode, { ignoreMode = it }, Modifier) {
+                        stringResource(if (it) Res.string.region_picker_ignore else Res.string.region_picker_watch)
                     }
                     RegionSelectionTools(document, draft, ignoreMode) {
                         draft = it

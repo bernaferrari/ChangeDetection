@@ -9,6 +9,7 @@ package com.bernaferrari.changedetection.ui.kit
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,8 +35,36 @@ import androidx.compose.ui.unit.dp
 
 /** An M3 Expressive connected button group behaving as a single-choice control. */
 @Composable
-fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier.padding(horizontal = 16.dp), enabled: Boolean = true, columns: Int? = null, label: @Composable (T) -> String) {
+fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier.padding(horizontal = 16.dp), enabled: Boolean = true, columns: Int? = null, wrap: Boolean = false, label: @Composable (T) -> String) {
     val labels = options.map { label(it) }
+    if (wrap) {
+        // The Material connected flow layout keeps natural label widths as choices wrap.
+        FlowRow(
+            modifier.fillMaxWidth().selectableGroup(),
+            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            options.forEachIndexed { index, option ->
+                ToggleButton(
+                    checked = option == selected,
+                    onCheckedChange = { if (it) onSelect(option) },
+                    enabled = enabled,
+                    modifier = Modifier.heightIn(min = 48.dp).semantics {
+                        role = Role.RadioButton
+                        this.selected = option == selected
+                    },
+                    shapes = when {
+                        options.size == 1 -> ToggleButtonDefaults.shapesFor(ToggleButtonDefaults.size)
+                        index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                        index == options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                    },
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                ) { Text(labels[index], style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center) }
+            }
+        }
+        return
+    }
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     val style = MaterialTheme.typography.labelLarge
