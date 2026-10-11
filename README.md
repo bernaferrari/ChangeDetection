@@ -70,6 +70,8 @@ Install Android SDK platform `android-37.2` for native builds. The Gradle wrappe
 
 The website uses TypeScript 7's `tsc` for builds and type checking. The `typescript` npm alias supplies TypeScript 6's compiler API for ESLint, following Microsoft's [side-by-side setup](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0).
 
+The iOS app icon lives in `iosApp/iosApp/AppIcon.icon`. Edit its foreground, background, and appearance settings with Apple's [Icon Composer](https://developer.apple.com/icon-composer/). Xcode compiles the layered Liquid Glass icon and generates fallback images for older iOS versions. Keep this file beside `Assets.xcassets`; regenerate the Xcode project with `xcodegen generate --spec iosApp/project.yml` after changing project resources.
+
 Tests and preview data must stay local and synthetic: do not make a verification command depend on a live monitored URL, saved browsing content, or credentials.
 
 ## Android publishing
