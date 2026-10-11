@@ -16,7 +16,6 @@ import com.bernaferrari.changedetection.util.FileStorage
 import java.io.File
 import java.nio.file.Files
 import kotlinx.coroutines.*
-import kotlinx.serialization.json.*
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -111,30 +110,24 @@ class DurableSnapshotCleanupTest {
         }
     }
 
-    @Test fun schemaEightMigrationPreservesHistoryAndInstallsTransactionalCleanup() = runBlocking {
+    @Test fun legacyUpgradePreservesHistoryAndInstallsTransactionalCleanup() = runBlocking {
         val directory = Files.createTempDirectory("cleanup-migration").toFile()
         val path = directory.resolve("test.db").path
         val driver = BundledSQLiteDriver()
         try {
-            val schema = Json.parseToJsonElement(File("schemas/com.bernaferrari.changedetection.repo.source.local.ChangeDatabase/8.json").readText()).jsonObject.getValue("database").jsonObject
             driver.open(path).use { connection ->
                 fun execute(sql: String) {
                     connection.prepare(sql).use { it.step() }
                 }
-                schema.getValue("entities").jsonArray.forEach { node ->
-                    val entity = node.jsonObject
-                    val table = entity.getValue("tableName").jsonPrimitive.content
-                    execute(entity.getValue("createSql").jsonPrimitive.content.replace("\${TABLE_NAME}", table))
-                    entity.getValue("indices").jsonArray.forEach { index -> execute(index.jsonObject.getValue("createSql").jsonPrimitive.content.replace("\${TABLE_NAME}", table)) }
-                }
-                schema.getValue("setupQueries").jsonArray.forEach { execute(it.jsonPrimitive.content) }
-                execute("INSERT INTO sites (title,url,timestamp,siteId,isSuccessful,isBrowser,threshold,isRead,isSyncEnabled,isNotificationEnabled,notes,colors,constraints,captureMode,visualChangeThresholdBps) VALUES ('Saved','https://example.test',123,'page',1,1,0,0,1,1,'','0,0','false,false,false,false','SCREENSHOT',100)")
-                execute("INSERT INTO snaps (snapId,siteId,timestamp,contentType,contentCharset,contentSize,contentHash,processedContentHash) VALUES ('saved','page',123,'image/png','',42,'','')")
-                execute("PRAGMA user_version = 8")
+                // The last public release's tables (database version 1).
+                execute("CREATE TABLE sites (title TEXT, url TEXT NOT NULL, timestamp INTEGER NOT NULL, siteId TEXT NOT NULL, isSuccessful INTEGER NOT NULL, isBrowser INTEGER NOT NULL, threshold INTEGER NOT NULL, isRead INTEGER NOT NULL, isSyncEnabled INTEGER NOT NULL, isNotificationEnabled INTEGER NOT NULL, notes TEXT NOT NULL, colors TEXT NOT NULL, constraints TEXT NOT NULL, PRIMARY KEY(siteId))")
+                execute("CREATE TABLE snaps (snapId TEXT NOT NULL, siteId TEXT NOT NULL, timestamp INTEGER NOT NULL, contentType TEXT NOT NULL, contentCharset TEXT NOT NULL, contentSize INTEGER NOT NULL, PRIMARY KEY(snapId), FOREIGN KEY(siteId) REFERENCES sites(siteId) ON UPDATE NO ACTION ON DELETE CASCADE)")
+                execute("INSERT INTO sites VALUES ('Saved','https://example.test',123,'page',1,0,0,0,1,1,'','0,0','false, false, false, false')")
+                execute("INSERT INTO snaps VALUES ('saved','page',123,'text/html','utf-8',42)")
+                execute("PRAGMA user_version = 1")
             }
             val db = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = path), driver)
             try {
-                assertEquals(100, db.siteDao().getSiteById("page")?.visualChangeThresholdBps)
                 assertNotNull(db.snapsDao().getSnapById("saved"))
                 assertNull(db.pendingFileDeletionDao().lastId())
                 db.siteDao().saveWithHistoryReset(requireNotNull(db.siteDao().getSiteById("page")))

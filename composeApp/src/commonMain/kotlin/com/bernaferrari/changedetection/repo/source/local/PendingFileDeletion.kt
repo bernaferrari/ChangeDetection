@@ -9,7 +9,6 @@ import androidx.room3.Entity
 import androidx.room3.PrimaryKey
 import androidx.room3.Query
 import androidx.room3.RoomDatabase
-import androidx.room3.migration.Migration
 import androidx.sqlite.SQLiteConnection
 
 /** No foreign key: cleanup must survive deletion of the owning page and snapshot. */
@@ -41,11 +40,4 @@ private suspend fun installCleanupTrigger(connection: SQLiteConnection) {
 
 internal val snapshotCleanupCallback = object : RoomDatabase.Callback() {
     override suspend fun onOpen(connection: SQLiteConnection) = installCleanupTrigger(connection)
-}
-
-val MIGRATION_8_9: Migration = object : Migration(8, 9) {
-    override suspend fun migrate(connection: SQLiteConnection) {
-        connection.prepare("CREATE TABLE IF NOT EXISTS pendingFileDeletions (snapId TEXT NOT NULL PRIMARY KEY)").use { it.step() }
-        installCleanupTrigger(connection)
-    }
 }
