@@ -23,7 +23,7 @@ import androidx.sqlite.SQLiteConnection
  * Columns are added in place (never by rebuilding tables, which would cascade-delete history), and only
  * when missing, so both shapes of version 1 upgrade the same way.
  */
-val MIGRATION_1_10: Migration = object : Migration(1, 10) {
+val MIGRATION_1_5: Migration = object : Migration(1, 5) {
     override suspend fun migrate(connection: SQLiteConnection) {
         val siteColumns = connection.columns("sites")
         val snapColumns = connection.columns("snaps")
@@ -68,12 +68,6 @@ val MIGRATION_1_10: Migration = object : Migration(1, 10) {
         connection.exec("CREATE TABLE IF NOT EXISTS pendingFileDeletions (snapId TEXT NOT NULL PRIMARY KEY)")
     }
 }
-
-/**
- * Pre-release builds (2025–2026) used versions 2 to 9. They were never published, so they start fresh rather
- * than carry a migration each.
- */
-internal val UNPUBLISHED_VERSIONS = intArrayOf(2, 3, 4, 5, 6, 7, 8, 9)
 
 private fun SQLiteConnection.exec(sql: String) = prepare(sql).use { it.step() }
 

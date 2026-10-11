@@ -24,22 +24,6 @@ class SchemaUpgradeTest {
 
     @Test fun releases2019To2024DatabaseUpgrades() = runBlocking { upgradeVersionOne(withBrowserColumns = true) }
 
-    @Test fun unpublishedPreReleaseDatabaseStartsFresh() = runBlocking {
-        withDatabaseFile { path, driver ->
-            driver.open(path).use { connection ->
-                connection.exec("CREATE TABLE sites (siteId TEXT NOT NULL PRIMARY KEY, url TEXT NOT NULL)")
-                connection.exec("INSERT INTO sites VALUES ('dev', 'https://example.test')")
-                connection.exec("PRAGMA user_version = 7")
-            }
-            val db = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = path), driver)
-            try {
-                assertTrue(db.siteDao().getSitesList().isEmpty())
-            } finally {
-                db.close()
-            }
-        }
-    }
-
     @Test fun historyQueriesUseTheirIndexWithoutSorting() = runBlocking {
         withDatabaseFile { path, driver ->
             getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = path), driver).apply {
@@ -112,7 +96,7 @@ class SchemaUpgradeTest {
             db.close()
         }
         driver.open(path).use { connection ->
-            assertEquals("10", connection.queryAll("PRAGMA user_version").trim())
+            assertEquals("5", connection.queryAll("PRAGMA user_version").trim())
             val indexes = connection.queryAll("SELECT name FROM sqlite_master WHERE type = 'index' AND name LIKE 'index_%'")
             assertFalse(indexes, "index_sites_siteId" in indexes)
             assertTrue(indexes, "index_snaps_siteId_timestamp_snapId" in indexes)
