@@ -781,4 +781,5 @@
     <string name="license_category_data">তথ্য</string>
     <string name="license_category_networking">নেটওয়ার্ক</string>
     <string name="license_category_ui">ইন্টারফেস</string>
+    <string name="comparison_page_details">পেজের বিবরণ</string>
 </resources>

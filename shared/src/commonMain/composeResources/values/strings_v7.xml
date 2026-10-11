@@ -93,4 +93,5 @@
     <string name="settings_wait_body">Pages already wait for images and loading to settle. Add more time for slow sites.</string>
     <string name="about_license_short">Open source · Apache 2.0</string>
     <string name="settings_wait_seconds">seconds</string>
+    <string name="comparison_page_details">Page details</string>
 </resources>

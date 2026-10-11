@@ -36,6 +36,7 @@ class PageDetailUiTest {
         .copy(isSyncEnabled = true, isSuccessful = false, isRead = false, lastFailureCode = "CONNECTION")
     private val older = Snap("older", "page", now - 3 * 86_400_000L, "text/html", "UTF-8", 100)
     private val latest = Snap("latest", "page", now - 3_600_000L, "text/html", "UTF-8", 100)
+    private var historyOpened: String? = null
     private var opened: String? = null
     private var edited = 0
     private var checks = 0
@@ -57,7 +58,7 @@ class PageDetailUiTest {
                             item = item, isLoading = false, versions = versions, schedule = schedule, turbo = turbo,
                             onBack = {}, onCompare = { opened = it }, onEdit = { edited++ }, onTurbo = { turboOpened++ }, onSchedule = { schedules++ },
                             onOpenUrl = { browserOpened++ }, onCheck = { checks++ }, onMarkRead = { read++ }, onSetPaused = { paused = it },
-                            onSetNotify = { notify = it }, notificationsAvailable = true, onDelete = {},
+                            onSetNotify = { notify = it }, notificationsAvailable = true, onDelete = {}, onHistory = { historyOpened = it },
                         )
                     }
                 }
@@ -110,6 +111,22 @@ class PageDetailUiTest {
         compose.onNodeWithText("Latest change").assertIsDisplayed()
         compose.onAllNodesWithText("Compare").onFirst().performClick()
         compose.runOnIdle { assertEquals(latest.snapId, opened) }
+    }
+
+    @Test fun savedVersionsHeadingAndSeeAllOpenHistoryInsteadOfComparison() {
+        show(SiteAndLastSnap(site.copy(isSuccessful = true, lastFailureCode = null), latest, 2), height = 760)
+        compose.onNodeWithTag("page-details").performScrollToKey("versions-h")
+        compose.onNodeWithText("Versions").performScrollTo().assertHasClickAction().performClick()
+        compose.runOnIdle {
+            assertEquals(latest.snapId, historyOpened)
+            assertNull(opened)
+            historyOpened = null
+        }
+        compose.onNodeWithText("See all").performScrollTo().performClick()
+        compose.runOnIdle {
+            assertEquals(latest.snapId, historyOpened)
+            assertNull(opened)
+        }
     }
 
     @Test fun regionFailureLeadsToSettingsInsteadOfARetry() {

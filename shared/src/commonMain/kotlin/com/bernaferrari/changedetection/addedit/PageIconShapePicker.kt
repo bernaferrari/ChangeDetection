@@ -40,7 +40,7 @@ internal fun PageIconShapePicker(name: String, key: String, icon: String?, selec
         onDismissRequest = onDismiss,
         title = { Text(stringResource(Res.string.editor_icon_shape_title)) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 PageIconShape.entries.chunked(3).forEach { shapes ->
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                         shapes.forEach { shape ->
@@ -49,7 +49,7 @@ internal fun PageIconShapePicker(name: String, key: String, icon: String?, selec
                             val motion = rememberPageIconMotion(interactions, chosen)
                             val label = shape.label()
                             Box(
-                                Modifier.width(72.dp).height(64.dp)
+                                Modifier.width(72.dp).height(60.dp)
                                     .semantics { contentDescription = label }
                                     .selectable(selected = chosen, role = Role.RadioButton, interactionSource = interactions, indication = null, onClick = {
                                         if (!chosen) {
@@ -74,15 +74,13 @@ internal fun PageIconShapePicker(name: String, key: String, icon: String?, selec
                         }
                     }
                 }
-                HorizontalDivider(Modifier.padding(vertical = 4.dp))
-                Text(stringResource(Res.string.icon_color_title), style = MaterialTheme.typography.labelLarge)
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).selectableGroup(), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                     PageIconColor.entries.forEach { color ->
                         val palette = com.bernaferrari.changedetection.model.AppPalette.entries.firstOrNull { it.name == color.name } ?: com.bernaferrari.changedetection.model.AppPalette.DEFAULT
                         com.bernaferrari.changedetection.ui.components.PaletteSwatch(
                             colors = com.bernaferrari.changedetection.ui.components.paletteSwatchColors(palette),
                             label = if (color == PageIconColor.AUTOMATIC) stringResource(Res.string.icon_shape_automatic) else stringResource(palette.titleRes),
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
                             size = 48.dp,
                             selected = PageIconColor.from(colors) == color,
                             onClick = { onColorSelect(color.colors) },

@@ -315,22 +315,30 @@ private fun HistoryStorageRow(bytes: Long?, loadFailed: Boolean, onRetry: () -> 
         position = position,
         onClick = { expanded = true },
     )
-    if (expanded) {
-        AlertDialog(
-            onDismissRequest = { expanded = false },
-            title = { Text(stringResource(Res.string.storage_history_title)) },
-            text = {
-                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text(usage, style = MaterialTheme.typography.titleMedium)
-                    if (loadFailed) TextButton(onClick = onRetry) { Text(stringResource(Res.string.retry)) }
-                    Text(
-                        stringResource(Res.string.storage_history_policy),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            },
-            confirmButton = { TextButton(onClick = { expanded = false }) { Text(stringResource(Res.string.done)) } },
-        )
+    if (expanded) HistoryStorageDialog(bytes, loadFailed, onRetry, onDismiss = { expanded = false })
+}
+
+@Composable
+internal fun HistoryStorageDialog(bytes: Long?, loadFailed: Boolean, onRetry: () -> Unit, onDismiss: () -> Unit) {
+    val usage = when {
+        loadFailed -> stringResource(Res.string.storage_history_load_failed)
+        bytes == null -> stringResource(Res.string.loading)
+        else -> stringResource(Res.string.storage_history_usage, if (bytes in 1..1_048_575) "<1" else com.bernaferrari.changedetection.util.localizedNumber((bytes / 1_048_576L).toDouble(), maxFractionDigits = 0))
     }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(Res.string.storage_history_title)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text(usage, style = MaterialTheme.typography.titleMedium)
+                if (loadFailed) TextButton(onClick = onRetry) { Text(stringResource(Res.string.retry)) }
+                Text(
+                    stringResource(Res.string.storage_history_policy),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.done)) } },
+    )
 }

@@ -24,7 +24,9 @@ fun NavBackStack<NavKey>.openComparison(
 /** Selecting a sibling page replaces its overview; comparison remains a separate child. */
 fun NavBackStack<NavKey>.openPage(siteId: String) {
     val destination = PageDetailDestination(siteId)
-    if (lastOrNull() is PageDetailDestination || lastOrNull() is ComparisonDestination) {
+    if (lastOrNull() is ComparisonDestination && getOrNull(lastIndex - 1) == destination) {
+        removeAt(lastIndex)
+    } else if (lastOrNull() is PageDetailDestination || lastOrNull() is ComparisonDestination) {
         this[lastIndex] = destination
     } else {
         add(destination)

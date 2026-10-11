@@ -13,6 +13,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import com.bernaferrari.changedetection.ui.components.rememberPageIconMotion
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.animation.animateContentSize
@@ -596,11 +598,13 @@ private fun PagePreviewCard(
     Surface(shape = MaterialTheme.shapes.extraLarge, color = tileColor, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(Modifier.padding(start = 16.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                val iconInteractions = remember { MutableInteractionSource() }
+                val iconMotion = rememberPageIconMotion(iconInteractions)
                 Box(
-                    Modifier.size(64.dp).clickable(enabled = enabled, role = androidx.compose.ui.semantics.Role.Button, onClickLabel = stringResource(Res.string.editor_icon_shape_title)) { choosingShape = true },
+                    Modifier.size(64.dp).clickable(enabled = enabled, interactionSource = iconInteractions, indication = null, role = androidx.compose.ui.semantics.Role.Button, onClickLabel = stringResource(Res.string.editor_icon_shape_title)) { choosingShape = true },
                     contentAlignment = Alignment.Center,
                 ) {
-                    PageAvatar(title.ifBlank { host }, url.normalizeUrl() ?: url, size = 48.dp, icon = iconUrl.ifBlank { null }, iconShape = iconShape, colors = iconColors)
+                    PageAvatar(title.ifBlank { host }, url.normalizeUrl() ?: url, modifier = iconMotion.modifier, size = 48.dp, icon = iconUrl.ifBlank { null }, iconShape = iconShape, colors = iconColors, selectionProgress = iconMotion.outlineProgress, selectionColor = if (iconMotion.focused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
                 }
                 TextField(
                     value = title,

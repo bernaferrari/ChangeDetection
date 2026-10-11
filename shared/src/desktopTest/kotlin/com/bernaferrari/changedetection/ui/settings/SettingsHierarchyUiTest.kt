@@ -33,6 +33,34 @@ import org.junit.Test
 class SettingsHierarchyUiTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun savedVersionsOpensStorageDetailsAndCanRetryWithoutClosing() {
+        var state by mutableStateOf(SettingsUiState(storageBytes = 4 * 1_048_576L))
+        var retries = 0
+        compose.setContent {
+            ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
+                Column(Modifier.width(390.dp)) {
+                    SavedVersionsRow(state, {
+                        retries++
+                        state = state.copy(storageLoadFailed = false, storageBytes = null)
+                    })
+                }
+            }
+        }
+        compose.onNodeWithText("Saved versions").assertHasClickAction().performClick()
+        compose.onNodeWithText("Saved history").assertIsDisplayed()
+        compose.onNodeWithText("4 MB of saved versions").assertIsDisplayed()
+        compose.runOnIdle { state = state.copy(storageLoadFailed = true, storageBytes = null) }
+        compose.onNodeWithText("Could not load storage usage.").assertIsDisplayed()
+        compose.onAllNodesWithText("Retry").onLast().performClick()
+        compose.runOnIdle {
+            assertEquals(1, retries)
+            state = state.copy(storageBytes = 2 * 1_048_576L)
+        }
+        compose.onNodeWithText("2 MB of saved versions").assertIsDisplayed()
+        compose.onNodeWithText("Done").performClick()
+        compose.onNodeWithText("Saved history").assertDoesNotExist()
+    }
+
     @Test fun storageFailureOffersRetryInsideAndOutsideItsDialog() {
         var failed by mutableStateOf(true)
         var retries = 0
