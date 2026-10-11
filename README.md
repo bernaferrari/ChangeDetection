@@ -44,8 +44,7 @@ Turbo checks at 15-second, 30-second, 1-minute, or 2-minute intervals. Choose a 
 | `shared/src/iosMain/` | iOS platform implementations; the iOS product remains in development |
 | `iosApp/` | Swift application shell |
 | `webDemo/` | Compose Multiplatform Wasm demo with synthetic local monitoring data |
-| `web/` | Next.js marketing and documentation site |
-| `website/` | New Next.js marketing site; CI currently verifies `web/` |
+| `website/` | Next.js marketing site with privacy and use-case pages; verified by CI |
 
 The active app architecture is Kotlin Multiplatform with Compose Multiplatform, Navigation 3, Koin, Room, DataStore, WorkManager, Ktor, and coroutines. Website content and snapshot metadata stay on the device; network requests naturally reach the pages the user chooses to monitor.
 
@@ -64,8 +63,8 @@ Android builds use the platform WebView for page capture and a bounded pixel com
 | iOS shared code | `./gradlew :shared:compileKotlinIosSimulatorArm64` | iOS implementation of the shared KMP surface. |
 | Kotlin formatting | `./gradlew :shared:spotlessCheck` | Kotlin formatting and copyright headers for the Compose module. |
 | Web demo | `./gradlew :webDemo:wasmJsBrowserDistribution` | Builds the Compose Multiplatform Wasm demo; CI also verifies its output files. |
-| Website lint | `cd web && pnpm lint` | TypeScript and React static analysis. |
-| Website production build | `cd web && pnpm build` | Type checking and static rendering of `/` and `/docs`. |
+| Website lint | `cd website && pnpm lint` | TypeScript and React static analysis. |
+| Website production build | `cd website && pnpm build` | Type checking and production rendering of the homepage, privacy, and use-case pages. |
 
 Tests and preview data must stay local and synthetic: do not make a verification command depend on a live monitored URL, saved browsing content, or credentials.
 
