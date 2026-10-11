@@ -46,7 +46,8 @@ class ErrorHandler {
         userAction: String? = null,
         siteId: String? = null,
     ): ErrorResult {
-        val errorResult = classifyError(error, context)
+        val classified = classifyError(error, context)
+        val errorResult = classified.copy(presentation = errorPresentation(classified, error))
 
         // Log with appropriate level based on severity
         logError(error, errorResult, context, userAction)
@@ -451,6 +452,7 @@ class ErrorHandler {
                 type = result.type,
                 severity = result.severity,
                 message = result.userMessage,
+                presentation = result.presentation,
                 description = result.description,
                 context = context,
                 userAction = userAction,
@@ -525,6 +527,7 @@ data class ErrorResult(
     val isRetryable: Boolean = false,
     val suggestedActions: List<String> = emptyList(),
     val recoveryAction: RecoveryAction = RecoveryAction.NONE,
+    val presentation: ErrorPresentation? = null,
 ) {
     val shouldShowToUser: Boolean
         get() = severity != ErrorSeverity.INFO || type == ErrorType.INFO
@@ -546,6 +549,7 @@ data class ErrorEvent(
     val isRetryable: Boolean,
     val recoveryAction: RecoveryAction,
     val suggestedActions: List<String>,
+    val presentation: ErrorPresentation? = null,
 )
 
 // Custom exception classes with additional context

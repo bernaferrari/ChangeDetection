@@ -22,7 +22,7 @@ import com.bernaferrari.changedetection.util.formatTimestamp
 import com.bernaferrari.changedetection.util.getCurrentTimeMillis
 import kotlinx.coroutines.delay
 import com.bernaferrari.changedetection.ui.components.monitoringCadenceLabel
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /** Requested cadence and actual scheduler eligibility are deliberately separate. */
 @Composable

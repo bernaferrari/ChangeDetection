@@ -15,6 +15,11 @@ private fun dateFormatter(includeSeconds: Boolean): NSDateFormatter = NSDateForm
     locale = displayLocale()
     timeStyle = if (includeSeconds) NSDateFormatterMediumStyle else NSDateFormatterShortStyle
 }
+internal actual fun localizedCalendarDate(timestamp: Long): String = NSDateFormatter().apply {
+    locale = displayLocale()
+    dateStyle = NSDateFormatterMediumStyle
+    timeStyle = NSDateFormatterNoStyle
+}.stringFromDate(NSDate.dateWithTimeIntervalSince1970(timestamp / 1000.0))
 internal actual fun localizedTimestamp(timestamp: Long, includeSeconds: Boolean): String = dateFormatter(includeSeconds).apply { dateStyle = NSDateFormatterMediumStyle }.stringFromDate(NSDate.dateWithTimeIntervalSince1970(timestamp / 1000.0))
 internal actual fun localizedTime(timestamp: Long, includeSeconds: Boolean): String = dateFormatter(includeSeconds).stringFromDate(NSDate.dateWithTimeIntervalSince1970(timestamp / 1000.0))
 internal actual fun localizedNumber(value: Double, maxFractionDigits: Int, minFractionDigits: Int): String = NSNumberFormatter().apply {

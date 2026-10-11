@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.swing.Swing
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 @Composable
 internal actual fun BrowserRuntimeHost(modifier: Modifier, content: @Composable () -> Unit) {

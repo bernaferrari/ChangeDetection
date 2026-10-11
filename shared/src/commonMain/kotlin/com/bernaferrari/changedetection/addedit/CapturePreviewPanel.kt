@@ -20,8 +20,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.ui.comparison.SnapshotImage
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.pluralStringResource
+import com.bernaferrari.changedetection.localization.stringResource
+import com.bernaferrari.changedetection.localization.pluralStringResource
 import com.bernaferrari.changedetection.shared.generated.resources.editor_words
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)

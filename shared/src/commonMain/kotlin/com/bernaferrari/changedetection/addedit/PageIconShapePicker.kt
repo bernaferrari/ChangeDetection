@@ -29,7 +29,7 @@ import com.bernaferrari.changedetection.repo.PageIconShape
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.ui.components.rememberPageIconMotion
 import com.bernaferrari.changedetection.ui.kit.PageAvatar
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /** The caller decides whether each choice updates an editor draft or a saved page. */
 @Composable

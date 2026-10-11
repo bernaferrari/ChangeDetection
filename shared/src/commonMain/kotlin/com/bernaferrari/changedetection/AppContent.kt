@@ -60,7 +60,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.select_site_c
 import com.bernaferrari.changedetection.shared.generated.resources.select_site_canvas_title
 import com.bernaferrari.changedetection.shared.generated.resources.select_site_canvas_supporting
 import org.koin.compose.viewmodel.koinViewModel
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /**
  * Platform-specific actions that the [ChangeDetectionApp] needs to perform.

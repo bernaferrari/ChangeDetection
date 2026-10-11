@@ -85,7 +85,7 @@ import com.bernaferrari.changedetection.ui.kit.cadence
 import com.bernaferrari.changedetection.ui.theme.marks
 import com.bernaferrari.changedetection.ui.theme.supportsDynamicColors
 import com.bernaferrari.changedetection.ui.kit.ConnectedChoice
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 /** Every row shows its current value, so the whole setup can be read without opening anything. */

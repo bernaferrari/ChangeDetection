@@ -91,8 +91,8 @@ import com.bernaferrari.changedetection.ui.theme.marks
 import com.bernaferrari.changedetection.util.readableSnapshotText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.jetbrains.compose.resources.pluralStringResource
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.pluralStringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /** One block of the reader: either a run of unchanged lines or one change. */
 internal sealed interface ReaderBlock {
@@ -410,7 +410,7 @@ private fun DigestHeader(title: String, count: Int) {
     Row(Modifier.fillMaxWidth().padding(start = 8.dp, top = 20.dp, bottom = 8.dp).semantics { heading() }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(title, style = MaterialTheme.typography.titleMedium)
         Box(Modifier.clip(androidx.compose.foundation.shape.CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest).padding(horizontal = 8.dp, vertical = 1.dp)) {
-            Text(count.toString(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(com.bernaferrari.changedetection.util.localizedInteger(count), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

@@ -58,7 +58,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.save
 import com.bernaferrari.changedetection.shared.generated.resources.schedule_save_failed
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_constraints_title
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_interval_label
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 /**

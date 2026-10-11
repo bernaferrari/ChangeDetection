@@ -107,8 +107,8 @@ import com.bernaferrari.changedetection.ui.theme.marks
 import com.bernaferrari.changedetection.util.formatTime
 import com.bernaferrari.changedetection.util.getCurrentTimeMillis
 import kotlinx.coroutines.delay
-import org.jetbrains.compose.resources.pluralStringResource
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.pluralStringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /** A clock that ticks once a second while a session is on screen. */
 @Composable

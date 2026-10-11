@@ -27,7 +27,7 @@ import com.bernaferrari.changedetection.util.formatTimestamp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 internal sealed interface SavedPagePreview {
     data object Loading : SavedPagePreview

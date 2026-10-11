@@ -64,7 +64,7 @@ import com.bernaferrari.changedetection.ui.kit.SerifSnippet
 import com.bernaferrari.changedetection.ui.kit.editText
 import com.bernaferrari.changedetection.ui.theme.marks
 import com.bernaferrari.changedetection.util.readText
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /** The empty state shows the product instead of describing it, and offers a copied link. */
 @Composable

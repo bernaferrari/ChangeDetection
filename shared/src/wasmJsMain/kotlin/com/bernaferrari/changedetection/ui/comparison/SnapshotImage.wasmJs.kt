@@ -14,6 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import org.jetbrains.compose.resources.decodeToImageBitmap
+import com.bernaferrari.changedetection.localization.stringResource
+import com.bernaferrari.changedetection.shared.generated.resources.Res
+import com.bernaferrari.changedetection.shared.generated.resources.image_comparison_unavailable
 
 @Composable
 internal actual fun SnapshotImage(
@@ -34,7 +37,7 @@ internal actual fun SnapshotImage(
     } else {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
             Text(
-                "Could not decode this screenshot",
+                stringResource(Res.string.image_comparison_unavailable),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

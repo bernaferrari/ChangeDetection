@@ -36,7 +36,7 @@ import androidx.navigation3.runtime.NavKey
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.a11y_navigate_back
 import com.bernaferrari.changedetection.shared.generated.resources.more_options
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /** A top bar action: an icon button on Android and desktop, a bar button or menu item with an SF Symbol on iOS. */
 data class BarAction(

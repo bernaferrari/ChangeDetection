@@ -708,7 +708,7 @@
     <string name="digest_show_full">Vollständigen Vergleich zeigen</string>
     <string name="digest_changed">Geändert</string>
     <string name="activity_started_short">Beobachtung gestartet</string>
-    <string name="checks_ios_note">iOS bestimmt die Hintergrundprüfungen, meist wenige Male pro Tag. Beim Öffnen der App werden fällige Seiten sofort geprüft.</string>
+    <string name="checks_ios_note">iOS bestimmt, wann Prüfungen im Hintergrund laufen, meist ein paar Mal am Tag. Beim Öffnen der App werden fällige Seiten sofort geprüft.</string>
     <string name="turbo_sheet_caption_open">Endet um %1$s · läuft, solange die App offen bleibt</string>
     <string name="picker_title">Bereiche auswählen</string>
     <string name="picker_title_short">Bereiche</string>
@@ -767,7 +767,7 @@
     <string name="ignore_small_body">Nur dann einen neuen Screenshot speichern, wenn sich mindestens so viel sichtbar ändert.</string>
     <string name="ignore_small_off_body">Jede sichtbare Änderung wird gespeichert, egal wie klein.</string>
     <string name="editor_formats">Andere Formate</string>
-    <string name="editor_formats_body">Für Entwickler: Quellcode der Seite vergleichen. Meist mehr Meldungen als bei Text.</string>
+    <string name="editor_formats_body">Für Entwickler: den Quellcode der Seite vergleichen. Erkennt meist mehr unwichtige Änderungen als der Textvergleich.</string>
     <string name="editor_part_picked">Ausgewählt</string>
     <string name="settings_capture_body">So werden neue Seiten verglichen. Jede Seite kann eine eigene Methode wählen.</string>
     <string name="settings_wait_body">Seiten warten bereits auf Bilder und das Ende des Ladens. Für langsame Websites kannst du zusätzliche Zeit einstellen.</string>
@@ -782,4 +782,8 @@
     <string name="license_category_networking">Netzwerk</string>
     <string name="license_category_ui">Oberfläche</string>
     <string name="comparison_page_details">Seitendetails</string>
+    <string name="desktop_development">Desktop-Entwicklungsversion</string>
+    <string name="image_diff_changed_percent">%1$s geändert</string>
+    <string name="error_invalid_input">Einstellungen prüfen</string>
+    <string name="error_invalid_input_detail">Prüfe die Seitenadresse und die Einstellungen und versuche es erneut.</string>
 </resources>

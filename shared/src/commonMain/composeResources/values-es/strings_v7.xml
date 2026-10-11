@@ -83,15 +83,19 @@
     <string name="home_status_checked">Comprobado %1$s</string>
     <string name="home_status_first_check">Esperando la primera comprobación</string>
     <string name="ignore_small_title">Ignorar cambios pequeños</string>
-    <string name="ignore_small_off">No</string>
+    <string name="ignore_small_off">Desactivado</string>
     <string name="ignore_small_body">Solo guarda una captura nueva cuando al menos esta parte de la página se ve distinta.</string>
     <string name="ignore_small_off_body">Se guarda cualquier cambio visible, por pequeño que sea.</string>
     <string name="editor_formats">Otros formatos</string>
     <string name="editor_formats_body">Para desarrolladores: compara el código de la página. Suele generar más ruido que el texto.</string>
     <string name="editor_part_picked">Elegida</string>
     <string name="settings_capture_body">Cómo se comparan las páginas nuevas. Cada página puede elegir la suya.</string>
-    <string name="settings_wait_body">Las páginas ya esperan a que terminen de cargar las imágenes. Añade tiempo para sitios lentos.</string>
+    <string name="settings_wait_body">Las páginas ya esperan a que se carguen las imágenes y termine la carga. Añade tiempo para sitios lentos.</string>
     <string name="about_license_short">Código abierto · Apache 2.0</string>
     <string name="settings_wait_seconds">segundos</string>
     <string name="comparison_page_details">Detalles de la página</string>
+    <string name="desktop_development">Versión de desarrollo para escritorio</string>
+    <string name="image_diff_changed_percent">%1$s con cambios</string>
+    <string name="error_invalid_input">Revisa estos ajustes</string>
+    <string name="error_invalid_input_detail">Revisa la dirección de la página y los ajustes, y vuelve a intentarlo.</string>
 </resources>

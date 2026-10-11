@@ -127,11 +127,11 @@ import com.bernaferrari.changedetection.util.getCurrentTimeMillis
 import com.bernaferrari.changedetection.util.getRelativeTimeLabel
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.minus
-import org.jetbrains.compose.resources.pluralStringResource
+import com.bernaferrari.changedetection.localization.pluralStringResource
 import com.bernaferrari.changedetection.ui.comparison.isImageSnapshot
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 import com.bernaferrari.changedetection.addedit.PageIconShapePicker
 import com.bernaferrari.changedetection.repo.PageIconShape
 import org.koin.compose.koinInject
@@ -355,10 +355,10 @@ private fun DetailList(
                         when {
                             paused -> stringResource(Res.string.detail_status_paused)
                             item.isSyncing -> stringResource(Res.string.home_row_checking)
-                            failing -> stringResource(Res.string.detail_status_failed, getRelativeTimeLabel(site.timestamp).lowercase())
+                            failing -> stringResource(Res.string.detail_status_failed, getRelativeTimeLabel(site.timestamp).replaceFirstChar { it.lowercase() })
                             site.timestamp <= 0 -> stringResource(Res.string.home_row_waiting)
-                            schedule.enabled -> stringResource(Res.string.detail_status_checked, getRelativeTimeLabel(site.timestamp).lowercase(), cadence(schedule.intervalMinutes))
-                            else -> stringResource(Res.string.detail_status_checked_manual, getRelativeTimeLabel(site.timestamp).lowercase())
+                            schedule.enabled -> stringResource(Res.string.detail_status_checked, getRelativeTimeLabel(site.timestamp).replaceFirstChar { it.lowercase() }, cadence(schedule.intervalMinutes))
+                            else -> stringResource(Res.string.detail_status_checked_manual, getRelativeTimeLabel(site.timestamp).replaceFirstChar { it.lowercase() })
                         },
                         style = MaterialTheme.typography.labelLarge,
                         color = if (failing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,

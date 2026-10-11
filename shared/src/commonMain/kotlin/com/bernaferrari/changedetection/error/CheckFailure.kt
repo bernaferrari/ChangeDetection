@@ -30,8 +30,13 @@ enum class CheckFailure {
         fun from(result: ErrorResult, error: Throwable?): CheckFailure {
             if (error is ContentError && error.reason == ContentError.Reason.CAPTURE_UNAVAILABLE) return CAPTURE_UNAVAILABLE
             if (error is com.bernaferrari.changedetection.detection.TextRegionException) return REGION
-            if (error is NetworkError) {
-                return when (error.code) {
+            val responseCode = when (error) {
+                is NetworkError -> error.code
+                is ResponseException -> error.response.status.value
+                else -> null
+            }
+            if (responseCode != null) {
+                return when (responseCode) {
                     401 -> LOGIN
                     403 -> ACCESS_DENIED
                     404, 410 -> NOT_FOUND
@@ -46,6 +51,7 @@ enum class CheckFailure {
                 ErrorType.CONNECTIVITY, ErrorType.NETWORK -> CONNECTION
                 ErrorType.TIMEOUT -> TIMEOUT
                 ErrorType.AUTHENTICATION -> LOGIN
+                ErrorType.PERMISSIONS -> ACCESS_DENIED
                 ErrorType.RATE_LIMITED -> RATE_LIMITED
                 ErrorType.DATABASE -> SAVE_FAILED
                 ErrorType.CONTENT -> CONTENT

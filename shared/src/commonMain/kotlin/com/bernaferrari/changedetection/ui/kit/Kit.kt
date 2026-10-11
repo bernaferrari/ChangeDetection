@@ -80,7 +80,7 @@ import com.bernaferrari.changedetection.util.displayPageTitle
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.preview_before
 import com.bernaferrari.changedetection.shared.generated.resources.preview_after
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /** Host only, for the quiet second line under a page name. */
 fun Site.domain(): String = url.displayPageAddress().substringBefore('/').substringBefore('?')
@@ -371,7 +371,7 @@ fun SectionHeader(
             if (count != null) {
                 Spacer(Modifier.width(8.dp))
                 Box(Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest).padding(horizontal = 8.dp, vertical = 1.dp)) {
-                    Text(count.toString(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(com.bernaferrari.changedetection.util.localizedInteger(count), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

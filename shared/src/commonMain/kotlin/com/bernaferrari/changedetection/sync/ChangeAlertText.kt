@@ -19,7 +19,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.alert_was
 import com.bernaferrari.changedetection.shared.generated.resources.preview_numbers_only
 import com.bernaferrari.changedetection.shared.generated.resources.preview_reordered
 import com.bernaferrari.changedetection.util.displayPageTitle
-import org.jetbrains.compose.resources.getString
+import com.bernaferrari.changedetection.localization.getString
 
 /** Title and body for a change alert, quoting the same bounded preview the app shows. */
 suspend fun changeAlertText(site: Site, snapId: String, snaps: SnapsRepository?, previews: ChangePreviewRepository?): Pair<String, String> {

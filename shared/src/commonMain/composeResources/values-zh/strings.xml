@@ -442,7 +442,7 @@
     <string name="home_row_paused">已暂停</string>
     <string name="home_row_waiting">等待首次检查</string>
     <string name="home_row_no_changes">暂无变化</string>
-    <string name="home_row_changed">变化于 %1$s</string>
+    <string name="home_row_changed">%1$s有变化</string>
     <string name="badge_new">新</string>
     <string name="mark_read_short">标为已读</string>
     <string name="preview_size_changed">页面尺寸有变化</string>
@@ -531,8 +531,8 @@
     </plurals>
     <string name="detail_turbo_on">Turbo 已开启</string>
     <string name="detail_status_paused">已暂停 · 保留历史</string>
-    <string name="detail_status_checked">检查于 %1$s · %2$s</string>
-    <string name="detail_status_checked_manual">检查于 %1$s · 自动检查已关闭</string>
+    <string name="detail_status_checked">%1$s检查过 · %2$s</string>
+    <string name="detail_status_checked_manual">%1$s检查过 · 自动检查已关闭</string>
     <string name="detail_last_30">最近 30 天</string>
     <plurals name="detail_changes_count">
         <item quantity="other">%1$d 处变化</item>
@@ -722,7 +722,7 @@
         <item quantity="other">%1$d 个删除</item>
     </plurals>
     <string name="detail_sign_in">登录</string>
-    <string name="browser_session_note">已登录此页面？你会保持登录状态：检查使用此设备上该浏览器的会话。</string>
+    <string name="browser_session_note">已登录此网页？检查会使用此设备上的浏览器登录状态，无需重新登录。</string>
     <string name="turbo_next_check">%1$d 秒后再次检查</string>
     <string name="picker_selected_image">图片</string>
     <string name="picker_selected_frame">嵌入式框架（通常是广告）</string>
@@ -730,17 +730,17 @@
     <string name="preview_nothing_visible">没有可见变化</string>
     <string name="preview_nothing_visible_body">页面只是移动或重新渲染</string>
     <string name="version_compared_with">自 %1$s 起</string>
-    <string name="home_status_checked">检查于 %1$s</string>
+    <string name="home_status_checked">%1$s检查过</string>
     <string name="home_status_first_check">等待首次检查</string>
     <string name="ignore_small_title">忽略微小变化</string>
     <string name="ignore_small_off">关闭</string>
     <string name="ignore_small_body">只有页面外观至少发生此程度的变化时，才保存新截图。</string>
     <string name="ignore_small_off_body">保存所有可见变化，无论多小。</string>
     <string name="editor_formats">其他格式</string>
-    <string name="editor_formats_body">面向开发者：比较页面代码，通常比文本监测产生更多无关变化。</string>
+    <string name="editor_formats_body">适合开发者：比较网页源代码，通常会检测到更多无关变化。</string>
     <string name="editor_part_picked">已选择</string>
     <string name="settings_capture_body">新页面的默认比较方式，每个页面仍可自行选择。</string>
-    <string name="settings_wait_body">页面已会等待图片和加载稳定。较慢的网站可增加等待时间。</string>
+    <string name="settings_wait_body">页面会等待图片加载完毕、内容稳定后再检查。较慢的网站可以增加等待时间。</string>
     <string name="about_license_short">开源 · Apache 2.0</string>
     <string name="settings_wait_seconds">秒</string>
     <string name="demo_price">价格</string>
@@ -752,4 +752,8 @@
     <string name="license_category_networking">网络</string>
     <string name="license_category_ui">界面</string>
     <string name="comparison_page_details">页面详情</string>
+    <string name="desktop_development">桌面开发版</string>
+    <string name="image_diff_changed_percent">%1$s 已变化</string>
+    <string name="error_invalid_input">请检查这些设置</string>
+    <string name="error_invalid_input_detail">请检查网页地址和设置，然后重试。</string>
 </resources>

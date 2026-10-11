@@ -68,7 +68,7 @@ import com.bernaferrari.changedetection.repo.ComparisonMethod
 import com.bernaferrari.changedetection.ui.components.SegmentPosition
 import com.bernaferrari.changedetection.ui.theme.spacing
 import com.bernaferrari.changedetection.ui.theme.supportsDynamicColors
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.settings_comparison_page_text
 import com.bernaferrari.changedetection.shared.generated.resources.settings_comparison_screenshots

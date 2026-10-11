@@ -81,7 +81,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.preview_unava
 import com.bernaferrari.changedetection.ui.comparison.SnapshotImage
 import com.bernaferrari.changedetection.ui.theme.marks
 import kotlin.math.roundToInt
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 import androidx.compose.runtime.remember
 import org.koin.mp.KoinPlatformTools
 import kotlinx.coroutines.CancellationException
@@ -263,7 +263,7 @@ fun cropSummary(preview: ChangePreview.Crop): String {
         return if (preview.sizeChanged) stringResource(Res.string.preview_size_changed) else stringResource(Res.string.label_percent, com.bernaferrari.changedetection.ui.home.formatPercent(preview.percent))
     }
     // One number: "4 changes". Whether each is new, updated or removed is shown on the change itself.
-    return org.jetbrains.compose.resources.pluralStringResource(Res.plurals.crop_changed, preview.regions.size, preview.regions.size)
+    return com.bernaferrari.changedetection.localization.pluralStringResource(Res.plurals.crop_changed, preview.regions.size, preview.regions.size)
 }
 
 /**

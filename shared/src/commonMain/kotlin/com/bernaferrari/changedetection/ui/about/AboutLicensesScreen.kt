@@ -46,7 +46,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.a11y_open_lic
 import com.bernaferrari.changedetection.shared.generated.resources.about_licenses_subtitle
 import com.bernaferrari.changedetection.shared.generated.resources.about_licenses_title
 import com.bernaferrari.changedetection.ui.theme.spacing
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 private data class License(
     val name: String,

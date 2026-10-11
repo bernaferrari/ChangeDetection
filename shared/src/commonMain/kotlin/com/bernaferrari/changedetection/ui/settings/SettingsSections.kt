@@ -72,7 +72,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.settings_moni
 import com.bernaferrari.changedetection.shared.generated.resources.settings_section_appearance
 import com.bernaferrari.changedetection.shared.generated.resources.settings_version
 import com.bernaferrari.changedetection.ui.theme.spacing
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 @Composable
 internal fun DeviceSettingsSection(
@@ -295,7 +295,7 @@ private fun BrowserDelaySelector(
 
 private fun formatDelay(delayMs: Long): String {
     val seconds = (delayMs / 1000L).coerceAtLeast(1L)
-    return "${seconds}s"
+    return "${com.bernaferrari.changedetection.util.localizedInteger(seconds)} s"
 }
 
 @Composable
@@ -306,7 +306,7 @@ private fun HistoryStorageRow(bytes: Long?, loadFailed: Boolean, onRetry: () -> 
     } else if (bytes == null) {
         stringResource(Res.string.loading)
     } else {
-        stringResource(Res.string.storage_history_usage, if (bytes in 1..1_048_575) "<1" else (bytes / 1_048_576L).toString())
+        stringResource(Res.string.storage_history_usage, if (bytes in 1..1_048_575) "<${com.bernaferrari.changedetection.util.localizedInteger(1)}" else com.bernaferrari.changedetection.util.localizedInteger(bytes / 1_048_576L))
     }
     SettingsActionRow(
         icon = Icons.Outlined.History,
@@ -323,7 +323,7 @@ internal fun HistoryStorageDialog(bytes: Long?, loadFailed: Boolean, onRetry: ()
     val usage = when {
         loadFailed -> stringResource(Res.string.storage_history_load_failed)
         bytes == null -> stringResource(Res.string.loading)
-        else -> stringResource(Res.string.storage_history_usage, if (bytes in 1..1_048_575) "<1" else com.bernaferrari.changedetection.util.localizedNumber((bytes / 1_048_576L).toDouble(), maxFractionDigits = 0))
+        else -> stringResource(Res.string.storage_history_usage, if (bytes in 1..1_048_575) "<${com.bernaferrari.changedetection.util.localizedInteger(1)}" else com.bernaferrari.changedetection.util.localizedNumber((bytes / 1_048_576L).toDouble(), maxFractionDigits = 0))
     }
     AlertDialog(
         onDismissRequest = onDismiss,

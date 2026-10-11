@@ -83,15 +83,19 @@
     <string name="home_status_checked">Controllato %1$s</string>
     <string name="home_status_first_check">In attesa del primo controllo</string>
     <string name="ignore_small_title">Ignora piccole modifiche</string>
-    <string name="ignore_small_off">No</string>
+    <string name="ignore_small_off">Disattivato</string>
     <string name="ignore_small_body">Salva un nuovo screenshot solo quando almeno questa parte della pagina appare diversa.</string>
     <string name="ignore_small_off_body">Ogni modifica visibile viene salvata, anche minima.</string>
     <string name="editor_formats">Altri formati</string>
-    <string name="editor_formats_body">Per sviluppatori: confronta il codice della pagina. Di solito più rumoroso del testo.</string>
+    <string name="editor_formats_body">Per sviluppatori: confronta il codice della pagina. Di solito rileva più modifiche irrilevanti rispetto al testo.</string>
     <string name="editor_part_picked">Scelta</string>
-    <string name="settings_capture_body">Come vengono confrontate le nuove pagine. Ogni pagina può sceglierne uno suo.</string>
+    <string name="settings_capture_body">Il metodo di confronto per le nuove pagine. Ogni pagina può usarne uno diverso.</string>
     <string name="settings_wait_body">Le pagine aspettano già che immagini e caricamento finiscano. Aggiungi tempo per i siti lenti.</string>
-    <string name="about_license_short">Open source · Apache 2.0</string>
+    <string name="about_license_short">Codice aperto · Apache 2.0</string>
     <string name="settings_wait_seconds">secondi</string>
     <string name="comparison_page_details">Dettagli della pagina</string>
+    <string name="desktop_development">Versione desktop di sviluppo</string>
+    <string name="image_diff_changed_percent">%1$s modificato</string>
+    <string name="error_invalid_input">Controlla queste impostazioni</string>
+    <string name="error_invalid_input_detail">Controlla l’indirizzo della pagina e le impostazioni, poi riprova.</string>
 </resources>

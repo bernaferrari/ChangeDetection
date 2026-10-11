@@ -216,7 +216,7 @@
     <string name="image_comparison_unavailable">तस्वीर उपलब्ध नहीं</string>
     <string name="image_diff_preparing">तैयार हो रहा है</string>
     <string name="image_diff_status_unavailable">उपलब्ध नहीं</string>
-    <string name="image_diff_changed">बदला गया</string>
+    <string name="image_diff_changed">बदला हुआ</string>
     <string name="image_diff_pixels">पिक्सेल</string>
     <string name="image_diff_no_detected_change">इस प्रीव्यू में कोई अंतर नहीं मिला।</string>
     <string name="image_diff_changed_pixels">बदले हुए पिक्सेल</string>
@@ -455,7 +455,7 @@
     <string name="home_row_paused">रुका हुआ</string>
     <string name="home_row_waiting">पहली जाँच का इंतज़ार</string>
     <string name="home_row_no_changes">अभी कोई बदलाव नहीं</string>
-    <string name="home_row_changed">बदला %1$s</string>
+    <string name="home_row_changed">%1$s बदलाव हुआ</string>
     <string name="badge_new">नया</string>
     <string name="mark_read_short">पढ़ा हुआ चिह्नित करें</string>
     <string name="preview_size_changed">पेज का आकार बदला</string>
@@ -552,8 +552,8 @@
     </plurals>
     <string name="detail_turbo_on">टर्बो चालू है</string>
     <string name="detail_status_paused">रुका हुआ · इतिहास रहेगा</string>
-    <string name="detail_status_checked">जाँचा %1$s · %2$s</string>
-    <string name="detail_status_checked_manual">जाँचा %1$s · अपने आप जाँचें बंद हैं</string>
+    <string name="detail_status_checked">%1$s जाँच की गई · %2$s</string>
+    <string name="detail_status_checked_manual">%1$s जाँच की गई · अपने आप जाँचना बंद है</string>
     <string name="detail_last_30">पिछले 30 दिन</string>
     <plurals name="detail_changes_count">
         <item quantity="one">%1$d बदलाव</item>
@@ -627,7 +627,7 @@
     <string name="advice_capture">स्क्रीनशॉट केवल Android पर लिए जा सकते हैं। इस पेज के लिए टेक्स्ट चुनें या फ़ोन से जाँच जारी रखें।</string>
     <string name="checks_title">अपने आप जाँचें</string>
     <string name="checks_every">हर</string>
-    <string name="checks_custom">अपना अंतराल…</string>
+    <string name="checks_custom">कस्टम…</string>
     <string name="checks_own_schedule_note">यह शेड्यूल सभी सक्रिय पेजों पर लागू होता है। टर्बो सत्र अलग चलते हैं और इसे नहीं बदलते।</string>
     <string name="checks_only_when">केवल जब</string>
     <string name="checks_wifi">वाई-फ़ाई पर</string>
@@ -760,7 +760,7 @@
     <string name="preview_nothing_visible">कोई दिखने वाला बदलाव नहीं</string>
     <string name="preview_nothing_visible_body">पेज केवल खिसका या फिर रेंडर हुआ</string>
     <string name="version_compared_with">%1$s से</string>
-    <string name="home_status_checked">जाँचा %1$s</string>
+    <string name="home_status_checked">%1$s जाँच की गई</string>
     <string name="home_status_first_check">पहली जाँच का इंतज़ार है</string>
     <string name="ignore_small_title">छोटे बदलाव छोड़ें</string>
     <string name="ignore_small_off">बंद</string>
@@ -782,4 +782,8 @@
     <string name="license_category_networking">नेटवर्क</string>
     <string name="license_category_ui">इंटरफ़ेस</string>
     <string name="comparison_page_details">पेज का विवरण</string>
+    <string name="desktop_development">डेस्कटॉप विकास संस्करण</string>
+    <string name="image_diff_changed_percent">%1$s हिस्सा बदला</string>
+    <string name="error_invalid_input">इन सेटिंग की जाँच करें</string>
+    <string name="error_invalid_input_detail">पेज का पता और सेटिंग जाँचें, फिर दोबारा कोशिश करें।</string>
 </resources>

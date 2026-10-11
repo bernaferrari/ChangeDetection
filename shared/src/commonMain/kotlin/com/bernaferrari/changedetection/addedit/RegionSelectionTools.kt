@@ -15,7 +15,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.detection.*
 import com.bernaferrari.changedetection.shared.generated.resources.*
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 private data class SelectionTool(val label: String, val enabled: Boolean, val apply: () -> RegionSelectionDraft)
 

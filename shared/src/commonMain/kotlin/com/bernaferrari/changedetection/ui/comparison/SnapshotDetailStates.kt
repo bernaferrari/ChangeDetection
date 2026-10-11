@@ -61,7 +61,7 @@ import com.bernaferrari.changedetection.ui.components.SignalEmptyState
 import com.bernaferrari.changedetection.ui.components.AppLoadingIndicator
 import com.bernaferrari.changedetection.ui.theme.spacing
 import com.bernaferrari.changedetection.util.formatTimestamp
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 @Composable
 internal fun EmptySnapshotState(modifier: Modifier = Modifier) {

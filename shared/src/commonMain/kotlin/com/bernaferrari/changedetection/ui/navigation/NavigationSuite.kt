@@ -41,7 +41,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.nav_home
 import com.bernaferrari.changedetection.shared.generated.resources.nav_activity
 import com.bernaferrari.changedetection.shared.generated.resources.nav_settings
 import com.bernaferrari.changedetection.shared.generated.resources.nav_turbo
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 private data class AppNavItem(
     val destination: NavKey,
@@ -134,7 +134,7 @@ fun ChangeDetectionNavigationSuite(
 private fun NavIcon(icon: ImageVector, badge: Int) {
     if (badge > 0) {
         BadgedBox(badge = {
-            Badge(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary) { Text(if (badge > 99) "99+" else badge.toString()) }
+            Badge(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary) { Text(if (badge > 99) "${com.bernaferrari.changedetection.util.localizedInteger(99)}+" else com.bernaferrari.changedetection.util.localizedInteger(badge)) }
         }) { Icon(icon, null, Modifier.size(24.dp)) }
     } else {
         Icon(icon, null, Modifier.size(24.dp))

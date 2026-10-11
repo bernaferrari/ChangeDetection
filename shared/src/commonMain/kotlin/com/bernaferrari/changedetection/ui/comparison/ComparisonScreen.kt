@@ -131,7 +131,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 /** One reader for every kind of page: what is compared, how to look at it, and how to move through it. */
