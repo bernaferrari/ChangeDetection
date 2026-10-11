@@ -6,6 +6,7 @@
 
 package com.bernaferrari.changedetection.addedit
 
+import com.bernaferrari.changedetection.repo.PageIconShape
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -83,6 +84,10 @@ fun AddEditConfirmScreen(
     urlError: AddEditError?,
     title: String,
     iconUrl: String = "",
+    iconShape: PageIconShape = PageIconShape.AUTOMATIC,
+    onIconShapeChange: (PageIconShape) -> Unit = {},
+    iconColors: com.bernaferrari.changedetection.repo.ColorGroup = 0 to 0,
+    onIconColorChange: (com.bernaferrari.changedetection.repo.ColorGroup) -> Unit = {},
     captureMode: CaptureMode = CaptureMode.DEFAULT,
     onCaptureModeChange: (CaptureMode) -> Unit = {},
     preview: CapturePreviewState = CapturePreviewState.Idle,
@@ -197,7 +202,7 @@ fun AddEditConfirmScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     PagePreviewCard(
-                        url = url, title = title, iconUrl = iconUrl, onTitleChange = onTitleChange, preview = preview, enabled = !isSaving,
+                        url = url, title = title, iconUrl = iconUrl, iconShape = iconShape, onIconShapeChange = onIconShapeChange, iconColors = iconColors, onIconColorChange = onIconColorChange, onTitleChange = onTitleChange, preview = preview, enabled = !isSaving,
                         onRetry = onPreview, onEditAddress = {
                             reviewing = false
                             browsing = false
@@ -397,6 +402,10 @@ fun AddEditConfirmScreen(
                                 url = url,
                                 title = title,
                                 iconUrl = iconUrl,
+                                iconShape = iconShape,
+                                onIconShapeChange = onIconShapeChange,
+                                iconColors = iconColors,
+                                onIconColorChange = onIconColorChange,
                                 onTitleChange = onTitleChange,
                                 preview = preview,
                                 enabled = !isSaving,
@@ -556,6 +565,10 @@ private fun PagePreviewCard(
     url: String,
     title: String,
     iconUrl: String,
+    iconShape: PageIconShape,
+    onIconShapeChange: (PageIconShape) -> Unit,
+    iconColors: com.bernaferrari.changedetection.repo.ColorGroup,
+    onIconColorChange: (com.bernaferrari.changedetection.repo.ColorGroup) -> Unit,
     onTitleChange: (String) -> Unit,
     preview: CapturePreviewState,
     enabled: Boolean,
@@ -567,10 +580,28 @@ private fun PagePreviewCard(
     screenshot: Boolean = false,
 ) {
     val host = remember(url) { url.removePrefix("https://").removePrefix("http://").removePrefix("www.").substringBefore('/') }
+    var choosingShape by remember { mutableStateOf(false) }
+    if (choosingShape) {
+        PageIconShapePicker(
+            name = title.ifBlank { host },
+            key = url.normalizeUrl() ?: url,
+            icon = iconUrl.ifBlank { null },
+            selected = iconShape,
+            onSelect = onIconShapeChange,
+            colors = iconColors,
+            onColorSelect = onIconColorChange,
+            onDismiss = { choosingShape = false },
+        )
+    }
     Surface(shape = MaterialTheme.shapes.extraLarge, color = tileColor, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(Modifier.padding(start = 16.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                PageAvatar(title.ifBlank { host }, url.normalizeUrl() ?: url, size = 48.dp, icon = iconUrl.ifBlank { null })
+                Box(
+                    Modifier.size(64.dp).clickable(enabled = enabled, role = androidx.compose.ui.semantics.Role.Button, onClickLabel = stringResource(Res.string.editor_icon_shape_title)) { choosingShape = true },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    PageAvatar(title.ifBlank { host }, url.normalizeUrl() ?: url, size = 48.dp, icon = iconUrl.ifBlank { null }, iconShape = iconShape, colors = iconColors)
+                }
                 TextField(
                     value = title,
                     onValueChange = onTitleChange,

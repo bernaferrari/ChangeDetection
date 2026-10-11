@@ -4,6 +4,8 @@
  */
 package com.bernaferrari.changedetection.repo.source.local
 
+import com.bernaferrari.changedetection.repo.PageIconShape
+
 import androidx.room3.*
 import com.bernaferrari.changedetection.repo.Site
 import kotlinx.coroutines.flow.Flow
@@ -78,6 +80,13 @@ interface SitesDao {
      */
     @Update
     suspend fun updateSite(site: Site)
+
+    @Query("UPDATE sites SET colors = :colors WHERE siteId = :siteId")
+    @ColumnTypeConverters(Site.PairConverter::class)
+    suspend fun updateIconColor(siteId: String, colors: com.bernaferrari.changedetection.repo.ColorGroup)
+
+    @Query("UPDATE sites SET iconShape = :shape WHERE siteId = :siteId")
+    suspend fun updateIconShape(siteId: String, shape: PageIconShape)
 
     @Query("UPDATE sites SET isSyncEnabled = :enabled, isNotificationEnabled = :notifications WHERE siteId = :siteId")
     suspend fun updateMonitoringOptions(siteId: String, enabled: Boolean, notifications: Boolean)

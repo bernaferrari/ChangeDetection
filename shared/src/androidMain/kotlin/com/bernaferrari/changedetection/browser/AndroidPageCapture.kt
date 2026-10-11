@@ -111,7 +111,15 @@ internal class AndroidPageCapture(private val view: WebView) {
             }
         }
         try {
+            // A check must fetch today's page even when Chromium considers its cached response fresh.
+            view.settings.cacheMode = WebSettings.LOAD_NO_CACHE
             view.loadUrl(url)
+            // Slow images and analytics can hold onPageFinished forever after the document is usable.
+            // The capture's settle delay and awaitSettled still give styles and lazy images time to arrive.
+            while (!loaded.isCompleted) {
+                val ready = evaluate("location.href !== 'about:blank' && document.body !== null && document.readyState !== 'loading'")
+                if (ready == "true") loaded.complete(Unit) else delay(100)
+            }
             loaded.await()
         } finally {
             if (!loaded.isCompleted) view.stopLoading()

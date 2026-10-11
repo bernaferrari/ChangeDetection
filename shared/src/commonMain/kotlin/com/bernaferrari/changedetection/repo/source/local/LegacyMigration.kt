@@ -46,6 +46,7 @@ val MIGRATION_1_5: Migration = object : Migration(1, 5) {
         addSite("textExcludeSelector", "TEXT NOT NULL DEFAULT ''")
         addSite("visualChangeThresholdBps", "INTEGER NOT NULL DEFAULT 0")
         addSite("iconUrl", "TEXT NOT NULL DEFAULT ''")
+        addSite("iconShape", "TEXT NOT NULL DEFAULT 'AUTOMATIC'")
         // Hashes are filled lazily on the next comparison.
         addSnap("contentHash", "TEXT NOT NULL DEFAULT ''")
         addSnap("processedContentHash", "TEXT NOT NULL DEFAULT ''")

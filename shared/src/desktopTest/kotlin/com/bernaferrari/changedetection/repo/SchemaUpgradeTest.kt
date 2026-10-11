@@ -11,6 +11,8 @@ import com.bernaferrari.changedetection.repo.source.local.ChangeDatabase
 import com.bernaferrari.changedetection.repo.source.local.getRoomDatabase
 import java.nio.file.Files
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -85,6 +87,7 @@ class SchemaUpgradeTest {
             assertEquals(1560000000000, site.lastSuccessfulCheck)
             assertTrue("upgraded pages must not all look new", site.isRead)
             assertEquals("", site.iconUrl)
+            assertEquals(PageIconShape.AUTOMATIC, site.iconShape)
             assertEquals(0, site.visualChangeThresholdBps)
 
             val broken = requireNotNull(db.siteDao().getSiteById("broken"))
@@ -94,8 +97,19 @@ class SchemaUpgradeTest {
             assertEquals("new", db.snapsDao().getLastSnapForSiteId("page")?.snapId)
             db.siteDao().updateIcon("page", "https://example.test/icon.png")
             assertEquals("https://example.test/icon.png", db.siteDao().getSiteById("page")?.iconUrl)
+            db.siteDao().updateIconShape("page", PageIconShape.CLOVER)
+            db.siteDao().updateIconColor("page", com.bernaferrari.changedetection.repo.PageIconColor.PINK.colors)
+            assertEquals(Json.encodeToString(site.copy(colors = com.bernaferrari.changedetection.repo.PageIconColor.PINK.colors, iconUrl = "https://example.test/icon.png", iconShape = PageIconShape.CLOVER)), Json.encodeToString(requireNotNull(db.siteDao().getSiteById("page"))))
         } finally {
             db.close()
+        }
+        val reopened = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = path), driver)
+        try {
+            assertEquals(PageIconShape.CLOVER, reopened.siteDao().getSiteById("page")?.iconShape)
+            assertEquals(com.bernaferrari.changedetection.repo.PageIconColor.PINK.colors, reopened.siteDao().getSiteById("page")?.colors)
+            assertEquals("new", reopened.snapsDao().getLastSnapForSiteId("page")?.snapId)
+        } finally {
+            reopened.close()
         }
         driver.open(path).use { connection ->
             assertEquals("5", connection.queryAll("PRAGMA user_version").trim())

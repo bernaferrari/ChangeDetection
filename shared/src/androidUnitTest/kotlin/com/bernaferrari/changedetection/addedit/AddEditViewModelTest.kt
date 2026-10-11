@@ -4,6 +4,8 @@
  */
 package com.bernaferrari.changedetection.addedit
 
+import com.bernaferrari.changedetection.repo.PageIconShape
+
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.bernaferrari.changedetection.background.MonitoringManager
@@ -36,6 +38,31 @@ import org.junit.runner.Description
 class AddEditViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
+
+    @Test
+    fun `icon shape stays a draft until save and restores when editing`() = runTest {
+        val source = FakeSitesDataSource()
+        val editor = createViewModel(dataSource = source)
+        editor.setUrl("example.com")
+        editor.setIconShape(com.bernaferrari.changedetection.repo.PageIconShape.CLOVER)
+        editor.setIconColor(com.bernaferrari.changedetection.repo.PageIconColor.TEAL.colors)
+        assertEquals(null, source.savedSite)
+        editor.saveSite()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(com.bernaferrari.changedetection.repo.PageIconShape.CLOVER, source.savedSite?.iconShape)
+        val reopened = createViewModel(siteId = requireNotNull(source.savedSite).id, dataSource = source)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(com.bernaferrari.changedetection.repo.PageIconShape.CLOVER, reopened.uiState.value.iconShape)
+        assertEquals(com.bernaferrari.changedetection.repo.PageIconColor.TEAL.colors, reopened.uiState.value.selectedColors)
+        reopened.setIconColor(com.bernaferrari.changedetection.repo.PageIconColor.BLUE.colors)
+        assertEquals(com.bernaferrari.changedetection.repo.PageIconColor.TEAL.colors, source.savedSite?.colors)
+        reopened.setIconShape(com.bernaferrari.changedetection.repo.PageIconShape.CIRCLE)
+        assertEquals(com.bernaferrari.changedetection.repo.PageIconShape.CLOVER, source.savedSite?.iconShape)
+        reopened.saveSite()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(com.bernaferrari.changedetection.repo.PageIconShape.CIRCLE, source.savedSite?.iconShape)
+        assertEquals(com.bernaferrari.changedetection.repo.PageIconColor.BLUE.colors, source.savedSite?.colors)
+    }
 
     @Test
     fun `region edits persist only after save and restore on reopening`() = runTest {
@@ -348,6 +375,14 @@ class AddEditViewModelTest {
 
         override suspend fun saveSite(site: Site, resetHistory: Boolean) {
             savedSite = site
+        }
+
+        override suspend fun updateIconShape(siteId: String, shape: PageIconShape) {
+            getSiteById(siteId)?.let { saveSite(it.copy(iconShape = shape), false) }
+        }
+
+        override suspend fun updateIconColor(siteId: String, colors: com.bernaferrari.changedetection.repo.ColorGroup) {
+            getSiteById(siteId)?.let { saveSite(it.copy(colors = colors), false) }
         }
 
         override suspend fun updateSite(site: Site) {

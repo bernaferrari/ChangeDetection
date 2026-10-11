@@ -4,6 +4,8 @@
  */
 package com.bernaferrari.changedetection.repo.source
 
+import com.bernaferrari.changedetection.repo.PageIconShape
+
 import com.bernaferrari.changedetection.extensions.canonicalUrlKey
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
@@ -38,6 +40,10 @@ class SitesRepository(
     override suspend fun saveSite(site: Site, resetHistory: Boolean) {
         mSitesLocalDataSource.saveSite(site, resetHistory)
     }
+
+    override suspend fun updateIconShape(siteId: String, shape: PageIconShape) = mSitesLocalDataSource.updateIconShape(siteId, shape)
+
+    override suspend fun updateIconColor(siteId: String, colors: com.bernaferrari.changedetection.repo.ColorGroup) = mSitesLocalDataSource.updateIconColor(siteId, colors)
 
     override suspend fun updateSite(site: Site) {
         mSitesLocalDataSource.updateSite(site)

@@ -353,48 +353,13 @@ private fun PaletteSwatch(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val name = stringResource(palette.titleRes)
-    val swatchColor = if (palette.usesSystemColors) MaterialTheme.colorScheme.primary else palette.seedColor
-    Box(
-        modifier = Modifier
-            .size(width = 56.dp, height = 48.dp)
-            .semantics { contentDescription = name }
-            .selectable(
-                selected = selected,
-                role = Role.RadioButton,
-                onClick = onClick,
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(
-            modifier = Modifier
-                .width(48.dp)
-                .height(36.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(swatchColor)
-                .then(
-                    if (selected) {
-                        Modifier.border(
-                            width = 3.dp,
-                            color = MaterialTheme.colorScheme.surface,
-                            shape = RoundedCornerShape(12.dp),
-                        )
-                    } else {
-                        Modifier
-                    },
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (selected || palette.usesSystemColors) {
-                Icon(
-                    imageVector = if (selected) Icons.Rounded.Check else Icons.Rounded.Palette,
-                    contentDescription = null,
-                    tint = if (swatchColor.luminance() > 0.55f) Color.Black else Color.White,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
-        }
-    }
+    com.bernaferrari.changedetection.ui.components.PaletteColorSwatch(
+        color = if (palette.usesSystemColors) MaterialTheme.colorScheme.primary else palette.seedColor,
+        label = stringResource(palette.titleRes),
+        selected = selected,
+        onClick = onClick,
+        icon = if (palette.usesSystemColors) Icons.Rounded.Palette else null,
+    )
 }
 
 @Composable

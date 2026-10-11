@@ -683,7 +683,7 @@ private fun ChangeCard(
                 .padding(16.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (selecting) SelectMark(selected) else PageAvatar(row.site.name(), row.site.id, size = 44.dp, icon = row.site.avatarIcon())
+                if (selecting) SelectMark(selected) else PageAvatar(row.site.name(), row.site.id, size = 44.dp, icon = row.site.avatarIcon(), iconShape = row.site.iconShape, colors = row.site.colors)
                 Column(Modifier.weight(1f)) {
                     Text(row.site.name(), style = MaterialTheme.typography.titleMedium, maxLines = if (largeText) 3 else 1, overflow = TextOverflow.Ellipsis)
                     Text(
@@ -789,7 +789,7 @@ private fun PageRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        if (selecting) SelectMark(selected) else PageAvatar(site.name(), site.id, dimmed = paused, icon = site.avatarIcon())
+        if (selecting) SelectMark(selected) else PageAvatar(site.name(), site.id, dimmed = paused, icon = site.avatarIcon(), iconShape = site.iconShape, colors = site.colors)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 site.name(),

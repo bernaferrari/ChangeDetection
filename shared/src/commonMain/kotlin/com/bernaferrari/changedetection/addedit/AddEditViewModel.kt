@@ -4,6 +4,7 @@
  */
 package com.bernaferrari.changedetection.addedit
 
+import com.bernaferrari.changedetection.repo.PageIconShape
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.background.MonitoringManager
@@ -49,7 +50,8 @@ data class AddEditUiState(
     val title: String = "",
     /** The page's icon, from the preview capture or the saved page. */
     val iconUrl: String = "",
-    val selectedColors: Pair<Int, Int> = Pair(0xFF2196F3.toInt(), 0xFF1976D2.toInt()),
+    val iconShape: PageIconShape = PageIconShape.AUTOMATIC,
+    val selectedColors: Pair<Int, Int> = Pair(0, 0),
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val urlError: AddEditError? = null,
@@ -158,6 +160,7 @@ class AddEditViewModel(
                         url = site.url,
                         title = site.title ?: "",
                         iconUrl = site.iconUrl,
+                        iconShape = site.iconShape,
                         selectedColors = site.colors,
                         loadedSiteUrl = site.url,
                         legacyThreshold = site.threshold.coerceAtLeast(0),
@@ -254,6 +257,14 @@ class AddEditViewModel(
         _uiState.update { it.copy(legacyThreshold = 0) }
     }
 
+    fun setIconColor(colors: com.bernaferrari.changedetection.repo.ColorGroup) {
+        _uiState.update { it.copy(selectedColors = colors) }
+    }
+
+    fun setIconShape(shape: PageIconShape) {
+        _uiState.update { it.copy(iconShape = shape) }
+    }
+
     fun setTitle(title: String) {
         titleEditedByUser = true
         _uiState.update { it.copy(title = title) }
@@ -345,6 +356,7 @@ class AddEditViewModel(
                         textExcludeSelector = state.textRegion.exclude.trim(),
                         title = resolvedTitle,
                         iconUrl = state.iconUrl.ifBlank { existingSite.iconUrl },
+                        iconShape = state.iconShape,
                         colors = state.selectedColors,
                         threshold = if ((state.visualChangeThresholdBps > 0 && state.captureMode in setOf(com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT, com.bernaferrari.changedetection.repo.CaptureMode.DEFAULT)) || state.captureMode in setOf(com.bernaferrari.changedetection.repo.CaptureMode.TEXT, com.bernaferrari.changedetection.repo.CaptureMode.SOURCE)) 0 else state.legacyThreshold,
                         timestamp = if (startFresh) 0L else existingSite.timestamp,
@@ -357,6 +369,7 @@ class AddEditViewModel(
                         textExcludeSelector = state.textRegion.exclude.trim(),
                         title = resolvedTitle,
                         iconUrl = state.iconUrl,
+                        iconShape = state.iconShape,
                         colors = state.selectedColors,
                         isBrowser = true,
                         isSyncEnabled = true,

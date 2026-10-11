@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "361a0c1bc698ef106fb4f2b81f58a0ae",
+    "identityHash": "09e6f42f28f96896434b02c769d5244c",
     "entities": [
       {
         "tableName": "sites",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`title` TEXT, `url` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `siteId` TEXT NOT NULL, `isSuccessful` INTEGER NOT NULL, `isBrowser` INTEGER NOT NULL, `threshold` INTEGER NOT NULL, `isRead` INTEGER NOT NULL, `isSyncEnabled` INTEGER NOT NULL, `isNotificationEnabled` INTEGER NOT NULL, `notes` TEXT NOT NULL, `colors` TEXT NOT NULL, `constraints` TEXT NOT NULL, `captureMode` TEXT NOT NULL DEFAULT 'DEFAULT', `lastSuccessfulCheck` INTEGER DEFAULT NULL, `lastFailureCode` TEXT DEFAULT NULL, `textIncludeSelector` TEXT NOT NULL DEFAULT '', `textExcludeSelector` TEXT NOT NULL DEFAULT '', `visualChangeThresholdBps` INTEGER NOT NULL DEFAULT 0, `iconUrl` TEXT NOT NULL DEFAULT '', PRIMARY KEY(`siteId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`title` TEXT, `url` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `siteId` TEXT NOT NULL, `isSuccessful` INTEGER NOT NULL, `isBrowser` INTEGER NOT NULL, `threshold` INTEGER NOT NULL, `isRead` INTEGER NOT NULL, `isSyncEnabled` INTEGER NOT NULL, `isNotificationEnabled` INTEGER NOT NULL, `notes` TEXT NOT NULL, `colors` TEXT NOT NULL, `constraints` TEXT NOT NULL, `captureMode` TEXT NOT NULL DEFAULT 'DEFAULT', `lastSuccessfulCheck` INTEGER DEFAULT NULL, `lastFailureCode` TEXT DEFAULT NULL, `textIncludeSelector` TEXT NOT NULL DEFAULT '', `textExcludeSelector` TEXT NOT NULL DEFAULT '', `visualChangeThresholdBps` INTEGER NOT NULL DEFAULT 0, `iconUrl` TEXT NOT NULL DEFAULT '', `iconShape` TEXT NOT NULL DEFAULT 'AUTOMATIC', PRIMARY KEY(`siteId`))",
         "fields": [
           {
             "fieldPath": "title",
@@ -131,6 +131,13 @@
             "affinity": "TEXT",
             "notNull": true,
             "defaultValue": "''"
+          },
+          {
+            "fieldPath": "iconShape",
+            "columnName": "iconShape",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'AUTOMATIC'"
           }
         ],
         "primaryKey": {
@@ -277,7 +284,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '361a0c1bc698ef106fb4f2b81f58a0ae')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '09e6f42f28f96896434b02c769d5244c')"
     ]
   }
 }

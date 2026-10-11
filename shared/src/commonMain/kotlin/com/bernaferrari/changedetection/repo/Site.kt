@@ -49,6 +49,8 @@ data class Site(
     /** The page's own icon (apple-touch-icon or favicon), found while capturing; blank until the first capture. */
     @ColumnInfo(defaultValue = "''")
     val iconUrl: String = "",
+    @ColumnInfo(defaultValue = "'AUTOMATIC'")
+    val iconShape: PageIconShape = PageIconShape.AUTOMATIC,
 ) {
     /** Zero disables filtering; one basis point is 0.01% of sampled pixels. */
     fun visualFilterBasisPoints(): Int = if (captureMode == CaptureMode.SCREENSHOT || captureMode == CaptureMode.DEFAULT) {

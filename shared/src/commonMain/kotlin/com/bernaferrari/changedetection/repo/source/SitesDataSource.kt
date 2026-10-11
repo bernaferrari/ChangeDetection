@@ -4,6 +4,8 @@
  */
 package com.bernaferrari.changedetection.repo.source
 
+import com.bernaferrari.changedetection.repo.PageIconShape
+
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import kotlinx.coroutines.flow.Flow
@@ -28,6 +30,10 @@ interface SitesDataSource {
     suspend fun getSiteByUrl(siteUrl: String): Site?
 
     suspend fun saveSite(site: Site, resetHistory: Boolean = false)
+
+    suspend fun updateIconShape(siteId: String, shape: PageIconShape)
+
+    suspend fun updateIconColor(siteId: String, colors: com.bernaferrari.changedetection.repo.ColorGroup)
 
     suspend fun updateSite(site: Site)
 

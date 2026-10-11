@@ -4,6 +4,8 @@
  */
 package com.bernaferrari.changedetection.repo.source.local
 
+import com.bernaferrari.changedetection.repo.PageIconShape
+
 import com.bernaferrari.changedetection.repo.AppExecutors
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
@@ -44,6 +46,14 @@ class SitesLocalDataSource(
         } else {
             mSitesDao.savePreservingStatus(site)
         }
+    }
+
+    override suspend fun updateIconShape(siteId: String, shape: PageIconShape) = withContext(mAppExecutors.ioContext) {
+        mSitesDao.updateIconShape(siteId, shape)
+    }
+
+    override suspend fun updateIconColor(siteId: String, colors: com.bernaferrari.changedetection.repo.ColorGroup) = withContext(mAppExecutors.ioContext) {
+        mSitesDao.updateIconColor(siteId, colors)
     }
 
     override suspend fun updateSite(site: Site) = withContext(mAppExecutors.ioContext) {

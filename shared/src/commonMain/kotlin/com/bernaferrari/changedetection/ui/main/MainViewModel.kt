@@ -4,6 +4,8 @@
  */
 package com.bernaferrari.changedetection.ui.main
 
+import com.bernaferrari.changedetection.repo.PageIconShape
+
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -143,6 +145,22 @@ class MainViewModel(
     }.getOrElse { error ->
         showError(error, ErrorContext.GENERAL, siteId)
         emptyList()
+    }
+
+    fun updateIconShape(siteId: String, shape: PageIconShape) {
+        viewModelScope.launch {
+            runCatching { mSitesRepository.updateIconShape(siteId, shape) }.onFailure { error ->
+                showError(error, ErrorContext.EDIT_SITE, siteId, retryAction = { updateIconShape(siteId, shape) })
+            }
+        }
+    }
+
+    fun updateIconColor(siteId: String, colors: com.bernaferrari.changedetection.repo.ColorGroup) {
+        viewModelScope.launch {
+            runCatching { mSitesRepository.updateIconColor(siteId, colors) }.onFailure { error ->
+                showError(error, ErrorContext.EDIT_SITE, siteId, retryAction = { updateIconColor(siteId, colors) })
+            }
+        }
     }
 
     fun updateSite(site: Site) {

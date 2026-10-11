@@ -1,4 +1,21 @@
 <resources>
+    <string name="icon_color_title">Color</string>
+    <string name="icon_color_blue">Blue</string>
+    <string name="icon_color_green">Green</string>
+    <string name="icon_color_amber">Amber</string>
+    <string name="icon_color_pink">Pink</string>
+    <string name="icon_color_purple">Purple</string>
+    <string name="icon_color_teal">Teal</string>
+    <string name="editor_icon_shape_title">Page icon</string>
+    <string name="icon_shape_automatic">Automatic</string>
+    <string name="icon_shape_circle">Circle</string>
+    <string name="icon_shape_rounded">Rounded</string>
+    <string name="icon_shape_flower">Flower</string>
+    <string name="icon_shape_clover">Clover</string>
+    <string name="icon_shape_sun">Sun</string>
+    <string name="icon_shape_cookie">Cookie</string>
+    <string name="icon_shape_gem">Gem</string>
+    <string name="icon_shape_puffy">Puffy</string>
     <string name="app_name">Change Detection</string>
     <string name="brand_tagline">See what changed. Keep it local.</string>
     <string name="brand_descriptor">Private page watchlist</string>
