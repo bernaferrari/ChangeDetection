@@ -25,6 +25,9 @@ For Android, use JDK 21 and Android SDK platform `android-37.2`. The Gradle wrap
 # Run the desktop app with hot reload
 ./gradlew :shared:hotRunDesktop
 
+# Package the desktop app for your current OS
+./gradlew :shared:packageDistributionForCurrentOS
+
 # Run the browser demo
 ./gradlew :webDemo:wasmJsBrowserDevelopmentRun
 ```
@@ -38,6 +41,8 @@ pnpm dev
 ```
 
 For iOS, open `iosApp/iosApp.xcodeproj` in Xcode. Edit its layered app icon in Apple's Icon Composer.
+
+Desktop packages use the same icon on macOS, Windows, and Linux. macOS packaging requires Xcode for the layered icon.
 
 ## Project structure
 
