@@ -122,9 +122,9 @@ internal fun BackgroundSyncDialogContent(
                 if (!uiState.isLoaded || !initialized) {
                     SettingsLoadState(uiState.loadFailed, onRetry)
                 } else {
-                    // One sentence that always says what the settings below add up to.
+                    // Keep this label stable: changing the interval must not reflow the switch card.
                     Surface(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp)
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp).testTag("checks-toggle-card")
                             .toggleable(draft.backgroundSync, enabled = available && !saving, role = Role.Switch) { draft = draft.copy(backgroundSync = it) }
                             .semantics(mergeDescendants = true) {},
                         shape = MaterialTheme.shapes.extraLarge,
@@ -132,7 +132,7 @@ internal fun BackgroundSyncDialogContent(
                         contentColor = if (draft.backgroundSync) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
                     ) {
                         Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Text(checksSentence(draft), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(Res.string.settings_background_sync_summary), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
                             Switch(
                                 checked = draft.backgroundSync,
                                 onCheckedChange = null,
@@ -265,17 +265,4 @@ private fun presetLabel(minutes: Long): String = when {
     minutes % 1440L == 0L -> stringResource(Res.string.checks_daily)
     minutes % 60L == 0L -> stringResource(Res.string.checks_hours_short, (minutes / 60L).toInt())
     else -> stringResource(Res.string.checks_minutes_short, minutes.toInt())
-}
-
-@Composable
-internal fun checksSentence(state: SettingsUiState): String {
-    if (monitoringCapabilities.execution == MonitoringExecution.Unavailable) return stringResource(Res.string.settings_checks_unavailable)
-    if (!state.backgroundSync) return stringResource(Res.string.checks_sentence_off)
-    val conditions = buildList {
-        if (state.requireWifi) add(stringResource(Res.string.checks_cond_wifi))
-        if (state.requireCharging) add(stringResource(Res.string.checks_cond_charging))
-        if (state.requireBatteryNotLow) add(stringResource(Res.string.checks_cond_battery))
-    }.takeIf { monitoringCapabilities.constraints }.orEmpty()
-    val base = stringResource(Res.string.checks_sentence, com.bernaferrari.changedetection.ui.kit.cadence(state.syncInterval))
-    return if (conditions.isEmpty()) "$base." else base + ", " + conditions.joinToString(", ") + "."
 }

@@ -36,7 +36,13 @@ class ScheduleIntervalUiTest {
             }
         }
         compose.onNodeWithText("15 min").assertIsSelected()
-        compose.onNodeWithText("Daily").performScrollTo().performClick().assertIsSelected()
+        val toggle = compose.onNodeWithTag("checks-toggle-card").fetchSemanticsNode().boundsInRoot
+        val presets = compose.onNodeWithText("15 min").fetchSemanticsNode().boundsInRoot
+        for (label in listOf("Weekly", "Daily", "30 min", "15 min")) {
+            compose.onNodeWithText(label).performClick().assertIsSelected()
+            assertEquals(toggle, compose.onNodeWithTag("checks-toggle-card").fetchSemanticsNode().boundsInRoot)
+            assertEquals(presets, compose.onNodeWithText("15 min").fetchSemanticsNode().boundsInRoot)
+        }
         val content = compose.onNodeWithTag("checks-scroll-content").fetchSemanticsNode().boundsInRoot
         val save = compose.onNodeWithTag("checks-save").fetchSemanticsNode().boundsInRoot
         assertTrue("Save has its own space above the button", save.top >= content.bottom + 15f)
@@ -54,6 +60,8 @@ class ScheduleIntervalUiTest {
         compose.runOnIdle { source = SettingsUiState(syncInterval = 90L) }
         compose.onNodeWithText("Custom…").performScrollTo().assertIsSelected()
         compose.onNode(hasSetTextAction()).performScrollTo().assertTextContains("90")
+        compose.onNodeWithText("Quick presets").assertDoesNotExist()
+        compose.onNodeWithText("minutes").assertIsSelected()
         compose.onNodeWithText("Save").assertIsEnabled()
     }
 
@@ -113,7 +121,7 @@ class ScheduleIntervalUiTest {
         }
     }
 
-    @Test fun largeTypeUnitsRemainWholeAndPresetsExposeCompleteDurations() {
+    @Test fun largeTypeExpressiveUnitsRemainWholeAndChangeTheInterval() {
         var interval by mutableStateOf(60L)
         compose.setContent {
             val density = LocalDensity.current
@@ -135,16 +143,19 @@ class ScheduleIntervalUiTest {
             assertEquals(1, layouts.single().lineCount)
             assertFalse("$unit: ${layouts.single().size} right=${layouts.single().getLineRight(0)} bottom=${layouts.single().getLineBottom(0)} w=${layouts.single().didOverflowWidth} h=${layouts.single().didOverflowHeight}", layouts.single().hasVisualOverflow)
         }
-        compose.onNodeWithContentDescription("Sync every 7 days").performScrollTo().performClick().assertIsSelected()
+        compose.onNodeWithText("days").performScrollTo().performClick().assertIsSelected()
+        compose.runOnIdle { assertEquals(1440L, interval) }
+        compose.onNode(hasSetTextAction()).performScrollTo().performTextReplacement("7")
         compose.runOnIdle { assertEquals(10080L, interval) }
-        compose.onNodeWithContentDescription("Sync every 15 minutes").performScrollTo().performClick().assertIsSelected()
+        compose.onNodeWithText("minutes").performScrollTo().performClick().assertIsSelected()
+        compose.onNode(hasSetTextAction()).performScrollTo().performTextReplacement("15")
         compose.runOnIdle { assertEquals(15L, interval) }
         val file = File("../build/desktop-review/schedule-interval-large-dark.png")
         file.parentFile.mkdirs()
         ImageIO.write(compose.onRoot().captureToImage().toAwtImage(), "png", file)
     }
 
-    @Test fun invalidInputKeepsLastValidIntervalAndPresetRecovers() {
+    @Test fun invalidInputKeepsLastValidIntervalAndValidEditRecovers() {
         var interval by mutableStateOf(60L)
         var valid = true
         compose.setContent {
@@ -164,7 +175,12 @@ class ScheduleIntervalUiTest {
             assertFalse(valid)
             assertEquals(60L, interval)
         }
-        compose.onNodeWithContentDescription("Sync every 7 days").performScrollTo().performClick()
+        compose.onNodeWithText("days").performScrollTo().performClick().assertIsSelected()
+        compose.runOnIdle {
+            assertFalse(valid)
+            assertEquals(60L, interval)
+        }
+        compose.onNode(hasSetTextAction()).performScrollTo().performTextReplacement("7")
         compose.runOnIdle {
             assertTrue(valid)
             assertEquals(10080L, interval)

@@ -11,29 +11,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BatteryChargingFull
 import androidx.compose.material.icons.outlined.BatterySaver
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.Wifi
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.TextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -43,16 +36,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -68,14 +55,12 @@ import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.settings_24_hours
 import com.bernaferrari.changedetection.shared.generated.resources.settings_background_sync_disabled
 import com.bernaferrari.changedetection.shared.generated.resources.settings_background_sync_title
-import com.bernaferrari.changedetection.shared.generated.resources.settings_interval_minutes
 import com.bernaferrari.changedetection.shared.generated.resources.settings_interval_minimum
-import com.bernaferrari.changedetection.shared.generated.resources.settings_quick_presets
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_constraint_battery
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_constraint_charging
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_constraint_wifi
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_monitoring_in_background
-import com.bernaferrari.changedetection.ui.components.monitoringCadenceLabel
+import com.bernaferrari.changedetection.ui.kit.ConnectedChoice
 import com.bernaferrari.changedetection.ui.theme.spacing
 import org.jetbrains.compose.resources.stringResource
 
@@ -214,109 +199,27 @@ internal fun SyncIntervalInput(
         60L to stringResource(Res.string.settings_sync_unit_hours),
         1440L to stringResource(Res.string.settings_sync_unit_days),
     )
-    Column(verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)) {
-        OutlinedTextField(
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        TextField(
             value = amount,
             onValueChange = { update(it, unit) },
             modifier = Modifier.fillMaxWidth(),
             label = { Text(stringResource(Res.string.settings_sync_interval_value)) },
+            textStyle = MaterialTheme.typography.headlineLarge,
             singleLine = true,
             isError = isError,
             enabled = enabled,
             supportingText = { Text(stringResource(Res.string.settings_interval_minimum)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            shape = MaterialTheme.shapes.medium,
+            shape = MaterialTheme.shapes.extraLarge,
         )
-        val unitMeasurer = rememberTextMeasurer()
-        FlowRow(modifier = Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            units.forEach { (value, label) ->
-                val labelWidth = with(LocalDensity.current) {
-                    unitMeasurer.measure(label, MaterialTheme.typography.labelLarge, softWrap = false).size.width.toDp()
-                } + 1.dp
-                FilterChip(
-                    selected = unit == value,
-                    enabled = enabled,
-                    onClick = { update(amount, value) },
-                    label = { Text(label, Modifier.width(labelWidth), style = MaterialTheme.typography.labelLarge) },
-                    modifier = Modifier.heightIn(min = MaterialTheme.spacing.touchTarget),
-                )
-            }
-        }
-        Text(stringResource(Res.string.settings_quick_presets), style = MaterialTheme.typography.labelLarge)
-        listOf(listOf(15L, 30L, 60L), listOf(360L, 1440L, 10080L)).forEach { presets ->
-            PresetRow(
-                presets = presets,
-                selectedInterval = if (isError) -1 else currentInterval,
-                onIntervalSelected = { minutes ->
-                    val presetUnit = unitFor(minutes)
-                    update((minutes / presetUnit).toString(), presetUnit)
-                },
-                enabled = enabled,
-            )
-        }
-    }
-}
-
-@Composable
-private fun PresetRow(
-    presets: List<Long>,
-    selectedInterval: Long,
-    onIntervalSelected: (Long) -> Unit,
-    labelForPreset: (Long) -> String = ::formatInterval,
-    enabled: Boolean = true,
-) {
-    val spacing = MaterialTheme.spacing
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(spacing.xs),
-    ) {
-        presets.forEach { preset ->
-            PresetChip(
-                label = labelForPreset(preset),
-                accessibleLabel = monitoringCadenceLabel(preset),
-                isSelected = selectedInterval == preset,
-                onClick = { onIntervalSelected(preset) },
-                modifier = Modifier.weight(1f),
-                enabled = enabled,
-            )
-        }
-    }
-}
-
-@Composable
-private fun PresetChip(
-    label: String,
-    accessibleLabel: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
-    val spacing = MaterialTheme.spacing
-    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh
-    val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-
-    Box(
-        modifier = modifier
-            .semantics { contentDescription = accessibleLabel }
-            .heightIn(min = spacing.touchTarget)
-            .clip(MaterialTheme.shapes.small)
-            .background(backgroundColor)
-            .selectable(
-                selected = isSelected,
-                role = Role.RadioButton,
-                enabled = enabled,
-                onClick = onClick,
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.clearAndSetSemantics { },
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Medium,
-            color = contentColor,
-        )
+        ConnectedChoice(
+            options = units.map { it.first },
+            selected = unit,
+            onSelect = { update(amount, it) },
+            modifier = Modifier,
+            enabled = enabled,
+        ) { value -> units.first { it.first == value }.second }
     }
 }
 
@@ -400,10 +303,4 @@ private fun SyncConstraintRow(
             onCheckedChange = null,
         )
     }
-}
-
-private fun formatInterval(minutes: Long): String = when {
-    minutes < 60 -> "${minutes}m"
-    minutes < 1440 -> "${minutes / 60}h"
-    else -> "${minutes / 1440}d"
 }
