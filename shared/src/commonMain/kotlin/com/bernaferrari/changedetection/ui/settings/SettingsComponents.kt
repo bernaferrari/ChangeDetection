@@ -229,12 +229,12 @@ internal fun ThemeSelector(
                             checked = mode == selectedTheme,
                             onCheckedChange = { if (it) onThemeSelected(mode) },
                             shapes = when {
-                                !connected -> ToggleButtonDefaults.shapes()
+                                !connected -> ToggleButtonDefaults.shapesFor(ToggleButtonDefaults.size)
                                 index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
                                 index == visibleModes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                                 else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                             },
-                            colors = ToggleButtonDefaults.toggleButtonColors(
+                            colors = ToggleButtonDefaults.colors(
                                 checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                 checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,

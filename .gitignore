@@ -119,4 +119,7 @@ fabric.properties
 
 # Compose Multiplatform
 compose-resources/build/
-kotlin-js-store/
+kotlin-js-store/*
+!kotlin-js-store/wasm/
+kotlin-js-store/wasm/*
+!kotlin-js-store/wasm/yarn.lock

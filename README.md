@@ -52,6 +52,8 @@ The active app architecture is Kotlin Multiplatform with Compose Multiplatform, 
 
 Android builds use the platform WebView for page capture and a bounded pixel comparison implementation. A fresh checkout needs no sibling repositories or unpublished artifacts. The Android verification CI job runs formatting, host tests, lint, debug/release assembly, and the instrumentation suite on an API 36 emulator. Test and lint reports are retained as workflow artifacts. The workflow is independent of the web-demo and marketing-site jobs. Configure `Android verification` as a required repository check before relying on it as a merge gate.
 
+Install Android SDK platform `android-37.2` for native builds. The Gradle wrapper provisions Gradle, and the Wasm build provisions Node 26.11.1. Website CI uses Node 26.11.1 and pnpm 12.11.2. The Wasm npm lock is committed in `kotlin-js-store/wasm/yarn.lock`; refresh it with `./gradlew kotlinWasmUpgradeYarnLock` when changing npm dependencies.
+
 | Check | Command | Coverage |
 | --- | --- | --- |
 | Compose Desktop UI | `./gradlew :shared:desktopTest` | Shared monitoring tests and real Compose UI journeys, including enlarged text. No emulator. |
@@ -65,6 +67,8 @@ Android builds use the platform WebView for page capture and a bounded pixel com
 | Web demo | `./gradlew :webDemo:wasmJsBrowserDistribution` | Builds the Compose Multiplatform Wasm demo; CI also verifies its output files. |
 | Website lint | `cd website && pnpm lint` | TypeScript and React static analysis. |
 | Website production build | `cd website && pnpm build` | Type checking and production rendering of the homepage, privacy, and use-case pages. |
+
+The website uses TypeScript 7's `tsc` for builds and type checking. The `typescript` npm alias supplies TypeScript 6's compiler API for ESLint, following Microsoft's [side-by-side setup](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6.0).
 
 Tests and preview data must stay local and synthetic: do not make a verification command depend on a live monitored URL, saved browsing content, or credentials.
 

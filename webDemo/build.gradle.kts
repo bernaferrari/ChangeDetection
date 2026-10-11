@@ -35,3 +35,11 @@ kotlin {
         }
     }
 }
+
+dependencies {
+    // Material 3 alpha resolves newer Compose UI; its bundled Skiko runtime must match.
+    val skikoRuntime = variantOf(libs.skiko.wasm.js) { classifier("skiko-runtime") }
+    configurations.matching { it.name == "COMPOSE_SKIKO_JS_WASM_RUNTIME" }.configureEach {
+        dependencies.addLater(skikoRuntime)
+    }
+}

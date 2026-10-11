@@ -32,7 +32,11 @@ kotlin {
             enable = true
         }
         namespace = "com.bernaferrari.changedetection.library"
-        compileSdk = 37
+        compileSdk {
+            version = release(37) {
+                minorApiLevel = 2
+            }
+        }
         minSdk = 30
         packaging {
             resources {
@@ -122,6 +126,7 @@ kotlin {
             implementation(libs.coil.network.ktor3)
         }
         androidMain.dependencies {
+            implementation(project.dependencies.platform(libs.androidx.compose.bom))
             implementation(libs.koin.android)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
