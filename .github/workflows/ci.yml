@@ -114,7 +114,7 @@ jobs:
           if-no-files-found: warn
 
   web-demo:
-    name: KMP web demo
+    name: Web demo
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -131,8 +131,8 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Build and verify the KMP web demo
-        run: ./scripts/verify-kmp-web-demo.sh --ci
+      - name: Build and verify the web demo
+        run: ./scripts/verify-web-demo.sh --ci
 
   web-site:
     name: Marketing site

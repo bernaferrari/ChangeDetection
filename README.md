@@ -43,8 +43,9 @@ Turbo checks at 15-second, 30-second, 1-minute, or 2-minute intervals. Choose a 
 | `composeApp/src/androidMain/` | Android workers, foreground services, notifications, browser integration, and widgets |
 | `composeApp/src/iosMain/` | iOS platform implementations; the iOS product remains in development |
 | `iosApp/` | Swift application shell |
-| `webApp/` | Compose Multiplatform Wasm demo with synthetic local monitoring data |
+| `webDemo/` | Compose Multiplatform Wasm demo with synthetic local monitoring data |
 | `web/` | Next.js marketing and documentation site |
+| `website/` | New Next.js marketing site; CI currently verifies `web/` |
 
 The active app architecture is Kotlin Multiplatform with Compose Multiplatform, Navigation 3, Koin, Room, DataStore, WorkManager, Ktor, and coroutines. Website content and snapshot metadata stay on the device; network requests naturally reach the pages the user chooses to monitor.
 
@@ -62,7 +63,7 @@ Android builds use the platform WebView for page capture and a bounded pixel com
 | Android debug app | `./gradlew :app:assembleDebug` | Android integration, browser adapter, and packaging. |
 | iOS shared code | `./gradlew :composeApp:compileKotlinIosSimulatorArm64` | iOS implementation of the shared KMP surface. |
 | Kotlin formatting | `./gradlew :composeApp:spotlessCheck` | Kotlin formatting and copyright headers for the Compose module. |
-| KMP web demo | `./scripts/verify-kmp-web-demo.sh` | Builds and verifies the Compose Multiplatform Wasm demo artifact. |
+| Web demo | `./scripts/verify-web-demo.sh` | Builds and verifies the Compose Multiplatform Wasm demo artifact. |
 | Website lint | `cd web && pnpm lint` | TypeScript and React static analysis. |
 | Website production build | `cd web && pnpm build` | Type checking and static rendering of `/` and `/docs`. |
 

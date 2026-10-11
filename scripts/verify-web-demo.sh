@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DIST="$ROOT/webApp/build/dist/wasmJs/productionExecutable"
+DIST="$ROOT/webDemo/build/dist/wasmJs/productionExecutable"
 
 if [[ "${1:-}" != "" && "${1:-}" != "--ci" ]]; then
   echo "Usage: $0 [--ci]" >&2
@@ -13,7 +13,7 @@ fi
 cd "$ROOT"
 
 echo "==> Building the Compose Multiplatform web demo"
-./gradlew :webApp:wasmJsBrowserDistribution \
+./gradlew :webDemo:wasmJsBrowserDistribution \
   --no-daemon \
   --parallel \
   --build-cache \
