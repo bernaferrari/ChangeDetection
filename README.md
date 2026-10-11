@@ -65,7 +65,7 @@ Desktop packages use the same icon on macOS, Windows, and Linux. macOS packaging
 
 For the website, run `pnpm lint` and `pnpm build` from `website/`.
 
-Database upgrades preserve history from the original public schema (1) and both development schema-5 layouts. Other retired development schemas are unsupported.
+Database upgrades preserve history from the original public schema (1) to schema 4. Retired development databases may reset their data.
 
 ## Android publishing
 
