@@ -36,7 +36,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.util.formatTimestamp
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 import kotlin.math.roundToInt
 
 data class ChangeStats(
@@ -60,12 +60,10 @@ enum class DiffLineType {
     MODIFIED,
 }
 
-fun formatBytes(bytes: Int): String {
-    if (bytes < 1024) return "$bytes B"
-    val kb = bytes / 1024.0
-    if (kb < 1024) return "${(kb * 10).roundToInt() / 10.0} KB"
-    val mb = kb / 1024.0
-    return "${(mb * 10).roundToInt() / 10.0} MB"
+fun formatBytes(bytes: Int): String = when {
+    bytes < 1024 -> "${com.bernaferrari.changedetection.util.localizedInteger(bytes)} B"
+    bytes < 1024 * 1024 -> "${com.bernaferrari.changedetection.util.localizedNumber(bytes / 1024.0)} KB"
+    else -> "${com.bernaferrari.changedetection.util.localizedNumber(bytes / (1024.0 * 1024))} MB"
 }
 
 @Composable
@@ -117,7 +115,7 @@ fun ChangeStatChip(
         contentColor = contentColor,
     ) {
         Text(
-            text = "$label$count",
+            text = "$label${com.bernaferrari.changedetection.util.localizedInteger(count)}",
             style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
         )
@@ -351,7 +349,7 @@ fun DiffLine(
     ) {
         // Line number
         Text(
-            text = if (showLineNumber) lineNumber.toString().padStart(4) else "    ",
+            text = if (showLineNumber) com.bernaferrari.changedetection.util.localizedInteger(lineNumber).padStart(4) else "    ",
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontFamily = FontFamily.Monospace,
             ),

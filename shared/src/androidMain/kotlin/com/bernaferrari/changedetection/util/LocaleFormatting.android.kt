@@ -19,6 +19,7 @@ private fun timeSkeleton(includeSeconds: Boolean): String {
     return (if (twentyFourHour) "Hm" else "hm") + if (includeSeconds) "s" else ""
 }
 private fun displayDate(timestamp: Long, skeleton: String): String = displayLocale().let { locale -> SimpleDateFormat(DateFormat.getBestDateTimePattern(locale, skeleton), locale).format(Date(timestamp)) }
+internal actual fun localizedCalendarDate(timestamp: Long): String = java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM, displayLocale()).format(Date(timestamp))
 internal actual fun localizedTimestamp(timestamp: Long, includeSeconds: Boolean): String = if (appContext() == null) java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.MEDIUM, if (includeSeconds) java.text.DateFormat.MEDIUM else java.text.DateFormat.SHORT, displayLocale()).format(Date(timestamp)) else displayDate(timestamp, "yMMMd" + timeSkeleton(includeSeconds))
 internal actual fun localizedTime(timestamp: Long, includeSeconds: Boolean): String = if (appContext() == null) java.text.DateFormat.getTimeInstance(if (includeSeconds) java.text.DateFormat.MEDIUM else java.text.DateFormat.SHORT, displayLocale()).format(Date(timestamp)) else displayDate(timestamp, timeSkeleton(includeSeconds))
 internal actual fun localizedNumber(value: Double, maxFractionDigits: Int, minFractionDigits: Int): String = NumberFormat.getNumberInstance(displayLocale()).apply {

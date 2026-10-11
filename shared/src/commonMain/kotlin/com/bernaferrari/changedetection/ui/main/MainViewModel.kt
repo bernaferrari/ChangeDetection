@@ -378,6 +378,7 @@ class MainViewModel(
             type = result.type,
             severity = result.severity,
             message = result.userMessage,
+            presentation = result.presentation,
             description = result.description,
             context = context,
             userAction = null,

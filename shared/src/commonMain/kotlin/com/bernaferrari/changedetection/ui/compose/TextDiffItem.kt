@@ -64,7 +64,7 @@ fun TextDiffItem(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = index.toString(),
+                text = com.bernaferrari.changedetection.util.localizedInteger(index),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = textAlign,

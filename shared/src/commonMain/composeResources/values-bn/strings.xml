@@ -455,7 +455,7 @@
     <string name="home_row_paused">বিরতিতে</string>
     <string name="home_row_waiting">প্রথম পরীক্ষার অপেক্ষায়</string>
     <string name="home_row_no_changes">এখনও পরিবর্তন নেই</string>
-    <string name="home_row_changed">বদলেছে %1$s</string>
+    <string name="home_row_changed">%1$s বদলেছে</string>
     <string name="badge_new">নতুন</string>
     <string name="mark_read_short">পড়া হয়েছে বলে চিহ্নিত করুন</string>
     <string name="preview_size_changed">পৃষ্ঠার আকার বদলেছে</string>
@@ -552,8 +552,8 @@
     </plurals>
     <string name="detail_turbo_on">টার্বো চালু</string>
     <string name="detail_status_paused">বিরতিতে · ইতিহাস থাকবে</string>
-    <string name="detail_status_checked">পরীক্ষা হয়েছে %1$s · %2$s</string>
-    <string name="detail_status_checked_manual">পরীক্ষা হয়েছে %1$s · স্বয়ংক্রিয় পরীক্ষা বন্ধ</string>
+    <string name="detail_status_checked">%1$s পরীক্ষা করা হয়েছে · %2$s</string>
+    <string name="detail_status_checked_manual">%1$s পরীক্ষা করা হয়েছে · স্বয়ংক্রিয় পরীক্ষা বন্ধ</string>
     <string name="detail_last_30">গত ৩০ দিন</string>
     <plurals name="detail_changes_count">
         <item quantity="one">%1$dটি পরিবর্তন</item>
@@ -627,7 +627,7 @@
     <string name="advice_capture">স্ক্রিনশট শুধু Android-এ নেওয়া যায়। এই পৃষ্ঠায় লেখা বেছে নিন বা ফোন থেকে পরীক্ষা চালিয়ে যান।</string>
     <string name="checks_title">স্বয়ংক্রিয় পরীক্ষা</string>
     <string name="checks_every">প্রতি</string>
-    <string name="checks_custom">নিজের ব্যবধান…</string>
+    <string name="checks_custom">নিজের মতো…</string>
     <string name="checks_own_schedule_note">এই সময়সূচি সব সক্রিয় পৃষ্ঠায় প্রযোজ্য। টার্বো সেশন আলাদাভাবে চলে, এটি বদলায় না।</string>
     <string name="checks_only_when">শুধু যখন</string>
     <string name="checks_wifi">ওয়াই-ফাইয়ে</string>
@@ -760,7 +760,7 @@
     <string name="preview_nothing_visible">দৃশ্যমান কিছু বদলায়নি</string>
     <string name="preview_nothing_visible_body">পৃষ্ঠা শুধু সরে গেছে বা আবার রেন্ডার হয়েছে</string>
     <string name="version_compared_with">%1$s থেকে</string>
-    <string name="home_status_checked">পরীক্ষা হয়েছে %1$s</string>
+    <string name="home_status_checked">%1$s পরীক্ষা করা হয়েছে</string>
     <string name="home_status_first_check">প্রথম পরীক্ষার অপেক্ষায়</string>
     <string name="ignore_small_title">ছোট পরিবর্তন উপেক্ষা করুন</string>
     <string name="ignore_small_off">বন্ধ</string>
@@ -782,4 +782,8 @@
     <string name="license_category_networking">নেটওয়ার্ক</string>
     <string name="license_category_ui">ইন্টারফেস</string>
     <string name="comparison_page_details">পেজের বিবরণ</string>
+    <string name="desktop_development">ডেস্কটপ ডেভেলপমেন্ট সংস্করণ</string>
+    <string name="image_diff_changed_percent">%1$s অংশ বদলেছে</string>
+    <string name="error_invalid_input">এই সেটিংস পরীক্ষা করুন</string>
+    <string name="error_invalid_input_detail">পৃষ্ঠার ঠিকানা ও সেটিংস পরীক্ষা করে আবার চেষ্টা করুন।</string>
 </resources>

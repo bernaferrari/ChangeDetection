@@ -84,7 +84,7 @@ class IosNativeShell(private val platformActions: PlatformActions) {
     /** The badge points to Home from other tabs; on Home the title already says how many changes are new. */
     private fun refreshHomeBadge() {
         val onHome = (root as UITabBarController).selectedIndex == 0uL
-        tabs[0].tabBarItem.badgeValue = if (homeBadge > 0 && !onHome) homeBadge.toString() else null
+        tabs[0].tabBarItem.badgeValue = if (homeBadge > 0 && !onHome) com.bernaferrari.changedetection.util.localizedInteger(homeBadge) else null
     }
 
     val root: UIViewController = UITabBarController().apply {
@@ -111,7 +111,7 @@ class IosNativeShell(private val platformActions: PlatformActions) {
     private fun localizeTabTitles() {
         MainScope().launch {
             listOf(Res.string.nav_home, Res.string.nav_activity, Res.string.nav_settings).forEachIndexed { index, res ->
-                runCatching { org.jetbrains.compose.resources.getString(res) }.getOrNull()?.let { tabs[index].tabBarItem.title = it }
+                runCatching { com.bernaferrari.changedetection.localization.getString(res) }.getOrNull()?.let { tabs[index].tabBarItem.title = it }
             }
         }
     }

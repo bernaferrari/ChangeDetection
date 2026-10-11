@@ -29,7 +29,7 @@ import com.bernaferrari.changedetection.detection.RegionSelectionDraft
 import com.bernaferrari.changedetection.ui.kit.ConnectedChoice
 import com.bernaferrari.changedetection.detection.TextRegion
 import com.bernaferrari.changedetection.shared.generated.resources.*
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 @Composable
 internal fun TextRegionPickerAction(document: SelectableTextDocument, initialRegion: com.bernaferrari.changedetection.detection.TextRegion = com.bernaferrari.changedetection.detection.TextRegion(), onSelect: (TextRegion) -> Unit) {

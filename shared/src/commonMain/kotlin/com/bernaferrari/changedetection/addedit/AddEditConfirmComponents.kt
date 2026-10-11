@@ -73,8 +73,8 @@ import com.bernaferrari.changedetection.ui.kit.tileColor
 import com.bernaferrari.changedetection.ui.theme.marks
 import com.bernaferrari.changedetection.util.readText
 import kotlinx.coroutines.delay
-import org.jetbrains.compose.resources.pluralStringResource
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.pluralStringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /**
  * Watching a page is one screen: paste a link, the preview appears by itself (and names the page),

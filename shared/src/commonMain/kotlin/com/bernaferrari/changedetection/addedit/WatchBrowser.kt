@@ -53,7 +53,7 @@ import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /** A part the user tapped in the live page: its CSS selector and how far it has been widened. */
 @Serializable
@@ -228,7 +228,7 @@ private fun BrowseToolbar(picks: Int, onPick: () -> Unit, onWatch: () -> Unit, w
             Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            BadgedBox(badge = { if (picks > 0) Badge { Text(picks.toString()) } }) {
+            BadgedBox(badge = { if (picks > 0) Badge { Text(com.bernaferrari.changedetection.util.localizedInteger(picks)) } }) {
                 FilledTonalButton(onClick = onPick, shapes = ButtonDefaults.shapes(), contentPadding = PaddingValues(horizontal = 16.dp), modifier = Modifier.heightIn(min = 48.dp)) {
                     Icon(Icons.Rounded.TouchApp, null, Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))

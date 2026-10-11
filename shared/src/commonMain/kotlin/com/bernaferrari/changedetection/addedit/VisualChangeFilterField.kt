@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.ui.kit.ConnectedChoice
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /** How much of a screenshot must change before a new version is saved, as one row of choices. */
 @Composable

@@ -56,8 +56,8 @@ import com.bernaferrari.changedetection.shared.generated.resources.visual_summar
 import com.bernaferrari.changedetection.ui.kit.tileColor
 import com.bernaferrari.changedetection.ui.theme.marks
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.pluralStringResource
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.pluralStringResource
+import com.bernaferrari.changedetection.localization.stringResource
 import kotlin.math.roundToInt
 
 /**
@@ -182,10 +182,10 @@ private fun PageOverview(afterBytes: ByteArray, regions: List<VisualRegion>, cur
             Box(
                 Modifier.align(Alignment.TopCenter).offset(y = y).size(if (selected) 22.dp else 18.dp).clip(CircleShape)
                     .background(if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest)
-                    .clickable(onClickLabel = (index + 1).toString()) { onJump(index) },
+                    .clickable(onClickLabel = com.bernaferrari.changedetection.util.localizedInteger(index + 1)) { onJump(index) },
                 contentAlignment = Alignment.Center,
             ) {
-                Text((index + 1).toString(), style = MaterialTheme.typography.labelSmall, color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(com.bernaferrari.changedetection.util.localizedInteger(index + 1), style = MaterialTheme.typography.labelSmall, color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -203,11 +203,11 @@ private fun RegionCard(number: Int, region: VisualRegion, beforeBytes: ByteArray
             VisualRegion.Kind.Removed -> Res.string.visual_removed
         },
     )
-    Surface(shape = RoundedCornerShape(CardCorner), color = tileColor, modifier = Modifier.fillMaxWidth().semantics { contentDescription = "$label $number" }) {
+    Surface(shape = RoundedCornerShape(CardCorner), color = tileColor, modifier = Modifier.fillMaxWidth().semantics { contentDescription = "$label ${com.bernaferrari.changedetection.util.localizedInteger(number)}" }) {
         Column(Modifier.padding(start = CardPadding, end = CardPadding, top = 10.dp, bottom = CardPadding), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(Modifier.padding(start = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Box(Modifier.size(24.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
-                    Text(number.toString(), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Text(com.bernaferrari.changedetection.util.localizedInteger(number), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
                 }
                 Text(label, style = MaterialTheme.typography.titleSmall)
             }

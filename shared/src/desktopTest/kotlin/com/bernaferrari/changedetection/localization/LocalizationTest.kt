@@ -97,6 +97,36 @@ class LocalizationTest {
         }
     }
 
+    @Test fun `numeric resource arguments use local digits while names and URLs stay intact`() = runTest {
+        val previous = Locale.getDefault()
+        try {
+            for (language in languages) {
+                Locale.setDefault(Locale.forLanguageTag(language))
+                val number = localizedInteger(12)
+                assertTrue(getString(Res.string.comparison_passage_position, 12, 45).contains(number))
+                assertTrue(getPluralString(Res.plurals.home_new_changes, 12, 12).contains(number))
+                val page = "Studio Display 2026 · https://apple.com/2026"
+                assertTrue(getString(Res.string.alert_title, page).contains(page))
+                assertTrue(getString(Res.string.home_deleted_many).contains("%1\$d"))
+            }
+            Locale.setDefault(Locale.GERMANY)
+            assertEquals("1,5 KB", com.bernaferrari.changedetection.ui.comparison.formatBytes(1536))
+            Locale.setDefault(Locale.forLanguageTag("bn"))
+            assertEquals("১২", localizedInteger(12))
+            assertEquals("১২ B", com.bernaferrari.changedetection.ui.comparison.formatBytes(12))
+            assertFalse(localizedCalendarDate(1_700_000_000_000L).contains("2023"))
+        } finally {
+            Locale.setDefault(previous)
+        }
+    }
+
+    @Test fun `localized numeric entry accepts supported keyboard digits without accepting invalid values`() {
+        for (text in listOf("15", "१५", "১৫", "１５", "١٥", "۱۵")) assertEquals(text, 15L, parseLocalizedWholeNumber(text))
+        assertEquals(0L, parseLocalizedWholeNumber("০"))
+        assertEquals(Long.MAX_VALUE, parseLocalizedWholeNumber("9223372036854775807"))
+        for (text in listOf("", "-15", "+15", "1.5", "১,৫", "15 min", "9223372036854775808")) assertNull(text, parseLocalizedWholeNumber(text))
+    }
+
     @Test fun `bundled script fonts cover every translated UI glyph`() {
         for (language in listOf("hi", "bn", "zh")) {
             val text = resources(File(sharedRoot, "values-$language")).values.joinToString("") { it.textContent }

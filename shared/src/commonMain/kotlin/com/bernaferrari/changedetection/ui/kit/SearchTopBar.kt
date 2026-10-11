@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.home_search_clear
 import com.bernaferrari.changedetection.shared.generated.resources.home_search_close
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /** A one-line search bar that replaces a screen's top bar: a rounded field that takes focus right away. */
 @Composable

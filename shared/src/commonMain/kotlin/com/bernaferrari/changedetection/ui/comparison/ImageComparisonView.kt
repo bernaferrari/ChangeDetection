@@ -74,6 +74,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.done
 import com.bernaferrari.changedetection.shared.generated.resources.retry
 import com.bernaferrari.changedetection.shared.generated.resources.image_diff_highlight_unavailable_body
 import com.bernaferrari.changedetection.shared.generated.resources.image_diff_dimensions_supporting
+import com.bernaferrari.changedetection.shared.generated.resources.image_diff_changed_percent
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.a11y_drag_screenshot_comparison
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_after
@@ -98,7 +99,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.image_diff_st
 import com.bernaferrari.changedetection.ui.components.AppLoadingIndicator
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_source
 import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 import kotlin.math.roundToInt
 
 internal enum class ComparisonMode {
@@ -261,7 +262,7 @@ private fun ImageDiffSummary(
                         imageDiff.error != null -> stringResource(Res.string.image_diff_status_unavailable)
                         imageDiff.dimensionMismatch != null -> stringResource(Res.string.image_diff_dimensions)
                         imageDiff.match -> stringResource(Res.string.comparison_no_changes_title)
-                        else -> "${formatImagePercent(imageDiff.mismatchPercentage)} ${stringResource(Res.string.image_diff_changed).lowercase()}"
+                        else -> stringResource(Res.string.image_diff_changed_percent, com.bernaferrari.changedetection.util.localizedPercent(imageDiff.mismatchPercentage))
                     },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
@@ -453,7 +454,7 @@ private fun ImageSwipeComparison(
                 )
                 .semantics {
                     contentDescription = dragLabel
-                    stateDescription = "${(splitFraction * 100).roundToInt()}%"
+                    stateDescription = com.bernaferrari.changedetection.util.localizedPercent(splitFraction * 100.0, maxFractionDigits = 0)
                     progressBarRangeInfo = ProgressBarRangeInfo(splitFraction, 0f..1f)
                     setProgress { target ->
                         if (target.isFinite()) {
@@ -557,10 +558,4 @@ private fun ImagePillLabel(
     }
 }
 
-private fun formatImagePercent(value: Double): String = "${((value * 10).roundToInt() / 10.0)}%"
-
-private fun formatPixelCount(value: Long): String = when {
-    value >= 1_000_000 -> "${((value / 100_000.0).roundToInt() / 10.0)}M"
-    value >= 1_000 -> "${((value / 100.0).roundToInt() / 10.0)}K"
-    else -> value.toString()
-}
+private fun formatPixelCount(value: Long): String = com.bernaferrari.changedetection.util.localizedInteger(value)

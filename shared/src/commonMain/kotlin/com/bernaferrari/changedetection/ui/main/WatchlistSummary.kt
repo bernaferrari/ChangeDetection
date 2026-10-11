@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.shared.generated.resources.*
-import org.jetbrains.compose.resources.pluralStringResource
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.pluralStringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /** The summary explains actual observations and routes each action to the relevant pages. */
 @Composable

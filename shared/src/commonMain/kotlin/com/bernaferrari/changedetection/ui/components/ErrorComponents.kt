@@ -19,13 +19,15 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.bernaferrari.changedetection.error.ErrorResult
+import com.bernaferrari.changedetection.error.errorPresentation
 import com.bernaferrari.changedetection.error.ErrorEvent
 import com.bernaferrari.changedetection.error.ErrorSeverity
 import com.bernaferrari.changedetection.error.ErrorType
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.a11y_close
 import com.bernaferrari.changedetection.shared.generated.resources.retry
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /**
  * Snackbar-style error banner that appears at the bottom of the screen.
@@ -56,6 +58,7 @@ private fun ErrorBannerContent(
 ) {
     val colors = getErrorColors(event.severity)
     val icon = getErrorIcon(event.type)
+    val presentation = event.presentation ?: errorPresentation(ErrorResult(event.type, event.message), null)
 
     Surface(
         modifier = modifier
@@ -91,14 +94,16 @@ private fun ErrorBannerContent(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = event.message,
+                        text = stringResource(presentation.title),
+                        modifier = Modifier.fillMaxWidth(),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         color = colors.textColor,
                     )
-                    if (event.description != null) {
+                    if (presentation.body != null) {
                         Text(
-                            text = event.description,
+                            text = stringResource(presentation.body),
+                            modifier = Modifier.fillMaxWidth(),
                             style = MaterialTheme.typography.bodySmall,
                             color = colors.textColor,
                         )

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -37,6 +38,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier.padding(horizontal = 16.dp), enabled: Boolean = true, columns: Int? = null, wrap: Boolean = false, label: @Composable (T) -> String) {
     val labels = options.map { label(it) }
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    val style = MaterialTheme.typography.labelLarge
     if (wrap) {
         // The Material connected flow layout keeps natural label widths as choices wrap.
         FlowRow(
@@ -49,7 +53,7 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
                     checked = option == selected,
                     onCheckedChange = { if (it) onSelect(option) },
                     enabled = enabled,
-                    modifier = Modifier.heightIn(min = 48.dp).semantics {
+                    modifier = Modifier.width(with(density) { measurer.measure(labels[index], style, softWrap = false).size.width.toDp() }.plus(26.dp).coerceAtLeast(48.dp)).heightIn(min = 48.dp).semantics {
                         role = Role.RadioButton
                         this.selected = option == selected
                     },
@@ -60,14 +64,11 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
                         else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                     },
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-                ) { Text(labels[index], style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center) }
+                ) { Text(labels[index], Modifier.fillMaxWidth(), style = style, textAlign = TextAlign.Center) }
             }
         }
         return
     }
-    val measurer = rememberTextMeasurer()
-    val density = LocalDensity.current
-    val style = MaterialTheme.typography.labelLarge
     val minimumWidth = with(density) {
         labels.maxOfOrNull { measurer.measure(it, style, softWrap = false).size.width }?.toDp()
     }?.plus(24.dp)?.coerceAtLeast(48.dp) ?: 48.dp

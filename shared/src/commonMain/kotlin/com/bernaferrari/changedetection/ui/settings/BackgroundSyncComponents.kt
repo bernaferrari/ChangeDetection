@@ -64,7 +64,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.settings_sync
 import com.bernaferrari.changedetection.shared.generated.resources.settings_sync_monitoring_in_background
 import com.bernaferrari.changedetection.ui.kit.ConnectedChoice
 import com.bernaferrari.changedetection.ui.theme.spacing
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 @Composable
 internal fun BackgroundSyncHeader(
@@ -184,12 +184,12 @@ internal fun SyncIntervalInput(
         else -> 1L
     }
     var unit by remember { mutableStateOf(unitFor(currentInterval)) }
-    var amount by remember { mutableStateOf((currentInterval / unit).toString()) }
+    var amount by remember { mutableStateOf(com.bernaferrari.changedetection.util.localizedInteger(currentInterval / unit)) }
     var isError by remember { mutableStateOf(false) }
     fun update(value: String, newUnit: Long) {
         amount = value
         unit = newUnit
-        val count = value.toLongOrNull()
+        val count = com.bernaferrari.changedetection.util.parseLocalizedWholeNumber(value)
         val valid = count != null && count > 0 && count <= MonitoringSchedule.MAX_INTERVAL_MINUTES / newUnit &&
             count * newUnit >= MonitoringSchedule.MIN_INTERVAL_MINUTES
         isError = !valid

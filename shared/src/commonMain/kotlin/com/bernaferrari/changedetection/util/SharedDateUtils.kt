@@ -15,8 +15,8 @@ import com.bernaferrari.changedetection.shared.generated.resources.logs_just_now
 import com.bernaferrari.changedetection.shared.generated.resources.logs_min_ago
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.pluralStringResource
+import com.bernaferrari.changedetection.localization.stringResource
+import com.bernaferrari.changedetection.localization.pluralStringResource
 import kotlin.time.Instant
 
 fun formatTimestamp(timestamp: Long, includeSeconds: Boolean = false): String = localizedTimestamp(timestamp, includeSeconds)

@@ -137,8 +137,8 @@ import com.bernaferrari.changedetection.ui.turbo.TurboLiveCard
 import com.bernaferrari.changedetection.util.BackHandler
 import com.bernaferrari.changedetection.util.getRelativeTimeLabel
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.pluralStringResource
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.pluralStringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /** What changed comes first, then every page in a stable, quiet list. */
 @Composable
@@ -190,7 +190,7 @@ fun HomeScreen(
     val turboEndedText = stringResource(Res.string.turbo_ended)
     val nowWatching = stringResource(Res.string.home_now_watching)
     val openLabel = stringResource(Res.string.detail_open_short)
-    LaunchedEffect(Unit) {
+    LaunchedEffect(prunedText, turboEndedText, nowWatching, openLabel) {
         viewModel.uiMessage.collect { message ->
             when (message) {
                 UiMessage.SnapshotsPruned -> snackbar.showSnackbar(prunedText)
@@ -215,7 +215,7 @@ fun HomeScreen(
         if (rows.isEmpty()) return
         val tickets = rows.map { viewModel.onDeleteSite(it.site) }
         scope.launch {
-            val message = if (rows.size == 1) deletedOne.replace("%1\$s", rows.single().site.name()) else deletedMany.replace("%1\$d", rows.size.toString())
+            val message = if (rows.size == 1) deletedOne.replace("%1\$s", rows.single().site.name()) else deletedMany.replace("%1\$d", com.bernaferrari.changedetection.util.localizedInteger(rows.size))
             val undo = snackbar.showSnackbar(message, actionLabel = undoText, duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed
             tickets.forEach { ticket -> launch { viewModel.resolveDeletion(ticket) { undo } } }
         }
@@ -510,7 +510,7 @@ private fun HomeTopBar(
                         failing > 0 -> MaterialTheme.colorScheme.error to pluralStringResource(Res.plurals.home_failing, failing, failing)
 
                         // The page count is already in the Pages section; this line answers "is it working?".
-                        lastCheck != null -> MaterialTheme.marks.healthy to stringResource(Res.string.home_status_checked, getRelativeTimeLabel(lastCheck).lowercase())
+                        lastCheck != null -> MaterialTheme.marks.healthy to stringResource(Res.string.home_status_checked, getRelativeTimeLabel(lastCheck).replaceFirstChar { it.lowercase() })
 
                         else -> MaterialTheme.colorScheme.outline to stringResource(Res.string.home_status_first_check)
                     }
@@ -597,7 +597,7 @@ internal fun SelectionBar(
     TopAppBar(
         title = {
             Text(
-                count.toString(),
+                com.bernaferrari.changedetection.util.localizedInteger(count),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.semantics { contentDescription = selectionLabel },
             )

@@ -94,4 +94,8 @@
     <string name="about_license_short">Open source · Apache 2.0</string>
     <string name="settings_wait_seconds">seconds</string>
     <string name="comparison_page_details">Page details</string>
+    <string name="desktop_development">Desktop development</string>
+    <string name="image_diff_changed_percent">%1$s changed</string>
+    <string name="error_invalid_input">Check these settings</string>
+    <string name="error_invalid_input_detail">Review the page address and settings, then try again.</string>
 </resources>

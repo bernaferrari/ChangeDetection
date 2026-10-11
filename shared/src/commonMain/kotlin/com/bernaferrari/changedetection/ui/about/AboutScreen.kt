@@ -78,7 +78,7 @@ import com.bernaferrari.changedetection.ui.kit.AppMark
 import com.bernaferrari.changedetection.ui.kit.GroupLabel
 import com.bernaferrari.changedetection.ui.kit.GroupRow
 import com.bernaferrari.changedetection.ui.kit.ListGroup
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 import org.jetbrains.compose.resources.painterResource
 import com.bernaferrari.changedetection.shared.generated.resources.github_logo
 import com.bernaferrari.changedetection.shared.generated.resources.x_logo

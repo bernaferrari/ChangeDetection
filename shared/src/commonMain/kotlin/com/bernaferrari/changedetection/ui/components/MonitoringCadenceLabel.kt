@@ -6,7 +6,7 @@ package com.bernaferrari.changedetection.ui.components
 
 import androidx.compose.runtime.Composable
 import com.bernaferrari.changedetection.shared.generated.resources.*
-import org.jetbrains.compose.resources.pluralStringResource
+import com.bernaferrari.changedetection.localization.pluralStringResource
 
 /** Requested cadence, not a promise of exact background execution. Never rounds mixed intervals. */
 @Composable

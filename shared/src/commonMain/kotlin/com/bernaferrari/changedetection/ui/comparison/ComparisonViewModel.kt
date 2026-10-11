@@ -516,5 +516,3 @@ class ComparisonViewModel(
         }
     }
 }
-
-private fun formatPercent(value: Double): String = "${((value * 10).roundToInt() / 10.0)}%"

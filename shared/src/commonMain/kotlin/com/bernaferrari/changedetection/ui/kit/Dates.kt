@@ -12,10 +12,8 @@ import com.bernaferrari.changedetection.shared.generated.resources.cadence_hour
 import com.bernaferrari.changedetection.shared.generated.resources.cadence_hours
 import com.bernaferrari.changedetection.shared.generated.resources.cadence_minutes
 import com.bernaferrari.changedetection.shared.generated.resources.cadence_week
-import com.bernaferrari.changedetection.shared.generated.resources.day_month
 import com.bernaferrari.changedetection.shared.generated.resources.day_time
 import com.bernaferrari.changedetection.shared.generated.resources.history_yesterday
-import com.bernaferrari.changedetection.shared.generated.resources.month_names
 import com.bernaferrari.changedetection.shared.generated.resources.today
 import com.bernaferrari.changedetection.shared.generated.resources.weekday_names
 import com.bernaferrari.changedetection.util.formatTime
@@ -26,22 +24,21 @@ import kotlinx.datetime.daysUntil
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Instant
 import org.jetbrains.compose.resources.stringArrayResource
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 fun Long.localDate(): LocalDate = Instant.fromEpochMilliseconds(this).toLocalDateTime(TimeZone.currentSystemDefault()).date
 
-/** "Today", "Yesterday", "Monday" within a week, otherwise "21 Sep". */
+/** "Today", "Yesterday", "Monday" within a week, otherwise the full native calendar date. */
 @Composable
 fun friendlyDay(timestamp: Long): String {
     val date = timestamp.localDate()
     val days = date.daysUntil(getCurrentTimeMillis().localDate())
     val weekdays = stringArrayResource(Res.array.weekday_names)
-    val months = stringArrayResource(Res.array.month_names)
     return when {
         days <= 0 -> stringResource(Res.string.today)
         days == 1 -> stringResource(Res.string.history_yesterday)
         days < 7 && weekdays.size == 7 -> weekdays[date.dayOfWeek.ordinal]
-        else -> stringResource(Res.string.day_month, date.day, months.getOrElse(date.month.ordinal) { "" })
+        else -> com.bernaferrari.changedetection.util.localizedCalendarDate(timestamp)
     }
 }
 

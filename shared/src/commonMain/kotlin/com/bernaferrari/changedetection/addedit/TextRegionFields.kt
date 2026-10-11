@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.detection.TextRegion
 import com.bernaferrari.changedetection.shared.generated.resources.*
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 private enum class RegionChoice { Whole, Main, Custom }
 

@@ -28,8 +28,8 @@ import com.bernaferrari.changedetection.ui.components.SharedEmptyState
 import com.bernaferrari.changedetection.util.readableSnapshotText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.jetbrains.compose.resources.pluralStringResource
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.pluralStringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /** A reading surface: new text leads; each original passage is expandable in place. */
 @Composable
@@ -74,7 +74,7 @@ internal fun SimpleDiffView(oldContent: String, newContent: String, modifier: Mo
                 item(key = "section-$sectionIndex") {
                     Row(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
                         section.context?.let { Text(it, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) } ?: Spacer(Modifier.weight(1f))
-                        Text((sectionIndex + 1).toString().padStart(2, '0'), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(com.bernaferrari.changedetection.util.localizedInteger(sectionIndex + 1), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
                 item(key = "after-heading-$sectionIndex") { PassageHeading(afterLabel) }

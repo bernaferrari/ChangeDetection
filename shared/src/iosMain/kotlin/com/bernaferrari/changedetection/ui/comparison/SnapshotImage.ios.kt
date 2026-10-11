@@ -23,7 +23,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.image_compari
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 import org.jetbrains.skia.Image as SkiaImage
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

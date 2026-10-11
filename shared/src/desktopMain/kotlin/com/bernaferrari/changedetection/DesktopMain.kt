@@ -19,6 +19,9 @@ import java.awt.Desktop
 import java.net.URI
 import java.net.URLEncoder
 import org.jetbrains.compose.resources.painterResource
+import com.bernaferrari.changedetection.localization.stringResource
+import com.bernaferrari.changedetection.shared.generated.resources.app_name
+import com.bernaferrari.changedetection.shared.generated.resources.desktop_development
 
 fun main() {
     initKoin()
@@ -30,7 +33,7 @@ fun main() {
                 com.bernaferrari.changedetection.browser.DesktopBrowserRuntime.dispose()
                 exitApplication()
             },
-            title = "Change Detection · Desktop",
+            title = stringResource(Res.string.app_name),
             icon = painterResource(appIcon),
             state = rememberWindowState(width = 430.dp, height = 900.dp),
             onPreviewKeyEvent = { it.key == Key.Escape && it.type == KeyEventType.KeyDown && back.dispatch() },
@@ -45,7 +48,7 @@ fun main() {
                     PlatformActions(
                         openUrl = { Desktop.getDesktop().browse(URI(it)) },
                         openEmail = { email, subject -> Desktop.getDesktop().mail(URI("mailto:$email?subject=${URLEncoder.encode(subject, "UTF-8").replace("+", "%20")}")) },
-                        appVersion = "Desktop development",
+                        appVersion = stringResource(Res.string.desktop_development),
                     ),
                 )
             }

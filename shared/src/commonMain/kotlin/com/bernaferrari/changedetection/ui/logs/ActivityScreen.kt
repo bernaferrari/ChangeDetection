@@ -97,7 +97,7 @@ import com.bernaferrari.changedetection.ui.kit.rememberVersionPreview
 import com.bernaferrari.changedetection.util.BackHandler
 import com.bernaferrari.changedetection.util.formatTime
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 /** Every saved change, newest first, one sentence each. */

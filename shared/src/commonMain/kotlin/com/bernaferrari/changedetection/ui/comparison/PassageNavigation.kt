@@ -22,8 +22,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.pluralStringResource
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.pluralStringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /** Lazy-item positions account for expanded originals and bounded long-line fragments. */
 internal fun passageItemIndices(sections: List<TextChangeSection>, expanded: Map<Int, Boolean>): List<Int> {
@@ -71,7 +71,7 @@ internal fun PassageNavigation(sections: List<TextChangeSection>, anchors: List<
                     }
                     val position = stringResource(Res.string.comparison_passage_position, current + 1, sections.size)
                     TextButton(onClick = { showPicker = true }, modifier = Modifier.semantics { contentDescription = position }) {
-                        Text("${current + 1} / ${sections.size}", style = MaterialTheme.typography.labelLarge)
+                        Text("${com.bernaferrari.changedetection.util.localizedInteger(current + 1)} / ${com.bernaferrari.changedetection.util.localizedInteger(sections.size)}", style = MaterialTheme.typography.labelLarge)
                         Icon(Icons.Rounded.ExpandMore, null, Modifier.size(18.dp))
                     }
                     IconButton(onClick = { jump(current + 1) }, enabled = current < sections.lastIndex) {
@@ -103,7 +103,7 @@ internal fun PassageNavigation(sections: List<TextChangeSection>, anchors: List<
                             color = if (index == current) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
                         ) {
                             Row(Modifier.heightIn(min = 48.dp).padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Text((index + 1).toString().padStart(2, '0'), style = MaterialTheme.typography.labelLarge)
+                                Text(com.bernaferrari.changedetection.util.localizedInteger(index + 1), style = MaterialTheme.typography.labelLarge)
                                 Text(sections[index].context ?: stringResource(Res.string.comparison_passage_position, index + 1, sections.size), style = MaterialTheme.typography.bodyMedium)
                             }
                         }

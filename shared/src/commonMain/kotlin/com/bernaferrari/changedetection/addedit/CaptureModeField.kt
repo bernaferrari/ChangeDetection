@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.ui.kit.ConnectedChoice
 import com.bernaferrari.changedetection.repo.CaptureMode
 import com.bernaferrari.changedetection.shared.generated.resources.*
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /**
  * The formats beyond Screenshot and Text, which the main choice already offers. Choosing one adds it to that

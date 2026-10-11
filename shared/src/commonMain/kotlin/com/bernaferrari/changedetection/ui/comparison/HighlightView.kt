@@ -47,7 +47,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.reader_previo
 import com.bernaferrari.changedetection.ui.theme.marks
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -132,7 +132,7 @@ internal fun HighlightView(afterBytes: ByteArray, regions: List<VisualRegion>, c
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
-                                (index + 1).toString(),
+                                com.bernaferrari.changedetection.util.localizedInteger(index + 1),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onPrimary,
                             )

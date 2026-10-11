@@ -83,15 +83,19 @@
     <string name="home_status_checked">Verificado %1$s</string>
     <string name="home_status_first_check">Aguardando a primeira verificação</string>
     <string name="ignore_small_title">Ignorar mudanças pequenas</string>
-    <string name="ignore_small_off">Não</string>
+    <string name="ignore_small_off">Desativado</string>
     <string name="ignore_small_body">Só salva uma nova captura quando pelo menos esta parte da página parece diferente.</string>
     <string name="ignore_small_off_body">Toda mudança visível é salva, por menor que seja.</string>
     <string name="editor_formats">Outros formatos</string>
-    <string name="editor_formats_body">Para desenvolvedores: compara o código da página. Costuma ter mais ruído que o texto.</string>
+    <string name="editor_formats_body">Para desenvolvedores: compara o código da página. Costuma detectar mais mudanças irrelevantes que o texto.</string>
     <string name="editor_part_picked">Escolhida</string>
-    <string name="settings_capture_body">Como as páginas novas são comparadas. Cada página ainda pode escolher o seu.</string>
-    <string name="settings_wait_body">As páginas já esperam imagens e carregamento terminarem. Adicione tempo para sites lentos.</string>
+    <string name="settings_capture_body">Como as novas páginas são comparadas. Cada página pode usar um método diferente.</string>
+    <string name="settings_wait_body">As páginas já esperam as imagens e o carregamento terminarem. Adicione mais tempo para sites lentos.</string>
     <string name="about_license_short">Código aberto · Apache 2.0</string>
     <string name="settings_wait_seconds">segundos</string>
     <string name="comparison_page_details">Detalhes da página</string>
+    <string name="desktop_development">Versão de desenvolvimento para desktop</string>
+    <string name="image_diff_changed_percent">%1$s alterado</string>
+    <string name="error_invalid_input">Confira estas configurações</string>
+    <string name="error_invalid_input_detail">Confira o endereço da página e as configurações e tente novamente.</string>
 </resources>

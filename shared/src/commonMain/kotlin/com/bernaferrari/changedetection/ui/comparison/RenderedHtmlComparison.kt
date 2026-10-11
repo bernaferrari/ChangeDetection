@@ -44,7 +44,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_after
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_before
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_version_switcher
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 /** Full-canvas rendered comparison with a stable before/after split instead of a slider. */
 @Composable

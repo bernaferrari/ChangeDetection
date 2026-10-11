@@ -82,7 +82,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.how_it_works_
 import com.bernaferrari.changedetection.shared.generated.resources.how_it_works_steps_header
 import com.bernaferrari.changedetection.shared.generated.resources.step_number
 import com.bernaferrari.changedetection.ui.theme.spacing
-import org.jetbrains.compose.resources.stringResource
+import com.bernaferrari.changedetection.localization.stringResource
 
 private data class HowItWorksStep(
     val title: String,
@@ -175,7 +175,7 @@ internal fun HowItWorksContent(onBackClick: () -> Unit, capabilities: Monitoring
                             Modifier.size(44.dp).clip(androidx.compose.material3.MaterialShapes.Cookie9Sided.toShape()).background(MaterialTheme.colorScheme.primaryContainer),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Text((index + 1).toString(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            Text(com.bernaferrari.changedetection.util.localizedInteger(index + 1), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         }
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(step.title, style = MaterialTheme.typography.titleLarge)
