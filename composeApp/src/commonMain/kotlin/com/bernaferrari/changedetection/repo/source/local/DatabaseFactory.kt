@@ -15,10 +15,10 @@ fun getRoomDatabase(
     migrations: Array<out Migration> = emptyArray(),
 ): ChangeDatabase = builder
     .setDriver(driver)
-    // Schema v1 (app releases 2.1/2.2, file "Changes.db") jumps straight to
-    // v3 via MIGRATION_1_3; the Android platform module registers it. A
-    // version *downgrade* still falls back to a rebuild.
-    .addMigrations(MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, *migrations)
+    // One upgrade path: the last public release (version 1, 2019–2024) straight to today. Unpublished
+    // pre-release versions start fresh, and so does a downgrade.
+    .addMigrations(MIGRATION_1_10, *migrations)
+    .fallbackToDestructiveMigrationFrom(true, *UNPUBLISHED_VERSIONS)
     .fallbackToDestructiveMigrationOnDowngrade(true)
     .addCallback(snapshotCleanupCallback)
     .setQueryCoroutineContext(Dispatchers.Default)

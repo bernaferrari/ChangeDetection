@@ -145,9 +145,14 @@ data class Site(
     internal class ConstraintsConverter {
         @ColumnTypeConverter
         fun storedStringToConstraintsRequired(value: String): ConstraintsRequired {
-            val langs = value.split(",".toRegex()).dropLastWhile { it.isEmpty() }.toList()
-
-            return ConstraintsRequired(langs)
+            // Stored in the writer's order (battery, wifi, charging, idle), as every release since 2018 wrote it.
+            val parts = value.split(",").map { it.trim().toBoolean() }
+            return ConstraintsRequired(
+                wifi = parts.getOrElse(1) { false },
+                charging = parts.getOrElse(2) { false },
+                batteryNotLow = parts.getOrElse(0) { false },
+                deviceIdle = parts.getOrElse(3) { false },
+            )
         }
 
         @ColumnTypeConverter

@@ -10,7 +10,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room3.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import com.bernaferrari.changedetection.repo.source.local.MIGRATION_1_3
 import com.bernaferrari.changedetection.repo.source.local.importLegacyDatabase
 import com.bernaferrari.changedetection.WorkerHelper
 import com.bernaferrari.changedetection.background.MonitoringManager
@@ -50,11 +49,7 @@ actual class PlatformDiModule {
             context = appContext,
             name = path,
         )
-        return getRoomDatabase(
-            builder,
-            BundledSQLiteDriver(),
-            migrations = arrayOf(MIGRATION_1_3),
-        )
+        return getRoomDatabase(builder, BundledSQLiteDriver())
     }
 
     @Single
