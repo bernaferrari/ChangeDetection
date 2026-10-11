@@ -99,6 +99,8 @@ import com.bernaferrari.changedetection.ui.kit.ChangePreviewBlock
 import com.bernaferrari.changedetection.ui.kit.GroupRow
 import com.bernaferrari.changedetection.ui.kit.ListGroup
 import com.bernaferrari.changedetection.ui.kit.NewBadge
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import com.bernaferrari.changedetection.ui.components.rememberPageIconMotion
 import com.bernaferrari.changedetection.ui.kit.PageAvatar
 import com.bernaferrari.changedetection.ui.kit.tileColor
 import androidx.compose.ui.text.style.TextAlign
@@ -300,8 +302,10 @@ private fun DetailList(
     ) {
         item(key = "identity") {
             Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(Modifier.clickable(role = androidx.compose.ui.semantics.Role.Button, onClickLabel = stringResource(Res.string.editor_icon_shape_title), onClick = onChooseShape)) {
-                    PageAvatar(site.name(), site.id, size = 88.dp, dimmed = paused, icon = site.avatarIcon(), iconShape = site.iconShape, colors = site.colors)
+                val iconInteractions = remember { MutableInteractionSource() }
+                val iconMotion = rememberPageIconMotion(iconInteractions)
+                Box(Modifier.clickable(interactionSource = iconInteractions, indication = null, role = androidx.compose.ui.semantics.Role.Button, onClickLabel = stringResource(Res.string.editor_icon_shape_title), onClick = onChooseShape).padding(8.dp)) {
+                    PageAvatar(site.name(), site.id, modifier = iconMotion.modifier, size = 88.dp, dimmed = paused, icon = site.avatarIcon(), iconShape = site.iconShape, colors = site.colors, selectionProgress = iconMotion.outlineProgress, selectionColor = if (iconMotion.focused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
                 }
                 Spacer(Modifier.height(16.dp))
                 Text(site.name(), style = MaterialTheme.typography.headlineMedium, maxLines = 3, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
