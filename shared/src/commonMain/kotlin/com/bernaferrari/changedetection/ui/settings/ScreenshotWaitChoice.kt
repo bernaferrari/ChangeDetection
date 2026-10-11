@@ -11,7 +11,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -62,7 +62,7 @@ internal fun ScreenshotWaitChoice(delayMs: Long, onChange: (Long) -> Unit) {
                 },
                 shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
                 contentPadding = PaddingValues(0.dp),
-            ) { Icon(Icons.AutoMirrored.Rounded.ArrowForward, null, Modifier.size(20.dp)) }
+            ) { Icon(Icons.Rounded.Edit, null, Modifier.size(20.dp)) }
         }
     }
     if (editing) {

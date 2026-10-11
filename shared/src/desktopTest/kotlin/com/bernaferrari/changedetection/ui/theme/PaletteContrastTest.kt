@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import com.bernaferrari.changedetection.model.AppPalette
 import com.materialkolor.PaletteStyle
-import com.materialkolor.dynamicColorScheme
+import com.materialkolor.material3.dynamicColorScheme
 import com.materialkolor.dynamiccolor.ColorSpec
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -38,6 +38,8 @@ class PaletteContrastTest {
                 )
                 val pairs = mutableListOf(
                     Triple("primary button", scheme.onPrimary, scheme.primary),
+                    Triple("secondary button", scheme.onSecondary, scheme.secondary),
+                    Triple("tertiary button", scheme.onTertiary, scheme.tertiary),
                     Triple("selected primary", scheme.onPrimaryContainer, scheme.primaryContainer),
                     Triple("selected secondary", scheme.onSecondaryContainer, scheme.secondaryContainer),
                     Triple("tertiary notice", scheme.onTertiaryContainer, scheme.tertiaryContainer),

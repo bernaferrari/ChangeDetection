@@ -4,27 +4,19 @@
  */
 package com.bernaferrari.changedetection.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialExpressiveTheme
-import androidx.compose.material3.MotionScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import com.materialkolor.PaletteStyle
-import com.materialkolor.dynamicColorScheme
-import com.materialkolor.dynamiccolor.ColorSpec
 
 /**
  * ChangeDetection Android theme with Material You dynamic colors where available.
- * - Android 12+: Uses native wallpaper-extracted colors when dynamicColor=true
+ * - Android 12+: Uses the system wallpaper accent as a MaterialKolor seed when dynamicColor=true
  * - All other cases: Uses MaterialKolor to generate schemes from SeedColor
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 actual fun ChangeDetectionTheme(
     darkTheme: Boolean,
@@ -32,20 +24,16 @@ actual fun ChangeDetectionTheme(
     seedColor: Color,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = when {
-        // Use native Android dynamic colors on Android 12+ (Material You)
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
+    val context = LocalContext.current
+    // Resource configuration changes (including the system palette) invalidate this composition.
+    LocalConfiguration.current
+    val wallpaperSeed = if (supportsDynamicColors()) Color(context.getColor(android.R.color.system_accent1_500)) else null
+    val wallpaperScheme = remember(wallpaperSeed, darkTheme) { wallpaperSeed?.let { brandColorScheme(it, darkTheme) } }
+    val colorScheme = if (dynamicColor && wallpaperScheme != null) wallpaperScheme else remember(seedColor, darkTheme) { brandColorScheme(seedColor, darkTheme) }
 
-        // All other cases: generate from SeedColor using MaterialKolor
-        else -> {
-            brandColorScheme(seedColor, darkTheme)
-        }
+    CompositionLocalProvider(LocalWallpaperColorScheme provides wallpaperScheme) {
+        AppMaterialTheme(colorScheme, darkTheme, content)
     }
-
-    AppMaterialTheme(colorScheme, darkTheme, content)
 }
 
 /**

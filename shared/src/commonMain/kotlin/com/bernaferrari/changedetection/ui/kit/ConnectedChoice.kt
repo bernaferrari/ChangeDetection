@@ -66,12 +66,6 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
                                 index == row.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
                                 else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                             },
-                            colors = ToggleButtonDefaults.colors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                                contentColor = MaterialTheme.colorScheme.onSurface,
-                                checkedContainerColor = MaterialTheme.colorScheme.primary,
-                                checkedContentColor = MaterialTheme.colorScheme.onPrimary,
-                            ),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                         ) {
                             // Give the paragraph the button's available width. Its rounded
