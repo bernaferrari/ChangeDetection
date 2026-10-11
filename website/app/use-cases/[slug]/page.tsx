@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, ResolvingMetadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft, Check } from "lucide-react"
@@ -17,15 +17,16 @@ export function generateStaticParams() {
   return useCases.map((it) => ({ slug: it.slug }))
 }
 
-export async function generateMetadata({ params }: PageProps<"/use-cases/[slug]">): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps<"/use-cases/[slug]">, parent: ResolvingMetadata): Promise<Metadata> {
   const { slug } = await params
   const useCase = findUseCase(slug)
   if (!useCase) return {}
+  const images = (await parent).openGraph?.images
   return {
     title: useCase.title,
     description: useCase.description,
     alternates: { canonical: `/use-cases/${useCase.slug}` },
-    openGraph: { title: useCase.title, description: useCase.description, url: `/use-cases/${useCase.slug}` },
+    openGraph: { title: useCase.title, description: useCase.description, url: `/use-cases/${useCase.slug}`, images },
   }
 }
 
