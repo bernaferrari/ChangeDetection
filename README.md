@@ -38,10 +38,10 @@ Turbo checks at 15-second, 30-second, 1-minute, or 2-minute intervals. Choose a 
 
 | Path | Purpose |
 | --- | --- |
-| `app/` | Android application shell, manifest, activity, and packaging |
-| `composeApp/src/commonMain/` | Shared product models, data layer, view models, and Compose UI |
-| `composeApp/src/androidMain/` | Android workers, foreground services, notifications, browser integration, and widgets |
-| `composeApp/src/iosMain/` | iOS platform implementations; the iOS product remains in development |
+| `androidApp/` | Android application shell, manifest, activity, and packaging |
+| `shared/src/commonMain/` | Shared product models, data layer, view models, and Compose UI |
+| `shared/src/androidMain/` | Android workers, foreground services, notifications, browser integration, and widgets |
+| `shared/src/iosMain/` | iOS platform implementations; the iOS product remains in development |
 | `iosApp/` | Swift application shell |
 | `webDemo/` | Compose Multiplatform Wasm demo with synthetic local monitoring data |
 | `web/` | Next.js marketing and documentation site |
@@ -55,30 +55,49 @@ Android builds use the platform WebView for page capture and a bounded pixel com
 
 | Check | Command | Coverage |
 | --- | --- | --- |
-| Compose Desktop UI | `./gradlew :composeApp:desktopTest` | Shared monitoring tests and real Compose UI journeys, including enlarged text. No emulator. |
-| Desktop native browser | `./gradlew :composeApp:desktopBrowserSmoke` | Bundled JCEF startup, real saved-HTML rendering/text readback, native capture and reopening/disposal. Uses a temporary cache and synthetic content. Requires JBR 25 with JCEF and a graphical session. |
-| Android host tests | `./gradlew :composeApp:testAndroidHostTest` | Domain behavior and pure comparison UI logic using synthetic local data. |
-| Android instrumentation | `./gradlew :composeApp:connectedAndroidDeviceTest` | Executes Room, browser, storage, notification and Compose tests on a connected device. Use `ANDROID_SERIAL=<device-serial>` to select an explicitly authorized device. UI iteration for this redesign uses Desktop, without starting an emulator. |
-| Android device-test compile | `./gradlew :composeApp:compileAndroidDeviceTest` | Current Room, browser, and Compose semantic test sources. No device is required for compilation. |
-| Android debug app | `./gradlew :app:assembleDebug` | Android integration, browser adapter, and packaging. |
-| iOS shared code | `./gradlew :composeApp:compileKotlinIosSimulatorArm64` | iOS implementation of the shared KMP surface. |
-| Kotlin formatting | `./gradlew :composeApp:spotlessCheck` | Kotlin formatting and copyright headers for the Compose module. |
-| Web demo | `./scripts/verify-web-demo.sh` | Builds and verifies the Compose Multiplatform Wasm demo artifact. |
+| Compose Desktop UI | `./gradlew :shared:desktopTest` | Shared monitoring tests and real Compose UI journeys, including enlarged text. No emulator. |
+| Desktop native browser | `./gradlew :shared:desktopBrowserSmoke` | Bundled JCEF startup, real saved-HTML rendering/text readback, native capture and reopening/disposal. Uses a temporary cache and synthetic content. Requires JBR 25 with JCEF and a graphical session. |
+| Android host tests | `./gradlew :shared:testAndroidHostTest` | Domain behavior and pure comparison UI logic using synthetic local data. |
+| Android instrumentation | `./gradlew :shared:connectedAndroidDeviceTest` | Executes Room, browser, storage, notification and Compose tests on a connected device. Use `ANDROID_SERIAL=<device-serial>` to select an explicitly authorized device. UI iteration for this redesign uses Desktop, without starting an emulator. |
+| Android device-test compile | `./gradlew :shared:compileAndroidDeviceTest` | Current Room, browser, and Compose semantic test sources. No device is required for compilation. |
+| Android debug app | `./gradlew :androidApp:assembleDebug` | Android integration, browser adapter, and packaging. |
+| iOS shared code | `./gradlew :shared:compileKotlinIosSimulatorArm64` | iOS implementation of the shared KMP surface. |
+| Kotlin formatting | `./gradlew :shared:spotlessCheck` | Kotlin formatting and copyright headers for the Compose module. |
+| Web demo | `./gradlew :webDemo:wasmJsBrowserDistribution` | Builds the Compose Multiplatform Wasm demo; CI also verifies its output files. |
 | Website lint | `cd web && pnpm lint` | TypeScript and React static analysis. |
 | Website production build | `cd web && pnpm build` | Type checking and static rendering of `/` and `/docs`. |
 
 Tests and preview data must stay local and synthetic: do not make a verification command depend on a live monitored URL, saved browsing content, or credentials.
 
+## Android publishing
+
+[Gradle Play Publisher](https://github.com/Triple-T/gradle-play-publisher) handles optional Google Play uploads; no Ruby, Bundler, or Fastlane installation is needed. Regular builds and CI do not enable publishing.
+
+Set `CHANGEDETECTION_SIGNING_PROPERTIES` to an external properties file containing `storeFile`, `storePassword`, `keyAlias`, and `keyPassword`. Use an absolute keystore path. Set `CHANGEDETECTION_PLAY_CREDENTIALS` to an external Google Play service-account JSON file. Complete the documented checks and set an unused `versionCode` in `androidApp/build.gradle.kts` before uploading.
+
+```bash
+# Upload an internal draft (the default).
+./gradlew -PplayPublishing=true :androidApp:publishReleaseBundle
+
+# Make the uploaded bundle available to internal testers.
+./gradlew -PplayPublishing=true :androidApp:promoteReleaseArtifact --from-track internal --promote-track internal --release-status completed
+
+# Promote that tested bundle to production.
+./gradlew -PplayPublishing=true :androidApp:promoteReleaseArtifact --from-track internal --promote-track production --release-status completed
+```
+
+Publishing is disabled unless `-PplayPublishing=true` is supplied, and enabling it requires both credential files. Store listings remain managed in Play Console; these commands only publish or promote the app bundle. Build output is under `androidApp/build/outputs/bundle/release/`.
+
 ## Desktop UI development
 
-Run `./gradlew :composeApp:hotRunDesktop` to open the shared app with Compose Hot Reload. Apply edits with `./gradlew :composeApp:hotReloadDesktopMain` while it runs. The Gradle toolchain resolver provisions JetBrains Runtime for Hot Reload. Run compilation/test commands sequentially so generated resource accessors and application classes stay consistent.
+Run `./gradlew :shared:hotRunDesktop` to open the shared app with Compose Hot Reload. Apply edits with `./gradlew :shared:hotReloadDesktopMain` while it runs. The Gradle toolchain resolver provisions JetBrains Runtime for Hot Reload. Run compilation/test commands sequentially so generated resource accessors and application classes stay consistent.
 
 Desktop uses real Room storage, DataStore preferences, HTTP text checks, saved versions, and the shared Turbo engine. Its separate data directory is `~/.change-detection-desktop/`. Regular checks run while the desktop process remains open. Restarting retains history and configuration, marks a formerly running Turbo session as interrupted, and requires an explicit Start to begin another session. This development host does not currently implement desktop OS notifications or screenshot capture; it does not validate Android background execution.
 
 Snapshot row deletion records pending file cleanup in the same SQLite transaction, including page cascades, history reset and retention. Cleanup reads at most 500 IDs per batch; failed files remain queued and retry while the process is running, including after restart with monitoring disabled. The queue handles committed deletions immediately; the age-gated orphan sweep remains a fallback for files left by interrupted writes. This is restart recovery, not a guarantee against filesystem corruption or permanent deletion failure.
 
 
-The official Compose Hot Reload MCP server is available through `./gradlew --no-daemon --quiet --console=plain :composeApp:hotMcpServerDesktop` for semantic UI inspection and interaction. Desktop UI tests save rendered review captures in `build/desktop-review/`; these captures come from Compose rendering and remain valid when another application obscures the desktop window.
+The official Compose Hot Reload MCP server is available through `./gradlew --no-daemon --quiet --console=plain :shared:hotMcpServerDesktop` for semantic UI inspection and interaction. Desktop UI tests save rendered review captures in `build/desktop-review/`; these captures come from Compose rendering and remain valid when another application obscures the desktop window.
 
 The native browser smoke check saves `build/desktop-review/native-browser-smoke.png` through Chromium itself. This verifies browser pixels independently of desktop screen capture, but does not prove the whole app window is visually correct. Restart the Desktop process after changing native-runtime initialization; Hot Reload cannot recreate the process-wide Chromium runtime. The smoke task uses a macOS accessory process to avoid the shared Java restore-windows prompt after a development crash; it does not change the app’s normal launch configuration.
 

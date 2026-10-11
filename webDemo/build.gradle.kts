@@ -23,7 +23,7 @@ kotlin {
 
     sourceSets {
         wasmJsMain.dependencies {
-            implementation(project(":composeApp"))
+            implementation(project(":shared"))
             implementation(project(":sqliteWasmWorker"))
             implementation(libs.jetbrains.compose.runtime)
             implementation(libs.jetbrains.compose.foundation)

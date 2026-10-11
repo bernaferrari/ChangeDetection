@@ -1,4 +1,4 @@
-# Consumer ProGuard rules for composeApp library
+# Consumer ProGuard rules for shared library
 # Most libraries (Koin, Room, Ktor, OkHttp) bundle their own rules
 
 # Keep WorkManager workers
