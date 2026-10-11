@@ -4,6 +4,7 @@
  */
 package com.bernaferrari.changedetection.ui.comparison
 
+import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SitesRepository
@@ -11,6 +12,8 @@ import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import kotlinx.coroutines.CompletableDeferred
 import com.bernaferrari.changedetection.platform.ShareManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.emptyFlow
@@ -38,6 +41,7 @@ class ComparisonReadStateTest {
     }
 
     @After fun teardown() {
+        runTest(dispatcher) { model.viewModelScope.coroutineContext.job.cancelAndJoin() }
         Dispatchers.resetMain()
     }
 
