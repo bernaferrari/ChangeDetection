@@ -15,10 +15,9 @@ fun getRoomDatabase(
     migrations: Array<out Migration> = emptyArray(),
 ): ChangeDatabase = builder
     .setDriver(driver)
-    // One upgrade path: the last public release (version 1, 2019–2024) straight to today. Unpublished
-    // pre-release versions start fresh, and so does a downgrade.
-    .addMigrations(MIGRATION_1_10, *migrations)
-    .fallbackToDestructiveMigrationFrom(true, *UNPUBLISHED_VERSIONS)
+    // One upgrade path: the last public release (version 1, 2019–2024) straight to today. A downgrade
+    // starts fresh.
+    .addMigrations(MIGRATION_1_5, *migrations)
     .fallbackToDestructiveMigrationOnDowngrade(true)
     .addCallback(snapshotCleanupCallback)
     .setQueryCoroutineContext(Dispatchers.Default)
