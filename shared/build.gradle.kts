@@ -2,15 +2,18 @@
  * Copyright (c) 2024 ChangeDetection Contributors
  * Licensed under the Apache License, Version 2.0
  */
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+@file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
+    alias(libs.plugins.spotless)
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.compose) // Kotlin Compose plugin required for Kotlin 2.0+
+    alias(libs.plugins.compose)
     alias(libs.plugins.jetbrains.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.koin.compiler)
@@ -40,19 +43,11 @@ kotlin {
             }
         }
         minSdk = 30
-        packaging {
-            resources {
-                excludes += "/META-INF/{AL2.0,LGPL2.1}"
-            }
-        }
-        lint {
-            abortOnError = true
-        }
+        // Test source sets are opt-in for the Android KMP library plugin.
         withHostTest { }
         withDeviceTest { }
     }
 
-    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     wasmJs {
         browser()
         useEsModules()
@@ -78,15 +73,11 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.androidx.room.runtime)
-            // Networking (Ktor)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
-            // HTML Parsing (Ksoup - Jsoup for KMP)
             implementation(libs.ksoup)
-            // Date/Time (KMP)
             implementation(libs.kotlinx.datetime)
-            // Compose Multiplatform UI
             implementation(libs.jetbrains.compose.runtime)
             implementation(libs.jetbrains.compose.foundation)
             implementation(libs.jetbrains.compose.material3)
@@ -95,34 +86,27 @@ kotlin {
             implementation(libs.jetbrains.compose.material.icons.extended)
             implementation(libs.androidx.graphics.shapes)
 
-            // Logging (Napier)
             implementation(libs.napier)
 
-            // Paging (KMP)
             implementation(libs.androidx.paging.common)
             implementation(libs.androidx.paging.compose)
             implementation(libs.androidx.room.paging)
 
-            // AndroidX Lifecycle ViewModel (KMP)
             implementation(libs.jetbrains.androidx.lifecycle.viewmodel)
             implementation(libs.jetbrains.androidx.lifecycle.viewmodel.compose)
             implementation(libs.jetbrains.androidx.lifecycle.runtime.compose)
             implementation(libs.androidx.datastore.preferences.core)
             implementation(libs.koin.compose.viewmodel)
 
-            // Navigation 3 (KMP-compatible)
             implementation(libs.jetbrains.androidx.navigation3.ui)
             implementation(libs.androidx.lifecycle.viewmodel.navigation3)
             implementation(libs.webview.multiplatform)
 
-            // Adaptive
             implementation(libs.jetbrains.compose.material3.adaptive.navigation3)
             implementation(libs.jetbrains.compose.material3.adaptive.navigation.suite)
 
-            // Core
             implementation(libs.jetbrains.androidx.savedstate)
             implementation(libs.jetbrains.androidx.window.core)
-            // Page icons
             implementation(libs.coil.compose)
             implementation(libs.coil.core)
             implementation(libs.coil.network.ktor3)
@@ -131,34 +115,27 @@ kotlin {
             implementation(project.dependencies.platform(libs.androidx.compose.bom))
             implementation(libs.koin.android)
             implementation(libs.koin.compose)
-            implementation(libs.koin.compose.viewmodel)
             implementation(libs.koin.workmanager)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.work.runtime.ktx)
-            // Navigation 3 (Android-specific runtime)
             implementation(libs.androidx.navigation3.runtime)
             implementation(libs.androidx.navigation3.ui)
             implementation(libs.androidx.core.ktx)
             implementation(libs.androidx.startup)
 
-            // Compose (already provided by compose multiplatform in commonMain)
             implementation(libs.androidx.compose.ui.tooling.preview)
             implementation(libs.androidx.compose.material3.window.size)
 
-            // DataStore for Preferences
             implementation(libs.androidx.datastore.preferences)
             implementation(libs.sqlite.bundled)
 
-            // UI Utils
             implementation(libs.androidx.palette.ktx)
             implementation(libs.material.kolor)
 
-            // Browser
             implementation(libs.androidx.browser)
 
-            // Glance AppWidget
             implementation(libs.androidx.glance)
             implementation(libs.androidx.glance.appwidget)
         }
@@ -174,7 +151,7 @@ kotlin {
         getByName("desktopTest") {
             kotlin.srcDir("src/jvmSharedTest/kotlin")
             dependencies {
-                implementation(compose.desktop.uiTestJUnit4)
+                implementation(libs.jetbrains.compose.ui.test.junit4)
                 implementation(libs.junit)
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.mockito.core)
@@ -192,7 +169,6 @@ kotlin {
             implementation(libs.okio)
         }
 
-        // Host (JVM) tests
         getByName("androidHostTest") {
             kotlin.srcDir("src/androidUnitTest/kotlin")
             kotlin.srcDir("src/jvmSharedTest/kotlin")
@@ -205,7 +181,6 @@ kotlin {
             }
         }
 
-        // Device (instrumented) tests
         getByName("androidDeviceTest") {
             kotlin.srcDir("src/androidInstrumentedTest/kotlin")
             dependencies {
@@ -226,20 +201,21 @@ room3 {
 }
 
 dependencies {
-    add("kspDesktop", libs.androidx.room.compiler)
-    add("kspAndroid", libs.androidx.room.compiler)
-    add("kspIosSimulatorArm64", libs.androidx.room.compiler)
-    add("kspIosArm64", libs.androidx.room.compiler)
-    add("kspWasmJs", libs.androidx.room.compiler)
+    listOf("Android", "Desktop", "IosSimulatorArm64", "IosArm64", "WasmJs").forEach { target ->
+        add("ksp$target", libs.androidx.room.compiler)
+    }
 }
+
+val desktopJavaLauncher = javaToolchains.launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(25))
+    vendor.set(JvmVendorSpec.JETBRAINS)
+}
+val isMac = providers.systemProperty("os.name").get().contains("Mac", ignoreCase = true)
 
 compose.desktop {
     application {
         mainClass = "com.bernaferrari.changedetection.DesktopMainKt"
-        javaHome = javaToolchains.launcherFor {
-            languageVersion.set(JavaLanguageVersion.of(25))
-            vendor.set(JvmVendorSpec.JETBRAINS)
-        }.get().metadata.installationPath.asFile.absolutePath
+        javaHome = desktopJavaLauncher.get().metadata.installationPath.asFile.absolutePath
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm)
             packageName = "Change Detection"
@@ -267,7 +243,7 @@ compose.desktop {
     }
 }
 
-if (System.getProperty("os.name").contains("Mac", ignoreCase = true)) {
+if (isMac) {
     val macIconResources = layout.buildDirectory.dir("macIcon/Resources")
     val compileMacIcon = tasks.register<Exec>("compileMacIcon") {
         group = "distribution"
@@ -299,7 +275,7 @@ if (System.getProperty("os.name").contains("Mac", ignoreCase = true)) {
 val browserJvmArgs = listOf(
     "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",
     "--add-opens=java.desktop/java.awt.peer=ALL-UNNAMED",
-) + if (System.getProperty("os.name").contains("Mac", ignoreCase = true)) {
+) + if (isMac) {
     listOf(
         "--add-opens=java.desktop/sun.lwawt=ALL-UNNAMED",
         "--add-opens=java.desktop/sun.lwawt.macosx=ALL-UNNAMED",
@@ -319,13 +295,8 @@ tasks.register<JavaExec>("desktopBrowserSmoke") {
     classpath(testCompilation.output.allOutputs, testCompilation.runtimeDependencyFiles)
     mainClass.set("com.bernaferrari.changedetection.browser.DesktopBrowserSmoke")
     systemProperty("changedetection.browserSmoke.output", rootProject.layout.buildDirectory.dir("desktop-review").get().asFile.absolutePath)
-    javaLauncher.set(
-        javaToolchains.launcherFor {
-            languageVersion.set(JavaLanguageVersion.of(25))
-            vendor.set(JvmVendorSpec.JETBRAINS)
-        },
-    )
-    if (System.getProperty("os.name").contains("Mac", ignoreCase = true)) {
+    javaLauncher.set(desktopJavaLauncher)
+    if (isMac) {
         systemProperty("apple.awt.UIElement", "true")
     }
 }

@@ -18,7 +18,7 @@ The app supports English, Spanish, Italian, Portuguese, German, Hindi, Bengali, 
 
 ## Run locally
 
-For Android, use JDK 21 and Android SDK platform `android-37.2`. The Gradle wrapper handles Gradle installation.
+For Android, install SDK platform `android-37.2`. Gradle manages its own version and the JetBrains Runtime 25 toolchain.
 
 ```bash
 # Build the Android debug APK

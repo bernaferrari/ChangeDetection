@@ -5,6 +5,7 @@
 @file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 
 plugins {
+    alias(libs.plugins.spotless)
     alias(libs.plugins.kotlin.multiplatform)
 }
 
