@@ -5,17 +5,9 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
-        android:pathData="M2,6 V3.5 Q2,2 3.5,2 H6 M18,2 H20.5 Q22,2 22,3.5 V6 M22,18 V20.5 Q22,22 20.5,22 H18 M6,22 H3.5 Q2,22 2,20.5 V18"
+        android:pathData="M5.5,4 H18.5 A2.5,2.5 0,0 1,21,6.5 V17.5 A2.5,2.5 0,0 1,18.5,20 H5.5 A2.5,2.5 0,0 1,3,17.5 V6.5 A2.5,2.5 0,0 1,5.5,4 Z M3,9 H21 M6.5,13 H12.5 M6.5,17 H12.5 M15.75,13 H18.25 M17,11.75 V14.25 M15.75,17 H18.25"
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="2"
         android:strokeLineCap="round"
         android:strokeLineJoin="round" />
-    <!-- Solid page with generous cutouts; no tiny nested frames or text rows. -->
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:fillType="evenOdd"
-        android:pathData="M7,6 H17 Q19,6 19,8 V16 Q19,18 17,18 H7 Q5,18 5,16 V8 Q5,6 7,6 Z M7,8 H12.5 V13.5 H7 Z M14,8.75 H16.75 Q17.5,8.75 17.5,9.5 Q17.5,10.25 16.75,10.25 H14 Q13.25,10.25 13.25,9.5 Q13.25,8.75 14,8.75 Z M14,11.25 H16.75 Q17.5,11.25 17.5,12 Q17.5,12.75 16.75,12.75 H14 Q13.25,12.75 13.25,12 Q13.25,11.25 14,11.25 Z M7.6,15 H16.4 Q17,15 17,15.6 Q17,16.2 16.4,16.2 H7.6 Q7,16.2 7,15.6 Q7,15 7.6,15 Z" />
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M7,13.5 L9.2,10.6 L11.8,13.5 Z M11.8,9.5 A0.7,0.7 0,1 1,10.4,9.5 A0.7,0.7 0,1 1,11.8,9.5 Z" />
 </vector>
