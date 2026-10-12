@@ -5,13 +5,12 @@
 
 import com.github.triplet.gradle.androidpublisher.ReleaseStatus
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
+    alias(libs.plugins.spotless)
     alias(libs.plugins.android.application)
     alias(libs.plugins.play.publisher)
-
     alias(libs.plugins.compose)
 }
 
@@ -19,7 +18,7 @@ val releaseKeystorePropertiesFile = providers.environmentVariable("CHANGEDETECTI
 val releaseKeystoreProperties = Properties()
 
 if (releaseKeystorePropertiesFile?.isFile == true) {
-    FileInputStream(releaseKeystorePropertiesFile).use(releaseKeystoreProperties::load)
+    releaseKeystorePropertiesFile.inputStream().use(releaseKeystoreProperties::load)
 }
 
 val releaseKeystoreFile =
@@ -60,8 +59,8 @@ android {
         applicationId = "com.bernaferrari.changedetection"
         minSdk = 30
         targetSdk = 37
-        versionCode = 34
-        versionName = "2.31"
+        versionCode = 35
+        versionName = "3.0"
     }
 
     signingConfigs {
@@ -99,7 +98,6 @@ android {
 
     buildTypes {
         named("release") {
-            isDebuggable = false
             isMinifyEnabled = true
             isShrinkResources = true
 
@@ -115,10 +113,6 @@ android {
                 logger.warn("Release signing credentials are unavailable; release artifacts will be unsigned.")
             }
         }
-    }
-
-    lint {
-        abortOnError = true
     }
 }
 
