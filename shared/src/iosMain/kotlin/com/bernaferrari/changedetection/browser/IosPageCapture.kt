@@ -51,8 +51,8 @@ object IosPageCapture {
     private const val VIEWPORT_HEIGHT = 844.0
 
     /**
-     * Exactly two pixels per CSS point. A whole number matters: content that moves down by N points lands
-     * exactly 2N rows lower, pixel for pixel, so the comparison sees it moved instead of re-rendered.
+     * Two output pixels per native point. CSS coordinates are converted using the actual visual viewport
+     * width, including pages with a wide layout viewport.
      */
     private const val OUTPUT_WIDTH_PX = VIEWPORT_WIDTH * 2
 
@@ -94,12 +94,15 @@ object IosPageCapture {
             evaluate(web, PageCleanup.HIDE_ADS)
             if (hide.isNotBlank()) evaluate(web, PageCleanup.hide(hide))
             // Lazy images load once they have been on screen: run through the page once.
+            val cssViewportWidth = (evaluate(web, "window.visualViewport ? window.visualViewport.width : window.innerWidth") as? NSNumber)?.doubleValue ?: error("Could not measure the page viewport")
+            require(cssViewportWidth.isFinite() && cssViewportWidth > 0) { "Invalid page viewport" }
+            val pointsPerCssPixel = VIEWPORT_WIDTH / cssViewportWidth
             val fullHeight = pageHeight(web)
             var y = 0.0
-            while (y < minOf(fullHeight, MAX_PAGE_POINTS)) {
+            while (y < minOf(fullHeight, MAX_PAGE_POINTS / pointsPerCssPixel)) {
                 evaluate(web, "window.scrollTo(0, $y); 0")
                 delay(120)
-                y += VIEWPORT_HEIGHT
+                y += VIEWPORT_HEIGHT / pointsPerCssPixel
             }
             evaluate(web, "window.scrollTo(0, 0); 0")
             // Lazy images and late content: wait until the page has really finished loading.
@@ -110,9 +113,11 @@ object IosPageCapture {
             evaluate(web, PageCleanup.HIDE_ADS)
             evaluate(web, PageCleanup.HIDE_BOTTOM_FLOATING)
             val clip = if (only.isNotBlank()) elementRect(web, only) ?: error("The part you picked is no longer on the page") else null
-            val top = clip?.top ?: 0.0
-            val bottom = if (clip != null) top + selectedCaptureHeight(top, clip.bottom, MAX_PAGE_POINTS) else minOf(pageHeight(web), MAX_PAGE_POINTS)
-            return stitch(web, top, bottom.coerceAtLeast(top + 1), clip?.left ?: 0.0, clip?.right ?: VIEWPORT_WIDTH)
+            val height = pageHeight(web)
+            val selection = clip?.let { selectedViewportCaptureRect(it.left, it.top, it.right, it.bottom, cssViewportWidth, height, pointsPerCssPixel, MAX_PAGE_POINTS) }
+            val top = selection?.top ?: 0.0
+            val bottom = selection?.bottom ?: minOf(height, MAX_PAGE_POINTS / pointsPerCssPixel)
+            return stitch(web, top, bottom, selection?.left ?: 0.0, selection?.right ?: cssViewportWidth, pointsPerCssPixel)
         } finally {
             web.stopLoading()
             web.removeFromSuperview()
@@ -127,7 +132,7 @@ object IosPageCapture {
         val script = "(function(){var e=document.querySelector(${jsString(selector)});if(!e)return '';var r=e.getBoundingClientRect();return [r.left,r.top+window.scrollY,r.right,r.bottom+window.scrollY].join(',');})()"
         val parts = (evaluate(web, script) as? String)?.split(',')?.mapNotNull { it.toDoubleOrNull() } ?: return null
         if (parts.size != 4 || parts[3] - parts[1] < 1) return null
-        return Clip(parts[0].coerceIn(0.0, VIEWPORT_WIDTH), parts[1].coerceAtLeast(0.0), parts[2].coerceIn(0.0, VIEWPORT_WIDTH), parts[3])
+        return Clip(parts[0], parts[1], parts[2], parts[3])
     }
 
     /**
@@ -135,35 +140,52 @@ object IosPageCapture {
      * screen at a time and stitched. Fixed and sticky elements are hidden after the first screen so a header
      * does not repeat down the page.
      */
-    private suspend fun stitch(web: WKWebView, top: Double, bottom: Double, left: Double, right: Double): ByteArray {
-        val scale = OUTPUT_WIDTH_PX / VIEWPORT_WIDTH
-        val outWidth = ((right - left) * scale).toInt().coerceAtLeast(1)
-        val outHeight = ((bottom - top) * scale).toInt().coerceAtLeast(1)
+    private suspend fun stitch(web: WKWebView, top: Double, bottom: Double, left: Double, right: Double, pointsPerCssPixel: Double): ByteArray {
+        val scale = 2 * pointsPerCssPixel
+        val viewportCssWidth = VIEWPORT_WIDTH / pointsPerCssPixel
+        val viewportCssHeight = VIEWPORT_HEIGHT / pointsPerCssPixel
+        val outWidth = ((right - left) * scale).toInt()
+        val outHeight = ((bottom - top) * scale).toInt()
+        require(outWidth > 0 && outHeight > 0) { "The selected part is too small to capture." }
         val surface = org.jetbrains.skia.Surface.makeRasterN32Premul(outWidth, outHeight)
-        val canvas = surface.canvas
-        canvas.clear(org.jetbrains.skia.Color.WHITE)
-        var y = top
-        var first = true
-        while (y < bottom) {
-            evaluate(web, "window.scrollTo(0, $y); 0")
-            delay(180)
-            val actual = (evaluate(web, "window.scrollY") as? NSNumber)?.doubleValue ?: y
-            val shot = snapshot(web, CGRectMake(0.0, 0.0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT))
-            val image = org.jetbrains.skia.Image.makeFromEncoded(shot)
-            // The screen shows page rows [actual, actual + viewport); draw the part that falls in [top, bottom).
-            val dest = org.jetbrains.skia.Rect.makeXYWH(((0 - left) * scale).toFloat(), ((actual - top) * scale).toFloat(), (VIEWPORT_WIDTH * scale).toFloat(), (VIEWPORT_HEIGHT * scale).toFloat())
-            canvas.drawImageRect(image, dest)
-            image.close()
-            if (first) {
-                evaluate(web, PageCleanup.HIDE_PINNED)
-                first = false
+        try {
+            val canvas = surface.canvas
+            canvas.clear(org.jetbrains.skia.Color.WHITE)
+            var y = top
+            var first = true
+            while (y < bottom) {
+                evaluate(web, "window.scrollTo(0, $y); 0")
+                delay(180)
+                val actual = (evaluate(web, "window.scrollY") as? NSNumber)?.doubleValue ?: y
+                val shot = snapshot(web, CGRectMake(0.0, 0.0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT))
+                val image = org.jetbrains.skia.Image.makeFromEncoded(shot)
+                // The screen shows page rows [actual, actual + viewport); draw the part that falls in [top, bottom).
+                val dest = org.jetbrains.skia.Rect.makeXYWH(((0 - left) * scale).toFloat(), ((actual - top) * scale).toFloat(), (viewportCssWidth * scale).toFloat(), (viewportCssHeight * scale).toFloat())
+                canvas.drawImageRect(image, dest)
+                image.close()
+                if (first) {
+                    evaluate(web, PageCleanup.HIDE_PINNED)
+                    first = false
+                }
+                if (actual + viewportCssHeight >= bottom) break
+                val next = actual + viewportCssHeight
+                check(next > y) { "The page changed size while taking its screenshot." }
+                y = next
             }
-            if (actual + VIEWPORT_HEIGHT >= bottom) break
-            y = actual + VIEWPORT_HEIGHT
+            val image = surface.makeImageSnapshot()
+            try {
+                val data = image.encodeToData(org.jetbrains.skia.EncodedImageFormat.PNG) ?: error("Could not encode the capture")
+                try {
+                    return data.bytes
+                } finally {
+                    data.close()
+                }
+            } finally {
+                image.close()
+            }
+        } finally {
+            surface.close()
         }
-        val png = surface.makeImageSnapshot().encodeToData(org.jetbrains.skia.EncodedImageFormat.PNG)?.bytes ?: error("Could not encode the capture")
-        surface.close()
-        return png
     }
 
     private fun jsString(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ") + "\""

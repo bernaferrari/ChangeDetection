@@ -16,6 +16,17 @@ internal fun selectedCaptureHeight(top: Double, bottom: Double, maximum: Double)
     return height
 }
 
+internal data class ViewportCaptureRect(val left: Double, val top: Double, val right: Double, val bottom: Double)
+
+/** CSS selections must fit the visible horizontal viewport and the document, without clipping. */
+internal fun selectedViewportCaptureRect(left: Double, top: Double, right: Double, bottom: Double, viewportWidth: Double, pageHeight: Double, pointsPerCssPixel: Double, maximumPoints: Double): ViewportCaptureRect {
+    require(listOf(left, top, right, bottom, viewportWidth, pageHeight, pointsPerCssPixel).all { it.isFinite() }) { "The selected part is outside the page." }
+    require(viewportWidth > 0 && pageHeight > 0 && pointsPerCssPixel > 0 && left >= 0 && right <= viewportWidth && right > left && top >= 0 && bottom <= pageHeight && bottom > top) { "The selected part is outside the captured page." }
+    selectedCaptureHeight(top * pointsPerCssPixel, bottom * pointsPerCssPixel, maximumPoints)
+    require((right - left) * pointsPerCssPixel * 2 >= 1 && (bottom - top) * pointsPerCssPixel * 2 >= 1) { "The selected part is too small to capture." }
+    return ViewportCaptureRect(left, top, right, bottom)
+}
+
 /** Reject invalid selections; clamping an absent rectangle can turn it into unrelated content. */
 internal fun selectedCaptureBounds(rect: List<Double>, cssToView: Double, width: Int, height: Int): CaptureBounds {
     require(rect.size == 6 && rect.all { it.isFinite() } && cssToView.isFinite() && cssToView > 0)
