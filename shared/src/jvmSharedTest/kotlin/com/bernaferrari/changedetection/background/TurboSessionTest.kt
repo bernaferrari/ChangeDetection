@@ -27,6 +27,42 @@ class TurboSessionTest {
     )
 
     @Test
+    fun `quick checks run every five seconds`() = runTest {
+        val ticks = mutableListOf<Long>()
+        val session = session { id ->
+            ticks += testScheduler.currentTime
+            SyncResult.Success(id, false)
+        }
+        session.start(setOf("page"), 5, 15)
+        runCurrent()
+        advanceTimeBy(10_000)
+        runCurrent()
+        assertEquals(listOf(0L, 5_000L, 10_000L), ticks)
+        session.stop()
+    }
+
+    @Test
+    fun `five second checks keep cadence without overlapping slow captures`() = runTest {
+        val ticks = mutableListOf<Long>()
+        var running = 0
+        val session = session { id ->
+            assertEquals(0, running)
+            running++
+            ticks += testScheduler.currentTime
+            delay(7_000)
+            running--
+            SyncResult.Success(id, false)
+        }
+        session.start(setOf("page"), 5, 15)
+        runCurrent()
+        advanceTimeBy(20_000)
+        runCurrent()
+        assertEquals(listOf(0L, 12_000L), ticks)
+        assertEquals(5, session.state.value.intervalSeconds)
+        session.stop()
+    }
+
+    @Test
     fun `dispatch delay does not extend the deadline announced at start`() = runTest {
         var elapsedOffset = 0L
         val session = TurboSession(
@@ -37,7 +73,7 @@ class TurboSessionTest {
                 override fun elapsedMillis() = testScheduler.currentTime + elapsedOffset
             },
         )
-        session.start(setOf("page"), 120, 15)
+        session.start(setOf("page"), 60, 15)
         elapsedOffset = 5_000
         runCurrent()
         assertEquals(895_000L, session.state.value.remainingTimeMillis())
@@ -59,7 +95,7 @@ class TurboSessionTest {
                 override fun elapsedMillis() = testScheduler.currentTime
             },
         )
-        session.start(setOf("page"), 120, 15)
+        session.start(setOf("page"), 60, 15)
         runCurrent()
         assertEquals(15 * 60_000L, session.state.value.remainingTimeMillis())
         advanceTimeBy(60_000)
@@ -138,7 +174,7 @@ class TurboSessionTest {
     @Test
     fun `restoration preserves a completed outcome and validates legacy cadence`() = runTest {
         val session = session { id -> SyncResult.Success(id, false) }
-        session.restore(TurboState(endReason = TurboEndReason.Expired, intervalSeconds = 5))
+        session.restore(TurboState(endReason = TurboEndReason.Expired, intervalSeconds = 120))
         assertEquals(TurboEndReason.Expired, session.state.value.endReason)
         assertEquals(30, session.state.value.intervalSeconds)
     }
@@ -150,7 +186,7 @@ class TurboSessionTest {
             ticks += testScheduler.currentTime
             SyncResult.Success(id, false)
         }
-        session.start(setOf("one"), 120)
+        session.start(setOf("one"), 60)
         runCurrent()
         val deadline = session.state.value.deadlineTime
         advanceTimeBy(10_000)
@@ -238,7 +274,7 @@ class TurboSessionTest {
             delay(40_000)
             SyncResult.Success(id, false)
         }
-        session.start(setOf("one"), 120)
+        session.start(setOf("one"), 60)
         runCurrent()
         advanceTimeBy(10_000)
         session.start(setOf("one"), 15)

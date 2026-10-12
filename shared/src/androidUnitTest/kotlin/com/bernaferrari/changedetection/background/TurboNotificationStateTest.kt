@@ -52,12 +52,12 @@ class TurboNotificationStateTest {
         runCurrent()
         assertEquals(TurboNotificationState(false, 1, 30, TurboEndReason.Stopped), emitted.last())
 
-        session.start(setOf("c"), 120, 15)
+        session.start(setOf("c"), 60, 15)
         runCurrent()
         val restartedCount = emitted.size
         advanceTimeBy(15 * 60_000L)
         runCurrent()
         assertEquals(restartedCount + 1, emitted.size)
-        assertEquals(TurboNotificationState(false, 1, 120, TurboEndReason.Expired), emitted.last())
+        assertEquals(TurboNotificationState(false, 1, 60, TurboEndReason.Expired), emitted.last())
     }
 }

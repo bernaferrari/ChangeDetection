@@ -28,7 +28,7 @@ import kotlin.time.Clock
 import kotlin.time.TimeSource
 
 const val TURBO_DURATION_MS = 3 * 60 * 60 * 1000L
-val TURBO_INTERVAL_SECONDS = setOf(15, 30, 60, 120)
+val TURBO_INTERVAL_SECONDS = setOf(5, 15, 30, 60)
 val TURBO_DURATION_MINUTES = setOf(15, 30, 60, 180)
 
 enum class TurboEndReason { Stopped, Expired, Interrupted, SystemLimit, StartFailed, NoSites }
