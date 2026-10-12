@@ -1,79 +1,27 @@
 # Change Detection
 
-Know when a web page changes. Change Detection monitors pages from your device, saves their history, and notifies you of updates.
+Watch websites. See what changed.
 
-Free and open source. No account, cloud service, or first-party tracking.
+Keep up with price drops, restocks, deadlines, job listings, and anything else that matters to you. Change Detection checks pages from your device, saves previous versions, and alerts you when something changes.
 
-## Features
+**Free and open source. No account, cloud service, or first-party tracking.**
 
-- Compare readable text, HTML, images, or screenshots.
-- Watch a specific part of a page and ignore the rest.
-- Schedule background checks or check on demand.
-- Review saved versions and see what changed.
-- Use Turbo for short sessions with more frequent checks.
+[Get it on Google Play](https://play.google.com/store/apps/details?id=com.bernaferrari.changedetection)
 
-Android is the main app. Screenshot capture and background monitoring are Android features. Desktop monitoring runs while the app is open; iOS is still in development. Android screenshots can reuse a browser login; text and source monitoring cannot.
+<img src="website/public/screens/home.png" width="220" alt="Home screen with recent page changes" /> <img src="website/public/screens/compare-changes.png" width="220" alt="Before and after comparison highlighting a changed price" /> <img src="website/public/screens/turbo.png" width="220" alt="Turbo mode checking pages more frequently" />
 
-The app supports English, Spanish, Italian, Portuguese, German, Hindi, Bengali, and Simplified Chinese. It follows your device language; Android 13 and newer also let you choose an app language in system settings.
+## What you can do
 
-## Run locally
+- **See the difference.** Compare screenshots, readable text, images, or page source.
+- **Watch what matters.** Select a specific part of a page and ignore the rest.
+- **Stay informed.** Schedule checks, check manually, or start a short Turbo session for frequent updates.
+- **Look back.** Browse saved versions and compare changes over time.
+- **Keep it yours.** Your monitored pages and history stay on your device.
 
-For Android, install SDK platform `android-37.2`. Gradle manages its own version and the JetBrains Runtime 25 toolchain.
+## Availability
 
-```bash
-# Build the Android debug APK
-./gradlew :androidApp:assembleDebug
+Android 8 and newer. Desktop monitoring works while the app is open; iOS is in development. The browser demo uses sample data.
 
-# Run the desktop app with hot reload
-./gradlew :shared:hotRunDesktop
+Available in English, Spanish, Italian, Portuguese, German, Hindi, Bengali, and Simplified Chinese.
 
-# Package the desktop app for your current OS
-./gradlew :shared:packageDistributionForCurrentOS
-
-# Run the browser demo
-./gradlew :webDemo:wasmJsBrowserDevelopmentRun
-```
-
-For the marketing website, use Node 26.11.1 and pnpm 12.11.2:
-
-```bash
-cd website
-pnpm install --frozen-lockfile
-pnpm dev
-```
-
-For iOS, open `iosApp/iosApp.xcodeproj` in Xcode; simulator builds require Apple silicon. Edit its layered app icon in Apple's Icon Composer.
-
-Desktop packages use the same icon on macOS, Windows, and Linux. macOS packaging requires Xcode for the layered icon.
-
-## Project structure
-
-| Directory | Purpose |
-| --- | --- |
-| `shared/` | Kotlin Multiplatform app logic, Compose UI, and platform integrations |
-| `androidApp/` | Android application and packaging |
-| `iosApp/` | iOS application and Xcode project |
-| `webDemo/` | Browser demo of the shared app, using sample data |
-| `website/` | Next.js marketing website |
-| `sqliteWasmWorker/` | SQLite support for the browser demo |
-
-## Checks
-
-```bash
-./gradlew spotlessCheck :shared:testAndroidHostTest :shared:desktopTest :androidApp:lint
-```
-
-For the website, run `pnpm lint` and `pnpm build` from `website/`.
-
-Database upgrades preserve history from the original public schema (1) to schema 4. Retired development databases may reset their data.
-
-## Android publishing
-
-Publishing uses Gradle Play Publisher. Set `CHANGEDETECTION_SIGNING_PROPERTIES` to an external signing file containing `storeFile` (absolute path), `storePassword`, `keyAlias`, and `keyPassword`. Set `CHANGEDETECTION_PLAY_CREDENTIALS` to a Play service-account JSON file, and increase `versionCode` before uploading.
-
-```bash
-# Upload a draft to the internal track
-./gradlew -PplayPublishing=true :androidApp:publishReleaseBundle
-```
-
-See [Privacy](PRIVACY.md) and the [Apache 2.0 license](LICENSE).
+[Privacy](PRIVACY.md) · [Apache 2.0 license](LICENSE)
