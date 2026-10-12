@@ -1,83 +1,54 @@
 {
-  "fill-specializations" : [
+  "fill-specializations": [
     {
-      "value" : {
-        "automatic-gradient" : "extended-srgb:0.00000,0.53333,1.00000,1.00000"
+      "value": {
+        "automatic-gradient": "extended-srgb:0.02353,0.23529,0.68627,1.00000"
       }
     },
     {
-      "appearance" : "dark",
-      "value" : "system-dark"
+      "appearance": "dark",
+      "value": "system-dark"
     }
   ],
-  "groups" : [
+  "groups": [
     {
-      "layers" : [
+      "layers": [
         {
-          "image-name" : "DarkForeground.png",
-          "name" : "DarkForeground",
-          "opacity-specializations" : [
-            {
-              "value" : 0
-            },
-            {
-              "appearance" : "dark",
-              "value" : 1
-            },
-            {
-              "appearance" : "tinted",
-              "value" : 0
-            }
-          ]
+          "image-name": "ChangedPage.png",
+          "name": "Changed page"
         },
         {
-          "image-name" : "FrontPanel.png",
-          "name" : "FrontPanel",
-          "opacity-specializations" : [
-            {
-              "appearance" : "dark",
-              "value" : 0
-            }
-          ]
+          "image-name": "ScanCorners.png",
+          "name": "Scan corners"
         },
         {
-          "image-name" : "RearPanel.png",
-          "name" : "RearPanel",
-          "opacity-specializations" : [
+          "glass": false,
+          "image-name": "Background.png",
+          "name": "Background",
+          "opacity-specializations": [
             {
-              "appearance" : "dark",
-              "value" : 0
-            }
-          ]
-        },
-        {
-          "glass" : false,
-          "image-name" : "Background.png",
-          "name" : "Background",
-          "opacity-specializations" : [
-            {
-              "appearance" : "dark",
-              "value" : 0
+              "appearance": "dark",
+              "value": 0
             },
             {
-              "appearance" : "tinted",
-              "value" : 0
+              "appearance": "tinted",
+              "value": 0
             }
           ]
         }
       ],
-      "name" : "Artwork",
-      "shadow" : {
-        "kind" : "neutral",
-        "opacity" : 0.5
+      "name": "Detection",
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.3
       },
-      "translucency" : {
-        "enabled" : true,
-        "value" : 0.3
+      "translucency": {
+        "enabled": true,
+        "value": 0.15
       }
     }
   ],
-  "supported-platforms" : {
-    "squares" : "shared"
+  "supported-platforms": {
+    "squares": "shared"
   }
 }
