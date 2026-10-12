@@ -6,7 +6,8 @@ package com.bernaferrari.changedetection.background
 
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
-import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.*
+import platform.Foundation.NSError
 import platform.BackgroundTasks.BGAppRefreshTaskRequest
 import platform.BackgroundTasks.BGTaskScheduler
 import platform.Foundation.NSDate
@@ -31,6 +32,7 @@ class IosBackgroundScheduler : BackgroundScheduler {
 
     private var periodicIntervalMinutes: Long = 30
     private var periodicConstraints: SyncConstraints = SyncConstraints()
+    private var periodicScheduled = false
 
     @OptIn(ExperimentalForeignApi::class)
     override fun schedulePeriodicSync(
@@ -50,8 +52,10 @@ class IosBackgroundScheduler : BackgroundScheduler {
         Napier.i("Scheduling iOS periodic sync: every $intervalMinutes min", tag = "BackgroundScheduler")
         // Submit the request
         try {
-            BGTaskScheduler.sharedScheduler.submitTaskRequest(request, error = null)
+            submitBackgroundRequest(request)
+            periodicScheduled = true
         } catch (e: Exception) {
+            periodicScheduled = false
             Napier.e("Failed to schedule periodic sync: ${e.message}", e, tag = "BackgroundScheduler")
         }
     }
@@ -59,6 +63,7 @@ class IosBackgroundScheduler : BackgroundScheduler {
     override fun cancelPeriodicSync() {
         Napier.i("Canceling iOS periodic sync", tag = "BackgroundScheduler")
         BGTaskScheduler.sharedScheduler.cancelTaskRequestWithIdentifier(PERIODIC_SYNC_TASK_ID)
+        periodicScheduled = false
     }
 
     override fun requestImmediateSync(siteId: String) {
@@ -79,7 +84,7 @@ class IosBackgroundScheduler : BackgroundScheduler {
         request.earliestBeginDate = NSDate().dateByAddingTimeInterval(MIN_INTERVAL_SECONDS)
 
         try {
-            BGTaskScheduler.sharedScheduler.submitTaskRequest(request, error = null)
+            submitBackgroundRequest(request)
         } catch (e: Exception) {
             Napier.e("Failed to schedule quick monitor: ${e.message}", e, tag = "BackgroundScheduler")
         }
@@ -89,11 +94,7 @@ class IosBackgroundScheduler : BackgroundScheduler {
         BGTaskScheduler.sharedScheduler.cancelTaskRequestWithIdentifier(QUICK_MONITOR_TASK_ID)
     }
 
-    override fun isPeriodicSyncScheduled(): Boolean {
-        // iOS doesn't provide a direct way to check pending tasks
-        // We'd need to track this ourselves
-        return true // Assume scheduled if user enabled it
-    }
+    override fun isPeriodicSyncScheduled(): Boolean = periodicScheduled
 
     /**
      * Must be called from AppDelegate to register background task handlers.
@@ -131,6 +132,7 @@ class IosBackgroundScheduler : BackgroundScheduler {
         listOf(PERIODIC_SYNC_TASK_ID, QUICK_MONITOR_TASK_ID).forEach { identifier ->
             BGTaskScheduler.sharedScheduler.registerForTaskWithIdentifier(identifier = identifier, usingQueue = null) { task ->
                 if (task == null) return@registerForTaskWithIdentifier
+                if (identifier == PERIODIC_SYNC_TASK_ID) periodicScheduled = false
                 val job = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default).launch {
                     try {
                         if (identifier == PERIODIC_SYNC_TASK_ID) reschedule()
@@ -147,6 +149,20 @@ class IosBackgroundScheduler : BackgroundScheduler {
                 task.expirationHandler = { job.cancel() }
             }
         }
+    }
+}
+
+/** Apple reports scheduling failures through BOOL and NSError, rather than throwing. */
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
+internal fun submitBackgroundRequest(
+    request: BGAppRefreshTaskRequest,
+    submit: (BGAppRefreshTaskRequest, CPointer<ObjCObjectVar<NSError?>>) -> Boolean = { task, error -> BGTaskScheduler.sharedScheduler.submitTaskRequest(task, error) },
+) = memScoped {
+    val error = alloc<ObjCObjectVar<NSError?>>()
+    error.value = null
+    check(submit(request, error.ptr)) {
+        val reason = error.value
+        "Could not schedule ${request.identifier}: ${reason?.domain ?: "unknown error"} (${reason?.code ?: 0}): ${reason?.localizedDescription ?: "request rejected"}"
     }
 }
 
