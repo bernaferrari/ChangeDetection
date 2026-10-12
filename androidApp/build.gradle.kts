@@ -1,10 +1,5 @@
-/*
- * Copyright (c) 2024 ChangeDetection Contributors
- * Licensed under the Apache License, Version 2.0
- */
 
 import com.github.triplet.gradle.androidpublisher.ReleaseStatus
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
 plugins {
@@ -57,9 +52,9 @@ android {
 
     defaultConfig {
         applicationId = "com.bernaferrari.changedetection"
-        minSdk = 30
+        minSdk = 26
         targetSdk = 37
-        versionCode = 35
+        versionCode = 33
         versionName = "3.0"
     }
 
@@ -77,12 +72,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-        }
     }
 
     buildFeatures {

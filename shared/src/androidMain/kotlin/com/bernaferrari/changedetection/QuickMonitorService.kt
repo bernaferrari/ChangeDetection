@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2024 ChangeDetection Contributors
- * Licensed under the Apache License, Version 2.0
- */
 package com.bernaferrari.changedetection
 
 import android.app.Notification
@@ -15,6 +11,7 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
+import androidx.core.app.ServiceCompat
 import androidx.core.app.NotificationCompat
 import com.bernaferrari.changedetection.background.TurboSession
 import com.bernaferrari.changedetection.background.TurboNotificationState
@@ -84,7 +81,7 @@ class QuickMonitorService :
             return START_NOT_STICKY
         }
         try {
-            startForeground(NOTIFICATION_ID, createNotification(TurboNotificationState(true, ids.size, interval)), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            ServiceCompat.startForeground(this, NOTIFICATION_ID, createNotification(TurboNotificationState(true, ids.size, interval)), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
             if (!session.state.value.isActive) {
                 wakeLock = (getSystemService(POWER_SERVICE) as PowerManager)
                     .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ChangeDetection:Turbo")

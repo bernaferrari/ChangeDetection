@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2024 ChangeDetection Contributors
- * Licensed under the Apache License, Version 2.0
- */
 @file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 
 package com.bernaferrari.changedetection.ui.settings
@@ -190,7 +186,7 @@ internal fun ThemeSelector(
 ) {
     val spacing = MaterialTheme.spacing
     val visibleModes = listOf(ThemeMode.LIGHT, ThemeMode.DARK, ThemeMode.SYSTEM)
-    val visiblePalettes = AppPalette.entries.filter { !it.usesSystemColors || supportsDynamicColors() }
+    val visiblePalettes = AppPalette.pickerOptions.filter { !it.usesSystemColors || supportsDynamicColors() }
     val dynamicPalette = visiblePalettes.firstOrNull { it.usesSystemColors }
     val fixedPalettes = visiblePalettes.filterNot { it.usesSystemColors }
     Column(
