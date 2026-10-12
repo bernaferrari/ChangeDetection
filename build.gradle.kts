@@ -11,14 +11,6 @@ plugins {
     alias(libs.plugins.spotless) apply false
 }
 
-val sourceCopyrightHeader =
-    """
-    /*
-     * Copyright (c) 2024 ChangeDetection Contributors
-     * Licensed under the Apache License, Version 2.0
-     */
-    """.trimIndent() + "\n"
-
 subprojects {
     plugins.withId("com.diffplug.spotless") {
         configure<com.diffplug.gradle.spotless.SpotlessExtension> {
@@ -38,14 +30,11 @@ subprojects {
                 target("**/*.kt")
                 targetExclude("build/**")
                 ktlint(libs.versions.ktlint.get()).editorConfigOverride(ktlintOverrides)
-                licenseHeader(sourceCopyrightHeader)
             }
             kotlinGradle {
                 target("*.gradle.kts")
                 targetExclude("build/**")
                 ktlint(libs.versions.ktlint.get()).editorConfigOverride(ktlintOverrides)
-                // Look for the first line that doesn't have a block comment (assumed to be the license)
-                licenseHeader(sourceCopyrightHeader, "(^(?![\\/ ]\\*).*$)")
             }
         }
     }
