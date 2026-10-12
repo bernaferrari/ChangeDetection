@@ -232,7 +232,7 @@ fun HomeScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = modifier,
         contentWindowInsets = WindowInsets(0),
         topBar = {
             com.bernaferrari.changedetection.ui.kit.TopBarSwitcher(
@@ -322,9 +322,10 @@ fun HomeScreen(
         when {
             all == null -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { LoadingIndicator() }
 
-            all.isEmpty() -> HomeEmptyState(onAddPage = onAddPage, onHowItWorks = onHowItWorks, modifier = Modifier.padding(padding))
+            all.isEmpty() -> HomeEmptyState(onAddPage = onAddPage, onHowItWorks = onHowItWorks, modifier = Modifier.padding(padding).nestedScroll(scrollBehavior.nestedScrollConnection))
 
             else -> PullToCheckBox(
+                scrollBehavior = scrollBehavior,
                 refreshing = pullRequested && loading.isNotEmpty(),
                 enabled = !selecting && !searching,
                 onRefresh = {
@@ -409,7 +410,8 @@ private enum class TopMode { Normal, Search, Select }
  * of every page is not free, and it is off while searching or selecting.
  */
 @Composable
-private fun PullToCheckBox(
+internal fun PullToCheckBox(
+    scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior,
     refreshing: Boolean,
     enabled: Boolean,
     onRefresh: () -> Unit,
@@ -418,7 +420,8 @@ private fun PullToCheckBox(
 ) {
     val state = androidx.compose.material3.pulltorefresh.rememberPullToRefreshState()
     val threshold = 120.dp
-    Box(modifier.pullToRefresh(isRefreshing = refreshing, state = state, enabled = enabled, threshold = threshold, onRefresh = onRefresh)) {
+    // Expand the title before pull-to-refresh consumes downward scroll at the top of the list.
+    Box(modifier.pullToRefresh(isRefreshing = refreshing, state = state, enabled = enabled, threshold = threshold, onRefresh = onRefresh).nestedScroll(scrollBehavior.nestedScrollConnection)) {
         content()
         androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.LoadingIndicator(
             state = state,
