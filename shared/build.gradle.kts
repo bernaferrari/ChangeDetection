@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2024 ChangeDetection Contributors
- * Licensed under the Apache License, Version 2.0
- */
 @file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
 
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
@@ -42,7 +38,7 @@ kotlin {
                 minorApiLevel = 2
             }
         }
-        minSdk = 30
+        minSdk = 26
         // Test source sets are opt-in for the Android KMP library plugin.
         withHostTest { }
         withDeviceTest { }

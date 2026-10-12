@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2024 ChangeDetection Contributors
- * Licensed under the Apache License, Version 2.0
- */
 package com.bernaferrari.changedetection.util
 
 actual class SynchronizedCache<K : Any, V : Any> actual constructor(

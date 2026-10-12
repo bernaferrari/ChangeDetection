@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2024 ChangeDetection Contributors
- * Licensed under the Apache License, Version 2.0
- */
 package com.bernaferrari.changedetection.detection
 
 internal data class RegionViewport(val x: Int = 0, val y: Int = 0) {

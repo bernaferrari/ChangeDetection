@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2024 ChangeDetection Contributors
- * Licensed under the Apache License, Version 2.0
- */
 package com.bernaferrari.changedetection.model
 
 import androidx.compose.ui.graphics.Color
@@ -41,6 +37,8 @@ enum class AppPalette(
     ;
 
     companion object {
+        val pickerOptions: List<AppPalette> = entries.filterNot { it == LIME || it == INDIGO }
+
         fun fromStoredName(value: String?): AppPalette = entries.firstOrNull { it.name == value } ?: DEFAULT
     }
 }

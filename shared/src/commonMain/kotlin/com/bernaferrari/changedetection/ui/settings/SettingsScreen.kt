@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2024 ChangeDetection Contributors
- * Licensed under the Apache License, Version 2.0
- */
 @file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalLayoutApi::class)
 
 package com.bernaferrari.changedetection.ui.settings
@@ -241,7 +237,7 @@ internal fun AppearanceControls(
                 horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                AppPalette.entries
+                AppPalette.pickerOptions
                     .filter { it != AppPalette.DYNAMIC || supportsDynamicColors() }
                     .sortedBy { if (it == AppPalette.DYNAMIC) 0 else 1 }
                     .forEach { option ->

@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2024 ChangeDetection Contributors
- * Licensed under the Apache License, Version 2.0
- */
 @file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
 
 package com.bernaferrari.changedetection.ui.comparison

@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2024 ChangeDetection Contributors
- * Licensed under the Apache License, Version 2.0
- */
 package com.bernaferrari.changedetection.browser
 
 /** Scripts shared by every platform's capture so pages are cleaned the same way everywhere. */
