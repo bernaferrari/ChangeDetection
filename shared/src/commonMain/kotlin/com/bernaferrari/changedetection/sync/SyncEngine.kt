@@ -254,7 +254,9 @@ open class SyncEngine(
         val result = if (prepared != null) incoming.copy(data = prepared.data) else incoming
         val lastSnap = snapsDao.getLastSnapForSiteId(site.id)
         val contentHash = if (result.contentType.startsWith("image/", true)) {
-            "image-v2:${site.capturePolicy().imageIdentity(result.capturedWithBrowser)}:${ContentHasher.hashContent(result.data)}"
+            // A new browser renderer establishes a silent baseline, rather than a website-change alert.
+            val renderer = if (result.capturedWithBrowser) "image-v3" else "image-v2"
+            "$renderer:${site.capturePolicy().imageIdentity(result.capturedWithBrowser)}:${ContentHasher.hashContent(result.data)}"
         } else {
             prepared?.contentHash ?: ContentHasher.detectionHash(result.data, result.contentType, site.captureMode)
         }

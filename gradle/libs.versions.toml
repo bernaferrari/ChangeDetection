@@ -51,6 +51,7 @@ version-catalog-update = "1.1.1"
 work = "2.12.0"
 
 [libraries]
+kmpwright-core = "io.github.bernaferrari:kmpwright-core:0.1.0"
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }

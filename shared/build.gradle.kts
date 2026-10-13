@@ -108,6 +108,7 @@ kotlin {
             implementation(libs.coil.network.ktor3)
         }
         androidMain.dependencies {
+            implementation(libs.kmpwright.core)
             implementation(project.dependencies.platform(libs.androidx.compose.bom))
             implementation(libs.koin.android)
             implementation(libs.koin.compose)
@@ -155,6 +156,7 @@ kotlin {
             }
         }
         iosMain.dependencies {
+            implementation(libs.kmpwright.core)
             implementation(libs.ktor.client.darwin)
             implementation(libs.material.kolor)
             implementation(libs.sqlite.bundled)
