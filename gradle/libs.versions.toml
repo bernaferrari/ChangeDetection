@@ -1,6 +1,5 @@
 [versions]
 activityCompose = "1.13.0"
-# Matches the local Webwright composite, which shares the native browser implementation.
 androidGradlePlugin = "9.4.1"
 androidx-test = "1.7.0"
 browser = "1.10.0"
