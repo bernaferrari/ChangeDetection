@@ -44,8 +44,8 @@ object PageCleanup {
      */
     fun hide(selectors: String) = "(function(){var s=document.createElement('style');s.textContent=${js("$selectors{visibility:hidden !important;opacity:0 !important}")};document.head.appendChild(s);return 0;})()"
 
-    /** "left,top,right,bottom,documentHeight,documentWidth" of the first match, in CSS pixels, or "" when missing. */
-    fun rectOf(selector: String) = "(function(){var e=document.querySelector(${js(selector)});if(!e)return '';var r=e.getBoundingClientRect();return [r.left,r.top+window.scrollY,r.right,r.bottom+window.scrollY,Math.max(document.body.scrollHeight,document.documentElement.scrollHeight),document.documentElement.clientWidth].join(',');})()"
+    /** "left,top,right,bottom" of the first match, in document CSS pixels, or "" when missing. */
+    fun rectOf(selector: String) = "(function(){var e=document.querySelector(${js(selector)});if(!e)return '';var r=e.getBoundingClientRect();return [r.left+window.scrollX,r.top+window.scrollY,r.right+window.scrollX,r.bottom+window.scrollY].join(',');})()"
 
     fun js(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ") + "\""
 

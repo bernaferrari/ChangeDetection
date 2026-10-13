@@ -166,6 +166,34 @@ class VisualFilterJourneyTest {
         }
     }
 
+    @Test fun switchingToKmpwrightEstablishesASilentBaselineWithoutLosingHistory() = runBlocking {
+        val directory = Files.createTempDirectory("browser-renderer-policy").toFile()
+        val db = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = directory.resolve("test.db").path), BundledSQLiteDriver())
+        val files = DesktopFileStorage(directory.resolve("files").also { it.mkdirs() })
+        val client = HttpClient()
+        val notices = mutableListOf<String>()
+        val engine = SyncEngine(client, db, db.siteDao(), db.snapsDao(), files, ErrorHandler(), ChangeNotifier { _, id -> notices.add(id) })
+        val site = Site("Page", "https://example.test", 0L, "", "page", 0 to 0).copy(captureMode = CaptureMode.SCREENSHOT)
+        suspend fun capture(bytes: ByteArray) = engine.processFetchResult(requireNotNull(db.siteDao().getSiteById(site.id)), SyncEngine.FetchResult.Success("image/png", bytes, capturedWithBrowser = true)) as SyncResult.Success
+        try {
+            db.siteDao().insertSite(site)
+            val oldBytes = coloredPng(0xff0000)
+            val oldHash = "image-v2:${site.capturePolicy().imageIdentity(true)}:${com.bernaferrari.changedetection.util.ContentHasher.hashContent(oldBytes)}"
+            val old = Snap(site.id, 1L, "image/png", "", oldBytes.size, oldHash)
+            files.writeBytes(old.snapId, oldBytes)
+            db.snapsDao().insertSnap(old)
+            assertFalse(capture(coloredPng(0x00ff00)).hadChanges)
+            assertTrue(notices.isEmpty())
+            assertTrue(db.snapsDao().getAllSnapsForSiteId(site.id).any { it.snapId == old.snapId })
+            assertTrue(capture(coloredPng(0x0000ff)).hadChanges)
+            assertEquals(1, notices.size)
+        } finally {
+            client.close()
+            db.close()
+            directory.deleteRecursively()
+        }
+    }
+
     @Test fun sourceImageToScreenshotEstablishesASilentBaselineThenAlertsForContent() = runBlocking {
         val directory = Files.createTempDirectory("image-mode-policy").toFile()
         val db = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = directory.resolve("test.db").path), BundledSQLiteDriver())

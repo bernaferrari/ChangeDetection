@@ -2,8 +2,9 @@
 
 package com.bernaferrari.changedetection.browser
 
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.usePinned
+import com.bernaferrari.kmpwright.core.Rectangle
+import com.bernaferrari.kmpwright.core.captureWebViewDocument
+
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -14,23 +15,17 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import platform.CoreGraphics.CGRectMake
 import platform.Foundation.NSError
-import platform.Foundation.NSData
-import platform.Foundation.create
-import platform.Foundation.writeToFile
 import platform.Foundation.NSNumber
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
 import platform.UIKit.UIApplication
-import platform.UIKit.UIImagePNGRepresentation
 import platform.UIKit.UIWindow
 import platform.WebKit.WKNavigation
 import platform.WebKit.WKNavigationDelegateProtocol
-import platform.WebKit.WKSnapshotConfiguration
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
 import platform.WebKit.WKWebsiteDataStore
 import platform.darwin.NSObject
-import platform.posix.memcpy
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -46,13 +41,7 @@ object IosPageCapture {
     private const val VIEWPORT_WIDTH = 390.0
     private const val VIEWPORT_HEIGHT = 844.0
 
-    /**
-     * Two output pixels per native point. CSS coordinates are converted using the actual visual viewport
-     * width, including pages with a wide layout viewport.
-     */
-    private const val OUTPUT_WIDTH_PX = VIEWPORT_WIDTH * 2
-
-    /** 12,000 px tall at 780 px wide, about the memory the capture always used. */
+    /** Full-page capture and lazy-load traversal are bounded to 6,000 native points. */
     private const val MAX_PAGE_POINTS = 6_000.0
     private val single = Mutex()
 
@@ -109,11 +98,17 @@ object IosPageCapture {
             evaluate(web, PageCleanup.HIDE_ADS)
             evaluate(web, PageCleanup.HIDE_BOTTOM_FLOATING)
             val clip = if (only.isNotBlank()) elementRect(web, only) ?: error("The part you picked is no longer on the page") else null
-            val height = pageHeight(web)
-            val selection = clip?.let { selectedViewportCaptureRect(it.left, it.top, it.right, it.bottom, cssViewportWidth, height, pointsPerCssPixel, MAX_PAGE_POINTS) }
-            val top = selection?.top ?: 0.0
-            val bottom = selection?.bottom ?: minOf(height, MAX_PAGE_POINTS / pointsPerCssPixel)
-            return stitch(web, top, bottom, selection?.left ?: 0.0, selection?.right ?: cssViewportWidth, pointsPerCssPixel)
+            val region = clip?.let { Rectangle(it.left, it.top, it.right - it.left, it.bottom - it.top) }
+            return captureWebViewDocument(
+                web,
+                clip = region,
+                pixelsPerCssPixel = 2 * pointsPerCssPixel,
+                maxPixels = 9_360_000,
+                maxHeight = 12_000,
+                truncateFullPage = true,
+                viewportWidthOnly = true,
+
+            ).bytes
         } finally {
             web.stopLoading()
             web.removeFromSuperview()
@@ -125,63 +120,10 @@ object IosPageCapture {
     private data class Clip(val left: Double, val top: Double, val right: Double, val bottom: Double)
 
     private suspend fun elementRect(web: WKWebView, selector: String): Clip? {
-        val script = "(function(){var e=document.querySelector(${jsString(selector)});if(!e)return '';var r=e.getBoundingClientRect();return [r.left,r.top+window.scrollY,r.right,r.bottom+window.scrollY].join(',');})()"
+        val script = "(function(){var e=document.querySelector(${jsString(selector)});if(!e)return '';var r=e.getBoundingClientRect();return [r.left+window.scrollX,r.top+window.scrollY,r.right+window.scrollX,r.bottom+window.scrollY].join(',');})()"
         val parts = (evaluate(web, script) as? String)?.split(',')?.mapNotNull { it.toDoubleOrNull() } ?: return null
         if (parts.size != 4 || parts[3] - parts[1] < 1) return null
         return Clip(parts[0], parts[1], parts[2], parts[3])
-    }
-
-    /**
-     * WebKit returns an empty image for snapshots much taller than the screen, so the page is captured one
-     * screen at a time and stitched. Fixed and sticky elements are hidden after the first screen so a header
-     * does not repeat down the page.
-     */
-    private suspend fun stitch(web: WKWebView, top: Double, bottom: Double, left: Double, right: Double, pointsPerCssPixel: Double): ByteArray {
-        val scale = 2 * pointsPerCssPixel
-        val viewportCssWidth = VIEWPORT_WIDTH / pointsPerCssPixel
-        val viewportCssHeight = VIEWPORT_HEIGHT / pointsPerCssPixel
-        val outWidth = ((right - left) * scale).toInt()
-        val outHeight = ((bottom - top) * scale).toInt()
-        require(outWidth > 0 && outHeight > 0) { "The selected part is too small to capture." }
-        val surface = org.jetbrains.skia.Surface.makeRasterN32Premul(outWidth, outHeight)
-        try {
-            val canvas = surface.canvas
-            canvas.clear(org.jetbrains.skia.Color.WHITE)
-            var y = top
-            var first = true
-            while (y < bottom) {
-                evaluate(web, "window.scrollTo(0, $y); 0")
-                delay(180)
-                val actual = (evaluate(web, "window.scrollY") as? NSNumber)?.doubleValue ?: y
-                val shot = snapshot(web, CGRectMake(0.0, 0.0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT))
-                val image = org.jetbrains.skia.Image.makeFromEncoded(shot)
-                // The screen shows page rows [actual, actual + viewport); draw the part that falls in [top, bottom).
-                val dest = org.jetbrains.skia.Rect.makeXYWH(((0 - left) * scale).toFloat(), ((actual - top) * scale).toFloat(), (viewportCssWidth * scale).toFloat(), (viewportCssHeight * scale).toFloat())
-                canvas.drawImageRect(image, dest)
-                image.close()
-                if (first) {
-                    evaluate(web, PageCleanup.HIDE_PINNED)
-                    first = false
-                }
-                if (actual + viewportCssHeight >= bottom) break
-                val next = actual + viewportCssHeight
-                check(next > y) { "The page changed size while taking its screenshot." }
-                y = next
-            }
-            val image = surface.makeImageSnapshot()
-            try {
-                val data = image.encodeToData(org.jetbrains.skia.EncodedImageFormat.PNG) ?: error("Could not encode the capture")
-                try {
-                    return data.bytes
-                } finally {
-                    data.close()
-                }
-            } finally {
-                image.close()
-            }
-        } finally {
-            surface.close()
-        }
     }
 
     private fun jsString(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ") + "\""
@@ -200,26 +142,6 @@ object IosPageCapture {
 
     private suspend fun evaluate(web: WKWebView, script: String): Any? = suspendCancellableCoroutine { continuation ->
         web.evaluateJavaScript(script) { result, _ -> if (continuation.isActive) continuation.resume(result) }
-    }
-
-    private suspend fun snapshot(web: WKWebView, rect: kotlinx.cinterop.CValue<platform.CoreGraphics.CGRect>): ByteArray = suspendCancellableCoroutine { continuation ->
-        val configuration = WKSnapshotConfiguration().apply {
-            this.rect = rect
-            // snapshotWidth is in points and WebKit multiplies by the screen scale; aim for exactly 780 px wide.
-            snapshotWidth = NSNumber(OUTPUT_WIDTH_PX / platform.UIKit.UIScreen.mainScreen.scale)
-            afterScreenUpdates = true
-        }
-        web.takeSnapshotWithConfiguration(configuration) { image, error ->
-            if (!continuation.isActive) return@takeSnapshotWithConfiguration
-            val data = image?.let { UIImagePNGRepresentation(it) }
-            if (data == null) {
-                continuation.resumeWithException(IllegalStateException(error?.localizedDescription ?: "Could not capture the page"))
-                return@takeSnapshotWithConfiguration
-            }
-            val bytes = ByteArray(data.length.toInt())
-            bytes.usePinned { memcpy(it.addressOf(0), data.bytes, data.length) }
-            continuation.resume(bytes)
-        }
     }
 
     private class LoadDelegate(private val continuation: CancellableContinuation<Unit>) :
