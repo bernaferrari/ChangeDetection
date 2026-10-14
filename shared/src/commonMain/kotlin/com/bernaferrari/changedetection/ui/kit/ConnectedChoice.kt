@@ -13,12 +13,16 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CornerBasedShape
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.ToggleButtonShapes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -73,8 +77,11 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
         val fitting = ((maxWidth + spacing) / (minimumWidth + spacing)).toInt().coerceAtLeast(1)
         // A requested column count wins when the labels fit, so a grid can come out even (3 × 3, not 4 + 4 + 1).
         val columns = columns?.takeIf { it <= fitting } ?: fitting
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            options.indices.toList().chunked(columns).forEach { row ->
+        val rows = options.indices.toList().chunked(columns)
+        val gridShapes = rememberConnectedGridShapes()
+        // Rows share the group's gap, so a multi-row choice reads as one grid rather than stacked groups.
+        Column(verticalArrangement = Arrangement.spacedBy(spacing)) {
+            rows.forEachIndexed { rowIndex, row ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(spacing)) {
                     row.forEachIndexed { index, optionIndex ->
                         val option = options[optionIndex]
@@ -87,10 +94,16 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
                                 this.selected = option == selected
                             },
                             shapes = when {
-                                row.size == 1 -> ToggleButtonDefaults.shapesFor(ToggleButtonDefaults.size)
-                                index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                index == row.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                options.size == 1 -> ToggleButtonDefaults.shapesFor(ToggleButtonDefaults.size)
+                                else -> gridShapes(
+                                    GridCorners(
+                                        topStart = rowIndex == 0 && index == 0,
+                                        topEnd = rowIndex == 0 && index == row.lastIndex,
+                                        bottomStart = rowIndex == rows.lastIndex && index == 0,
+                                        // A short last row leaves the cell above its gap exposed at that corner.
+                                        bottomEnd = index == row.lastIndex && (rowIndex == rows.lastIndex || rows[rowIndex + 1].size <= index),
+                                    ),
+                                )
                             },
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                         ) {
@@ -103,4 +116,27 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
             }
         }
     }
+}
+
+/** Which of a cell's corners sit on the outside of the whole group. */
+private data class GridCorners(val topStart: Boolean, val topEnd: Boolean, val bottomStart: Boolean, val bottomEnd: Boolean)
+
+/**
+ * Connected button group shapes generalised to a grid: corners on the group's outline are fully
+ * rounded, inner corners use the group's inner radius (tighter while pressed), and the checked
+ * cell morphs to a full pill. A single row yields exactly the stock leading/middle/trailing shapes.
+ */
+@Composable
+private fun rememberConnectedGridShapes(): (GridCorners) -> ToggleButtonShapes {
+    val middle = ButtonGroupDefaults.connectedMiddleButtonShapes()
+    val inner = (middle.shape as? CornerBasedShape)?.topStart ?: CornerSize(8.dp)
+    val pressedInner = (middle.pressedShape as? CornerBasedShape)?.topStart ?: CornerSize(4.dp)
+    val outer = CornerSize(50)
+    fun shape(corners: GridCorners, innerSize: CornerSize) = RoundedCornerShape(
+        topStart = if (corners.topStart) outer else innerSize,
+        topEnd = if (corners.topEnd) outer else innerSize,
+        bottomEnd = if (corners.bottomEnd) outer else innerSize,
+        bottomStart = if (corners.bottomStart) outer else innerSize,
+    )
+    return { corners -> ToggleButtonShapes(shape(corners, inner), shape(corners, pressedInner), middle.checkedShape) }
 }
