@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CornerBasedShape
@@ -36,7 +37,7 @@ import androidx.compose.ui.unit.dp
 
 /** An M3 Expressive connected button group behaving as a single-choice control. */
 @Composable
-fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier.padding(horizontal = 16.dp), enabled: Boolean = true, columns: Int? = null, wrap: Boolean = false, label: @Composable (T) -> String) {
+fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, modifier: Modifier = Modifier.padding(horizontal = 16.dp), enabled: Boolean = true, columns: Int? = null, wrap: Boolean = false, icon: ((T) -> androidx.compose.ui.graphics.vector.ImageVector?)? = null, label: @Composable (T) -> String) {
     val labels = options.map { label(it) }
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
@@ -53,6 +54,7 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
                     checked = option == selected,
                     onCheckedChange = { if (it) onSelect(option) },
                     enabled = enabled,
+                    colors = connectedToggleColors(),
                     modifier = Modifier.width(with(density) { measurer.measure(labels[index], style, softWrap = false).size.width.toDp() }.plus(26.dp).coerceAtLeast(48.dp)).heightIn(min = 48.dp).semantics {
                         role = Role.RadioButton
                         this.selected = option == selected
@@ -69,14 +71,17 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
         }
         return
     }
+    val iconAllowance = if (icon != null) androidx.compose.material3.ButtonDefaults.IconSize + androidx.compose.material3.ButtonDefaults.IconSpacing else 0.dp
     val minimumWidth = with(density) {
         labels.maxOfOrNull { measurer.measure(it, style, softWrap = false).size.width }?.toDp()
-    }?.plus(24.dp)?.coerceAtLeast(48.dp) ?: 48.dp
+    }?.plus(24.dp + iconAllowance)?.coerceAtLeast(48.dp) ?: 48.dp
     BoxWithConstraints(modifier.fillMaxWidth().selectableGroup()) {
         val spacing = ButtonGroupDefaults.ConnectedSpaceBetween
         val fitting = ((maxWidth + spacing) / (minimumWidth + spacing)).toInt().coerceAtLeast(1)
         // A requested column count wins when the labels fit, so a grid can come out even (3 × 3, not 4 + 4 + 1).
-        val columns = columns?.takeIf { it <= fitting } ?: fitting
+        // Otherwise rows are balanced: four options that don't fit on one line become 2 × 2, never 3 + 1.
+        val rowCount = (options.size + fitting - 1) / fitting
+        val columns = columns?.takeIf { it <= fitting } ?: ((options.size + rowCount - 1) / rowCount)
         val rows = options.indices.toList().chunked(columns)
         val gridShapes = rememberConnectedGridShapes()
         // Rows share the group's gap, so a multi-row choice reads as one grid rather than stacked groups.
@@ -89,6 +94,7 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
                             checked = option == selected,
                             onCheckedChange = { if (it) onSelect(option) },
                             enabled = enabled,
+                            colors = connectedToggleColors(),
                             modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics {
                                 role = Role.RadioButton
                                 this.selected = option == selected
@@ -107,9 +113,16 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
                             },
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                         ) {
-                            // Give the paragraph the button's available width. Its rounded
-                            // intrinsic width can otherwise clip fractional glyph bounds.
-                            Text(labels[optionIndex], Modifier.fillMaxWidth(), style = style, textAlign = TextAlign.Center)
+                            val vector = icon?.invoke(option)
+                            if (vector != null) {
+                                androidx.compose.material3.Icon(vector, null, Modifier.size(androidx.compose.material3.ButtonDefaults.IconSize))
+                                androidx.compose.foundation.layout.Spacer(Modifier.width(androidx.compose.material3.ButtonDefaults.IconSpacing))
+                                Text(labels[optionIndex], style = style, maxLines = 1)
+                            } else {
+                                // Give the paragraph the button's available width. Its rounded
+                                // intrinsic width can otherwise clip fractional glyph bounds.
+                                Text(labels[optionIndex], Modifier.fillMaxWidth(), style = style, textAlign = TextAlign.Center)
+                            }
                         }
                     }
                 }
@@ -118,8 +131,15 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
     }
 }
 
+/**
+ * This theme paints screens with surfaceContainer, which is also the toggle button's default unselected
+ * fill, so a group placed straight on a screen vanished. The next tone up reads on screens, tiles and sheets.
+ */
+@Composable
+internal fun connectedToggleColors() = ToggleButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest)
+
 /** Which of a cell's corners sit on the outside of the whole group. */
-private data class GridCorners(val topStart: Boolean, val topEnd: Boolean, val bottomStart: Boolean, val bottomEnd: Boolean)
+internal data class GridCorners(val topStart: Boolean, val topEnd: Boolean, val bottomStart: Boolean, val bottomEnd: Boolean)
 
 /**
  * Connected button group shapes generalised to a grid: corners on the group's outline are fully
@@ -127,7 +147,7 @@ private data class GridCorners(val topStart: Boolean, val topEnd: Boolean, val b
  * cell morphs to a full pill. A single row yields exactly the stock leading/middle/trailing shapes.
  */
 @Composable
-private fun rememberConnectedGridShapes(): (GridCorners) -> ToggleButtonShapes {
+internal fun rememberConnectedGridShapes(): (GridCorners) -> ToggleButtonShapes {
     val middle = ButtonGroupDefaults.connectedMiddleButtonShapes()
     val inner = (middle.shape as? CornerBasedShape)?.topStart ?: CornerSize(8.dp)
     val pressedInner = (middle.pressedShape as? CornerBasedShape)?.topStart ?: CornerSize(4.dp)

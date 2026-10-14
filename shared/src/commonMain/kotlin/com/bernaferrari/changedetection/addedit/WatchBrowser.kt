@@ -224,9 +224,29 @@ internal fun WatchBrowser(
                 BrowserRuntimeHost(Modifier.fillMaxSize()) {
                     WebView(state = state, modifier = Modifier.fillMaxSize(), navigator = navigator, webViewJsBridge = bridge)
                 }
+                // A page load has real progress: a plain browser bar that eases between updates, fills, then fades.
                 val loading = state.loadingState as? LoadingState.Loading
-                if (loading != null) {
-                    LinearWavyProgressIndicator(progress = { loading.progress.coerceAtLeast(0.05f) }, modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter))
+                val progress = remember { androidx.compose.animation.core.Animatable(0f) }
+                val progressSpec = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
+                val target = loading?.progress?.coerceIn(0.05f, 1f)
+                LaunchedEffect(target) {
+                    // A new navigation restarts from the left instead of sliding back from the last page's full bar.
+                    if (target != null && target < progress.value) progress.snapTo(0f)
+                    progress.animateTo(target ?: 1f, progressSpec)
+                }
+                AnimatedVisibility(
+                    visible = loading != null,
+                    modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter),
+                    enter = androidx.compose.animation.fadeIn(MaterialTheme.motionScheme.fastEffectsSpec()),
+                    exit = androidx.compose.animation.fadeOut(MaterialTheme.motionScheme.defaultEffectsSpec()),
+                ) {
+                    androidx.compose.material3.LinearProgressIndicator(
+                        progress = { progress.value },
+                        modifier = Modifier.fillMaxWidth(),
+                        trackColor = androidx.compose.ui.graphics.Color.Transparent,
+                        gapSize = 0.dp,
+                        drawStopIndicator = {},
+                    )
                 }
             }
         }

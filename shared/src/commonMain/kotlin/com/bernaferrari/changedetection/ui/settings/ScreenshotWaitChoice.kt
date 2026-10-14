@@ -30,10 +30,9 @@ internal fun ScreenshotWaitChoice(delayMs: Long, onChange: (Long) -> Unit) {
     var editing by remember { mutableStateOf(false) }
     val customLabel = stringResource(Res.string.checks_custom)
     val presetLabels = presets.map { stringResource(Res.string.turbo_every_seconds_short, it / 1000) }
-    val textMeasurer = rememberTextMeasurer()
-    val density = LocalDensity.current
     val labelStyle = MaterialTheme.typography.labelLarge
-    val minimumPresetWidth = with(density) { presetLabels.maxOf { textMeasurer.measure(it, labelStyle, softWrap = false).size.width }.toDp() }.plus(10.dp).coerceAtLeast(48.dp)
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
     val waitLabel = stringResource(Res.string.turbo_every_seconds_short, localizedNumber(delayMs / 1000.0, maxFractionDigits = 2))
     Column(Modifier.groupTile().padding(vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -43,34 +42,49 @@ internal fun ScreenshotWaitChoice(delayMs: Long, onChange: (Long) -> Unit) {
             }
             Text(stringResource(Res.string.settings_wait_body), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        // Fills the tile as one connected row; when large text would break a label, the same four buttons
+        // become an even 2 × 2 grid instead of wrapping words or spilling onto a ragged second line.
         BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
             val gap = ButtonGroupDefaults.ConnectedSpaceBetween
-            val fittingWidth = (maxWidth - 48.dp - gap * 3) / 3
-            val presetWidth = if (fittingWidth >= minimumPresetWidth) fittingWidth else minimumPresetWidth.coerceAtMost(maxWidth)
-            FlowRow(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(gap), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                presets.forEachIndexed { index, value ->
-                    ToggleButton(
-                        checked = delayMs == value,
-                        onCheckedChange = { if (it) onChange(value) },
-                        modifier = Modifier.width(presetWidth).heightIn(min = 48.dp).semantics {
-                            role = Role.RadioButton
-                            selected = delayMs == value
-                        },
-                        shapes = if (index == 0) ButtonGroupDefaults.connectedLeadingButtonShapes() else ButtonGroupDefaults.connectedMiddleButtonShapes(),
-                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
-                    ) { Text(presetLabels[index], Modifier.fillMaxWidth(), style = labelStyle, textAlign = TextAlign.Center) }
+            val labelWidth = with(density) { presetLabels.maxOf { measurer.measure(it, labelStyle, softWrap = false).size.width }.toDp() } + 16.dp
+            val columns = if ((maxWidth - EditWidth - gap * 3) / 3 >= labelWidth) 4 else 2
+            val rows = (presets.indices + EDIT).chunked(columns)
+            val gridShapes = com.bernaferrari.changedetection.ui.kit.rememberConnectedGridShapes()
+            Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(gap)) {
+                rows.forEachIndexed { rowIndex, row ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(gap)) {
+                        row.forEachIndexed { index, item ->
+                            val custom = item == EDIT
+                            val checked = if (custom) delayMs !in presets else delayMs == presets[item]
+                            ToggleButton(
+                                checked = checked,
+                                onCheckedChange = { if (custom) editing = true else if (it) onChange(presets[item]) },
+                                colors = com.bernaferrari.changedetection.ui.kit.connectedToggleColors(),
+                                // In a single row the editor keeps its icon size and the presets share the rest.
+                                modifier = (if (custom && columns == 4) Modifier.width(EditWidth) else Modifier.weight(1f)).heightIn(min = 48.dp).semantics {
+                                    role = Role.RadioButton
+                                    selected = checked
+                                    if (custom) contentDescription = customLabel
+                                },
+                                shapes = gridShapes(
+                                    com.bernaferrari.changedetection.ui.kit.GridCorners(
+                                        topStart = rowIndex == 0 && index == 0,
+                                        topEnd = rowIndex == 0 && index == row.lastIndex,
+                                        bottomStart = rowIndex == rows.lastIndex && index == 0,
+                                        bottomEnd = rowIndex == rows.lastIndex && index == row.lastIndex,
+                                    ),
+                                ),
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
+                            ) {
+                                if (custom) {
+                                    Icon(Icons.Rounded.Edit, null, Modifier.size(20.dp))
+                                } else {
+                                    Text(presetLabels[item], Modifier.fillMaxWidth(), style = labelStyle, textAlign = TextAlign.Center, softWrap = false)
+                                }
+                            }
+                        }
+                    }
                 }
-                ToggleButton(
-                    checked = delayMs !in presets,
-                    onCheckedChange = { editing = true },
-                    modifier = Modifier.size(48.dp).semantics {
-                        role = Role.RadioButton
-                        selected = delayMs !in presets
-                        contentDescription = customLabel
-                    },
-                    shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
-                    contentPadding = PaddingValues(0.dp),
-                ) { Icon(Icons.Rounded.Edit, null, Modifier.size(20.dp)) }
             }
         }
     }
@@ -105,3 +119,7 @@ internal fun ScreenshotWaitChoice(delayMs: Long, onChange: (Long) -> Unit) {
         )
     }
 }
+
+/** Marks the custom-wait editor among the preset indices. */
+private const val EDIT = -1
+private val EditWidth = 56.dp

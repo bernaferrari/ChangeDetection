@@ -173,21 +173,6 @@ fun SettingsScreen(
                         GroupRow(stringResource(Res.string.settings_feedback), icon = Icons.Outlined.MailOutline, showDivider = true, onClick = onContactClick)
                     }
                 }
-                item(key = "privacy") {
-                    Column(
-                        Modifier.fillMaxWidth().padding(top = 28.dp, start = 32.dp, end = 32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Icon(Icons.Outlined.VerifiedUser, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(
-                            stringResource(Res.string.settings_privacy_line),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        )
-                    }
-                }
             }
         }
     }

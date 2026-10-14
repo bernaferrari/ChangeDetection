@@ -183,10 +183,10 @@ class DesignReviewTest {
         waitForLabel("Slider")
         runCatching { waitForText("Before", timeout = 15_000) }
         shot("${p}15-compare-image")
-        onNodeWithText("Slider").performClick()
+        onNodeWithContentDescription("Slider").performClick()
         waitUntil(timeoutMillis = 15_000) { onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress)).fetchSemanticsNodes().isNotEmpty() }
         shot("${p}15b-compare-slider")
-        onNodeWithText("Page").performClick()
+        onNodeWithContentDescription("Page").performClick()
         waitUntil(timeoutMillis = 15_000) { onAllNodesWithTag("highlight-changes").fetchSemanticsNodes().isNotEmpty() }
         shot("${p}16-compare-highlight")
         onNodeWithContentDescription("Navigate back").performClick()
@@ -273,7 +273,8 @@ class DesignReviewTest {
         shot("${p}24-how")
         onNodeWithContentDescription("Navigate back").performClick()
         waitForText("Appearance")
-        onNodeWithText("Color").performScrollTo()
+        // The palette has no heading; its last swatch brings the whole Appearance group into view.
+        onNodeWithContentDescription("Pink").performScrollTo()
         waitForIdle()
         shot("${p}22-appearance")
     }
