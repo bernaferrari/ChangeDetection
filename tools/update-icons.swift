@@ -44,6 +44,20 @@ func write(_ data: Data, _ path: String) throws {
 func write(_ text: String, _ path: String) throws { try write(Data(text.utf8), path) }
 func copy(_ source: String, _ destination: String) throws { try write(Data(contentsOf: url(source)), destination) }
 
+func run(_ tool: String, _ arguments: [String]) throws {
+    let process = Process(), report = Pipe()
+    process.executableURL = URL(fileURLWithPath: tool)
+    process.arguments = arguments
+    process.standardOutput = report; process.standardError = report
+    try process.run()
+    let output = report.fileHandleForReading.readDataToEndOfFile()
+    process.waitUntilExit()
+    guard process.terminationStatus == 0 else {
+        throw NSError(domain: "Icons", code: Int(process.terminationStatus),
+                      userInfo: [NSLocalizedDescriptionKey: String(decoding: output, as: UTF8.self)])
+    }
+}
+
 let foreground = try image("artwork/app-icon/foreground.png")
 let background = try image("artwork/app-icon/background.png")
 let res = "shared/src/androidMain/res"
@@ -119,6 +133,11 @@ for (name, corners) in [("ChangedPage", false), ("ScanCorners", true)] {
     try write(png(layer), "\(apple)/\(name).png")
 }
 // icon.json preserves Icon Composer's glass, dark, and tinted appearance settings.
+let compiledApple = url("build/icons/ios")
+try files.createDirectory(at: compiledApple, withIntermediateDirectories: true)
+try run("/usr/bin/xcrun", ["ictool", url("iosApp/iosApp/AppIcon.icon").path,
+                          "--compile", compiledApple.path, "--platform", "iphoneos",
+                          "--minimum-deployment-target", "26.0"])
 
 let desktop = "shared/src/desktopMain"
 let complete = composite(1024, scale: appleForegroundScale)
@@ -137,11 +156,7 @@ for size in [16, 32, 128, 256, 512] {
         try write(png(composite(size * scale, scale: appleForegroundScale, round: true)), "\(iconset)/icon_\(size)x\(size)\(suffix).png")
     }
 }
-let process = Process()
-process.executableURL = URL(fileURLWithPath: "/usr/bin/iconutil")
-process.arguments = ["-c", "icns", "-o", url("\(desktop)/icons/AppIcon.icns").path, url(iconset).path]
-try process.run(); process.waitUntilExit()
-guard process.terminationStatus == 0 else { throw NSError(domain: "Icons", code: Int(process.terminationStatus)) }
+try run("/usr/bin/iconutil", ["-c", "icns", "-o", url("\(desktop)/icons/AppIcon.icns").path, url(iconset).path])
 
 // PNG-compressed ICO entries retain crisp taskbar artwork at every Windows size.
 func little(_ value: UInt32, bytes: Int) -> Data {

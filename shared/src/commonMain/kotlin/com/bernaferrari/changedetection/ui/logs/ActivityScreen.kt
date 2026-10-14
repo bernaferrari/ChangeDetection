@@ -236,9 +236,9 @@ internal fun ActivityFeed(
             when {
                 items.loadState.refresh is LoadState.Error -> item(key = "refresh-error") { ActivityLoadError(items::retry) }
 
-                // With nothing above, these states own the whole viewport and sit in its middle.
+                // Pending history sits below the current failures; the empty state owns the viewport.
                 items.itemCount == 0 && items.loadState.refresh is LoadState.Loading -> item(key = "loading") {
-                    Box(if (failing.isEmpty()) Modifier.fillParentMaxSize() else Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
+                    Box(Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
                         com.bernaferrari.changedetection.ui.components.DelayedLoadingIndicator()
                     }
                 }

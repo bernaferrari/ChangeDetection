@@ -143,7 +143,8 @@ internal fun BackgroundSyncDialogContent(
                                 }
                             },
                             enabled = !saving,
-                            wrap = true,
+                            // Eight presets plus Custom: an even 3 × 3 grid instead of two ragged wrapped rows.
+                            columns = 3,
                         ) { minutes -> if (minutes == CUSTOM_INTERVAL) customLabel else presetLabel(minutes) }
                         if (custom) {
                             Box(Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
