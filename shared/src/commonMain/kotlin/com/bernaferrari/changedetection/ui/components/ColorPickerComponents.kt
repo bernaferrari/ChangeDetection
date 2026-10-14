@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.LinearGradientShader
@@ -63,9 +62,8 @@ fun PaletteSwatch(
     val focused by interactions.collectIsFocusedAsState()
     val bouncy = spring<Dp>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
     val corner by animateDpAsState(if (selected) size * 0.3f else size / 2, bouncy, label = "corner")
-    val elevation by animateDpAsState(if (selected) 6.dp else 1.dp, bouncy, label = "elevation")
     val ringAnimated by animateDpAsState(if (selected) 3.dp else 0.dp, bouncy, label = "ring")
-    // The bounce overshoots; widths and elevation never go below zero.
+    // The bounce overshoots; widths never go below zero.
     val ring = ringAnimated.coerceAtLeast(0.dp)
     val rotation by animateFloatAsState(
         if (selected) 0f else 45f,
@@ -99,7 +97,6 @@ fun PaletteSwatch(
                 }
             }
             .rotate(rotation)
-            .shadow(elevation.coerceAtLeast(0.dp), outer, clip = false)
             .clip(outer)
             .background(brush)
             .then(if (focused) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, outer) else Modifier)

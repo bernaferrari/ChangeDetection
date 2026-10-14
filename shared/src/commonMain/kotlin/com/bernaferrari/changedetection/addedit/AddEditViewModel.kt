@@ -37,7 +37,10 @@ enum class PreviewFailure { TIMEOUT, REGION, UNAVAILABLE }
 sealed interface CapturePreviewState {
     data object Idle : CapturePreviewState
     data object Loading : CapturePreviewState
-    data class Ready(val content: CapturePreview, val capturedAt: Long = kotlin.time.Clock.System.now().toEpochMilliseconds()) : CapturePreviewState
+    data class Ready(val content: CapturePreview) : CapturePreviewState {
+        /** When it was taken, to judge if it can still be a new page's first version; not part of equality. */
+        val capturedAt: Long = kotlin.time.Clock.System.now().toEpochMilliseconds()
+    }
     data class Failed(val reason: PreviewFailure) : CapturePreviewState
 }
 

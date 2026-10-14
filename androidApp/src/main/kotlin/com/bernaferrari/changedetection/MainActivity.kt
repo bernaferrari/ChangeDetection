@@ -36,12 +36,21 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        // Three-button navigation otherwise gets a system scrim; every screen already pads for the bar,
+        // so let the app's own surfaces show through it.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) window.isNavigationBarContrastEnforced = false
         window.colorMode = ActivityInfo.COLOR_MODE_WIDE_COLOR_GAMUT
 
-        incomingUrl = intent.extractSharedUrl()
-        intent.extractComparisonSiteAndSnapIds()?.let { (siteId, snapId) ->
-            incomingComparisonSiteId = siteId
-            incomingComparisonSnapId = snapId
+        // A launch intent is acted on once. A restored activity already holds its result in the saved back
+        // stack, and Recents relaunches with the original intent; replaying either would reopen
+        // "Watch a page" for a link that was already handled.
+        val freshLaunch = savedInstanceState == null && intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY == 0
+        if (freshLaunch) {
+            incomingUrl = intent.extractSharedUrl()
+            intent.extractComparisonSiteAndSnapIds()?.let { (siteId, snapId) ->
+                incomingComparisonSiteId = siteId
+                incomingComparisonSnapId = snapId
+            }
         }
 
         setContent {

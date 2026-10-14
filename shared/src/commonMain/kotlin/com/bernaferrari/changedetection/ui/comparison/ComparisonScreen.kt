@@ -2,13 +2,22 @@
 
 package com.bernaferrari.changedetection.ui.comparison
 
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.SpanStyle
 
+import androidx.compose.material.icons.rounded.Article
+import androidx.compose.material.icons.rounded.Difference
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material.icons.rounded.ViewAgenda
 import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.rounded.Compare
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.foundation.selection.selectableGroup
@@ -298,9 +307,9 @@ fun ComparisonScreen(
                         )
                     }
                     Column(Modifier.widthIn(max = 720.dp).align(Alignment.CenterHorizontally)) {
-                        // Give the compared dates their own row, including at large text sizes.
-                        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            VersionNavigator(uiState.snaps, pairIndex, onShowAll = { showVersions = true }, modifier = Modifier.fillMaxWidth())
+                        // The compared dates take the room; the view modes sit beside them as a compact icon group.
+                        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            VersionNavigator(uiState.snaps, pairIndex, onShowAll = { showVersions = true }, modifier = Modifier.weight(1f))
                             if (modes.size > 1) ModeSwitcher(modes, mode) { mode = it }
                         }
                     }
@@ -468,17 +477,41 @@ private fun VersionNavigator(snaps: List<Snap>, selectedIndex: Int, onShowAll: (
     }
 }
 
-/** Labeled connected choices keep comparison modes clear at every text size. */
+/** Icon-only connected modes; each keeps its name for screen readers. */
 @Composable
 private fun ModeSwitcher(modes: List<ComparisonMode>, selected: ComparisonMode, onSelect: (ComparisonMode) -> Unit) {
-    com.bernaferrari.changedetection.ui.kit.ConnectedChoice(
-        options = modes,
-        selected = selected,
-        onSelect = onSelect,
-        modifier = Modifier.fillMaxWidth(),
-        wrap = true,
-        label = { modeLabel(it) },
-    )
+    // Matches the version selector's height, so the row reads as one bar.
+    Row(Modifier.fillMaxHeight().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
+        modes.forEachIndexed { index, mode ->
+            val label = modeLabel(mode)
+            ToggleButton(
+                checked = mode == selected,
+                onCheckedChange = { if (it) onSelect(mode) },
+                modifier = Modifier.width(52.dp).fillMaxHeight().heightIn(min = 48.dp).semantics {
+                    role = Role.RadioButton
+                    this.selected = mode == selected
+                    contentDescription = label
+                },
+                shapes = when {
+                    modes.size == 1 -> ToggleButtonDefaults.shapesFor(ToggleButtonDefaults.size)
+                    index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    index == modes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                },
+                colors = com.bernaferrari.changedetection.ui.kit.connectedToggleColors(),
+                contentPadding = PaddingValues(0.dp),
+            ) { Icon(modeIcon(mode), null, Modifier.size(22.dp)) }
+        }
+    }
+}
+
+private fun modeIcon(mode: ComparisonMode): androidx.compose.ui.graphics.vector.ImageVector = when (mode) {
+    ComparisonMode.Text, ComparisonMode.ImageChanges -> Icons.Rounded.Difference
+    ComparisonMode.Html, ComparisonMode.ImageDiff -> Icons.Rounded.Article
+    ComparisonMode.Source -> Icons.Rounded.Code
+    ComparisonMode.ImageSwipe -> ModeIcons.Slider
+    ComparisonMode.ImageBefore -> Icons.Rounded.History
+    ComparisonMode.ImageAfter -> Icons.Rounded.Update
 }
 
 /** What changed in [snap] since [previous]: the changed area for screenshots, the changed words for text. */

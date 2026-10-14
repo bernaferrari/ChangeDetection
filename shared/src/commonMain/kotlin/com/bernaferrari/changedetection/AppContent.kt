@@ -231,6 +231,12 @@ fun ChangeDetectionApp(
             )
         }
     }
+    // Tabs replace the root entry, so Activity or Settings alone has nothing to pop. Back returns to Home
+    // first, as on any bottom-navigation app, and only Home leaves the app. Screens that handle back
+    // themselves (search, pickers) register later and still take precedence.
+    com.bernaferrari.changedetection.util.BackHandler(
+        enabled = native == null && backStack.size == 1 && (backStack.first() is LogsDestination || backStack.first() is SettingsDestination),
+    ) { backStack[0] = MainDestination }
     suite {
         NavDisplay(
             backStack = backStack,
