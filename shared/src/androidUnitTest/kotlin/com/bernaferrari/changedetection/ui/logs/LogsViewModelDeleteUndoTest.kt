@@ -259,6 +259,8 @@ class LogsViewModelDeleteUndoTest {
             .obsoleteVersions(inserted.values.filterNot { it.snapId in deleted }).take(batchSize).map { it.snapId }
 
         override fun observeStorageBytes() = kotlinx.coroutines.flow.flowOf(0L)
+        override fun observeOlderVersionBytes() = kotlinx.coroutines.flow.flowOf(0L)
+        override suspend fun clearOlderVersions() = Unit
         val inserted = mutableMapOf<String, Snap>()
         val deleted = mutableSetOf<String>()
 
@@ -394,6 +396,8 @@ class LogsViewModelDeleteUndoTest {
         private val gate: Gate,
     ) : SnapsDataSource {
         override fun observeStorageBytes() = kotlinx.coroutines.flow.flowOf(0L)
+        override fun observeOlderVersionBytes() = kotlinx.coroutines.flow.flowOf(0L)
+        override suspend fun clearOlderVersions() = Unit
         override suspend fun deleteSiteWithSnaps(siteId: String) = Unit
         override suspend fun deleteSnap(snapId: String) {
             // Mirrors SnapsLocalDataSource (file sweep + row delete), gated for races.

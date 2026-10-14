@@ -34,6 +34,8 @@ data class SettingsUiState(
     val loadFailed: Boolean = false,
     val storageBytes: Long? = null,
     val storageLoadFailed: Boolean = false,
+    /** What clearing older versions would free; 0 when every page is already down to its latest change. */
+    val clearableBytes: Long = 0,
     val backgroundSync: Boolean = true,
     val syncInterval: Long = MonitoringSchedule.DEFAULT_INTERVAL_MINUTES,
     val requireWifi: Boolean = false,
@@ -71,17 +73,25 @@ class SettingsViewModel(
         reloadStorage.value += 1
     }
 
-    private data class StorageSummary(val bytes: Long? = null, val failed: Boolean = false)
+    private data class StorageSummary(val bytes: Long? = null, val clearable: Long = 0, val failed: Boolean = false)
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     private val storageSummary = reloadStorage.flatMapLatest {
-        snapshots.observeStorageBytes().map { StorageSummary(bytes = it) }
+        snapshots.observeStorageBytes().combine(snapshots.observeOlderVersionBytes()) { bytes, clearable -> StorageSummary(bytes = bytes, clearable = clearable) }
             .onStart { emit(StorageSummary()) }
             .catch { error ->
                 io.github.aakira.napier.Napier.w("Could not load history storage size", error)
                 emit(StorageSummary(failed = true))
             }
     }
+    /** Survives leaving Settings mid-clear; the storage figures update from the database as it goes. */
+    fun clearOlderVersions() {
+        viewModelScope.launch(kotlinx.coroutines.NonCancellable) {
+            runCatching { snapshots.clearOlderVersions() }
+                .onFailure { io.github.aakira.napier.Napier.w("Could not clear older versions", it) }
+        }
+    }
+
     fun retryLoading() {
         reload.value += 1
     }
@@ -93,6 +103,7 @@ class SettingsViewModel(
                 SettingsUiState(
                     storageBytes = storage.bytes,
                     storageLoadFailed = storage.failed,
+                    clearableBytes = storage.clearable,
                     backgroundSync = MonitoringSchedule.from(preferences).enabled,
                     syncInterval = MonitoringSchedule.from(preferences).intervalMinutes,
                     requireWifi = preferences[REQUIRE_WIFI_KEY] ?: false,

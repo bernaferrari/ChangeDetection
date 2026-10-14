@@ -13,6 +13,8 @@ class SnapsRepository(
     private val mSnapsLocalDataSource: SnapsDataSource,
 ) : SnapsDataSource {
     override fun observeStorageBytes(): Flow<Long> = mSnapsLocalDataSource.observeStorageBytes()
+    override fun observeOlderVersionBytes(): Flow<Long> = mSnapsLocalDataSource.observeOlderVersionBytes()
+    override suspend fun clearOlderVersions() = mSnapsLocalDataSource.clearOlderVersions()
     override suspend fun getSingleSnapPair(id: String): ByteArray = mSnapsLocalDataSource.getSingleSnapPair(id)
 
     // override fun getSnapForPaging(siteId: String, filter: String): PagingSource<Int, Snap> {

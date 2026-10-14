@@ -162,7 +162,7 @@ fun SettingsScreen(
                                 onClick = onNotificationSettings,
                             )
                         }
-                        SavedVersionsRow(uiState, viewModel::retryStorageLoading, showDivider = onNotificationSettings != null)
+                        SavedVersionsRow(uiState, viewModel::retryStorageLoading, viewModel::clearOlderVersions, showDivider = onNotificationSettings != null)
                     }
                 }
                 item(key = "help") {
@@ -174,9 +174,18 @@ fun SettingsScreen(
                     }
                 }
                 item(key = "privacy") {
-                    Row(Modifier.fillMaxWidth().padding(top = 28.dp, start = 32.dp, end = 32.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.VerifiedUser, null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(stringResource(Res.string.settings_privacy_line), Modifier.padding(start = 6.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Column(
+                        Modifier.fillMaxWidth().padding(top = 28.dp, start = 32.dp, end = 32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Icon(Icons.Outlined.VerifiedUser, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            stringResource(Res.string.settings_privacy_line),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        )
                     }
                 }
             }
@@ -227,11 +236,8 @@ internal fun AppearanceControls(
         Column(Modifier.groupTile().padding(vertical = 16.dp).selectableGroup()) {
             ConnectedChoice(ThemeMode.entries, theme, onTheme) { stringResource(it.titleRes) }
         }
-        Column(Modifier.groupTile().padding(vertical = 16.dp).selectableGroup(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Row(Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(Res.string.settings_palette_label), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
-                Text(stringResource(palette.titleRes), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+        // The swatches speak for themselves; each still carries its name for accessibility.
+        Column(Modifier.groupTile().padding(vertical = 20.dp).selectableGroup()) {
             FlowRow(
                 Modifier.fillMaxWidth().padding(horizontal = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),

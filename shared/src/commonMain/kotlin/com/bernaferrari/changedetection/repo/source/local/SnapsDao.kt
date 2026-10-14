@@ -76,6 +76,20 @@ interface SnapsDao {
     @Query("SELECT COALESCE(SUM(contentSize), 0) FROM snaps")
     fun observeStorageBytes(): Flow<Long>
 
+    /** Same ordering as [olderVersionIds]: everything past each page's newest pair. */
+    @Query(
+        """
+        SELECT COALESCE(SUM(MAX(contentSize, 0)), 0) FROM (
+            SELECT contentSize, ROW_NUMBER() OVER (PARTITION BY siteId ORDER BY timestamp DESC, snapId DESC) AS position
+            FROM snaps
+        ) WHERE position > 2
+    """,
+    )
+    fun observeOlderVersionBytes(): Flow<Long>
+
+    @Query("SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 2")
+    suspend fun siteIdsWithOlderVersions(): List<String>
+
     /**
      * Select all snap metadata (which is everything except for its value) by siteId.
      *

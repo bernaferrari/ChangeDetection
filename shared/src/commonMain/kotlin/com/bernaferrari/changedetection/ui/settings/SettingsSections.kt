@@ -7,6 +7,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.DeleteSweep
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import com.bernaferrari.changedetection.repo.supportsVisualMonitoring
 import com.bernaferrari.changedetection.ui.components.monitoringCadenceLabel
 import androidx.compose.foundation.layout.Column
@@ -315,7 +321,34 @@ private fun HistoryStorageRow(bytes: Long?, loadFailed: Boolean, onRetry: () -> 
 }
 
 @Composable
-internal fun HistoryStorageDialog(bytes: Long?, loadFailed: Boolean, onRetry: () -> Unit, onDismiss: () -> Unit) {
+internal fun HistoryStorageDialog(
+    bytes: Long?,
+    loadFailed: Boolean,
+    onRetry: () -> Unit,
+    onDismiss: () -> Unit,
+    clearableBytes: Long = 0,
+    onClearOlder: (() -> Unit)? = null,
+) {
+    var confirmingClear by remember { mutableStateOf(false) }
+    if (confirmingClear && onClearOlder != null) {
+        AlertDialog(
+            onDismissRequest = { confirmingClear = false },
+            icon = { Icon(Icons.Outlined.DeleteSweep, null) },
+            title = { Text(stringResource(Res.string.storage_clear_older_title)) },
+            text = { Text(stringResource(Res.string.storage_clear_older_body, formatStorage(clearableBytes))) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onClearOlder()
+                        onDismiss()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                ) { Text(stringResource(Res.string.storage_clear_older_confirm)) }
+            },
+            dismissButton = { TextButton(onClick = { confirmingClear = false }) { Text(stringResource(Res.string.cancel)) } },
+        )
+        return
+    }
     val usage = when {
         loadFailed -> stringResource(Res.string.storage_history_load_failed)
         bytes == null -> stringResource(Res.string.loading)
@@ -333,6 +366,18 @@ internal fun HistoryStorageDialog(bytes: Long?, loadFailed: Boolean, onRetry: ()
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                // Only offered when it would free something: a page's newest pair is never cleared.
+                if (onClearOlder != null && clearableBytes > 0) {
+                    OutlinedButton(
+                        onClick = { confirmingClear = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    ) {
+                        Icon(Icons.Outlined.DeleteSweep, null, Modifier.size(ButtonDefaults.IconSize))
+                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                        Text(stringResource(Res.string.storage_clear_older))
+                    }
+                }
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.done)) } },

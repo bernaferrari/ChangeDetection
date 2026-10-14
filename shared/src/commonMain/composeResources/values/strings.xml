@@ -250,6 +250,10 @@
     <string name="storage_history_title">Saved history</string>
     <string name="storage_history_usage">%1$s MB of saved versions</string>
     <string name="storage_history_policy">Keeps up to 100 versions per page. Older versions are removed above 250 MB. Each page’s latest two versions are always kept, even if they exceed this budget.</string>
+    <string name="storage_clear_older">Clear older versions</string>
+    <string name="storage_clear_older_title">Clear older versions?</string>
+    <string name="storage_clear_older_body">Each page keeps its latest change. %1$s of older versions will be deleted from this device. This can’t be undone.</string>
+    <string name="storage_clear_older_confirm">Clear</string>
     <string name="capture_mode_default">App default</string>
     <string name="capture_mode_html">Page HTML</string>
     <string name="capture_mode_screenshot">Screenshot</string>

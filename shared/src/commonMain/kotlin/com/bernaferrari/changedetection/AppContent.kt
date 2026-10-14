@@ -133,6 +133,11 @@ fun ChangeDetectionApp(
     val mainViewModel: MainViewModel = koinViewModel(
         viewModelStoreOwner = LocalAppViewModelStoreOwner.current ?: requireNotNull(androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner.current),
     )
+    // Activity is a tab: switching tabs replaces its entry, so an entry-scoped model would reload the
+    // feed from scratch on every visit and pop its content in after the transition.
+    val logsViewModel: com.bernaferrari.changedetection.ui.logs.LogsViewModel = koinViewModel(
+        viewModelStoreOwner = LocalAppViewModelStoreOwner.current ?: requireNotNull(androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner.current),
+    )
     var turboSetup by remember { mutableStateOf<Set<String>?>(null) }
 
     fun openAddPage(url: String? = null) {
@@ -233,6 +238,10 @@ fun ChangeDetectionApp(
             // On phones every screen is its own scene, so pushes and pops animate (inside one list-detail
             // scene the content swaps instantly) and Home keeps its scroll position.
             sceneStrategies = if (singlePaneLayout) emptyList() else listOf(listDetailStrategy),
+            // Tab switches replace the root entry and carry no motion of their own; the library default
+            // is a slow 700ms cross-fade, so they use Material's fade through instead.
+            transitionSpec = fadeThrough(),
+            popTransitionSpec = fadeThrough(),
             entryDecorators = rememberAppEntryDecorators(),
             entryProvider = entryProvider {
                 entry<MainDestination>(
@@ -271,6 +280,7 @@ fun ChangeDetectionApp(
                     ActivityScreen(
                         onOpenChange = { siteId, snapId -> backStack.openComparison(siteId, snapId) },
                         onOpenPage = { backStack.openPage(it) },
+                        viewModel = logsViewModel,
                     )
                 }
 

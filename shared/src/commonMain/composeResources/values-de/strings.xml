@@ -250,6 +250,10 @@
     <string name="storage_history_title">Gespeicherter Verlauf</string>
     <string name="storage_history_usage">%1$s MB gespeicherte Versionen</string>
     <string name="storage_history_policy">Bis zu 100 Versionen pro Seite. Ältere Versionen werden ab 250 MB entfernt. Die neuesten zwei Versionen jeder Seite bleiben immer erhalten, auch wenn sie das Limit überschreiten.</string>
+    <string name="storage_clear_older">Ältere Versionen löschen</string>
+    <string name="storage_clear_older_title">Ältere Versionen löschen?</string>
+    <string name="storage_clear_older_body">Jede Seite behält ihre neueste Änderung. %1$s an älteren Versionen werden von diesem Gerät gelöscht. Das lässt sich nicht rückgängig machen.</string>
+    <string name="storage_clear_older_confirm">Löschen</string>
     <string name="capture_mode_default">App-Standard</string>
     <string name="capture_mode_html">Seiten-HTML</string>
     <string name="capture_mode_screenshot">Screenshot</string>
@@ -652,9 +656,10 @@
     <string name="settings_notifications_body">Meldungen, Töne und Banner in den Systemeinstellungen</string>
     <string name="settings_saved_versions">Gespeicherte Versionen</string>
     <string name="settings_storage_value">%1$s auf diesem Gerät</string>
+    <string name="settings_storage_empty">Noch nichts gespeichert</string>
     <string name="settings_about_value">Version %1$s · Open Source</string>
     <string name="settings_feedback">Feedback senden</string>
-    <string name="settings_privacy_line">Alles bleibt auf diesem Gerät. Kein Konto, kein Tracking.</string>
+    <string name="settings_privacy_line">Alles bleibt auf diesem Gerät.</string>
     <string name="editor_edit_title">Seite bearbeiten</string>
     <string name="editor_start">Beobachtung starten</string>
     <string name="editor_paste_title">Was möchtest du beobachten?</string>

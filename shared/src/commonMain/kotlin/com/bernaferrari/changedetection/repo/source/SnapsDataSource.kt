@@ -11,6 +11,12 @@ import kotlinx.coroutines.flow.Flow
 interface SnapsDataSource {
     fun observeStorageBytes(): Flow<Long>
 
+    /** Bytes held by versions older than each page's newest pair, i.e. what [clearOlderVersions] would free. */
+    fun observeOlderVersionBytes(): Flow<Long>
+
+    /** Keeps each page's newest two versions (its current change) and deletes everything older. */
+    suspend fun clearOlderVersions()
+
     suspend fun deleteSiteWithSnaps(siteId: String)
 
     suspend fun getContentTypeInfo(siteId: String): List<ContentTypeInfo>

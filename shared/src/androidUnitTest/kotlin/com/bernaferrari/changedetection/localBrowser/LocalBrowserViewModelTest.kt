@@ -65,6 +65,8 @@ class LocalBrowserViewModelTest {
         private val content: ByteArray,
     ) : SnapsDataSource {
         override fun observeStorageBytes() = kotlinx.coroutines.flow.flowOf(0L)
+        override fun observeOlderVersionBytes() = kotlinx.coroutines.flow.flowOf(0L)
+        override suspend fun clearOlderVersions() = Unit
         override suspend fun deleteSiteWithSnaps(siteId: String) = Unit
         override suspend fun getContentTypeInfo(siteId: String): List<ContentTypeInfo> = emptyList()
 

@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -38,6 +40,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.toShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -200,6 +204,12 @@ internal fun ActivityFeed(
     deleting: Set<String> = emptySet(),
 ) {
     val failing = if (query.isBlank()) sites.values.filter { it.isSyncEnabled && !it.isSuccessful }.sortedBy { it.name() } else emptyList()
+    if (failing.isEmpty() && items.itemCount == 0 && items.loadState.refresh is LoadState.Loading) {
+        Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            com.bernaferrari.changedetection.ui.components.DelayedLoadingIndicator()
+        }
+        return
+    }
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(Modifier.widthIn(max = 720.dp).fillMaxSize().testTag("activity-list"), contentPadding = PaddingValues(bottom = 32.dp)) {
             if (failing.isNotEmpty()) {
@@ -226,11 +236,18 @@ internal fun ActivityFeed(
             when {
                 items.loadState.refresh is LoadState.Error -> item(key = "refresh-error") { ActivityLoadError(items::retry) }
 
+                // With nothing above, these states own the whole viewport and sit in its middle.
                 items.itemCount == 0 && items.loadState.refresh is LoadState.Loading -> item(key = "loading") {
-                    Box(Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) { LoadingIndicator() }
+                    Box(if (failing.isEmpty()) Modifier.fillParentMaxSize() else Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
+                        com.bernaferrari.changedetection.ui.components.DelayedLoadingIndicator()
+                    }
                 }
 
-                items.itemCount == 0 -> item(key = "empty") { EmptyActivity(searching = query.isNotBlank()) }
+                items.itemCount == 0 -> item(key = "empty") {
+                    Box(if (failing.isEmpty()) Modifier.fillParentMaxSize() else Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        EmptyActivity(searching = query.isNotBlank())
+                    }
+                }
             }
             items(count = items.itemCount, key = { index ->
                 when (val model = items.peek(index)) {
@@ -337,9 +354,14 @@ private fun ActivityRow(shape: androidx.compose.ui.graphics.Shape, snap: Snap, s
 
 @Composable
 private fun EmptyActivity(searching: Boolean) {
-    Column(Modifier.fillMaxWidth().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Icon(Icons.Outlined.Timeline, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(stringResource(if (searching) Res.string.logs_search_empty_title else Res.string.activity_empty_title), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+    // The bottom padding lifts the group to the optical centre; true centre reads as sagging.
+    Column(Modifier.fillMaxWidth().padding(start = 32.dp, end = 32.dp, top = 32.dp, bottom = 64.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(Modifier.size(80.dp).clip(MaterialShapes.Cookie9Sided.toShape()).background(MaterialTheme.colorScheme.secondaryContainer), contentAlignment = Alignment.Center) {
+            Icon(if (searching) Icons.Outlined.Search else Icons.Outlined.Timeline, null, Modifier.size(36.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
+        }
+        Spacer(Modifier.height(24.dp))
+        Text(stringResource(if (searching) Res.string.logs_search_empty_title else Res.string.activity_empty_title), style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+        Spacer(Modifier.height(8.dp))
         Text(
             stringResource(if (searching) Res.string.logs_search_empty_subtitle else Res.string.activity_empty_body),
             style = MaterialTheme.typography.bodyLarge,

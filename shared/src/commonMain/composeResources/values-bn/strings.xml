@@ -250,6 +250,10 @@
     <string name="storage_history_title">সংরক্ষিত ইতিহাস</string>
     <string name="storage_history_usage">%1$s MB সংরক্ষিত সংস্করণ</string>
     <string name="storage_history_policy">প্রতি পৃষ্ঠায় সর্বোচ্চ ১০০টি সংস্করণ থাকে। ২৫০ MB ছাড়ালে পুরোনো সংস্করণ সরানো হয়। প্রতিটি পৃষ্ঠার সর্বশেষ দুটি সংস্করণ সীমা ছাড়ালেও রাখা হয়।</string>
+    <string name="storage_clear_older">পুরোনো সংস্করণ মুছুন</string>
+    <string name="storage_clear_older_title">পুরোনো সংস্করণ মুছবেন?</string>
+    <string name="storage_clear_older_body">প্রতিটি পেজ তার সর্বশেষ পরিবর্তন রাখে। পুরোনো সংস্করণের %1$s এই ডিভাইস থেকে মুছে ফেলা হবে। এটি আর ফেরানো যাবে না।</string>
+    <string name="storage_clear_older_confirm">মুছুন</string>
     <string name="capture_mode_default">অ্যাপের ডিফল্ট</string>
     <string name="capture_mode_html">পৃষ্ঠার HTML</string>
     <string name="capture_mode_screenshot">স্ক্রিনশট</string>
@@ -652,9 +656,10 @@
     <string name="settings_notifications_body">সিস্টেম সেটিংসে সতর্কতা, শব্দ ও ব্যানার</string>
     <string name="settings_saved_versions">সংরক্ষিত সংস্করণ</string>
     <string name="settings_storage_value">এই ডিভাইসে %1$s</string>
+    <string name="settings_storage_empty">এখনও কিছু সংরক্ষিত হয়নি</string>
     <string name="settings_about_value">সংস্করণ %1$s · ওপেন সোর্স</string>
     <string name="settings_feedback">মতামত পাঠান</string>
-    <string name="settings_privacy_line">সবকিছু এই ডিভাইসেই থাকে। অ্যাকাউন্ট নেই, ট্র্যাকিং নেই।</string>
+    <string name="settings_privacy_line">সবকিছু এই ডিভাইসেই থাকে।</string>
     <string name="editor_edit_title">পৃষ্ঠা সম্পাদনা করুন</string>
     <string name="editor_start">নজরদারি শুরু করুন</string>
     <string name="editor_paste_title">কীসে নজর রাখবেন?</string>

@@ -320,9 +320,9 @@ fun HomeScreen(
         },
     ) { padding ->
         when {
-            all == null -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { LoadingIndicator() }
+            all == null -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { com.bernaferrari.changedetection.ui.components.DelayedLoadingIndicator() }
 
-            all.isEmpty() -> HomeEmptyState(onAddPage = onAddPage, onHowItWorks = onHowItWorks, modifier = Modifier.padding(padding).nestedScroll(scrollBehavior.nestedScrollConnection))
+            all.isEmpty() -> HomeEmptyState(onAddPage = onAddPage, onHowItWorks = onHowItWorks, modifier = Modifier.padding(padding))
 
             else -> PullToCheckBox(
                 scrollBehavior = scrollBehavior,

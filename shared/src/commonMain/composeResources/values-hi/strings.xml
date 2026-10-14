@@ -250,6 +250,10 @@
     <string name="storage_history_title">सहेजा गया इतिहास</string>
     <string name="storage_history_usage">%1$s MB सहेजे गए संस्करण</string>
     <string name="storage_history_policy">हर पेज के अधिकतम 100 संस्करण रखे जाते हैं। 250 MB से ज़्यादा होने पर पुराने संस्करण हटते हैं। हर पेज के सबसे नए दो संस्करण हमेशा रहते हैं, भले ही वे इस सीमा से बड़े हों।</string>
+    <string name="storage_clear_older">पुराने संस्करण हटाएँ</string>
+    <string name="storage_clear_older_title">पुराने संस्करण हटाएँ?</string>
+    <string name="storage_clear_older_body">हर पेज अपना सबसे नया बदलाव रखता है। पुराने संस्करणों का %1$s इस डिवाइस से हटा दिया जाएगा। इसे पूर्ववत नहीं किया जा सकता।</string>
+    <string name="storage_clear_older_confirm">हटाएँ</string>
     <string name="capture_mode_default">ऐप का डिफ़ॉल्ट</string>
     <string name="capture_mode_html">पेज का HTML</string>
     <string name="capture_mode_screenshot">स्क्रीनशॉट</string>
@@ -652,9 +656,10 @@
     <string name="settings_notifications_body">सिस्टम सेटिंग में अलर्ट, आवाज़ें और बैनर</string>
     <string name="settings_saved_versions">सहेजे गए संस्करण</string>
     <string name="settings_storage_value">इस डिवाइस पर %1$s</string>
+    <string name="settings_storage_empty">अभी तक कुछ सहेजा नहीं गया</string>
     <string name="settings_about_value">संस्करण %1$s · ओपन सोर्स</string>
     <string name="settings_feedback">सुझाव भेजें</string>
-    <string name="settings_privacy_line">सब कुछ इस डिवाइस पर रहता है। खाता नहीं, ट्रैकिंग नहीं।</string>
+    <string name="settings_privacy_line">सब कुछ इस डिवाइस पर रहता है।</string>
     <string name="editor_edit_title">पेज बदलें</string>
     <string name="editor_start">निगरानी शुरू करें</string>
     <string name="editor_paste_title">किस पर नज़र रखें?</string>
