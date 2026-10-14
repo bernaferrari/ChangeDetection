@@ -38,7 +38,7 @@ class SettingsHierarchyUiTest {
                     SavedVersionsRow(state, {
                         retries++
                         state = state.copy(storageLoadFailed = false, storageBytes = null)
-                    })
+                    }, onClearOlder = {})
                 }
             }
         }
