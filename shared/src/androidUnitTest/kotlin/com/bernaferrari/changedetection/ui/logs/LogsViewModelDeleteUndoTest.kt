@@ -260,7 +260,7 @@ class LogsViewModelDeleteUndoTest {
 
         override fun observeStorageBytes() = kotlinx.coroutines.flow.flowOf(0L)
         override fun observeOlderVersionBytes() = kotlinx.coroutines.flow.flowOf(0L)
-        override suspend fun clearOlderVersions() = Unit
+        override suspend fun siteIdsWithOlderVersions(): List<String> = emptyList()
         val inserted = mutableMapOf<String, Snap>()
         val deleted = mutableSetOf<String>()
 
