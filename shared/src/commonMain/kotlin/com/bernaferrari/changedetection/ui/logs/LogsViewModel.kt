@@ -111,8 +111,9 @@ class LogsViewModel(
                 initialValue = 0,
             )
 
+    // Typing is debounced; the unfiltered feed (first load, cleared search) is not.
     val pagedSnaps: Flow<PagingData<LogUiModel>> = searchQuery
-        .debounce(250)
+        .debounce { if (it.isBlank()) 0L else 250L }
         .distinctUntilChanged()
         .flatMapLatest { query ->
             Pager(

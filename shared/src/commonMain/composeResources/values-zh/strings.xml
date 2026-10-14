@@ -242,6 +242,10 @@
     <string name="storage_history_title">已保存的历史</string>
     <string name="storage_history_usage">已保存版本占用 %1$s MB</string>
     <string name="storage_history_policy">每页最多保留 100 个版本。超过 250 MB 后会删除较旧的版本。每页最新的两个版本始终保留，即使超出此限制。</string>
+    <string name="storage_clear_older">清除旧版本</string>
+    <string name="storage_clear_older_title">清除旧版本？</string>
+    <string name="storage_clear_older_body">每个页面都会保留最新的更改。将从此设备删除 %1$s 的旧版本。此操作无法撤销。</string>
+    <string name="storage_clear_older_confirm">清除</string>
     <string name="capture_mode_default">应用默认</string>
     <string name="capture_mode_html">页面 HTML</string>
     <string name="capture_mode_screenshot">截图</string>
@@ -628,9 +632,10 @@
     <string name="settings_notifications_body">在系统设置中管理提醒、声音和横幅</string>
     <string name="settings_saved_versions">已保存的版本</string>
     <string name="settings_storage_value">此设备上占用 %1$s</string>
+    <string name="settings_storage_empty">尚未保存任何内容</string>
     <string name="settings_about_value">版本 %1$s · 开源</string>
     <string name="settings_feedback">发送反馈</string>
-    <string name="settings_privacy_line">所有数据保留在此设备上，无需账户，不追踪你。</string>
+    <string name="settings_privacy_line">所有数据都保留在此设备上。</string>
     <string name="editor_edit_title">编辑页面</string>
     <string name="editor_start">开始关注</string>
     <string name="editor_paste_title">想关注什么？</string>

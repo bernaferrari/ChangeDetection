@@ -8,13 +8,14 @@ import com.bernaferrari.changedetection.ui.kit.GroupRow
 import com.bernaferrari.changedetection.localization.stringResource
 
 @Composable
-internal fun SavedVersionsRow(state: SettingsUiState, onRetry: () -> Unit, showDivider: Boolean = false) {
+internal fun SavedVersionsRow(state: SettingsUiState, onRetry: () -> Unit, onClearOlder: () -> Unit, showDivider: Boolean = false) {
     var expanded by remember { mutableStateOf(false) }
     GroupRow(
         title = stringResource(Res.string.settings_saved_versions),
         supporting = when {
             state.storageLoadFailed -> stringResource(Res.string.retry)
             state.storageBytes == null -> stringResource(Res.string.loading)
+            state.storageBytes == 0L -> stringResource(Res.string.settings_storage_empty)
             else -> stringResource(Res.string.settings_storage_value, formatStorage(state.storageBytes))
         },
         icon = Icons.Outlined.Storage,
@@ -22,11 +23,11 @@ internal fun SavedVersionsRow(state: SettingsUiState, onRetry: () -> Unit, showD
         onClick = { expanded = true },
     )
     if (expanded) {
-        HistoryStorageDialog(state.storageBytes, state.storageLoadFailed, onRetry, onDismiss = { expanded = false })
+        HistoryStorageDialog(state.storageBytes, state.storageLoadFailed, onRetry, onDismiss = { expanded = false }, clearableBytes = state.clearableBytes, onClearOlder = onClearOlder)
     }
 }
 
-private fun formatStorage(bytes: Long): String = when {
+internal fun formatStorage(bytes: Long): String = when {
     bytes == 0L -> "${com.bernaferrari.changedetection.util.localizedInteger(0)} MB"
     bytes < 1024 * 1024 -> "<${com.bernaferrari.changedetection.util.localizedInteger(1)} MB"
     bytes < 1024L * 1024 * 1024 -> "${com.bernaferrari.changedetection.util.localizedNumber((bytes / (1024 * 1024)).toDouble(), maxFractionDigits = 0)} MB"

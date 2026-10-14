@@ -77,11 +77,11 @@ fun HomeEmptyState(onAddPage: (String?) -> Unit, onHowItWorks: () -> Unit, modif
         ) {
             Spacer(Modifier.size(12.dp))
             DemoCards()
-            Spacer(Modifier.size(36.dp))
-            Text(stringResource(Res.string.empty_title), style = MaterialTheme.typography.headlineLarge)
+            Spacer(Modifier.size(24.dp))
+            Text(stringResource(Res.string.empty_title), style = MaterialTheme.typography.headlineMedium)
             Spacer(Modifier.size(12.dp))
             Text(stringResource(Res.string.empty_body), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(20.dp))
             AnimatedVisibility(copied != null, enter = fadeIn() + expandVertically()) {
                 Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.padding(bottom = 10.dp)) {
                     Row(Modifier.padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -96,14 +96,14 @@ fun HomeEmptyState(onAddPage: (String?) -> Unit, onHowItWorks: () -> Unit, modif
             }
             Button(
                 onClick = { onAddPage(null) },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 shapes = ButtonDefaults.shapes(),
             ) {
                 Icon(Icons.Rounded.Add, null)
                 Spacer(Modifier.size(8.dp))
                 Text(stringResource(Res.string.home_watch_page), style = MaterialTheme.typography.titleMedium)
             }
-            Spacer(Modifier.size(24.dp))
+            Spacer(Modifier.size(16.dp))
         }
     }
 }
@@ -148,7 +148,7 @@ private fun DemoCard(modifier: Modifier, letter: String, domain: String, content
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceBright,
     ) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 PageAvatar(letter, domain, size = 28.dp)
                 Text(domain, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)

@@ -239,6 +239,10 @@
     <string name="storage_history_title">Historial guardado</string>
     <string name="storage_history_usage">%1$s MB de versiones guardadas</string>
     <string name="storage_history_policy">Conserva hasta 100 versiones por página. Las versiones antiguas se eliminan al superar 250 MB. Siempre se conservan las dos últimas versiones de cada página, aunque superen este límite.</string>
+    <string name="storage_clear_older">Borrar versiones antiguas</string>
+    <string name="storage_clear_older_title">¿Borrar versiones antiguas?</string>
+    <string name="storage_clear_older_body">Cada página conserva su cambio más reciente. Se eliminarán %1$s de versiones antiguas de este dispositivo. No se puede deshacer.</string>
+    <string name="storage_clear_older_confirm">Borrar</string>
     <string name="capture_mode_default">Predeterminado de la app</string>
     <string name="capture_mode_html">HTML de la página</string>
     <string name="capture_mode_screenshot">Captura de pantalla</string>

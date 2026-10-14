@@ -252,9 +252,10 @@
     <string name="settings_notifications_body">Avisos, sonidos y banners en los ajustes del sistema</string>
     <string name="settings_saved_versions">Versiones guardadas</string>
     <string name="settings_storage_value">%1$s en este dispositivo</string>
+    <string name="settings_storage_empty">Aún no hay nada guardado</string>
     <string name="settings_about_value">Versión %1$s · código abierto</string>
     <string name="settings_feedback">Enviar comentarios</string>
-    <string name="settings_privacy_line">Todo se queda en este dispositivo. Sin cuenta ni seguimiento.</string>
+    <string name="settings_privacy_line">Todo se queda en este dispositivo.</string>
     <string name="editor_edit_title">Editar página</string>
     <string name="editor_start">Empezar a monitorizar</string>
     <string name="editor_paste_title">¿Qué quieres monitorizar?</string>

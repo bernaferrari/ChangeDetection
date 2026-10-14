@@ -26,7 +26,7 @@ class SettingsLoadingTest {
         var preferenceSubscriptions = 0
         var storageSubscriptions = 0
         val store = mock<DataStore<Preferences>>()
-        val snapshots = mock<SnapsRepository>()
+        val snapshots = mock<SnapsRepository>().also { whenever(it.observeOlderVersionBytes()).thenReturn(kotlinx.coroutines.flow.flowOf(0L)) }
         whenever(store.data).thenReturn(preferences.onStart { preferenceSubscriptions++ })
         whenever(snapshots.observeStorageBytes()).thenReturn(
             flow {
@@ -117,7 +117,7 @@ class SettingsLoadingTest {
         val firstScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         val secondScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         val store = PreferenceDataStoreFactory.createWithPath(scope = firstScope, produceFile = { path })
-        val snapshots = mock<SnapsRepository>()
+        val snapshots = mock<SnapsRepository>().also { whenever(it.observeOlderVersionBytes()).thenReturn(kotlinx.coroutines.flow.flowOf(0L)) }
         val model = SettingsViewModel(store, mock(), snapshots)
         try {
             model.updateThemeMode(ThemeMode.DARK)
@@ -142,7 +142,7 @@ class SettingsLoadingTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         var attempts = 0
         val store = mock<DataStore<Preferences>>()
-        val snapshots = mock<SnapsRepository>()
+        val snapshots = mock<SnapsRepository>().also { whenever(it.observeOlderVersionBytes()).thenReturn(kotlinx.coroutines.flow.flowOf(0L)) }
         whenever(store.data).thenReturn(
             flow {
                 if (attempts++ == 0) error("private filesystem diagnostic")
@@ -175,7 +175,7 @@ class SettingsLoadingTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         val preferences = MutableSharedFlow<Preferences>()
         val store = mock<DataStore<Preferences>>()
-        val snapshots = mock<SnapsRepository>()
+        val snapshots = mock<SnapsRepository>().also { whenever(it.observeOlderVersionBytes()).thenReturn(kotlinx.coroutines.flow.flowOf(0L)) }
         whenever(store.data).thenReturn(preferences)
         whenever(snapshots.observeStorageBytes()).thenReturn(flow { awaitCancellation() })
         val model = SettingsViewModel(store, mock(), snapshots)

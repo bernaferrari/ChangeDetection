@@ -22,6 +22,12 @@ class SnapsLocalDataSource constructor(
 ) : SnapsDataSource {
     override fun observeStorageBytes(): Flow<Long> = mSnapsDao.observeStorageBytes()
 
+    override fun observeOlderVersionBytes(): Flow<Long> = mSnapsDao.observeOlderVersionBytes()
+
+    override suspend fun clearOlderVersions() = withContext(mAppExecutors.ioContext) {
+        mSnapsDao.siteIdsWithOlderVersions().forEach { pruneSnaps(it) }
+    }
+
     /** Keep the comparison pair; each bounded transaction also queues its file cleanup. */
     override suspend fun pruneSnaps(siteId: String) = withContext(mAppExecutors.ioContext) {
         while (true) {

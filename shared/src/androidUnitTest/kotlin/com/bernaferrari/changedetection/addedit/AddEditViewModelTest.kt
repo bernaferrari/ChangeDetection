@@ -387,6 +387,8 @@ class AddEditViewModelTest {
     /** Minimal inert snaps source — AddEdit only touches snaps when pruning after a URL change. */
     private object EmptySnapsDataSource : SnapsDataSource {
         override fun observeStorageBytes() = kotlinx.coroutines.flow.flowOf(0L)
+        override fun observeOlderVersionBytes() = kotlinx.coroutines.flow.flowOf(0L)
+        override suspend fun clearOlderVersions() = Unit
         override suspend fun deleteSiteWithSnaps(siteId: String) = Unit
         override suspend fun getContentTypeInfo(siteId: String) = emptyList<ContentTypeInfo>()
         override suspend fun getMostRecentSnap(siteId: String) = null
