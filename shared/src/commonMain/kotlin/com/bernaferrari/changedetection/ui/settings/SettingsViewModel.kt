@@ -84,6 +84,7 @@ class SettingsViewModel(
                 emit(StorageSummary(failed = true))
             }
     }
+
     /** Survives leaving Settings mid-clear; the storage figures update from the database as it goes. */
     fun clearOlderVersions() {
         viewModelScope.launch(kotlinx.coroutines.NonCancellable) {
