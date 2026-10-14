@@ -54,7 +54,7 @@ android {
         applicationId = "com.bernaferrari.changedetection"
         minSdk = 26
         targetSdk = 37
-        versionCode = 33
+        versionCode = 34
         versionName = "3.0"
     }
 
