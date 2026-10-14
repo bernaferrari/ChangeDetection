@@ -37,7 +37,7 @@ enum class PreviewFailure { TIMEOUT, REGION, UNAVAILABLE }
 sealed interface CapturePreviewState {
     data object Idle : CapturePreviewState
     data object Loading : CapturePreviewState
-    data class Ready(val content: CapturePreview) : CapturePreviewState
+    data class Ready(val content: CapturePreview, val capturedAt: Long = kotlin.time.Clock.System.now().toEpochMilliseconds()) : CapturePreviewState
     data class Failed(val reason: PreviewFailure) : CapturePreviewState
 }
 
@@ -283,6 +283,17 @@ class AddEditViewModel(
         _uiState.update { it.copy(iconShape = shape) }
     }
 
+    /** The open page's own name and icon, so the review shows them at once instead of after the snapshot. */
+    fun useLivePage(title: String?, icon: String?) {
+        val name = title?.let(::cleanTitle)
+        _uiState.update {
+            it.copy(
+                title = if (!titleEditedByUser && name != null) name else it.title,
+                iconUrl = icon ?: it.iconUrl,
+            )
+        }
+    }
+
     fun setTitle(title: String) {
         titleEditedByUser = true
         _uiState.update { it.copy(title = title) }
@@ -408,6 +419,10 @@ class AddEditViewModel(
 
                 monitoringManager.updateSchedule()
                 sitesRepository.saveSite(baseSite, resetHistory = startFresh && existingSite != null)
+                // Any edit to the address, mode or parts discards the preview, so a ready one shows exactly this page.
+                val firstVersion = (state.preview as? CapturePreviewState.Ready)
+                    ?.takeIf { siteId == null && kotlin.time.Clock.System.now().toEpochMilliseconds() - it.capturedAt < FIRST_VERSION_MAX_AGE_MS }
+                    ?.content
 
                 if (siteId == null) {
                     _events.trySend(AddEditEvent.MonitorAdded)
@@ -417,9 +432,18 @@ class AddEditViewModel(
                     current.copy(isSaving = false, saveComplete = true, savedSite = baseSite)
                 }
 
+                // The page was just captured for the preview; keep that as its first version instead of loading
+                // it again. Leaving this screen must not abandon the commit halfway.
+                val kept = firstVersion != null && kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                    runCatching { previewer.keepAsFirstVersion(baseSite, firstVersion) }
+                        .onFailure { Napier.w("Could not keep the preview as the first version", it) }
+                        .getOrDefault(false)
+                }
                 // Saving succeeded even if the best-effort initial check cannot be scheduled.
-                runCatching { monitoringManager.reloadSite(baseSite) }
-                    .onFailure { Napier.w("Monitor saved, but its initial check could not be scheduled", it) }
+                if (!kept) {
+                    runCatching { monitoringManager.reloadSite(baseSite) }
+                        .onFailure { Napier.w("Monitor saved, but its initial check could not be scheduled", it) }
+                }
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
@@ -434,3 +458,6 @@ class AddEditViewModel(
         }
     }
 }
+
+/** A preview older than this is too stale to stand in for the page's first version. */
+private const val FIRST_VERSION_MAX_AGE_MS = 10 * 60 * 1000L

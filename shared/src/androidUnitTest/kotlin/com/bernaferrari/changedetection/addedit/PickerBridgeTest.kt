@@ -13,6 +13,17 @@ class PickerBridgeTest {
         for (invalid in listOf("null", "undefined", "about:blank", "file:///private/document", "\"https://example.test/")) assertNull(decodeBrowserUrl(invalid))
     }
 
+    @Test fun livePageCarriesItsOwnNameAndIconFromEitherCallbackShape() {
+        val url = "https://example.test/product"
+        val page = Json.encodeToString(listOf(url, "Product | Example", "https://example.test/icon.png"))
+        val expected = LivePage(url, "Product | Example", "https://example.test/icon.png")
+        assertEquals(expected, decodeLivePage(page))
+        assertEquals(expected, decodeLivePage(Json.encodeToString(page)))
+        assertEquals(LivePage(url, null, null), decodeLivePage(Json.encodeToString(listOf(url, " ", "javascript:alert(1)"))))
+        assertEquals(LivePage(url, null, null), decodeLivePage(url))
+        assertNull(decodeLivePage(Json.encodeToString(listOf("about:blank", "Blank", ""))))
+    }
+
     @Test fun onlyBoundedReportsDuringActivePickingReachTheNativeControls() {
         val valid = PickedPart("#price", 2, 9, "Available", "div")
         assertEquals(valid, decodePickedPart(Json.encodeToString(valid), true))

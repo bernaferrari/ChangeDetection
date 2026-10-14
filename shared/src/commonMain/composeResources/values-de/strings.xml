@@ -261,6 +261,8 @@
     <string name="capture_preview_action">Aufnahme testen</string>
     <string name="capture_preview_title">Aufnahmevorschau</string>
     <string name="capture_preview_loading">Seite wird geladen…</string>
+    <string name="capture_first_version_title">Erster Schnappschuss wird erstellt…</string>
+    <string name="capture_first_version_body">Spätere Prüfungen werden damit verglichen. Du kannst schon jetzt mit dem Beobachten beginnen.</string>
     <string name="capture_preview_html">Seitentext-Vorschau</string>
     <string name="capture_preview_empty">Kein lesbarer Text gefunden. Für diese Seite sind möglicherweise Screenshots nötig.</string>
     <string name="capture_preview_expand">Vollständigen Screenshot ansehen</string>

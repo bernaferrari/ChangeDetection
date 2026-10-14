@@ -73,6 +73,24 @@ internal fun decodeBrowserUrl(value: String): String? {
     return url.takeIf { it.length <= 8_192 && (it.startsWith("https://") || it.startsWith("http://")) }?.normalizeUrl()
 }
 
+/** What the open page already says about itself, read when watching starts so nothing waits on a reload. */
+internal data class LivePage(val url: String, val title: String?, val icon: String?)
+
+private const val LIVE_PAGE_SCRIPT = "JSON.stringify([window.location.href,${PageCleanup.TITLE},${PageCleanup.ICON}])"
+
+/** WebViews hand script results back JSON-encoded (Android) or raw (iOS); accepts both. */
+internal fun decodeLivePage(value: String): LivePage? {
+    val raw = runCatching { pickJson.decodeFromString<String>(value) }.getOrElse { value }
+    val parts = runCatching { pickJson.decodeFromString<List<String>>(raw) }.getOrNull()
+        ?: return decodeBrowserUrl(value)?.let { LivePage(it, null, null) }
+    val url = parts.getOrNull(0)?.let(::decodeBrowserUrl) ?: return null
+    return LivePage(
+        url = url,
+        title = parts.getOrNull(1)?.takeIf { it.isNotBlank() && it.length <= 2_000 },
+        icon = parts.getOrNull(2)?.takeIf { it.length <= 8_192 && (it.startsWith("https://") || it.startsWith("http://")) },
+    )
+}
+
 /**
  * Watching starts in a real browser: go to the exact page (search, menus, signing in all work, and the
  * session is reused by later screenshot checks on this device), optionally pick the parts that matter or that are noise, then watch.
@@ -84,7 +102,7 @@ internal fun WatchBrowser(
     ignored: List<String>,
     onPicksChange: (only: String, ignored: List<String>) -> Unit,
     onPageChange: (String) -> Unit,
-    onWatch: (String) -> Unit,
+    onWatch: (LivePage) -> Unit,
     onClose: () -> Unit,
     watchLabel: String,
 ) {
@@ -111,17 +129,17 @@ internal fun WatchBrowser(
             try {
                 val raw = kotlinx.coroutines.withTimeoutOrNull(3_000) {
                     kotlinx.coroutines.suspendCancellableCoroutine<String> { continuation ->
-                        navigator.evaluateJavaScript("window.location.href") { value ->
+                        navigator.evaluateJavaScript(LIVE_PAGE_SCRIPT) { value ->
                             if (continuation.isActive) continuation.resumeWith(Result.success(value))
                         }
                     }
                 }
-                val url = raw?.let(::decodeBrowserUrl)
-                if (url == null) {
+                val page = raw?.let(::decodeLivePage)
+                if (page == null) {
                     watchFailed = true
                 } else {
-                    liveUrl = url
-                    currentOnWatch(url)
+                    liveUrl = page.url
+                    currentOnWatch(page)
                 }
             } finally {
                 resolvingWatch = false

@@ -253,6 +253,8 @@
     <string name="capture_preview_action">预览抓取</string>
     <string name="capture_preview_title">抓取预览</string>
     <string name="capture_preview_loading">正在加载页面…</string>
+    <string name="capture_first_version_title">正在拍摄第一张快照…</string>
+    <string name="capture_first_version_body">之后的检查都会与它对比。你现在就可以开始关注。</string>
     <string name="capture_preview_html">页面文本预览</string>
     <string name="capture_preview_empty">未找到可读文本，此页面可能需要使用截图监测。</string>
     <string name="capture_preview_expand">查看完整截图</string>

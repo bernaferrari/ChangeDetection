@@ -15,11 +15,14 @@ class IosCapturePreviewer(engine: SyncEngine, private val preferences: DataStore
 
     override suspend fun capture(url: String, mode: CaptureMode): CapturePreview = capture(url, mode, com.bernaferrari.changedetection.detection.TextRegion())
 
+    override suspend fun keepAsFirstVersion(site: com.bernaferrari.changedetection.repo.Site, preview: CapturePreview): Boolean = html.keepAsFirstVersion(site, preview)
+
     override suspend fun capture(url: String, mode: CaptureMode, region: com.bernaferrari.changedetection.detection.TextRegion): CapturePreview {
         val settings = preferences.data.first()
         val defaultMethod = ComparisonMethod.entries.firstOrNull { it.name == settings[SettingsViewModel.COMPARISON_METHOD_KEY] } ?: ComparisonMethod.SCREENSHOT
         if (mode.resolve(defaultMethod) == ComparisonMethod.HTML) return html.capture(url, mode, region)
         val png = IosPageCapture.capture(url, settings[SettingsViewModel.BROWSER_DELAY_KEY] ?: 2_500L, hide = region.exclude, only = region.include)
-        return CapturePreview.Image(png, IosPageCapture.lastTitle?.let { cleanTitle(it) }, IosPageCapture.lastIcon)
+        // Same capture and hand-off as IosCheckRunner, so it can stand in for the first check.
+        return CapturePreview.Image(png, IosPageCapture.lastTitle?.let { cleanTitle(it) }, IosPageCapture.lastIcon, SyncEngine.FetchResult.Success("image/png", png, capturedWithBrowser = true))
     }
 }

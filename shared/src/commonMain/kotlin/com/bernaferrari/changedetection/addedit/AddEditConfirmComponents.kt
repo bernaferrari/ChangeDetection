@@ -106,6 +106,7 @@ fun AddEditConfirmScreen(
     onDismissDuplicate: () -> Unit = {},
     onUrlChange: (String) -> Unit,
     onTitleChange: (String) -> Unit,
+    onLivePage: (title: String?, icon: String?) -> Unit = { _, _ -> },
     onNavigateUp: () -> Unit,
     onSave: () -> Unit,
     showUrlChangeDialog: Boolean = false,
@@ -185,7 +186,8 @@ fun AddEditConfirmScreen(
                     Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp), contentAlignment = Alignment.Center) {
                         Button(
                             onClick = onSave,
-                            enabled = !isSaving && preview !is CapturePreviewState.Loading,
+                            // Never blocked on the snapshot: a ready one becomes the first version, otherwise the first check takes it.
+                            enabled = !isSaving,
                             shapes = ButtonDefaults.shapes(),
                             modifier = Modifier.widthIn(max = 600.dp).fillMaxWidth().heightIn(min = 56.dp),
                         ) {
@@ -271,8 +273,9 @@ fun AddEditConfirmScreen(
                 ignored = ignoredParts,
                 onPicksChange = { only, ignored -> onTextRegionChange(com.bernaferrari.changedetection.detection.TextRegion(only, ignored.joinToString(", "))) },
                 onPageChange = { page -> if (!isEditing && page.trimEnd('/') != (url.normalizeUrl() ?: url).trimEnd('/')) onUrlChange(page) },
-                onWatch = { liveUrl ->
-                    onUrlChange(liveUrl)
+                onWatch = { page ->
+                    onUrlChange(page.url)
+                    onLivePage(page.title, page.icon)
                     if (isEditing) {
                         browsing = false
                         onPreview()
@@ -650,13 +653,21 @@ private fun PagePreviewCard(
             ) { state ->
                 Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     when (state) {
-                        CapturePreviewState.Idle, CapturePreviewState.Loading -> Row(
-                            Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).height(if (screenshot) 320.dp else 120.dp).padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterHorizontally),
+                        // Says what is happening and that nothing waits on it, instead of a bare "loading".
+                        CapturePreviewState.Idle, CapturePreviewState.Loading -> Column(
+                            Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).height(if (screenshot) 320.dp else 160.dp).padding(24.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+                            horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            LoadingIndicator(Modifier.size(40.dp))
-                            Text(stringResource(Res.string.capture_preview_loading), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            LoadingIndicator(Modifier.size(48.dp))
+                            Text(stringResource(Res.string.capture_first_version_title), style = MaterialTheme.typography.titleMedium, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                            Text(
+                                stringResource(Res.string.capture_first_version_body),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                modifier = Modifier.widthIn(max = 320.dp),
+                            )
                         }
 
                         is CapturePreviewState.Failed -> Column(
