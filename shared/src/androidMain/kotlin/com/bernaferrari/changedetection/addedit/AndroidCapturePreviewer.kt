@@ -23,6 +23,8 @@ class AndroidCapturePreviewer(context: Context, engine: SyncEngine, private val 
 
     override suspend fun capture(url: String, mode: CaptureMode): CapturePreview = capture(url, mode, com.bernaferrari.changedetection.detection.TextRegion())
 
+    override suspend fun keepAsFirstVersion(site: com.bernaferrari.changedetection.repo.Site, preview: CapturePreview): Boolean = html.keepAsFirstVersion(site, preview)
+
     override suspend fun capture(url: String, mode: CaptureMode, region: com.bernaferrari.changedetection.detection.TextRegion): CapturePreview = singlePreview.withLock {
         withTimeout(90_000) {
             val settings = preferences.data.first()
@@ -34,7 +36,8 @@ class AndroidCapturePreviewer(context: Context, engine: SyncEngine, private val 
                     val browser = browsers.create()
                     try {
                         when (val result = browser.capture(previewSite(url).copy(textIncludeSelector = region.include, textExcludeSelector = region.exclude), settings[SettingsViewModel.BROWSER_DELAY_KEY] ?: 5_000L)) {
-                            is ScreenshotCaptureOutcome.Success -> CapturePreview.Image(result.bytes, result.title?.let { cleanTitle(it) }, result.icon)
+                            // Same capture and hand-off as AndroidScreenshotSyncer, so it can stand in for the first check.
+                            is ScreenshotCaptureOutcome.Success -> CapturePreview.Image(result.bytes, result.title?.let { cleanTitle(it) }, result.icon, SyncEngine.FetchResult.Success(result.contentType, result.bytes, capturedWithBrowser = true))
                             is ScreenshotCaptureOutcome.Failure -> error(result.message)
                         }
                     } finally {

@@ -250,6 +250,8 @@
     <string name="capture_preview_action">Anteprima acquisizione</string>
     <string name="capture_preview_title">Anteprima acquisizione</string>
     <string name="capture_preview_loading">Caricamento della pagina…</string>
+    <string name="capture_first_version_title">Acquisizione della prima istantanea…</string>
+    <string name="capture_first_version_body">I prossimi controlli verranno confrontati con questa. Puoi già iniziare a seguirla.</string>
     <string name="capture_preview_html">Anteprima del testo della pagina</string>
     <string name="capture_preview_empty">Non è stato trovato testo leggibile. Questa pagina potrebbe richiedere schermate.</string>
     <string name="capture_preview_expand">Visualizza schermata completa</string>

@@ -358,6 +358,39 @@ class AddEditViewModelTest {
         assertEquals(null, editor.uiState.value.duplicateSiteId)
     }
 
+    @Test fun `a ready snapshot becomes the new page's first version instead of loading it again`() = runTest {
+        val kept = mutableListOf<String>()
+        val previewer = object : CapturePreviewer {
+            override suspend fun capture(url: String, mode: com.bernaferrari.changedetection.repo.CaptureMode) = CapturePreview.Html("Sample", 6)
+            override suspend fun keepAsFirstVersion(site: Site, preview: CapturePreview): Boolean {
+                kept += requireNotNull(site.id)
+                return true
+            }
+        }
+        val manager = FakeMonitoringManager()
+        val source = FakeSitesDataSource()
+        val editor = createViewModel(dataSource = source, monitoringManager = manager, previewer = previewer)
+        editor.setUrl("example.com")
+        editor.requestPreview()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        editor.saveSite()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(listOf(requireNotNull(source.savedSite?.id)), kept)
+        assertEquals(emptyList<String>(), manager.reloaded)
+    }
+
+    @Test fun `saving before the snapshot is ready falls back to a regular first check`() = runTest {
+        val manager = FakeMonitoringManager()
+        val source = FakeSitesDataSource()
+        val editor = createViewModel(dataSource = source, monitoringManager = manager, previewer = CapturePreviewer { _, _ -> kotlinx.coroutines.awaitCancellation() })
+        editor.setUrl("example.com")
+        editor.requestPreview()
+        editor.saveSite()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertTrue(editor.uiState.value.saveComplete)
+        assertEquals(listOf(requireNotNull(source.savedSite?.id)), manager.reloaded)
+    }
+
     private fun createViewModel(
         siteId: String? = null,
         dataSource: FakeSitesDataSource = FakeSitesDataSource(),
@@ -459,8 +492,11 @@ class AddEditViewModelTest {
         override val quickMonitorState = kotlinx.coroutines.flow.MutableStateFlow(com.bernaferrari.changedetection.background.TurboState())
         override fun getSyncStatusFlow(): Flow<List<SyncJobInfo>> = flowOf(emptyList())
 
+        val reloaded = mutableListOf<String>()
+
         override fun reloadSite(site: Site) {
             if (throwOnReload) error("scheduler unavailable")
+            reloaded += requireNotNull(site.id)
         }
 
         override fun startQuickMonitor(siteIds: List<String>, intervalSeconds: Int, durationMinutes: Int) = Unit

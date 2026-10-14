@@ -8,23 +8,37 @@ import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.sync.SyncEngine
 
 sealed interface CapturePreview {
-    data class Html(val text: String, val totalBytes: Int, val selectableDocument: com.bernaferrari.changedetection.detection.SelectableTextDocument? = null, val pageTitle: String? = null, val pageIcon: String? = null) : CapturePreview
-    data class Image(val bytes: ByteArray, val pageTitle: String? = null, val pageIcon: String? = null) : CapturePreview
+    /** Exactly what a check would have fetched, so a new page can keep this capture as its first version. */
+    val firstVersion: SyncEngine.FetchResult.Success?
+
+    data class Html(val text: String, val totalBytes: Int, val selectableDocument: com.bernaferrari.changedetection.detection.SelectableTextDocument? = null, val pageTitle: String? = null, val pageIcon: String? = null, override val firstVersion: SyncEngine.FetchResult.Success? = null) : CapturePreview
+    data class Image(val bytes: ByteArray, val pageTitle: String? = null, val pageIcon: String? = null, override val firstVersion: SyncEngine.FetchResult.Success? = null) : CapturePreview
 }
 
-/** A read-only sample: no monitor creation, baseline commit, scheduling or notification. */
+/** A read-only sample: no monitor creation, baseline commit, scheduling or notification until [keepAsFirstVersion]. */
 fun interface CapturePreviewer {
     suspend fun capture(url: String, mode: CaptureMode): CapturePreview
     suspend fun capture(url: String, mode: CaptureMode, region: com.bernaferrari.changedetection.detection.TextRegion): CapturePreview {
         check(region.isEmpty) { "Region preview is unavailable" }
         return capture(url, mode)
     }
+
+    /**
+     * Commits a finished preview as a just-saved page's first version, so adding a page doesn't load it
+     * once more. False when this previewer can't, and the caller falls back to a regular first check.
+     */
+    suspend fun keepAsFirstVersion(site: Site, preview: CapturePreview): Boolean = false
 }
 
 internal fun previewSite(url: String) = Site(null, url, 0L, "capture-preview", ColorGroup(0, 0), true, false)
 
 class HtmlCapturePreviewer(private val engine: SyncEngine) : CapturePreviewer {
     override suspend fun capture(url: String, mode: CaptureMode): CapturePreview = capture(url, mode, com.bernaferrari.changedetection.detection.TextRegion())
+
+    override suspend fun keepAsFirstVersion(site: Site, preview: CapturePreview): Boolean {
+        val capture = preview.firstVersion ?: return false
+        return engine.processFetchResult(site, capture, site.threshold) is com.bernaferrari.changedetection.sync.SyncResult.Success
+    }
 
     override suspend fun capture(url: String, mode: CaptureMode, region: com.bernaferrari.changedetection.detection.TextRegion): CapturePreview {
         check(mode != CaptureMode.SCREENSHOT) { "Screenshot monitoring is unavailable on this platform" }
@@ -35,7 +49,7 @@ class HtmlCapturePreviewer(private val engine: SyncEngine) : CapturePreviewer {
                 check(result.data.isNotEmpty()) { "The page returned no content" }
                 check(mode != CaptureMode.TEXT || !result.contentType.startsWith("image/", true)) { "This address returns an image. Choose screenshots or source monitoring." }
                 if (result.contentType.startsWith("image/", true)) {
-                    CapturePreview.Image(result.data)
+                    CapturePreview.Image(result.data, firstVersion = result)
                 } else {
                     CapturePreview.Html(
                         (
@@ -60,6 +74,7 @@ class HtmlCapturePreviewer(private val engine: SyncEngine) : CapturePreviewer {
                         },
                         pageTitle = if (result.contentType.contains("html", true)) htmlTitle(result.data.decodeToString()) else null,
                         pageIcon = if (result.contentType.contains("html", true)) htmlIcon(result.data.decodeToString(), url) else null,
+                        firstVersion = result,
                     )
                 }
             }

@@ -261,6 +261,8 @@
     <string name="capture_preview_action">Preview capture</string>
     <string name="capture_preview_title">Capture preview</string>
     <string name="capture_preview_loading">Loading the page…</string>
+    <string name="capture_first_version_title">Taking the first snapshot…</string>
+    <string name="capture_first_version_body">Future checks compare against it. You can start watching now.</string>
     <string name="capture_preview_html">Page text preview</string>
     <string name="capture_preview_empty">No readable text was found. This page may need screenshot monitoring.</string>
     <string name="capture_preview_expand">View full screenshot</string>
