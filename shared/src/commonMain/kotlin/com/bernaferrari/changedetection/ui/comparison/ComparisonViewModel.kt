@@ -1,5 +1,8 @@
 package com.bernaferrari.changedetection.ui.comparison
 
+import com.bernaferrari.changedetection.localization.getString
+import com.bernaferrari.changedetection.localization.getPluralString
+import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.image.PlatformImageDiff
 
 import com.bernaferrari.changedetection.image.SnapshotImageDiff
@@ -98,7 +101,7 @@ class ComparisonViewModel(
                 val newLines = readableSnapshotText(content2, readableText && snap2.isHtmlSnapshot()).lines().map { it.trim() }.filter { it.isNotEmpty() }
                 val deltas = com.bernaferrari.difflib.DiffUtils.diff(oldLines, newLines).deltas
                 buildString {
-                    appendLine("${site.title ?: site.url} changed")
+                    appendLine(getString(Res.string.share_page_changed, site.title ?: site.url))
                     deltas.take(MAX_SHARED_EDITS).forEach { delta ->
                         val before = delta.source.lines.joinToString(" ").take(160)
                         val after = delta.target.lines.joinToString(" ").take(160)
@@ -108,7 +111,7 @@ class ComparisonViewModel(
                             else -> appendLine("− $before")
                         }
                     }
-                    if (deltas.size > MAX_SHARED_EDITS) appendLine("…and ${deltas.size - MAX_SHARED_EDITS} more")
+                    if (deltas.size > MAX_SHARED_EDITS) appendLine(getPluralString(Res.plurals.share_more_edits, deltas.size - MAX_SHARED_EDITS, deltas.size - MAX_SHARED_EDITS))
                     append(site.url)
                 }
             }
@@ -122,14 +125,16 @@ class ComparisonViewModel(
         imageDiff: SnapshotImageDiff,
     ) {
         val site = _uiState.value.site ?: return
-        val areas = imageDiff.visualChange?.regions?.size ?: 0
-        val text = buildString {
-            append("${site.title ?: site.url} changed")
-            if (areas > 0) append(" · $areas ${if (areas == 1) "area" else "areas"}")
-            appendLine()
-            append(site.url)
+        viewModelScope.launch {
+            val areas = imageDiff.visualChange?.regions?.size ?: 0
+            val text = buildString {
+                append(getString(Res.string.share_page_changed, site.title ?: site.url))
+                if (areas > 0) append(" · ${getPluralString(Res.plurals.share_changed_areas, areas, areas)}")
+                appendLine()
+                append(site.url)
+            }
+            shareManager.shareText(text, site.title ?: site.url)
         }
-        shareManager.shareText(text, site.title ?: site.url)
     }
 
     private companion object {

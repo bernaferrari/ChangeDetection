@@ -58,7 +58,13 @@ internal fun ScreenshotWaitChoice(delayMs: Long, onChange: (Long) -> Unit) {
                             val checked = if (custom) delayMs !in presets else delayMs == presets[item]
                             ToggleButton(
                                 checked = checked,
-                                onCheckedChange = { if (custom) editing = true else if (it) onChange(presets[item]) },
+                                onCheckedChange = {
+                                    if (custom) {
+                                        editing = true
+                                    } else if (it) {
+                                        onChange(presets[item])
+                                    }
+                                },
                                 colors = com.bernaferrari.changedetection.ui.kit.connectedToggleColors(),
                                 // In a single row the editor keeps its icon size and the presets share the rest.
                                 modifier = (if (custom && columns == 4) Modifier.width(EditWidth) else Modifier.weight(1f)).heightIn(min = 48.dp).semantics {

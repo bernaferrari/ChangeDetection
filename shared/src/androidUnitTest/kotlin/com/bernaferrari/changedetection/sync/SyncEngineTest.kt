@@ -465,7 +465,10 @@ class SyncEngineTest {
         val result = syncEngine.processFetchResult(site, SyncEngine.FetchResult.Success("text/html", "<p>Other page</p>".toByteArray()))
         assertTrue(result is SyncResult.Failed)
         verify(mockSitesDao).updateSyncMetadata(eq(site.id), any(), eq(false), any(), isNull(), eq("REGION"))
-        verifyNoInteractions(mockSnapsDao, mockFileStorage, mockChangeNotifier)
+        // Reading baseline metadata is allowed; failed extraction must never write history or touch its files.
+        verify(mockSnapsDao).getLastSnapForSiteId(site.id)
+        verifyNoMoreInteractions(mockSnapsDao)
+        verifyNoInteractions(mockFileStorage, mockChangeNotifier)
     }
 
     @Test

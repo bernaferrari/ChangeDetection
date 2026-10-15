@@ -619,7 +619,7 @@ private fun ReaderBar(reader: ChangeCursor, showNav: Boolean, canMarkRead: Boole
  * "the one where the price dropped" is easy to spot; the pair on screen is marked.
  */
 @Composable
-private fun VersionSheet(snaps: List<Snap>, selectedIndex: Int, selectedSingleSnapId: String?, onDismiss: () -> Unit, onSelect: (Int) -> Unit) {
+internal fun VersionSheet(snaps: List<Snap>, selectedIndex: Int, selectedSingleSnapId: String?, onDismiss: () -> Unit, onSelect: (Int) -> Unit) {
     val list = androidx.compose.foundation.lazy.rememberLazyListState()
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
         LazyColumn(Modifier.fillMaxWidth().testTag("version-list"), state = list, contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp, top = 4.dp)) {
@@ -643,11 +643,10 @@ private fun VersionSheet(snaps: List<Snap>, selectedIndex: Int, selectedSingleSn
                     item(key = snap.snapId) {
                         val previous = snaps.getOrNull(index + 1)
                         val isAfter = index == selectedIndex || snap.snapId == selectedSingleSnapId
-                        val isBefore = index == selectedIndex + 1
+                        val isBefore = selectedIndex >= 0 && index == selectedIndex + 1
                         val shape = groupShape(position, indices.size)
                         Surface(
                             onClick = { onSelect(index) },
-                            enabled = previous != null || snaps.size == 1,
                             shape = shape,
                             color = if (isAfter) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceBright,
                             modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp),

@@ -37,7 +37,7 @@ class HtmlCapturePreviewer(private val engine: SyncEngine) : CapturePreviewer {
 
     override suspend fun keepAsFirstVersion(site: Site, preview: CapturePreview): Boolean {
         val capture = preview.firstVersion ?: return false
-        return engine.processFetchResult(site, capture, site.threshold) is com.bernaferrari.changedetection.sync.SyncResult.Success
+        return engine.establishFirstVersion(site, capture) is com.bernaferrari.changedetection.sync.SyncResult.Success
     }
 
     override suspend fun capture(url: String, mode: CaptureMode, region: com.bernaferrari.changedetection.detection.TextRegion): CapturePreview {

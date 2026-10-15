@@ -29,6 +29,35 @@ import org.junit.Test
 class SettingsHierarchyUiTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun clearingHistoryKeepsItsDialogOpenAndOffersRetryOnFailure() {
+        var state by mutableStateOf(SettingsUiState(storageBytes = 4 * 1_048_576L, clearableBytes = 2 * 1_048_576L))
+        var attempts = 0
+        compose.setContent {
+            ChangeDetectionTheme {
+                SavedVersionsRow(state, onRetry = {}, onClearOlder = {
+                    attempts++
+                    state = state.copy(clearingOlderVersions = true, clearOlderVersionsFailed = false)
+                })
+            }
+        }
+        compose.onNodeWithText("Saved versions").performClick()
+        compose.onNodeWithText("Clear older versions").performClick()
+        compose.onNodeWithText("Clear", ignoreCase = false).performClick()
+        compose.onNodeWithText("Saved history").assertIsDisplayed()
+        compose.onNodeWithText("Loading…").assertIsDisplayed()
+        compose.onNodeWithText("Clear older versions").assertDoesNotExist()
+        compose.runOnIdle { state = state.copy(clearingOlderVersions = false, clearOlderVersionsFailed = true) }
+        compose.onNodeWithText("Could not clear older versions. Try again.").assertIsDisplayed()
+        compose.onNodeWithText("Retry").performClick()
+        compose.runOnIdle {
+            assertEquals(2, attempts)
+            state = state.copy(clearingOlderVersions = false, clearOlderVersionsFailed = false, storageBytes = 2 * 1_048_576L, clearableBytes = 0)
+        }
+        compose.onNodeWithText("2 MB of saved versions").assertIsDisplayed()
+        compose.onNodeWithText("Could not clear older versions. Try again.").assertDoesNotExist()
+        compose.onNodeWithText("Clear older versions").assertDoesNotExist()
+    }
+
     @Test fun savedVersionsOpensStorageDetailsAndCanRetryWithoutClosing() {
         var state by mutableStateOf(SettingsUiState(storageBytes = 4 * 1_048_576L))
         var retries = 0

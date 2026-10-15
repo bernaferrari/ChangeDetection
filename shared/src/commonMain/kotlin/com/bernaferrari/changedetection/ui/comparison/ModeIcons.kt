@@ -35,10 +35,9 @@ internal object ModeIcons {
     }
 }
 
-private fun icon(name: String, block: ImageVector.Builder.() -> Unit): ImageVector =
-    ImageVector.Builder(name = name, defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f)
-        .apply(block)
-        .build()
+private fun icon(name: String, block: ImageVector.Builder.() -> Unit): ImageVector = ImageVector.Builder(name = name, defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f)
+    .apply(block)
+    .build()
 
 private fun ImageVector.Builder.stroke(pathBuilder: PathBuilder.() -> Unit) = path(
     stroke = SolidColor(Color.Black),

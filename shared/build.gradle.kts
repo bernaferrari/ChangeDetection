@@ -298,3 +298,8 @@ tasks.register<JavaExec>("desktopBrowserSmoke") {
         systemProperty("apple.awt.UIElement", "true")
     }
 }
+
+// Real WebKit document tests run in an app host through tools/test-ios-browser.sh.
+tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest>().configureEach {
+    filter.excludeTestsMatching("*DocumentTest")
+}

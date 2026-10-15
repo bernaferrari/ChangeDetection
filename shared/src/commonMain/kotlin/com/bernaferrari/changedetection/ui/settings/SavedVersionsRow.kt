@@ -23,7 +23,7 @@ internal fun SavedVersionsRow(state: SettingsUiState, onRetry: () -> Unit, onCle
         onClick = { expanded = true },
     )
     if (expanded) {
-        HistoryStorageDialog(state.storageBytes, state.storageLoadFailed, onRetry, onDismiss = { expanded = false }, clearableBytes = state.clearableBytes, onClearOlder = onClearOlder)
+        HistoryStorageDialog(state.storageBytes, state.storageLoadFailed, onRetry, onDismiss = { expanded = false }, clearableBytes = state.clearableBytes, onClearOlder = onClearOlder, clearing = state.clearingOlderVersions, clearFailed = state.clearOlderVersionsFailed)
     }
 }
 
