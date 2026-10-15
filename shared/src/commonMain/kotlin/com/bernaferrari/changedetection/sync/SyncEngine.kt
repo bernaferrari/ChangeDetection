@@ -11,6 +11,7 @@ import com.bernaferrari.changedetection.util.ContentHasher
 import com.bernaferrari.changedetection.util.FileStorage
 import com.bernaferrari.changedetection.extensions.findCharset
 import com.bernaferrari.changedetection.util.decodeByteArray
+import com.bernaferrari.changedetection.util.isTextContentType
 import io.github.aakira.napier.Napier
 import com.fleeksoft.ksoup.Ksoup
 import io.ktor.client.*
@@ -542,10 +543,7 @@ open class SyncEngine(
                 // Extract the charset label from the Content-Type header text
                 // (multiplatform-safe; response.charset() is JVM-only).
                 val charsetName = contentType.findCharset()?.takeIf { it.isNotBlank() } ?: "UTF-8"
-                val isText = contentType.contains("text/", ignoreCase = true) ||
-                    contentType.contains("html", ignoreCase = true) ||
-                    contentType.contains("xml", ignoreCase = true) ||
-                    contentType.contains("json", ignoreCase = true)
+                val isText = contentType.isTextContentType()
 
                 val bodyBytes = readCappedBody(response.bodyAsChannel())
                 val data = if (isText) {

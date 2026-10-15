@@ -17,6 +17,9 @@ import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.ui.comparison.SnapshotImage
+import com.bernaferrari.changedetection.ui.comparison.isImageSnapshot
+import com.bernaferrari.changedetection.ui.comparison.isTextSnapshot
+import com.bernaferrari.changedetection.ui.comparison.isHtmlSnapshot
 import com.bernaferrari.changedetection.util.decodeByteArray
 import com.bernaferrari.changedetection.util.readableSnapshotText
 import com.bernaferrari.changedetection.util.formatTimestamp
@@ -36,12 +39,12 @@ internal sealed interface SavedPagePreview {
 /** Loads one immutable saved version, never the current website and never acknowledges a change. */
 internal suspend fun loadSavedPagePreview(snap: Snap, repository: SnapsRepository): SavedPagePreview = try {
     when {
-        snap.contentType.startsWith("image/") -> SavedPagePreview.Image(repository.getSnapContent(snap.snapId))
+        snap.isImageSnapshot() -> SavedPagePreview.Image(repository.getSnapContent(snap.snapId))
 
-        snap.contentType.startsWith("text/") || snap.contentType.contains("html") || snap.contentType.contains("json") -> {
+        snap.isTextSnapshot() -> {
             val bytes = repository.getSnapContent(snap.snapId)
             withContext(Dispatchers.Default) {
-                SavedPagePreview.Text(readableSnapshotText(decodeByteArray(bytes, snap.contentCharset), snap.contentType.contains("html")).take(1200))
+                SavedPagePreview.Text(readableSnapshotText(decodeByteArray(bytes, snap.contentCharset), snap.isHtmlSnapshot()).take(1200))
             }
         }
 

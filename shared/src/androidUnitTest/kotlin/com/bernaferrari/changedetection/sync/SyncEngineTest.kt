@@ -73,6 +73,41 @@ class SyncEngineTest {
 
     // ========== Content Fetching Tests ==========
 
+    @Test fun `binary responses remain unchanged by text decoding`() = runTest {
+        val bytes = byteArrayOf(0, 1, 127, 128.toByte(), 195.toByte(), 255.toByte())
+        for (type in listOf("image/png", "application/pdf", "application/octet-stream")) {
+            mockHttpClient = HttpClient(
+                MockEngine {
+                    respond(ByteReadChannel(bytes), headers = headersOf(HttpHeaders.ContentType, "$type; charset=ISO-8859-1"))
+                },
+            )
+            syncEngine = makeSyncEngine()
+            try {
+                val fetched = syncEngine.fetchFromServer(createTestSite()) as SyncEngine.FetchResult.Success
+                assertArrayEquals(type, bytes, fetched.data)
+            } finally {
+                mockHttpClient.close()
+            }
+        }
+    }
+
+    @Test fun `source scripts are normalized using their declared charset`() = runTest {
+        val source = "const label = 'Olá, café';"
+        val bytes = source.toByteArray(java.nio.charset.Charset.forName("ISO-8859-1"))
+        mockHttpClient = HttpClient(
+            MockEngine {
+                respond(ByteReadChannel(bytes), headers = headersOf(HttpHeaders.ContentType, "application/javascript; charset=ISO-8859-1"))
+            },
+        )
+        syncEngine = makeSyncEngine()
+        try {
+            val fetched = syncEngine.fetchFromServer(createTestSite()) as SyncEngine.FetchResult.Success
+            assertEquals(source, fetched.data.decodeToString())
+        } finally {
+            mockHttpClient.close()
+        }
+    }
+
     @Test
     fun `oversized stream is rejected before the server closes its response`() = runTest {
         val channel = ByteChannel(autoFlush = true)
