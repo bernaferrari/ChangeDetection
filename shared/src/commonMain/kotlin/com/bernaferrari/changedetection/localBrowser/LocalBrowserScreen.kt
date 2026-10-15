@@ -119,7 +119,7 @@ fun LocalBrowserScreen(
             isLocalSnapshot -> {
                 val content = state.content
                 val isImage = state.mimeType.startsWith("image/", ignoreCase = true)
-                val isHtmlDocument = state.mimeType.startsWith("text/html", ignoreCase = true) && content.hasHtmlMarkup()
+                val isHtmlDocument = state.mimeType.contains("html", ignoreCase = true) && content.hasHtmlMarkup()
                 val isShortText = !isImage && !isHtmlDocument && state.content.length < 800
                 Column(
                     modifier = Modifier.fillMaxSize().padding(paddingValues),

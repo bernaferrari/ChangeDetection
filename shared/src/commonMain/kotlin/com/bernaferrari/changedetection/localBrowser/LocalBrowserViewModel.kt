@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.util.decodeByteArray
+import com.bernaferrari.changedetection.util.isTextContentType
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,31 +36,28 @@ class LocalBrowserViewModel(
     val state: StateFlow<BrowserState> = _state.asStateFlow()
 
     private var fetchJob: Job? = null
+    private var fetchGeneration = 0L
 
     fun reset() {
+        ++fetchGeneration
         fetchJob?.cancel()
+        fetchJob = null
         _state.value = BrowserState()
     }
 
     fun fetchData(snapId: String) {
-        // Cancel any in-flight load so a stale response can never overwrite
-        // newer state (rapid snapshot switching, or reset() during a load).
+        // IO can fail after cancellation. Only the current request owns screen state.
+        val generation = ++fetchGeneration
         fetchJob?.cancel()
         fetchJob = viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            _state.value = BrowserState(isLoading = true)
 
             try {
-                val (snap, bytes) = withContext(Dispatchers.Default) {
-                    snapsRepository.getSnapById(snapId) to snapsRepository.getSnapContent(snapId)
-                }
-                val (mimeType, charsetName) = resolveEncoding(snap)
-                val decodedContent = if (mimeType.startsWith("text/", ignoreCase = true)) {
-                    decodeByteArray(bytes, charsetName)
-                } else {
-                    ""
-                }
-
-                _state.value =
+                val loaded = withContext(Dispatchers.Default) {
+                    val snap = snapsRepository.getSnapById(snapId)
+                    val bytes = snapsRepository.getSnapContent(snapId)
+                    val (mimeType, charsetName) = resolveEncoding(snap)
+                    val decodedContent = if (mimeType.isTextContentType()) decodeByteArray(bytes, charsetName) else ""
                     BrowserState(
                         content = decodedContent,
                         bytes = bytes,
@@ -68,7 +67,12 @@ class LocalBrowserViewModel(
                         timestamp = snap?.timestamp,
                         contentSize = snap?.contentSize ?: bytes.size,
                     )
+                }
+                if (generation == fetchGeneration) _state.value = loaded
+            } catch (cancelled: CancellationException) {
+                throw cancelled
             } catch (e: Exception) {
+                if (generation != fetchGeneration) return@launch
                 _state.value =
                     BrowserState(
                         content = "",

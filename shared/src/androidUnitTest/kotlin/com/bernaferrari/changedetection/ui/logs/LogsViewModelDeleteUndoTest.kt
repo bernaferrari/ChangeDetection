@@ -45,6 +45,18 @@ class LogsViewModelDeleteUndoTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    @Test fun `structured text has a readable preview in details and history`() = runTest(mainDispatcherRule.dispatcher) {
+        val fakes = Fakes()
+        val model = fakes.createViewModel()
+        val expected = com.bernaferrari.changedetection.ui.detail.SavedPagePreview.Text("snapshot content")
+        val repository = SnapsRepository(fakes.source)
+        for (type in listOf("application/xml", "application/rss+xml", "application/javascript", "Application/LD+JSON")) {
+            val snap = testSnap("preview").copy(contentType = type)
+            assertEquals(type, expected, com.bernaferrari.changedetection.ui.detail.loadSavedPagePreview(snap, repository))
+            assertEquals(type, HistoryPreviewContent.Capture(expected), model.loadPreview(snap))
+        }
+    }
+
     @Test
     fun `history previews use stored content and skip oversized captures`() = runTest(mainDispatcherRule.dispatcher) {
         val fakes = Fakes()

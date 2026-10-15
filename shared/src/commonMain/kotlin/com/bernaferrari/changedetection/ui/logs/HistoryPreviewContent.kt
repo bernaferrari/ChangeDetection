@@ -4,6 +4,8 @@ import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.ui.detail.SavedPagePreview
 import com.bernaferrari.changedetection.ui.detail.loadSavedPagePreview
+import com.bernaferrari.changedetection.ui.comparison.isTextSnapshot
+import com.bernaferrari.changedetection.ui.comparison.isHtmlSnapshot
 import com.bernaferrari.changedetection.util.decodeByteArray
 import com.bernaferrari.changedetection.util.readableSnapshotText
 import kotlinx.coroutines.CancellationException
@@ -20,13 +22,12 @@ private const val MAX_PREVIEW_BYTES = 1_048_576
 /** Bounded, immutable saved-file reads. Never fetches the website or marks a version read. */
 internal suspend fun loadHistoryPreview(snap: Snap, repository: SnapsRepository, preceding: suspend () -> Snap?): HistoryPreviewContent {
     if (snap.contentSize !in 1..MAX_PREVIEW_BYTES) return HistoryPreviewContent.Capture(SavedPagePreview.Document)
-    val textual = snap.contentType.startsWith("text/") || snap.contentType.contains("html") || snap.contentType.contains("json")
-    if (!textual) return HistoryPreviewContent.Capture(loadSavedPagePreview(snap, repository))
+    if (!snap.isTextSnapshot()) return HistoryPreviewContent.Capture(loadSavedPagePreview(snap, repository))
     return try {
         withContext(Dispatchers.Default) {
             suspend fun read(version: Snap): String = readableSnapshotText(
                 decodeByteArray(repository.getSnapContent(version.snapId), version.contentCharset),
-                version.contentType.contains("html"),
+                version.isHtmlSnapshot(),
             )
             val after = read(snap)
             val fallback = HistoryPreviewContent.Capture(SavedPagePreview.Text(after.take(1200)))
