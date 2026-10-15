@@ -25,6 +25,49 @@ import kotlinx.serialization.json.jsonPrimitive
 
 /** Explicit native integration task, separate from the headless Compose test suite. */
 object DesktopBrowserSmoke {
+    private suspend fun verifyLiveChooser() {
+        val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
+        server.createContext("/") { exchange ->
+            val bytes = "<title>Live chooser</title><p>Current page</p>".toByteArray()
+            exchange.responseHeaders.set("Content-Type", "text/html")
+            exchange.sendResponseHeaders(200, bytes.size.toLong())
+            exchange.responseBody.use { it.write(bytes) }
+        }
+        server.start()
+        val client = checkNotNull(dev.datlag.kcef.KCEF.newClientOrNullBlocking()) {
+            "Live chooser cannot create a KCEF client after runtime initialization"
+        }
+        val loaded = CompletableDeferred<Unit>()
+        client.addLoadHandler(object : org.cef.handler.CefLoadHandlerAdapter() {
+            override fun onLoadEnd(browser: org.cef.browser.CefBrowser, frame: org.cef.browser.CefFrame, httpStatusCode: Int) {
+                if (frame.isMain) loaded.complete(Unit)
+            }
+        })
+        var browser: dev.datlag.kcef.KCEFBrowser? = null
+        var window: JFrame? = null
+        try {
+            SwingUtilities.invokeAndWait {
+                browser = client.createBrowser("http://127.0.0.1:${server.address.port}/catalog")
+                window = JFrame("Live chooser smoke check").apply {
+                    add(requireNotNull(browser).uiComponent)
+                    setSize(480, 360)
+                    isVisible = true
+                }
+            }
+            withTimeout(15_000) { loaded.await() }
+            val url = withTimeout(5_000) { requireNotNull(browser).evaluateJavaScript("(function(){ history.pushState({}, '', '/product/b'); return window.location.href; })()") }
+            check(url?.contains("/product/b") == true) { "Live chooser could not report its current SPA address: $url" }
+            println("PASS KCEF live chooser loads, runs JavaScript and reports SPA navigation")
+        } finally {
+            SwingUtilities.invokeAndWait {
+                browser?.dispose()
+                window?.dispose()
+                client.dispose()
+            }
+            server.stop(0)
+        }
+    }
+
     @JvmStatic
     fun main(args: Array<String>) {
         var result = 1
@@ -38,6 +81,7 @@ object DesktopBrowserSmoke {
                     DesktopBrowserRuntime.state.first { it == DesktopBrowserRuntime.State.Ready || it == DesktopBrowserRuntime.State.Failed }
                 }
                 check(state == DesktopBrowserRuntime.State.Ready) { "Browser runtime failed to initialize" }
+                verifyLiveChooser()
                 var savedViewport = RegionViewport()
                 repeat(5) { index ->
                     val expected = "Saved version ${index + 1} — café"

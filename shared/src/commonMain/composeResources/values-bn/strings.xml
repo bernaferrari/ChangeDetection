@@ -794,4 +794,14 @@
     <string name="error_invalid_input">এই সেটিংস পরীক্ষা করুন</string>
     <string name="error_invalid_input_detail">পৃষ্ঠার ঠিকানা ও সেটিংস পরীক্ষা করে আবার চেষ্টা করুন।</string>
     <string name="comparison_new_version">নতুন সংস্করণ পাওয়া গেছে</string>
+    <string name="share_page_changed">“%1$s”-এ পরিবর্তন হয়েছে</string>
+    <plurals name="share_more_edits">
+        <item quantity="one">…এবং আরও %1$dটি পরিবর্তন</item>
+        <item quantity="other">…এবং আরও %1$dটি পরিবর্তন</item>
+    </plurals>
+    <plurals name="share_changed_areas">
+        <item quantity="one">%1$dটি পরিবর্তিত অংশ</item>
+        <item quantity="other">%1$dটি পরিবর্তিত অংশ</item>
+    </plurals>
+    <string name="storage_clear_failed">পুরোনো সংস্করণগুলি মুছে ফেলা যায়নি। আবার চেষ্টা করুন।</string>
 </resources>

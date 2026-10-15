@@ -181,14 +181,20 @@ open class SyncEngine(
         }
     }
 
+    /** Reuses an editor preview only while history is empty; a newer check always wins. */
+    suspend fun establishFirstVersion(site: Site, result: FetchResult.Success): SyncResult = withSiteLock(site.id) {
+        processFetchResultUnlocked(site, result, site.threshold, firstVersionOnly = true)
+    }
+
     /**
      * Core change-detection path. Callers MUST hold the per-site lock
-     * (via [processFetchResult], [syncSite] or [trySyncSite]).
+     * (via [processFetchResult], [establishFirstVersion], [syncSite] or [trySyncSite]).
      */
     private suspend fun processFetchResultUnlocked(
         site: Site,
         result: FetchResult,
         threshold: Int = 0,
+        firstVersionOnly: Boolean = false,
     ): SyncResult = withContext(Dispatchers.Default) {
         val currentSite = sitesDao.getSiteById(site.id)
             ?: return@withContext SyncResult.Skipped(site.id, "Page deleted during check")
@@ -210,7 +216,7 @@ open class SyncEngine(
                     processErrorResult(currentSite, FetchResult.Error("This address returns an image. Choose screenshots or source monitoring."))
                 } else {
                     try {
-                        processSuccessResult(currentSite, result, threshold)
+                        processSuccessResult(currentSite, result, threshold, firstVersionOnly)
                     } catch (cancelled: CancellationException) {
                         throw cancelled
                     } catch (error: Exception) {
@@ -236,7 +242,11 @@ open class SyncEngine(
         site: Site,
         incoming: FetchResult.Success,
         threshold: Int,
+        firstVersionOnly: Boolean,
     ): SyncResult {
+        val lastSnap = snapsDao.getLastSnapForSiteId(site.id)
+        if (firstVersionOnly && lastSnap != null) return SyncResult.Success(site.id, hadChanges = false)
+        // When reusing a preview, the commit below must still see this empty history.
         // Pages added before icons were captured get their real (high-resolution) icon from the HTML they already served.
         if (site.iconUrl.isBlank() && incoming.contentType.contains("html", true)) {
             runCatching { com.bernaferrari.changedetection.addedit.htmlIcon(incoming.data.decodeToString(), site.url) }
@@ -252,7 +262,6 @@ open class SyncEngine(
             return processErrorResult(site, FetchResult.Error(selection.message.orEmpty(), selection))
         }
         val result = if (prepared != null) incoming.copy(data = prepared.data) else incoming
-        val lastSnap = snapsDao.getLastSnapForSiteId(site.id)
         val contentHash = if (result.contentType.startsWith("image/", true)) {
             // A new browser renderer establishes a silent baseline, rather than a website-change alert.
             val renderer = if (result.capturedWithBrowser) "image-v3" else "image-v2"
@@ -299,7 +308,7 @@ open class SyncEngine(
         }
 
         if (hasContentChanged && meetsThreshold) {
-            return saveNewSnap(site, result, contentHash, lastSnap?.snapId, isFirstSnap)
+            return saveNewSnap(site, result, contentHash, lastSnap, isFirstSnap)
         } else {
             val updated = updateStatusIfCurrent(site, successful = true, isBrowser = result.contentType.contains("image", ignoreCase = true), expectedSnapshot = lastSnap)
             if (!updated) return SyncResult.Skipped(site.id, "Page changed or paused during check")
@@ -312,9 +321,19 @@ open class SyncEngine(
         site: Site,
         result: FetchResult.Success,
         contentHash: String,
-        previousSnapId: String?,
+        previousSnap: Snap?,
         isFirstSnap: Boolean,
     ): SyncResult {
+        val previousSnapId = previousSnap?.snapId
+        // History and retention order must survive a wall-clock correction on this device.
+        val checkedAt = currentTimeMillis()
+        val timestamp = maxOf(
+            checkedAt,
+            previousSnap?.let {
+                check(it.timestamp < Long.MAX_VALUE) { "Snapshot timestamp is out of range" }
+                it.timestamp + 1
+            } ?: Long.MIN_VALUE,
+        )
         val snapId = Uuid.random().toString()
         var committed = false
         val notificationSite: Site
@@ -322,7 +341,7 @@ open class SyncEngine(
             val snap = Snap(
                 snapId = snapId,
                 siteId = site.id,
-                timestamp = currentTimeMillis(),
+                timestamp = timestamp,
                 contentType = result.contentType,
                 contentCharset = "UTF-8",
                 contentSize = result.data.size,
@@ -342,7 +361,7 @@ open class SyncEngine(
                     snapsDao.insertSnap(snap)
                     sitesDao.updateSyncMetadata(
                         siteId = site.id,
-                        timestamp = snap.timestamp,
+                        timestamp = checkedAt,
                         successful = true,
                         isBrowser = result.contentType.contains("image", ignoreCase = true),
                         isRead = if (!isFirstSnap) {
@@ -466,7 +485,7 @@ open class SyncEngine(
     /** Checks only the active pages whose last check is older than [intervalMinutes]; used when the app comes back. */
     suspend fun syncDueSites(intervalMinutes: Long): Int = withContext(Dispatchers.Default) {
         val now = currentTimeMillis()
-        val due = sitesDao.getSitesList().filter { it.isSyncEnabled && now - it.timestamp >= intervalMinutes * 60_000L }
+        val due = sitesDao.getSitesList().filter { it.isSyncEnabled && (now < it.timestamp || now - it.timestamp >= intervalMinutes * 60_000L) }
         due.forEach { trySyncSite(it.id) }
         due.size
     }

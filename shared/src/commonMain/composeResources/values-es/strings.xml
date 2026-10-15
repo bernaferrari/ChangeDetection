@@ -414,4 +414,14 @@
     <string name="license_category_data">Datos</string>
     <string name="license_category_networking">Red</string>
     <string name="license_category_ui">Interfaz</string>
+    <string name="share_page_changed">Cambios en «%1$s»</string>
+    <plurals name="share_more_edits">
+        <item quantity="one">…y %1$d edición más</item>
+        <item quantity="other">…y %1$d ediciones más</item>
+    </plurals>
+    <plurals name="share_changed_areas">
+        <item quantity="one">%1$d área modificada</item>
+        <item quantity="other">%1$d áreas modificadas</item>
+    </plurals>
+    <string name="storage_clear_failed">No se pudieron borrar las versiones anteriores. Inténtalo de nuevo.</string>
 </resources>

@@ -794,4 +794,14 @@
     <string name="error_invalid_input">इन सेटिंग की जाँच करें</string>
     <string name="error_invalid_input_detail">पेज का पता और सेटिंग जाँचें, फिर दोबारा कोशिश करें।</string>
     <string name="comparison_new_version">नया संस्करण उपलब्ध है</string>
+    <string name="share_page_changed">“%1$s” में बदलाव हुआ</string>
+    <plurals name="share_more_edits">
+        <item quantity="one">…और %1$d बदलाव</item>
+        <item quantity="other">…और %1$d बदलाव</item>
+    </plurals>
+    <plurals name="share_changed_areas">
+        <item quantity="one">%1$d बदला हुआ हिस्सा</item>
+        <item quantity="other">%1$d बदले हुए हिस्से</item>
+    </plurals>
+    <string name="storage_clear_failed">पुराने वर्शन मिटाए नहीं जा सके। फिर से कोशिश करें।</string>
 </resources>

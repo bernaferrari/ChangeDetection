@@ -8,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.DeleteSweep
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
@@ -328,6 +329,8 @@ internal fun HistoryStorageDialog(
     onDismiss: () -> Unit,
     clearableBytes: Long = 0,
     onClearOlder: (() -> Unit)? = null,
+    clearing: Boolean = false,
+    clearFailed: Boolean = false,
 ) {
     var confirmingClear by remember { mutableStateOf(false) }
     if (confirmingClear && onClearOlder != null) {
@@ -339,8 +342,8 @@ internal fun HistoryStorageDialog(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        confirmingClear = false
                         onClearOlder()
-                        onDismiss()
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
                 ) { Text(stringResource(Res.string.storage_clear_older_confirm)) }
@@ -366,8 +369,17 @@ internal fun HistoryStorageDialog(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (clearing) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        CircularProgressIndicator(Modifier.size(24.dp))
+                        Text(stringResource(Res.string.loading))
+                    }
+                } else if (clearFailed && onClearOlder != null) {
+                    Text(stringResource(Res.string.storage_clear_failed), color = MaterialTheme.colorScheme.error)
+                    TextButton(onClick = onClearOlder) { Text(stringResource(Res.string.retry)) }
+                }
                 // Only offered when it would free something: a page's newest pair is never cleared.
-                if (onClearOlder != null && clearableBytes > 0) {
+                if (onClearOlder != null && clearableBytes > 0 && !clearing && !clearFailed) {
                     OutlinedButton(
                         onClick = { confirmingClear = true },
                         modifier = Modifier.fillMaxWidth(),

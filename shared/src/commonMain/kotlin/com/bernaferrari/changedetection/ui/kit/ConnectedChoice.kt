@@ -101,6 +101,7 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
                             },
                             shapes = when {
                                 options.size == 1 -> ToggleButtonDefaults.shapesFor(ToggleButtonDefaults.size)
+
                                 else -> gridShapes(
                                     GridCorners(
                                         topStart = rowIndex == 0 && index == 0,

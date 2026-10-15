@@ -40,7 +40,7 @@ class IosCheckRunner(
     suspend fun checkAll(onlyDueAfterMinutes: Long? = null): Int {
         val now = com.bernaferrari.changedetection.util.getCurrentTimeMillis()
         val due = sites.getSites().filter { site ->
-            site.isSyncEnabled && (onlyDueAfterMinutes == null || now - site.timestamp >= onlyDueAfterMinutes * 60_000L)
+            site.isSyncEnabled && (onlyDueAfterMinutes == null || now < site.timestamp || now - site.timestamp >= onlyDueAfterMinutes * 60_000L)
         }
         return checkBatch(due.map { it.id }, ::check)
     }

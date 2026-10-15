@@ -14,6 +14,7 @@ internal object DesktopBrowserRuntime {
     val state = mutableState.asStateFlow()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    @OptIn(dev.datlag.kcef.KCEFAcknowledge::class)
     fun start(directory: File = File(System.getProperty("user.home"), ".change-detection-desktop/browser")) {
         if (!mutableState.compareAndSet(State.Idle, State.Starting)) return
         scope.launch {
@@ -32,6 +33,7 @@ internal object DesktopBrowserRuntime {
                     val app = org.cef.CefApp.getInstance(settings)
                     app.onInitialization({ nativeState ->
                         if (nativeState == org.cef.CefApp.CefAppState.INITIALIZED) {
+                            KCEF.init(app)
                             markInitialized()
                         }
                     }, false)

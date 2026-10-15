@@ -19,6 +19,75 @@ import org.mockito.kotlin.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsLoadingTest {
+    @Test fun clearingHistoryReportsFailureAndRetriesWithoutOverlappingWork() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        val store = mock<DataStore<Preferences>>()
+        whenever(store.data).thenReturn(flowOf(mutablePreferencesOf()))
+        val snapshots = mock<SnapsRepository>()
+        whenever(snapshots.observeStorageBytes()).thenReturn(flowOf(100L))
+        whenever(snapshots.observeOlderVersionBytes()).thenReturn(flowOf(50L))
+        val release = CompletableDeferred<Unit>()
+        var attempts = 0
+        doSuspendableAnswer {
+            attempts++
+            if (attempts == 1) {
+                release.await()
+                throw java.io.IOException("private storage error")
+            }
+            Unit
+        }.whenever(snapshots).clearOlderVersions()
+        val model = SettingsViewModel(store, mock(), snapshots, mock { on { scope } doReturn backgroundScope })
+        val collection = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { model.uiState.collect() }
+        try {
+            runCurrent()
+            model.clearOlderVersions()
+            model.clearOlderVersions()
+            runCurrent()
+            assertEquals(1, attempts)
+            assertTrue(model.uiState.value.clearingOlderVersions)
+            release.complete(Unit)
+            runCurrent()
+            assertFalse(model.uiState.value.clearingOlderVersions)
+            assertTrue(model.uiState.value.clearOlderVersionsFailed)
+            assertTrue(model.uiState.value.isLoaded)
+            model.clearOlderVersions()
+            runCurrent()
+            assertEquals(2, attempts)
+            assertFalse(model.uiState.value.clearOlderVersionsFailed)
+            assertFalse(model.uiState.value.clearingOlderVersions)
+        } finally {
+            collection.cancelAndJoin()
+            model.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
+            Dispatchers.resetMain()
+        }
+    }
+
+    @Test fun historyClearingSurvivesClosingSettings() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        val snapshots = mock<SnapsRepository>()
+        val release = CompletableDeferred<Unit>()
+        var finished = false
+        doSuspendableAnswer {
+            release.await()
+            finished = true
+            Unit
+        }.whenever(snapshots).clearOlderVersions()
+        val model = SettingsViewModel(mock(), mock(), snapshots, mock { on { scope } doReturn backgroundScope })
+        try {
+            model.clearOlderVersions()
+            runCurrent()
+            model.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
+            assertFalse(finished)
+            release.complete(Unit)
+            runCurrent()
+            assertTrue(finished)
+        } finally {
+            release.complete(Unit)
+            model.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
+            Dispatchers.resetMain()
+        }
+    }
+
     @Test fun storageFailureAndRetryKeepPreferencesLoadedAndSubscribed() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         val preferences = MutableStateFlow<Preferences>(mutablePreferencesOf(MonitoringSchedule.INTERVAL to 10080L))
@@ -40,7 +109,7 @@ class SettingsLoadingTest {
                 awaitCancellation()
             },
         )
-        val model = SettingsViewModel(store, mock(), snapshots)
+        val model = SettingsViewModel(store, mock(), snapshots, mock { on { scope } doReturn backgroundScope })
         val collection = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { model.uiState.collect() }
         try {
             runCurrent()
@@ -82,7 +151,7 @@ class SettingsLoadingTest {
                 return transform(persisted.value).also { persisted.value = it }
             }
         }
-        val model = SettingsViewModel(store, mock(), mock())
+        val model = SettingsViewModel(store, mock(), mock(), mock { on { scope } doReturn backgroundScope })
         try {
             model.updateThemeMode(ThemeMode.DARK)
             runCurrent()
@@ -118,7 +187,7 @@ class SettingsLoadingTest {
         val secondScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         val store = PreferenceDataStoreFactory.createWithPath(scope = firstScope, produceFile = { path })
         val snapshots = mock<SnapsRepository>().also { whenever(it.observeOlderVersionBytes()).thenReturn(kotlinx.coroutines.flow.flowOf(0L)) }
-        val model = SettingsViewModel(store, mock(), snapshots)
+        val model = SettingsViewModel(store, mock(), snapshots, mock { on { scope } doReturn backgroundScope })
         try {
             model.updateThemeMode(ThemeMode.DARK)
             store.data.first { it[SettingsViewModel.THEME_MODE_KEY] == ThemeMode.DARK.name }
@@ -151,7 +220,7 @@ class SettingsLoadingTest {
             },
         )
         whenever(snapshots.observeStorageBytes()).thenReturn(flow { awaitCancellation() })
-        val model = SettingsViewModel(store, mock(), snapshots)
+        val model = SettingsViewModel(store, mock(), snapshots, mock { on { scope } doReturn backgroundScope })
         val collection = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { model.uiState.collect() }
         try {
             runCurrent()
@@ -178,7 +247,7 @@ class SettingsLoadingTest {
         val snapshots = mock<SnapsRepository>().also { whenever(it.observeOlderVersionBytes()).thenReturn(kotlinx.coroutines.flow.flowOf(0L)) }
         whenever(store.data).thenReturn(preferences)
         whenever(snapshots.observeStorageBytes()).thenReturn(flow { awaitCancellation() })
-        val model = SettingsViewModel(store, mock(), snapshots)
+        val model = SettingsViewModel(store, mock(), snapshots, mock { on { scope } doReturn backgroundScope })
         val collection = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { model.uiState.collect() }
         try {
             runCurrent()

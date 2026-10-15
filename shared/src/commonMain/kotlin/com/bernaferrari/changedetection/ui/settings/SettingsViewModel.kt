@@ -34,6 +34,8 @@ data class SettingsUiState(
     val loadFailed: Boolean = false,
     val storageBytes: Long? = null,
     val storageLoadFailed: Boolean = false,
+    val clearingOlderVersions: Boolean = false,
+    val clearOlderVersionsFailed: Boolean = false,
     /** What clearing older versions would free; 0 when every page is already down to its latest change. */
     val clearableBytes: Long = 0,
     val backgroundSync: Boolean = true,
@@ -53,6 +55,7 @@ class SettingsViewModel(
     private val dataStore: DataStore<Preferences>,
     private val monitoringManager: MonitoringManager,
     private val snapshots: com.bernaferrari.changedetection.repo.source.SnapsRepository,
+    private val applicationScope: com.bernaferrari.changedetection.util.ApplicationScope,
 ) : ViewModel() {
     companion object {
         val BACKGROUND_SYNC_KEY = MonitoringSchedule.ENABLED
@@ -85,11 +88,26 @@ class SettingsViewModel(
             }
     }
 
-    /** Survives leaving Settings mid-clear; the storage figures update from the database as it goes. */
+    private enum class ClearState { Idle, Clearing, Failed }
+    private val clearState = MutableStateFlow(ClearState.Idle)
+
+    /** Survives leaving Settings mid-clear; repeated taps cannot start overlapping deletions. */
     fun clearOlderVersions() {
-        viewModelScope.launch(kotlinx.coroutines.NonCancellable) {
-            runCatching { snapshots.clearOlderVersions() }
-                .onFailure { io.github.aakira.napier.Napier.w("Could not clear older versions", it) }
+        val previous = clearState.value
+        if (previous == ClearState.Clearing || !clearState.compareAndSet(previous, ClearState.Clearing)) return
+        applicationScope.scope.launch {
+            try {
+                snapshots.clearOlderVersions()
+                clearState.value = ClearState.Idle
+                retryStorageLoading()
+            } catch (error: CancellationException) {
+                clearState.value = ClearState.Idle
+                throw error
+            } catch (error: Exception) {
+                io.github.aakira.napier.Napier.w("Could not clear older versions", error)
+                clearState.value = ClearState.Failed
+                retryStorageLoading()
+            }
         }
     }
 
@@ -126,6 +144,8 @@ class SettingsViewModel(
                 io.github.aakira.napier.Napier.w("Could not load settings", error)
                 emit(SettingsUiState(isLoaded = false, loadFailed = true))
             }
+    }.combine(clearState) { state, clear ->
+        state.copy(clearingOlderVersions = clear == ClearState.Clearing, clearOlderVersionsFailed = clear == ClearState.Failed)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),

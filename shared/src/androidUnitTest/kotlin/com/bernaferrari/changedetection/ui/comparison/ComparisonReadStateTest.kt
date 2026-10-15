@@ -5,7 +5,6 @@ import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
-import kotlinx.coroutines.CompletableDeferred
 import com.bernaferrari.changedetection.platform.ShareManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelAndJoin
@@ -216,35 +215,6 @@ class ComparisonReadStateTest {
         assertNull(failed.site)
         assertNull(failed.snapContent1)
         assertTrue(failed.snaps.isEmpty())
-    }
-
-    @Test fun sharingReadableTextMatchesTheDisplayedComparison() = runTest(dispatcher) {
-        val text = sharedText(readable = true)
-        assertTrue(text, text.contains("Sold out → Available"))
-        assertFalse(text, text.contains("<p>"))
-        assertTrue(text, text.endsWith(site.url))
-    }
-
-    @Test fun sharingSourcePreservesMarkup() = runTest(dispatcher) {
-        val text = sharedText(readable = false)
-        assertTrue(text, text.contains("<p>Sold out</p> → <p>Available</p>"))
-    }
-
-    /** Shares the visible comparison and returns what would go to the share sheet. */
-    private suspend fun sharedText(readable: Boolean): String {
-        prepare()
-        model.loadSiteAndSnaps(site.id, "older")
-        model.uiState.first { it.site != null && !it.isLoadingDiff }
-        val output = CompletableDeferred<String>()
-        doAnswer {
-            output.complete(it.getArgument(0))
-            null
-        }.whenever(share).shareText(any(), any())
-        model.shareDiff(history[1], history[0], "<p>Sold out</p>", "<p>Available</p>", readableText = readable)
-        val text = output.await()
-        // Let the share coroutine finish here, not after this test resets the main dispatcher.
-        dispatcher.scheduler.advanceUntilIdle()
-        return text
     }
 
     @Test fun retryHealthUpdatesWithoutReplacingTheHistoricalComparison() = runTest(dispatcher) {

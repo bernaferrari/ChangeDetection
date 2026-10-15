@@ -18,9 +18,13 @@ import platform.Foundation.NSError
 import platform.Foundation.NSNumber
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
+import platform.Foundation.NSHTTPURLResponse
+import platform.Foundation.NSURLRequestReloadIgnoringLocalCacheData
 import platform.UIKit.UIApplication
 import platform.UIKit.UIWindow
 import platform.WebKit.WKNavigation
+import platform.WebKit.WKNavigationResponse
+import platform.WebKit.WKNavigationResponsePolicy
 import platform.WebKit.WKNavigationDelegateProtocol
 import platform.WebKit.WKWebView
 import platform.WebKit.WKWebViewConfiguration
@@ -70,8 +74,7 @@ object IosPageCapture {
         web.userInteractionEnabled = false
         hostWindow()?.insertSubview(web, atIndex = 0)
         try {
-            val target = NSURL.URLWithString(url) ?: error("Invalid page address")
-            awaitLoad(web) { web.loadRequest(NSURLRequest.requestWithURL(target)) }
+            loadPage(web, url)
             delay(settleMs.coerceIn(500, 15_000))
             lastTitle = (evaluate(web, PageCleanup.TITLE) as? String)?.takeIf { it.isNotBlank() }
             lastIcon = (evaluate(web, PageCleanup.ICON) as? String)?.takeIf { it.startsWith("http") }
@@ -131,6 +134,11 @@ object IosPageCapture {
     private fun hostWindow(): UIWindow? = UIApplication.sharedApplication.keyWindow
         ?: UIApplication.sharedApplication.windows.firstOrNull() as? UIWindow
 
+    internal suspend fun loadPage(web: WKWebView, url: String) {
+        val target = NSURL.URLWithString(url) ?: error("Invalid page address")
+        awaitLoad(web) { web.loadRequest(captureRequest(target)) }
+    }
+
     private suspend fun awaitLoad(web: WKWebView, start: () -> Unit) = suspendCancellableCoroutine { continuation ->
         val delegate = LoadDelegate(continuation)
         web.navigationDelegate = delegate
@@ -147,6 +155,23 @@ object IosPageCapture {
     private class LoadDelegate(private val continuation: CancellableContinuation<Unit>) :
         NSObject(),
         WKNavigationDelegateProtocol {
+        override fun webView(
+            webView: WKWebView,
+            decidePolicyForNavigationResponse: WKNavigationResponse,
+            decisionHandler: (WKNavigationResponsePolicy) -> Unit,
+        ) {
+            val response = decidePolicyForNavigationResponse.response as? NSHTTPURLResponse
+            val rejected = decidePolicyForNavigationResponse.isForMainFrame() && response != null && response.statusCode >= 400
+            if (rejected) {
+                // Preserve the HTTP failure before cancellation can produce a generic WebKit error.
+                if (continuation.isActive) continuation.resumeWithException(com.bernaferrari.changedetection.error.NetworkError(response.statusCode.toInt(), "The page returned HTTP ${response.statusCode}"))
+                release()
+                decisionHandler(WKNavigationResponsePolicy.WKNavigationResponsePolicyCancel)
+            } else {
+                decisionHandler(WKNavigationResponsePolicy.WKNavigationResponsePolicyAllow)
+            }
+        }
+
         @kotlinx.cinterop.ObjCSignatureOverride
         override fun webView(webView: WKWebView, didFinishNavigation: WKNavigation?) {
             if (continuation.isActive) continuation.resume(Unit)
@@ -171,3 +196,10 @@ object IosPageCapture {
         }
     }
 }
+
+/** Refresh content without discarding the persistent browser session or its cookies. */
+internal fun captureRequest(url: NSURL): NSURLRequest = NSURLRequest.requestWithURL(
+    url,
+    cachePolicy = NSURLRequestReloadIgnoringLocalCacheData,
+    timeoutInterval = 60.0,
+)
