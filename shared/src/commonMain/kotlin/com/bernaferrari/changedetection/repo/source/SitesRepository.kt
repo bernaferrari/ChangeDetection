@@ -37,17 +37,17 @@ class SitesRepository(
         key != null && saved.url.canonicalUrlKey(browserIdentity) == key
     }
 
-    override suspend fun saveSite(site: Site, resetHistory: Boolean) {
-        mSitesLocalDataSource.saveSite(site, resetHistory)
+    override suspend fun saveSite(site: Site, resetHistory: Boolean, requireExisting: Boolean) {
+        mSitesLocalDataSource.saveSite(site, resetHistory, requireExisting)
     }
 
     override suspend fun updateIconShape(siteId: String, shape: PageIconShape) = mSitesLocalDataSource.updateIconShape(siteId, shape)
 
     override suspend fun updateIconColor(siteId: String, colors: com.bernaferrari.changedetection.repo.ColorGroup) = mSitesLocalDataSource.updateIconColor(siteId, colors)
 
-    override suspend fun updateSite(site: Site) {
-        mSitesLocalDataSource.updateSite(site)
-    }
+    override suspend fun setMonitoringEnabled(siteId: String, enabled: Boolean) = mSitesLocalDataSource.setMonitoringEnabled(siteId, enabled)
+
+    override suspend fun setNotificationsEnabled(siteId: String, enabled: Boolean) = mSitesLocalDataSource.setNotificationsEnabled(siteId, enabled)
 
     override suspend fun updateIcon(siteId: String, iconUrl: String) {
         if (iconUrl.startsWith("http")) mSitesLocalDataSource.updateIcon(siteId, iconUrl)

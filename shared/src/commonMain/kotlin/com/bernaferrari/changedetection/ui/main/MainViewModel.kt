@@ -161,18 +161,21 @@ class MainViewModel(
         }
     }
 
-    fun updateSite(site: Site) {
+    fun setMonitoringEnabled(siteId: String, enabled: Boolean) {
         viewModelScope.launch {
             runCatching {
-                mSitesRepository.updateSite(site)
-                if (!site.isSyncEnabled) removeSiteFromQuickMonitor(site.id)
+                mSitesRepository.setMonitoringEnabled(siteId, enabled)
+                if (!enabled) removeSiteFromQuickMonitor(siteId)
             }.onFailure { error ->
-                showError(
-                    error = error,
-                    context = ErrorContext.EDIT_SITE,
-                    siteId = site.id,
-                    retryAction = { updateSite(site) },
-                )
+                showError(error, ErrorContext.EDIT_SITE, siteId, retryAction = { setMonitoringEnabled(siteId, enabled) })
+            }
+        }
+    }
+
+    fun setNotificationsEnabled(siteId: String, enabled: Boolean) {
+        viewModelScope.launch {
+            runCatching { mSitesRepository.setNotificationsEnabled(siteId, enabled) }.onFailure { error ->
+                showError(error, ErrorContext.EDIT_SITE, siteId, retryAction = { setNotificationsEnabled(siteId, enabled) })
             }
         }
     }

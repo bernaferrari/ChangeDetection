@@ -6,7 +6,7 @@ import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.platform.ShareManager
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,6 +38,94 @@ class ComparisonReadStateTest {
     @After fun teardown() {
         runTest(dispatcher) { model.viewModelScope.coroutineContext.job.cancelAndJoin() }
         Dispatchers.resetMain()
+    }
+
+    @Test fun aCancelledBaselineReadCannotReplaceANewerComparisonWithItsFailure() = runTest(dispatcher) {
+        prepare()
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        doSuspendableAnswer {
+            withContext(NonCancellable) {
+                entered.complete(Unit)
+                release.await()
+                throw java.io.IOException("Old baseline read failed after cancellation")
+            }
+        }.whenever(snaps).getSnapContent("baseline")
+        model.openComparison(site.id, "baseline")
+        entered.await()
+        val oldLoads = model.viewModelScope.coroutineContext.job.children.toList()
+        try {
+            model.selectPairForComparison(0)
+            model.uiState.first { it.snapContent1 == "new" && !it.isLoadingDiff }
+            release.complete(Unit)
+            oldLoads.joinAll()
+            assertNull(model.uiState.value.error)
+            assertEquals("new", model.uiState.value.snapContent1)
+        } finally {
+            release.complete(Unit)
+        }
+    }
+
+    @Test fun anOlderPageLoadCannotShowAnErrorOnTheNewlyOpenedPage() = runTest(dispatcher) {
+        prepare()
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        doSuspendableAnswer {
+            withContext(NonCancellable) {
+                entered.complete(Unit)
+                release.await()
+                throw java.io.IOException("Old page lookup failed after cancellation")
+            }
+        }.whenever(sites).getSiteById(site.id)
+        val other = site.copy(id = "other", title = "Other page")
+        val otherSnap = snapshot("other-baseline", 4).copy(siteId = other.id)
+        whenever(sites.getSiteById(other.id)).thenReturn(other)
+        whenever(snaps.getAllSnapsForSite(other.id)).thenReturn(listOf(otherSnap))
+        whenever(snaps.getSnaps(other.id)).thenReturn(emptyFlow())
+        whenever(snaps.getSnapContent(otherSnap.snapId)).thenReturn("Other content".encodeToByteArray())
+        model.openComparison(site.id)
+        entered.await()
+        val oldLoads = model.viewModelScope.coroutineContext.job.children.toList()
+        try {
+            model.openComparison(other.id)
+            model.uiState.first { it.singleSnapContent == "Other content" }
+            release.complete(Unit)
+            oldLoads.joinAll()
+            assertNull(model.uiState.value.error)
+            assertEquals(other.id, model.uiState.value.site?.id)
+        } finally {
+            release.complete(Unit)
+        }
+    }
+
+    @Test fun retryingTheSameVersionIgnoresThePreviousAttemptsLateFailure() = runTest(dispatcher) {
+        prepare()
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        var reads = 0
+        doSuspendableAnswer {
+            if (++reads == 1) {
+                withContext(NonCancellable) {
+                    entered.complete(Unit)
+                    release.await()
+                    throw java.io.IOException("The old attempt failed after a successful retry")
+                }
+            }
+            "baseline".encodeToByteArray()
+        }.whenever(snaps).getSnapContent("baseline")
+        model.openComparison(site.id, "baseline")
+        entered.await()
+        val oldLoads = model.viewModelScope.coroutineContext.job.children.toList()
+        try {
+            model.retryComparison()
+            model.uiState.first { it.singleSnapContent == "baseline" && !it.isLoadingDiff }
+            release.complete(Unit)
+            oldLoads.joinAll()
+            assertNull(model.uiState.value.error)
+            assertEquals("baseline", model.uiState.value.singleSnapContent)
+        } finally {
+            release.complete(Unit)
+        }
     }
 
     @Test fun returningToTheEntryPreservesHistoricalSelectionButExplicitLatestStillWorks() = runTest(dispatcher) {

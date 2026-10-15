@@ -84,6 +84,12 @@ interface SitesDao {
     @Query("UPDATE sites SET iconShape = :shape WHERE siteId = :siteId")
     suspend fun updateIconShape(siteId: String, shape: PageIconShape)
 
+    @Query("UPDATE sites SET isSyncEnabled = :enabled WHERE siteId = :siteId")
+    suspend fun setMonitoringEnabled(siteId: String, enabled: Boolean)
+
+    @Query("UPDATE sites SET isNotificationEnabled = :enabled WHERE siteId = :siteId")
+    suspend fun setNotificationsEnabled(siteId: String, enabled: Boolean)
+
     @Query("UPDATE sites SET isSyncEnabled = :enabled, isNotificationEnabled = :notifications WHERE siteId = :siteId")
     suspend fun updateMonitoringOptions(siteId: String, enabled: Boolean, notifications: Boolean)
 
@@ -91,16 +97,19 @@ interface SitesDao {
     @Query("UPDATE sites SET iconUrl = :iconUrl WHERE siteId = :siteId AND iconUrl != :iconUrl")
     suspend fun updateIcon(siteId: String, iconUrl: String)
 
-    /** Editing a name or options must not overwrite a check completed while the form was open. */
+    /** Editor fields never overwrite check status or the monitoring switches owned by other controls. */
     @Transaction
-    suspend fun savePreservingStatus(site: Site) {
+    suspend fun savePreservingStatus(site: Site, requireExisting: Boolean = false) {
         val current = getSiteById(site.id)
+        if (requireExisting && current == null) throw com.bernaferrari.changedetection.repo.source.SiteNotFoundException(site.id)
         insertSite(
             if (current == null) {
                 site
             } else {
                 site.copy(
                     timestamp = current.timestamp,
+                    isSyncEnabled = current.isSyncEnabled,
+                    isNotificationEnabled = current.isNotificationEnabled,
                     lastSuccessfulCheck = current.lastSuccessfulCheck,
                     lastFailureCode = current.lastFailureCode,
                     isSuccessful = current.isSuccessful,
@@ -117,8 +126,20 @@ interface SitesDao {
 
     /** Metadata reset and monitor edit commit together; files are swept only after commit. */
     @Transaction
-    suspend fun saveWithHistoryReset(site: Site) {
-        insertSite(site.copy(timestamp = 0L, lastSuccessfulCheck = null, lastFailureCode = null, isSuccessful = true, isRead = true))
+    suspend fun saveWithHistoryReset(site: Site, requireExisting: Boolean = false) {
+        val current = getSiteById(site.id)
+        if (requireExisting && current == null) throw com.bernaferrari.changedetection.repo.source.SiteNotFoundException(site.id)
+        insertSite(
+            site.copy(
+                timestamp = 0L,
+                lastSuccessfulCheck = null,
+                lastFailureCode = null,
+                isSuccessful = true,
+                isRead = true,
+                isSyncEnabled = current?.isSyncEnabled ?: site.isSyncEnabled,
+                isNotificationEnabled = current?.isNotificationEnabled ?: site.isNotificationEnabled,
+            ),
+        )
         deleteSnapshotRows(site.id)
     }
 

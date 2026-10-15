@@ -359,6 +359,7 @@ class AddEditViewModel(
         viewModelScope.launch {
             try {
                 val existingSite = siteId?.let { sitesRepository.getSiteById(it) }
+                if (siteId != null && existingSite == null) throw com.bernaferrari.changedetection.repo.source.SiteNotFoundException(siteId)
 
                 // Check before any destructive "Start fresh" work. This also
                 // protects edit mode from being changed to another saved page.
@@ -421,7 +422,7 @@ class AddEditViewModel(
                     )
 
                 monitoringManager.updateSchedule()
-                sitesRepository.saveSite(baseSite, resetHistory = startFresh && existingSite != null)
+                sitesRepository.saveSite(baseSite, resetHistory = startFresh && existingSite != null, requireExisting = siteId != null)
                 // Any edit to the address, mode or parts discards the preview, so a ready one shows exactly this page.
                 val firstVersion = (state.preview as? CapturePreviewState.Ready)
                     ?.takeIf { siteId == null && kotlin.time.Clock.System.now().toEpochMilliseconds() - it.capturedAt < FIRST_VERSION_MAX_AGE_MS }
@@ -454,7 +455,7 @@ class AddEditViewModel(
                 _uiState.update {
                     it.copy(
                         isSaving = false,
-                        saveError = AddEditError.SaveFailed,
+                        saveError = if (error is com.bernaferrari.changedetection.repo.source.SiteNotFoundException) AddEditError.SiteNotFound else AddEditError.SaveFailed,
                     )
                 }
             }

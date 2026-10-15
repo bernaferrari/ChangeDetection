@@ -77,6 +77,8 @@ class ComparisonViewModel(
     private val errorHandler: ErrorHandler,
     private val applicationScope: ApplicationScope,
 ) : ViewModel() {
+    private var loadGeneration = 0L
+    private var contentGeneration = 0L
     private var contentLoadJob: Job? = null
     private var siteLoadJob: Job? = null
     private var siteObservationJob: Job? = null
@@ -167,11 +169,12 @@ class ComparisonViewModel(
         siteId: String,
         initialSnapId: String? = null,
     ) {
+        val generation = ++loadGeneration
         lastLoadRequest = siteId to initialSnapId
         siteLoadJob?.cancel()
         siteObservationJob?.cancel()
         snapshotObservationJob?.cancel()
-        contentLoadJob?.cancel()
+        cancelContentLoad()
         siteLoadJob = viewModelScope.launch {
             _uiState.value = ComparisonUiState()
 
@@ -182,6 +185,7 @@ class ComparisonViewModel(
                         .getAllSnapsForSite(siteId)
                         .sortedWith(compareByDescending<Snap> { it.timestamp }.thenByDescending { it.snapId })
 
+                if (generation != loadGeneration) return@launch
                 _uiState.value =
                     ComparisonUiState(
                         isLoading = false,
@@ -189,11 +193,11 @@ class ComparisonViewModel(
                         snaps = snaps,
                     )
 
-                observeCheckStatus(siteId)
+                observeCheckStatus(siteId, generation)
 
                 if (initialSnapId != null && snaps.none { it.snapId == initialSnapId }) {
                     _uiState.update { it.copy(requestedSnapshotUnavailable = true) }
-                    observeHistory(siteId)
+                    observeHistory(siteId, generation)
                     return@launch
                 }
 
@@ -206,10 +210,11 @@ class ComparisonViewModel(
                 if (snaps.size >= 2) {
                     selectPairForComparison(initialSnapId)
                 }
-                observeHistory(siteId)
+                observeHistory(siteId, generation)
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
             } catch (e: Exception) {
+                if (generation != loadGeneration) return@launch
                 Napier.w("Could not load saved comparison", e)
                 _uiState.value =
                     _uiState.value.copy(
@@ -221,10 +226,11 @@ class ComparisonViewModel(
     }
 
     /** Check health is live even while the user reviews a specific historical pair. */
-    private fun observeCheckStatus(siteId: String) {
+    private fun observeCheckStatus(siteId: String, generation: Long) {
         siteObservationJob = viewModelScope.launch {
             try {
                 sitesRepository.getDataWithChanges().collect { sites ->
+                    if (generation != loadGeneration) return@collect
                     val latest = sites.firstOrNull { it.id == siteId }
                     _uiState.update { current ->
                         if (current.site?.id == siteId) current.copy(site = latest) else current
@@ -239,10 +245,11 @@ class ComparisonViewModel(
     }
 
     /** Metadata stays live; saved content is never silently switched beneath the reader. */
-    private fun observeHistory(siteId: String) {
+    private fun observeHistory(siteId: String, generation: Long) {
         snapshotObservationJob = viewModelScope.launch {
             try {
                 snapsRepository.getSnaps(siteId).collect { rows ->
+                    if (generation != loadGeneration) return@collect
                     val snaps = rows.sortedWith(compareByDescending<Snap> { it.timestamp }.thenByDescending { it.snapId })
                     val before = _uiState.value
                     if (before.site?.id != siteId || before.snaps == snaps) return@collect
@@ -261,7 +268,7 @@ class ComparisonViewModel(
                         )
                     }
                     if (!available) {
-                        contentLoadJob?.cancel()
+                        cancelContentLoad()
                     } else if (selectedId == null && !before.requestedSnapshotUnavailable && snaps.isNotEmpty()) {
                         selectPairForComparison(0)
                     }
@@ -308,12 +315,19 @@ class ComparisonViewModel(
         }
     }
 
+    private fun cancelContentLoad() {
+        ++contentGeneration
+        contentLoadJob?.cancel()
+        contentLoadJob = null
+    }
+
     private fun loadSnapContents(
         pairIndex: Int,
         snap1: Snap,
         snap2: Snap,
     ) {
-        contentLoadJob?.cancel()
+        cancelContentLoad()
+        val generation = contentGeneration
         contentLoadJob = viewModelScope.launch {
             _uiState.update {
                 it.copy(
@@ -366,7 +380,7 @@ class ComparisonViewModel(
                     }
 
                 _uiState.update { current ->
-                    if (current.snaps.getOrNull(current.selectedPairIndex ?: -1)?.snapId != snap1.snapId || current.snaps.getOrNull((current.selectedPairIndex ?: -2) + 1)?.snapId != snap2.snapId) return@update current
+                    if (generation != contentGeneration || current.snaps.getOrNull(current.selectedPairIndex ?: -1)?.snapId != snap1.snapId || current.snaps.getOrNull((current.selectedPairIndex ?: -2) + 1)?.snapId != snap2.snapId) return@update current
                     current.copy(
                         snapContent1 = content1,
                         snapContent2 = content2,
@@ -381,7 +395,7 @@ class ComparisonViewModel(
             } catch (e: Exception) {
                 Napier.w("Could not load saved comparison", e)
                 _uiState.update { current ->
-                    if (current.snaps.getOrNull(current.selectedPairIndex ?: -1)?.snapId != snap1.snapId || current.snaps.getOrNull((current.selectedPairIndex ?: -2) + 1)?.snapId != snap2.snapId) return@update current
+                    if (generation != contentGeneration || current.snaps.getOrNull(current.selectedPairIndex ?: -1)?.snapId != snap1.snapId || current.snaps.getOrNull((current.selectedPairIndex ?: -2) + 1)?.snapId != snap2.snapId) return@update current
                     current.copy(
                         isLoadingDiff = false,
                         error = ComparisonLoadFailure.Content,
@@ -392,7 +406,8 @@ class ComparisonViewModel(
     }
 
     private fun loadSingleSnapContent(snap: Snap) {
-        contentLoadJob?.cancel()
+        cancelContentLoad()
+        val generation = contentGeneration
         contentLoadJob = viewModelScope.launch {
             _uiState.update {
                 it.copy(
@@ -427,7 +442,7 @@ class ComparisonViewModel(
                     }
 
                 _uiState.update {
-                    if (it.singleSnap?.snapId != snap.snapId) return@update it
+                    if (generation != contentGeneration || it.singleSnap?.snapId != snap.snapId) return@update it
                     it.copy(
                         singleSnapContent = content,
                         singleSnapBytes = bytes.takeIf { snap.isImageSnapshot() },
@@ -439,6 +454,7 @@ class ComparisonViewModel(
             } catch (e: Exception) {
                 Napier.w("Could not load saved comparison", e)
                 _uiState.update {
+                    if (generation != contentGeneration || it.singleSnap?.snapId != snap.snapId) return@update it
                     it.copy(
                         isLoadingDiff = false,
                         error = ComparisonLoadFailure.Content,
@@ -541,22 +557,6 @@ class ComparisonViewModel(
                 errorHandler.handleError(e, ErrorContext.DATABASE_OPERATION, userAction = "prune snapshots")
                 _actionMessages.trySend("prune_failed")
             }
-        }
-    }
-
-    fun clearSelection() {
-        _uiState.update {
-            it.copy(
-                selectedPairIndex = null,
-                singleSnap = null,
-                singleSnapContent = null,
-                singleSnapBytes = null,
-                snapContent1 = null,
-                snapContent2 = null,
-                snapBytes1 = null,
-                snapBytes2 = null,
-                imageDiff = null,
-            )
         }
     }
 }

@@ -168,10 +168,10 @@ internal fun PageDetailScreen(
         onHistory = onHistory,
         onCheck = { item?.site?.let(viewModel::reloadSite) },
         onMarkRead = { item?.let(viewModel::markRead) },
-        onSetPaused = { paused -> item?.site?.let { viewModel.updateSite(it.copy(isSyncEnabled = !paused)) } },
+        onSetPaused = { paused -> item?.site?.let { viewModel.setMonitoringEnabled(it.id, !paused) } },
         onSetNotify = { on ->
             if (on) onEnableNotifications()
-            item?.site?.let { viewModel.updateSite(it.copy(isNotificationEnabled = on)) }
+            item?.site?.let { viewModel.setNotificationsEnabled(it.id, on) }
         },
         onDelete = { confirmDelete = true },
         onIconShapeChange = { shape -> item?.site?.let { viewModel.updateIconShape(it.id, shape) } },
