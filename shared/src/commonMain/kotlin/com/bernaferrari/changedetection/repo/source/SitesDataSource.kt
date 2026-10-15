@@ -25,13 +25,16 @@ interface SitesDataSource {
 
     suspend fun getSiteByUrl(siteUrl: String): Site?
 
-    suspend fun saveSite(site: Site, resetHistory: Boolean = false)
+    /** Edits require a live row inside the write transaction; creation may insert a new page. */
+    suspend fun saveSite(site: Site, resetHistory: Boolean = false, requireExisting: Boolean = false)
 
     suspend fun updateIconShape(siteId: String, shape: PageIconShape)
 
     suspend fun updateIconColor(siteId: String, colors: com.bernaferrari.changedetection.repo.ColorGroup)
 
-    suspend fun updateSite(site: Site)
+    suspend fun setMonitoringEnabled(siteId: String, enabled: Boolean)
+
+    suspend fun setNotificationsEnabled(siteId: String, enabled: Boolean)
 
     /** Acknowledge only the latest saved snapshot; returns false if a newer change arrived. */
     suspend fun markSiteRead(siteId: String, snapId: String): Boolean
@@ -43,3 +46,6 @@ interface SitesDataSource {
 
     suspend fun deleteSite(siteId: String)
 }
+
+/** A stale editor may not recreate a page removed by another screen. */
+class SiteNotFoundException(val siteId: String) : IllegalStateException("The monitored page no longer exists")

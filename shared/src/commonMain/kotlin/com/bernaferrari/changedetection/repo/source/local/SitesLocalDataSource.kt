@@ -35,12 +35,12 @@ class SitesLocalDataSource(
         mSitesDao.getSiteByUrl(siteUrl)
     }
 
-    override suspend fun saveSite(site: Site, resetHistory: Boolean): Unit = withContext(mAppExecutors.ioContext) {
+    override suspend fun saveSite(site: Site, resetHistory: Boolean, requireExisting: Boolean): Unit = withContext(mAppExecutors.ioContext) {
         if (resetHistory) {
-            mSitesDao.saveWithHistoryReset(site)
+            mSitesDao.saveWithHistoryReset(site, requireExisting)
             cleanup.drain()
         } else {
-            mSitesDao.savePreservingStatus(site)
+            mSitesDao.savePreservingStatus(site, requireExisting)
         }
     }
 
@@ -52,8 +52,12 @@ class SitesLocalDataSource(
         mSitesDao.updateIconColor(siteId, colors)
     }
 
-    override suspend fun updateSite(site: Site) = withContext(mAppExecutors.ioContext) {
-        mSitesDao.updateMonitoringOptions(site.id, site.isSyncEnabled, site.isNotificationEnabled)
+    override suspend fun setMonitoringEnabled(siteId: String, enabled: Boolean) = withContext(mAppExecutors.ioContext) {
+        mSitesDao.setMonitoringEnabled(siteId, enabled)
+    }
+
+    override suspend fun setNotificationsEnabled(siteId: String, enabled: Boolean) = withContext(mAppExecutors.ioContext) {
+        mSitesDao.setNotificationsEnabled(siteId, enabled)
     }
 
     override suspend fun updateIcon(siteId: String, iconUrl: String) = withContext(mAppExecutors.ioContext) {

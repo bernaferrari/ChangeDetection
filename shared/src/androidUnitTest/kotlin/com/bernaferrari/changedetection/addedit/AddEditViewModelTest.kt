@@ -35,6 +35,19 @@ class AddEditViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    @Test fun `saving an editor after its page was deleted does not recreate it`() = runTest {
+        val source = FakeSitesDataSource().apply { savedSite = existingSite("page", "https://example.com") }
+        val editor = createViewModel(siteId = "page", dataSource = source)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        editor.setTitle("Updated title")
+        source.deleteSite("page")
+        editor.saveSite()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(null, source.savedSite)
+        assertEquals(AddEditError.SiteNotFound, editor.uiState.value.saveError)
+        assertFalse(editor.uiState.value.saveComplete)
+    }
+
     @Test
     fun `icon shape stays a draft until save and restores when editing`() = runTest {
         val source = FakeSitesDataSource()
@@ -454,7 +467,8 @@ class AddEditViewModelTest {
 
         override suspend fun getSiteByUrl(siteUrl: String): Site? = savedSite?.takeIf { it.url == siteUrl }
 
-        override suspend fun saveSite(site: Site, resetHistory: Boolean) {
+        override suspend fun saveSite(site: Site, resetHistory: Boolean, requireExisting: Boolean) {
+            if (requireExisting && getSiteById(site.id) == null) throw com.bernaferrari.changedetection.repo.source.SiteNotFoundException(site.id)
             savedSite = site
         }
 
@@ -466,8 +480,12 @@ class AddEditViewModelTest {
             getSiteById(siteId)?.let { saveSite(it.copy(colors = colors), false) }
         }
 
-        override suspend fun updateSite(site: Site) {
-            savedSite = site
+        override suspend fun setMonitoringEnabled(siteId: String, enabled: Boolean) {
+            savedSite = savedSite?.copy(isSyncEnabled = enabled)
+        }
+
+        override suspend fun setNotificationsEnabled(siteId: String, enabled: Boolean) {
+            savedSite = savedSite?.copy(isNotificationEnabled = enabled)
         }
 
         override suspend fun undoSiteRead(siteId: String, snapId: String): Boolean = false

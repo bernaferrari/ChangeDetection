@@ -260,12 +260,12 @@ fun HomeScreen(
                         },
                         onDelete = ::deleteSelected,
                         onSetPaused = { paused ->
-                            all.orEmpty().filter { it.site.id in selection.ids }.forEach { viewModel.updateSite(it.site.copy(isSyncEnabled = !paused)) }
+                            all.orEmpty().filter { it.site.id in selection.ids }.forEach { viewModel.setMonitoringEnabled(it.site.id, !paused) }
                             selection = selection.clear()
                         },
                         onSetNotify = { on ->
                             if (on) onEnableNotifications()
-                            all.orEmpty().filter { it.site.id in selection.ids }.forEach { viewModel.updateSite(it.site.copy(isNotificationEnabled = on)) }
+                            all.orEmpty().filter { it.site.id in selection.ids }.forEach { viewModel.setNotificationsEnabled(it.site.id, on) }
                             selection = selection.clear()
                         },
                         onEdit = {

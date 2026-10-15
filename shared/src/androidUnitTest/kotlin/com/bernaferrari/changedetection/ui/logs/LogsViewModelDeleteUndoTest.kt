@@ -366,6 +366,8 @@ class LogsViewModelDeleteUndoTest {
         }
 
         override suspend fun updateSite(site: Site) = Unit
+        override suspend fun setMonitoringEnabled(siteId: String, enabled: Boolean) = Unit
+        override suspend fun setNotificationsEnabled(siteId: String, enabled: Boolean) = Unit
 
         override suspend fun deleteSnapshotRows(siteId: String) = Unit
 
