@@ -78,7 +78,7 @@
     <string name="settings_background_sync_disabled">बंद</string>
     <string name="settings_background_sync_every">हर %1$d मिनट</string>
     <string name="settings_about_section">ऐप के बारे में</string>
-    <string name="settings_about_title">ChangeDetection के बारे में</string>
+    <string name="settings_about_title">Change Detection के बारे में</string>
     <string name="settings_action_contact">डेवलपर से संपर्क करें</string>
     <string name="settings_sync_constraints_title">सिंक की शर्तें</string>
     <string name="settings_sync_constraint_wifi">वाई-फ़ाई ज़रूरी हो</string>
@@ -144,7 +144,7 @@
     <string name="comparison_no_changes_title">कोई अंतर नहीं मिला</string>
     <string name="comparison_no_changes_text">दोनों संस्करणों का टेक्स्ट एक जैसा है।</string>
     <string name="settings_comparison_title">डिफ़ॉल्ट कैप्चर तरीका</string>
-    <string name="settings_comparison_subtitle">ऐप की सेटिंग के अनुसार चलने वाले पेजों के लिए। अन्य पेज अपने कैप्चर तरीके का इस्तेमाल करेंगे।</string>
+    <string name="settings_comparison_subtitle">उन पेजों के लिए जो ऐप की डिफ़ॉल्ट सेटिंग का पालन करते हैं। अन्य पेज अपनी कैप्चर विधि रखते हैं।</string>
     <string name="settings_comparison_summary">ऐप की सेटिंग मानने वाले पेजों के लिए</string>
     <string name="settings_comparison_page_text">पेज का टेक्स्ट</string>
     <string name="settings_comparison_screenshots">स्क्रीनशॉट</string>
@@ -197,7 +197,7 @@
     <string name="monitor_editor_error_invalid_url">पेज का पूरा पता दर्ज करें, जैसे example.com।</string>
     <string name="monitor_editor_error_not_found">यह पेज अब मौजूद नहीं है।</string>
     <string name="monitor_editor_error_load">यह पेज लोड नहीं हो पाया। फिर कोशिश करें।</string>
-    <string name="monitor_editor_error_save">यह पेज सहेजा नहीं जा सका। कनेक्शन जाँचें और फिर कोशिश करें।</string>
+    <string name="monitor_editor_error_save">यह पेज सेव नहीं हो सका। फिर कोशिश करें।</string>
     <string name="clear_page_address">पेज का पता साफ़ करें</string>
     <string name="paste">पेस्ट करें</string>
     <string name="local_browser_title_snapshot">सहेजा गया संस्करण</string>
@@ -228,7 +228,7 @@
     <string name="a11y_close">बंद करें</string>
     <string name="a11y_drag_screenshot_comparison">स्क्रीनशॉट की तुलना के लिए खिसकाएँ</string>
     <string name="a11y_open_license">लाइसेंस खोलें</string>
-    <string name="monitor_editor_cadence_hint">बैकग्राउंड में अपने आप जाँच होगी — सेटिंग में कभी भी बदलें।</string>
+    <string name="monitor_editor_cadence_hint">सेटिंग में अपने आप होने वाली जाँचें प्रबंधित करें।</string>
     <string name="monitor_editor_duplicate_warning">आप इस पेज की निगरानी पहले से कर रहे हैं</string>
     <string name="monitor_editor_duplicate_open">खोलें</string>
     <string name="address_changed_title">पता बदला</string>
@@ -253,7 +253,7 @@
     <string name="storage_history_policy">हर पेज के अधिकतम 100 संस्करण रखे जाते हैं। 250 MB से ज़्यादा होने पर पुराने संस्करण हटते हैं। हर पेज के सबसे नए दो संस्करण हमेशा रहते हैं, भले ही वे इस सीमा से बड़े हों।</string>
     <string name="storage_clear_older">पुराने संस्करण हटाएँ</string>
     <string name="storage_clear_older_title">पुराने संस्करण हटाएँ?</string>
-    <string name="storage_clear_older_body">हर पेज अपना सबसे नया बदलाव रखता है। पुराने संस्करणों का %1$s इस डिवाइस से हटा दिया जाएगा। इसे पूर्ववत नहीं किया जा सकता।</string>
+    <string name="storage_clear_older_body">हर पेज के दो सबसे नए संस्करण रखे जाएँगे। इस डिवाइस से %1$s पुराने संस्करण हटा दिए जाएँगे। इसे पूर्ववत नहीं किया जा सकता।</string>
     <string name="storage_clear_older_confirm">हटाएँ</string>
     <string name="capture_mode_default">ऐप का डिफ़ॉल्ट</string>
     <string name="capture_mode_html">पेज का HTML</string>
@@ -261,9 +261,9 @@
     <string name="capture_mode_baseline">तरीका बदलने पर नया शुरुआती संस्करण बनेगा। पुराना इतिहास रहेगा।</string>
     <string name="capture_preview_action">कैप्चर का प्रीव्यू देखें</string>
     <string name="capture_preview_title">कैप्चर का प्रीव्यू</string>
-    <string name="capture_preview_loading">पेज लोड हो रहा है…</string>
+    <string name="capture_preview_loading">प्रीव्यू तैयार हो रहा है…</string>
     <string name="capture_first_version_title">प्रीव्यू तैयार हो रहा है…</string>
-    <string name="capture_first_version_body">लोड होने के दौरान आप सेटिंग बदल सकते हैं।</string>
+    <string name="capture_first_version_body">आप अभी भी सेटिंग बदल सकते हैं।</string>
     <string name="capture_preview_html">पेज के टेक्स्ट का प्रीव्यू</string>
     <string name="capture_preview_empty">पढ़ने योग्य टेक्स्ट नहीं मिला। इस पेज की निगरानी के लिए स्क्रीनशॉट ज़रूरी हो सकते हैं।</string>
     <string name="capture_preview_expand">पूरा स्क्रीनशॉट देखें</string>
@@ -316,7 +316,7 @@
     <string name="text_region_description">केवल मेल खाने वाला HTML सहेजा जाएगा। चुने हुए हिस्से से बाहर या छोड़े गए तत्वों के बदलाव पर सूचनाएँ नहीं मिलेंगी। सहेजने से पहले प्रीव्यू देखें। पूरे पेज की निगरानी के लिए शामिल करने वाला चयनकर्ता खाली रखें।</string>
     <string name="text_region_include">शामिल करने वाला CSS चयनकर्ता (वैकल्पिक)</string>
     <string name="text_region_exclude">छोड़ने वाला CSS चयनकर्ता (वैकल्पिक)</string>
-    <string name="text_region_invalid">हर CSS चयनकर्ता वैध और अधिकतम 512 अक्षरों का हो। रेगुलर एक्सप्रेशन वाले चयनकर्ता न इस्तेमाल करें।</string>
+    <string name="text_region_invalid">हर CSS चयनकर्ता वैध और अधिकतम 4096 अक्षरों का हो। रेगुलर एक्सप्रेशन वाले चयनकर्ता न इस्तेमाल करें।</string>
     <string name="detail_last_saved">आखिरी बार सहेजा गया</string>
     <string name="detail_compare">तुलना करें</string>
     <string name="detail_empty_text">इस सहेजे गए संस्करण में पढ़ने योग्य टेक्स्ट नहीं है। सोर्स देखने के लिए खोलें।</string>
@@ -372,10 +372,10 @@
     <string name="settings_write_failed">आपका चयन सहेजा नहीं जा सका। फिर कोशिश करें।</string>
     <string name="storage_history_load_failed">स्टोरेज इस्तेमाल लोड नहीं हो पाया।</string>
     <string name="turbo_unavailable_title">इस प्रीव्यू में टर्बो उपलब्ध नहीं</string>
-    <string name="turbo_unavailable_description">निगरानी सत्र शुरू करने के लिए Android या डेस्कटॉप ऐप इस्तेमाल करें।</string>
+    <string name="turbo_unavailable_description">निगरानी सत्र शुरू करने के लिए Android, iOS या डेस्कटॉप ऐप इस्तेमाल करें।</string>
     <string name="image_diff_sampled_pixels_different">%1$s नमूना पिक्सेल अलग हैं। आँकड़े छोटे आकार के प्रीव्यू पर आधारित हैं।</string>
     <string name="check_failure_capture_unavailable">स्क्रीनशॉट जाँचें उपलब्ध नहीं</string>
-    <string name="check_failure_capture_unavailable_detail">स्क्रीनशॉट जाँचों के लिए Android इस्तेमाल करें या पेज बदलकर टेक्स्ट या सोर्स की निगरानी चुनें। सहेजे गए संस्करण रहेंगे।</string>
+    <string name="check_failure_capture_unavailable_detail">स्क्रीनशॉट जाँचों के लिए Android या iOS इस्तेमाल करें, या टेक्स्ट या सोर्स की निगरानी चुनें। आपके सेव किए गए संस्करण सुरक्षित रहेंगे।</string>
     <string name="settings_theme_and_color">थीम और रंग</string>
     <string name="history_today">आज</string>
     <string name="history_yesterday">कल</string>
@@ -413,7 +413,7 @@
     <string name="home_select_page">पेज चुनें</string>
     <string name="home_select_pages">पेज चुनें</string>
     <string name="detail_status_failed">आखिरी जाँच विफल हुई %1$s</string>
-    <string name="detail_calendar_summary">पिछले 30 दिनों में %2$d दिनों पर %1$d बदलाव</string>
+    <string name="detail_calendar_summary">पिछले ३० दिनों में %2$s पर %1$s</string>
     <string name="turbo_sheet_no_pages">अभी कोई सक्रिय पेज नहीं। टर्बो शुरू करने से पहले पेज की निगरानी फिर शुरू करें।</string>
     <string name="turbo_sheet_paused_note">रुके हुए पेज शामिल नहीं हैं।</string>
     <string name="turbo_live_note_while_open">ऐप खुला रहने तक टर्बो जाँचता रहेगा। आप यह स्क्रीन छोड़कर बाद में बदलाव देखने लौट सकते हैं।</string>
@@ -517,8 +517,8 @@
     </plurals>
     <string name="turbo_found_none">कोई बदलाव नहीं मिला</string>
     <plurals name="turbo_summary_checks">
-        <item quantity="one">%2$d पेजों पर %1$d जाँच</item>
-        <item quantity="other">%2$d पेजों पर %1$d जाँचें</item>
+        <item quantity="one">%1$d जाँच</item>
+        <item quantity="other">%1$d जाँचें</item>
     </plurals>
     <string name="turbo_live_note">यह स्क्रीन छोड़ने पर भी टर्बो चलता रहेगा। पेज बदलते ही आपको सूचना मिलेगी।</string>
     <string-array name="weekday_names">
@@ -578,6 +578,7 @@
     <string name="mode_html">पेज का HTML</string>
     <string name="mode_default">ऐप का डिफ़ॉल्ट</string>
     <string name="mode_text">टेक्स्ट</string>
+    <string name="mode_code">कोड</string>
     <string name="detail_how_often">ऐप की जाँच का शेड्यूल</string>
     <string name="detail_notify">मुझे सूचना दें</string>
     <string name="detail_paused">जाँचें रोकें</string>
@@ -587,7 +588,7 @@
     <string name="detail_check_less">कम बार जाँचें</string>
     <string name="advice_temporary">वेबसाइट व्यस्त या बंद है। यह अक्सर अस्थायी होता है; हम कोशिश करते रहेंगे।</string>
     <string name="advice_connection">यह डिवाइस इंटरनेट से नहीं जुड़ सका। आपके ऑनलाइन होने पर फिर कोशिश करेंगे।</string>
-    <string name="advice_login">इस पेज पर लॉग इन ज़रूरी है। Android पर स्क्रीनशॉट जाँचें ऐप के ब्राउज़र का लॉग इन इस्तेमाल कर सकती हैं। टेक्स्ट और सोर्स की जाँचें ऐसा नहीं कर सकतीं।</string>
+    <string name="advice_login">इस पेज पर लॉग इन ज़रूरी है। स्क्रीनशॉट जाँचें इस डिवाइस पर ऐप के ब्राउज़र का लॉग इन इस्तेमाल कर सकती हैं। टेक्स्ट और सोर्स की जाँचें ऐसा नहीं कर सकतीं।</string>
     <string name="advice_not_found">पेज अब मौजूद नहीं है। जाँचें कि लिंक अब भी सही है।</string>
     <string name="advice_rate">वेबसाइट कम अनुरोध करने को कह रही है। कम बार जाँचने से अक्सर समस्या ठीक हो जाती है।</string>
     <string name="advice_region">आपका चुना हुआ हिस्सा अब पेज पर नहीं है। उसे फिर चुनें।</string>
@@ -631,7 +632,7 @@
     <string name="reader_position">बदलाव %1$d / %2$d</string>
     <string name="reader_versions_title">संस्करणों की तुलना करें</string>
     <string name="reader_versions_body">पिछले संस्करण से हुए बदलाव देखने के लिए किसी संस्करण पर टैप करें।</string>
-    <string name="advice_capture">स्क्रीनशॉट केवल Android पर लिए जा सकते हैं। इस पेज के लिए टेक्स्ट चुनें या फ़ोन से जाँच जारी रखें।</string>
+    <string name="advice_capture">स्क्रीनशॉट जाँचें Android और iOS पर उपलब्ध हैं। इस पेज के लिए टेक्स्ट चुनें या मोबाइल ऐप से जाँचें।</string>
     <string name="checks_title">अपने आप जाँचें</string>
     <string name="checks_every">हर</string>
     <string name="checks_custom">कस्टम…</string>
@@ -688,7 +689,7 @@
     <string name="single_saved_on">सहेजा गया %1$s</string>
     <string name="about_story">एक व्यक्ति ने बनाया, उन चीज़ों के लिए जिन्हें आप नहीं चूकना चाहते। मुफ़्त, ओपन सोर्स, बिना खाते और ट्रैकिंग के। पेज आपके डिवाइस से जाँचे जाते हैं और सब कुछ वहीं रहता है।</string>
     <string name="about_elsewhere">अन्य जगह</string>
-    <string name="editor_preview_failed_title">यह पेज खुल नहीं पाया</string>
+    <string name="editor_preview_failed_title">प्रीव्यू तैयार नहीं हो सका</string>
     <string name="editor_change_address">पता बदलें</string>
     <string name="editor_selectors">CSS चयनकर्ता</string>
     <string name="editor_name">नाम</string>
@@ -711,7 +712,10 @@
     <string name="preview_reordered_body">वही चीज़ें, नया क्रम। कुछ जोड़ा या हटाया नहीं गया।</string>
     <string name="digest_new">नया</string>
     <string name="digest_removed">हटाया गया</string>
-    <string name="digest_numbers">%1$d पंक्तियों में अंक बदले</string>
+    <plurals name="digest_numbers">
+        <item quantity="one">%1$d पंक्ति में अंक बदले</item>
+        <item quantity="other">%1$d पंक्तियों में अंक बदले</item>
+    </plurals>
     <string name="digest_numbers_body">काउंटर, समय और कीमतें। अक्सर अनावश्यक बदलाव।</string>
     <string name="digest_show_full">पूरी तुलना दिखाएँ</string>
     <string name="digest_changed">बदला गया</string>
@@ -808,4 +812,13 @@
     <string name="pull_check_pull">पेज जाँचने के लिए नीचे खींचें</string>
     <string name="pull_check_release">पेज जाँचने के लिए छोड़ें</string>
     <string name="pull_check_checking">पेज जाँचे जा रहे हैं…</string>
+    <string name="capture_screenshot_finishing">पूरा स्क्रीनशॉट तैयार हो रहा है…</string>
+    <plurals name="turbo_summary_pages">
+        <item quantity="one">%1$d पेज</item>
+        <item quantity="other">%1$d पेज</item>
+    </plurals>
+    <plurals name="detail_calendar_days">
+        <item quantity="one">%1$d दिन</item>
+        <item quantity="other">%1$d दिनों</item>
+    </plurals>
 </resources>

@@ -66,7 +66,7 @@
     <string name="settings_background_sync_disabled">Disattivata</string>
     <string name="settings_background_sync_every">Ogni %1$d minuti</string>
     <string name="settings_about_section">Info</string>
-    <string name="settings_about_title">Informazioni su ChangeDetection</string>
+    <string name="settings_about_title">Informazioni su Change Detection</string>
     <string name="settings_action_contact">Contatta lo sviluppatore</string>
     <string name="settings_sync_constraints_title">Condizioni di sincronizzazione</string>
     <string name="settings_sync_constraint_wifi">Richiedi Wi‑Fi</string>
@@ -132,7 +132,7 @@
     <string name="comparison_no_changes_title">Nessuna differenza trovata</string>
     <string name="comparison_no_changes_text">Il contenuto testuale delle due versioni è identico.</string>
     <string name="settings_comparison_title">Acquisizione predefinita</string>
-    <string name="settings_comparison_subtitle">Usata dalle pagine impostate per seguire l’app. Le altre mantengono il proprio metodo.</string>
+    <string name="settings_comparison_subtitle">Usata dalle pagine che seguono l’impostazione predefinita dell’app. Le altre mantengono il proprio metodo di acquisizione.</string>
     <string name="settings_comparison_summary">Per le pagine che seguono l’app</string>
     <string name="settings_comparison_page_text">Testo della pagina</string>
     <string name="settings_comparison_screenshots">Screenshot</string>
@@ -185,7 +185,7 @@
     <string name="monitor_editor_error_invalid_url">Inserisci un indirizzo di pagina completo, come esempio.com.</string>
     <string name="monitor_editor_error_not_found">Questa pagina non esiste più.</string>
     <string name="monitor_editor_error_load">Non è stato possibile caricare questa pagina. Riprova.</string>
-    <string name="monitor_editor_error_save">Non è stato possibile salvare questa pagina. Controlla la connessione e riprova.</string>
+    <string name="monitor_editor_error_save">Non è stato possibile salvare questa pagina. Riprova.</string>
     <string name="clear_page_address">Cancella indirizzo della pagina</string>
     <string name="paste">Incolla</string>
     <string name="local_browser_title_snapshot">Versione salvata</string>
@@ -216,7 +216,7 @@
     <string name="a11y_close">Chiudi</string>
     <string name="a11y_drag_screenshot_comparison">Trascina per confrontare gli screenshot</string>
     <string name="a11y_open_license">Apri licenza</string>
-    <string name="monitor_editor_cadence_hint">Controllo automatico in background: regolalo quando vuoi nelle Impostazioni.</string>
+    <string name="monitor_editor_cadence_hint">Gestisci i controlli automatici nelle Impostazioni.</string>
     <string name="monitor_editor_duplicate_warning">Stai già monitorando questa pagina</string>
     <string name="monitor_editor_duplicate_open">Apri</string>
     <string name="address_changed_title">Indirizzo modificato</string>
@@ -241,7 +241,7 @@
     <string name="storage_history_policy">Conserva fino a 100 versioni per pagina. Le versioni più vecchie vengono rimosse oltre 250 MB. Le ultime due versioni di ogni pagina vengono sempre conservate, anche oltre questo limite.</string>
     <string name="storage_clear_older">Elimina versioni precedenti</string>
     <string name="storage_clear_older_title">Eliminare le versioni precedenti?</string>
-    <string name="storage_clear_older_body">Ogni pagina mantiene la modifica più recente. %1$s di versioni precedenti verranno eliminati da questo dispositivo. L’operazione non può essere annullata.</string>
+    <string name="storage_clear_older_body">Ogni pagina mantiene le sue due versioni più recenti. %1$s di versioni precedenti verranno eliminati da questo dispositivo. L’operazione non può essere annullata.</string>
     <string name="storage_clear_older_confirm">Elimina</string>
     <string name="capture_mode_default">Predefinito dell’app</string>
     <string name="capture_mode_html">HTML della pagina</string>
@@ -249,9 +249,9 @@
     <string name="capture_mode_baseline">Cambiare metodo crea un nuovo riferimento. La cronologia esistente viene conservata.</string>
     <string name="capture_preview_action">Anteprima acquisizione</string>
     <string name="capture_preview_title">Anteprima acquisizione</string>
-    <string name="capture_preview_loading">Caricamento della pagina…</string>
+    <string name="capture_preview_loading">Preparazione dell’anteprima…</string>
     <string name="capture_first_version_title">Preparazione dell’anteprima…</string>
-    <string name="capture_first_version_body">Puoi continuare la configurazione durante il caricamento.</string>
+    <string name="capture_first_version_body">Puoi continuare a modificare le impostazioni.</string>
     <string name="capture_preview_html">Anteprima del testo della pagina</string>
     <string name="capture_preview_empty">Non è stato trovato testo leggibile. Questa pagina potrebbe richiedere schermate.</string>
     <string name="capture_preview_expand">Visualizza schermata completa</string>
@@ -304,7 +304,7 @@
     <string name="text_region_description">Viene salvato solo l’HTML selezionato. Le modifiche fuori dall’area o negli elementi ignorati non generano avvisi. Controlla l’anteprima prima di salvare. Lascia vuoto il selettore di inclusione per monitorare tutta la pagina.</string>
     <string name="text_region_include">Selettore CSS da includere (facoltativo)</string>
     <string name="text_region_exclude">Selettore CSS da ignorare (facoltativo)</string>
-    <string name="text_region_invalid">Usa selettori CSS validi di massimo 512 caratteri ciascuno, senza selettori con espressioni regolari.</string>
+    <string name="text_region_invalid">Usa selettori CSS validi di massimo 4096 caratteri ciascuno, senza selettori con espressioni regolari.</string>
     <string name="detail_last_saved">Ultima versione salvata</string>
     <string name="detail_compare">Confronta</string>
     <string name="detail_empty_text">Nessun testo leggibile in questa versione. Aprila per vedere il sorgente.</string>
@@ -360,10 +360,10 @@
     <string name="settings_write_failed">Impossibile salvare la scelta. Riprova.</string>
     <string name="storage_history_load_failed">Impossibile caricare lo spazio utilizzato.</string>
     <string name="turbo_unavailable_title">Turbo non è disponibile in questa anteprima</string>
-    <string name="turbo_unavailable_description">Usa l’app Android o desktop per avviare una sessione di monitoraggio.</string>
+    <string name="turbo_unavailable_description">Usa l’app Android, iOS o desktop per avviare una sessione di monitoraggio.</string>
     <string name="image_diff_sampled_pixels_different">%1$s pixel campionati differiscono. Le statistiche usano un’anteprima ridotta.</string>
     <string name="check_failure_capture_unavailable">Controlli tramite screenshot non disponibili</string>
-    <string name="check_failure_capture_unavailable_detail">Usa Android per controllare gli screenshot oppure modifica questa pagina per monitorare testo o codice sorgente. Le versioni salvate vengono conservate.</string>
+    <string name="check_failure_capture_unavailable_detail">Usa Android o iOS per i controlli con screenshot, oppure scegli testo o codice sorgente. Le versioni salvate vengono conservate.</string>
     <string name="settings_theme_and_color">Tema e colore</string>
     <string name="history_today">Oggi</string>
     <string name="history_yesterday">Ieri</string>
@@ -428,4 +428,13 @@
     <string name="pull_check_pull">Trascina per controllare le pagine</string>
     <string name="pull_check_release">Rilascia per controllare le pagine</string>
     <string name="pull_check_checking">Controllo delle pagine…</string>
+    <string name="capture_screenshot_finishing">Completamento screenshot…</string>
+    <plurals name="turbo_summary_pages">
+        <item quantity="one">%1$d pagina</item>
+        <item quantity="other">%1$d pagine</item>
+    </plurals>
+    <plurals name="detail_calendar_days">
+        <item quantity="one">%1$d giorno</item>
+        <item quantity="other">%1$d giorni</item>
+    </plurals>
 </resources>

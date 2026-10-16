@@ -597,7 +597,7 @@ private fun ChangeCalendar(versions: List<Snap>) {
     val changes = remember(versions, today) { versions.dropLast(1).filter { it.timestamp.localDate() in start..today } }
     val changedDays = remember(changes) { changes.mapTo(mutableSetOf()) { it.timestamp.localDate() } }
     val latestDay = versions.firstOrNull()?.timestamp?.localDate()
-    val summary = stringResource(Res.string.detail_calendar_summary, changes.size, changedDays.size)
+    val summary = stringResource(Res.string.detail_calendar_summary, pluralStringResource(Res.plurals.detail_changes_count, changes.size, changes.size), pluralStringResource(Res.plurals.detail_calendar_days, changedDays.size, changedDays.size))
     Surface(Modifier.fillMaxWidth().padding(horizontal = 16.dp).clearAndSetSemantics { contentDescription = summary }, shape = MaterialTheme.shapes.extraLarge, color = tileColor) {
         Column(Modifier.padding(20.dp)) {
             for (week in 0 until 2) {

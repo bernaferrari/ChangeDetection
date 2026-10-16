@@ -241,14 +241,15 @@ fun AddEditConfirmScreen(
                         enabled = !isSaving,
                         expanded = moreOptions,
                         onExpandedChange = { moreOptions = it },
+                        isEditing = isEditing,
                         advanced = {
-                            AdvancedOptions(captureMode, ::changeMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange, {
+                            AdvancedOptions(captureMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange, {
                                 onTextRegionChange(it)
                                 onPreview()
                             }, {
                                 typedRegion = true
                                 onTextRegionChange(it)
-                            }, isSaving, isEditing)
+                            }, isSaving)
                         },
                     )
                     if (duplicateSiteId != null) {
@@ -473,9 +474,10 @@ fun AddEditConfirmScreen(
                                 enabled = !isSaving,
                                 expanded = moreOptions,
                                 onExpandedChange = { moreOptions = it },
+                                isEditing = isEditing,
                                 advanced = {
                                     AdvancedOptions(
-                                        captureMode, ::changeMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange,
+                                        captureMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange,
                                         onRegion = {
                                             onTextRegionChange(it)
                                             onPreview()
@@ -485,7 +487,6 @@ fun AddEditConfirmScreen(
                                             onTextRegionChange(it)
                                         },
                                         isSaving = isSaving,
-                                        isEditing = isEditing,
                                     )
                                 },
                             )
@@ -741,20 +742,15 @@ private fun OptionsCard(
     enabled: Boolean,
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
+    isEditing: Boolean = false,
     advanced: @Composable () -> Unit,
 ) {
-    val modes = buildList {
-        if (supportsVisualMonitoring || captureMode == CaptureMode.SCREENSHOT) add(CaptureMode.SCREENSHOT)
-        add(CaptureMode.TEXT)
-        if (captureMode !in this) add(captureMode)
-    }
     val spring = androidx.compose.animation.core.spring<androidx.compose.ui.unit.IntSize>(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow)
     Surface(shape = MaterialTheme.shapes.extraLarge, color = tileColor, modifier = Modifier.fillMaxWidth().animateContentSize(spring)) {
         Column(Modifier.padding(top = 16.dp, bottom = 4.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(stringResource(Res.string.editor_compare), style = MaterialTheme.typography.titleSmall)
-                if (modes.size > 1) ConnectedChoice(modes, captureMode, onMode, Modifier, enabled = enabled) { modeName(it) }
-                Text(stringResource(modeExplanation(captureMode)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                CompareChoice(captureMode, onMode, enabled, screenshotAvailable = supportsVisualMonitoring, isEditing = isEditing)
             }
             HorizontalDivider(Modifier.padding(top = 4.dp), color = MaterialTheme.colorScheme.surfaceContainer)
             val rotation by androidx.compose.animation.core.animateFloatAsState(if (expanded) 180f else 0f, label = "chevron")
@@ -774,11 +770,10 @@ private fun OptionsCard(
     }
 }
 
-/** The technical choices: which part of the page, how small a visual change to ignore, and raw formats. */
+/** The technical choices: which part of the page, and how small a visual change to ignore. */
 @Composable
 private fun AdvancedOptions(
     captureMode: CaptureMode,
-    onMode: (CaptureMode) -> Unit,
     textRegion: com.bernaferrari.changedetection.detection.TextRegion,
     regionError: Boolean,
     visualChangeThresholdBps: Int,
@@ -786,32 +781,11 @@ private fun AdvancedOptions(
     onRegion: (com.bernaferrari.changedetection.detection.TextRegion) -> Unit,
     onRegionTyped: (com.bernaferrari.changedetection.detection.TextRegion) -> Unit,
     isSaving: Boolean,
-    isEditing: Boolean,
 ) {
     TextRegionFields(textRegion, regionError, !isSaving, onChoose = onRegion, onType = onRegionTyped)
     if (captureMode == CaptureMode.SCREENSHOT || captureMode == CaptureMode.DEFAULT) {
         VisualChangeFilterField(visualChangeThresholdBps, !isSaving, onVisualChangeThresholdChange)
     }
-    OtherFormatsField(captureMode, onMode, enabled = !isSaving, isEditing = isEditing)
-}
-
-@Composable
-private fun modeName(mode: CaptureMode): String = stringResource(
-    when (mode) {
-        CaptureMode.SCREENSHOT -> Res.string.mode_screenshot
-        CaptureMode.SOURCE -> Res.string.mode_source
-        CaptureMode.HTML -> Res.string.mode_html
-        CaptureMode.DEFAULT -> Res.string.mode_default
-        CaptureMode.TEXT -> Res.string.mode_text
-    },
-)
-
-private fun modeExplanation(mode: CaptureMode) = when (mode) {
-    CaptureMode.TEXT -> Res.string.editor_text_body
-    CaptureMode.SCREENSHOT -> Res.string.editor_screenshot_body
-    CaptureMode.SOURCE -> Res.string.editor_source_body
-    CaptureMode.HTML -> Res.string.editor_html_body
-    CaptureMode.DEFAULT -> Res.string.editor_default_body
 }
 
 @Composable

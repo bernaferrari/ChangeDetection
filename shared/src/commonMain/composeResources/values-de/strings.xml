@@ -78,7 +78,7 @@
     <string name="settings_background_sync_disabled">Deaktiviert</string>
     <string name="settings_background_sync_every">Alle %1$d Minuten</string>
     <string name="settings_about_section">Über</string>
-    <string name="settings_about_title">Über ChangeDetection</string>
+    <string name="settings_about_title">Über Change Detection</string>
     <string name="settings_action_contact">Entwickler kontaktieren</string>
     <string name="settings_sync_constraints_title">Bedingungen für den Abgleich</string>
     <string name="settings_sync_constraint_wifi">Nur mit WLAN</string>
@@ -144,7 +144,7 @@
     <string name="comparison_no_changes_title">Keine Unterschiede gefunden</string>
     <string name="comparison_no_changes_text">Der Text beider Versionen ist identisch.</string>
     <string name="settings_comparison_title">Standard-Aufnahmemethode</string>
-    <string name="settings_comparison_subtitle">Gilt für Seiten mit „App-Einstellung folgen“. Andere Seiten behalten ihre eigene Aufnahmemethode.</string>
+    <string name="settings_comparison_subtitle">Gilt für Seiten, die der App-Voreinstellung folgen. Andere Seiten behalten ihre eigene Aufnahmemethode.</string>
     <string name="settings_comparison_summary">Für Seiten, die den App-Einstellungen folgen</string>
     <string name="settings_comparison_page_text">Seitentext</string>
     <string name="settings_comparison_screenshots">Screenshots</string>
@@ -197,7 +197,7 @@
     <string name="monitor_editor_error_invalid_url">Gib eine vollständige Seitenadresse ein, z. B. example.com.</string>
     <string name="monitor_editor_error_not_found">Diese Seite existiert nicht mehr.</string>
     <string name="monitor_editor_error_load">Diese Seite konnte nicht geladen werden. Versuche es erneut.</string>
-    <string name="monitor_editor_error_save">Seite konnte nicht gespeichert werden. Prüfe die Verbindung und versuche es erneut.</string>
+    <string name="monitor_editor_error_save">Die Seite konnte nicht gespeichert werden. Versuche es erneut.</string>
     <string name="clear_page_address">Seitenadresse leeren</string>
     <string name="paste">Einfügen</string>
     <string name="local_browser_title_snapshot">Gespeicherte Version</string>
@@ -228,7 +228,7 @@
     <string name="a11y_close">Schließen</string>
     <string name="a11y_drag_screenshot_comparison">Zum Vergleichen der Screenshots ziehen</string>
     <string name="a11y_open_license">Lizenz öffnen</string>
-    <string name="monitor_editor_cadence_hint">Wird automatisch im Hintergrund geprüft. Jederzeit in den Einstellungen änderbar.</string>
+    <string name="monitor_editor_cadence_hint">Verwalte automatische Prüfungen in den Einstellungen.</string>
     <string name="monitor_editor_duplicate_warning">Du beobachtest diese Seite bereits</string>
     <string name="monitor_editor_duplicate_open">Öffnen</string>
     <string name="address_changed_title">Adresse geändert</string>
@@ -253,7 +253,7 @@
     <string name="storage_history_policy">Bis zu 100 Versionen pro Seite. Ältere Versionen werden ab 250 MB entfernt. Die neuesten zwei Versionen jeder Seite bleiben immer erhalten, auch wenn sie das Limit überschreiten.</string>
     <string name="storage_clear_older">Ältere Versionen löschen</string>
     <string name="storage_clear_older_title">Ältere Versionen löschen?</string>
-    <string name="storage_clear_older_body">Jede Seite behält ihre neueste Änderung. %1$s an älteren Versionen werden von diesem Gerät gelöscht. Das lässt sich nicht rückgängig machen.</string>
+    <string name="storage_clear_older_body">Jede Seite behält ihre zwei neuesten Versionen. %1$s an älteren Versionen werden von diesem Gerät gelöscht. Das lässt sich nicht rückgängig machen.</string>
     <string name="storage_clear_older_confirm">Löschen</string>
     <string name="capture_mode_default">App-Standard</string>
     <string name="capture_mode_html">Seiten-HTML</string>
@@ -261,9 +261,9 @@
     <string name="capture_mode_baseline">Bei einem Methodenwechsel wird ein neuer Ausgangspunkt gespeichert. Der Verlauf bleibt erhalten.</string>
     <string name="capture_preview_action">Aufnahme testen</string>
     <string name="capture_preview_title">Aufnahmevorschau</string>
-    <string name="capture_preview_loading">Seite wird geladen…</string>
+    <string name="capture_preview_loading">Vorschau wird vorbereitet…</string>
     <string name="capture_first_version_title">Vorschau wird vorbereitet…</string>
-    <string name="capture_first_version_body">Du kannst die Einstellungen während des Ladens weiter anpassen.</string>
+    <string name="capture_first_version_body">Du kannst die Einstellungen weiter anpassen.</string>
     <string name="capture_preview_html">Seitentext-Vorschau</string>
     <string name="capture_preview_empty">Kein lesbarer Text gefunden. Für diese Seite sind möglicherweise Screenshots nötig.</string>
     <string name="capture_preview_expand">Vollständigen Screenshot ansehen</string>
@@ -316,7 +316,7 @@
     <string name="text_region_description">Nur passendes HTML wird gespeichert. Änderungen außerhalb des Bereichs oder in ignorierten Elementen lösen keine Meldung aus. Prüfe die Vorschau vor dem Speichern. Ein leerer Einschlussselektor beobachtet die ganze Seite.</string>
     <string name="text_region_include">CSS-Einschlussselektor (optional)</string>
     <string name="text_region_exclude">CSS-Ausschlussselektor (optional)</string>
-    <string name="text_region_invalid">Verwende gültige CSS-Selektoren mit höchstens je 512 Zeichen, ohne reguläre Ausdrücke.</string>
+    <string name="text_region_invalid">Verwende gültige CSS-Selektoren mit höchstens je 4096 Zeichen, ohne reguläre Ausdrücke.</string>
     <string name="detail_last_saved">Zuletzt gespeichert</string>
     <string name="detail_compare">Vergleichen</string>
     <string name="detail_empty_text">Kein lesbarer Text in dieser Version. Öffne sie, um den Quelltext anzusehen.</string>
@@ -372,10 +372,10 @@
     <string name="settings_write_failed">Auswahl konnte nicht gespeichert werden. Versuche es erneut.</string>
     <string name="storage_history_load_failed">Speicherverbrauch konnte nicht geladen werden.</string>
     <string name="turbo_unavailable_title">Turbo ist in dieser Vorschau nicht verfügbar</string>
-    <string name="turbo_unavailable_description">Nutze die Android- oder Desktop-App für eine Überwachungssitzung.</string>
+    <string name="turbo_unavailable_description">Nutze die Android-, iOS- oder Desktop-App für eine Überwachungssitzung.</string>
     <string name="image_diff_sampled_pixels_different">%1$s geprüfte Pixel unterscheiden sich. Die Statistik nutzt eine verkleinerte Vorschau.</string>
     <string name="check_failure_capture_unavailable">Screenshot-Prüfungen nicht verfügbar</string>
-    <string name="check_failure_capture_unavailable_detail">Nutze Android für Screenshot-Prüfungen oder wähle Text- oder Quelltextüberwachung. Deine Versionen bleiben erhalten.</string>
+    <string name="check_failure_capture_unavailable_detail">Nutze Android oder iOS für Screenshot-Prüfungen oder wähle Text- oder Quelltextüberwachung. Deine gespeicherten Versionen bleiben erhalten.</string>
     <string name="settings_theme_and_color">Design und Farbe</string>
     <string name="history_today">Heute</string>
     <string name="history_yesterday">Gestern</string>
@@ -413,7 +413,7 @@
     <string name="home_select_page">Seite auswählen</string>
     <string name="home_select_pages">Seiten auswählen</string>
     <string name="detail_status_failed">Letzte Prüfung fehlgeschlagen %1$s</string>
-    <string name="detail_calendar_summary">%1$d Änderungen an %2$d Tagen in den letzten 30 Tagen</string>
+    <string name="detail_calendar_summary">%1$s an %2$s in den letzten 30 Tagen</string>
     <string name="turbo_sheet_no_pages">Noch keine aktiven Seiten. Setze eine Seite fort, bevor du Turbo startest.</string>
     <string name="turbo_sheet_paused_note">Pausierte Seiten werden nicht einbezogen.</string>
     <string name="turbo_live_note_while_open">Turbo prüft weiter, solange die App geöffnet ist. Du kannst diesen Bildschirm verlassen und später nach Änderungen sehen.</string>
@@ -517,8 +517,8 @@
     </plurals>
     <string name="turbo_found_none">Keine Änderungen gefunden</string>
     <plurals name="turbo_summary_checks">
-        <item quantity="one">%1$d Prüfung für %2$d Seiten</item>
-        <item quantity="other">%1$d Prüfungen für %2$d Seiten</item>
+        <item quantity="one">%1$d Prüfung</item>
+        <item quantity="other">%1$d Prüfungen</item>
     </plurals>
     <string name="turbo_live_note">Turbo läuft weiter, wenn du diesen Bildschirm verlässt. Sobald sich eine Seite ändert, erhältst du eine Benachrichtigung.</string>
     <string-array name="weekday_names">
@@ -578,6 +578,7 @@
     <string name="mode_html">Seiten-HTML</string>
     <string name="mode_default">App-Standard</string>
     <string name="mode_text">Text</string>
+    <string name="mode_code">Code</string>
     <string name="detail_how_often">Prüfzeitplan der App</string>
     <string name="detail_notify">Benachrichtigen</string>
     <string name="detail_paused">Prüfungen pausieren</string>
@@ -587,7 +588,7 @@
     <string name="detail_check_less">Seltener prüfen</string>
     <string name="advice_temporary">Die Website ist ausgelastet oder nicht erreichbar. Das ist meist vorübergehend. Wir versuchen es weiter.</string>
     <string name="advice_connection">Dieses Gerät hat keine Internetverbindung. Sobald du wieder online bist, versuchen wir es erneut.</string>
-    <string name="advice_login">Diese Seite erfordert eine Anmeldung. Unter Android können Screenshot-Prüfungen die Anmeldung im App-Browser verwenden. Text- und Quelltextprüfungen können das nicht.</string>
+    <string name="advice_login">Diese Seite erfordert eine Anmeldung. Screenshot-Prüfungen können die Anmeldung im App-Browser auf diesem Gerät verwenden. Text- und Quelltextprüfungen können das nicht.</string>
     <string name="advice_not_found">Die Seite existiert nicht mehr. Prüfe, ob der Link noch stimmt.</string>
     <string name="advice_rate">Die Website verlangt weniger Anfragen. Ein längeres Prüfintervall hilft meist.</string>
     <string name="advice_region">Der gewählte Teil ist nicht mehr auf der Seite. Wähle ihn erneut.</string>
@@ -631,7 +632,7 @@
     <string name="reader_position">Änderung %1$d von %2$d</string>
     <string name="reader_versions_title">Versionen vergleichen</string>
     <string name="reader_versions_body">Tippe auf eine Version, um die Änderungen zur vorherigen zu sehen.</string>
-    <string name="advice_capture">Screenshots sind nur auf Android möglich. Wähle Text für diese Seite oder prüfe sie weiter auf deinem Handy.</string>
+    <string name="advice_capture">Screenshot-Prüfungen sind unter Android und iOS verfügbar. Wähle Text für diese Seite oder prüfe sie mit der mobilen App.</string>
     <string name="checks_title">Automatische Prüfungen</string>
     <string name="checks_every">Alle</string>
     <string name="checks_custom">Benutzerdefiniert…</string>
@@ -688,7 +689,7 @@
     <string name="single_saved_on">Gespeichert %1$s</string>
     <string name="about_story">Von einer Person entwickelt, für das, was du nicht verpassen möchtest. Kostenlos, Open Source, ohne Konto und Tracking. Seiten werden auf deinem Gerät geprüft und alles bleibt darauf.</string>
     <string name="about_elsewhere">Anderswo</string>
-    <string name="editor_preview_failed_title">Seite konnte nicht geöffnet werden</string>
+    <string name="editor_preview_failed_title">Die Vorschau konnte nicht erstellt werden</string>
     <string name="editor_change_address">Adresse ändern</string>
     <string name="editor_selectors">CSS-Selektoren</string>
     <string name="editor_name">Name</string>
@@ -711,7 +712,10 @@
     <string name="preview_reordered_body">Gleiche Elemente, neue Reihenfolge. Nichts hinzugefügt oder entfernt.</string>
     <string name="digest_new">Neu</string>
     <string name="digest_removed">Entfernt</string>
-    <string name="digest_numbers">Zahlen in %1$d Zeilen geändert</string>
+    <plurals name="digest_numbers">
+        <item quantity="one">Zahlen in %1$d Zeile geändert</item>
+        <item quantity="other">Zahlen in %1$d Zeilen geändert</item>
+    </plurals>
     <string name="digest_numbers_body">Zähler, Zeiten und Preise. Meist unwichtige Änderungen.</string>
     <string name="digest_show_full">Vollständigen Vergleich zeigen</string>
     <string name="digest_changed">Geändert</string>
@@ -808,4 +812,13 @@
     <string name="pull_check_pull">Zum Prüfen der Seiten ziehen</string>
     <string name="pull_check_release">Zum Prüfen der Seiten loslassen</string>
     <string name="pull_check_checking">Seiten werden geprüft…</string>
+    <string name="capture_screenshot_finishing">Screenshot wird fertiggestellt…</string>
+    <plurals name="turbo_summary_pages">
+        <item quantity="one">%1$d Seite</item>
+        <item quantity="other">%1$d Seiten</item>
+    </plurals>
+    <plurals name="detail_calendar_days">
+        <item quantity="one">%1$d Tag</item>
+        <item quantity="other">%1$d Tagen</item>
+    </plurals>
 </resources>

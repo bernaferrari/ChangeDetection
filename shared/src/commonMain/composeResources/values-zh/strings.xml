@@ -74,7 +74,7 @@
     <string name="settings_background_sync_disabled">已关闭</string>
     <string name="settings_background_sync_every">每 %1$d 分钟</string>
     <string name="settings_about_section">关于</string>
-    <string name="settings_about_title">关于 ChangeDetection</string>
+    <string name="settings_about_title">关于 Change Detection</string>
     <string name="settings_action_contact">联系开发者</string>
     <string name="settings_sync_constraints_title">同步条件</string>
     <string name="settings_sync_constraint_wifi">仅限 Wi-Fi</string>
@@ -137,7 +137,7 @@
     <string name="comparison_no_changes_title">未发现差异</string>
     <string name="comparison_no_changes_text">两个版本的文本完全相同。</string>
     <string name="settings_comparison_title">默认抓取方式</string>
-    <string name="settings_comparison_subtitle">用于选择“跟随应用设置”的页面，其他页面保留各自的抓取方式。</string>
+    <string name="settings_comparison_subtitle">用于跟随应用默认设置的页面，其他页面保留各自的抓取方式。</string>
     <string name="settings_comparison_summary">适用于跟随应用设置的页面</string>
     <string name="settings_comparison_page_text">页面文本</string>
     <string name="settings_comparison_screenshots">截图</string>
@@ -189,7 +189,7 @@
     <string name="monitor_editor_error_invalid_url">请输入完整的页面地址，例如 example.com。</string>
     <string name="monitor_editor_error_not_found">此页面已不存在。</string>
     <string name="monitor_editor_error_load">无法加载此页面，请重试。</string>
-    <string name="monitor_editor_error_save">无法保存此页面，请检查网络连接后重试。</string>
+    <string name="monitor_editor_error_save">无法保存此页面，请重试。</string>
     <string name="clear_page_address">清除页面地址</string>
     <string name="paste">粘贴</string>
     <string name="local_browser_title_snapshot">已保存的版本</string>
@@ -220,7 +220,7 @@
     <string name="a11y_close">关闭</string>
     <string name="a11y_drag_screenshot_comparison">拖动以比较截图</string>
     <string name="a11y_open_license">打开许可证</string>
-    <string name="monitor_editor_cadence_hint">在后台自动检查，可随时在设置中调整。</string>
+    <string name="monitor_editor_cadence_hint">在设置中管理自动检查。</string>
     <string name="monitor_editor_duplicate_warning">你已在关注此页面</string>
     <string name="monitor_editor_duplicate_open">打开</string>
     <string name="address_changed_title">地址已更改</string>
@@ -245,7 +245,7 @@
     <string name="storage_history_policy">每页最多保留 100 个版本。超过 250 MB 后会删除较旧的版本。每页最新的两个版本始终保留，即使超出此限制。</string>
     <string name="storage_clear_older">清除旧版本</string>
     <string name="storage_clear_older_title">清除旧版本？</string>
-    <string name="storage_clear_older_body">每个页面都会保留最新的更改。将从此设备删除 %1$s 的旧版本。此操作无法撤销。</string>
+    <string name="storage_clear_older_body">每个页面都会保留最新的两个版本。将从此设备删除 %1$s 的旧版本。此操作无法撤销。</string>
     <string name="storage_clear_older_confirm">清除</string>
     <string name="capture_mode_default">应用默认</string>
     <string name="capture_mode_html">页面 HTML</string>
@@ -253,9 +253,9 @@
     <string name="capture_mode_baseline">切换方式会建立新的初始版本，已有历史会保留。</string>
     <string name="capture_preview_action">预览抓取</string>
     <string name="capture_preview_title">抓取预览</string>
-    <string name="capture_preview_loading">正在加载页面…</string>
+    <string name="capture_preview_loading">正在准备预览…</string>
     <string name="capture_first_version_title">正在准备预览…</string>
-    <string name="capture_first_version_body">加载期间可以继续配置。</string>
+    <string name="capture_first_version_body">你仍可调整设置。</string>
     <string name="capture_preview_html">页面文本预览</string>
     <string name="capture_preview_empty">未找到可读文本，此页面可能需要使用截图监测。</string>
     <string name="capture_preview_expand">查看完整截图</string>
@@ -308,7 +308,7 @@
     <string name="text_region_description">只保存匹配的 HTML。区域外或忽略元素中的变化不会触发提醒。保存前请先预览。将包含选择器留空即可关注整个页面。</string>
     <string name="text_region_include">包含 CSS 选择器（可选）</string>
     <string name="text_region_exclude">忽略 CSS 选择器（可选）</string>
-    <string name="text_region_invalid">请使用有效的 CSS 选择器，每个最多 512 个字符，不支持正则表达式选择器。</string>
+    <string name="text_region_invalid">请使用有效的 CSS 选择器，每个最多 4096 个字符，不支持正则表达式选择器。</string>
     <string name="detail_last_saved">最后保存</string>
     <string name="detail_compare">比较</string>
     <string name="detail_empty_text">此保存版本没有可读文本，打开后可查看源代码。</string>
@@ -363,10 +363,10 @@
     <string name="settings_write_failed">无法保存你的选择，请重试。</string>
     <string name="storage_history_load_failed">无法加载存储用量。</string>
     <string name="turbo_unavailable_title">此预览不支持 Turbo</string>
-    <string name="turbo_unavailable_description">请使用 Android 或桌面应用启动监测会话。</string>
+    <string name="turbo_unavailable_description">请使用 Android、iOS 或桌面应用启动监测会话。</string>
     <string name="image_diff_sampled_pixels_different">%1$s 个采样像素不同。统计数据使用缩小的预览图。</string>
     <string name="check_failure_capture_unavailable">截图检查不可用</string>
-    <string name="check_failure_capture_unavailable_detail">请使用 Android 进行截图检查，或编辑页面选择文本或源代码监测。已保存的版本会保留。</string>
+    <string name="check_failure_capture_unavailable_detail">请使用 Android 或 iOS 进行截图检查，或改用文本或源代码监测。已保存的版本会保留。</string>
     <string name="settings_theme_and_color">主题与颜色</string>
     <string name="history_today">今天</string>
     <string name="history_yesterday">昨天</string>
@@ -403,7 +403,7 @@
     <string name="home_select_page">选择页面</string>
     <string name="home_select_pages">选择页面</string>
     <string name="detail_status_failed">上次检查失败于 %1$s</string>
-    <string name="detail_calendar_summary">最近 30 天中，有 %2$d 天发生了 %1$d 处变化</string>
+    <string name="detail_calendar_summary">过去 30 天内，%2$s出现%1$s</string>
     <string name="turbo_sheet_no_pages">暂无启用的页面。启动 Turbo 前请先恢复一个页面的监测。</string>
     <string name="turbo_sheet_paused_note">不包含已暂停的页面。</string>
     <string name="turbo_live_note_while_open">应用打开期间 Turbo 会持续检查。你可以离开此界面，之后再回来查看变化。</string>
@@ -498,7 +498,7 @@
     </plurals>
     <string name="turbo_found_none">未发现变化</string>
     <plurals name="turbo_summary_checks">
-        <item quantity="other">在 %2$d 个页面上检查了 %1$d 次</item>
+        <item quantity="other">检查了 %1$d 次</item>
     </plurals>
     <string name="turbo_live_note">离开此界面后 Turbo 仍会继续运行。页面发生变化时，你会立即收到通知。</string>
     <string-array name="weekday_names">
@@ -556,6 +556,7 @@
     <string name="mode_html">页面 HTML</string>
     <string name="mode_default">应用默认</string>
     <string name="mode_text">文本</string>
+    <string name="mode_code">代码</string>
     <string name="detail_how_often">应用检查计划</string>
     <string name="detail_notify">通知我</string>
     <string name="detail_paused">暂停检查</string>
@@ -565,7 +566,7 @@
     <string name="detail_check_less">降低检查频率</string>
     <string name="advice_temporary">网站繁忙或无法访问，通常是暂时的，我们会继续尝试。</string>
     <string name="advice_connection">此设备无法连接互联网，恢复联网后会重试。</string>
-    <string name="advice_login">此页面需要登录。在 Android 上，截图检查可以使用应用浏览器的登录状态。文本和源代码检查无法使用此登录状态。</string>
+    <string name="advice_login">此页面需要登录。截图检查可以使用此设备上应用浏览器的登录状态。文本和源代码检查无法使用此登录状态。</string>
     <string name="advice_not_found">此页面已不存在，请检查链接是否仍正确。</string>
     <string name="advice_rate">网站要求降低请求频率，减少检查次数通常可以解决。</string>
     <string name="advice_region">你选择的部分已不在页面中，请重新选择。</string>
@@ -607,7 +608,7 @@
     <string name="reader_position">第 %1$d 处变化，共 %2$d 处</string>
     <string name="reader_versions_title">比较版本</string>
     <string name="reader_versions_body">点按版本，查看与上一版本相比的变化。</string>
-    <string name="advice_capture">仅 Android 支持截图。请将此页面改为文本监测，或继续在手机上检查。</string>
+    <string name="advice_capture">Android 和 iOS 支持截图检查。请将此页面改为文本监测，或在移动应用中检查。</string>
     <string name="checks_title">自动检查</string>
     <string name="checks_every">每隔</string>
     <string name="checks_custom">自定义…</string>
@@ -663,7 +664,7 @@
     <string name="single_saved_on">保存于 %1$s</string>
     <string name="about_story">由一位开发者为你不想错过的事情而制作。免费、开源，无需账户，不追踪你。页面由你的设备检查，所有数据保留在本机。</string>
     <string name="about_elsewhere">其他平台</string>
-    <string name="editor_preview_failed_title">无法打开此页面</string>
+    <string name="editor_preview_failed_title">无法准备预览</string>
     <string name="editor_change_address">更改地址</string>
     <string name="editor_selectors">CSS 选择器</string>
     <string name="editor_name">名称</string>
@@ -686,7 +687,9 @@
     <string name="preview_reordered_body">内容相同，顺序不同，没有新增或删除。</string>
     <string name="digest_new">新增</string>
     <string name="digest_removed">已删除</string>
-    <string name="digest_numbers">%1$d 行中的数字有变化</string>
+    <plurals name="digest_numbers">
+        <item quantity="other">%1$d 行中的数字有变化</item>
+    </plurals>
     <string name="digest_numbers_body">计数、时间和价格，通常是无关变化。</string>
     <string name="digest_show_full">显示完整比较</string>
     <string name="digest_changed">已变化</string>
@@ -778,4 +781,11 @@
     <string name="pull_check_pull">下拉以检查页面</string>
     <string name="pull_check_release">松开以检查页面</string>
     <string name="pull_check_checking">正在检查页面…</string>
+    <string name="capture_screenshot_finishing">正在完成完整截图…</string>
+    <plurals name="turbo_summary_pages">
+        <item quantity="other">%1$d 个页面</item>
+    </plurals>
+    <plurals name="detail_calendar_days">
+        <item quantity="other">%1$d 天</item>
+    </plurals>
 </resources>

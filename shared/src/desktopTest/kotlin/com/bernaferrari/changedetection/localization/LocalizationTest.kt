@@ -147,6 +147,30 @@ class LocalizationTest {
         }
     }
 
+    @Test fun `single lines checks pages and calendar days use independent plural rules`() = runTest {
+        val previous = Locale.getDefault()
+        try {
+            Locale.setDefault(Locale.ENGLISH)
+            assertEquals("Numbers changed in 1 line", getPluralString(Res.plurals.digest_numbers, 1, 1))
+            assertEquals("Numbers changed in 2 lines", getPluralString(Res.plurals.digest_numbers, 2, 2))
+            assertEquals("1 check", getPluralString(Res.plurals.turbo_summary_checks, 1, 1))
+            assertEquals("2 checks", getPluralString(Res.plurals.turbo_summary_checks, 2, 2))
+            assertEquals("1 page", getPluralString(Res.plurals.turbo_summary_pages, 1, 1))
+            assertEquals("2 pages", getPluralString(Res.plurals.turbo_summary_pages, 2, 2))
+            for ((changes, days, expected) in listOf(
+                Triple(1, 1, "1 change across 1 day in the last 30 days"),
+                Triple(2, 1, "2 changes across 1 day in the last 30 days"),
+                Triple(2, 2, "2 changes across 2 days in the last 30 days"),
+            )) {
+                assertEquals(expected, getString(Res.string.detail_calendar_summary,
+                    getPluralString(Res.plurals.detail_changes_count, changes, changes),
+                    getPluralString(Res.plurals.detail_calendar_days, days, days)))
+            }
+        } finally {
+            Locale.setDefault(previous)
+        }
+    }
+
     private fun resources(directory: File): Map<String, Element> {
         val result = linkedMapOf<String, Element>()
         directory.listFiles { file -> file.name.contains("strings") && file.extension == "xml" }?.sortedBy { it.name }?.forEach { file ->

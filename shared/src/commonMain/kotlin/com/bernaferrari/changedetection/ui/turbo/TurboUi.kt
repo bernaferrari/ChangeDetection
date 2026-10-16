@@ -442,7 +442,7 @@ fun TurboLiveScreen(
                             if (state.isActive) {
                                 pluralStringResource(Res.plurals.turbo_card_title_n, state.siteIds.size, state.siteIds.size) + " · " + stringResource(Res.string.turbo_ends_at, formatTime(state.deadlineTime))
                             } else {
-                                endedLabel(state.endReason) + " · " + pluralStringResource(Res.plurals.turbo_summary_checks, state.successfulChecks + state.failedChecks, state.successfulChecks + state.failedChecks, sessionPages.size)
+                                endedLabel(state.endReason) + " · " + pluralStringResource(Res.plurals.turbo_summary_checks, state.successfulChecks + state.failedChecks, state.successfulChecks + state.failedChecks) + " · " + pluralStringResource(Res.plurals.turbo_summary_pages, sessionPages.size, sessionPages.size)
                             },
                             Modifier.padding(top = 4.dp),
                             style = MaterialTheme.typography.bodyMedium,

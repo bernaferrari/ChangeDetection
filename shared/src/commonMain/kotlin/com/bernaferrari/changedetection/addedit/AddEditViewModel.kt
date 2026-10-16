@@ -101,6 +101,13 @@ class AddEditViewModel(
     private var livePreviewJob: kotlinx.coroutines.Job? = null
     private var previewGeneration = 0L
 
+    /** Finished previews for this editor, so switching back to a format shows its preview again instead of reloading the page. */
+    private data class PreviewKey(val url: String, val mode: com.bernaferrari.changedetection.repo.CaptureMode, val region: com.bernaferrari.changedetection.detection.TextRegion)
+    private val previewCache = mutableMapOf<PreviewKey, CapturePreview>()
+
+    private fun cachedPreview(state: AddEditUiState): CapturePreview? =
+        state.url.normalizeUrl()?.let { previewCache[PreviewKey(it, state.captureMode, state.textRegion)] }
+
     fun dismissPreview() {
         previewGeneration++
         previewJob?.cancel()
@@ -122,6 +129,11 @@ class AddEditViewModel(
             return
         }
         dismissPreview()
+        cachedPreview(state)?.let { cached ->
+            _uiState.update { it.copy(preview = CapturePreviewState.Ready(cached)) }
+            return
+        }
+        val key = PreviewKey(url, state.captureMode, state.textRegion)
         val generation = previewGeneration
         _uiState.update { it.copy(preview = CapturePreviewState.Loading) }
         previewJob = viewModelScope.launch {
@@ -140,6 +152,7 @@ class AddEditViewModel(
                     null
                 }
                 val content = live ?: previewer.capture(url, state.captureMode, state.textRegion)
+                previewCache[key] = content
                 if (generation == previewGeneration) {
                     // A page's own first heading names it better than its host; never override a typed name.
                     val heading = (content as? CapturePreview.Html)?.pageTitle ?: (content as? CapturePreview.Image)?.pageTitle
@@ -274,6 +287,8 @@ class AddEditViewModel(
         captureModeEditedByUser = true
         if (mode != _uiState.value.captureMode) dismissPreview()
         _uiState.update { it.copy(captureMode = mode, regionError = false) }
+        // A format seen before shows its preview at once; the editor's request for a fresh one then finds it too.
+        cachedPreview(_uiState.value)?.let { cached -> _uiState.update { it.copy(preview = CapturePreviewState.Ready(cached)) } }
     }
 
     fun setVisualChangeThreshold(basisPoints: Int) {

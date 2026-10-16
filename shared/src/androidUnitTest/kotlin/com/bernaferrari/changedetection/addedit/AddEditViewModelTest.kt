@@ -211,6 +211,30 @@ class AddEditViewModelTest {
     }
 
     @Test
+    fun `switching back to a format shows its preview again without reloading the page`() = runTest {
+        val captures = mutableListOf<com.bernaferrari.changedetection.repo.CaptureMode>()
+        val editor = createViewModel(
+            previewer = CapturePreviewer { _, mode ->
+                captures += mode
+                CapturePreview.Html(mode.name, 10)
+            },
+        )
+        editor.setUrl("example.com")
+        editor.setCaptureMode(com.bernaferrari.changedetection.repo.CaptureMode.TEXT)
+        editor.requestPreview()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        editor.setCaptureMode(com.bernaferrari.changedetection.repo.CaptureMode.HTML)
+        editor.requestPreview()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        editor.setCaptureMode(com.bernaferrari.changedetection.repo.CaptureMode.TEXT)
+        // Shown at once, before any new request.
+        assertEquals(CapturePreviewState.Ready(CapturePreview.Html("TEXT", 10)), editor.uiState.value.preview)
+        editor.requestPreview()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(listOf(com.bernaferrari.changedetection.repo.CaptureMode.TEXT, com.bernaferrari.changedetection.repo.CaptureMode.HTML), captures)
+    }
+
+    @Test
     fun `late preview cannot replace a sample for the edited URL`() = runTest {
         val editor = createViewModel(
             previewer = CapturePreviewer { url, _ ->

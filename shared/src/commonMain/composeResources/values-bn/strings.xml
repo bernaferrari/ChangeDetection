@@ -78,7 +78,7 @@
     <string name="settings_background_sync_disabled">বন্ধ</string>
     <string name="settings_background_sync_every">প্রতি %1$d মিনিটে</string>
     <string name="settings_about_section">অ্যাপ সম্পর্কে</string>
-    <string name="settings_about_title">ChangeDetection সম্পর্কে</string>
+    <string name="settings_about_title">Change Detection সম্পর্কে</string>
     <string name="settings_action_contact">ডেভেলপারের সঙ্গে যোগাযোগ করুন</string>
     <string name="settings_sync_constraints_title">সিঙ্কের শর্ত</string>
     <string name="settings_sync_constraint_wifi">ওয়াই-ফাই প্রয়োজন</string>
@@ -144,7 +144,7 @@
     <string name="comparison_no_changes_title">কোনো পার্থক্য পাওয়া যায়নি</string>
     <string name="comparison_no_changes_text">দুটি সংস্করণের লেখা একই।</string>
     <string name="settings_comparison_title">ডিফল্ট ক্যাপচার পদ্ধতি</string>
-    <string name="settings_comparison_subtitle">অ্যাপের সেটিংস অনুসরণ করা পৃষ্ঠায় ব্যবহার হবে। অন্য পৃষ্ঠায় তাদের নিজস্ব ক্যাপচার পদ্ধতি থাকবে।</string>
+    <string name="settings_comparison_subtitle">অ্যাপের ডিফল্ট অনুসরণ করা পৃষ্ঠায় ব্যবহার হবে। অন্য পৃষ্ঠায় তাদের নিজস্ব ক্যাপচার পদ্ধতি থাকবে।</string>
     <string name="settings_comparison_summary">অ্যাপের সেটিংস অনুসরণ করা পৃষ্ঠার জন্য</string>
     <string name="settings_comparison_page_text">পৃষ্ঠার লেখা</string>
     <string name="settings_comparison_screenshots">স্ক্রিনশট</string>
@@ -197,7 +197,7 @@
     <string name="monitor_editor_error_invalid_url">পৃষ্ঠার সম্পূর্ণ ঠিকানা লিখুন, যেমন example.com।</string>
     <string name="monitor_editor_error_not_found">এই পৃষ্ঠা আর নেই।</string>
     <string name="monitor_editor_error_load">এই পৃষ্ঠা লোড করা যায়নি। আবার চেষ্টা করুন।</string>
-    <string name="monitor_editor_error_save">এই পৃষ্ঠা সংরক্ষণ করা যায়নি। সংযোগ দেখে আবার চেষ্টা করুন।</string>
+    <string name="monitor_editor_error_save">এই পৃষ্ঠা সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="clear_page_address">পৃষ্ঠার ঠিকানা সাফ করুন</string>
     <string name="paste">পেস্ট করুন</string>
     <string name="local_browser_title_snapshot">সংরক্ষিত সংস্করণ</string>
@@ -228,7 +228,7 @@
     <string name="a11y_close">বন্ধ করুন</string>
     <string name="a11y_drag_screenshot_comparison">স্ক্রিনশট তুলনা করতে টানুন</string>
     <string name="a11y_open_license">লাইসেন্স খুলুন</string>
-    <string name="monitor_editor_cadence_hint">পটভূমিতে স্বয়ংক্রিয় পরীক্ষা হয় — সেটিংসে যেকোনো সময় বদলান।</string>
+    <string name="monitor_editor_cadence_hint">সেটিংসে স্বয়ংক্রিয় পরীক্ষা পরিচালনা করুন।</string>
     <string name="monitor_editor_duplicate_warning">আপনি ইতিমধ্যেই এই পৃষ্ঠায় নজর রাখছেন</string>
     <string name="monitor_editor_duplicate_open">খুলুন</string>
     <string name="address_changed_title">ঠিকানা বদলেছে</string>
@@ -253,7 +253,7 @@
     <string name="storage_history_policy">প্রতি পৃষ্ঠায় সর্বোচ্চ ১০০টি সংস্করণ থাকে। ২৫০ MB ছাড়ালে পুরোনো সংস্করণ সরানো হয়। প্রতিটি পৃষ্ঠার সর্বশেষ দুটি সংস্করণ সীমা ছাড়ালেও রাখা হয়।</string>
     <string name="storage_clear_older">পুরোনো সংস্করণ মুছুন</string>
     <string name="storage_clear_older_title">পুরোনো সংস্করণ মুছবেন?</string>
-    <string name="storage_clear_older_body">প্রতিটি পেজ তার সর্বশেষ পরিবর্তন রাখে। পুরোনো সংস্করণের %1$s এই ডিভাইস থেকে মুছে ফেলা হবে। এটি আর ফেরানো যাবে না।</string>
+    <string name="storage_clear_older_body">প্রতিটি পৃষ্ঠার সর্বশেষ দুটি সংস্করণ রাখা হবে। পুরোনো সংস্করণের %1$s এই ডিভাইস থেকে মুছে ফেলা হবে। এটি আর ফেরানো যাবে না।</string>
     <string name="storage_clear_older_confirm">মুছুন</string>
     <string name="capture_mode_default">অ্যাপের ডিফল্ট</string>
     <string name="capture_mode_html">পৃষ্ঠার HTML</string>
@@ -261,9 +261,9 @@
     <string name="capture_mode_baseline">পদ্ধতি বদলালে নতুন শুরুর সংস্করণ হবে। আগের ইতিহাস থাকবে।</string>
     <string name="capture_preview_action">ক্যাপচারের প্রিভিউ দেখুন</string>
     <string name="capture_preview_title">ক্যাপচারের প্রিভিউ</string>
-    <string name="capture_preview_loading">পৃষ্ঠা লোড হচ্ছে…</string>
+    <string name="capture_preview_loading">প্রিভিউ তৈরি হচ্ছে…</string>
     <string name="capture_first_version_title">প্রিভিউ তৈরি হচ্ছে…</string>
-    <string name="capture_first_version_body">লোড হওয়ার সময়ও আপনি সেটিং বদলাতে পারেন।</string>
+    <string name="capture_first_version_body">আপনি এখনও সেটিংস বদলাতে পারেন।</string>
     <string name="capture_preview_html">পৃষ্ঠার লেখার প্রিভিউ</string>
     <string name="capture_preview_empty">পড়ার মতো লেখা পাওয়া যায়নি। এই পৃষ্ঠার জন্য স্ক্রিনশট নজরদারি লাগতে পারে।</string>
     <string name="capture_preview_expand">পুরো স্ক্রিনশট দেখুন</string>
@@ -316,7 +316,7 @@
     <string name="text_region_description">শুধু মিলে যাওয়া HTML সংরক্ষিত হয়। অঞ্চলের বাইরে বা উপেক্ষিত অংশের পরিবর্তনে বিজ্ঞপ্তি আসে না। সংরক্ষণের আগে প্রিভিউ দেখুন। পুরো পৃষ্ঠায় নজর রাখতে অন্তর্ভুক্তির সিলেক্টর খালি রাখুন।</string>
     <string name="text_region_include">অন্তর্ভুক্তির CSS সিলেক্টর (ঐচ্ছিক)</string>
     <string name="text_region_exclude">উপেক্ষার CSS সিলেক্টর (ঐচ্ছিক)</string>
-    <string name="text_region_invalid">প্রতিটি বৈধ CSS সিলেক্টর সর্বোচ্চ ৫১২ অক্ষরের হতে হবে, রেগুলার এক্সপ্রেশন ছাড়া।</string>
+    <string name="text_region_invalid">প্রতিটি বৈধ CSS সিলেক্টর সর্বোচ্চ ৪০৯৬ অক্ষরের হতে হবে, রেগুলার এক্সপ্রেশন ছাড়া।</string>
     <string name="detail_last_saved">সর্বশেষ সংরক্ষিত</string>
     <string name="detail_compare">তুলনা করুন</string>
     <string name="detail_empty_text">এই সংরক্ষিত সংস্করণে পড়ার মতো লেখা নেই। সোর্স দেখতে খুলুন।</string>
@@ -372,10 +372,10 @@
     <string name="settings_write_failed">আপনার নির্বাচন সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="storage_history_load_failed">স্টোরেজের ব্যবহার লোড করা যায়নি।</string>
     <string name="turbo_unavailable_title">এই প্রিভিউতে টার্বো নেই</string>
-    <string name="turbo_unavailable_description">নজরদারি সেশন শুরু করতে Android বা ডেস্কটপ অ্যাপ ব্যবহার করুন।</string>
+    <string name="turbo_unavailable_description">পর্যবেক্ষণ সেশন শুরু করতে Android, iOS বা ডেস্কটপ অ্যাপ ব্যবহার করুন।</string>
     <string name="image_diff_sampled_pixels_different">%1$s নমুনা পিক্সেল আলাদা। পরিসংখ্যান ছোট প্রিভিউ থেকে নেওয়া।</string>
     <string name="check_failure_capture_unavailable">স্ক্রিনশট পরীক্ষা নেই</string>
-    <string name="check_failure_capture_unavailable_detail">স্ক্রিনশট পরীক্ষার জন্য Android ব্যবহার করুন বা পৃষ্ঠা সম্পাদনা করে লেখা বা সোর্স নজরদারি বেছে নিন। সংরক্ষিত সংস্করণ থাকবে।</string>
+    <string name="check_failure_capture_unavailable_detail">স্ক্রিনশট পরীক্ষার জন্য Android বা iOS ব্যবহার করুন, অথবা টেক্সট বা সোর্স পর্যবেক্ষণ বেছে নিন। সংরক্ষিত সংস্করণগুলো থাকবে।</string>
     <string name="settings_theme_and_color">থিম ও রং</string>
     <string name="history_today">আজ</string>
     <string name="history_yesterday">গতকাল</string>
@@ -413,7 +413,7 @@
     <string name="home_select_page">পৃষ্ঠা বেছে নিন</string>
     <string name="home_select_pages">পৃষ্ঠা বেছে নিন</string>
     <string name="detail_status_failed">শেষ পরীক্ষা ব্যর্থ হয়েছে %1$s</string>
-    <string name="detail_calendar_summary">গত ৩০ দিনে %2$d দিনে %1$dটি পরিবর্তন</string>
+    <string name="detail_calendar_summary">গত ৩০ দিনে %2$s জুড়ে %1$s</string>
     <string name="turbo_sheet_no_pages">এখনও কোনো সক্রিয় পৃষ্ঠা নেই। টার্বো শুরুর আগে একটি পৃষ্ঠায় নজরদারি আবার চালু করুন।</string>
     <string name="turbo_sheet_paused_note">বিরতিতে থাকা পৃষ্ঠা অন্তর্ভুক্ত নয়।</string>
     <string name="turbo_live_note_while_open">অ্যাপ খোলা থাকলে টার্বো পরীক্ষা চালিয়ে যায়। এই স্ক্রিন ছেড়ে পরে পরিবর্তন দেখতে ফিরতে পারেন।</string>
@@ -517,8 +517,8 @@
     </plurals>
     <string name="turbo_found_none">কোনো পরিবর্তন পাওয়া যায়নি</string>
     <plurals name="turbo_summary_checks">
-        <item quantity="one">%2$dটি পৃষ্ঠায় %1$dটি পরীক্ষা</item>
-        <item quantity="other">%2$dটি পৃষ্ঠায় %1$dটি পরীক্ষা</item>
+        <item quantity="one">%1$dটি পরীক্ষা</item>
+        <item quantity="other">%1$dটি পরীক্ষা</item>
     </plurals>
     <string name="turbo_live_note">এই স্ক্রিন ছাড়লেও টার্বো চলবে। পৃষ্ঠা বদলালেই বিজ্ঞপ্তি পাবেন।</string>
     <string-array name="weekday_names">
@@ -578,6 +578,7 @@
     <string name="mode_html">পৃষ্ঠার HTML</string>
     <string name="mode_default">অ্যাপের ডিফল্ট</string>
     <string name="mode_text">লেখা</string>
+    <string name="mode_code">কোড</string>
     <string name="detail_how_often">অ্যাপের পরীক্ষার সময়সূচি</string>
     <string name="detail_notify">আমাকে জানান</string>
     <string name="detail_paused">পরীক্ষা বিরতিতে রাখুন</string>
@@ -587,7 +588,7 @@
     <string name="detail_check_less">কম ঘনঘন পরীক্ষা করুন</string>
     <string name="advice_temporary">ওয়েবসাইট ব্যস্ত বা বন্ধ। সাধারণত এটি সাময়িক; আমরা চেষ্টা চালিয়ে যাব।</string>
     <string name="advice_connection">এই ডিভাইস ইন্টারনেটে পৌঁছাতে পারেনি। অনলাইনে ফিরলে আবার চেষ্টা করব।</string>
-    <string name="advice_login">এই পৃষ্ঠায় সাইন ইন দরকার। Android-এ স্ক্রিনশট পরীক্ষা অ্যাপের ব্রাউজারের সাইন ইন ব্যবহার করতে পারে। টেক্সট ও সোর্স পরীক্ষা তা পারে না।</string>
+    <string name="advice_login">এই পৃষ্ঠায় সাইন ইন করতে হবে। স্ক্রিনশট পরীক্ষা এই ডিভাইসে অ্যাপের ব্রাউজারের সাইন ইন ব্যবহার করতে পারে। টেক্সট ও সোর্স পরীক্ষা তা পারে না।</string>
     <string name="advice_not_found">পৃষ্ঠা আর নেই। লিংক এখনও ঠিক আছে কি না দেখুন।</string>
     <string name="advice_rate">ওয়েবসাইট কম অনুরোধ করতে বলছে। কম ঘনঘন পরীক্ষা করলে সাধারণত ঠিক হয়।</string>
     <string name="advice_region">বাছাই করা অংশ আর পৃষ্ঠায় নেই। আবার বেছে নিন।</string>
@@ -631,7 +632,7 @@
     <string name="reader_position">পরিবর্তন %1$d / %2$d</string>
     <string name="reader_versions_title">সংস্করণ তুলনা করুন</string>
     <string name="reader_versions_body">আগের সংস্করণ থেকে কী বদলেছে দেখতে একটি সংস্করণে ট্যাপ করুন।</string>
-    <string name="advice_capture">স্ক্রিনশট শুধু Android-এ নেওয়া যায়। এই পৃষ্ঠায় লেখা বেছে নিন বা ফোন থেকে পরীক্ষা চালিয়ে যান।</string>
+    <string name="advice_capture">Android ও iOS-এ স্ক্রিনশট পরীক্ষা করা যায়। এই পৃষ্ঠার জন্য টেক্সট বেছে নিন অথবা মোবাইল অ্যাপ থেকে পরীক্ষা করুন।</string>
     <string name="checks_title">স্বয়ংক্রিয় পরীক্ষা</string>
     <string name="checks_every">প্রতি</string>
     <string name="checks_custom">নিজের মতো…</string>
@@ -688,7 +689,7 @@
     <string name="single_saved_on">সংরক্ষিত %1$s</string>
     <string name="about_story">যা মিস করতে চান না তার জন্য একজনের তৈরি। বিনামূল্যে, ওপেন সোর্স, অ্যাকাউন্ট ও ট্র্যাকিং ছাড়া। পৃষ্ঠা আপনার ডিভাইস থেকেই পরীক্ষা হয় এবং সবকিছু সেখানেই থাকে।</string>
     <string name="about_elsewhere">অন্যত্র</string>
-    <string name="editor_preview_failed_title">এই পৃষ্ঠা খোলা যায়নি</string>
+    <string name="editor_preview_failed_title">প্রিভিউ তৈরি করা যায়নি</string>
     <string name="editor_change_address">ঠিকানা বদলান</string>
     <string name="editor_selectors">CSS সিলেক্টর</string>
     <string name="editor_name">নাম</string>
@@ -711,7 +712,10 @@
     <string name="preview_reordered_body">একই জিনিস, নতুন ক্রম। কিছু যোগ বা সরানো হয়নি।</string>
     <string name="digest_new">নতুন</string>
     <string name="digest_removed">সরানো</string>
-    <string name="digest_numbers">%1$dটি লাইনে সংখ্যা বদলেছে</string>
+    <plurals name="digest_numbers">
+        <item quantity="one">%1$dটি লাইনে সংখ্যা বদলেছে</item>
+        <item quantity="other">%1$dটি লাইনে সংখ্যা বদলেছে</item>
+    </plurals>
     <string name="digest_numbers_body">কাউন্টার, সময় ও দাম। সাধারণত অপ্রয়োজনীয় পরিবর্তন।</string>
     <string name="digest_show_full">পুরো তুলনা দেখান</string>
     <string name="digest_changed">বদলেছে</string>
@@ -808,4 +812,13 @@
     <string name="pull_check_pull">পেজ পরীক্ষা করতে নিচে টানুন</string>
     <string name="pull_check_release">পেজ পরীক্ষা করতে ছেড়ে দিন</string>
     <string name="pull_check_checking">পেজগুলো পরীক্ষা করা হচ্ছে…</string>
+    <string name="capture_screenshot_finishing">সম্পূর্ণ স্ক্রিনশট তৈরি হচ্ছে…</string>
+    <plurals name="turbo_summary_pages">
+        <item quantity="one">%1$dটি পৃষ্ঠা</item>
+        <item quantity="other">%1$dটি পৃষ্ঠা</item>
+    </plurals>
+    <plurals name="detail_calendar_days">
+        <item quantity="one">%1$d দিন</item>
+        <item quantity="other">%1$d দিন</item>
+    </plurals>
 </resources>

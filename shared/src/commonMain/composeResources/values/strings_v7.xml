@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="editor_preview_failed_title">Couldn’t open this page</string>
+    <string name="editor_preview_failed_title">Couldn’t prepare the preview</string>
     <string name="editor_change_address">Change address</string>
     <string name="editor_selectors">CSS selectors</string>
     <string name="editor_name">Name</string>
@@ -23,7 +23,10 @@
     <string name="preview_reordered_body">Same items, rearranged. Nothing was added or removed.</string>
     <string name="digest_new">New</string>
     <string name="digest_removed">Removed</string>
-    <string name="digest_numbers">Numbers changed in %1$d lines</string>
+    <plurals name="digest_numbers">
+        <item quantity="one">Numbers changed in %1$d line</item>
+        <item quantity="other">Numbers changed in %1$d lines</item>
+    </plurals>
     <string name="digest_numbers_body">Counters, times and prices. Usually noise.</string>
     <string name="digest_show_full">Show full comparison</string>
     <string name="digest_changed">Changed</string>

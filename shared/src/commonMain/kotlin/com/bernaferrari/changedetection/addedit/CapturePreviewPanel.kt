@@ -103,7 +103,7 @@ private fun ScreenshotPreview(content: CapturePreview.Image) {
             Surface(modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp), shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.secondaryContainer) {
                 Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                    Text(stringResource(Res.string.capture_first_version_title), style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(Res.string.capture_screenshot_finishing), style = MaterialTheme.typography.labelLarge)
                 }
             }
         } else {

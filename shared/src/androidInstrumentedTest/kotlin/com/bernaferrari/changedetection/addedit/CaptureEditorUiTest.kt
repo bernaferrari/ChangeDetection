@@ -63,10 +63,12 @@ class CaptureEditorUiTest {
             val density = androidx.compose.ui.platform.LocalDensity.current
             CompositionLocalProvider(androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(density.density, 2f)) {
                 ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
-                    OtherFormatsField(chosen, { chosen = it }, enabled = true, isEditing = false)
+                    CompareChoice(chosen, { chosen = it }, enabled = true, screenshotAvailable = true, isEditing = false)
                 }
             }
         }
+        compose.onNodeWithText("Code").performClick()
+        compose.runOnIdle { assertEquals(CaptureMode.HTML, chosen) }
         compose.onNodeWithText("Any source change").performClick()
         compose.runOnIdle { assertEquals(CaptureMode.SOURCE, chosen) }
         compose.onNodeWithText("Any source change").performClick()
@@ -183,8 +185,7 @@ class CaptureEditorUiTest {
                 )
             }
         }
-        compose.onNodeWithText("More options").performScrollTo().performClick()
-        compose.onNodeWithText("Page HTML").performScrollTo().performClick()
+        compose.onNodeWithText("Code").performScrollTo().performClick()
         compose.onNodeWithText("Changing what’s watched starts fresh from the next check. Your history stays, and the switch itself won’t send an alert.").assertExists()
         compose.onNodeWithText("Camera restock: available today").performScrollTo().assertIsDisplayed()
         compose.waitForIdle()

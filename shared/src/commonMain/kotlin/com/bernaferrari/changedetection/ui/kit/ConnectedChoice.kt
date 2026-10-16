@@ -75,13 +75,21 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
     val minimumWidth = with(density) {
         labels.maxOfOrNull { measurer.measure(it, style, softWrap = false).size.width }?.toDp()
     }?.plus(24.dp + iconAllowance)?.coerceAtLeast(48.dp) ?: 48.dp
+    // Each label's own width, for rows that fit only when short labels give room to long ones.
+    val naturalWidths = with(density) {
+        labels.map { (measurer.measure(it, style, softWrap = false).size.width.toDp() + 24.dp + iconAllowance).coerceAtLeast(48.dp) }
+    }
     BoxWithConstraints(modifier.fillMaxWidth().selectableGroup()) {
         val spacing = ButtonGroupDefaults.ConnectedSpaceBetween
         val fitting = ((maxWidth + spacing) / (minimumWidth + spacing)).toInt().coerceAtLeast(1)
+        // Equal widths that don't fit can still share one row in proportion to their labels (Screenshot | Text | Code),
+        // which reads better than wrapping a short option onto a line of its own.
+        val proportional = columns == null && fitting < options.size &&
+            naturalWidths.fold(0.dp) { sum, width -> sum + width } + spacing * (options.size - 1) <= maxWidth
         // A requested column count wins when the labels fit, so a grid can come out even (3 × 3, not 4 + 4 + 1).
         // Otherwise rows are balanced: four options that don't fit on one line become 2 × 2, never 3 + 1.
-        val rowCount = (options.size + fitting - 1) / fitting
-        val columns = columns?.takeIf { it <= fitting } ?: ((options.size + rowCount - 1) / rowCount)
+        val rowCount = if (proportional) 1 else (options.size + fitting - 1) / fitting
+        val columns = if (proportional) options.size else columns?.takeIf { it <= fitting } ?: ((options.size + rowCount - 1) / rowCount)
         val rows = options.indices.toList().chunked(columns)
         val gridShapes = rememberConnectedGridShapes()
         // Rows share the group's gap, so a multi-row choice reads as one grid rather than stacked groups.
@@ -95,7 +103,7 @@ fun <T> ConnectedChoice(options: List<T>, selected: T, onSelect: (T) -> Unit, mo
                             onCheckedChange = { if (it) onSelect(option) },
                             enabled = enabled,
                             colors = connectedToggleColors(),
-                            modifier = Modifier.weight(1f).heightIn(min = 48.dp).semantics {
+                            modifier = Modifier.weight(if (proportional) naturalWidths[optionIndex].value else 1f).heightIn(min = 48.dp).semantics {
                                 role = Role.RadioButton
                                 this.selected = option == selected
                             },

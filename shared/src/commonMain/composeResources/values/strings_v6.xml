@@ -6,7 +6,7 @@
     <string name="home_select_page">Select page</string>
     <string name="home_select_pages">Select pages</string>
     <string name="detail_status_failed">Last check failed %1$s</string>
-    <string name="detail_calendar_summary">%1$d changes across %2$d days in the last 30 days</string>
+    <string name="detail_calendar_summary">%1$s across %2$s in the last 30 days</string>
     <string name="turbo_sheet_no_pages">No active pages yet. Resume a page before starting Turbo.</string>
     <string name="turbo_sheet_paused_note">Paused pages are not included.</string>
     <string name="turbo_live_note_while_open">Turbo keeps checking while the app is open. You can leave this screen and return to see any changes.</string>
@@ -110,8 +110,8 @@
     </plurals>
     <string name="turbo_found_none">No changes found</string>
     <plurals name="turbo_summary_checks">
-        <item quantity="one">%1$d check across %2$d pages</item>
-        <item quantity="other">%1$d checks across %2$d pages</item>
+        <item quantity="one">%1$d check</item>
+        <item quantity="other">%1$d checks</item>
     </plurals>
     <string name="turbo_live_note">Turbo keeps running if you leave this screen. You’ll get a notification the moment a page changes.</string>
     <string-array name="weekday_names">
@@ -171,6 +171,7 @@
     <string name="mode_html">Page HTML</string>
     <string name="mode_default">App default</string>
     <string name="mode_text">Text</string>
+    <string name="mode_code">Code</string>
     <string name="detail_how_often">App check schedule</string>
     <string name="detail_notify">Notify me</string>
     <string name="detail_paused">Pause checks</string>
@@ -180,7 +181,7 @@
     <string name="detail_check_less">Check less often</string>
     <string name="advice_temporary">The site is busy or down. This is usually temporary; we’ll keep trying.</string>
     <string name="advice_connection">This device couldn’t reach the internet. We’ll try again when you’re back online.</string>
-    <string name="advice_login">This page needs a sign-in. On Android, screenshot checks can use the app browser’s sign-in. Text and source checks cannot.</string>
+    <string name="advice_login">This page needs a sign-in. Screenshot checks can reuse the app browser’s sign-in on this device. Text and source checks cannot.</string>
     <string name="advice_not_found">The page doesn’t exist anymore. Check that the link is still right.</string>
     <string name="advice_rate">The site is asking us to slow down. Checking less often usually fixes this.</string>
     <string name="advice_region">The part you picked isn’t on the page anymore. Pick it again.</string>
@@ -224,7 +225,7 @@
     <string name="reader_position">Change %1$d of %2$d</string>
     <string name="reader_versions_title">Compare versions</string>
     <string name="reader_versions_body">Tap a version to see what changed compared with the one before it.</string>
-    <string name="advice_capture">Screenshots can only be taken on Android. Switch this page to Text, or keep checking it from your phone.</string>
+    <string name="advice_capture">Screenshot checks are available on Android and iOS. Choose Text for this page, or check it from the mobile app.</string>
     <string name="checks_title">Automatic checks</string>
     <string name="checks_every">Every</string>
     <string name="checks_custom">Custom…</string>

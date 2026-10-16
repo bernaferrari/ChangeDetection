@@ -78,7 +78,7 @@
     <string name="settings_background_sync_disabled">Disabled</string>
     <string name="settings_background_sync_every">Every %1$d minutes</string>
     <string name="settings_about_section">About</string>
-    <string name="settings_about_title">About ChangeDetection</string>
+    <string name="settings_about_title">About Change Detection</string>
     <string name="settings_action_contact">Contact developer</string>
     <string name="settings_sync_constraints_title">Sync constraints</string>
     <string name="settings_sync_constraint_wifi">Require Wi‑Fi</string>
@@ -144,7 +144,7 @@
     <string name="comparison_no_changes_title">No differences found</string>
     <string name="comparison_no_changes_text">The text content of both versions is identical.</string>
     <string name="settings_comparison_title">Default capture method</string>
-    <string name="settings_comparison_subtitle">Used by pages set to Follow app setting. Other pages keep their own capture method.</string>
+    <string name="settings_comparison_subtitle">Used by pages that follow the app’s default. Other pages keep their own capture method.</string>
     <string name="settings_comparison_summary">For pages that follow app settings</string>
     <string name="settings_comparison_page_text">Page text</string>
     <string name="settings_comparison_screenshots">Screenshots</string>
@@ -197,7 +197,7 @@
     <string name="monitor_editor_error_invalid_url">Enter a complete page address, such as example.com.</string>
     <string name="monitor_editor_error_not_found">This page no longer exists.</string>
     <string name="monitor_editor_error_load">We couldn’t load this page. Try again.</string>
-    <string name="monitor_editor_error_save">We couldn’t save this page. Check your connection and try again.</string>
+    <string name="monitor_editor_error_save">Couldn’t save this page. Try again.</string>
     <string name="clear_page_address">Clear page address</string>
     <string name="paste">Paste</string>
     <string name="local_browser_title_snapshot">Saved version</string>
@@ -228,7 +228,7 @@
     <string name="a11y_close">Close</string>
     <string name="a11y_drag_screenshot_comparison">Drag to compare screenshots</string>
     <string name="a11y_open_license">Open license</string>
-    <string name="monitor_editor_cadence_hint">Checked automatically in the background — adjust anytime in Settings.</string>
+    <string name="monitor_editor_cadence_hint">Manage automatic checks in Settings.</string>
     <string name="monitor_editor_duplicate_warning">You're already monitoring this page</string>
     <string name="monitor_editor_duplicate_open">Open</string>
     <string name="address_changed_title">Address changed</string>
@@ -253,7 +253,7 @@
     <string name="storage_history_policy">Keeps up to 100 versions per page. Older versions are removed above 250 MB. Each page’s latest two versions are always kept, even if they exceed this budget.</string>
     <string name="storage_clear_older">Clear older versions</string>
     <string name="storage_clear_older_title">Clear older versions?</string>
-    <string name="storage_clear_older_body">Each page keeps its latest change. %1$s of older versions will be deleted from this device. This can’t be undone.</string>
+    <string name="storage_clear_older_body">Each page keeps its latest two versions. %1$s of older versions will be deleted from this device. This can’t be undone.</string>
     <string name="storage_clear_older_confirm">Clear</string>
     <string name="capture_mode_default">App default</string>
     <string name="capture_mode_html">Page HTML</string>
@@ -261,9 +261,9 @@
     <string name="capture_mode_baseline">Switching methods starts a new baseline. Existing history is kept.</string>
     <string name="capture_preview_action">Preview capture</string>
     <string name="capture_preview_title">Capture preview</string>
-    <string name="capture_preview_loading">Loading the page…</string>
+    <string name="capture_preview_loading">Preparing preview…</string>
     <string name="capture_first_version_title">Preparing preview…</string>
-    <string name="capture_first_version_body">You can keep configuring while it loads.</string>
+    <string name="capture_first_version_body">You can still adjust the settings.</string>
     <string name="capture_preview_html">Page text preview</string>
     <string name="capture_preview_empty">No readable text was found. This page may need screenshot monitoring.</string>
     <string name="capture_preview_expand">View full screenshot</string>
@@ -316,7 +316,7 @@
     <string name="text_region_description">Only matching HTML is saved. Changes outside the region or in ignored elements do not trigger alerts. Preview before saving. Leave the include selector empty to watch the whole page.</string>
     <string name="text_region_include">Include CSS selector (optional)</string>
     <string name="text_region_exclude">Ignore CSS selector (optional)</string>
-    <string name="text_region_invalid">Use valid CSS selectors of at most 512 characters each, without regular-expression selectors.</string>
+    <string name="text_region_invalid">Use valid CSS selectors of at most 4096 characters each, without regular-expression selectors.</string>
     <string name="detail_last_saved">Last saved</string>
     <string name="detail_compare">Compare</string>
     <string name="detail_empty_text">No readable text in this saved version. Open it to inspect the source.</string>
@@ -372,10 +372,10 @@
     <string name="settings_write_failed">Could not save your choice. Try again.</string>
     <string name="storage_history_load_failed">Could not load storage usage.</string>
     <string name="turbo_unavailable_title">Turbo is unavailable in this preview</string>
-    <string name="turbo_unavailable_description">Use the Android or desktop app to start a monitoring session.</string>
+    <string name="turbo_unavailable_description">Use the Android, iOS or desktop app to start a monitoring session.</string>
     <string name="image_diff_sampled_pixels_different">%1$s sampled pixels differ. Statistics use a reduced-size preview.</string>
     <string name="check_failure_capture_unavailable">Screenshot checks unavailable</string>
-    <string name="check_failure_capture_unavailable_detail">Use Android for screenshot checks, or edit this page to choose text or source monitoring. Your saved versions are kept.</string>
+    <string name="check_failure_capture_unavailable_detail">Use Android or iOS for screenshot checks, or choose text or source monitoring. Your saved versions are kept.</string>
     <string name="settings_theme_and_color">Theme and color</string>
     <string name="history_today">Today</string>
     <string name="history_yesterday">Yesterday</string>
@@ -428,4 +428,13 @@
     <string name="pull_check_pull">Pull to check pages</string>
     <string name="pull_check_release">Release to check pages</string>
     <string name="pull_check_checking">Checking pages…</string>
+    <string name="capture_screenshot_finishing">Finishing screenshot…</string>
+    <plurals name="turbo_summary_pages">
+        <item quantity="one">%1$d page</item>
+        <item quantity="other">%1$d pages</item>
+    </plurals>
+    <plurals name="detail_calendar_days">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
 </resources>
