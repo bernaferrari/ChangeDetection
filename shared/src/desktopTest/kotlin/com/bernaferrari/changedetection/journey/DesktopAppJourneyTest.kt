@@ -74,7 +74,7 @@ class DesktopAppJourneyTest {
             compose.waitUntil(10_000) { compose.onAllNodesWithText("Opening session 09:00", substring = true).fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithText("Opening session 09:00", substring = true).assertIsDisplayed()
             capture("app-journey-setup-preview")
-            compose.onNodeWithText("Name").performTextReplacement("Journey schedule")
+            compose.onNodeWithContentDescription("Name").performTextReplacement("Journey schedule")
             compose.onNode(hasText("Start watching") and hasClickAction()).performClick()
             compose.waitUntil(10_000) { compose.onAllNodesWithText("Now watching", substring = true).fetchSemanticsNodes().isNotEmpty() }
             val page = runBlocking { db.siteDao().getSitesList().single() }

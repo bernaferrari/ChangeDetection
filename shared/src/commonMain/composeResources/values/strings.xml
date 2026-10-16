@@ -3,6 +3,7 @@
     <string name="icon_color_title">Color</string>
     <string name="editor_icon_shape_title">Page icon</string>
     <string name="icon_shape_automatic">Automatic</string>
+    <string name="icon_original">Original</string>
     <string name="icon_shape_circle">Circle</string>
     <string name="icon_shape_rounded">Rounded</string>
     <string name="icon_shape_flower">Flower</string>

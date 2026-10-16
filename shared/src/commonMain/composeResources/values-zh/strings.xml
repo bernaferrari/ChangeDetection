@@ -3,6 +3,7 @@
     <string name="icon_color_title">颜色</string>
     <string name="editor_icon_shape_title">页面图标</string>
     <string name="icon_shape_automatic">自动</string>
+    <string name="icon_original">原始图标</string>
     <string name="icon_shape_circle">圆形</string>
     <string name="icon_shape_rounded">圆角</string>
     <string name="icon_shape_flower">花朵</string>

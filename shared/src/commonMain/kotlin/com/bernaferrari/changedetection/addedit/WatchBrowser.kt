@@ -75,7 +75,7 @@ internal fun decodeBrowserUrl(value: String): String? {
 }
 
 /** What the open page already says about itself, read when watching starts so nothing waits on a reload. */
-internal data class LivePage(val url: String, val title: String?, val icon: String?, val capturePreview: (suspend () -> CapturePreview?)? = null)
+internal data class LivePage(val url: String, val title: String?, val icon: String?, val capturePreview: LivePreviewCapture? = null)
 
 private const val LIVE_PAGE_SCRIPT = "JSON.stringify([window.location.href,${PageCleanup.TITLE},${PageCleanup.ICON}])"
 
@@ -145,8 +145,8 @@ internal fun WatchBrowser(
                     // Open review immediately. Its preview job captures this still-mounted browser.
                     val mode = captureMode
                     val region = com.bernaferrari.changedetection.detection.TextRegion(only, ignored.joinToString(", "))
-                    currentOnWatch(page.copy(capturePreview = {
-                        captureMutex.withLock { captureLivePagePreview(state, navigator, page.url, mode, region) }
+                    currentOnWatch(page.copy(capturePreview = { onPreview ->
+                        captureMutex.withLock { captureLivePagePreview(state, navigator, page.url, mode, region, onPreview) }
                     }))
                 }
             } finally {
@@ -199,8 +199,19 @@ internal fun WatchBrowser(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     IconButton(onClick = onClose) { Icon(Icons.Rounded.Close, stringResource(Res.string.a11y_close)) }
-                    IconButton(onClick = { navigator.navigateBack() }, enabled = navigator.canGoBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(Res.string.a11y_navigate_back)) }
-                    IconButton(onClick = { navigator.navigateForward() }, enabled = navigator.canGoForward) { Icon(Icons.AutoMirrored.Rounded.ArrowForward, stringResource(Res.string.browser_forward)) }
+                    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHighest, modifier = Modifier.padding(start = 4.dp)) {
+                        // A tight pair, like a browser's: each button is half of one 72×48 target, so the arrows sit together.
+                        Row(Modifier.padding(horizontal = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                            CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+                                IconButton(onClick = { navigator.navigateBack() }, enabled = navigator.canGoBack, modifier = Modifier.size(width = 36.dp, height = 48.dp)) {
+                                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(Res.string.a11y_navigate_back), Modifier.size(20.dp))
+                                }
+                                IconButton(onClick = { navigator.navigateForward() }, enabled = navigator.canGoForward, modifier = Modifier.size(width = 36.dp, height = 48.dp)) {
+                                    Icon(Icons.AutoMirrored.Rounded.ArrowForward, stringResource(Res.string.browser_forward), Modifier.size(20.dp))
+                                }
+                            }
+                        }
+                    }
                     AddressPill(
                         url = liveUrl,
                         editing = editingAddress,
@@ -210,7 +221,7 @@ internal fun WatchBrowser(
                             typed.normalizeUrl()?.let { navigator.loadUrl(it) }
                         },
                         onReload = { navigator.reload() },
-                        modifier = Modifier.weight(1f).padding(start = 4.dp, end = 8.dp),
+                        modifier = Modifier.weight(1f).padding(start = 8.dp, end = 8.dp),
                     )
                 }
             },
@@ -313,11 +324,11 @@ private fun AddressPill(url: String, editing: Boolean, onEdit: (Boolean) -> Unit
             modifier = modifier.heightIn(min = 48.dp).focusRequester(focus).onFocusChanged { if (!it.hasFocus) onEdit(false) },
         )
     } else {
-        Surface(onClick = { onEdit(true) }, shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHighest, modifier = modifier.heightIn(min = 44.dp)) {
+        Surface(onClick = { onEdit(true) }, shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHighest, modifier = modifier.heightIn(min = 48.dp)) {
             Row(Modifier.padding(start = 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 if (url.startsWith("https://")) Icon(Icons.Rounded.Lock, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(display, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                IconButton(onClick = onReload, modifier = Modifier.size(44.dp)) { Icon(Icons.Rounded.Refresh, stringResource(Res.string.refresh), Modifier.size(20.dp)) }
+                IconButton(onClick = onReload, modifier = Modifier.size(48.dp)) { Icon(Icons.Rounded.Refresh, stringResource(Res.string.refresh), Modifier.size(20.dp)) }
             }
         }
     }

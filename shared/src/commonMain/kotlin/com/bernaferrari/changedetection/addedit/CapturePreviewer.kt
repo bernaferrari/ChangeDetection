@@ -12,8 +12,11 @@ sealed interface CapturePreview {
     val firstVersion: SyncEngine.FetchResult.Success?
 
     data class Html(val text: String, val totalBytes: Int, val selectableDocument: com.bernaferrari.changedetection.detection.SelectableTextDocument? = null, val pageTitle: String? = null, val pageIcon: String? = null, override val firstVersion: SyncEngine.FetchResult.Success? = null) : CapturePreview
-    data class Image(val bytes: ByteArray, val pageTitle: String? = null, val pageIcon: String? = null, override val firstVersion: SyncEngine.FetchResult.Success? = null) : CapturePreview
+    data class Image(val bytes: ByteArray, val pageTitle: String? = null, val pageIcon: String? = null, override val firstVersion: SyncEngine.FetchResult.Success? = null, val isPreparing: Boolean = false) : CapturePreview
 }
+
+/** A live capture may show a viewport image before its complete baseline is ready. */
+typealias LivePreviewCapture = suspend (onPreview: (CapturePreview) -> Unit) -> CapturePreview?
 
 /** A read-only sample: no monitor creation, baseline commit, scheduling or notification until [keepAsFirstVersion]. */
 fun interface CapturePreviewer {
@@ -107,35 +110,37 @@ internal suspend fun previewFromCapture(
     url: String,
     mode: CaptureMode,
     region: com.bernaferrari.changedetection.detection.TextRegion,
-): CapturePreview {
+): CapturePreview = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+    // DOM parsing, region extraction and selectable-document construction can be large.
+    // Keep all of it off the UI thread, including when called by the live browser.
     check(result.data.isNotEmpty()) { "The page returned no content" }
     check(mode != CaptureMode.TEXT || !result.contentType.startsWith("image/", true)) { "This address returns an image. Choose screenshots or source monitoring." }
-    return if (result.contentType.startsWith("image/", true)) {
+    if (result.contentType.startsWith("image/", true)) {
         CapturePreview.Image(result.data, firstVersion = result)
     } else {
+        val source = result.data.decodeToString()
+        val isHtml = result.contentType.contains("html", true)
         CapturePreview.Html(
             (
                 if (mode == CaptureMode.TEXT) {
                     com.bernaferrari.changedetection.util.readableSnapshotText(
-                        com.bernaferrari.changedetection.detection.prepareTextCapture(result.data, result.contentType, region).data.decodeToString(),
-                        result.contentType.contains("html", true),
+                        if (region.isEmpty) source else region.extractHtml(source, isHtml),
+                        isHtml,
                     )
                 } else if (mode == CaptureMode.SOURCE) {
-                    result.data.decodeToString()
+                    source
                 } else {
-                    runCatching { com.fleeksoft.ksoup.Ksoup.parse(result.data.decodeToString()).text() }.getOrElse { result.data.decodeToString() }
+                    runCatching { com.fleeksoft.ksoup.Ksoup.parse(source).text() }.getOrElse { source }
                 }
                 ).take(12_000),
             result.data.size,
-            if (mode == CaptureMode.TEXT && result.contentType.contains("html", true)) {
-                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-                    com.bernaferrari.changedetection.detection.selectableTextDocument(result.data.decodeToString())
-                }
+            if (mode == CaptureMode.TEXT && isHtml) {
+                com.bernaferrari.changedetection.detection.selectableTextDocument(source)
             } else {
                 null
             },
-            pageTitle = if (result.contentType.contains("html", true)) htmlTitle(result.data.decodeToString()) else null,
-            pageIcon = if (result.contentType.contains("html", true)) htmlIcon(result.data.decodeToString(), url) else null,
+            pageTitle = if (isHtml) htmlTitle(source) else null,
+            pageIcon = if (isHtml) htmlIcon(source, url) else null,
             firstVersion = result,
         )
     }

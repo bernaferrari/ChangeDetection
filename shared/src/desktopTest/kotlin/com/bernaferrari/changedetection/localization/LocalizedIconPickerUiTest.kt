@@ -47,7 +47,6 @@ class LocalizedIconPickerUiTest(private val language: String, private val scale:
     }
 
     @Test fun translatedShapesAndAppearanceColorsRemainReachable() {
-        val title = runBlocking { getString(Res.string.editor_icon_shape_title) }
         val circle = runBlocking { getString(Res.string.icon_shape_circle) }
         val pink = runBlocking { getString(Res.string.palette_pink) }
         compose.setContent {
@@ -62,19 +61,22 @@ class LocalizedIconPickerUiTest(private val language: String, private val scale:
                 }
             }
         }
-        compose.onNodeWithText(title).assertIsDisplayed()
+        val original = runBlocking { getString(Res.string.icon_original) }
+        // The sheet animates in; wait for its content before checking it.
+        compose.waitUntil(5_000) { compose.onAllNodesWithText(original).fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText(original).assertIsDisplayed()
         val circleChoice = compose.onNodeWithContentDescription(circle).performScrollTo().assertIsNotSelected()
         val targetBounds = circleChoice.fetchSemanticsNode().boundsInRoot
         circleChoice.performMouseInput { moveTo(center) }
         compose.waitForIdle()
         circleChoice.assertIsNotSelected()
         Assert.assertEquals("Hover keeps the hit target still", targetBounds, circleChoice.fetchSemanticsNode().boundsInRoot)
-        val hoverRoot = compose.onNode(isRoot() and hasAnyDescendant(hasText(title)), useUnmergedTree = true)
+        val hoverRoot = compose.onAllNodes(isRoot()).onLast()
         val hoverOutput = File("../build/i18n/screens/picker-hover-$language-$scale.png").apply { parentFile.mkdirs() }
         ImageIO.write(hoverRoot.captureToImage().toAwtImage(), "png", hoverOutput)
         circleChoice.performClick().assertIsSelected()
         compose.onNodeWithContentDescription(pink).performScrollTo().assertIsDisplayed().performClick().assertIsSelected()
-        val root = compose.onNode(isRoot() and hasAnyDescendant(hasText(title)), useUnmergedTree = true)
+        val root = compose.onAllNodes(isRoot()).onLast()
         val output = File("../build/i18n/screens/picker-$language-$scale.png").apply { parentFile.mkdirs() }
         ImageIO.write(root.captureToImage().toAwtImage(), "png", output)
     }

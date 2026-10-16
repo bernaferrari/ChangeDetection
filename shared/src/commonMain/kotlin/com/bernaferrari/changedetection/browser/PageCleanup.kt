@@ -61,10 +61,20 @@ object PageCleanup {
     const val ICON = "(function(){var best='',score=-1;document.querySelectorAll('link[rel][href]').forEach(function(l){var rel=l.rel.toLowerCase();if(rel.indexOf('icon')<0||rel.indexOf('mask')>=0)return;var h=l.href||'';if(/\\.svg(\\?|$)/i.test(h)||(l.type||'').indexOf('svg')>=0)return;var sz=parseInt((l.getAttribute('sizes')||'').split('x')[0])||(rel.indexOf('apple')>=0?180:16);var s=(rel.indexOf('apple')>=0?1000:0)+Math.min(sz,512);if(s>score){score=s;best=h;}});return best||(location.origin+'/favicon.ico');})()"
 
     /**
-     * "pending,resources": images still loading (or empty placeholders), and how many network resources the page
+     * "pending,resources": images still loading, and how many network resources the page
      * has requested so far. A page is settled when nothing is pending and the resource count stops growing.
      */
-    const val LOAD_STATE = "(function(){var p=0;document.querySelectorAll('img').forEach(function(i){var r=i.getBoundingClientRect();if(r.width<2||r.height<2)return;if(!i.complete||i.naturalWidth===0)p++;});var n=(performance.getEntriesByType&&performance.getEntriesByType('resource').length)||0;return p+','+n;})()"
+    // A complete image with naturalWidth == 0 has failed; waiting cannot make it load.
+    val LOAD_STATE = loadState()
+
+    /** Only resources that can appear in this capture should hold up its preview. */
+    internal fun loadState(top: Double? = null, bottom: Double? = null): String {
+        val outside = if (top != null && bottom != null) {
+            require(top.isFinite() && bottom.isFinite() && bottom > top)
+            "if(r.bottom+window.scrollY<=$top||r.top+window.scrollY>=$bottom)return;"
+        } else ""
+        return "(function(){var p=0;document.querySelectorAll('img').forEach(function(i){var r=i.getBoundingClientRect();if(r.width<2||r.height<2)return;$outside if(!i.complete)p++;});var n=(performance.getEntriesByType&&performance.getEntriesByType('resource').length)||0;return p+','+n;})()"
+    }
 
     /**
      * Relative timestamps ("Há 42 minutos", "2 hours ago", "hace 5 min") change on every check without the page
@@ -87,12 +97,12 @@ object PageCleanup {
      * Waits until the page stops loading: no visible image still loading and no new network requests for about a
      * second. Gives up after [maxMs], so a page that never settles (live video, tickers) is still captured.
      */
-    suspend fun awaitSettled(evaluate: suspend (String) -> String?, maxMs: Long = 8_000, pollMs: Long = 500) {
+    suspend fun awaitSettled(evaluate: suspend (String) -> String?, maxMs: Long = 8_000, pollMs: Long = 500, loadStateScript: String = LOAD_STATE) {
         var lastResources = -1
         var quietPolls = 0
         var waited = 0L
         while (waited < maxMs) {
-            val parts = evaluate(LOAD_STATE)?.trim('"')?.split(',')?.mapNotNull { it.trim().toIntOrNull() }
+            val parts = evaluate(loadStateScript)?.trim('"')?.split(',')?.mapNotNull { it.trim().toIntOrNull() }
             val pending = parts?.getOrNull(0) ?: 0
             val resources = parts?.getOrNull(1) ?: 0
             quietPolls = if (pending == 0 && resources == lastResources) quietPolls + 1 else 0

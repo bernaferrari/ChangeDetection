@@ -111,9 +111,9 @@ class AddEditViewModel(
 
     fun requestPreview() = requestPreviewFrom(null)
 
-    fun requestLivePreview(capture: suspend () -> CapturePreview?) = requestPreviewFrom(capture)
+    fun requestLivePreview(capture: LivePreviewCapture) = requestPreviewFrom(capture)
 
-    private fun requestPreviewFrom(liveCapture: (suspend () -> CapturePreview?)?) {
+    private fun requestPreviewFrom(liveCapture: LivePreviewCapture?) {
         val state = _uiState.value
         if (!validateRegion(state)) return
         val url = state.url.normalizeUrl()
@@ -127,7 +127,9 @@ class AddEditViewModel(
         previewJob = viewModelScope.launch {
             try {
                 val live = if (liveCapture == null) null else try {
-                    liveCapture()
+                    liveCapture { content ->
+                        if (generation == previewGeneration) _uiState.update { it.copy(preview = CapturePreviewState.Ready(content)) }
+                    }
                 } catch (timeout: kotlinx.coroutines.TimeoutCancellationException) {
                     kotlinx.coroutines.currentCoroutineContext().ensureActive()
                     null

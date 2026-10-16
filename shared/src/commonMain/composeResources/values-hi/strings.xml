@@ -3,6 +3,7 @@
     <string name="icon_color_title">रंग</string>
     <string name="editor_icon_shape_title">पेज का आइकन</string>
     <string name="icon_shape_automatic">अपने आप</string>
+    <string name="icon_original">मूल</string>
     <string name="icon_shape_circle">गोल</string>
     <string name="icon_shape_rounded">गोल कोनों वाला</string>
     <string name="icon_shape_flower">फूल</string>

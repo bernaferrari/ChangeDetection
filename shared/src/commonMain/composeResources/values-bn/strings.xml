@@ -3,6 +3,7 @@
     <string name="icon_color_title">রং</string>
     <string name="editor_icon_shape_title">পৃষ্ঠার আইকন</string>
     <string name="icon_shape_automatic">স্বয়ংক্রিয়</string>
+    <string name="icon_original">মূল</string>
     <string name="icon_shape_circle">বৃত্ত</string>
     <string name="icon_shape_rounded">গোলাকার কোণ</string>
     <string name="icon_shape_flower">ফুল</string>

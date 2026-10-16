@@ -398,6 +398,7 @@
     <string name="icon_color_title">Color</string>
     <string name="editor_icon_shape_title">Icono de página</string>
     <string name="icon_shape_automatic">Automático</string>
+    <string name="icon_original">Original</string>
     <string name="icon_shape_circle">Círculo</string>
     <string name="icon_shape_rounded">Redondeado</string>
     <string name="icon_shape_flower">Flor</string>
