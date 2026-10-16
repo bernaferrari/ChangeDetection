@@ -171,7 +171,7 @@
     <string name="how_it_works_step_monitor_description">रोज़ की निगरानी के लिए बैटरी बचाने वाली बैकग्राउंड जाँचें इस्तेमाल करें।</string>
     <string name="how_it_works_step_monitor_highlight">अंतराल, नेटवर्क और चार्जिंग की शर्तें आप तय करते हैं।</string>
     <string name="how_it_works_step_focus_title">समय ज़रूरी हो तो टर्बो इस्तेमाल करें</string>
-    <string name="how_it_works_step_focus_description">चुने हुए पेजों को हर 15 सेकंड से 2 मिनट में जाँचें, अधिकतम 3 घंटे तक।</string>
+    <string name="how_it_works_step_focus_description">चुने हुए पेजों को %1$d से %2$d सेकंड के अंतराल पर, अधिकतम ३ घंटे तक जाँचें।</string>
     <string name="how_it_works_step_focus_highlight">समय पूरा होते ही टर्बो रुक जाता है। आप इसे कभी भी पहले रोक सकते हैं।</string>
     <string name="how_it_works_step_alerts_title">देखें कि ठीक क्या बदला</string>
     <string name="how_it_works_step_alerts_description">पेज खोलकर सहेजे गए संस्करणों की टेक्स्ट, पेज के दृश्य या स्क्रीनशॉट के रूप में तुलना करें।</string>
@@ -316,7 +316,7 @@
     <string name="text_region_description">केवल मेल खाने वाला HTML सहेजा जाएगा। चुने हुए हिस्से से बाहर या छोड़े गए तत्वों के बदलाव पर सूचनाएँ नहीं मिलेंगी। सहेजने से पहले प्रीव्यू देखें। पूरे पेज की निगरानी के लिए शामिल करने वाला चयनकर्ता खाली रखें।</string>
     <string name="text_region_include">शामिल करने वाला CSS चयनकर्ता (वैकल्पिक)</string>
     <string name="text_region_exclude">छोड़ने वाला CSS चयनकर्ता (वैकल्पिक)</string>
-    <string name="text_region_invalid">हर CSS चयनकर्ता वैध और अधिकतम 4096 अक्षरों का हो। रेगुलर एक्सप्रेशन वाले चयनकर्ता न इस्तेमाल करें।</string>
+    <string name="text_region_invalid">हर CSS चयनकर्ता वैध और अधिकतम %1$d अक्षरों का हो। रेगुलर एक्सप्रेशन वाले चयनकर्ता न इस्तेमाल करें।</string>
     <string name="detail_last_saved">आखिरी बार सहेजा गया</string>
     <string name="detail_compare">तुलना करें</string>
     <string name="detail_empty_text">इस सहेजे गए संस्करण में पढ़ने योग्य टेक्स्ट नहीं है। सोर्स देखने के लिए खोलें।</string>

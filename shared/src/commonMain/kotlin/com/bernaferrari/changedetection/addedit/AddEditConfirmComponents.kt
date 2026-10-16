@@ -59,6 +59,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -651,21 +652,40 @@ private fun PagePreviewCard(
             ) { state ->
                 Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     when (state) {
-                        // Says what is happening and that nothing waits on it, instead of a bare "loading".
-                        CapturePreviewState.Idle, CapturePreviewState.Loading -> Column(
-                            Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).height(if (screenshot) 320.dp else 160.dp).padding(24.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            LoadingIndicator(Modifier.size(48.dp))
-                            Text(stringResource(Res.string.capture_first_version_title), style = MaterialTheme.typography.titleMedium, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                            Text(
-                                stringResource(Res.string.capture_first_version_body),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                                modifier = Modifier.widthIn(max = 320.dp),
-                            )
+                        // Says what is happening and that nothing waits on it, instead of a bare "loading". It holds the
+                        // ready preview's exact frame (for text: header, eight lines and "Show more", plus the parts button
+                        // below), built from the same invisible pieces, so the content swaps in without the card resizing.
+                        CapturePreviewState.Idle, CapturePreviewState.Loading -> {
+                            Box(
+                                Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).then(if (screenshot) Modifier.height(320.dp) else Modifier),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                if (!screenshot) {
+                                    Column(Modifier.fillMaxWidth().graphicsLayer { alpha = 0f }.clearAndSetSemantics {}.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Text(" ", style = MaterialTheme.typography.labelLarge)
+                                        Text("", minLines = 8, maxLines = 8, style = com.bernaferrari.changedetection.ui.theme.Reading.small)
+                                        TextButton(onClick = {}, enabled = false, contentPadding = PaddingValues(horizontal = 0.dp)) { Text(" ") }
+                                    }
+                                }
+                                Column(
+                                    Modifier.padding(24.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                ) {
+                                    LoadingIndicator(Modifier.size(48.dp))
+                                    Text(stringResource(Res.string.capture_first_version_title), style = MaterialTheme.typography.titleMedium, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                                    Text(
+                                        stringResource(Res.string.capture_first_version_body),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                        modifier = Modifier.widthIn(max = 320.dp),
+                                    )
+                                }
+                            }
+                            if (!screenshot && onSelectRegion != null) {
+                                OutlinedButton(onClick = {}, enabled = false, modifier = Modifier.fillMaxWidth().graphicsLayer { alpha = 0f }.clearAndSetSemantics {}) { Text(" ") }
+                            }
                         }
 
                         is CapturePreviewState.Failed -> Column(
