@@ -172,7 +172,7 @@ private fun navigateToTab(backStack: NavBackStack<NavKey>, destination: NavKey) 
     val tabIndex = backStack.indexOfFirst { it.isRootTab() }
     if (tabIndex >= 0) {
         backStack[tabIndex] = destination
-        while (backStack.size > tabIndex + 1) backStack.removeLast()
+        while (backStack.size > tabIndex + 1) backStack.removeAt(backStack.lastIndex)
     } else {
         backStack.add(destination)
     }
