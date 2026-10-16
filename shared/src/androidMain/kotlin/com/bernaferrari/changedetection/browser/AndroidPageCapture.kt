@@ -28,50 +28,73 @@ internal class AndroidPageCapture(private val view: WebView) {
     suspend fun capture(url: String, settleDelayMs: Long, maxHeight: Int, hide: String = "", only: String = ""): WebViewScreenshot = withContext(Dispatchers.Main.immediate) {
         navigate(url)
         delay(settleDelayMs.coerceIn(0, 30_000))
-        val title = evaluate(PageCleanup.TITLE).trim('"').takeIf { it.isNotBlank() && it != "null" }
-        val icon = evaluate(PageCleanup.ICON).trim('"').takeIf { it.startsWith("http") }
-        evaluate(PageCleanup.HIDE_CONSENT)
-        evaluate(PageCleanup.HIDE_ADS)
-        evaluate(PageCleanup.HIDE_BOTTOM_FLOATING)
-        if (hide.isNotBlank()) evaluate(PageCleanup.hide(hide))
-        // Await a bounded traversal on the capture coroutine. No page timer may keep scrolling while tiles draw.
-        val viewport = evaluate("window.innerHeight").toDoubleOrNull()?.coerceAtLeast(1.0) ?: 1.0
-        repeat(12) { step ->
-            currentCoroutineContext().ensureActive()
-            evaluate("window.scrollTo({left:0,top:${(step + 1) * viewport},behavior:'instant'});0")
-            delay(120)
-        }
-        evaluate("window.scrollTo({left:0,top:0,behavior:'instant'});0")
-        if (only.isNotBlank()) evaluate("(function(){var e=document.querySelector(${PageCleanup.js(only)});if(e)e.scrollIntoView();return 0;})()")
-        PageCleanup.awaitSettled({ script -> evaluate(script) })
-        evaluate("window.scrollTo({left:0,top:0,behavior:'instant'});0")
-        evaluate(PageCleanup.MASK_RELATIVE_TIMES)
-        awaitFrame()
-        rendererFailure?.let { throw it }
-        val clip = if (only.isNotBlank()) {
-            evaluate(PageCleanup.rectOf(only)).trim('"').split(',').mapNotNull { it.toDoubleOrNull() }.takeIf { it.size == 4 }
-                ?: throw IOException("The part you picked is no longer on the page")
-        } else {
-            null
-        }
-        if (clip == null) {
-            @Suppress("DEPRECATION")
-            val pageHeight = view.contentHeight.toDouble() * view.scale
-            require(pageHeight <= 100_000) { "This page is too tall for a screenshot. Use page text monitoring." }
-        }
-        val region = clip?.let { Rectangle(it[0], it[1], it[2] - it[0], it[3] - it[1]) }
-        val shot = captureWebViewDocument(
-            view,
-            clip = region,
-            pixelsPerCssPixel = 2.0,
-            maxPixels = 7_000_000,
-            maxHeight = maxHeight,
-            truncateFullPage = true,
-            viewportWidthOnly = true,
+        captureLoaded(maxHeight, hide, only)
+    }
 
-            afterFirstTile = { evaluate(PageCleanup.HIDE_PINNED) },
-        )
-        WebViewScreenshot("image/png", shot.bytes, shot.width, shot.height, title, icon)
+    /** Uses the already-loaded document, with the same cleanup and tiling as scheduled checks. */
+    suspend fun captureLoaded(maxHeight: Int, hide: String = "", only: String = "", preservePage: Boolean = false): WebViewScreenshot = withContext(Dispatchers.Main.immediate) {
+        suspend fun clean(script: String) { evaluate(if (preservePage) PageCleanup.reversible(script) else script) }
+        try {
+            val title = evaluate(PageCleanup.TITLE).trim('"').takeIf { it.isNotBlank() && it != "null" }
+            val icon = evaluate(PageCleanup.ICON).trim('"').takeIf { it.startsWith("http") }
+            clean(PageCleanup.HIDE_CONSENT)
+            clean(PageCleanup.HIDE_ADS)
+            clean(PageCleanup.HIDE_BOTTOM_FLOATING)
+            if (hide.isNotBlank()) clean(PageCleanup.hide(hide))
+            // Await a bounded traversal on the capture coroutine. No page timer may keep scrolling while tiles draw.
+            if (preservePage) {
+                for (step in 0 until 12) {
+                    currentCoroutineContext().ensureActive()
+                    val bounds = evaluate("[window.scrollY,window.innerHeight,Math.max(document.body.scrollHeight,document.documentElement.scrollHeight)].join(',')")
+                        .trim('"').split(',').mapNotNull { it.toDoubleOrNull() }
+                    if (bounds.size != 3 || bounds[1] <= 0 || bounds[0] + bounds[1] >= bounds[2] - 1) break
+                    evaluate("window.scrollTo({left:0,top:${bounds[0] + bounds[1]},behavior:'instant'});0")
+                    delay(120)
+                }
+            } else {
+                val viewport = evaluate("window.innerHeight").toDoubleOrNull()?.coerceAtLeast(1.0) ?: 1.0
+                repeat(12) { step ->
+                    currentCoroutineContext().ensureActive()
+                    evaluate("window.scrollTo({left:0,top:${(step + 1) * viewport},behavior:'instant'});0")
+                    delay(120)
+                }
+            }
+            evaluate("window.scrollTo({left:0,top:0,behavior:'instant'});0")
+            if (only.isNotBlank()) evaluate("(function(){var e=document.querySelector(${PageCleanup.js(only)});if(e)e.scrollIntoView();return 0;})()")
+            PageCleanup.awaitSettled({ script -> evaluate(script) }, maxMs = if (preservePage) 2_000 else 8_000, pollMs = if (preservePage) 100 else 500)
+            evaluate("window.scrollTo({left:0,top:0,behavior:'instant'});0")
+            clean(PageCleanup.MASK_RELATIVE_TIMES)
+            awaitFrame()
+            rendererFailure?.let { throw it }
+            val clip = if (only.isNotBlank()) {
+                evaluate(PageCleanup.rectOf(only)).trim('"').split(',').mapNotNull { it.toDoubleOrNull() }.takeIf { it.size == 4 }
+                    ?: throw IOException("The part you picked is no longer on the page")
+            } else {
+                null
+            }
+            if (clip == null) {
+                @Suppress("DEPRECATION")
+                val pageHeight = view.contentHeight.toDouble() * view.scale
+                require(pageHeight <= 100_000) { "This page is too tall for a screenshot. Use page text monitoring." }
+            }
+            val region = clip?.let { Rectangle(it[0], it[1], it[2] - it[0], it[3] - it[1]) }
+            val shot = captureWebViewDocument(
+                view,
+                clip = region,
+                pixelsPerCssPixel = 2.0,
+                maxPixels = 7_000_000,
+                maxHeight = maxHeight,
+                truncateFullPage = true,
+                viewportWidthOnly = true,
+
+                afterFirstTile = { clean(PageCleanup.HIDE_PINNED) },
+            )
+            WebViewScreenshot("image/png", shot.bytes, shot.width, shot.height, title, icon)
+        } finally {
+            if (preservePage) withContext(kotlinx.coroutines.NonCancellable) {
+                kotlinx.coroutines.withTimeoutOrNull(2_000) { evaluate(PageCleanup.RESTORE_CAPTURE) }
+            }
+        }
     }
 
     private suspend fun evaluate(script: String): String = suspendCancellableCoroutine { continuation ->

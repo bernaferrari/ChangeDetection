@@ -98,16 +98,22 @@ class AddEditViewModel(
     private var titleEditedByUser = false
     private var captureModeEditedByUser = false
     private var previewJob: kotlinx.coroutines.Job? = null
+    private var livePreviewJob: kotlinx.coroutines.Job? = null
     private var previewGeneration = 0L
 
     fun dismissPreview() {
         previewGeneration++
         previewJob?.cancel()
         previewJob = null
+        livePreviewJob = null
         _uiState.update { it.copy(preview = CapturePreviewState.Idle) }
     }
 
-    fun requestPreview() {
+    fun requestPreview() = requestPreviewFrom(null)
+
+    fun requestLivePreview(capture: suspend () -> CapturePreview?) = requestPreviewFrom(capture)
+
+    private fun requestPreviewFrom(liveCapture: (suspend () -> CapturePreview?)?) {
         val state = _uiState.value
         if (!validateRegion(state)) return
         val url = state.url.normalizeUrl()
@@ -120,7 +126,18 @@ class AddEditViewModel(
         _uiState.update { it.copy(preview = CapturePreviewState.Loading) }
         previewJob = viewModelScope.launch {
             try {
-                val content = previewer.capture(url, state.captureMode, state.textRegion)
+                val live = if (liveCapture == null) null else try {
+                    liveCapture()
+                } catch (timeout: kotlinx.coroutines.TimeoutCancellationException) {
+                    kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                    null
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    Napier.w("Could not capture the open page; falling back to a fresh preview", error)
+                    null
+                }
+                val content = live ?: previewer.capture(url, state.captureMode, state.textRegion)
                 if (generation == previewGeneration) {
                     // A page's own first heading names it better than its host; never override a typed name.
                     val heading = (content as? CapturePreview.Html)?.pageTitle ?: (content as? CapturePreview.Image)?.pageTitle
@@ -146,6 +163,7 @@ class AddEditViewModel(
                 }
             }
         }
+        livePreviewJob = previewJob.takeIf { liveCapture != null }
     }
 
     init {
@@ -355,6 +373,7 @@ class AddEditViewModel(
         // so a rapid second tap observes isSaving and bails out.
         if (_uiState.value.isSaving || _uiState.value.isLoading) return
         _uiState.update { it.copy(isSaving = true, saveError = null) }
+        val pendingLivePreview = livePreviewJob?.takeIf { it.isActive }
 
         viewModelScope.launch {
             try {
@@ -421,20 +440,15 @@ class AddEditViewModel(
                         ),
                     )
 
+                // A quick Start tap should keep the in-flight browser capture, not throw it
+                // away and load the page again. Configuration remains available until saving.
+                pendingLivePreview?.join()
                 monitoringManager.updateSchedule()
                 sitesRepository.saveSite(baseSite, resetHistory = startFresh && existingSite != null, requireExisting = siteId != null)
                 // Any edit to the address, mode or parts discards the preview, so a ready one shows exactly this page.
-                val firstVersion = (state.preview as? CapturePreviewState.Ready)
+                val firstVersion = ((if (pendingLivePreview != null) _uiState.value.preview else state.preview) as? CapturePreviewState.Ready)
                     ?.takeIf { siteId == null && kotlin.time.Clock.System.now().toEpochMilliseconds() - it.capturedAt < FIRST_VERSION_MAX_AGE_MS }
                     ?.content
-
-                if (siteId == null) {
-                    _events.trySend(AddEditEvent.MonitorAdded)
-                }
-
-                _uiState.update { current ->
-                    current.copy(isSaving = false, saveComplete = true, savedSite = baseSite)
-                }
 
                 // The page was just captured for the preview; keep that as its first version instead of loading
                 // it again. Leaving this screen must not abandon the commit halfway.
@@ -448,6 +462,14 @@ class AddEditViewModel(
                     runCatching { monitoringManager.reloadSite(baseSite) }
                         .onFailure { Napier.w("Monitor saved, but its initial check could not be scheduled", it) }
                 }
+                if (siteId == null) {
+                    _events.trySend(AddEditEvent.MonitorAdded)
+                }
+
+                _uiState.update { current ->
+                    current.copy(isSaving = false, saveComplete = true, savedSite = baseSite)
+                }
+
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {

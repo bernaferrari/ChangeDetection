@@ -271,18 +271,19 @@ fun TurboSetupSheet(
     val selectedEligible = selected.intersect(eligibleIds)
     val endsAt = rememberNow(true) + duration * 60_000L
     val scroll = rememberScrollState()
-    // Same sheet as Automatic checks: a visible handle for what dragging does, and the default low container so
-    // unselected buttons (surfaceContainer) still read against it.
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = androidx.compose.material3.rememberBottomSheetState(
             initialValue = androidx.compose.material3.SheetValue.Hidden,
             enabledValues = setOf(androidx.compose.material3.SheetValue.Hidden, androidx.compose.material3.SheetValue.Expanded),
         ),
+        dragHandle = {
+            androidx.compose.material3.BottomSheetDefaults.DragHandle(Modifier.testTag("turbo-sheet-handle"))
+        },
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Column(modifier.fillMaxWidth().testTag("turbo-setup")) {
-            Column(Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(scroll).padding(horizontal = 16.dp).padding(bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.weight(1f, fill = false).fillMaxWidth().verticalScroll(scroll, overscrollEffect = null).padding(horizontal = 16.dp).padding(bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Column(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     BoltBadge(64.dp)
                     Text(stringResource(Res.string.turbo_mode), Modifier.padding(top = 12.dp), style = MaterialTheme.typography.headlineMedium)
@@ -328,10 +329,11 @@ fun TurboSetupSheet(
                 ConnectedChoice(TURBO_DURATION_MINUTES.sorted(), duration, { duration = it }, Modifier) { durationLabel(it) }
             }
             if (monitoringCapabilities.turbo) {
-                // Marks the edge only while options continue underneath, so scrolled content never just vanishes.
-                androidx.compose.animation.AnimatedVisibility(scroll.canScrollForward, enter = androidx.compose.animation.fadeIn(), exit = androidx.compose.animation.fadeOut()) {
-                    androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                }
+                // Reserve the divider's height so reaching the end cannot resize the viewport
+                // and change canScrollForward underneath an active drag.
+                androidx.compose.material3.HorizontalDivider(
+                    color = if (scroll.canScrollForward) MaterialTheme.colorScheme.outlineVariant else androidx.compose.ui.graphics.Color.Transparent,
+                )
                 Column(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLow).navigationBarsPadding().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Button(
                         onClick = { onStart(selectedEligible, interval, duration) },

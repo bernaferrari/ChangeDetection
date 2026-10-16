@@ -97,7 +97,7 @@ fun AddEditConfirmScreen(
     onTextRegionChange: (com.bernaferrari.changedetection.detection.TextRegion) -> Unit = {},
     onRemoveLegacyThreshold: () -> Unit = {},
     onPreview: () -> Unit = {},
-    @Suppress("UNUSED_PARAMETER") onClosePreview: () -> Unit = {},
+    onClosePreview: () -> Unit = {},
     isEditing: Boolean = false,
     isSaving: Boolean,
     saveError: AddEditError?,
@@ -107,6 +107,7 @@ fun AddEditConfirmScreen(
     onUrlChange: (String) -> Unit,
     onTitleChange: (String) -> Unit,
     onLivePage: (title: String?, icon: String?) -> Unit = { _, _ -> },
+    onLivePreviewRequest: (suspend () -> CapturePreview?) -> Unit = {},
     onNavigateUp: () -> Unit,
     onSave: () -> Unit,
     showUrlChangeDialog: Boolean = false,
@@ -167,14 +168,14 @@ fun AddEditConfirmScreen(
     // Reviewing is a step of its own that slides over the browser (a sheet inside the iOS sheet fought its
     // swipe-to-dismiss); back returns to the page with everything picked so far.
     val reviewStep: @Composable () -> Unit = {
-        com.bernaferrari.changedetection.util.BackHandler { if (!isSaving) reviewing = false }
+        com.bernaferrari.changedetection.util.BackHandler { if (!isSaving) { onClosePreview(); reviewing = false } }
         Scaffold(
             containerColor = MaterialTheme.colorScheme.surface,
             topBar = {
                 TopAppBar(
-                    title = { Text(stringResource(Res.string.watch_this_page)) },
+                    title = { Text(stringResource(if (isEditing) Res.string.editor_edit_title else Res.string.watch_this_page)) },
                     navigationIcon = {
-                        IconButton(enabled = !isSaving, onClick = { reviewing = false }) {
+                        IconButton(enabled = !isSaving, onClick = { onClosePreview(); reviewing = false }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(Res.string.a11y_navigate_back))
                         }
                     },
@@ -196,7 +197,7 @@ fun AddEditConfirmScreen(
                                 Spacer(Modifier.size(8.dp))
                                 Text(stringResource(Res.string.saving), style = MaterialTheme.typography.titleMedium)
                             } else {
-                                Text(stringResource(Res.string.editor_start), style = MaterialTheme.typography.titleMedium)
+                                Text(stringResource(if (isEditing) Res.string.save else Res.string.editor_start), style = MaterialTheme.typography.titleMedium)
                             }
                         }
                     }
@@ -211,12 +212,14 @@ fun AddEditConfirmScreen(
                     PagePreviewCard(
                         url = url, title = title, iconUrl = iconUrl, iconShape = iconShape, onIconShapeChange = onIconShapeChange, iconColors = iconColors, onIconColorChange = onIconColorChange, onTitleChange = onTitleChange, preview = preview, enabled = !isSaving,
                         onRetry = onPreview, onEditAddress = {
+                            onClosePreview()
                             reviewing = false
                             browsing = false
                         }, onSelectRegion = null, textRegion = textRegion, screenshot = visualMode,
                     )
                     if (browserAvailable) {
                         PartsSummary(textRegion.include, ignoredParts.size, onEdit = {
+                            onClosePreview()
                             reviewing = false
                             browsing = true
                         })
@@ -271,20 +274,17 @@ fun AddEditConfirmScreen(
                 startUrl = remember { url.normalizeUrl() ?: url },
                 only = textRegion.include,
                 ignored = ignoredParts,
+                captureMode = captureMode,
                 onPicksChange = { only, ignored -> onTextRegionChange(com.bernaferrari.changedetection.detection.TextRegion(only, ignored.joinToString(", "))) },
                 onPageChange = { page -> if (!isEditing && page.trimEnd('/') != (url.normalizeUrl() ?: url).trimEnd('/')) onUrlChange(page) },
                 onWatch = { page ->
                     onUrlChange(page.url)
                     onLivePage(page.title, page.icon)
-                    if (isEditing) {
-                        browsing = false
-                        onPreview()
-                    } else {
-                        reviewing = true
-                        onPreview()
-                    }
+                    reviewing = true
+                    page.capturePreview?.let(onLivePreviewRequest) ?: onPreview()
                 },
                 onClose = {
+                    onClosePreview()
                     browsing = false
                     reviewing = false
                 },

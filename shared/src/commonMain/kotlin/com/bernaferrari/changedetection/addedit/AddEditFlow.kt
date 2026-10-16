@@ -101,6 +101,7 @@ fun AddEditFlow(
                 onUrlChange = viewModel::setUrl,
                 onTitleChange = viewModel::setTitle,
                 onLivePage = viewModel::useLivePage,
+                onLivePreviewRequest = viewModel::requestLivePreview,
                 captureMode = uiState.captureMode,
                 textRegion = uiState.textRegion,
                 regionError = uiState.regionError,

@@ -392,6 +392,120 @@ class AddEditViewModelTest {
         assertEquals(emptyList<String>(), manager.reloaded)
     }
 
+    @Test fun `the browser capture survives naming edits and is saved without another capture`() = runTest {
+        val visible = CapturePreview.Html("Only in the signed-in browser", 30)
+        var kept: CapturePreview? = null
+        val previewer = object : CapturePreviewer {
+            override suspend fun capture(url: String, mode: com.bernaferrari.changedetection.repo.CaptureMode): CapturePreview = error("Must reuse the browser capture")
+            override suspend fun keepAsFirstVersion(site: Site, preview: CapturePreview): Boolean {
+                kept = preview
+                return true
+            }
+        }
+        val manager = FakeMonitoringManager()
+        val editor = createViewModel(previewer = previewer, monitoringManager = manager)
+        editor.setUrl("example.com")
+        editor.requestLivePreview { visible }
+        editor.setTitle("My page")
+        editor.setIconColor(0x123456 to 0x654321)
+        editor.saveSite()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        org.junit.Assert.assertSame(visible, kept)
+        assertTrue(editor.uiState.value.saveComplete)
+        assertTrue(manager.reloaded.isEmpty())
+    }
+
+    @Test fun `changing the address or region invalidates the browser capture`() = runTest {
+        val editor = createViewModel()
+        editor.setUrl("example.com")
+        editor.requestLivePreview { CapturePreview.Html("Old page", 8) }
+        editor.setUrl("other.example.com")
+        assertEquals(CapturePreviewState.Idle, editor.uiState.value.preview)
+        editor.requestLivePreview { CapturePreview.Html("Whole page", 10) }
+        editor.setTextRegion(com.bernaferrari.changedetection.detection.TextRegion("#price"))
+        assertEquals(CapturePreviewState.Idle, editor.uiState.value.preview)
+    }
+
+    @Test fun `a pending live preview leaves the draft editable and is cancelled by an address change`() = runTest {
+        val editor = createViewModel()
+        editor.setUrl("example.com")
+        editor.requestLivePreview {
+            kotlinx.coroutines.delay(1_000)
+            CapturePreview.Html("Old capture", 11)
+        }
+        assertEquals(CapturePreviewState.Loading, editor.uiState.value.preview)
+        assertFalse(editor.uiState.value.isSaving)
+        editor.setTitle("My new name")
+        assertEquals("My new name", editor.uiState.value.title)
+        editor.setUrl("new.example.com")
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(CapturePreviewState.Idle, editor.uiState.value.preview)
+        assertEquals("new.example.com", editor.uiState.value.url)
+        assertEquals("My new name", editor.uiState.value.title)
+    }
+
+    @Test fun `unsupported live capture falls back to the configured preview without blocking review`() = runTest {
+        val fallback = CapturePreview.Html("Fetched source", 14)
+        val editor = createViewModel(previewer = CapturePreviewer { _, _ -> fallback })
+        editor.setUrl("example.com")
+        editor.requestLivePreview { null }
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        org.junit.Assert.assertSame(fallback, (editor.uiState.value.preview as CapturePreviewState.Ready).content)
+    }
+
+    @Test fun `starting while the live preview is pending saves that capture without a second load`() = runTest {
+        val ready = kotlinx.coroutines.CompletableDeferred<CapturePreview>()
+        val visible = CapturePreview.Html("Visible browser state", 21)
+        var kept: CapturePreview? = null
+        val previewer = object : CapturePreviewer {
+            override suspend fun capture(url: String, mode: com.bernaferrari.changedetection.repo.CaptureMode): CapturePreview = error("Must not load another page")
+            override suspend fun keepAsFirstVersion(site: Site, preview: CapturePreview): Boolean {
+                kept = preview
+                return true
+            }
+        }
+        val manager = FakeMonitoringManager()
+        val editor = createViewModel(previewer = previewer, monitoringManager = manager)
+        editor.setUrl("example.com")
+        editor.requestLivePreview { ready.await() }
+        editor.saveSite()
+        assertTrue(editor.uiState.value.isSaving)
+        assertFalse(editor.uiState.value.saveComplete)
+        ready.complete(visible)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertTrue(editor.uiState.value.saveComplete)
+        org.junit.Assert.assertSame(visible, kept)
+        assertTrue(manager.reloaded.isEmpty())
+    }
+
+    @Test fun `save does not finish before the visible preview has been committed`() = runTest {
+        val committed = kotlinx.coroutines.CompletableDeferred<Unit>()
+        val previewer = object : CapturePreviewer {
+            override suspend fun capture(url: String, mode: com.bernaferrari.changedetection.repo.CaptureMode) = CapturePreview.Html("Visible page", 12)
+            override suspend fun keepAsFirstVersion(site: Site, preview: CapturePreview): Boolean {
+                committed.await()
+                return true
+            }
+        }
+        val manager = FakeMonitoringManager()
+        val editor = createViewModel(previewer = previewer, monitoringManager = manager)
+        editor.setUrl("example.com")
+        editor.requestPreview()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        editor.saveSite()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        try {
+            assertFalse("Do not navigate to an empty history while its baseline is still being saved", editor.uiState.value.saveComplete)
+            assertTrue(editor.uiState.value.isSaving)
+        } finally {
+            committed.complete(Unit)
+        }
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertTrue(editor.uiState.value.saveComplete)
+        assertFalse(editor.uiState.value.isSaving)
+        assertTrue(manager.reloaded.isEmpty())
+    }
+
     @Test fun `saving before the snapshot is ready falls back to a regular first check`() = runTest {
         val manager = FakeMonitoringManager()
         val source = FakeSitesDataSource()

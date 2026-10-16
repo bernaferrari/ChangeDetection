@@ -250,8 +250,8 @@
     <string name="capture_preview_action">Vista previa de la captura</string>
     <string name="capture_preview_title">Vista previa de la captura</string>
     <string name="capture_preview_loading">Cargando la página…</string>
-    <string name="capture_first_version_title">Tomando la primera captura…</string>
-    <string name="capture_first_version_body">Las próximas comprobaciones se comparan con ella. Ya puedes empezar a seguirla.</string>
+    <string name="capture_first_version_title">Preparando vista previa…</string>
+    <string name="capture_first_version_body">Puedes seguir configurando mientras se carga.</string>
     <string name="capture_preview_html">Vista previa del texto de la página</string>
     <string name="capture_preview_empty">No se encontró texto legible. Esta página puede necesitar capturas de pantalla.</string>
     <string name="capture_preview_expand">Ver captura completa</string>
@@ -424,4 +424,7 @@
         <item quantity="other">%1$d áreas modificadas</item>
     </plurals>
     <string name="storage_clear_failed">No se pudieron borrar las versiones anteriores. Inténtalo de nuevo.</string>
+    <string name="pull_check_pull">Desliza para comprobar páginas</string>
+    <string name="pull_check_release">Suelta para comprobar páginas</string>
+    <string name="pull_check_checking">Comprobando páginas…</string>
 </resources>

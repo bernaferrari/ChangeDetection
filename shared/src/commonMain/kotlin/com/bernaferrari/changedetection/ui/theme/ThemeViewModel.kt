@@ -40,11 +40,11 @@ class ThemeViewModel(
 
     val appPalette: StateFlow<AppPalette> =
         dataStore.data
-            .map { preferences -> AppPalette.fromStoredName(preferences[APP_PALETTE_KEY]) }
+            .map { preferences -> AppPalette.fromStoredName(preferences[APP_PALETTE_KEY], supportsDynamicColors()) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
-                initialValue = AppPalette.DEFAULT,
+                initialValue = AppPalette.defaultFor(supportsDynamicColors()),
             )
 
     fun updateThemeMode(mode: ThemeMode) {

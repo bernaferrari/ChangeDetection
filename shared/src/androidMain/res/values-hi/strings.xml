@@ -1,7 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">Change Detection</string>
-    <string name="status_sync_in_progress">सिंक हो रहा है</string>
+    <string name="status_checking_pages">पेज जाँचे जा रहे हैं</string>
+    <string name="status_checking_page">पेज जाँचा जा रहा है</string>
+    <string name="status_checking_page_progress">%2$d में से %1$d पेज जाँचा जा रहा है</string>
+    <string name="status_preparing_page_checks">पेज जाँचने की तैयारी हो रही है…</string>
+    <string name="sync_notification_channel_name">पेज की जाँच</string>
     <string name="change_notification_channel_name">पहचाने गए बदलाव</string>
     <string name="change_notification_channel_description">निगरानी वाली वेबसाइट बदलने पर सूचनाएँ</string>
     <string name="quick_monitor_banner_live_badge">लाइव</string>

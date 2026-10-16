@@ -1,7 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">Change Detection</string>
-    <string name="status_sync_in_progress">Synchronization in progress</string>
+    <string name="status_checking_pages">Checking pages</string>
+    <string name="status_checking_page">Checking page</string>
+    <string name="status_checking_page_progress">Checking page %1$d of %2$d</string>
+    <string name="status_preparing_page_checks">Preparing to check pages…</string>
+    <string name="sync_notification_channel_name">Page checks</string>
     <string name="change_notification_channel_name">Detected changes</string>
     <string name="change_notification_channel_description">Alerts when a monitored website changes</string>
     <string name="quick_monitor_banner_live_badge">LIVE</string>

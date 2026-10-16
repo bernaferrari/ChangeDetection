@@ -76,17 +76,42 @@ object IosPageCapture {
         try {
             loadPage(web, url)
             delay(settleMs.coerceIn(500, 15_000))
+            return captureDocument(web, hide, only)
+        } finally {
+            web.stopLoading()
+            web.removeFromSuperview()
+        }
+    }
+
+    /** Capture the open browser with the same viewport and preparation as a scheduled check. */
+    suspend fun captureLoaded(web: WKWebView, hide: String = "", only: String = ""): ByteArray = single.withLock {
+        withContext(Dispatchers.Main) {
+            val frame = web.frame
+            val scrollOffset = web.scrollView.contentOffset
+            try {
+                web.setFrame(CGRectMake(0.0, 0.0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT))
+                withTimeout(90_000) { captureDocument(web, hide, only, preservePage = true) }
+            } finally {
+                web.setFrame(frame)
+                web.scrollView.setContentOffset(scrollOffset, animated = false)
+            }
+        }
+    }
+
+    private suspend fun captureDocument(web: WKWebView, hide: String, only: String, preservePage: Boolean = false): ByteArray {
+        suspend fun clean(script: String) { evaluate(web, if (preservePage) PageCleanup.reversible(script) else script) }
+        try {
             lastTitle = (evaluate(web, PageCleanup.TITLE) as? String)?.takeIf { it.isNotBlank() }
             lastIcon = (evaluate(web, PageCleanup.ICON) as? String)?.takeIf { it.startsWith("http") }
-            evaluate(web, PageCleanup.HIDE_CONSENT)
-            evaluate(web, PageCleanup.HIDE_ADS)
-            if (hide.isNotBlank()) evaluate(web, PageCleanup.hide(hide))
+            clean(PageCleanup.HIDE_CONSENT)
+            clean(PageCleanup.HIDE_ADS)
+            if (hide.isNotBlank()) clean(PageCleanup.hide(hide))
             // Lazy images load once they have been on screen: run through the page once.
             val cssViewportWidth = (evaluate(web, "window.visualViewport ? window.visualViewport.width : window.innerWidth") as? NSNumber)?.doubleValue ?: error("Could not measure the page viewport")
             require(cssViewportWidth.isFinite() && cssViewportWidth > 0) { "Invalid page viewport" }
             val pointsPerCssPixel = VIEWPORT_WIDTH / cssViewportWidth
             val fullHeight = pageHeight(web)
-            var y = 0.0
+            var y = if (preservePage) VIEWPORT_HEIGHT / pointsPerCssPixel else 0.0
             while (y < minOf(fullHeight, MAX_PAGE_POINTS / pointsPerCssPixel)) {
                 evaluate(web, "window.scrollTo(0, $y); 0")
                 delay(120)
@@ -94,12 +119,12 @@ object IosPageCapture {
             }
             evaluate(web, "window.scrollTo(0, 0); 0")
             // Lazy images and late content: wait until the page has really finished loading.
-            PageCleanup.awaitSettled({ script -> evaluate(web, script)?.toString() })
-            evaluate(web, PageCleanup.MASK_RELATIVE_TIMES)
-            delay(300)
+            PageCleanup.awaitSettled({ script -> evaluate(web, script)?.toString() }, maxMs = if (preservePage) 2_000 else 8_000, pollMs = if (preservePage) 100 else 500)
+            clean(PageCleanup.MASK_RELATIVE_TIMES)
+            if (!preservePage) delay(300)
             // Ads injected while scrolling, and bottom bars, are hidden right before the first tile.
-            evaluate(web, PageCleanup.HIDE_ADS)
-            evaluate(web, PageCleanup.HIDE_BOTTOM_FLOATING)
+            clean(PageCleanup.HIDE_ADS)
+            clean(PageCleanup.HIDE_BOTTOM_FLOATING)
             val clip = if (only.isNotBlank()) elementRect(web, only) ?: error("The part you picked is no longer on the page") else null
             val region = clip?.let { Rectangle(it.left, it.top, it.right - it.left, it.bottom - it.top) }
             return captureWebViewDocument(
@@ -113,8 +138,9 @@ object IosPageCapture {
 
             ).bytes
         } finally {
-            web.stopLoading()
-            web.removeFromSuperview()
+            if (preservePage) withContext(kotlinx.coroutines.NonCancellable) {
+                kotlinx.coroutines.withTimeoutOrNull(2_000) { evaluate(web, PageCleanup.RESTORE_CAPTURE) }
+            }
         }
     }
 

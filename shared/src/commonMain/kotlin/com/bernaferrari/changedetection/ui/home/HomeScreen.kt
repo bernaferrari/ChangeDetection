@@ -95,6 +95,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -406,8 +412,8 @@ fun HomeScreen(
 private enum class TopMode { Normal, Search, Select }
 
 /**
- * Pull down to check every page now. It asks for a longer, deliberate pull than the default, since a check
- * of every page is not free, and it is off while searching or selecting.
+ * Pull down to check every page, with an explicit release cue at the actual trigger threshold.
+ * Disabled while searching or selecting.
  */
 @Composable
 internal fun PullToCheckBox(
@@ -419,15 +425,51 @@ internal fun PullToCheckBox(
     content: @Composable androidx.compose.foundation.layout.BoxScope.() -> Unit,
 ) {
     val state = androidx.compose.material3.pulltorefresh.rememberPullToRefreshState()
-    val threshold = 120.dp
+    val threshold = androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.PositionalThreshold
+    val ready by remember { derivedStateOf { state.distanceFraction > 1f } }
+    val haptic = LocalHapticFeedback.current
+    LaunchedEffect(ready) {
+        if (ready && enabled && !refreshing && !state.isAnimating) {
+            haptic.performHapticFeedback(HapticFeedbackType.GestureThresholdActivate)
+        }
+    }
     // Expand the title before pull-to-refresh consumes downward scroll at the top of the list.
     Box(modifier.pullToRefresh(isRefreshing = refreshing, state = state, enabled = enabled, threshold = threshold, onRefresh = onRefresh).nestedScroll(scrollBehavior.nestedScrollConnection)) {
         content()
-        androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.LoadingIndicator(
-            state = state,
-            isRefreshing = refreshing,
-            modifier = Modifier.align(Alignment.TopCenter),
-        )
+        if (refreshing || (enabled && state.distanceFraction > 0f)) {
+            Box(Modifier.align(Alignment.TopCenter).fillMaxWidth().height(threshold).clipToBounds(), contentAlignment = Alignment.TopCenter) {
+                Surface(
+                    modifier = Modifier.padding(horizontal = 16.dp).graphicsLayer {
+                        translationY = state.distanceFraction.coerceIn(0f, 1f) * threshold.toPx() - size.height
+                    },
+                    shape = CircleShape,
+                    color = if (ready || refreshing) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = if (ready || refreshing) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                    shadowElevation = 2.dp,
+                ) {
+                    Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        when {
+                            refreshing -> LoadingIndicator(Modifier.size(24.dp))
+                            ready -> Icon(Icons.Rounded.Check, null, Modifier.size(24.dp))
+                            else -> androidx.compose.material3.CircularProgressIndicator(
+                                progress = { state.distanceFraction.coerceIn(0f, 1f) },
+                                modifier = Modifier.size(24.dp),
+                                strokeWidth = 2.dp,
+                            )
+                        }
+                        Text(
+                            stringResource(when {
+                                refreshing -> Res.string.pull_check_checking
+                                ready -> Res.string.pull_check_release
+                                else -> Res.string.pull_check_pull
+                            }),
+                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
