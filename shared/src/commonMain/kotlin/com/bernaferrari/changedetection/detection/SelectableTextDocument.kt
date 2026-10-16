@@ -28,7 +28,7 @@ suspend fun selectableTextDocument(html: String): SelectableTextDocument {
             limited = true
             break
         }
-        val (element, depth) = pending.removeLast()
+        val (element, depth) = pending.removeAt(pending.lastIndex)
         if (element.tagName() in ignoredTags || element.hasAttr("hidden") || element.attr("aria-hidden").equals("true", true)) continue
         if (depth > 32) {
             limited = true
