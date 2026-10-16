@@ -1,7 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">Change Detection</string>
-    <string name="status_sync_in_progress">正在同步</string>
+    <string name="status_checking_pages">正在检查页面</string>
+    <string name="status_checking_page">正在检查页面</string>
+    <string name="status_checking_page_progress">正在检查第 %1$d 个页面，共 %2$d 个</string>
+    <string name="status_preparing_page_checks">正在准备检查页面…</string>
+    <string name="sync_notification_channel_name">页面检查</string>
     <string name="change_notification_channel_name">检测到的变化</string>
     <string name="change_notification_channel_description">关注的网站发生变化时提醒</string>
     <string name="quick_monitor_banner_live_badge">实时</string>

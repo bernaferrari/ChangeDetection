@@ -253,8 +253,8 @@
     <string name="capture_preview_action">预览抓取</string>
     <string name="capture_preview_title">抓取预览</string>
     <string name="capture_preview_loading">正在加载页面…</string>
-    <string name="capture_first_version_title">正在保存第一个版本…</string>
-    <string name="capture_first_version_body">之后的检查都会以它为基准。你现在可以开始关注。</string>
+    <string name="capture_first_version_title">正在准备预览…</string>
+    <string name="capture_first_version_body">加载期间可以继续配置。</string>
     <string name="capture_preview_html">页面文本预览</string>
     <string name="capture_preview_empty">未找到可读文本，此页面可能需要使用截图监测。</string>
     <string name="capture_preview_expand">查看完整截图</string>
@@ -774,4 +774,7 @@
         <item quantity="other">%1$d 处变化</item>
     </plurals>
     <string name="storage_clear_failed">无法清除旧版本，请重试。</string>
+    <string name="pull_check_pull">下拉以检查页面</string>
+    <string name="pull_check_release">松开以检查页面</string>
+    <string name="pull_check_checking">正在检查页面…</string>
 </resources>

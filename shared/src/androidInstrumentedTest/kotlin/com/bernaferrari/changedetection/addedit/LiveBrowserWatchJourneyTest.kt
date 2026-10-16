@@ -35,13 +35,17 @@ import java.util.concurrent.atomic.AtomicReference
 class LiveBrowserWatchJourneyTest {
     @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
 
-    @Test fun constantTitlePushStateNavigationUsesTheLiveUrlForPreviewAndSave() {
+    @Test fun constantTitlePushStateNavigationUsesTheLiveUrlForPreviewAndSave() = verifyOpenBrowserReuse(ComparisonMethod.HTML)
+
+    @Test fun screenshotReusesTheOpenBrowserInsteadOfLoadingAnotherPage() = verifyOpenBrowserReuse(ComparisonMethod.SCREENSHOT)
+
+    private fun verifyOpenBrowserReuse(method: ComparisonMethod) {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val name = "spa-watch-${java.util.UUID.randomUUID()}.db"
         val db = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(context, context.getDatabasePath(name).absolutePath), BundledSQLiteDriver())
         val files = AndroidFileStorage(context)
         val repository = SitesRepository(SitesLocalDataSource(AppExecutors(), db.siteDao(), SnapshotFileCleanup(db.pendingFileDeletionDao(), db.snapsDao(), files)))
-        val initial = preferencesOf(SettingsViewModel.COMPARISON_METHOD_KEY to ComparisonMethod.HTML.name)
+        val initial = preferencesOf(SettingsViewModel.COMPARISON_METHOD_KEY to method.name)
         val preferences = object : DataStore<Preferences> {
             override val data = flowOf(initial)
             override suspend fun updateData(transform: suspend (Preferences) -> Preferences) = transform(initial)
@@ -55,10 +59,10 @@ class LiveBrowserWatchJourneyTest {
             override suspend fun updateSchedule() = Unit
             override fun cancelWork() = Unit
         }
-        val previewUrl = AtomicReference<String>()
+        val keptPreview = AtomicReference<CapturePreview>()
         val saved = CompletableDeferred<String>()
         val store = ViewModelStore()
-        val html = """<meta name="viewport" content="width=device-width,initial-scale=1"><title>Constant title</title><button id="product" onclick="history.pushState({},'', '/product/b')">Product B</button><p>Product details</p>"""
+        val html = """<meta name="viewport" content="width=device-width,initial-scale=1"><title>Constant title</title><button id="product" onclick="history.pushState({},'', '/product/b');document.getElementById('details').textContent='Only in the open browser';document.body.style.background='#0000ff' ">Product B</button><p id="details">Product details</p><span id="age">2 hours ago</span><div id="footer" style="position:fixed;bottom:0;height:30px;background:red">Page controls</div>"""
         try {
             TestPageServer(200, html).use { server ->
                 val draftUrl = server.url + "catalog"
@@ -68,9 +72,12 @@ class LiveBrowserWatchJourneyTest {
                     model = AddEditViewModel(
                         null,
                         repository,
-                        CapturePreviewer { url, _ ->
-                            previewUrl.set(url)
-                            CapturePreview.Html("Preview product B", 17, pageTitle = "Product B")
+                        object : CapturePreviewer {
+                            override suspend fun capture(url: String, mode: CaptureMode): CapturePreview = error("The loaded browser document must be reused")
+                            override suspend fun keepAsFirstVersion(site: Site, preview: CapturePreview): Boolean {
+                                keptPreview.set(preview)
+                                return true
+                            }
                         },
                         monitoring,
                         preferences,
@@ -100,12 +107,39 @@ class LiveBrowserWatchJourneyTest {
                     web.get().evaluateJavascript("document.getElementById('product').click();window.location.href") { current.set(decodeBrowserUrl(it)) }
                 }
                 compose.waitUntil(5_000) { current.get() == expected }
+                val startedAt = android.os.SystemClock.elapsedRealtime()
                 compose.onNode(hasText("Watch this page") and hasClickAction()).performClick()
-                compose.waitUntil(5_000) { previewUrl.get() == expected }
+                compose.waitUntil(1_000) {
+                    compose.onAllNodes(hasText("Start watching") and hasClickAction()).fetchSemanticsNodes().isNotEmpty()
+                }
+                println("Preview review opened in ${android.os.SystemClock.elapsedRealtime() - startedAt} ms")
+                compose.waitUntil(30_000) { model.uiState.value.preview is CapturePreviewState.Ready }
+                println("Live preview ready in ${android.os.SystemClock.elapsedRealtime() - startedAt} ms")
+                val reviewed = (model.uiState.value.preview as CapturePreviewState.Ready).content
+                if (method == ComparisonMethod.HTML) {
+                    assertTrue("Reuse client-side state that a new request would lose", (reviewed as CapturePreview.Html).text.contains("Only in the open browser"))
+                    assertTrue(requireNotNull(reviewed.firstVersion).data.decodeToString().contains("Only in the open browser"))
+                } else {
+                    val image = reviewed as CapturePreview.Image
+                    val bitmap = android.graphics.BitmapFactory.decodeByteArray(image.bytes, 0, image.bytes.size)
+                    try {
+                        val pixel = bitmap.getPixel(bitmap.width / 2, bitmap.height - 10)
+                        assertTrue("Capture the blue browser state, not the original response", android.graphics.Color.blue(pixel) > 200 && android.graphics.Color.red(pixel) < 40)
+                    } finally {
+                        bitmap.recycle()
+                    }
+                    assertTrue(requireNotNull(image.firstVersion).capturedWithBrowser)
+                }
                 assertEquals(expected, model.uiState.value.url)
+                val restored = AtomicBoolean(false)
+                compose.runOnUiThread {
+                    web.get().evaluateJavascript("document.getElementById('age').textContent==='2 hours ago' && document.getElementById('footer').style.visibility===''") { restored.set(it == "true") }
+                }
+                compose.waitUntil(5_000) { restored.get() }
                 compose.onNode(hasText("Start watching") and hasClickAction()).performClick()
                 compose.waitUntil(5_000) { saved.isCompleted }
                 assertEquals(expected, runBlocking { db.siteDao().getSiteById(saved.await())?.url })
+                assertSame("The exact reviewed payload must become the baseline", reviewed, keptPreview.get())
             }
         } finally {
             compose.runOnUiThread { store.clear() }

@@ -39,6 +39,9 @@ enum class AppPalette(
     companion object {
         val pickerOptions: List<AppPalette> = entries.filterNot { it == LIME || it == INDIGO }
 
-        fun fromStoredName(value: String?): AppPalette = entries.firstOrNull { it.name == value } ?: DEFAULT
+        fun defaultFor(dynamicColorsAvailable: Boolean): AppPalette = if (dynamicColorsAvailable) DYNAMIC else DEFAULT
+
+        fun fromStoredName(value: String?, dynamicColorsAvailable: Boolean = false): AppPalette =
+            entries.firstOrNull { it.name == value } ?: defaultFor(dynamicColorsAvailable)
     }
 }

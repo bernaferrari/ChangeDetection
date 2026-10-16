@@ -1,7 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">Change Detection</string>
-    <string name="status_sync_in_progress">Sincronizzazione in corso</string>
+    <string name="status_checking_pages">Controllo delle pagine</string>
+    <string name="status_checking_page">Controllo della pagina</string>
+    <string name="status_checking_page_progress">Controllo della pagina %1$d di %2$d</string>
+    <string name="status_preparing_page_checks">Preparazione del controllo delle pagine…</string>
+    <string name="sync_notification_channel_name">Controlli delle pagine</string>
     <string name="change_notification_channel_name">Modifiche rilevate</string>
     <string name="change_notification_channel_description">Avvisi quando cambia una pagina monitorata</string>
     <string name="quick_monitor_banner_live_badge">IN DIRETTA</string>

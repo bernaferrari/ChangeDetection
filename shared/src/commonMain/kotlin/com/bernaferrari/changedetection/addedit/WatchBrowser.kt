@@ -3,6 +3,7 @@
 package com.bernaferrari.changedetection.addedit
 
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -74,7 +75,7 @@ internal fun decodeBrowserUrl(value: String): String? {
 }
 
 /** What the open page already says about itself, read when watching starts so nothing waits on a reload. */
-internal data class LivePage(val url: String, val title: String?, val icon: String?)
+internal data class LivePage(val url: String, val title: String?, val icon: String?, val capturePreview: (suspend () -> CapturePreview?)? = null)
 
 private const val LIVE_PAGE_SCRIPT = "JSON.stringify([window.location.href,${PageCleanup.TITLE},${PageCleanup.ICON}])"
 
@@ -105,6 +106,7 @@ internal fun WatchBrowser(
     onWatch: (LivePage) -> Unit,
     onClose: () -> Unit,
     watchLabel: String,
+    captureMode: com.bernaferrari.changedetection.repo.CaptureMode = com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT,
 ) {
     val state = rememberWebViewState(startUrl).apply {
         webSettings.androidWebSettings.domStorageEnabled = true
@@ -117,6 +119,7 @@ internal fun WatchBrowser(
     val currentOnPageChange by rememberUpdatedState(onPageChange)
     val currentOnWatch by rememberUpdatedState(onWatch)
     val scope = rememberCoroutineScope()
+    val captureMutex = remember(state) { kotlinx.coroutines.sync.Mutex() }
     var liveUrl by remember(startUrl) { mutableStateOf(startUrl) }
     var resolvingWatch by remember { mutableStateOf(false) }
     var watchFailed by remember { mutableStateOf(false) }
@@ -139,7 +142,12 @@ internal fun WatchBrowser(
                     watchFailed = true
                 } else {
                     liveUrl = page.url
-                    currentOnWatch(page)
+                    // Open review immediately. Its preview job captures this still-mounted browser.
+                    val mode = captureMode
+                    val region = com.bernaferrari.changedetection.detection.TextRegion(only, ignored.joinToString(", "))
+                    currentOnWatch(page.copy(capturePreview = {
+                        captureMutex.withLock { captureLivePagePreview(state, navigator, page.url, mode, region) }
+                    }))
                 }
             } finally {
                 resolvingWatch = false
@@ -222,7 +230,7 @@ internal fun WatchBrowser(
         ) { padding ->
             Box(Modifier.fillMaxSize().padding(padding)) {
                 BrowserRuntimeHost(Modifier.fillMaxSize()) {
-                    WebView(state = state, modifier = Modifier.fillMaxSize(), navigator = navigator, webViewJsBridge = bridge)
+                    WebView(state = state, modifier = Modifier.fillMaxSize(), navigator = navigator, webViewJsBridge = bridge, onCreated = { _ -> }, factory = ::createWatchWebView)
                 }
                 // A page load has real progress: a plain browser bar that eases between updates, fills, then fades.
                 val loading = state.loadingState as? LoadingState.Loading

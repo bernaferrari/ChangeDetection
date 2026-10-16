@@ -45,41 +45,10 @@ class HtmlCapturePreviewer(private val engine: SyncEngine) : CapturePreviewer {
         return when (val result = engine.fetchFromServer(previewSite(url))) {
             is SyncEngine.FetchResult.Error -> error(result.errorResult?.userMessage ?: result.message)
 
-            is SyncEngine.FetchResult.Success -> {
-                check(result.data.isNotEmpty()) { "The page returned no content" }
-                check(mode != CaptureMode.TEXT || !result.contentType.startsWith("image/", true)) { "This address returns an image. Choose screenshots or source monitoring." }
-                if (result.contentType.startsWith("image/", true)) {
-                    CapturePreview.Image(result.data, firstVersion = result)
-                } else {
-                    CapturePreview.Html(
-                        (
-                            if (mode == CaptureMode.TEXT) {
-                                com.bernaferrari.changedetection.util.readableSnapshotText(
-                                    com.bernaferrari.changedetection.detection.prepareTextCapture(result.data, result.contentType, region).data.decodeToString(),
-                                    result.contentType.contains("html", true),
-                                )
-                            } else if (mode == CaptureMode.SOURCE) {
-                                result.data.decodeToString()
-                            } else {
-                                engine.parseHtml(result.data.decodeToString())
-                            }
-                            ).take(12_000),
-                        result.data.size,
-                        if (mode == CaptureMode.TEXT && result.contentType.contains("html", true)) {
-                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-                                com.bernaferrari.changedetection.detection.selectableTextDocument(result.data.decodeToString())
-                            }
-                        } else {
-                            null
-                        },
-                        pageTitle = if (result.contentType.contains("html", true)) htmlTitle(result.data.decodeToString()) else null,
-                        pageIcon = if (result.contentType.contains("html", true)) htmlIcon(result.data.decodeToString(), url) else null,
-                        firstVersion = result,
-                    )
-                }
-            }
+            is SyncEngine.FetchResult.Success -> previewFromCapture(result, url, mode, region)
         }
     }
+
 }
 
 private val titleTag = Regex("<title[^>]*>(.*?)</title>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
@@ -130,4 +99,44 @@ internal fun cleanTitle(title: String): String? {
     // "BBC News - Breaking news, video and…" reads better as "BBC News"; short titles stay whole.
     val short = if (text.length > 28) text.split(" - ", " | ", " – ", " — ", " · ").first().trim() else text
     return short.takeIf { it.length >= 2 }?.let { if (it.length > 60) it.take(60).substringBeforeLast(' ') + "…" else it }
+}
+
+/** Prepare the same preview and baseline payload whether the page was loaded or fetched. */
+internal suspend fun previewFromCapture(
+    result: SyncEngine.FetchResult.Success,
+    url: String,
+    mode: CaptureMode,
+    region: com.bernaferrari.changedetection.detection.TextRegion,
+): CapturePreview {
+    check(result.data.isNotEmpty()) { "The page returned no content" }
+    check(mode != CaptureMode.TEXT || !result.contentType.startsWith("image/", true)) { "This address returns an image. Choose screenshots or source monitoring." }
+    return if (result.contentType.startsWith("image/", true)) {
+        CapturePreview.Image(result.data, firstVersion = result)
+    } else {
+        CapturePreview.Html(
+            (
+                if (mode == CaptureMode.TEXT) {
+                    com.bernaferrari.changedetection.util.readableSnapshotText(
+                        com.bernaferrari.changedetection.detection.prepareTextCapture(result.data, result.contentType, region).data.decodeToString(),
+                        result.contentType.contains("html", true),
+                    )
+                } else if (mode == CaptureMode.SOURCE) {
+                    result.data.decodeToString()
+                } else {
+                    runCatching { com.fleeksoft.ksoup.Ksoup.parse(result.data.decodeToString()).text() }.getOrElse { result.data.decodeToString() }
+                }
+                ).take(12_000),
+            result.data.size,
+            if (mode == CaptureMode.TEXT && result.contentType.contains("html", true)) {
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                    com.bernaferrari.changedetection.detection.selectableTextDocument(result.data.decodeToString())
+                }
+            } else {
+                null
+            },
+            pageTitle = if (result.contentType.contains("html", true)) htmlTitle(result.data.decodeToString()) else null,
+            pageIcon = if (result.contentType.contains("html", true)) htmlIcon(result.data.decodeToString(), url) else null,
+            firstVersion = result,
+        )
+    }
 }

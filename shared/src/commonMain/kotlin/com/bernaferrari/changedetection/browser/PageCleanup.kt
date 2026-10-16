@@ -2,6 +2,40 @@ package com.bernaferrari.changedetection.browser
 
 /** Scripts shared by every platform's capture so pages are cleaned the same way everywhere. */
 object PageCleanup {
+    /** Record only a cleanup script's synchronous mutations when capturing the interactive browser. */
+    internal fun reversible(script: String): String = """
+        (function(){
+            var observer=new MutationObserver(function(){});
+            observer.observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['style'],attributeOldValue:true,characterData:true,characterDataOldValue:true,childList:true});
+            try { return $script; }
+            finally {
+                var changes=window.__cdCaptureUndo||(window.__cdCaptureUndo=[]);
+                observer.takeRecords().forEach(function(change){changes.push(change);});
+                observer.disconnect();
+            }
+        })()
+    """.trimIndent()
+
+    /** Restore DOM nodes in place, preserving JavaScript state, event listeners and the login session. */
+    internal val RESTORE_CAPTURE = """
+        (function(){
+            var changes=window.__cdCaptureUndo||[];
+            delete window.__cdCaptureUndo;
+            for(var i=changes.length-1;i>=0;i--){
+                var r=changes[i];
+                if(r.type==='attributes'){
+                    if(r.oldValue===null)r.target.removeAttribute(r.attributeName);
+                    else r.target.setAttribute(r.attributeName,r.oldValue);
+                }else if(r.type==='characterData')r.target.nodeValue=r.oldValue;
+                else if(r.type==='childList'){
+                    r.addedNodes.forEach(function(n){if(n.parentNode===r.target)r.target.removeChild(n);});
+                    r.removedNodes.forEach(function(n){r.target.insertBefore(n,r.nextSibling&&r.nextSibling.parentNode===r.target?r.nextSibling:null);});
+                }
+            }
+            return 0;
+        })()
+    """.trimIndent()
+
     /** Cookie / consent / LGPD overlays are noise in every capture; hide floating ones that say so. */
     const val HIDE_CONSENT = "(function(){var k=/cookie|consent|gdpr|lgpd|privacidade|privacy|tracking/i;document.querySelectorAll('body *').forEach(function(e){var p=getComputedStyle(e).position;if((p==='fixed'||p==='sticky')&&e.offsetHeight<window.innerHeight*0.9&&k.test((e.id||'')+' '+(typeof e.className==='string'?e.className:'')+' '+(e.innerText||'').slice(0,400)))e.style.setProperty('display','none','important');});return 0;})()"
 
@@ -53,7 +87,7 @@ object PageCleanup {
      * Waits until the page stops loading: no visible image still loading and no new network requests for about a
      * second. Gives up after [maxMs], so a page that never settles (live video, tickers) is still captured.
      */
-    suspend fun awaitSettled(evaluate: suspend (String) -> String?, maxMs: Long = 8_000) {
+    suspend fun awaitSettled(evaluate: suspend (String) -> String?, maxMs: Long = 8_000, pollMs: Long = 500) {
         var lastResources = -1
         var quietPolls = 0
         var waited = 0L
@@ -64,8 +98,8 @@ object PageCleanup {
             quietPolls = if (pending == 0 && resources == lastResources) quietPolls + 1 else 0
             if (quietPolls >= 2) return
             lastResources = resources
-            kotlinx.coroutines.delay(500)
-            waited += 500
+            kotlinx.coroutines.delay(pollMs)
+            waited += pollMs
         }
     }
 }

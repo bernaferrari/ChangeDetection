@@ -261,8 +261,8 @@
     <string name="capture_preview_action">कैप्चर का प्रीव्यू देखें</string>
     <string name="capture_preview_title">कैप्चर का प्रीव्यू</string>
     <string name="capture_preview_loading">पेज लोड हो रहा है…</string>
-    <string name="capture_first_version_title">पहला स्नैपशॉट लिया जा रहा है…</string>
-    <string name="capture_first_version_body">आगे की जाँचें इसी से तुलना करेंगी। आप अभी से नज़र रखना शुरू कर सकते हैं।</string>
+    <string name="capture_first_version_title">प्रीव्यू तैयार हो रहा है…</string>
+    <string name="capture_first_version_body">लोड होने के दौरान आप सेटिंग बदल सकते हैं।</string>
     <string name="capture_preview_html">पेज के टेक्स्ट का प्रीव्यू</string>
     <string name="capture_preview_empty">पढ़ने योग्य टेक्स्ट नहीं मिला। इस पेज की निगरानी के लिए स्क्रीनशॉट ज़रूरी हो सकते हैं।</string>
     <string name="capture_preview_expand">पूरा स्क्रीनशॉट देखें</string>
@@ -804,4 +804,7 @@
         <item quantity="other">%1$d बदले हुए हिस्से</item>
     </plurals>
     <string name="storage_clear_failed">पुराने वर्शन मिटाए नहीं जा सके। फिर से कोशिश करें।</string>
+    <string name="pull_check_pull">पेज जाँचने के लिए नीचे खींचें</string>
+    <string name="pull_check_release">पेज जाँचने के लिए छोड़ें</string>
+    <string name="pull_check_checking">पेज जाँचे जा रहे हैं…</string>
 </resources>

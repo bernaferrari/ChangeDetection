@@ -261,8 +261,8 @@
     <string name="capture_preview_action">Aufnahme testen</string>
     <string name="capture_preview_title">Aufnahmevorschau</string>
     <string name="capture_preview_loading">Seite wird geladen…</string>
-    <string name="capture_first_version_title">Erster Schnappschuss wird erstellt…</string>
-    <string name="capture_first_version_body">Spätere Prüfungen werden damit verglichen. Du kannst schon jetzt mit dem Beobachten beginnen.</string>
+    <string name="capture_first_version_title">Vorschau wird vorbereitet…</string>
+    <string name="capture_first_version_body">Du kannst die Einstellungen während des Ladens weiter anpassen.</string>
     <string name="capture_preview_html">Seitentext-Vorschau</string>
     <string name="capture_preview_empty">Kein lesbarer Text gefunden. Für diese Seite sind möglicherweise Screenshots nötig.</string>
     <string name="capture_preview_expand">Vollständigen Screenshot ansehen</string>
@@ -804,4 +804,7 @@
         <item quantity="other">%1$d geänderte Bereiche</item>
     </plurals>
     <string name="storage_clear_failed">Ältere Versionen konnten nicht gelöscht werden. Versuche es erneut.</string>
+    <string name="pull_check_pull">Zum Prüfen der Seiten ziehen</string>
+    <string name="pull_check_release">Zum Prüfen der Seiten loslassen</string>
+    <string name="pull_check_checking">Seiten werden geprüft…</string>
 </resources>

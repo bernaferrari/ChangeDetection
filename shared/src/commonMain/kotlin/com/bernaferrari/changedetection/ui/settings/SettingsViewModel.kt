@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.background.MonitoringManager
 import com.bernaferrari.changedetection.background.MonitoringSchedule
+import com.bernaferrari.changedetection.ui.theme.supportsDynamicColors
 import com.bernaferrari.changedetection.model.AppPalette
 import com.bernaferrari.changedetection.repo.ComparisonMethod
 import com.bernaferrari.changedetection.model.ThemeMode
@@ -45,7 +46,7 @@ data class SettingsUiState(
     val requireBatteryNotLow: Boolean = false,
     val requireDeviceIdle: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
-    val appPalette: AppPalette = AppPalette.DEFAULT,
+    val appPalette: AppPalette = AppPalette.defaultFor(supportsDynamicColors()),
     val comparisonMethod: ComparisonMethod = ComparisonMethod.SCREENSHOT,
     val browserDelayMs: Long = 5000,
 )
@@ -132,7 +133,7 @@ class SettingsViewModel(
                     themeMode = preferences[THEME_MODE_KEY]
                         ?.let(ThemeMode::fromStoredName)
                         ?: ThemeMode.SYSTEM,
-                    appPalette = AppPalette.fromStoredName(preferences[APP_PALETTE_KEY]),
+                    appPalette = AppPalette.fromStoredName(preferences[APP_PALETTE_KEY], supportsDynamicColors()),
                     comparisonMethod =
                     runCatching {
                         ComparisonMethod.valueOf(preferences[COMPARISON_METHOD_KEY] ?: ComparisonMethod.SCREENSHOT.name)

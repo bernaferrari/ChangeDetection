@@ -21,6 +21,50 @@ class HomeScrollTest {
 
     @Test fun titleExpandsWithTouchSwipes() = verifyTitleExpansion(mouseWheel = false)
 
+    @Test fun pullShowsExactlyWhenReleaseWillTriggerAndCancelsWhenRetracted() {
+        var refreshes = 0
+        var refreshing by mutableStateOf(false)
+        compose.setContent {
+            MaterialTheme {
+                PullToCheckBox(
+                    scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
+                    refreshing = refreshing, enabled = true,
+                    onRefresh = { refreshes++; refreshing = true },
+                    modifier = Modifier.size(400.dp, 700.dp),
+                ) {
+                    LazyColumn(Modifier.fillMaxSize().testTag("list")) {
+                        items(20) { Text("Page $it", Modifier.height(80.dp)) }
+                    }
+                }
+            }
+        }
+        val list = compose.onNodeWithTag("list")
+        compose.onNodeWithText("Release to check pages").assertDoesNotExist()
+        list.performTouchInput {
+            down(center.copy(y = 100f))
+            moveBy(androidx.compose.ui.geometry.Offset(0f, 100f), delayMillis = 500)
+        }
+        compose.onNodeWithText("Pull to check pages").assertExists()
+        compose.runOnIdle { assertEquals(0, refreshes) }
+        list.performTouchInput { moveBy(androidx.compose.ui.geometry.Offset(0f, 160f), delayMillis = 500) }
+        compose.onNodeWithText("Release to check pages").assertIsDisplayed()
+        compose.runOnIdle { assertEquals("Crossing the threshold must wait for release", 0, refreshes) }
+        list.performTouchInput { moveBy(androidx.compose.ui.geometry.Offset(0f, -160f), delayMillis = 500) }
+        compose.onNodeWithText("Pull to check pages").assertExists()
+        list.performTouchInput { advanceEventTime(200); up() }
+        compose.waitForIdle()
+        compose.runOnIdle { assertEquals("Retracting below the threshold cancels the check", 0, refreshes) }
+        list.performTouchInput {
+            down(center.copy(y = 100f))
+            moveBy(androidx.compose.ui.geometry.Offset(0f, 260f), delayMillis = 500)
+        }
+        compose.onNodeWithText("Release to check pages").assertIsDisplayed()
+        list.performTouchInput { advanceEventTime(200); up() }
+        compose.waitForIdle()
+        compose.runOnIdle { assertEquals(1, refreshes) }
+        compose.onNodeWithText("Checking pages…").assertIsDisplayed()
+    }
+
     private fun verifyTitleExpansion(mouseWheel: Boolean) {
         lateinit var behavior: TopAppBarScrollBehavior
         var refreshes = 0
