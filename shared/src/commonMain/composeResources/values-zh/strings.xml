@@ -164,7 +164,7 @@
     <string name="how_it_works_step_monitor_description">日常监测可使用省电的后台检查。</string>
     <string name="how_it_works_step_monitor_highlight">检查间隔、网络及电量条件由你决定。</string>
     <string name="how_it_works_step_focus_title">需要密切关注时使用 Turbo</string>
-    <string name="how_it_works_step_focus_description">选择指定页面，以 15 秒至 2 分钟的间隔检查，最长运行 3 小时。</string>
+    <string name="how_it_works_step_focus_description">以 %1$d 至 %2$d 秒的间隔检查选定页面，最长运行 3 小时。</string>
     <string name="how_it_works_step_focus_highlight">计时结束后 Turbo 会自动停止，你也可以随时提前停止。</string>
     <string name="how_it_works_step_alerts_title">准确查看变化</string>
     <string name="how_it_works_step_alerts_description">打开页面，以文本、渲染页面或截图形式比较已保存的版本。</string>
@@ -308,7 +308,7 @@
     <string name="text_region_description">只保存匹配的 HTML。区域外或忽略元素中的变化不会触发提醒。保存前请先预览。将包含选择器留空即可关注整个页面。</string>
     <string name="text_region_include">包含 CSS 选择器（可选）</string>
     <string name="text_region_exclude">忽略 CSS 选择器（可选）</string>
-    <string name="text_region_invalid">请使用有效的 CSS 选择器，每个最多 4096 个字符，不支持正则表达式选择器。</string>
+    <string name="text_region_invalid">请使用有效的 CSS 选择器，每个最多 %1$d 个字符，不支持正则表达式选择器。</string>
     <string name="detail_last_saved">最后保存</string>
     <string name="detail_compare">比较</string>
     <string name="detail_empty_text">此保存版本没有可读文本，打开后可查看源代码。</string>
@@ -403,7 +403,7 @@
     <string name="home_select_page">选择页面</string>
     <string name="home_select_pages">选择页面</string>
     <string name="detail_status_failed">上次检查失败于 %1$s</string>
-    <string name="detail_calendar_summary">过去 30 天内，%2$s出现%1$s</string>
+    <string name="detail_calendar_summary">最近 30 天内，%2$s出现%1$s</string>
     <string name="turbo_sheet_no_pages">暂无启用的页面。启动 Turbo 前请先恢复一个页面的监测。</string>
     <string name="turbo_sheet_paused_note">不包含已暂停的页面。</string>
     <string name="turbo_live_note_while_open">应用打开期间 Turbo 会持续检查。你可以离开此界面，之后再回来查看变化。</string>
@@ -778,10 +778,10 @@
         <item quantity="other">%1$d 处变化</item>
     </plurals>
     <string name="storage_clear_failed">无法清除旧版本，请重试。</string>
-    <string name="pull_check_pull">下拉以检查页面</string>
+    <string name="pull_check_pull">下滑以检查页面</string>
     <string name="pull_check_release">松开以检查页面</string>
     <string name="pull_check_checking">正在检查页面…</string>
-    <string name="capture_screenshot_finishing">正在完成完整截图…</string>
+    <string name="capture_screenshot_finishing">正在完成截图…</string>
     <plurals name="turbo_summary_pages">
         <item quantity="other">%1$d 个页面</item>
     </plurals>

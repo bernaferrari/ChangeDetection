@@ -3,6 +3,8 @@ package com.bernaferrari.changedetection.detection
 import com.bernaferrari.changedetection.util.readableSnapshotText
 import com.fleeksoft.ksoup.Ksoup
 
+internal const val MAX_TEXT_SELECTOR_LENGTH = 4_096
+
 /** Selects stored HTML content without executing JavaScript or evaluating CSS visibility. */
 data class TextRegion(val include: String = "", val exclude: String = "") {
     val isEmpty: Boolean get() = include.isBlank() && exclude.isBlank()
@@ -48,7 +50,7 @@ data class TextRegion(val include: String = "", val exclude: String = "") {
     private fun validateSelector(selector: String) {
         if (selector.isBlank()) return
         // Regex pseudos are not needed for region selection and can block a capture thread.
-        if (selector.length > 4_096 || selector.contains(Regex(":matches(?:Own|WholeText|WholeOwnText)?\\s*\\(", RegexOption.IGNORE_CASE))) {
+        if (selector.length > MAX_TEXT_SELECTOR_LENGTH || selector.contains(Regex(":matches(?:Own|WholeText|WholeOwnText)?\\s*\\(", RegexOption.IGNORE_CASE))) {
             throw TextRegionException(TextRegionFailure.INVALID_SELECTOR)
         }
         try {

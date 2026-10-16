@@ -79,6 +79,6 @@ internal fun TextRegionFields(region: TextRegion, error: Boolean, enabled: Boole
                 shape = MaterialTheme.shapes.medium,
             )
         }
-        if (error) Text(stringResource(Res.string.text_region_invalid), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        if (error) Text(stringResource(Res.string.text_region_invalid, com.bernaferrari.changedetection.detection.MAX_TEXT_SELECTOR_LENGTH), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
     }
 }

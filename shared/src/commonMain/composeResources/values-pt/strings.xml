@@ -159,7 +159,7 @@
     <string name="how_it_works_step_monitor_description">Use verificações em segundo plano econômicas para o dia a dia.</string>
     <string name="how_it_works_step_monitor_highlight">Você controla o intervalo e os requisitos de rede e energia.</string>
     <string name="how_it_works_step_focus_title">Use o Turbo quando o tempo importar</string>
-    <string name="how_it_works_step_focus_description">Selecione páginas específicas e verifique de 15 em 15 segundos até a cada 2 minutos por até 3 horas.</string>
+    <string name="how_it_works_step_focus_description">Verifique páginas selecionadas em intervalos de %1$d a %2$d segundos, por até 3 horas.</string>
     <string name="how_it_works_step_focus_highlight">O Turbo para quando o tempo termina. Você pode pará-lo antes a qualquer momento.</string>
     <string name="how_it_works_step_alerts_title">Revise exatamente o que mudou</string>
     <string name="how_it_works_step_alerts_description">Abra uma página para comparar versões salvas como texto, páginas renderizadas ou capturas de tela.</string>
@@ -304,7 +304,7 @@
     <string name="text_region_description">Somente o HTML selecionado é salvo. Alterações fora da região ou em elementos ignorados não geram alertas. Visualize antes de salvar. Deixe o seletor de inclusão vazio para monitorar a página inteira.</string>
     <string name="text_region_include">Seletor CSS para incluir (opcional)</string>
     <string name="text_region_exclude">Seletor CSS para ignorar (opcional)</string>
-    <string name="text_region_invalid">Use seletores CSS válidos com até 4096 caracteres cada, sem seletores de expressões regulares.</string>
+    <string name="text_region_invalid">Use seletores CSS válidos com até %1$d caracteres cada, sem seletores de expressões regulares.</string>
     <string name="detail_last_saved">Última versão salva</string>
     <string name="detail_compare">Comparar</string>
     <string name="detail_empty_text">Nenhum texto legível nesta versão. Abra para ver o código-fonte.</string>

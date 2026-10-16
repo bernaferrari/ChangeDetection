@@ -171,7 +171,7 @@
     <string name="how_it_works_step_monitor_description">Use battery-friendly background checks for everyday tracking.</string>
     <string name="how_it_works_step_monitor_highlight">You control the interval and network or power requirements.</string>
     <string name="how_it_works_step_focus_title">Use Turbo when timing matters</string>
-    <string name="how_it_works_step_focus_description">Select specific pages and check them every 15 seconds to 2 minutes for up to 3 hours.</string>
+    <string name="how_it_works_step_focus_description">Check selected pages every %1$d to %2$d seconds for up to 3 hours.</string>
     <string name="how_it_works_step_focus_highlight">Turbo stops when its timer ends. You can stop it sooner at any time.</string>
     <string name="how_it_works_step_alerts_title">Review exactly what changed</string>
     <string name="how_it_works_step_alerts_description">Open a page to compare saved versions as text, rendered pages, or screenshots.</string>
@@ -316,7 +316,7 @@
     <string name="text_region_description">Only matching HTML is saved. Changes outside the region or in ignored elements do not trigger alerts. Preview before saving. Leave the include selector empty to watch the whole page.</string>
     <string name="text_region_include">Include CSS selector (optional)</string>
     <string name="text_region_exclude">Ignore CSS selector (optional)</string>
-    <string name="text_region_invalid">Use valid CSS selectors of at most 4096 characters each, without regular-expression selectors.</string>
+    <string name="text_region_invalid">Use valid CSS selectors of at most %1$d characters each, without regular-expression selectors.</string>
     <string name="detail_last_saved">Last saved</string>
     <string name="detail_compare">Compare</string>
     <string name="detail_empty_text">No readable text in this saved version. Open it to inspect the source.</string>

@@ -171,7 +171,7 @@
     <string name="how_it_works_step_monitor_description">Nutze akkuschonende Hintergrundprüfungen für die tägliche Beobachtung.</string>
     <string name="how_it_works_step_monitor_highlight">Du bestimmst Intervall, Netzwerk- und Ladebedingungen.</string>
     <string name="how_it_works_step_focus_title">Turbo nutzen, wenn jede Sekunde zählt</string>
-    <string name="how_it_works_step_focus_description">Prüfe ausgewählte Seiten alle 15 Sekunden bis 2 Minuten, für höchstens 3 Stunden.</string>
+    <string name="how_it_works_step_focus_description">Prüfe ausgewählte Seiten alle %1$d bis %2$d Sekunden, bis zu 3 Stunden lang.</string>
     <string name="how_it_works_step_focus_highlight">Turbo endet mit dem Timer. Du kannst es jederzeit früher stoppen.</string>
     <string name="how_it_works_step_alerts_title">Genau sehen, was sich geändert hat</string>
     <string name="how_it_works_step_alerts_description">Öffne eine Seite und vergleiche gespeicherte Versionen als Text, gerenderte Seiten oder Screenshots.</string>
@@ -316,7 +316,7 @@
     <string name="text_region_description">Nur passendes HTML wird gespeichert. Änderungen außerhalb des Bereichs oder in ignorierten Elementen lösen keine Meldung aus. Prüfe die Vorschau vor dem Speichern. Ein leerer Einschlussselektor beobachtet die ganze Seite.</string>
     <string name="text_region_include">CSS-Einschlussselektor (optional)</string>
     <string name="text_region_exclude">CSS-Ausschlussselektor (optional)</string>
-    <string name="text_region_invalid">Verwende gültige CSS-Selektoren mit höchstens je 4096 Zeichen, ohne reguläre Ausdrücke.</string>
+    <string name="text_region_invalid">Verwende gültige CSS-Selektoren mit höchstens je %1$d Zeichen, ohne reguläre Ausdrücke.</string>
     <string name="detail_last_saved">Zuletzt gespeichert</string>
     <string name="detail_compare">Vergleichen</string>
     <string name="detail_empty_text">Kein lesbarer Text in dieser Version. Öffne sie, um den Quelltext anzusehen.</string>

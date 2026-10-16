@@ -159,7 +159,7 @@
     <string name="how_it_works_step_monitor_description">Usa comprobaciones en segundo plano respetuosas con la batería para el día a día.</string>
     <string name="how_it_works_step_monitor_highlight">Tú controlas el intervalo y los requisitos de red y energía.</string>
     <string name="how_it_works_step_focus_title">Usa Turbo cuando el tiempo importe</string>
-    <string name="how_it_works_step_focus_description">Selecciona páginas concretas y compruébalas cada 15 segundos o hasta cada 2 minutos durante 3 horas.</string>
+    <string name="how_it_works_step_focus_description">Comprueba páginas seleccionadas a intervalos de %1$d a %2$d segundos durante un máximo de 3 horas.</string>
     <string name="how_it_works_step_focus_highlight">Turbo se detiene al terminar el tiempo. Puedes detenerlo antes en cualquier momento.</string>
     <string name="how_it_works_step_alerts_title">Revisa exactamente qué cambió</string>
     <string name="how_it_works_step_alerts_description">Abre una página para comparar versiones guardadas como texto, páginas renderizadas o capturas de pantalla.</string>
@@ -304,7 +304,7 @@
     <string name="text_region_description">Solo se guarda el HTML seleccionado. Los cambios fuera de la región o en elementos ignorados no generan alertas. Revisa la vista previa antes de guardar. Deja vacío el selector de inclusión para vigilar toda la página.</string>
     <string name="text_region_include">Selector CSS para incluir (opcional)</string>
     <string name="text_region_exclude">Selector CSS para ignorar (opcional)</string>
-    <string name="text_region_invalid">Usa selectores CSS válidos de hasta 4096 caracteres cada uno, sin selectores de expresiones regulares.</string>
+    <string name="text_region_invalid">Usa selectores CSS válidos de hasta %1$d caracteres cada uno, sin selectores de expresiones regulares.</string>
     <string name="detail_last_saved">Última versión guardada</string>
     <string name="detail_compare">Comparar</string>
     <string name="detail_empty_text">No hay texto legible en esta versión. Ábrela para ver el código fuente.</string>

@@ -159,7 +159,7 @@
     <string name="how_it_works_step_monitor_description">Per il quotidiano usa controlli in background che rispettano la batteria.</string>
     <string name="how_it_works_step_monitor_highlight">Controlli tu intervallo e requisiti di rete ed energia.</string>
     <string name="how_it_works_step_focus_title">Usa Turbo quando il tempismo conta</string>
-    <string name="how_it_works_step_focus_description">Seleziona pagine specifiche e controllale da 15 secondi a 2 minuti, fino a 3 ore.</string>
+    <string name="how_it_works_step_focus_description">Controlla le pagine selezionate a intervalli da %1$d a %2$d secondi, per un massimo di 3 ore.</string>
     <string name="how_it_works_step_focus_highlight">Turbo si ferma allo scadere del tempo. Puoi interromperlo prima in qualsiasi momento.</string>
     <string name="how_it_works_step_alerts_title">Rivedi esattamente cosa è cambiato</string>
     <string name="how_it_works_step_alerts_description">Apri una pagina per confrontare le versioni salvate come testo, pagine renderizzate o screenshot.</string>
@@ -304,7 +304,7 @@
     <string name="text_region_description">Viene salvato solo l’HTML selezionato. Le modifiche fuori dall’area o negli elementi ignorati non generano avvisi. Controlla l’anteprima prima di salvare. Lascia vuoto il selettore di inclusione per monitorare tutta la pagina.</string>
     <string name="text_region_include">Selettore CSS da includere (facoltativo)</string>
     <string name="text_region_exclude">Selettore CSS da ignorare (facoltativo)</string>
-    <string name="text_region_invalid">Usa selettori CSS validi di massimo 4096 caratteri ciascuno, senza selettori con espressioni regolari.</string>
+    <string name="text_region_invalid">Usa selettori CSS validi di massimo %1$d caratteri ciascuno, senza selettori con espressioni regolari.</string>
     <string name="detail_last_saved">Ultima versione salvata</string>
     <string name="detail_compare">Confronta</string>
     <string name="detail_empty_text">Nessun testo leggibile in questa versione. Aprila per vedere il sorgente.</string>

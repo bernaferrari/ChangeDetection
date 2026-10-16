@@ -113,7 +113,11 @@ internal fun HowItWorksContent(onBackClick: () -> Unit, capabilities: Monitoring
         ),
         HowItWorksStep(
             title = stringResource(Res.string.how_it_works_step_focus_title),
-            description = stringResource(if (capabilities.turbo) Res.string.how_it_works_step_focus_description else Res.string.turbo_unavailable_description),
+            description = if (capabilities.turbo) stringResource(
+                Res.string.how_it_works_step_focus_description,
+                com.bernaferrari.changedetection.background.TURBO_INTERVAL_SECONDS.min(),
+                com.bernaferrari.changedetection.background.TURBO_INTERVAL_SECONDS.max(),
+            ) else stringResource(Res.string.turbo_unavailable_description),
             detail = stringResource(if (capabilities.turbo) Res.string.how_it_works_step_focus_highlight else Res.string.turbo_unavailable_title),
             icon = Icons.Rounded.FlashOn,
         ),

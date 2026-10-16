@@ -171,7 +171,7 @@
     <string name="how_it_works_step_monitor_description">প্রতিদিনের নজরদারিতে ব্যাটারি সাশ্রয়ী পটভূমির পরীক্ষা ব্যবহার করুন।</string>
     <string name="how_it_works_step_monitor_highlight">ব্যবধান, নেটওয়ার্ক ও চার্জের শর্ত আপনার নিয়ন্ত্রণে।</string>
     <string name="how_it_works_step_focus_title">সময় জরুরি হলে টার্বো ব্যবহার করুন</string>
-    <string name="how_it_works_step_focus_description">নির্বাচিত পৃষ্ঠা প্রতি ১৫ সেকেন্ড থেকে ২ মিনিটে পরীক্ষা করুন, সর্বোচ্চ ৩ ঘণ্টা পর্যন্ত।</string>
+    <string name="how_it_works_step_focus_description">নির্বাচিত পৃষ্ঠাগুলো %1$d থেকে %2$d সেকেন্ডের ব্যবধানে, সর্বোচ্চ ৩ ঘণ্টা পর্যন্ত পরীক্ষা করুন।</string>
     <string name="how_it_works_step_focus_highlight">সময় শেষ হলে টার্বো থামে। চাইলে আগেও যেকোনো সময় থামাতে পারেন।</string>
     <string name="how_it_works_step_alerts_title">ঠিক কী বদলেছে দেখুন</string>
     <string name="how_it_works_step_alerts_description">পৃষ্ঠা খুলে সংরক্ষিত সংস্করণ লেখা, পৃষ্ঠার দৃশ্য বা স্ক্রিনশট হিসেবে তুলনা করুন।</string>
@@ -316,7 +316,7 @@
     <string name="text_region_description">শুধু মিলে যাওয়া HTML সংরক্ষিত হয়। অঞ্চলের বাইরে বা উপেক্ষিত অংশের পরিবর্তনে বিজ্ঞপ্তি আসে না। সংরক্ষণের আগে প্রিভিউ দেখুন। পুরো পৃষ্ঠায় নজর রাখতে অন্তর্ভুক্তির সিলেক্টর খালি রাখুন।</string>
     <string name="text_region_include">অন্তর্ভুক্তির CSS সিলেক্টর (ঐচ্ছিক)</string>
     <string name="text_region_exclude">উপেক্ষার CSS সিলেক্টর (ঐচ্ছিক)</string>
-    <string name="text_region_invalid">প্রতিটি বৈধ CSS সিলেক্টর সর্বোচ্চ ৪০৯৬ অক্ষরের হতে হবে, রেগুলার এক্সপ্রেশন ছাড়া।</string>
+    <string name="text_region_invalid">প্রতিটি বৈধ CSS সিলেক্টর সর্বোচ্চ %1$d অক্ষরের হতে হবে, রেগুলার এক্সপ্রেশন ছাড়া।</string>
     <string name="detail_last_saved">সর্বশেষ সংরক্ষিত</string>
     <string name="detail_compare">তুলনা করুন</string>
     <string name="detail_empty_text">এই সংরক্ষিত সংস্করণে পড়ার মতো লেখা নেই। সোর্স দেখতে খুলুন।</string>
