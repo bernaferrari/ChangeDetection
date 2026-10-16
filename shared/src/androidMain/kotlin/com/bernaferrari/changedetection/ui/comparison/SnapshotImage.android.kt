@@ -46,7 +46,7 @@ internal actual fun SnapshotImage(
     contentScale: ContentScale,
 ) {
     val state by produceState<ImageLoadState>(ImageLoadState.Loading, bytes) {
-        value = ImageLoadState.Loading
+        // Keep the decoded viewport visible while its full-page replacement decodes.
         value = withContext(Dispatchers.Default) {
             runCatching { decodeStrips(bytes) }.getOrNull()?.let { ImageLoadState.Ready(it) } ?: ImageLoadState.Failed
         }

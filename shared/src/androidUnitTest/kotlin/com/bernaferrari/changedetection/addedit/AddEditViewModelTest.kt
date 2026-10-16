@@ -467,7 +467,12 @@ class AddEditViewModelTest {
         val manager = FakeMonitoringManager()
         val editor = createViewModel(previewer = previewer, monitoringManager = manager)
         editor.setUrl("example.com")
-        editor.requestLivePreview { ready.await() }
+        val thumbnail = CapturePreview.Image(byteArrayOf(1), isPreparing = true)
+        editor.requestLivePreview { onPreview ->
+            onPreview(thumbnail)
+            ready.await()
+        }
+        org.junit.Assert.assertSame(thumbnail, (editor.uiState.value.preview as CapturePreviewState.Ready).content)
         editor.saveSite()
         assertTrue(editor.uiState.value.isSaving)
         assertFalse(editor.uiState.value.saveComplete)

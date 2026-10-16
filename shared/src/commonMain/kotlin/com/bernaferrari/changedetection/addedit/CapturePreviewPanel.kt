@@ -14,6 +14,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.testTag
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.ui.comparison.SnapshotImage
 import com.bernaferrari.changedetection.localization.stringResource
@@ -90,7 +91,7 @@ private fun ScreenshotPreview(content: CapturePreview.Image) {
     Box(
         Modifier.fillMaxWidth().height(320.dp).clip(MaterialTheme.shapes.large)
             .background(androidx.compose.ui.graphics.Color.White)
-            .clickable { expanded = true },
+            .testTag("browser-preview").clickable(enabled = !content.isPreparing) { expanded = true },
     ) {
         com.bernaferrari.changedetection.ui.comparison.SnapshotImage(content.bytes, stringResource(Res.string.capture_preview_title), Modifier.fillMaxWidth().wrapContentHeight(Alignment.Top, unbounded = true), ContentScale.FillWidth)
         Box(
@@ -98,8 +99,17 @@ private fun ScreenshotPreview(content: CapturePreview.Image) {
                 androidx.compose.ui.graphics.Brush.verticalGradient(listOf(androidx.compose.ui.graphics.Color.Transparent, MaterialTheme.colorScheme.surfaceBright)),
             ),
         )
-        FilledTonalButton(onClick = { expanded = true }, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp)) {
-            Text(stringResource(Res.string.capture_preview_expand))
+        if (content.isPreparing) {
+            Surface(modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp), shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.secondaryContainer) {
+                Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                    Text(stringResource(Res.string.capture_first_version_title), style = MaterialTheme.typography.labelLarge)
+                }
+            }
+        } else {
+            FilledTonalButton(onClick = { expanded = true }, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp)) {
+                Text(stringResource(Res.string.capture_preview_expand))
+            }
         }
     }
     if (expanded) {

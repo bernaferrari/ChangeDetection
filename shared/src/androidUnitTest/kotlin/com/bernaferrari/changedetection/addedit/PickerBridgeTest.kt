@@ -24,6 +24,21 @@ class PickerBridgeTest {
         assertNull(decodeLivePage(Json.encodeToString(listOf("about:blank", "Blank", ""))))
     }
 
+    @Test fun liveTextCaptureKeepsUrlAndDomTogetherAcrossNativeCallbackFormats() {
+        val url = "https://example.test/product"
+        val html = "<p>Price: \"10\" & café</p>"
+        val snapshot = Json.encodeToString(listOf(url, html))
+        for (callback in listOf(snapshot, Json.encodeToString(snapshot))) {
+            val result = requireNotNull(decodeLiveTextCapture(callback, url))
+            assertEquals(html, result.data.decodeToString())
+            assertEquals("text/html", result.contentType)
+            assertNull(decodeLiveTextCapture(callback, "https://example.test/another-page"))
+        }
+        for (invalid in listOf("null", "not JSON", Json.encodeToString(listOf(url)), Json.encodeToString(listOf("about:blank", html)))) {
+            assertNull(decodeLiveTextCapture(invalid, url))
+        }
+    }
+
     @Test fun onlyBoundedReportsDuringActivePickingReachTheNativeControls() {
         val valid = PickedPart("#price", 2, 9, "Available", "div")
         assertEquals(valid, decodePickedPart(Json.encodeToString(valid), true))

@@ -16,6 +16,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.resume
+import kotlin.math.roundToInt
 
 /** The app needs a cancellable page capture, not a second browser automation runtime. */
 internal class AndroidPageCapture(private val view: WebView) {
@@ -37,19 +38,34 @@ internal class AndroidPageCapture(private val view: WebView) {
         try {
             val title = evaluate(PageCleanup.TITLE).trim('"').takeIf { it.isNotBlank() && it != "null" }
             val icon = evaluate(PageCleanup.ICON).trim('"').takeIf { it.startsWith("http") }
-            clean(PageCleanup.HIDE_CONSENT)
-            clean(PageCleanup.HIDE_ADS)
-            clean(PageCleanup.HIDE_BOTTOM_FLOATING)
-            if (hide.isNotBlank()) clean(PageCleanup.hide(hide))
-            // Await a bounded traversal on the capture coroutine. No page timer may keep scrolling while tiles draw.
+            // One renderer round trip; reversible() still records all mutations in order.
+            clean("(function(){" + buildList {
+                add(PageCleanup.HIDE_CONSENT)
+                add(PageCleanup.HIDE_ADS)
+                add(PageCleanup.HIDE_BOTTOM_FLOATING)
+                if (hide.isNotBlank()) add(PageCleanup.hide(hide))
+            }.joinToString(";") + ";return 0;})()")
+            // Use the same limits as the tiler. Loading content below its final row cannot
+            // improve the capture, and may keep an otherwise ready page waiting indefinitely.
+            @Suppress("DEPRECATION")
+            val cssWidth = view.width / view.scale.toDouble()
+            val captureHeight = minOf(maxHeight.toLong(), MAX_PIXELS / (cssWidth * PIXEL_SCALE).roundToInt().coerceAtLeast(1)) / PIXEL_SCALE
+            suspend fun captureRange(): Pair<Double, Double> {
+                val rect = if (only.isNotBlank()) readClip(only) else null
+                return if (rect == null) 0.0 to captureHeight else rect[1] to rect[3]
+            }
             if (preservePage) {
+                var range = captureRange()
+                evaluate("window.scrollTo({left:0,top:${range.first},behavior:'instant'});0")
                 for (step in 0 until 12) {
                     currentCoroutineContext().ensureActive()
                     val bounds = evaluate("[window.scrollY,window.innerHeight,Math.max(document.body.scrollHeight,document.documentElement.scrollHeight)].join(',')")
                         .trim('"').split(',').mapNotNull { it.toDoubleOrNull() }
-                    if (bounds.size != 3 || bounds[1] <= 0 || bounds[0] + bounds[1] >= bounds[2] - 1) break
+                    range = captureRange()
+                    if (bounds.size != 3 || bounds[1] <= 0 || bounds[0] + bounds[1] >= minOf(bounds[2], range.second) - 1) break
                     evaluate("window.scrollTo({left:0,top:${bounds[0] + bounds[1]},behavior:'instant'});0")
-                    delay(120)
+                    // Let Chromium paint and activate lazy resources; no fixed pause per screen.
+                    awaitVisualState()
                 }
             } else {
                 val viewport = evaluate("window.innerHeight").toDoubleOrNull()?.coerceAtLeast(1.0) ?: 1.0
@@ -61,14 +77,22 @@ internal class AndroidPageCapture(private val view: WebView) {
             }
             evaluate("window.scrollTo({left:0,top:0,behavior:'instant'});0")
             if (only.isNotBlank()) evaluate("(function(){var e=document.querySelector(${PageCleanup.js(only)});if(e)e.scrollIntoView();return 0;})()")
-            PageCleanup.awaitSettled({ script -> evaluate(script) }, maxMs = if (preservePage) 2_000 else 8_000, pollMs = if (preservePage) 100 else 500)
+            val loadStateScript = if (preservePage) {
+                val range = captureRange()
+                PageCleanup.loadState(range.first, range.second)
+            } else PageCleanup.LOAD_STATE
+            PageCleanup.awaitSettled(
+                { script -> evaluate(script) },
+                maxMs = if (preservePage) 2_000 else 8_000,
+                pollMs = if (preservePage) 100 else 500,
+                loadStateScript = loadStateScript,
+            )
             evaluate("window.scrollTo({left:0,top:0,behavior:'instant'});0")
             clean(PageCleanup.MASK_RELATIVE_TIMES)
             awaitFrame()
             rendererFailure?.let { throw it }
             val clip = if (only.isNotBlank()) {
-                evaluate(PageCleanup.rectOf(only)).trim('"').split(',').mapNotNull { it.toDoubleOrNull() }.takeIf { it.size == 4 }
-                    ?: throw IOException("The part you picked is no longer on the page")
+                readClip(only)
             } else {
                 null
             }
@@ -81,8 +105,8 @@ internal class AndroidPageCapture(private val view: WebView) {
             val shot = captureWebViewDocument(
                 view,
                 clip = region,
-                pixelsPerCssPixel = 2.0,
-                maxPixels = 7_000_000,
+                pixelsPerCssPixel = PIXEL_SCALE,
+                maxPixels = MAX_PIXELS,
                 maxHeight = maxHeight,
                 truncateFullPage = true,
                 viewportWidthOnly = true,
@@ -95,6 +119,25 @@ internal class AndroidPageCapture(private val view: WebView) {
                 kotlinx.coroutines.withTimeoutOrNull(2_000) { evaluate(PageCleanup.RESTORE_CAPTURE) }
             }
         }
+    }
+
+    private suspend fun readClip(selector: String): List<Double> =
+        evaluate(PageCleanup.rectOf(selector)).trim('"').split(',').mapNotNull { it.toDoubleOrNull() }.takeIf { it.size == 4 }
+            ?: throw IOException("The part you picked is no longer on the page")
+
+    private suspend fun awaitVisualState() = withTimeout(2_000) {
+        suspendCancellableCoroutine<Unit> { continuation ->
+            view.postVisualStateCallback(0, object : WebView.VisualStateCallback() {
+                override fun onComplete(requestId: Long) {
+                    if (continuation.isActive) continuation.resume(Unit)
+                }
+            })
+        }
+    }
+
+    private companion object {
+        const val PIXEL_SCALE = 2.0
+        const val MAX_PIXELS = 7_000_000L
     }
 
     private suspend fun evaluate(script: String): String = suspendCancellableCoroutine { continuation ->

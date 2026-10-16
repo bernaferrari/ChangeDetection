@@ -39,7 +39,11 @@ class LiveBrowserWatchJourneyTest {
 
     @Test fun screenshotReusesTheOpenBrowserInsteadOfLoadingAnotherPage() = verifyOpenBrowserReuse(ComparisonMethod.SCREENSHOT)
 
-    private fun verifyOpenBrowserReuse(method: ComparisonMethod) {
+    @Test fun longPageDoesNotPrepareContentOutsideTheScreenshot() = verifyOpenBrowserReuse(ComparisonMethod.SCREENSHOT, longPage = true)
+
+    @Test fun selectedPartDoesNotPrepareTheRestOfALongPage() = verifyOpenBrowserReuse(ComparisonMethod.SCREENSHOT, longPage = true, selectedPart = true)
+
+    private fun verifyOpenBrowserReuse(method: ComparisonMethod, longPage: Boolean = false, selectedPart: Boolean = false) {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val name = "spa-watch-${java.util.UUID.randomUUID()}.db"
         val db = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(context, context.getDatabasePath(name).absolutePath), BundledSQLiteDriver())
@@ -62,9 +66,9 @@ class LiveBrowserWatchJourneyTest {
         val keptPreview = AtomicReference<CapturePreview>()
         val saved = CompletableDeferred<String>()
         val store = ViewModelStore()
-        val html = """<meta name="viewport" content="width=device-width,initial-scale=1"><title>Constant title</title><button id="product" onclick="history.pushState({},'', '/product/b');document.getElementById('details').textContent='Only in the open browser';document.body.style.background='#0000ff' ">Product B</button><p id="details">Product details</p><span id="age">2 hours ago</span><div id="footer" style="position:fixed;bottom:0;height:30px;background:red">Page controls</div>"""
+        val html = """<img src="/missing-image.png" width="16" height="16"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Constant title</title><button id="product" onclick="history.pushState({},'', '/product/b');document.getElementById('details').textContent='Only in the open browser';document.body.style.background='#0000ff' ">Product B</button><p id="details">Product details</p><span id="age">2 hours ago</span><div id="footer" style="position:fixed;bottom:0;height:30px;background:red">Page controls</div>"""
         try {
-            TestPageServer(200, html).use { server ->
+            TestPageServer(200, html, resourceDelayMs = if (longPage) 45_000 else 0).use { server ->
                 val draftUrl = server.url + "catalog"
                 val expected = server.url + "product/b"
                 lateinit var model: AddEditViewModel
@@ -104,17 +108,44 @@ class LiveBrowserWatchJourneyTest {
                 }
                 val current = AtomicReference<String>()
                 compose.runOnUiThread {
-                    web.get().evaluateJavascript("document.getElementById('product').click();window.location.href") { current.set(decodeBrowserUrl(it)) }
+                    val outsideCapture = if (longPage) "document.body.insertAdjacentHTML('beforeend','<div style=\"height:20000px\"></div><img src=\"/slow-image\" width=\"20\" height=\"20\">');" else ""
+                    web.get().evaluateJavascript("document.getElementById('product').click();${outsideCapture}window.location.href") { current.set(decodeBrowserUrl(it)) }
                 }
                 compose.waitUntil(5_000) { current.get() == expected }
+                if (selectedPart) compose.runOnUiThread {
+                    model.setTextRegion(com.bernaferrari.changedetection.detection.TextRegion(include = "#details"))
+                }
                 val startedAt = android.os.SystemClock.elapsedRealtime()
                 compose.onNode(hasText("Watch this page") and hasClickAction()).performClick()
                 compose.waitUntil(1_000) {
                     compose.onAllNodes(hasText("Start watching") and hasClickAction()).fetchSemanticsNodes().isNotEmpty()
                 }
                 println("Preview review opened in ${android.os.SystemClock.elapsedRealtime() - startedAt} ms")
-                compose.waitUntil(30_000) { model.uiState.value.preview is CapturePreviewState.Ready }
-                println("Live preview ready in ${android.os.SystemClock.elapsedRealtime() - startedAt} ms")
+                if (method == ComparisonMethod.SCREENSHOT && !selectedPart) {
+                    compose.waitUntil(1_000) {
+                        compose.onAllNodesWithTag("browser-preview").fetchSemanticsNodes().isNotEmpty()
+                    }
+                    println("Visible browser preview in ${android.os.SystemClock.elapsedRealtime() - startedAt} ms")
+                    val visible = (model.uiState.value.preview as CapturePreviewState.Ready).content as CapturePreview.Image
+                    if (longPage) assertTrue("Show the viewport before the full-page capture finishes", visible.isPreparing)
+                    if (visible.isPreparing) {
+                        assertNull("A viewport thumbnail must never become the baseline", visible.firstVersion)
+                        val thumbnail = android.graphics.BitmapFactory.decodeByteArray(visible.bytes, 0, visible.bytes.size)
+                        try {
+                            val pixel = thumbnail.getPixel(thumbnail.width / 2, thumbnail.height / 2)
+                            assertTrue("Reuse the blue browser document, not a blank placeholder", android.graphics.Color.blue(pixel) > 200 && android.graphics.Color.red(pixel) < 40)
+                        } finally {
+                            thumbnail.recycle()
+                        }
+                    }
+                }
+                compose.waitUntil(30_000) {
+                    val content = (model.uiState.value.preview as? CapturePreviewState.Ready)?.content
+                    content != null && (content !is CapturePreview.Image || !content.isPreparing)
+                }
+                val elapsed = android.os.SystemClock.elapsedRealtime() - startedAt
+                println("Live preview ready in $elapsed ms")
+                assertTrue("A loaded preview must not wait on failed images or resources outside its capture ($elapsed ms)", elapsed < 1_800)
                 val reviewed = (model.uiState.value.preview as CapturePreviewState.Ready).content
                 if (method == ComparisonMethod.HTML) {
                     assertTrue("Reuse client-side state that a new request would lose", (reviewed as CapturePreview.Html).text.contains("Only in the open browser"))
@@ -123,7 +154,8 @@ class LiveBrowserWatchJourneyTest {
                     val image = reviewed as CapturePreview.Image
                     val bitmap = android.graphics.BitmapFactory.decodeByteArray(image.bytes, 0, image.bytes.size)
                     try {
-                        val pixel = bitmap.getPixel(bitmap.width / 2, bitmap.height - 10)
+                        if (selectedPart) assertTrue("Capture only the selected paragraph", bitmap.height < 200)
+                        val pixel = if (selectedPart) bitmap.getPixel(bitmap.width - 2, bitmap.height - 2) else bitmap.getPixel(bitmap.width / 2, bitmap.height - 10)
                         assertTrue("Capture the blue browser state, not the original response", android.graphics.Color.blue(pixel) > 200 && android.graphics.Color.red(pixel) < 40)
                     } finally {
                         bitmap.recycle()

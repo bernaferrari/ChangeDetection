@@ -2,6 +2,12 @@ package com.bernaferrari.changedetection.ui.kit
 
 import com.bernaferrari.changedetection.repo.PageIconShape
 import io.ktor.http.hostWithPortIfSpecified
+import androidx.graphics.shapes.Morph
+import androidx.compose.ui.graphics.SolidColor
+import androidx.graphics.shapes.RoundedPolygon
+import androidx.graphics.shapes.rectangle
+import androidx.compose.material3.toPath
+import androidx.compose.runtime.LaunchedEffect
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -98,26 +104,33 @@ fun PageAvatar(
     colors: com.bernaferrari.changedetection.repo.ColorGroup = 0 to 0,
     selectionProgress: Float = 0f,
     selectionColor: Color? = null,
+    /** The surface behind the icon, which the gap between the icon and its selection ring shows. */
+    selectionGapColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
 ) {
     val tints = MaterialTheme.marks.identity
     val hash = remember(key) { mixHash(key.hashCode()) }
     val chosenColor = com.bernaferrari.changedetection.repo.PageIconColor.from(colors)
-    val shape = iconShape.outline() ?: AvatarShapes[(hash ushr 4) % AvatarShapes.size].toShape()
     val letter = remember(name) { name.trim().firstOrNull { it.isLetterOrDigit() }?.uppercaseChar()?.toString() ?: "•" }
     val dark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
-    val tintTarget = if (chosenColor == com.bernaferrari.changedetection.repo.PageIconColor.AUTOMATIC) tints[(hash ushr 16) % tints.size] else Color(if (dark) chosenColor.dark else chosenColor.light)
-    val tint by animateColorAsState(tintTarget, tween(180), label = "page-icon-color")
+    val automaticColor = chosenColor == com.bernaferrari.changedetection.repo.PageIconColor.AUTOMATIC
+    // Automatic pages keep a quiet tint; a chosen color is drawn vivid, like the swatch that picked it.
+    val tintTarget = if (automaticColor) tints[(hash ushr 16) % tints.size] else chosenColor.vivid(dark)
+    val tint by animateColorAsState(tintTarget, tween(220), label = "page-icon-color")
     val context = coil3.compose.LocalPlatformContext.current
     val painter = icon?.takeIf { it.startsWith("http") && LocalPageIcons.current }?.let { url ->
         coil3.compose.rememberAsyncImagePainter(remember(url) { coil3.request.ImageRequest.Builder(context).data(url).size(192).build() })
     }
     val loaded = painter?.state?.collectAsState()?.value is coil3.compose.AsyncImagePainter.State.Success
-    // A real icon is the page's identity: it fills a rounded tile edge to edge, like an app icon; the tinted shape and letter
-    // stand in only while it loads or when the page has none.
-    val tileShape = RoundedCornerShape(size * 0.28f)
-    val outline = if (loaded && iconShape == PageIconShape.AUTOMATIC) tileShape else shape
+    // A real icon is the page's identity: left fully automatic it fills a rounded tile edge to edge, like an app icon. Once a
+    // shape or color is chosen, it sits inset on that backdrop instead, so expressive lobes never crop it and the color shows.
+    // The tinted shape and letter stand in only while it loads or when the page has none.
+    val fullBleed = iconShape == PageIconShape.AUTOMATIC && automaticColor
+    // Icons are drawn for light backgrounds: left automatic they sit on a light tile in both themes.
+    val iconBackdrop by animateColorAsState(if (automaticColor) IconTile else chosenColor.vivid(dark), tween(220), label = "page-icon-backdrop")
+    val polygon = if (loaded && iconShape == PageIconShape.AUTOMATIC) TilePolygon else iconShape.polygon() ?: AvatarShapes[(hash ushr 4) % AvatarShapes.size]
+    val outline = rememberMorphingShape(polygon)
     val ringColor = selectionColor ?: MaterialTheme.colorScheme.primary
-    val ringGapColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    val ringGapColor = selectionGapColor
     Box(
         modifier
             .size(size)
@@ -141,14 +154,13 @@ fun PageAvatar(
                 },
             )
             .clip(outline)
-            // Icons are drawn for light backgrounds, so they sit on a light tile in both themes.
             .background(
-                if (loaded) {
-                    IconTile
-                } else if (dimmed) {
-                    MaterialTheme.colorScheme.surfaceContainerHighest
-                } else {
-                    tint
+                when {
+                    loaded && automaticColor -> SolidColor(iconBackdrop)
+                    loaded -> vividBrush(iconBackdrop)
+                    dimmed -> SolidColor(MaterialTheme.colorScheme.surfaceContainerHighest)
+                    automaticColor -> SolidColor(tint)
+                    else -> vividBrush(tint)
                 },
             )
             .then(if (loaded) Modifier.border(1.dp, Color.Black.copy(alpha = 0.06f), outline) else Modifier),
@@ -158,8 +170,8 @@ fun PageAvatar(
             androidx.compose.foundation.Image(
                 painter,
                 contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                modifier = if (fullBleed) Modifier.fillMaxSize() else Modifier.fillMaxSize(0.58f).clip(RoundedCornerShape(size * 0.12f)),
+                contentScale = if (fullBleed) androidx.compose.ui.layout.ContentScale.Crop else androidx.compose.ui.layout.ContentScale.Fit,
                 alpha = if (!loaded) {
                     0f
                 } else if (dimmed) {
@@ -173,27 +185,120 @@ fun PageAvatar(
             Text(
                 letter,
                 style = MaterialTheme.typography.titleMedium.copy(fontSize = (size.value * 0.4f).sp, fontWeight = FontWeight.Bold),
-                color = (if (dark) Color.White else Color(0xFF1B1B21)).copy(alpha = if (dimmed) 0.45f else 0.92f),
+                color = (if (automaticColor) (if (dark) Color.White else Color(0xFF1B1B21)) else if (tint.luminance() > 0.5f) Color(0xFF1B1B21) else Color.White).copy(alpha = if (dimmed) 0.45f else 0.95f),
             )
         }
     }
 }
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun PageIconShape.outline(): androidx.compose.ui.graphics.Shape? = when (this) {
+internal fun PageIconShape.polygon(): RoundedPolygon? = when (this) {
     PageIconShape.AUTOMATIC -> null
-    PageIconShape.CIRCLE -> CircleShape
-    PageIconShape.ROUNDED -> RoundedCornerShape(28)
-    PageIconShape.FLOWER -> androidx.compose.material3.MaterialShapes.Cookie9Sided.toShape()
-    PageIconShape.CLOVER -> androidx.compose.material3.MaterialShapes.Clover4Leaf.toShape()
-    PageIconShape.SUN -> androidx.compose.material3.MaterialShapes.Sunny.toShape()
-    PageIconShape.COOKIE -> androidx.compose.material3.MaterialShapes.Cookie6Sided.toShape()
-    PageIconShape.GEM -> androidx.compose.material3.MaterialShapes.Gem.toShape()
-    PageIconShape.PUFFY -> androidx.compose.material3.MaterialShapes.Puffy.toShape()
+    PageIconShape.CIRCLE -> androidx.compose.material3.MaterialShapes.Circle
+    PageIconShape.ROUNDED -> TilePolygon
+    PageIconShape.FLOWER -> androidx.compose.material3.MaterialShapes.Cookie9Sided
+    PageIconShape.CLOVER -> androidx.compose.material3.MaterialShapes.Clover4Leaf
+    PageIconShape.SUN -> androidx.compose.material3.MaterialShapes.Sunny
+    PageIconShape.COOKIE -> androidx.compose.material3.MaterialShapes.Cookie6Sided
+    PageIconShape.GEM -> androidx.compose.material3.MaterialShapes.Gem
+    PageIconShape.PUFFY -> androidx.compose.material3.MaterialShapes.Puffy
+}
+
+/** A square with 28% corners, the app-icon tile a page's own icon fills. */
+private val TilePolygon: RoundedPolygon by lazy {
+    RoundedPolygon.rectangle(width = 2f, height = 2f, rounding = androidx.graphics.shapes.CornerRounding(0.56f, smoothing = 0.6f)).normalized()
+}
+
+/**
+ * The outline morphs into a newly chosen shape instead of swapping, twisting a little as it settles. Only the outline
+ * turns; the letter or icon inside stays upright. Changes landing mid-morph start from the shape being left.
+ */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+internal fun rememberMorphingShape(target: RoundedPolygon): androidx.compose.ui.graphics.Shape {
+    var from by remember { mutableStateOf(target) }
+    var to by remember { mutableStateOf(target) }
+    val progress = remember { androidx.compose.animation.core.Animatable(1f) }
+    LaunchedEffect(target) {
+        if (target == to) return@LaunchedEffect
+        from = if (progress.value < 0.5f) from else to
+        to = target
+        progress.snapTo(0f)
+        progress.animateTo(1f, androidx.compose.animation.core.spring(dampingRatio = 0.55f, stiffness = 260f))
+    }
+    val morph = remember(from, to) { Morph(from, to) }
+    val p = progress.value
+    return remember(morph, p) { MorphShape(morph, p) }
+}
+
+private class MorphShape(private val morph: Morph, private val progress: Float) : androidx.compose.ui.graphics.Shape {
+    @OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+    override fun createOutline(size: androidx.compose.ui.geometry.Size, layoutDirection: androidx.compose.ui.unit.LayoutDirection, density: androidx.compose.ui.unit.Density): androidx.compose.ui.graphics.Outline {
+        // The spring overshoots; the outline holds its final form while the twist carries the bounce.
+        val path = morph.toPath(progress.coerceIn(0f, 1f))
+        val twist = (1f - progress) * 36f
+        path.transform(
+            androidx.compose.ui.graphics.Matrix().apply {
+                scale(size.width, size.height)
+            },
+        )
+        val bounds = path.getBounds()
+        path.translate(androidx.compose.ui.geometry.Offset(size.width / 2, size.height / 2) - bounds.center)
+        if (twist != 0f) {
+            path.transform(
+                androidx.compose.ui.graphics.Matrix().apply {
+                    translate(size.width / 2, size.height / 2)
+                    rotateZ(twist)
+                    translate(-size.width / 2, -size.height / 2)
+                },
+            )
+        }
+        return androidx.compose.ui.graphics.Outline.Generic(path)
+    }
 }
 
 private val IconTile = Color(0xFFF6F6FA)
+
+/** iOS-like system colors: bright enough to read as a choice, each with a dark-theme variant. */
+internal fun com.bernaferrari.changedetection.repo.PageIconColor.vivid(dark: Boolean): Color = when (this) {
+    com.bernaferrari.changedetection.repo.PageIconColor.AUTOMATIC -> Color.Gray
+    com.bernaferrari.changedetection.repo.PageIconColor.ORANGE -> if (dark) Color(0xFFFF9F0A) else Color(0xFFFF9500)
+    com.bernaferrari.changedetection.repo.PageIconColor.AMBER -> if (dark) Color(0xFFFFD60A) else Color(0xFFFFCC00)
+    com.bernaferrari.changedetection.repo.PageIconColor.LIME -> if (dark) Color(0xFFA6E04F) else Color(0xFF8FCB3C)
+    com.bernaferrari.changedetection.repo.PageIconColor.GREEN -> if (dark) Color(0xFF30D158) else Color(0xFF34C759)
+    com.bernaferrari.changedetection.repo.PageIconColor.TEAL -> if (dark) Color(0xFF63E6E2) else Color(0xFF00C7BE)
+    com.bernaferrari.changedetection.repo.PageIconColor.CYAN -> if (dark) Color(0xFF64D2FF) else Color(0xFF32ADE6)
+    com.bernaferrari.changedetection.repo.PageIconColor.BLUE -> if (dark) Color(0xFF0A84FF) else Color(0xFF007AFF)
+    com.bernaferrari.changedetection.repo.PageIconColor.INDIGO -> if (dark) Color(0xFF5E5CE6) else Color(0xFF5856D6)
+    com.bernaferrari.changedetection.repo.PageIconColor.PURPLE -> if (dark) Color(0xFFBF5AF2) else Color(0xFFAF52DE)
+    com.bernaferrari.changedetection.repo.PageIconColor.PINK -> if (dark) Color(0xFFFF375F) else Color(0xFFFF2D55)
+}
+
+/** A diagonal from a lighter neighbouring hue into the color, so each reads as a little gradient rather than a flat dot. */
+internal fun vividBrush(color: Color): androidx.compose.ui.graphics.Brush = androidx.compose.ui.graphics.Brush.linearGradient(vividStops(color))
+
+/** The two ends of [vividBrush], for swatches that draw their own gradient. */
+internal fun vividStops(color: Color): List<Color> = listOf(androidx.compose.ui.graphics.lerp(shiftHue(color, -20f), Color.White, 0.2f), color)
+
+private fun shiftHue(color: Color, degrees: Float): Color {
+    val r = color.red
+    val g = color.green
+    val b = color.blue
+    val max = maxOf(r, g, b)
+    val min = minOf(r, g, b)
+    val delta = max - min
+    if (delta == 0f) return color
+    val hue = when (max) {
+        r -> 60f * (((g - b) / delta) % 6f)
+        g -> 60f * ((b - r) / delta + 2f)
+        else -> 60f * ((r - g) / delta + 4f)
+    }
+    return Color.hsv(((hue + degrees) % 360f + 360f) % 360f, delta / max, max, color.alpha)
+}
+
+/** The color a page gets when it first leaves its original icon for a shape: stable per page, like its automatic tint. */
+internal fun pageStartingColor(key: String): com.bernaferrari.changedetection.repo.PageIconColor =
+    com.bernaferrari.changedetection.repo.PageIconColor.entries.drop(1).let { it[(mixHash(key.hashCode()) ushr 8) % it.size] }
 
 /** Page icons come from the network; offline UI tests turn them off so nothing waits on a request. */
 val LocalPageIcons = androidx.compose.runtime.staticCompositionLocalOf { true }

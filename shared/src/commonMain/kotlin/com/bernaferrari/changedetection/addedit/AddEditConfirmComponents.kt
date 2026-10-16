@@ -23,6 +23,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Clear
@@ -53,6 +58,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -107,7 +113,7 @@ fun AddEditConfirmScreen(
     onUrlChange: (String) -> Unit,
     onTitleChange: (String) -> Unit,
     onLivePage: (title: String?, icon: String?) -> Unit = { _, _ -> },
-    onLivePreviewRequest: (suspend () -> CapturePreview?) -> Unit = {},
+    onLivePreviewRequest: (LivePreviewCapture) -> Unit = {},
     onNavigateUp: () -> Unit,
     onSave: () -> Unit,
     showUrlChangeDialog: Boolean = false,
@@ -616,34 +622,25 @@ private fun PagePreviewCard(
     }
     Surface(shape = MaterialTheme.shapes.extraLarge, color = tileColor, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(Modifier.padding(start = 16.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 val iconInteractions = remember { MutableInteractionSource() }
                 val iconMotion = rememberPageIconMotion(iconInteractions)
                 Box(
-                    Modifier.size(64.dp).clickable(enabled = enabled, interactionSource = iconInteractions, indication = null, role = androidx.compose.ui.semantics.Role.Button, onClickLabel = stringResource(Res.string.editor_icon_shape_title)) { choosingShape = true },
+                    Modifier.size(60.dp).clickable(enabled = enabled, interactionSource = iconInteractions, indication = null, role = androidx.compose.ui.semantics.Role.Button, onClickLabel = stringResource(Res.string.editor_icon_shape_title)) { choosingShape = true },
                     contentAlignment = Alignment.Center,
                 ) {
-                    PageAvatar(title.ifBlank { host }, url.normalizeUrl() ?: url, modifier = iconMotion.modifier, size = 48.dp, icon = iconUrl.ifBlank { null }, iconShape = iconShape, colors = iconColors, selectionProgress = iconMotion.outlineProgress, selectionColor = if (iconMotion.focused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
+                    PageAvatar(title.ifBlank { host }, url.normalizeUrl() ?: url, modifier = iconMotion.modifier, size = 52.dp, icon = iconUrl.ifBlank { null }, iconShape = iconShape, colors = iconColors, selectionProgress = iconMotion.outlineProgress, selectionColor = if (iconMotion.focused) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
+                    // Says the icon is customizable; without it the shape and color picker is a hidden tap.
+                    if (enabled) {
+                        Box(
+                            Modifier.align(Alignment.BottomEnd).size(22.dp).clip(CircleShape).background(tileColor).padding(2.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondaryContainer),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(Icons.Rounded.Palette, null, Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                        }
+                    }
                 }
-                TextField(
-                    value = title,
-                    onValueChange = onTitleChange,
-                    enabled = enabled,
-                    singleLine = true,
-                    label = { Text(stringResource(Res.string.editor_name)) },
-                    placeholder = { Text(host) },
-                    textStyle = MaterialTheme.typography.titleLarge,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done, capitalization = KeyboardCapitalization.Sentences),
-                    trailingIcon = { Icon(Icons.Outlined.Edit, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                    ),
-                    modifier = Modifier.weight(1f),
-                )
+                PageNameField(title, onTitleChange, host, enabled, Modifier.weight(1f))
             }
             AnimatedContent(
                 targetState = preview,
@@ -855,3 +852,45 @@ private fun AddEditError.localizedMessage(): String = stringResource(
 
 /** Whether this platform can embed a browser for navigating, signing in and picking parts. Tests turn it off. */
 val LocalBrowserAvailable = androidx.compose.runtime.staticCompositionLocalOf { com.bernaferrari.changedetection.browser.supportsPageRegionSelection }
+
+
+/** The page name as a soft filled field: no label or underline, a primary outline only while editing; the pencil says it is editable. */
+@Composable
+private fun PageNameField(value: String, onValueChange: (String) -> Unit, placeholder: String, enabled: Boolean, modifier: Modifier = Modifier) {
+    val interactions = remember { MutableInteractionSource() }
+    val focused by interactions.collectIsFocusedAsState()
+    val scheme = MaterialTheme.colorScheme
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
+    val border by animateColorAsState(if (focused) scheme.primary else Color.Transparent, label = "name-border")
+    val container by animateColorAsState(if (focused) scheme.surface else scheme.surfaceContainerHigh, label = "name-container")
+    val label = stringResource(Res.string.editor_name)
+    androidx.compose.foundation.text.BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        enabled = enabled,
+        singleLine = true,
+        textStyle = MaterialTheme.typography.titleLarge.copy(color = scheme.onSurface),
+        cursorBrush = androidx.compose.ui.graphics.SolidColor(scheme.primary),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done, capitalization = KeyboardCapitalization.Sentences),
+        keyboardActions = androidx.compose.foundation.text.KeyboardActions(onDone = { focusManager.clearFocus() }),
+        interactionSource = interactions,
+        // No visible label; screen readers still hear what the field is.
+        modifier = modifier.semantics { contentDescription = label },
+        decorationBox = { inner ->
+            Row(
+                Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(container)
+                    .border(2.dp, border, RoundedCornerShape(16.dp))
+                    .padding(start = 14.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(Modifier.weight(1f)) {
+                    if (value.isEmpty()) Text(placeholder, style = MaterialTheme.typography.titleLarge, color = scheme.onSurfaceVariant.copy(alpha = 0.7f), maxLines = 1)
+                    inner()
+                }
+                if (!focused) Icon(Icons.Outlined.Edit, null, Modifier.padding(start = 8.dp).size(18.dp), tint = scheme.onSurfaceVariant)
+            }
+        },
+    )
+}

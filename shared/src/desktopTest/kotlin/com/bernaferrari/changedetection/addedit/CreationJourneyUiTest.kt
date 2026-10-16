@@ -33,7 +33,7 @@ class CreationJourneyUiTest {
         }
         compose.onNodeWithText("Save").performClick()
         compose.onNodeWithText("Saving…").assertIsNotEnabled()
-        compose.onNodeWithText("Name").assertIsNotEnabled()
+        compose.onNodeWithContentDescription("Name").assertIsNotEnabled()
         compose.onNodeWithContentDescription("Navigate back").assertIsNotEnabled()
         compose.onNodeWithText("Page address").assertIsNotEnabled()
     }
@@ -62,7 +62,7 @@ class CreationJourneyUiTest {
         compose.onNode(hasSetTextAction() and hasText("Page address")).performTextInput("https://example.test/program")
         compose.onNodeWithText("Open page").performClick()
         compose.waitUntil(3_000) { previews == 1 }
-        compose.onNodeWithText("Name").performTextInput("Program")
+        compose.onNodeWithContentDescription("Name").performTextInput("Program")
         capture("creation-content-light")
         compose.runOnIdle { assertEquals(0, saves) }
         compose.onNodeWithText("Start watching").performClick()
