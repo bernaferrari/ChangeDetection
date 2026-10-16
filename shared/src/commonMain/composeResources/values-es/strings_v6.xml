@@ -6,7 +6,7 @@
     <string name="snapshot_restore_failed">No se pudo restaurar esta versión. Inténtalo de nuevo.</string>
     <string name="home_select_page">Seleccionar página</string>
     <string name="detail_status_failed">La última comprobación falló %1$s</string>
-    <string name="detail_calendar_summary">%1$d cambios en %2$d días durante los últimos 30 días</string>
+    <string name="detail_calendar_summary">%1$s en %2$s durante los últimos 30 días</string>
     <string name="turbo_sheet_no_pages">No hay páginas activas. Reactiva una página antes de iniciar Turbo.</string>
     <string name="turbo_sheet_paused_note">Las páginas en pausa no se incluyen.</string>
     <string name="turbo_live_note_while_open">Turbo sigue comprobando mientras la app está abierta. Puedes salir de esta pantalla y volver para ver los cambios.</string>
@@ -110,8 +110,8 @@
     </plurals>
     <string name="turbo_found_none">No se encontraron cambios</string>
     <plurals name="turbo_summary_checks">
-        <item quantity="one">%1$d comprobación en %2$d páginas</item>
-        <item quantity="other">%1$d comprobaciones en %2$d páginas</item>
+        <item quantity="one">%1$d comprobación</item>
+        <item quantity="other">%1$d comprobaciones</item>
     </plurals>
     <string name="turbo_live_note">Turbo sigue activo si sales de esta pantalla. Recibirás una notificación en cuanto cambie una página.</string>
     <string-array name="weekday_names">
@@ -171,6 +171,7 @@
     <string name="mode_html">HTML de la página</string>
     <string name="mode_default">Predeterminado de la app</string>
     <string name="mode_text">Texto</string>
+    <string name="mode_code">Código</string>
     <string name="detail_how_often">Programación de la app</string>
     <string name="detail_notify">Notificarme</string>
     <string name="detail_paused">Pausar comprobaciones</string>
@@ -180,7 +181,7 @@
     <string name="detail_check_less">Comprobar con menos frecuencia</string>
     <string name="advice_temporary">El sitio está ocupado o caído. Suele ser temporal; seguiremos intentándolo.</string>
     <string name="advice_connection">Este dispositivo no pudo conectarse a internet. Lo intentaremos de nuevo cuando vuelva la conexión.</string>
-    <string name="advice_login">Esta página requiere iniciar sesión. En Android, las comprobaciones por captura de pantalla pueden usar la sesión del navegador de la app. Las de texto y código fuente no pueden.</string>
+    <string name="advice_login">Esta página requiere iniciar sesión. Las comprobaciones por captura de pantalla pueden reutilizar la sesión del navegador de la app en este dispositivo. Las de texto y código fuente no pueden.</string>
     <string name="advice_not_found">La página ya no existe. Comprueba si el enlace sigue siendo correcto.</string>
     <string name="advice_rate">El sitio pide que reduzcamos la frecuencia. Comprobar menos a menudo suele solucionarlo.</string>
     <string name="advice_region">La parte que elegiste ya no está en la página. Vuelve a seleccionarla.</string>
@@ -224,7 +225,7 @@
     <string name="reader_position">Cambio %1$d de %2$d</string>
     <string name="reader_versions_title">Comparar versiones</string>
     <string name="reader_versions_body">Toca una versión para ver qué cambió respecto a la anterior.</string>
-    <string name="advice_capture">Solo se pueden hacer capturas de pantalla en Android. Cambia esta página a Texto o sigue comprobándola desde tu teléfono.</string>
+    <string name="advice_capture">Las comprobaciones por captura de pantalla están disponibles en Android e iOS. Elige Texto para esta página o compruébala desde la aplicación móvil.</string>
     <string name="checks_title">Comprobaciones automáticas</string>
     <string name="checks_every">Cada</string>
     <string name="checks_custom">Personalizado…</string>

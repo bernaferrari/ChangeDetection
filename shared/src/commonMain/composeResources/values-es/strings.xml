@@ -66,7 +66,7 @@
     <string name="settings_background_sync_disabled">Desactivada</string>
     <string name="settings_background_sync_every">Cada %1$d minutos</string>
     <string name="settings_about_section">Acerca de</string>
-    <string name="settings_about_title">Acerca de ChangeDetection</string>
+    <string name="settings_about_title">Acerca de Change Detection</string>
     <string name="settings_action_contact">Contactar con el desarrollador</string>
     <string name="settings_sync_constraints_title">Condiciones de sincronización</string>
     <string name="settings_sync_constraint_wifi">Requerir Wi‑Fi</string>
@@ -132,7 +132,7 @@
     <string name="comparison_no_changes_title">No se encontraron diferencias</string>
     <string name="comparison_no_changes_text">El texto de ambas versiones es idéntico.</string>
     <string name="settings_comparison_title">Captura predeterminada</string>
-    <string name="settings_comparison_subtitle">Se usa en páginas configuradas para seguir la aplicación. Las demás conservan su propio método.</string>
+    <string name="settings_comparison_subtitle">Se usa en páginas que siguen el valor predeterminado de la aplicación. Las demás conservan su propio método de captura.</string>
     <string name="settings_comparison_summary">Para páginas que siguen la aplicación</string>
     <string name="settings_comparison_page_text">Texto de la página</string>
     <string name="settings_comparison_screenshots">Capturas de pantalla</string>
@@ -185,7 +185,7 @@
     <string name="monitor_editor_error_invalid_url">Escribe una dirección de página completa, como ejemplo.com.</string>
     <string name="monitor_editor_error_not_found">Esta página ya no existe.</string>
     <string name="monitor_editor_error_load">No pudimos cargar esta página. Inténtalo de nuevo.</string>
-    <string name="monitor_editor_error_save">No pudimos guardar esta página. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="monitor_editor_error_save">No pudimos guardar esta página. Inténtalo de nuevo.</string>
     <string name="clear_page_address">Borrar dirección de la página</string>
     <string name="paste">Pegar</string>
     <string name="local_browser_title_snapshot">Versión guardada</string>
@@ -216,7 +216,7 @@
     <string name="a11y_close">Cerrar</string>
     <string name="a11y_drag_screenshot_comparison">Arrastra para comparar capturas de pantalla</string>
     <string name="a11y_open_license">Abrir licencia</string>
-    <string name="monitor_editor_cadence_hint">Se comprueba automáticamente en segundo plano; ajústalo cuando quieras en Ajustes.</string>
+    <string name="monitor_editor_cadence_hint">Gestiona las comprobaciones automáticas en Ajustes.</string>
     <string name="monitor_editor_duplicate_warning">Ya estás monitorizando esta página</string>
     <string name="monitor_editor_duplicate_open">Abrir</string>
     <string name="address_changed_title">Dirección cambiada</string>
@@ -241,7 +241,7 @@
     <string name="storage_history_policy">Conserva hasta 100 versiones por página. Las versiones antiguas se eliminan al superar 250 MB. Siempre se conservan las dos últimas versiones de cada página, aunque superen este límite.</string>
     <string name="storage_clear_older">Borrar versiones antiguas</string>
     <string name="storage_clear_older_title">¿Borrar versiones antiguas?</string>
-    <string name="storage_clear_older_body">Cada página conserva su cambio más reciente. Se eliminarán %1$s de versiones antiguas de este dispositivo. No se puede deshacer.</string>
+    <string name="storage_clear_older_body">Cada página conserva sus dos versiones más recientes. Se eliminarán %1$s de versiones antiguas de este dispositivo. No se puede deshacer.</string>
     <string name="storage_clear_older_confirm">Borrar</string>
     <string name="capture_mode_default">Predeterminado de la app</string>
     <string name="capture_mode_html">HTML de la página</string>
@@ -249,9 +249,9 @@
     <string name="capture_mode_baseline">Cambiar de método crea una nueva referencia. Se conserva el historial existente.</string>
     <string name="capture_preview_action">Vista previa de la captura</string>
     <string name="capture_preview_title">Vista previa de la captura</string>
-    <string name="capture_preview_loading">Cargando la página…</string>
+    <string name="capture_preview_loading">Preparando vista previa…</string>
     <string name="capture_first_version_title">Preparando vista previa…</string>
-    <string name="capture_first_version_body">Puedes seguir configurando mientras se carga.</string>
+    <string name="capture_first_version_body">Puedes seguir ajustando la configuración.</string>
     <string name="capture_preview_html">Vista previa del texto de la página</string>
     <string name="capture_preview_empty">No se encontró texto legible. Esta página puede necesitar capturas de pantalla.</string>
     <string name="capture_preview_expand">Ver captura completa</string>
@@ -304,7 +304,7 @@
     <string name="text_region_description">Solo se guarda el HTML seleccionado. Los cambios fuera de la región o en elementos ignorados no generan alertas. Revisa la vista previa antes de guardar. Deja vacío el selector de inclusión para vigilar toda la página.</string>
     <string name="text_region_include">Selector CSS para incluir (opcional)</string>
     <string name="text_region_exclude">Selector CSS para ignorar (opcional)</string>
-    <string name="text_region_invalid">Usa selectores CSS válidos de hasta 512 caracteres cada uno, sin selectores de expresiones regulares.</string>
+    <string name="text_region_invalid">Usa selectores CSS válidos de hasta 4096 caracteres cada uno, sin selectores de expresiones regulares.</string>
     <string name="detail_last_saved">Última versión guardada</string>
     <string name="detail_compare">Comparar</string>
     <string name="detail_empty_text">No hay texto legible en esta versión. Ábrela para ver el código fuente.</string>
@@ -360,10 +360,10 @@
     <string name="settings_write_failed">No se pudo guardar tu elección. Inténtalo de nuevo.</string>
     <string name="storage_history_load_failed">No se pudo cargar el uso del almacenamiento.</string>
     <string name="turbo_unavailable_title">Turbo no está disponible en esta vista previa</string>
-    <string name="turbo_unavailable_description">Usa la aplicación de Android o de escritorio para iniciar una sesión de monitoreo.</string>
+    <string name="turbo_unavailable_description">Usa la aplicación de Android, iOS o de escritorio para iniciar una sesión de monitoreo.</string>
     <string name="image_diff_sampled_pixels_different">%1$s píxeles muestreados difieren. Las estadísticas usan una vista previa reducida.</string>
     <string name="check_failure_capture_unavailable">Comprobaciones por captura no disponibles</string>
-    <string name="check_failure_capture_unavailable_detail">Usa Android para comprobar capturas o edita esta página para supervisar texto o código fuente. Se conservan las versiones guardadas.</string>
+    <string name="check_failure_capture_unavailable_detail">Usa Android o iOS para comprobar mediante capturas de pantalla, o elige texto o código fuente. Tus versiones guardadas se conservan.</string>
     <string name="settings_theme_and_color">Tema y color</string>
     <string name="history_today">Hoy</string>
     <string name="history_yesterday">Ayer</string>
@@ -428,4 +428,13 @@
     <string name="pull_check_pull">Desliza para comprobar páginas</string>
     <string name="pull_check_release">Suelta para comprobar páginas</string>
     <string name="pull_check_checking">Comprobando páginas…</string>
+    <string name="capture_screenshot_finishing">Terminando captura…</string>
+    <plurals name="turbo_summary_pages">
+        <item quantity="one">%1$d página</item>
+        <item quantity="other">%1$d páginas</item>
+    </plurals>
+    <plurals name="detail_calendar_days">
+        <item quantity="one">%1$d día</item>
+        <item quantity="other">%1$d días</item>
+    </plurals>
 </resources>

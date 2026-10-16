@@ -137,7 +137,7 @@ class LocalizedIconPickerUiTest(private val language: String, private val scale:
         }
         var interval = 60L
         var wait = 10_000L
-        var format = com.bernaferrari.changedetection.repo.CaptureMode.TEXT
+        var format by mutableStateOf(com.bernaferrari.changedetection.repo.CaptureMode.TEXT)
         compose.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, scale)) {
@@ -145,7 +145,7 @@ class LocalizedIconPickerUiTest(private val language: String, private val scale:
                     Column(Modifier.size(320.dp, 760.dp).verticalScroll(rememberScrollState())) {
                         com.bernaferrari.changedetection.ui.settings.SyncIntervalInput(60L, { interval = it })
                         com.bernaferrari.changedetection.ui.settings.ScreenshotWaitChoice(10_000L, { wait = it })
-                        com.bernaferrari.changedetection.addedit.OtherFormatsField(com.bernaferrari.changedetection.repo.CaptureMode.TEXT, { format = it }, enabled = true, isEditing = false)
+                        com.bernaferrari.changedetection.addedit.CompareChoice(format, { format = it }, enabled = true, screenshotAvailable = true, isEditing = false)
                         com.bernaferrari.changedetection.addedit.VisualChangeFilterField(0, true, {})
                     }
                 }
@@ -154,8 +154,13 @@ class LocalizedIconPickerUiTest(private val language: String, private val scale:
         compose.onNodeWithText(minutes).performScrollTo().performClick().assertIsSelected()
         compose.onNode(hasSetTextAction()).performScrollTo().performTextReplacement(digits15)
         compose.runOnIdle { Assert.assertEquals(15L, interval) }
+        // Code reveals its flavours; choosing one, then Text, leaves Code again.
+        compose.onNodeWithText(runBlocking { getString(Res.string.mode_code) }).performScrollTo().performClick()
+        compose.runOnIdle { Assert.assertEquals(com.bernaferrari.changedetection.repo.CaptureMode.HTML, format) }
         compose.onNodeWithText(source).performScrollTo().assertIsDisplayed().performClick()
         compose.runOnIdle { Assert.assertEquals(com.bernaferrari.changedetection.repo.CaptureMode.SOURCE, format) }
+        compose.onNodeWithText(runBlocking { getString(Res.string.mode_text) }).performScrollTo().performClick()
+        compose.runOnIdle { Assert.assertEquals(com.bernaferrari.changedetection.repo.CaptureMode.TEXT, format) }
         val text = compose.onNodeWithText(off, useUnmergedTree = true).performScrollTo()
         val layouts = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
         text.performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult) { it(layouts) }

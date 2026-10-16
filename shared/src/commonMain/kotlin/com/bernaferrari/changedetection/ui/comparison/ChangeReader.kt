@@ -376,7 +376,7 @@ private fun DigestView(digest: com.bernaferrari.changedetection.preview.TextDige
                     ) {
                         Icon(Icons.Rounded.Numbers, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         Column(Modifier.weight(1f)) {
-                            Text(stringResource(Res.string.digest_numbers, digest.numberUpdates.size), style = MaterialTheme.typography.titleSmall)
+                            Text(pluralStringResource(Res.plurals.digest_numbers, digest.numberUpdates.size, digest.numberUpdates.size), style = MaterialTheme.typography.titleSmall)
                             Text(stringResource(Res.string.digest_numbers_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         Icon(if (numbersOpen) Icons.Rounded.UnfoldLess else Icons.Rounded.UnfoldMore, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)

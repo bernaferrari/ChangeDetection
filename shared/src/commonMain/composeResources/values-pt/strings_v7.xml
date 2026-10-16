@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="editor_preview_failed_title">Não foi possível abrir esta página</string>
+    <string name="editor_preview_failed_title">Não foi possível preparar a prévia</string>
     <string name="editor_change_address">Alterar endereço</string>
     <string name="editor_selectors">Seletores CSS</string>
     <string name="editor_name">Nome</string>
@@ -23,7 +23,10 @@
     <string name="preview_reordered_body">Os mesmos itens, reorganizados. Nada foi adicionado ou removido.</string>
     <string name="digest_new">Novo</string>
     <string name="digest_removed">Removido</string>
-    <string name="digest_numbers">Números mudaram em %1$d linhas</string>
+    <plurals name="digest_numbers">
+        <item quantity="one">Números mudaram em %1$d linha</item>
+        <item quantity="other">Números mudaram em %1$d linhas</item>
+    </plurals>
     <string name="digest_numbers_body">Contadores, horários e preços. Geralmente é ruído.</string>
     <string name="digest_show_full">Ver comparação completa</string>
     <string name="digest_changed">Alterado</string>
