@@ -8,8 +8,8 @@ import kotlin.math.pow
  */
 fun Long.readableFileSize(): String {
     if (this <= 0) return "0 B"
-    val units = arrayOf("B", "KB", "MB", "GB", "TB")
-    val digitGroups = (log10(this.toDouble()) / log10(1024.0)).toInt()
+    val units = arrayOf("B", "KB", "MB", "GB", "TB", "PB", "EB")
+    val digitGroups = (log10(this.toDouble()) / log10(1024.0)).toInt().coerceIn(0, units.lastIndex)
     val value = this / 1024.0.pow(digitGroups.toDouble())
     val roundedValue = (value * 10).toInt() / 10.0
     return "$roundedValue ${units[digitGroups]}"
