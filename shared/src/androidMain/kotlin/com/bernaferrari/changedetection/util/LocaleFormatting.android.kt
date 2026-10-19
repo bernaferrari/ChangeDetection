@@ -29,3 +29,5 @@ internal actual fun localizedPercent(value: Double, maxFractionDigits: Int, minF
     maximumFractionDigits = maxFractionDigits
     minimumFractionDigits = minFractionDigits
 }.format(value / 100)
+
+internal actual fun localizedShortWeekday(timestamp: Long): String = displayDate(timestamp, "EEE")
