@@ -54,6 +54,38 @@ import org.koin.plugin.module.dsl.startKoin
  * to build/desktop-review/v6. Nothing here touches the network.
  */
 class DesignReviewTest {
+    /** Repeatable README captures of the real shared app UI; all page content is local sample data. */
+    @Test fun readmeTour() = withApp(dark = false, seed = true, cleanFixtures = true) {
+        waitForText("new changes", substring = true)
+        waitForText("1 change", timeout = 15_000)
+        shot("readme-home")
+        onNodeWithTag("home-list").performScrollToKey("card-fellowship")
+        onAllNodesWithText("Fellowship guide").onFirst().performClick()
+        waitForText("Change 1 of", substring = true, timeout = 15_000)
+        shot("readme-text")
+        onNodeWithTag("version-navigator").performClick()
+        waitForText("Compare versions")
+        onAllNodes(hasClickAction() and hasAnyAncestor(hasTestTag("version-list"))).onFirst().assertExists()
+        onAllNodes(hasClickAction() and hasAnyAncestor(hasTestTag("version-list"))).onFirst().performClick()
+        onNodeWithContentDescription("Navigate back").performClick()
+        waitForTag("home-list")
+        onNodeWithTag("home-list").performScrollToKey("card-studio")
+        onAllNodesWithText("Studio Display").onFirst().performClick()
+        waitForText("Before", timeout = 15_000)
+        shot("readme-comparison")
+        onNodeWithTag("version-navigator").performClick()
+        waitForText("Compare versions")
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText("Loading…", substring = true).fetchSemanticsNodes().isEmpty() }
+        shot("readme-history")
+        onAllNodes(hasClickAction() and hasAnyAncestor(hasTestTag("version-list"))).onFirst().performClick()
+        onNodeWithContentDescription("Navigate back").performClick()
+        waitForTag("home-list")
+        onNodeWithContentDescription("Turbo").performClick()
+        waitForText("Stop after")
+        onAllNodesWithText("Studio Display").onLast().performScrollTo().performClick()
+        shot("readme-turbo")
+    }
+
     @Test fun lightTour() = tour(dark = false)
 
     /** Fast loop for visual work: the main screens in light and dark, each step independent. */
@@ -281,7 +313,7 @@ class DesignReviewTest {
 
     private var fixtureUrl = ""
 
-    private fun withApp(dark: Boolean, seed: Boolean, fontScale: Float = 1f, width: Int = WIDTH_PX, height: Int = HEIGHT_PX, density: Float = DENSITY, block: ComposeUiTest.() -> Unit) {
+    private fun withApp(dark: Boolean, seed: Boolean, cleanFixtures: Boolean = false, fontScale: Float = 1f, width: Int = WIDTH_PX, height: Int = HEIGHT_PX, density: Float = DENSITY, block: ComposeUiTest.() -> Unit) {
         val server = com.sun.net.httpserver.HttpServer.create(java.net.InetSocketAddress("127.0.0.1", 0), 0)
         server.createContext("/open-call") { exchange ->
             val bytes = String(fellowship("30 November", "€22,000")).encodeToByteArray()
@@ -309,7 +341,7 @@ class DesignReviewTest {
                     it[ThemeViewModel.THEME_MODE_KEY] = if (dark) "DARK" else "LIGHT"
                     it[MonitoringSchedule.ENABLED] = true
                 }
-                if (seed) seedFixtures(db, koin.get())
+                if (seed) seedFixtures(db, koin.get(), cleanFixtures)
             }
             runDesktopComposeUiTest(width = width, height = height, testTimeout = kotlin.time.Duration.parse("4m")) {
                 setContent {
@@ -372,7 +404,7 @@ class DesignReviewTest {
 private const val MINUTE = 60_000L
 private const val HOUR = 60 * MINUTE
 
-private suspend fun seedFixtures(db: ChangeDatabase, files: FileStorage) {
+private suspend fun seedFixtures(db: ChangeDatabase, files: FileStorage, cleanFixtures: Boolean = false) {
     val now = System.currentTimeMillis()
     val sites = db.siteDao()
     val snaps = db.snapsDao()
@@ -390,7 +422,7 @@ private suspend fun seedFixtures(db: ChangeDatabase, files: FileStorage) {
 
     page("studio", "Studio Display", "https://store.example/display", CaptureMode.SCREENSHOT) { it.copy(isRead = false) }
     version("studio", now - 3 * 24 * HOUR, "image/png", storePage("\$1,599.00", "Ships in 2–3 weeks"))
-    version("studio", now - 38 * MINUTE, "image/png", storePage("\$1,349.00", "In stock · free delivery"))
+    version("studio", now - (if (cleanFixtures) 8 else 38) * MINUTE, "image/png", storePage("\$1,349.00", "In stock · free delivery"))
 
     page("fellowship", "Fellowship guide", "https://opencall.example/fellowship") { it.copy(isRead = false) }
     version("fellowship", now - 2 * 24 * HOUR, html, fellowship("31 October", "€18,000"))
@@ -399,6 +431,9 @@ private suspend fun seedFixtures(db: ChangeDatabase, files: FileStorage) {
     page("apartments", "Apartment listings", "https://homes.example/rent?city=lisbon") { it.copy(isRead = false) }
     version("apartments", now - 5 * HOUR, html, listings(0))
     version("apartments", now - 11 * MINUTE, html, listings(7))
+
+    // The README tour keeps a small, healthy set so the full Turbo setup fits on screen.
+    if (cleanFixtures) return
 
     page("exam", "Exam results", "https://campus.example/results") {
         it.copy(isSuccessful = false, lastFailureCode = "SERVER", timestamp = now - 6 * MINUTE, lastSuccessfulCheck = now - 2 * HOUR)
