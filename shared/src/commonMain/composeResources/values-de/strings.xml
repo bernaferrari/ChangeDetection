@@ -764,7 +764,7 @@
         <item quantity="other">%1$d entfernt</item>
     </plurals>
     <string name="detail_sign_in">Anmelden</string>
-    <string name="browser_session_note">Screenshot-Prüfungen verwenden die Anmeldung dieses Browsers auf diesem Gerät. Text- und Quelltextprüfungen verwenden diese Sitzung nicht.</string>
+    <string name="browser_session_note">Unter Android können Text- und Screenshot-Prüfungen die gespeicherten Anmelde-Cookies dieses Browsers verwenden. Quelltextprüfungen tun dies nicht. Manche Websites verlangen möglicherweise eine erneute Anmeldung.</string>
     <string name="turbo_next_check">Nächste Prüfung in %1$d Sek.</string>
     <string name="picker_selected_image">Ein Bild</string>
     <string name="picker_selected_frame">Eingebetteter Frame (oft eine Anzeige)</string>

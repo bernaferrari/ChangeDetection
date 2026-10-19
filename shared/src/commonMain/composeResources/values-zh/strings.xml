@@ -733,7 +733,7 @@
         <item quantity="other">%1$d 个删除</item>
     </plurals>
     <string name="detail_sign_in">登录</string>
-    <string name="browser_session_note">截图检查会使用此设备上该浏览器的登录状态。文本和源代码检查不会使用此登录状态。</string>
+    <string name="browser_session_note">在 Android 上，文本和截图检查可以使用此浏览器保存的登录 Cookie。源代码检查不会使用这些 Cookie。部分网站可能会要求你重新登录。</string>
     <string name="turbo_next_check">%1$d 秒后再次检查</string>
     <string name="picker_selected_image">图片</string>
     <string name="picker_selected_frame">嵌入式框架（通常是广告）</string>

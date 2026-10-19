@@ -31,6 +31,7 @@ import com.bernaferrari.changedetection.browser.BrowserRuntimeHost
 import com.bernaferrari.changedetection.browser.PlatformBrowserView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -183,9 +184,7 @@ fun LocalBrowserScreen(
                 }
             }
 
-            else -> BrowserRuntimeHost(Modifier.fillMaxSize().padding(paddingValues)) {
-                PlatformBrowserView(state = rememberWebViewState(url = safeUrl), modifier = Modifier.fillMaxSize().padding(paddingValues))
-            }
+            else -> LiveBrowserPage(safeUrl, Modifier.fillMaxSize().padding(paddingValues))
         }
     }
 }
@@ -237,3 +236,27 @@ private fun SnapshotContextHeader(url: String, state: BrowserState) {
 private val htmlElementPattern = Regex("<[a-zA-Z][^>]*>")
 
 private fun String.hasHtmlMarkup(): Boolean = htmlElementPattern.containsMatchIn(this)
+
+@Composable
+internal fun LiveBrowserPage(url: String, modifier: Modifier) {
+    var attempt by androidx.compose.runtime.remember(url) { androidx.compose.runtime.mutableIntStateOf(0) }
+    Box(modifier) {
+        androidx.compose.runtime.key(url, attempt) {
+            val browser = rememberWebViewState(url)
+            BrowserRuntimeHost(Modifier.fillMaxSize()) {
+                PlatformBrowserView(state = browser, modifier = Modifier.fillMaxSize())
+            }
+            if (browser.errorsForCurrentRequest.any { it.isFromMainFrame }) {
+                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
+                    SharedEmptyState(
+                        icon = Icons.Default.ErrorOutline,
+                        title = stringResource(Res.string.local_browser_error_title),
+                        description = stringResource(Res.string.local_browser_error_body),
+                        primaryActionLabel = stringResource(Res.string.retry),
+                        onPrimaryAction = { attempt++ },
+                    )
+                }
+            }
+        }
+    }
+}

@@ -764,7 +764,7 @@
         <item quantity="other">%1$d हटे</item>
     </plurals>
     <string name="detail_sign_in">लॉग इन करें</string>
-    <string name="browser_session_note">स्क्रीनशॉट जाँचें इस डिवाइस पर इस ब्राउज़र का लॉग इन इस्तेमाल करती हैं। टेक्स्ट और सोर्स की जाँचें इस सत्र का इस्तेमाल नहीं करतीं।</string>
+    <string name="browser_session_note">Android पर टेक्स्ट और स्क्रीनशॉट की जाँचें इस ब्राउज़र में सेव की गई साइन-इन कुकी का इस्तेमाल कर सकती हैं। सोर्स की जाँचें ऐसा नहीं करतीं। कुछ साइटें आपको फिर से साइन इन करने के लिए कह सकती हैं।</string>
     <string name="turbo_next_check">अगली जाँच %1$d सेकंड में</string>
     <string name="picker_selected_image">एक तस्वीर</string>
     <string name="picker_selected_frame">एम्बेडेड फ़्रेम (अक्सर विज्ञापन)</string>
