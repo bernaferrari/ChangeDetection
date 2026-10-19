@@ -94,7 +94,7 @@ internal fun decodeLivePage(value: String): LivePage? {
 
 /**
  * Watching starts in a real browser: go to the exact page (search, menus, signing in all work, and the
- * session is reused by later screenshot checks on this device), optionally pick the parts that matter or that are noise, then watch.
+ * saved cookies are reused by later Android text and screenshot checks on this device), optionally pick the parts that matter or that are noise, then watch.
  */
 @Composable
 internal fun WatchBrowser(
@@ -125,7 +125,7 @@ internal fun WatchBrowser(
     var watchFailed by remember { mutableStateOf(false) }
 
     fun watchLivePage() {
-        if (resolvingWatch) return
+        if (resolvingWatch || state.loadingState !is LoadingState.Finished || state.errorsForCurrentRequest.any { it.isFromMainFrame }) return
         scope.launch {
             resolvingWatch = true
             watchFailed = false
@@ -138,7 +138,7 @@ internal fun WatchBrowser(
                     }
                 }
                 val page = raw?.let(::decodeLivePage)
-                if (page == null) {
+                if (page == null || state.errorsForCurrentRequest.any { it.isFromMainFrame }) {
                     watchFailed = true
                 } else {
                     liveUrl = page.url
@@ -174,7 +174,8 @@ internal fun WatchBrowser(
             else -> onClose()
         }
     }
-    val loaded = state.loadingState is LoadingState.Finished
+    val loadFailed = state.errorsForCurrentRequest.any { it.isFromMainFrame }
+    val loaded = state.loadingState is LoadingState.Finished && !loadFailed
     LaunchedEffect(state.lastLoadedUrl) {
         state.lastLoadedUrl?.takeIf { it.startsWith("http") }?.let {
             liveUrl = it
@@ -241,7 +242,18 @@ internal fun WatchBrowser(
         ) { padding ->
             Box(Modifier.fillMaxSize().padding(padding)) {
                 BrowserRuntimeHost(Modifier.fillMaxSize()) {
-                    WebView(state = state, modifier = Modifier.fillMaxSize(), navigator = navigator, webViewJsBridge = bridge, onCreated = { _ -> }, factory = ::createWatchWebView)
+                    WebView(state = state, modifier = Modifier.fillMaxSize(), navigator = navigator, webViewJsBridge = bridge, onCreated = { _ -> }, factory = ::createWatchWebView, platformWebViewParams = com.bernaferrari.changedetection.browser.rememberBrowserPlatformParams())
+                }
+                if (loadFailed) {
+                    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
+                        com.bernaferrari.changedetection.ui.components.SharedEmptyState(
+                            icon = Icons.Rounded.Refresh,
+                            title = stringResource(Res.string.local_browser_error_title),
+                            description = stringResource(Res.string.local_browser_error_body),
+                            primaryActionLabel = stringResource(Res.string.retry),
+                            onPrimaryAction = { navigator.reload() },
+                        )
+                    }
                 }
                 // A page load has real progress: a plain browser bar that eases between updates, fills, then fades.
                 val loading = state.loadingState as? LoadingState.Loading

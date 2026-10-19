@@ -764,7 +764,7 @@
         <item quantity="other">%1$dটি সরেছে</item>
     </plurals>
     <string name="detail_sign_in">সাইন ইন করুন</string>
-    <string name="browser_session_note">স্ক্রিনশট পরীক্ষা এই ডিভাইসে এই ব্রাউজারের সাইন ইন ব্যবহার করে। টেক্সট ও সোর্স পরীক্ষা এই সেশন ব্যবহার করে না।</string>
+    <string name="browser_session_note">Android-এ টেক্সট ও স্ক্রিনশট পরীক্ষা এই ব্রাউজারে সংরক্ষিত সাইন-ইন কুকি ব্যবহার করতে পারে। সোর্স পরীক্ষা তা করে না। কিছু সাইট আপনাকে আবার সাইন ইন করতে বলতে পারে।</string>
     <string name="turbo_next_check">পরের পরীক্ষা %1$d সেকেন্ডে</string>
     <string name="picker_selected_image">একটি ছবি</string>
     <string name="picker_selected_frame">এম্বেড করা ফ্রেম (প্রায়ই বিজ্ঞাপন)</string>

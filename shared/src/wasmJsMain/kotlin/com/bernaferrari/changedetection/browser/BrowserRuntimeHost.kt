@@ -14,3 +14,6 @@ internal actual fun PlatformBrowserView(state: com.multiplatform.webview.web.Web
 }
 
 internal actual val supportsPageRegionSelection: Boolean = false
+
+@Composable
+internal actual fun rememberBrowserPlatformParams(): com.multiplatform.webview.web.PlatformWebViewParams? = null

@@ -75,7 +75,7 @@
         <item quantity="other">%1$d gone</item>
     </plurals>
     <string name="detail_sign_in">Sign in</string>
-    <string name="browser_session_note">Screenshot checks reuse this browser’s sign-in on this device. Text and source checks do not use this session.</string>
+    <string name="browser_session_note">On Android, text and screenshot checks can reuse this browser’s saved sign-in cookies. Source checks do not. Some sites may ask you to sign in again.</string>
     <string name="turbo_next_check">Next check in %1$d s</string>
     <string name="picker_selected_image">An image</string>
     <string name="picker_selected_frame">An embedded frame (often an ad)</string>

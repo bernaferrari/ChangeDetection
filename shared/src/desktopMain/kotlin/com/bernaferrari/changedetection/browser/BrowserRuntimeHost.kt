@@ -94,3 +94,6 @@ private fun DesktopBrowserFallback(content: com.multiplatform.webview.web.WebCon
 }
 
 internal actual val supportsPageRegionSelection: Boolean = true
+
+@Composable
+internal actual fun rememberBrowserPlatformParams(): com.multiplatform.webview.web.PlatformWebViewParams? = null
