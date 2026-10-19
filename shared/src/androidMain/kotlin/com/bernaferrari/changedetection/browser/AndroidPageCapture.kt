@@ -63,17 +63,21 @@ internal class AndroidPageCapture(private val view: WebView) {
 
     /** Uses the already-loaded document, with the same cleanup and tiling as scheduled checks. */
     suspend fun captureLoaded(maxHeight: Int, hide: String = "", only: String = "", preservePage: Boolean = false): WebViewScreenshot = withContext(Dispatchers.Main.immediate) {
-        suspend fun clean(script: String) { evaluate(if (preservePage) PageCleanup.reversible(script) else script) }
+        suspend fun clean(script: String) {
+            evaluate(if (preservePage) PageCleanup.reversible(script) else script)
+        }
         try {
             val title = evaluate(PageCleanup.TITLE).trim('"').takeIf { it.isNotBlank() && it != "null" }
             val icon = evaluate(PageCleanup.ICON).trim('"').takeIf { it.startsWith("http") }
             // One renderer round trip; reversible() still records all mutations in order.
-            clean("(function(){" + buildList {
-                add(PageCleanup.HIDE_CONSENT)
-                add(PageCleanup.HIDE_ADS)
-                add(PageCleanup.HIDE_BOTTOM_FLOATING)
-                if (hide.isNotBlank()) add(PageCleanup.hide(hide))
-            }.joinToString(";") + ";return 0;})()")
+            clean(
+                "(function(){" + buildList {
+                    add(PageCleanup.HIDE_CONSENT)
+                    add(PageCleanup.HIDE_ADS)
+                    add(PageCleanup.HIDE_BOTTOM_FLOATING)
+                    if (hide.isNotBlank()) add(PageCleanup.hide(hide))
+                }.joinToString(";") + ";return 0;})()",
+            )
             // Use the same limits as the tiler. Loading content below its final row cannot
             // improve the capture, and may keep an otherwise ready page waiting indefinitely.
             @Suppress("DEPRECATION")
@@ -109,7 +113,9 @@ internal class AndroidPageCapture(private val view: WebView) {
             val loadStateScript = if (preservePage) {
                 val range = captureRange()
                 PageCleanup.loadState(range.first, range.second)
-            } else PageCleanup.LOAD_STATE
+            } else {
+                PageCleanup.LOAD_STATE
+            }
             PageCleanup.awaitSettled(
                 { script -> evaluate(script) },
                 maxMs = if (preservePage) 2_000 else 8_000,
@@ -145,23 +151,27 @@ internal class AndroidPageCapture(private val view: WebView) {
             )
             WebViewScreenshot("image/png", shot.bytes, shot.width, shot.height, title, icon)
         } finally {
-            if (preservePage) withContext(kotlinx.coroutines.NonCancellable) {
-                kotlinx.coroutines.withTimeoutOrNull(2_000) { evaluate(PageCleanup.RESTORE_CAPTURE) }
+            if (preservePage) {
+                withContext(kotlinx.coroutines.NonCancellable) {
+                    kotlinx.coroutines.withTimeoutOrNull(2_000) { evaluate(PageCleanup.RESTORE_CAPTURE) }
+                }
             }
         }
     }
 
-    private suspend fun readClip(selector: String): List<Double> =
-        evaluate(PageCleanup.rectOf(selector)).trim('"').split(',').mapNotNull { it.toDoubleOrNull() }.takeIf { it.size == 4 }
-            ?: throw IOException("The part you picked is no longer on the page")
+    private suspend fun readClip(selector: String): List<Double> = evaluate(PageCleanup.rectOf(selector)).trim('"').split(',').mapNotNull { it.toDoubleOrNull() }.takeIf { it.size == 4 }
+        ?: throw IOException("The part you picked is no longer on the page")
 
     private suspend fun awaitVisualState() = withTimeout(2_000) {
         suspendCancellableCoroutine<Unit> { continuation ->
-            view.postVisualStateCallback(0, object : WebView.VisualStateCallback() {
-                override fun onComplete(requestId: Long) {
-                    if (continuation.isActive) continuation.resume(Unit)
-                }
-            })
+            view.postVisualStateCallback(
+                0,
+                object : WebView.VisualStateCallback() {
+                    override fun onComplete(requestId: Long) {
+                        if (continuation.isActive) continuation.resume(Unit)
+                    }
+                },
+            )
         }
     }
 

@@ -90,9 +90,11 @@ fun rememberLatestPreview(siteId: String, latestSnapId: String?): ChangePreview?
     val preview by androidx.compose.runtime.key(siteId) {
         produceState<ChangePreview?>(repository?.cachedVersion(latestSnapId), latestSnapId) {
             // Keep the last readable preview while this page's next version is prepared.
-            value = loadPreview { repository?.latest(siteId) { before, after ->
-                value = ChangePreview.Crop(before.snapId, after.snapId, null, 0.0, false, isPreparing = true)
-            } }
+            value = loadPreview {
+                repository?.latest(siteId) { before, after ->
+                    value = ChangePreview.Crop(before.snapId, after.snapId, null, 0.0, false, isPreparing = true)
+                }
+            }
         }
     }
     return preview
@@ -381,8 +383,11 @@ private fun ChangeSpot(snapId: String, bounds: ChangedBounds, outline: androidx.
 
     BoxWithConstraints(modifier.clipToBounds()) {
         if (bytes == null || aspect <= 0f) {
-            if (loaded.second && (bytes == null || aspect == 0f)) Text(stringResource(Res.string.preview_unavailable), Modifier.align(Alignment.Center).padding(12.dp), style = MaterialTheme.typography.bodySmall)
-            else androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
+            if (loaded.second && (bytes == null || aspect == 0f)) {
+                Text(stringResource(Res.string.preview_unavailable), Modifier.align(Alignment.Center).padding(12.dp), style = MaterialTheme.typography.bodySmall)
+            } else {
+                androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
+            }
             return@BoxWithConstraints
         }
         val data = requireNotNull(bytes)
@@ -408,8 +413,11 @@ private fun ChangeSpot(snapId: String, bounds: ChangedBounds, outline: androidx.
             value = com.bernaferrari.changedetection.image.CropCache.get(data, l, windowTop, r, windowBottom, boxW.roundToInt()) to true
         }
         val crop = cropState.first
-        if (!cropState.second) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
-        else if (crop == null) Text(stringResource(Res.string.preview_unavailable), Modifier.align(Alignment.Center).padding(12.dp), style = MaterialTheme.typography.bodySmall)
+        if (!cropState.second) {
+            androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
+        } else if (crop == null) {
+            Text(stringResource(Res.string.preview_unavailable), Modifier.align(Alignment.Center).padding(12.dp), style = MaterialTheme.typography.bodySmall)
+        }
         crop?.let {
             androidx.compose.foundation.Image(
                 it,
