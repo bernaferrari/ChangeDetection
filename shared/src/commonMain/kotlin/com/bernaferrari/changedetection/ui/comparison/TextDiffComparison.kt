@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.ui.components.SharedEmptyState
 import com.bernaferrari.changedetection.util.readableSnapshotText
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.bernaferrari.changedetection.localization.pluralStringResource
@@ -35,7 +37,8 @@ internal fun SimpleDiffView(oldContent: String, newContent: String, modifier: Mo
     val diff by produceState<TextReaderContent?>(null, oldContent, newContent, oldIsHtml, newIsHtml) {
         value = null
         value = withContext(Dispatchers.Default) {
-            val rows = displayDiffRows(calculateDiffRows(readableSnapshotText(oldContent, oldIsHtml).lines(), readableSnapshotText(newContent, newIsHtml).lines()))
+            val context = currentCoroutineContext()
+            val rows = displayDiffRows(calculateDiffRows(readableSnapshotText(oldContent, oldIsHtml).lines(), readableSnapshotText(newContent, newIsHtml).lines()) { context.ensureActive() })
             val headings = if (newIsHtml) com.fleeksoft.ksoup.Ksoup.parse(newContent).select("h1,h2,h3,h4,h5,h6").map { it.text() }.toSet() else emptySet()
             TextReaderContent(rows, textChangeSections(rows, headings))
         }

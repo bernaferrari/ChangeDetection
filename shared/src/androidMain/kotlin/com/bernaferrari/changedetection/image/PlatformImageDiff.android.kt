@@ -2,6 +2,8 @@ package com.bernaferrari.changedetection.image
 
 import android.graphics.Bitmap
 import java.io.ByteArrayOutputStream
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -12,8 +14,11 @@ internal actual object PlatformImageDiff {
         threshold: Double,
         includeDiffImage: Boolean,
     ): SnapshotImageDiff = withContext(Dispatchers.Default) {
-        val before = decodeRgba(beforeBytes)
-        val after = decodeRgba(afterBytes)
+        val context = currentCoroutineContext()
+        context.ensureActive()
+        val before = decodeRgba(beforeBytes) { context.ensureActive() }
+        context.ensureActive()
+        val after = decodeRgba(afterBytes) { context.ensureActive() }
         val beforeImage = before?.image
         val afterImage = after?.image
 
@@ -32,7 +37,7 @@ internal actual object PlatformImageDiff {
             )
         }
 
-        val diff = RgbaDiff.compare(beforeImage, afterImage, threshold, includeDiffImage)
+        val diff = RgbaDiff.compare(beforeImage, afterImage, threshold, includeDiffImage) { context.ensureActive() }
 
         return@withContext SnapshotImageDiff(
             match = diff.match && before.originalWidth == after.originalWidth && before.originalHeight == after.originalHeight,
@@ -45,7 +50,7 @@ internal actual object PlatformImageDiff {
             afterHeight = after.originalHeight,
             changedBounds = diff.changedBounds,
             diffImagePng = diff.diffImage?.let { pixels ->
-                encodeRgbaAsPng(RgbaImage(beforeImage.width, beforeImage.height, pixels))
+                encodeRgbaAsPng(RgbaImage(beforeImage.width, beforeImage.height, pixels)) { context.ensureActive() }
             },
             dimensionMismatch = if (
                 before.originalWidth != after.originalWidth || before.originalHeight != after.originalHeight
@@ -69,7 +74,7 @@ private data class DecodedRgba(
     val originalHeight: Int,
 )
 
-private fun decodeRgba(bytes: ByteArray): DecodedRgba? {
+private fun decodeRgba(bytes: ByteArray, checkCancelled: () -> Unit): DecodedRgba? {
     val sampled = decodeSampledBitmap(
         bytes = bytes,
         maxPixels = MAX_DIFF_PIXELS,
@@ -82,6 +87,7 @@ private fun decodeRgba(bytes: ByteArray): DecodedRgba? {
         val rgba = ByteArray(argb.size * 4)
         var byteIndex = 0
         argb.forEach { pixel ->
+            if (byteIndex % 16_384 == 0) checkCancelled()
             rgba[byteIndex++] = ((pixel shr 16) and 0xFF).toByte()
             rgba[byteIndex++] = ((pixel shr 8) and 0xFF).toByte()
             rgba[byteIndex++] = (pixel and 0xFF).toByte()
@@ -97,7 +103,7 @@ private fun decodeRgba(bytes: ByteArray): DecodedRgba? {
     }
 }
 
-private fun encodeRgbaAsPng(image: RgbaImage): ByteArray? {
+private fun encodeRgbaAsPng(image: RgbaImage, checkCancelled: () -> Unit): ByteArray? {
     if (image.width <= 0 || image.height <= 0) return null
 
     val bitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
@@ -105,6 +111,7 @@ private fun encodeRgbaAsPng(image: RgbaImage): ByteArray? {
 
     var byteIndex = 0
     for (pixelIndex in pixels.indices) {
+        if (pixelIndex % 4096 == 0) checkCancelled()
         val red = image.pixels[byteIndex].toInt() and 0xFF
         val green = image.pixels[byteIndex + 1].toInt() and 0xFF
         val blue = image.pixels[byteIndex + 2].toInt() and 0xFF

@@ -15,6 +15,7 @@ import com.bernaferrari.changedetection.util.decodeByteArray
 import com.bernaferrari.changedetection.util.readableSnapshotText
 import com.fleeksoft.ksoup.Ksoup
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
@@ -142,6 +143,8 @@ class ChangePreviewRepository(
     }
 
     private suspend fun build(before: Snap, after: Snap): ChangePreview {
+        val context = kotlinx.coroutines.currentCoroutineContext()
+        context.ensureActive()
         if (before.isImageSnapshot() && after.isImageSnapshot()) {
             val beforeBytes = snaps.getSnapContent(before.snapId)
             val afterBytes = snaps.getSnapContent(after.snapId)
@@ -170,6 +173,7 @@ class ChangePreviewRepository(
             readableSnapshotText(oldRaw, before.isHtmlSnapshot()).lines(),
             readableSnapshotText(newRaw, after.isHtmlSnapshot()).lines(),
             headings,
+            checkCancelled = { context.ensureActive() },
         )
     }
 
@@ -224,7 +228,7 @@ data class TextDigest(
 )
 
 /** Compares the sets of lines with numbers masked, so shifting and re-sorting are not mistaken for change. */
-fun textDigest(oldLines: List<String>, newLines: List<String>): TextDigest {
+fun textDigest(oldLines: List<String>, newLines: List<String>, checkCancelled: () -> Unit = {}): TextDigest {
     fun norm(line: String) = mask(line.trim())
     val old = oldLines.map { it.trim() }.filter { it.isNotEmpty() }
     val new = newLines.map { it.trim() }.filter { it.isNotEmpty() }
@@ -244,6 +248,7 @@ fun textDigest(oldLines: List<String>, newLines: List<String>): TextDigest {
     val unmatched = removedAll.take(300).map { it to wordSet(it) }.toMutableList()
     val added = mutableListOf<String>()
     addedAll.forEachIndexed { index, line ->
+        checkCancelled()
         val words = wordSet(line)
         val match = if (index < 300) unmatched.maxByOrNull { similarity(words, it.second) }?.takeIf { similarity(words, it.second) >= 0.5f } else null
         if (match != null) {
@@ -258,7 +263,7 @@ fun textDigest(oldLines: List<String>, newLines: List<String>): TextDigest {
 
     // Lines that repeat one template with different values ("12 points by ana 3 hours ago") are churn: when three
     // or more edits keep the same unchanged words, they join the folded updates instead of reading as edits.
-    fun template(pair: Pair<String, String>) = wordDiff(pair.first, pair.second).filter { it.kind == EditSegment.Kind.Same }.joinToString(" ") { it.text.trim() }.trim()
+    fun template(pair: Pair<String, String>) = wordDiff(pair.first, pair.second, checkCancelled).filter { it.kind == EditSegment.Kind.Same }.joinToString(" ") { it.text.trim() }.trim()
     val withTemplates = edited.map { it to template(it) }
     val templateCounts = withTemplates.groupingBy { it.second }.eachCount()
     val (churn, realEdits) = withTemplates.partition { (_, key) -> key.length >= 8 && (templateCounts[key] ?: 0) >= 3 }
@@ -275,12 +280,18 @@ private fun similarity(a: Set<String>, b: Set<String>): Float {
 }
 
 /** Pure and synchronous so it is easy to test with plain strings. */
-internal fun textPreview(oldLines: List<String>, newLines: List<String>, headings: Set<String> = emptySet()): ChangePreview {
-    val rows = calculateDiffRows(oldLines, newLines)
+internal fun textPreview(oldLines: List<String>, newLines: List<String>, headings: Set<String> = emptySet(), checkCancelled: () -> Unit = {}): ChangePreview = analyzeTextPreview(oldLines, newLines, headings, checkCancelled).preview
+
+internal data class TextPreviewAnalysis(val preview: ChangePreview, val digest: TextDigest? = null)
+
+/** Reuse the digest already needed for a large preview instead of calculating it twice in the reader. */
+internal fun analyzeTextPreview(oldLines: List<String>, newLines: List<String>, headings: Set<String> = emptySet(), checkCancelled: () -> Unit = {}): TextPreviewAnalysis {
+    checkCancelled()
+    val rows = calculateDiffRows(oldLines, newLines, checkCancelled)
     val sections = textChangeSections(rows, headings).filter { section ->
         section.before.any { it.content.isNotBlank() } || section.after.any { it.content.isNotBlank() }
     }
-    if (sections.isEmpty()) return ChangePreview.Invisible
+    if (sections.isEmpty()) return TextPreviewAnalysis(ChangePreview.Invisible)
     val passages = sections.map { section ->
         val before = section.before.joinToString(" ") { it.content }
         val after = section.after.joinToString(" ") { it.content }
@@ -297,8 +308,8 @@ internal fun textPreview(oldLines: List<String>, newLines: List<String>, heading
     val sectionsShare = changedLines.toFloat() / total
     val scored = passages.mapIndexed { index, passage -> Triple(index, passage, meaning(passage.second, passage.third)) }
     if (changedChars > LARGE_CHANGED_CHARS || (changedLines > 8 && sectionsShare > 0.4f)) {
-        val digest = textDigest(oldLines, newLines)
-        if (digest.reordered) return ChangePreview.Large(changedLines, total, reordered = true)
+        val digest = textDigest(oldLines, newLines, checkCancelled)
+        if (digest.reordered) return TextPreviewAnalysis(ChangePreview.Large(changedLines, total, reordered = true), digest)
         val addedLines = digest.added
         val removedLines = digest.removed
         val updated = digest.numberUpdates.size + digest.edited.size
@@ -319,14 +330,14 @@ internal fun textPreview(oldLines: List<String>, newLines: List<String>, heading
                     .forEach { (_, pair, _) -> add(trimAroundFirstEdit(wordDiff(pair.first.take(300), pair.second.take(300)), SAMPLE_CHARS).first) }
             }
         }
-        return ChangePreview.Large(changedLines, total, samples, numbersOnly || (addedLines.isEmpty() && removedLines.isEmpty() && digest.edited.isEmpty() && updated > 0), addedLines.size, removedLines.size, updated)
+        return TextPreviewAnalysis(ChangePreview.Large(changedLines, total, samples, numbersOnly || (addedLines.isEmpty() && removedLines.isEmpty() && digest.edited.isEmpty() && updated > 0), addedLines.size, removedLines.size, updated), digest)
     }
     // Page order among meaningful changes; only counter/time churn is skipped.
     val (first, before, after) = (scored.firstOrNull { it.third > 0 } ?: scored.first()).second
     val segments = wordDiff(before, after)
     val (trimmed, leading, trailing) = trimAroundFirstEdit(segments)
     val section = first.context?.takeIf { headings.isEmpty() || it in headings }?.takeIf { it.length <= 60 }
-    return ChangePreview.Words(section, trimmed, sections.size - 1, leading, trailing, numbersOnly)
+    return TextPreviewAnalysis(ChangePreview.Words(section, trimmed, sections.size - 1, leading, trailing, numbersOnly))
 }
 
 private fun clip(line: String): String = line.trim().let { if (it.length > SAMPLE_CHARS) it.take(SAMPLE_CHARS).substringBeforeLast(' ') + "…" else it }
@@ -334,12 +345,12 @@ private fun clip(line: String): String = line.trim().let { if (it.length > SAMPL
 private val wordPattern = Regex("\\s+|[^\\s]+")
 
 /** Word-level edit between two short passages; whole-line rewrites still read naturally as old → new. */
-internal fun wordDiff(before: String, after: String): List<EditSegment> {
+internal fun wordDiff(before: String, after: String, checkCancelled: () -> Unit = {}): List<EditSegment> {
     val old = wordPattern.findAll(before).map { it.value }.toList()
     val new = wordPattern.findAll(after).map { it.value }.toList()
     if (old.isEmpty()) return listOf(EditSegment(after, EditSegment.Kind.Added))
     if (new.isEmpty()) return listOf(EditSegment(before, EditSegment.Kind.Removed))
-    val patch = com.bernaferrari.difflib.DiffUtils.diff(old, new)
+    val patch = com.bernaferrari.difflib.DiffUtils.diff(old, new, checkCancelled)
     val sameShare = 1f - patch.deltas.sumOf { it.source.lines.size + it.target.lines.size }.toFloat() / (old.size + new.size)
     // When almost nothing survives, interleaving word fragments is harder to read than old then new.
     if (sameShare < 0.25f) {

@@ -8,12 +8,14 @@ import com.bernaferrari.difflib.patch.Patch
 object DiffUtils {
     private const val MaxLcsCells = 2_000_000L
 
-    fun <T> diff(original: List<T>, revised: List<T>): Patch<T> {
+    fun <T> diff(original: List<T>, revised: List<T>, checkCancelled: () -> Unit = {}): Patch<T> {
+        checkCancelled()
         if (original == revised) return Patch()
         val result = Patch<T>()
         var remainingCells = MaxLcsCells
 
         fun appendGap(oldStart: Int, oldEnd: Int, newStart: Int, newEnd: Int) {
+            checkCancelled()
             var prefix = 0
             while (oldStart + prefix < oldEnd && newStart + prefix < newEnd && original[oldStart + prefix] == revised[newStart + prefix]) prefix++
             var suffix = 0
@@ -24,9 +26,9 @@ object DiffUtils {
             val cells = (old.size.toLong() + 1) * (new.size.toLong() + 1)
             val patch = if (old.isNotEmpty() && new.isNotEmpty() && cells <= remainingCells) {
                 remainingCells -= cells
-                lcsDiff(old, new)
+                lcsDiff(old, new, checkCancelled)
             } else {
-                boundedDiff(old, new)
+                boundedDiff(old, new, checkCancelled)
             }
             patch.deltas.forEach {
                 result.addDelta(ChangeDelta(Chunk(oldStart + prefix + it.source.position, it.source.lines), Chunk(newStart + prefix + it.target.position, it.target.lines)))
@@ -39,7 +41,7 @@ object DiffUtils {
         }
         // Unique matching lines provide ordered anchors without a quadratic full-page table.
         // Bound auxiliary maps as well; extremely fragmented input retains the linear fallback.
-        val anchors = if (original.size + revised.size <= 200_000) orderedAnchors(original, revised) else emptyList()
+        val anchors = if (original.size + revised.size <= 200_000) orderedAnchors(original, revised, checkCancelled) else emptyList()
         var oldCursor = 0
         var newCursor = 0
         anchors.forEach { (oldIndex, newIndex) ->
@@ -51,13 +53,17 @@ object DiffUtils {
         return result
     }
 
-    private fun <T> orderedAnchors(original: List<T>, revised: List<T>): List<Pair<Int, Int>> {
+    private fun <T> orderedAnchors(original: List<T>, revised: List<T>, checkCancelled: () -> Unit): List<Pair<Int, Int>> {
         fun positions(lines: List<T>): Map<T, Int> = mutableMapOf<T, Int>().apply {
-            lines.forEachIndexed { index, line -> this[line] = if (containsKey(line)) -1 else index }
+            lines.forEachIndexed { index, line ->
+                if (index % 1024 == 0) checkCancelled()
+                this[line] = if (containsKey(line)) -1 else index
+            }
         }
         val oldPositions = positions(original)
         val newPositions = positions(revised)
         val matches = original.mapIndexedNotNull { index, line ->
+            if (index % 1024 == 0) checkCancelled()
             val target = newPositions[line]
             if (oldPositions[line] == index && target != null && target >= 0) index to target else null
         }
@@ -66,6 +72,7 @@ object DiffUtils {
         val previous = IntArray(matches.size) { -1 }
         var length = 0
         matches.indices.forEach { index ->
+            if (index % 1024 == 0) checkCancelled()
             var low = 0
             var high = length
             while (low < high) {
@@ -85,11 +92,12 @@ object DiffUtils {
         return anchors.asReversed()
     }
 
-    private fun <T> lcsDiff(original: List<T>, revised: List<T>): Patch<T> {
+    private fun <T> lcsDiff(original: List<T>, revised: List<T>, checkCancelled: () -> Unit): Patch<T> {
         val rows = original.size + 1
         val columns = revised.size + 1
         val lcs = IntArray(rows * columns)
         for (oldIndex in original.lastIndex downTo 0) {
+            checkCancelled()
             for (newIndex in revised.lastIndex downTo 0) {
                 lcs[oldIndex * columns + newIndex] = if (original[oldIndex] == revised[newIndex]) {
                     lcs[(oldIndex + 1) * columns + newIndex + 1] + 1
@@ -103,6 +111,7 @@ object DiffUtils {
         var oldIndex = 0
         var newIndex = 0
         while (oldIndex < original.size || newIndex < revised.size) {
+            if ((oldIndex + newIndex) % 1024 == 0) checkCancelled()
             if (oldIndex < original.size && newIndex < revised.size && original[oldIndex] == revised[newIndex]) {
                 oldIndex++
                 newIndex++
@@ -130,7 +139,7 @@ object DiffUtils {
         return patch
     }
 
-    private fun <T> boundedDiff(original: List<T>, revised: List<T>): Patch<T> {
+    private fun <T> boundedDiff(original: List<T>, revised: List<T>, checkCancelled: () -> Unit): Patch<T> {
         var prefix = 0
         while (prefix < original.size && prefix < revised.size && original[prefix] == revised[prefix]) prefix++
         var suffix = 0

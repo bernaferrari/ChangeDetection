@@ -87,21 +87,26 @@ import com.bernaferrari.changedetection.ui.theme.marks
 import com.bernaferrari.changedetection.util.readableSnapshotText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.ensureActive
 import com.bernaferrari.changedetection.localization.pluralStringResource
 import com.bernaferrari.changedetection.localization.stringResource
 
 /** One block of the reader: either a run of unchanged lines or one change. */
 internal sealed interface ReaderBlock {
     data class Unchanged(val id: Int, val lines: List<String>, val originalLineCount: Int = lines.size) : ReaderBlock
-    data class Change(val number: Int, val section: String?, val before: List<String>, val after: List<String>) : ReaderBlock
+    data class Change(val number: Int, val section: String?, val before: List<String>, val after: List<String>) : ReaderBlock {
+        val beforeText = before.joinToString(" ").trim()
+        val afterText = after.joinToString(" ").trim()
+        val inlineSegments = if (beforeText.length + afterText.length <= INLINE_CHARS && before.size <= 4 && after.size <= 4) wordDiff(beforeText, afterText) else null
+    }
 }
 
 private const val SHORT_RUN = 2
 private const val INLINE_CHARS = 700
 
 /** Pure grouping so long pages become "a few changes with folded text between them". */
-internal fun readerBlocks(oldLines: List<String>, newLines: List<String>, headings: Set<String>): List<ReaderBlock> {
-    val rows = calculateDiffRows(oldLines, newLines)
+internal fun readerBlocks(oldLines: List<String>, newLines: List<String>, headings: Set<String>, checkCancelled: () -> Unit = {}): List<ReaderBlock> {
+    val rows = calculateDiffRows(oldLines, newLines, checkCancelled)
     val blocks = mutableListOf<ReaderBlock>()
     var unchanged = mutableListOf<String>()
     var before = mutableListOf<String>()
@@ -124,6 +129,7 @@ internal fun readerBlocks(oldLines: List<String>, newLines: List<String>, headin
         }
     }
     for (row in rows) {
+        checkCancelled()
         if (row.type == DiffLineType.UNCHANGED) {
             flushChange()
             unchanged += row.content
@@ -207,7 +213,36 @@ internal class ReaderState : ChangeCursor {
     }
 }
 
-private data class ReaderContent(val blocks: List<ReaderBlock>, val changes: Int, val digest: com.bernaferrari.changedetection.preview.TextDigest? = null)
+internal data class ReaderContent(val blocks: List<ReaderBlock>, val changes: Int, val digest: PreparedDigest? = null)
+internal data class PreparedDigest(
+    val source: com.bernaferrari.changedetection.preview.TextDigest,
+    val edited: List<List<EditSegment>>,
+    val numbers: List<List<EditSegment>>,
+)
+
+/** All diffing is completed before the immutable model reaches Compose. Styling remains on Main. */
+internal suspend fun prepareReaderContent(oldContent: String, newContent: String, oldIsHtml: Boolean, newIsHtml: Boolean): ReaderContent = withContext(Dispatchers.Default) {
+    val context = kotlinx.coroutines.currentCoroutineContext()
+    val headings = if (newIsHtml) {
+        com.fleeksoft.ksoup.Ksoup.parse(newContent).select("h1,h2,h3,h4,h5,h6,dt,legend,th").map { it.text().trim() }.filter { it.isNotEmpty() }.toSet()
+    } else {
+        emptySet()
+    }
+    val oldLines = readableSnapshotText(oldContent, oldIsHtml).lines()
+    val newLines = readableSnapshotText(newContent, newIsHtml).lines()
+    val blocks = readerBlocks(oldLines, newLines, headings) { context.ensureActive() }
+    context.ensureActive()
+    val analysis = com.bernaferrari.changedetection.preview.analyzeTextPreview(oldLines, newLines, headings) { context.ensureActive() }
+    val digest = analysis.digest?.let { source ->
+        fun prepare(pairs: List<Pair<String, String>>, limit: Int) = pairs.take(200).map { (before, after) ->
+            context.ensureActive()
+            wordDiff(before.take(limit), after.take(limit)) { context.ensureActive() }
+        }
+        PreparedDigest(source, prepare(source.edited, 600), prepare(source.numberUpdates, 400))
+    }
+    context.ensureActive()
+    ReaderContent(blocks, blocks.count { it is ReaderBlock.Change }, digest)
+}
 
 private sealed interface ReaderItem {
     val key: String
@@ -263,19 +298,7 @@ internal fun ChangeReader(
 ) {
     val content by produceState<ReaderContent?>(null, oldContent, newContent, oldIsHtml, newIsHtml) {
         value = null
-        value = withContext(Dispatchers.Default) {
-            val headings = if (newIsHtml) {
-                runCatching { com.fleeksoft.ksoup.Ksoup.parse(newContent).select("h1,h2,h3,h4,h5,h6,dt,legend,th").map { it.text().trim() }.filter { it.isNotEmpty() }.toSet() }.getOrDefault(emptySet())
-            } else {
-                emptySet()
-            }
-            val oldLines = readableSnapshotText(oldContent, oldIsHtml).lines()
-            val newLines = readableSnapshotText(newContent, newIsHtml).lines()
-            val blocks = readerBlocks(oldLines, newLines, headings)
-            // Busy pages read better as "what's new / gone / only ticked" than as a positional diff.
-            val busy = com.bernaferrari.changedetection.preview.textPreview(oldLines, newLines, headings) is com.bernaferrari.changedetection.preview.ChangePreview.Large
-            ReaderContent(blocks, blocks.count { it is ReaderBlock.Change }, if (busy) com.bernaferrari.changedetection.preview.textDigest(oldLines, newLines) else null)
-        }
+        value = prepareReaderContent(oldContent, newContent, oldIsHtml, newIsHtml)
     }
     val loaded = content
     if (loaded == null) {
@@ -330,8 +353,9 @@ internal fun ChangeReader(
 
 /** A busy page's change as three plain lists: new, removed, and (folded) lines where only numbers moved. */
 @Composable
-private fun DigestView(digest: com.bernaferrari.changedetection.preview.TextDigest, onShowFull: () -> Unit, modifier: Modifier = Modifier) {
+private fun DigestView(prepared: PreparedDigest, onShowFull: () -> Unit, modifier: Modifier = Modifier) {
     val marks = MaterialTheme.marks
+    val digest = prepared.source
     var numbersOpen by remember(digest) { mutableStateOf(false) }
     val newTitle = stringResource(Res.string.digest_new)
     val removedTitle = stringResource(Res.string.digest_removed)
@@ -362,7 +386,7 @@ private fun DigestView(digest: com.bernaferrari.changedetection.preview.TextDige
                 item("edited-h") { DigestHeader(changedTitle, digest.edited.size) }
                 itemsIndexed(digest.edited.take(200), key = { index, _ -> "edited-$index" }) { index, (before, after) ->
                     Box(Modifier.fillMaxWidth().clip(com.bernaferrari.changedetection.ui.kit.segmentShape(index, minOf(digest.edited.size, 200), outer = 20.dp)).background(MaterialTheme.colorScheme.surfaceBright).padding(horizontal = 16.dp, vertical = 12.dp)) {
-                        DiffText(editText(com.bernaferrari.changedetection.preview.wordDiff(before.take(600), after.take(600)), marks), style = Reading.body.copy(color = MaterialTheme.colorScheme.onSurface))
+                        DiffText(editText(prepared.edited[index], marks), style = Reading.body.copy(color = MaterialTheme.colorScheme.onSurface))
                     }
                 }
             }
@@ -383,9 +407,9 @@ private fun DigestView(digest: com.bernaferrari.changedetection.preview.TextDige
                     }
                 }
                 if (numbersOpen) {
-                    itemsIndexed(digest.numberUpdates.take(200), key = { index, _ -> "num-$index" }) { _, (before, after) ->
+                    itemsIndexed(digest.numberUpdates.take(200), key = { index, _ -> "num-$index" }) { index, _ ->
                         DiffText(
-                            editText(com.bernaferrari.changedetection.preview.wordDiff(before.take(400), after.take(400)), marks),
+                            editText(prepared.numbers[index], marks),
                             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                             style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                         )
@@ -428,9 +452,9 @@ private fun DigestNote(icon: androidx.compose.ui.graphics.vector.ImageVector, ti
 @Composable
 private fun ChangeBlock(block: ReaderBlock.Change, total: Int, expanded: Boolean, onExpand: () -> Unit, modifier: Modifier = Modifier) {
     val marks = MaterialTheme.marks
-    val beforeText = block.before.joinToString(" ").trim()
-    val afterText = block.after.joinToString(" ").trim()
-    val inline = beforeText.length + afterText.length <= INLINE_CHARS && block.before.size <= 4 && block.after.size <= 4
+    val beforeText = block.beforeText
+    val afterText = block.afterText
+    val inline = block.inlineSegments != null
     Surface(modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceBright) {
         Row(Modifier.padding(start = 0.dp, top = 14.dp, bottom = 14.dp, end = 16.dp)) {
             Box(Modifier.padding(start = 10.dp, end = 12.dp).width(4.dp).heightIn(min = 24.dp).clip(RoundedCornerShape(2.dp)).background(marks.highlightEdge))
@@ -449,7 +473,7 @@ private fun ChangeBlock(block: ReaderBlock.Change, total: Int, expanded: Boolean
                         afterText.takeIf { it.isNotEmpty() }?.let { "$afterLabel: $it" },
                     ).joinToString("\n")
                     DiffText(
-                        editText(wordDiff(beforeText, afterText), marks),
+                        editText(requireNotNull(block.inlineSegments), marks),
                         Modifier.clearAndSetSemantics { contentDescription = description },
                         style = Reading.body.copy(color = MaterialTheme.colorScheme.onSurface),
                     )
