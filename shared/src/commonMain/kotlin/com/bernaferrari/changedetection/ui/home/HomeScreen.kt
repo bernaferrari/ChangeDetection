@@ -439,11 +439,13 @@ internal fun PullToCheckBox(
     Box(modifier.pullToRefresh(isRefreshing = refreshing, state = state, enabled = enabled, threshold = threshold, onRefresh = onRefresh).nestedScroll(scrollBehavior.nestedScrollConnection)) {
         content()
         if (enabled || refreshing) {
-            val feedback = stringResource(when {
-                refreshing -> Res.string.pull_check_checking
-                ready -> Res.string.pull_check_release
-                else -> Res.string.pull_check_pull
-            })
+            val feedback = stringResource(
+                when {
+                    refreshing -> Res.string.pull_check_checking
+                    ready -> Res.string.pull_check_release
+                    else -> Res.string.pull_check_pull
+                },
+            )
             androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.LoadingIndicator(
                 state = state,
                 isRefreshing = refreshing,

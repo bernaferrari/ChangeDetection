@@ -145,9 +145,11 @@ internal fun WatchBrowser(
                     // Open review immediately. Its preview job captures this still-mounted browser.
                     val mode = captureMode
                     val region = com.bernaferrari.changedetection.detection.TextRegion(only, ignored.joinToString(", "))
-                    currentOnWatch(page.copy(capturePreview = { onPreview ->
-                        captureMutex.withLock { captureLivePagePreview(state, navigator, page.url, mode, region, onPreview) }
-                    }))
+                    currentOnWatch(
+                        page.copy(capturePreview = { onPreview ->
+                            captureMutex.withLock { captureLivePagePreview(state, navigator, page.url, mode, region, onPreview) }
+                        }),
+                    )
                 }
             } finally {
                 resolvingWatch = false
