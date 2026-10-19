@@ -102,22 +102,8 @@ The UI tour used for this README is reproducible with:
 
 It captures the real shared app UI at phone dimensions with local fixture content. See [screenshot provenance](docs/screenshots/README.md) for the source images and composition.
 
-### Find your way around
-
-| Directory | Contents |
-| --- | --- |
-| `shared/` | Compose screens, monitoring, storage, comparison logic, and platform implementations |
-| `androidApp/` | Android application and platform integration |
-| `iosApp/` | iOS host application |
-| `webDemo/` | Browser demo with sample data |
-| `website/` | Marketing site |
-
 ## Contribute
 
 Bug reports are most useful with the app version, platform, steps to reproduce, and a public page URL when possible. Describe what you expected and what happened. Remove private page content, cookies, and account details from logs or screenshots.
 
 For a fix, add a regression test that fails first, keep the change focused, and run the relevant checks above. Documentation, translations, accessibility improvements, and reproducible test cases are welcome too.
-
-## License
-
-[Apache 2.0](LICENSE). Third-party capture attribution and preserved license notices are in [third_party/](third_party/README.md).
