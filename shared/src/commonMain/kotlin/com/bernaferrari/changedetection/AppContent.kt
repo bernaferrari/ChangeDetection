@@ -1,4 +1,4 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
 
 package com.bernaferrari.changedetection
 
@@ -122,6 +122,11 @@ fun ChangeDetectionApp(
     startDestination: NavKey = MainDestination,
 ) {
     val native = com.bernaferrari.changedetection.ui.navigation.LocalNativeNavigation.current
+    // Root tab entries are replaced on navigation; keep their reading positions with the app.
+    val homeListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val activityListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val homeBarState = androidx.compose.material3.rememberTopAppBarState()
+    val activityBarState = androidx.compose.material3.rememberTopAppBarState()
     val backStack = rememberNavBackStack(appNavSavedStateConfiguration, startDestination)
     // One MainViewModel for the whole app, even when every screen is its own view controller (iOS).
     val mainViewModel: MainViewModel = koinViewModel(
@@ -253,6 +258,8 @@ fun ChangeDetectionApp(
                 ) {
                     HomeScreen(
                         viewModel = mainViewModel,
+                        listState = homeListState,
+                        topBarState = homeBarState,
                         selectedSiteId = (backStack.lastOrNull() as? PageDetailDestination)?.siteId ?: (backStack.lastOrNull() as? ComparisonDestination)?.siteId,
                         onAddPage = { url -> openAddPage(url) },
                         onOpenPage = { id -> backStack.openPage(id) },
@@ -281,6 +288,8 @@ fun ChangeDetectionApp(
                         onOpenChange = { siteId, snapId -> backStack.openComparison(siteId, snapId) },
                         onOpenPage = { backStack.openPage(it) },
                         viewModel = logsViewModel,
+                        listState = activityListState,
+                        topBarState = activityBarState,
                     )
                 }
 

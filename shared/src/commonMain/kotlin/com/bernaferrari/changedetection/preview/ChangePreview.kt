@@ -240,33 +240,38 @@ fun textDigest(oldLines: List<String>, newLines: List<String>): TextDigest {
     val updates = new.filter { it !in oldExact }.mapNotNull { line -> oldByNorm[norm(line)]?.firstOrNull()?.let { it to line } }.distinct()
     // A "new" line that mostly repeats the words of a "gone" line is an edit of it, not a new item.
     val edited = mutableListOf<Pair<String, String>>()
-    val unmatched = removedAll.take(300).toMutableList()
+    // Tokenize each candidate once, rather than once for every possible match.
+    val unmatched = removedAll.take(300).map { it to wordSet(it) }.toMutableList()
     val added = mutableListOf<String>()
     addedAll.forEachIndexed { index, line ->
         val words = wordSet(line)
-        val match = if (index < 300) unmatched.maxByOrNull { similarity(words, wordSet(it)) }?.takeIf { similarity(words, wordSet(it)) >= 0.5f } else null
+        val match = if (index < 300) unmatched.maxByOrNull { similarity(words, it.second) }?.takeIf { similarity(words, it.second) >= 0.5f } else null
         if (match != null) {
-            edited += match to line
+            edited += match.first to line
             unmatched.remove(match)
         } else {
             added += line
         }
     }
-    val removed = removedAll.filter { gone -> edited.none { it.first == gone } }
+    val editedBefore = edited.mapTo(HashSet()) { it.first }
+    val removed = removedAll.filter { it !in editedBefore }
 
     // Lines that repeat one template with different values ("12 points by ana 3 hours ago") are churn: when three
     // or more edits keep the same unchanged words, they join the folded updates instead of reading as edits.
     fun template(pair: Pair<String, String>) = wordDiff(pair.first, pair.second).filter { it.kind == EditSegment.Kind.Same }.joinToString(" ") { it.text.trim() }.trim()
-    val templates = edited.groupBy(::template)
-    val (churn, realEdits) = edited.partition { pair -> template(pair).length >= 8 && (templates[template(pair)]?.size ?: 0) >= 3 }
-    return TextDigest(added, removed, realEdits, updates + churn, reordered = false)
+    val withTemplates = edited.map { it to template(it) }
+    val templateCounts = withTemplates.groupingBy { it.second }.eachCount()
+    val (churn, realEdits) = withTemplates.partition { (_, key) -> key.length >= 8 && (templateCounts[key] ?: 0) >= 3 }
+    return TextDigest(added, removed, realEdits.map { it.first }, updates + churn.map { it.first }, reordered = false)
 }
 
-private fun wordSet(line: String): Set<String> = mask(line.lowercase()).split(Regex("[^\\p{L}#]+")).filter { it.length > 1 || it == "#" }.toSet()
+private val wordSeparators = Regex("[^\\p{L}#]+")
+private fun wordSet(line: String): Set<String> = mask(line.lowercase()).split(wordSeparators).filter { it.length > 1 || it == "#" }.toSet()
 
 private fun similarity(a: Set<String>, b: Set<String>): Float {
     if (a.isEmpty() || b.isEmpty()) return 0f
-    return a.intersect(b).size.toFloat() / (a.size + b.size - a.intersect(b).size)
+    val common = if (a.size <= b.size) a.count { it in b } else b.count { it in a }
+    return common.toFloat() / (a.size + b.size - common)
 }
 
 /** Pure and synchronous so it is easy to test with plain strings. */

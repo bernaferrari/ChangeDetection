@@ -157,6 +157,8 @@ fun HomeScreen(
     onEnableNotifications: () -> Unit,
     modifier: Modifier = Modifier,
     selectedSiteId: String? = null,
+    listState: androidx.compose.foundation.lazy.LazyListState = rememberLazyListState(),
+    topBarState: androidx.compose.material3.TopAppBarState = androidx.compose.material3.rememberTopAppBarState(),
 ) {
     // Home draws its own header; on iOS the native bar is hidden here, while push, pop and swipe-back stay native.
     com.bernaferrari.changedetection.ui.navigation.HideNativeBar()
@@ -234,9 +236,8 @@ fun HomeScreen(
         }
     }
     val unread = filtered.filter { !it.site.isRead && it.snap != null && it.snapshotCount > 1 }.sortedByDescending { it.snap?.timestamp ?: 0 }
-    val listState = rememberLazyListState()
     val fabExpanded by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(state = topBarState)
 
     Scaffold(
         modifier = modifier,

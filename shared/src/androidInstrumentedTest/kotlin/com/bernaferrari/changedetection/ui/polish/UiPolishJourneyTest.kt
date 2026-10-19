@@ -6,6 +6,11 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Trace
+import android.view.FrameMetrics
+import android.view.Window
 import android.os.Looper
 import android.os.SystemClock
 import android.provider.MediaStore
@@ -59,7 +64,9 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class UiPolishJourneyTest {
     @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
-    private val phase = InstrumentationRegistry.getArguments().getString("phase") ?: "after"
+    private val arguments = InstrumentationRegistry.getArguments()
+    private val phase = arguments.getString("phase") ?: "after"
+    private val measureFrames = arguments.getString("measure_frames") == "true"
 
     @Test fun activityLoadingEmptyAndReadySubtitlesHaveHonestStableLayout() {
         var preview by mutableStateOf<ChangePreview?>(null)
@@ -153,14 +160,28 @@ class UiPolishJourneyTest {
         lateinit var logs: LogsViewModel
         var about by mutableStateOf(false)
         var created = false
+        val frameThread = HandlerThread("navigation-frame-metrics").apply { start() }
+        val frames = java.util.Collections.synchronizedList(mutableListOf<List<Long>>())
+        val frameListener = Window.OnFrameMetricsAvailableListener { _, metrics, _ ->
+            frames.add(listOf(metrics.getMetric(FrameMetrics.INTENDED_VSYNC_TIMESTAMP), metrics.getMetric(FrameMetrics.TOTAL_DURATION), metrics.getMetric(FrameMetrics.LAYOUT_MEASURE_DURATION), metrics.getMetric(FrameMetrics.DRAW_DURATION)))
+        }
+        if (measureFrames) compose.activity.window.addOnFrameMetricsAvailableListener(frameListener, Handler(frameThread.looper))
+        val successfulCaptures = AtomicInteger()
+        var captureJob: Job? = null
+        var captureServer: com.bernaferrari.changedetection.browser.TestPageServer? = null
         try {
             runBlocking {
                 val before = image(false)
                 val after = image(true)
-                for (n in 1..3) {
+                val pageCount = arguments.getString("pages")?.toIntOrNull()?.coerceIn(1, 30) ?: 3
+                val versionCount = arguments.getString("versions")?.toIntOrNull()?.coerceIn(2, 100) ?: 2
+                for (n in 1..pageCount) {
                     val site = Site("Theatre $n", "https://fixture.invalid/$n", System.currentTimeMillis(), "", "page-$n", 0 to 0).copy(isRead = false, iconUrl = "data:image/png;base64,")
                     sites.saveSite(site, false, false)
-                    for ((id, time, bytes) in listOf(Triple("old-$n", System.currentTimeMillis() - 3_600_000, before), Triple("new-$n", System.currentTimeMillis() - 60_000, after))) {
+                    for (version in 1..versionCount) {
+                        val id = "version-$n-$version"
+                        val time = System.currentTimeMillis() - (versionCount - version + 1) * 60_000L
+                        val bytes = if (version % 2 == 0) after else before
                         files.writeBytes(id, bytes)
                         db.snapsDao().insertSnap(Snap(id, site.id, time, "image/png", "UTF-8", bytes.size))
                     }
@@ -207,14 +228,52 @@ class UiPolishJourneyTest {
             Thread.sleep(1_500)
             screenshot("home")
             val timings = mutableListOf<Long>()
-            repeat(3) {
+            if (arguments.getString("real_capture") == "true") {
+                captureServer = com.bernaferrari.changedetection.browser.TestPageServer(200, "<body><h1>Concurrent capture fixture</h1><div style='height:5000px;background:#ddd'>Saved page content</div></body>")
+                val url = requireNotNull(captureServer).url
+                captureJob = scope.scope.launch(Dispatchers.Main) {
+                    repeat(3) {
+                        val browser = AndroidScreenshotBrowserFactory(context).create()
+                        try {
+                            val result = browser.capture(Site("Capture", url, 0L, "capture", ColorGroup(0, 0), true, false), 0)
+                            check(result is ScreenshotCaptureOutcome.Success)
+                            successfulCaptures.incrementAndGet()
+                        } finally {
+                            browser.close()
+                        }
+                    }
+                }
+            }
+            repeat(if (measureFrames) 10 else 3) { index ->
                 val start = SystemClock.elapsedRealtime()
-                compose.onNode(hasText("Activity") and hasClickAction()).performClick()
+                var dispatchedAt = 0L
+                if (measureFrames) {
+                    compose.onNode(hasText("Activity") and hasClickAction()).performSemanticsAction(androidx.compose.ui.semantics.SemanticsActions.OnClick) { action ->
+                        dispatchedAt = System.nanoTime()
+                        Trace.beginAsyncSection("CD-navigation-to-idle", index)
+                        action()
+                    }
+                } else {
+                    compose.onNode(hasText("Activity") and hasClickAction()).performClick()
+                }
                 compose.waitUntil(5_000) { compose.onAllNodesWithTag("activity-list").fetchSemanticsNodes().isNotEmpty() }
                 timings += SystemClock.elapsedRealtime() - start
-                if (it == 0) screenshot("activity")
+                if (measureFrames) {
+                    val idleAt = System.nanoTime()
+                    Trace.endAsyncSection("CD-navigation-to-idle", index)
+                    Thread.sleep(30)
+                    val during = synchronized(frames) { frames.filter { it[0] >= dispatchedAt && it[0] <= idleAt } }
+                    val durations = during.map { it[1] / 1_000_000.0 }.sorted()
+                    val firstFrame = during.firstOrNull()?.let { (it[0] - dispatchedAt) / 1_000_000.0 }
+                    println("NAV_FRAME $phase index=$index callbackToIdleMs=${(idleAt - dispatchedAt) / 1_000_000.0} firstFrameMs=$firstFrame frames=${during.size} p95FrameMs=${durations.getOrNull((durations.size * 0.95).toInt().coerceAtMost(durations.lastIndex.coerceAtLeast(0)))} maxFrameMs=${durations.lastOrNull()} maxLayoutMs=${during.maxOfOrNull { it[2] / 1_000_000.0 }}")
+                }
+                if (index == 0) screenshot("activity")
                 compose.onNode(hasText("Home") and hasClickAction()).performClick()
                 compose.onNodeWithTag("home-list").assertIsDisplayed()
+            }
+            if (captureJob != null) {
+                runBlocking { captureJob.join() }
+                assertEquals(3, successfulCaptures.get())
             }
             println("UI REVIEW $phase Home→Activity milliseconds=$timings reads=${reads.get()} mainThreadFileReads=${mainReads.get()}")
             assertEquals("Snapshot I/O must stay off the main thread", 0, mainReads.get())
@@ -235,6 +294,20 @@ class UiPolishJourneyTest {
                 screenshot("pull-$it")
                 Thread.sleep(1_600)
             }
+            if ((arguments.getString("versions")?.toIntOrNull() ?: 2) >= 20) {
+                compose.onNode(hasText("Activity") and hasClickAction()).performClick()
+                repeat(3) {
+                    compose.onNodeWithTag("activity-list").performTouchInput { swipeUp() }
+                    Thread.sleep(150)
+                }
+                fun position() = compose.onNodeWithTag("activity-list").fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.VerticalScrollAxisRange].value()
+                val positionBefore = position()
+                assertTrue("Large history must exercise actual scrolling", positionBefore > 0f)
+                compose.onNode(hasText("Home") and hasClickAction()).performClick()
+                compose.onNode(hasText("Activity") and hasClickAction()).performClick()
+                assertEquals("Returning to Activity must retain its reading position", positionBefore, position(), 0.01f)
+                compose.onNode(hasText("Home") and hasClickAction()).performClick()
+            }
             val checksBefore = checks.get()
             compose.onNodeWithTag("home-list").performTouchInput {
                 down(topCenter + Offset(0f, 40f))
@@ -247,6 +320,10 @@ class UiPolishJourneyTest {
             compose.onNodeWithTag("about-list").performScrollToKey("note")
             screenshot("about")
         } finally {
+            if (measureFrames) compose.activity.window.removeOnFrameMetricsAvailableListener(frameListener)
+            frameThread.quitSafely()
+            captureJob?.cancel()
+            captureServer?.close()
             compose.runOnUiThread {
                 if (created) main.viewModelScope.cancel()
                 if (created) logs.viewModelScope.cancel()
