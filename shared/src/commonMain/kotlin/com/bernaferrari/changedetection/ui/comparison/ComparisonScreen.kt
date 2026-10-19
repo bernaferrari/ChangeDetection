@@ -318,7 +318,12 @@ fun ComparisonScreen(
                         val content1 = uiState.snapContent1
                         val content2 = uiState.snapContent2
                         when {
-                            uiState.isLoadingDiff -> LoadingIndicator(Modifier.align(Alignment.Center))
+                            uiState.isLoadingDiff -> {
+                                if (isImagePair && uiState.snapBytes1 != null && uiState.snapBytes2 != null) {
+                                    ImageComparisonContent(uiState.snapBytes2, uiState.snapBytes1, null, ComparisonMode.ImageSwipe, Modifier.fillMaxSize(), isPreparing = true)
+                                }
+                                androidx.compose.material3.LinearProgressIndicator(Modifier.align(Alignment.TopCenter).fillMaxWidth().testTag("comparison-progress"))
+                            }
 
                             isImagePair -> ImageComparisonContent(uiState.snapBytes2, uiState.snapBytes1, uiState.imageDiff, mode, Modifier.fillMaxSize(), onRetry = viewModel::retryComparison, cursor = regionCursor)
 

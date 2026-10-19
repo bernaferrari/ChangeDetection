@@ -47,6 +47,7 @@ import com.bernaferrari.changedetection.image.ChangedBounds
 import com.bernaferrari.changedetection.preview.ChangePreview
 import com.bernaferrari.changedetection.preview.ChangePreviewRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
+import com.bernaferrari.changedetection.shared.generated.resources.loading
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.label_first_version
 import com.bernaferrari.changedetection.shared.generated.resources.label_percent
@@ -86,9 +87,13 @@ import kotlinx.coroutines.CancellationException
 @Composable
 fun rememberLatestPreview(siteId: String, latestSnapId: String?): ChangePreview? {
     val repository = remember { optional<ChangePreviewRepository>() }
-    val preview by produceState<ChangePreview?>(null, siteId, latestSnapId) {
-        value = null
-        value = loadPreview { repository?.latest(siteId) }
+    val preview by androidx.compose.runtime.key(siteId) {
+        produceState<ChangePreview?>(repository?.cachedVersion(latestSnapId), latestSnapId) {
+            // Keep the last readable preview while this page's next version is prepared.
+            value = loadPreview { repository?.latest(siteId) { before, after ->
+                value = ChangePreview.Crop(before.snapId, after.snapId, null, 0.0, false, isPreparing = true)
+            } }
+        }
     }
     return preview
 }
@@ -96,9 +101,10 @@ fun rememberLatestPreview(siteId: String, latestSnapId: String?): ChangePreview?
 @Composable
 fun rememberVersionPreview(snap: com.bernaferrari.changedetection.repo.Snap): ChangePreview? {
     val repository = remember { optional<ChangePreviewRepository>() }
-    val preview by produceState<ChangePreview?>(null, snap.snapId) {
-        value = null
-        value = loadPreview { repository?.forVersion(snap) }
+    val preview by androidx.compose.runtime.key(snap.snapId) {
+        produceState<ChangePreview?>(repository?.cachedVersion(snap.snapId), snap.snapId) {
+            value = loadPreview { repository?.forVersion(snap) }
+        }
     }
     return preview
 }
@@ -135,7 +141,7 @@ private suspend fun loadPreview(load: suspend () -> ChangePreview?): ChangePrevi
 /** One short line describing a change, for lists of versions and activity. */
 @Composable
 fun previewLabel(preview: ChangePreview?): String = when (preview) {
-    null -> " "
+    null -> stringResource(com.bernaferrari.changedetection.shared.generated.resources.Res.string.loading)
     is ChangePreview.Words -> if (preview.numbersOnly) stringResource(Res.string.preview_numbers_only) else preview.section ?: stringResource(Res.string.label_text_changed)
     is ChangePreview.Crop -> cropSummary(preview)
     is ChangePreview.Large -> largeSummary(preview)
@@ -175,15 +181,21 @@ fun ChangePreviewBlock(preview: ChangePreview?, modifier: Modifier = Modifier, c
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 val label = if (current.numbersOnly) stringResource(Res.string.preview_numbers_only) else current.section
-                if (label != null) {
+                if (!label.isNullOrBlank()) {
                     Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 DiffText(editText(current.segments, MaterialTheme.marks, current.leadingEllipsis, current.trailingEllipsis), maxLines = 4)
             }
 
-            is ChangePreview.Crop -> {
+            is ChangePreview.Crop -> Box {
                 val lead = current.lead
-                if (lead != null) RegionPair(current.beforeSnapId, current.afterSnapId, lead, cropHeight) else CropPair(current.beforeSnapId, current.afterSnapId, current.bounds, cropHeight)
+                val beforeBounds = lead?.let { ChangedBounds(it.left, it.beforeTop, it.right, it.beforeBottom) } ?: current.bounds
+                val afterBounds = lead?.let { ChangedBounds(it.left, it.afterTop, it.right, it.afterBottom) } ?: current.bounds
+                Row(Modifier.fillMaxWidth().height(cropHeight), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    CropTile(current.beforeSnapId, beforeBounds, stringResource(Res.string.preview_before), false, Modifier.weight(1f))
+                    CropTile(current.afterSnapId, afterBounds, stringResource(Res.string.preview_after), true, Modifier.weight(1f))
+                }
+                if (current.isPreparing) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
             }
 
             is ChangePreview.Large -> if (current.reordered) {
@@ -255,6 +267,7 @@ private fun QuietFact(icon: androidx.compose.ui.graphics.vector.ImageVector, tit
 /** "3 areas changed · 1 new" for screenshot changes; falls back to the share of pixels. */
 @Composable
 fun cropSummary(preview: ChangePreview.Crop): String {
+    if (preview.isPreparing) return stringResource(Res.string.loading)
     if (preview.regions.isEmpty()) {
         return if (preview.sizeChanged) stringResource(Res.string.preview_size_changed) else stringResource(Res.string.label_percent, com.bernaferrari.changedetection.ui.home.formatPercent(preview.percent))
     }
@@ -351,20 +364,28 @@ private fun BeforeAfterPill(showBefore: Boolean, onSelect: (Boolean) -> Unit, mo
 @Composable
 private fun ChangeSpot(snapId: String, bounds: ChangedBounds, outline: androidx.compose.ui.graphics.Color, modifier: Modifier = Modifier) {
     val snaps = remember { optional<SnapsRepository>() }
-    val bytes by produceState<ByteArray?>(null, snapId) {
+    val loaded by produceState<Pair<ByteArray?, Boolean>>(null to false, snapId) {
         value = try {
-            snaps?.getSnapContent(snapId)
+            snaps?.getSnapContent(snapId).let { it to true }
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (_: Exception) {
-            null
+            null to true
         }
     }
-    val aspect by produceState(0f, bytes) { value = bytes?.let { com.bernaferrari.changedetection.ui.comparison.imageAspect(it) } ?: 0f }
+    val bytes = loaded.first
+    val aspect by produceState(-1f, bytes) {
+        value = -1f
+        value = bytes?.let { com.bernaferrari.changedetection.ui.comparison.imageAspect(it) } ?: -1f
+    }
 
     BoxWithConstraints(modifier.clipToBounds()) {
-        val data = bytes ?: return@BoxWithConstraints
-        if (aspect <= 0f) return@BoxWithConstraints
+        if (bytes == null || aspect <= 0f) {
+            if (loaded.second && (bytes == null || aspect == 0f)) Text(stringResource(Res.string.preview_unavailable), Modifier.align(Alignment.Center).padding(12.dp), style = MaterialTheme.typography.bodySmall)
+            else androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
+            return@BoxWithConstraints
+        }
+        val data = requireNotNull(bytes)
         val density = androidx.compose.ui.platform.LocalDensity.current
         val boxW = constraints.maxWidth.toFloat()
         val boxH = constraints.maxHeight.toFloat()
@@ -382,9 +403,13 @@ private fun ChangeSpot(snapId: String, bounds: ChangedBounds, outline: androidx.
         // Decode just the visible window of the capture (cached), not the whole page.
         val windowTop = (-offsetY / imageH).coerceIn(0f, 1f)
         val windowBottom = ((-offsetY + boxH) / imageH).coerceIn(windowTop, 1f)
-        val crop by produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, data, l, r, windowTop, windowBottom, boxW) {
-            value = com.bernaferrari.changedetection.image.CropCache.get(data, l, windowTop, r, windowBottom, boxW.roundToInt())
+        val cropState by produceState<Pair<androidx.compose.ui.graphics.ImageBitmap?, Boolean>>(null to false, data, l, r, windowTop, windowBottom, boxW) {
+            value = value.first to false
+            value = com.bernaferrari.changedetection.image.CropCache.get(data, l, windowTop, r, windowBottom, boxW.roundToInt()) to true
         }
+        val crop = cropState.first
+        if (!cropState.second) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
+        else if (crop == null) Text(stringResource(Res.string.preview_unavailable), Modifier.align(Alignment.Center).padding(12.dp), style = MaterialTheme.typography.bodySmall)
         crop?.let {
             androidx.compose.foundation.Image(
                 it,
@@ -425,17 +450,6 @@ fun CropPair(beforeSnapId: String, afterSnapId: String, bounds: ChangedBounds?, 
 
 @Composable
 fun CropTile(snapId: String, bounds: ChangedBounds?, label: String, highlighted: Boolean, modifier: Modifier = Modifier) {
-    val snaps = remember { optional<SnapsRepository>() }
-    val bytes by produceState<ByteArray?>(null, snapId) {
-        value = null
-        value = try {
-            snaps?.getSnapContent(snapId)
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (_: Exception) {
-            null
-        }
-    }
     val shape = RoundedCornerShape(16.dp)
     val marks = MaterialTheme.marks
     Box(
@@ -445,7 +459,7 @@ fun CropTile(snapId: String, bounds: ChangedBounds?, label: String, highlighted:
             .background(marks.page)
             .border(if (highlighted) 2.5.dp else 1.dp, if (highlighted) marks.highlightEdge else MaterialTheme.colorScheme.outlineVariant, shape),
     ) {
-        bytes?.let { data -> CroppedImage(data, bounds, Modifier.fillMaxSize()) }
+        ChangeSpot(snapId, bounds ?: ChangedBounds(0f, 0f, 1f, 0.12f), if (highlighted) marks.highlightEdge else MaterialTheme.colorScheme.outlineVariant, Modifier.fillMaxSize())
         Box(
             Modifier.align(Alignment.BottomEnd).padding(6.dp).clip(RoundedCornerShape(7.dp))
                 .background(if (highlighted) marks.highlight else MaterialTheme.colorScheme.surfaceContainerHigh)

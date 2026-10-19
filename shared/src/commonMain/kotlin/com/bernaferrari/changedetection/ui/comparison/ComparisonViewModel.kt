@@ -350,6 +350,12 @@ class ComparisonViewModel(
                         first to second
                     }
 
+                // Publish the requested pair before its CPU-heavy visual comparison. Generation
+                // checks still prevent a cancelled/older read from replacing a newer selection.
+                _uiState.update { current ->
+                    if (generation != contentGeneration || current.selectedPairIndex != pairIndex) current
+                    else current.copy(snapBytes1 = firstBytes, snapBytes2 = secondBytes)
+                }
                 val (content1, content2, imageDiff) =
                     withContext(Dispatchers.Default) {
                         val firstContent =

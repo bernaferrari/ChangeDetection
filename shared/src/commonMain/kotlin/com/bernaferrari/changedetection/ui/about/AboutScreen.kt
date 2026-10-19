@@ -239,7 +239,7 @@ private fun ActionCard(
 /** The author's note, set like a quote. */
 @Composable
 private fun Note(modifier: Modifier = Modifier) {
-    Surface(shape = RoundedCornerShape(12.dp, 12.dp, 32.dp, 32.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = modifier.fillMaxWidth()) {
+    Surface(shape = RoundedCornerShape(32.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = modifier.fillMaxWidth()) {
         Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Icon(Icons.Default.FormatQuote, null, Modifier.size(36.dp), tint = MaterialTheme.colorScheme.primary)
             Text(stringResource(Res.string.about_story), style = MaterialTheme.typography.bodyLarge)

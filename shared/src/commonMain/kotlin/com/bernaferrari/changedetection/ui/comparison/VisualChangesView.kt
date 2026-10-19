@@ -295,7 +295,7 @@ private fun CropLabelled(label: String?, bytes: ByteArray, left: Float, right: F
 }
 
 /** Width / height of an encoded image. PNG sizes come straight from the header; other formats are decoded small. */
-internal suspend fun imageAspect(bytes: ByteArray): Float {
-    com.bernaferrari.changedetection.image.pngSize(bytes)?.let { (w, h) -> return w.toFloat() / h }
-    return com.bernaferrari.changedetection.image.decodeArgbAtWidth(bytes, 64)?.let { (_, w, h) -> w.toFloat() / h } ?: 0f
+internal suspend fun imageAspect(bytes: ByteArray): Float = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+    com.bernaferrari.changedetection.image.pngSize(bytes)?.let { (w, h) -> return@withContext w.toFloat() / h }
+    com.bernaferrari.changedetection.image.decodeArgbAtWidth(bytes, 64)?.let { (_, w, h) -> w.toFloat() / h } ?: 0f
 }

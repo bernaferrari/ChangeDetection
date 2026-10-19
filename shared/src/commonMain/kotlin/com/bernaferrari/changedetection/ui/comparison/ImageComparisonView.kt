@@ -129,6 +129,7 @@ internal fun ImageComparisonContent(
     modifier: Modifier = Modifier,
     onRetry: (() -> Unit)? = null,
     cursor: RegionCursor = remember { RegionCursor() },
+    isPreparing: Boolean = false,
 ) {
     Box(modifier = modifier) {
         val singleImage = when (mode) {
@@ -151,7 +152,16 @@ internal fun ImageComparisonContent(
             return@Box
         }
 
-        if (mode in listOf(ComparisonMode.ImageChanges, ComparisonMode.ImageDiff) && imageDiff?.error != null) {
+        if (isPreparing && imageDiff == null && mode != ComparisonMode.ImageBefore && mode != ComparisonMode.ImageAfter) {
+            Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(beforeBytes to stringResource(Res.string.comparison_mode_before), afterBytes to stringResource(Res.string.comparison_mode_after)).forEach { (bytes, label) ->
+                    ImageViewport(bytes, label, modifier = Modifier.weight(1f).fillMaxHeight())
+                }
+            }
+            return@Box
+        }
+
+        if (mode in listOf(ComparisonMode.ImageChanges, ComparisonMode.ImageDiff) && (imageDiff == null || imageDiff.error != null)) {
             ImageComparisonNotice(
                 icon = Icons.Default.Warning,
                 title = stringResource(Res.string.image_diff_status_unavailable),

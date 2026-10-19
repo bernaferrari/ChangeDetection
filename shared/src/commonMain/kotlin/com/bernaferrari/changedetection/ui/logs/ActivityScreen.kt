@@ -308,8 +308,7 @@ private fun DayHeader(date: String, next: LogUiModel?) {
 }
 
 @Composable
-private fun ActivityRow(shape: androidx.compose.ui.graphics.Shape, snap: Snap, site: Site?, onOpen: () -> Unit, onDelete: () -> Unit, canDelete: Boolean) {
-    val preview = rememberVersionPreview(snap)
+internal fun ActivityRow(shape: androidx.compose.ui.graphics.Shape, snap: Snap, site: Site?, onOpen: () -> Unit, onDelete: () -> Unit, canDelete: Boolean, preview: ChangePreview? = rememberVersionPreview(snap)) {
     var menu by remember { mutableStateOf(false) }
     val name = site?.name() ?: stringResource(Res.string.activity_deleted_page)
     val first = preview == ChangePreview.FirstVersion
@@ -318,17 +317,19 @@ private fun ActivityRow(shape: androidx.compose.ui.graphics.Shape, snap: Snap, s
         Row(
             Modifier.fillMaxWidth().clip(shape).background(com.bernaferrari.changedetection.ui.kit.tileColor)
                 .combinedClickable(onClick = onOpen, onLongClick = { menu = true }, onLongClickLabel = deleteLabel, role = Role.Button)
-                .heightIn(min = 72.dp).padding(horizontal = 16.dp, vertical = 12.dp),
+                .heightIn(min = 72.dp).testTag("activity-row-${snap.snapId}").padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             PageAvatar(name, snap.siteId, size = 40.dp, icon = site?.avatarIcon(), iconShape = site?.iconShape ?: com.bernaferrari.changedetection.repo.PageIconShape.AUTOMATIC, colors = site?.colors ?: (0 to 0))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                val subtitle = if (first) stringResource(Res.string.activity_started_short) else previewLabel(preview)
+                if (subtitle.isNotBlank()) Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (preview == null) LoadingIndicator(Modifier.size(16.dp))
                     if (preview is ChangePreview.Crop) Icon(Icons.Outlined.Image, null, Modifier.size(15.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(
-                        if (first) stringResource(Res.string.activity_started_short) else previewLabel(preview),
+                        subtitle,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,

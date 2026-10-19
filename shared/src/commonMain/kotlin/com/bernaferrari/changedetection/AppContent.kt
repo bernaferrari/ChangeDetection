@@ -122,12 +122,6 @@ fun ChangeDetectionApp(
     startDestination: NavKey = MainDestination,
 ) {
     val native = com.bernaferrari.changedetection.ui.navigation.LocalNativeNavigation.current
-    // Page icons: fetched once, then served from Coil's memory and disk caches.
-    coil3.compose.setSingletonImageLoaderFactory { context ->
-        coil3.ImageLoader.Builder(context)
-            .components { add(coil3.network.ktor3.KtorNetworkFetcherFactory()) }
-            .build()
-    }
     val backStack = rememberNavBackStack(appNavSavedStateConfiguration, startDestination)
     // One MainViewModel for the whole app, even when every screen is its own view controller (iOS).
     val mainViewModel: MainViewModel = koinViewModel(
