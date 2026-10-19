@@ -7,3 +7,5 @@ internal expect fun localizedTime(timestamp: Long, includeSeconds: Boolean): Str
 internal expect fun localizedNumber(value: Double, maxFractionDigits: Int = 1, minFractionDigits: Int = 0): String
 
 internal expect fun localizedPercent(value: Double, maxFractionDigits: Int = 1, minFractionDigits: Int = 0): String
+
+internal expect fun localizedShortWeekday(timestamp: Long): String

@@ -14,3 +14,6 @@ internal actual fun localizedNumber(value: Double, maxFractionDigits: Int, minFr
 
 private fun formatPercentJs(value: Double, maxDigits: Int, minDigits: Int): JsString = js("new Intl.NumberFormat(navigator.language, {style: 'percent', maximumFractionDigits: maxDigits, minimumFractionDigits: minDigits}).format(value / 100)")
 internal actual fun localizedPercent(value: Double, maxFractionDigits: Int, minFractionDigits: Int): String = formatPercentJs(value, maxFractionDigits, minFractionDigits).toString()
+
+internal actual fun localizedShortWeekday(timestamp: Long): String = formatShortWeekdayJs(timestamp.toDouble()).toString()
+private fun formatShortWeekdayJs(timestamp: Double): JsString = js("new Intl.DateTimeFormat(navigator.language, {weekday: 'short'}).format(new Date(timestamp))")

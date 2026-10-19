@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 
 package com.bernaferrari.changedetection.ui.comparison
 
@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -104,6 +106,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.bernaferrari.changedetection.util.formatTimestamp
 import com.bernaferrari.changedetection.util.formatTime
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
@@ -307,11 +310,7 @@ fun ComparisonScreen(
                         )
                     }
                     Column(Modifier.widthIn(max = 720.dp).align(Alignment.CenterHorizontally)) {
-                        // The compared dates take the room; the view modes sit beside them as a compact icon group.
-                        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            VersionNavigator(uiState.snaps, pairIndex, onShowAll = { showVersions = true }, modifier = Modifier.weight(1f))
-                            if (modes.size > 1) ModeSwitcher(modes, mode) { mode = it }
-                        }
+                        ComparisonHeader(uiState.snaps, pairIndex, modes, mode, { showVersions = true }) { mode = it }
                     }
                     // One readable column on tablets, aligned with the version navigator and modes above.
                     Box(Modifier.widthIn(max = 720.dp).fillMaxWidth().weight(1f).align(Alignment.CenterHorizontally).testTag("comparison-reader"), contentAlignment = Alignment.TopCenter) {
@@ -446,7 +445,15 @@ private fun NewVersionAction(onLatest: () -> Unit) {
  * every version; timestamps wrap instead of losing their meaning.
  */
 @Composable
-private fun VersionNavigator(snaps: List<Snap>, selectedIndex: Int, onShowAll: () -> Unit, modifier: Modifier = Modifier) {
+internal fun ComparisonHeader(snaps: List<Snap>, pairIndex: Int, modes: List<ComparisonMode>, mode: ComparisonMode, onVersions: () -> Unit, onMode: (ComparisonMode) -> Unit) {
+    androidx.compose.foundation.layout.FlowRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        VersionNavigator(snaps, pairIndex, onShowAll = onVersions, modifier = Modifier.width(IntrinsicSize.Max))
+        if (modes.size > 1) ModeSwitcher(modes, mode, onMode)
+    }
+}
+
+@Composable
+internal fun VersionNavigator(snaps: List<Snap>, selectedIndex: Int, onShowAll: () -> Unit, modifier: Modifier = Modifier) {
     val newer = snaps.getOrNull(selectedIndex) ?: return
     val older = snaps.getOrNull(selectedIndex + 1)
     Surface(
@@ -454,13 +461,11 @@ private fun VersionNavigator(snaps: List<Snap>, selectedIndex: Int, onShowAll: (
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         modifier = modifier.testTag("version-navigator"),
     ) {
-        // One line, as tall as the mode icons: "Today, 16:48 · vs 16:12". The older side drops its day when it is
-        // the same day, so the line stays short.
-        val sameDay = older != null && newer.timestamp.localDate() == older.timestamp.localDate()
-        val olderLabel = older?.let { if (sameDay) formatTime(it.timestamp) else friendlyDateTime(it.timestamp) }
-        // Today needs no word: "16:48 · since 16:12".
-        val today = newer.timestamp.localDate() == com.bernaferrari.changedetection.util.getCurrentTimeMillis().localDate()
-        val newerLabel = if (today) formatTime(newer.timestamp) else friendlyDateTime(newer.timestamp)
+        val range = older?.let { comparisonRange(it.timestamp, newer.timestamp) }
+        val label = range?.label ?: friendlyDateTime(newer.timestamp)
+        val beforeLabel = stringResource(Res.string.preview_before)
+        val afterLabel = stringResource(Res.string.preview_after)
+        val description = range?.let { "$beforeLabel: ${it.before}. $afterLabel: ${it.after}" } ?: formatTimestamp(newer.timestamp)
         Row(
             Modifier.heightIn(min = 52.dp).clip(MaterialTheme.shapes.extraLarge)
                 .clickable(onClickLabel = stringResource(Res.string.reader_versions_title), onClick = onShowAll)
@@ -468,13 +473,9 @@ private fun VersionNavigator(snaps: List<Snap>, selectedIndex: Int, onShowAll: (
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                buildAnnotatedString {
-                    withStyle(SpanStyle(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)) { append(newerLabel) }
-                    if (olderLabel != null) {
-                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) { append(" · " + stringResource(Res.string.version_compared_with, olderLabel)) }
-                    }
-                },
-                Modifier.weight(1f),
+                label,
+                Modifier.weight(1f).clearAndSetSemantics { contentDescription = description },
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
             )
             Icon(Icons.Rounded.KeyboardArrowDown, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -485,8 +486,8 @@ private fun VersionNavigator(snaps: List<Snap>, selectedIndex: Int, onShowAll: (
 /** Icon-only connected modes; each keeps its name for screen readers. */
 @Composable
 private fun ModeSwitcher(modes: List<ComparisonMode>, selected: ComparisonMode, onSelect: (ComparisonMode) -> Unit) {
-    // Matches the version selector's height, so the row reads as one bar.
-    Row(Modifier.fillMaxHeight().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
+    // Keep icon controls bounded when the wrapping header receives the screen height.
+    Row(Modifier.height(52.dp).selectableGroup(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)) {
         modes.forEachIndexed { index, mode ->
             val label = modeLabel(mode)
             ToggleButton(

@@ -32,3 +32,8 @@ internal actual fun localizedPercent(value: Double, maxFractionDigits: Int, minF
     maximumFractionDigits = maxFractionDigits.toULong()
     minimumFractionDigits = minFractionDigits.toULong()
 }.stringFromNumber(NSNumber(value / 100)) ?: "$value%"
+
+internal actual fun localizedShortWeekday(timestamp: Long): String = NSDateFormatter().apply {
+    locale = displayLocale()
+    setLocalizedDateFormatFromTemplate("EEE")
+}.stringFromDate(NSDate.dateWithTimeIntervalSince1970(timestamp / 1000.0))
