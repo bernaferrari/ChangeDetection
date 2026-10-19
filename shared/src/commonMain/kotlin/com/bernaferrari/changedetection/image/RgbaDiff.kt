@@ -20,7 +20,8 @@ internal data class RgbaDifference(
 
 internal object RgbaDiff {
     /** Same normalized RGBA distance as the previous adapter, without retaining browser machinery. */
-    fun compare(expected: RgbaImage, actual: RgbaImage, threshold: Double, includeDiffImage: Boolean = true): RgbaDifference {
+    fun compare(expected: RgbaImage, actual: RgbaImage, threshold: Double, includeDiffImage: Boolean = true, checkCancelled: () -> Unit = {}): RgbaDifference {
+        checkCancelled()
         val pixelsDiffer = PixelDifference(threshold)
         if (expected.width != actual.width || expected.height != actual.height) return RgbaDifference(false, 100.0, 0, 0, null)
         val total = expected.width.toLong() * expected.height
@@ -28,6 +29,7 @@ internal object RgbaDiff {
         var differences = 0L
         val bounds = ChangedBoundsTracker(expected.width)
         for (index in expected.pixels.indices step 4) {
+            if (index % 16_384 == 0) checkCancelled()
             val before = expected.pixels.argbAt(index)
             val after = actual.pixels.argbAt(index)
             val changed = pixelsDiffer.changed(before, after)

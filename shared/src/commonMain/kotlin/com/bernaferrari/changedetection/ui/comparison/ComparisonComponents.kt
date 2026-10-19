@@ -129,8 +129,8 @@ fun calculateChangeStats(oldLines: List<String>, newLines: List<String>): Change
     )
 }
 
-fun calculateDiffRows(oldLines: List<String>, newLines: List<String>): List<DiffRowModel> {
-    val patch = com.bernaferrari.difflib.DiffUtils.diff(oldLines, newLines)
+fun calculateDiffRows(oldLines: List<String>, newLines: List<String>, checkCancelled: () -> Unit = {}): List<DiffRowModel> {
+    val patch = com.bernaferrari.difflib.DiffUtils.diff(oldLines, newLines, checkCancelled)
     if (patch.deltas.isEmpty()) {
         return oldLines.mapIndexed { index, line ->
             DiffRowModel(index + 1, line, DiffLineType.UNCHANGED)

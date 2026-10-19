@@ -1,5 +1,7 @@
 package com.bernaferrari.changedetection.image
 
+import kotlinx.coroutines.ensureActive
+
 /** Suppress minor antialiasing jitter while retaining meaningful low-contrast changes. */
 const val DEFAULT_IMAGE_DIFF_THRESHOLD = 0.04
 
@@ -108,11 +110,10 @@ internal expect object PlatformImageDiff {
 internal expect suspend fun decodeArgbAtWidth(bytes: ByteArray, targetWidth: Int): Triple<IntArray, Int, Int>?
 
 /** Row-aligned areas of change between two captures; works even when the page height changed. */
-internal suspend fun computeVisualChange(beforeBytes: ByteArray, afterBytes: ByteArray, threshold: Double = DEFAULT_IMAGE_DIFF_THRESHOLD): VisualChange? {
-    val before = decodeArgbAtWidth(beforeBytes, REGION_WORKING_WIDTH) ?: return null
-    val after = decodeArgbAtWidth(afterBytes, REGION_WORKING_WIDTH) ?: return null
-    if (before.second != after.second) return null
-    return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-        VisualRegions.compare(before.first, before.third, after.first, after.third, before.second, threshold)
-    }
+internal suspend fun computeVisualChange(beforeBytes: ByteArray, afterBytes: ByteArray, threshold: Double = DEFAULT_IMAGE_DIFF_THRESHOLD): VisualChange? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+    val context = kotlinx.coroutines.currentCoroutineContext()
+    val before = decodeArgbAtWidth(beforeBytes, REGION_WORKING_WIDTH) ?: return@withContext null
+    val after = decodeArgbAtWidth(afterBytes, REGION_WORKING_WIDTH) ?: return@withContext null
+    if (before.second != after.second) return@withContext null
+    VisualRegions.compare(before.first, before.third, after.first, after.third, before.second, threshold) { context.ensureActive() }
 }

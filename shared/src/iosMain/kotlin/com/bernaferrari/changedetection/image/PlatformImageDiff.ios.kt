@@ -1,6 +1,8 @@
 package com.bernaferrari.changedetection.image
 
 import com.bernaferrari.changedetection.detection.PixelDifference
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -14,6 +16,8 @@ internal actual object PlatformImageDiff {
         threshold: Double,
         includeDiffImage: Boolean,
     ): SnapshotImageDiff = withContext(Dispatchers.Default) {
+        val context = currentCoroutineContext()
+        context.ensureActive()
         val before = decodeArgbAtWidth(beforeBytes, STATS_WIDTH)
         val after = decodeArgbAtWidth(afterBytes, STATS_WIDTH)
         if (before == null || after == null) {
@@ -41,6 +45,7 @@ internal actual object PlatformImageDiff {
         val bounds = ChangedBoundsTracker(width)
         var different = 0L
         for (index in beforePixels.indices) {
+            if (index % 4096 == 0) context.ensureActive()
             if (pixels.changed(beforePixels[index], afterPixels[index])) {
                 different++
                 bounds.add(index)

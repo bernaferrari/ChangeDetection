@@ -68,16 +68,17 @@ internal object VisualRegions {
     private const val UP = 1
     private const val LEFT = 2
 
-    fun compare(before: IntArray, beforeHeight: Int, after: IntArray, afterHeight: Int, width: Int, threshold: Double = DEFAULT_IMAGE_DIFF_THRESHOLD): VisualChange? {
+    fun compare(before: IntArray, beforeHeight: Int, after: IntArray, afterHeight: Int, width: Int, threshold: Double = DEFAULT_IMAGE_DIFF_THRESHOLD, checkCancelled: () -> Unit = {}): VisualChange? {
+        checkCancelled()
         if (width <= 0 || beforeHeight <= 0 || afterHeight <= 0) return null
         if (before.size < width * beforeHeight || after.size < width * afterHeight) return null
         val pixels = PixelDifference(threshold)
         val raw = mutableListOf<VisualRegion>()
         var changedRows = 0
-        val alignment = align(before, beforeHeight, after, afterHeight, width)
+        val alignment = align(before, beforeHeight, after, afterHeight, width, checkCancelled)
         alignment.runs.forEach { run ->
             // Rows paired by the alignment: look for real edits inside them, band by band.
-            changedBands(before, beforeHeight, after, afterHeight, width, run, pixels).forEach { band ->
+            changedBands(before, beforeHeight, after, afterHeight, width, run, pixels, checkCancelled).forEach { band ->
                 raw += band
                 changedRows += ((band.afterBottom - band.afterTop) * afterHeight).toInt()
             }
@@ -107,8 +108,14 @@ internal object VisualRegions {
                 raw += VisualRegion(VisualRegion.Kind.Removed, 0f, 1f, gap.sourceStart.toFloat() / beforeHeight, (gap.sourceStart + gap.sourceCount).toFloat() / beforeHeight, anchor, anchor)
             }
         }
-        val beforeBlank = BooleanArray(beforeHeight) { isBlankRow(before, it, width) }
-        val afterBlank = BooleanArray(afterHeight) { isBlankRow(after, it, width) }
+        val beforeBlank = BooleanArray(beforeHeight) {
+            checkCancelled()
+            isBlankRow(before, it, width)
+        }
+        val afterBlank = BooleanArray(afterHeight) {
+            checkCancelled()
+            isBlankRow(after, it, width)
+        }
         val merged = merge(raw, MERGE_GAP_ROWS.toFloat() / afterHeight, MERGE_GAP_ROWS.toFloat() / beforeHeight)
             .mapNotNull { trimBlank(it, beforeBlank, afterBlank) }
             .map { growToBlank(it, beforeBlank, afterBlank) }
@@ -137,9 +144,9 @@ internal object VisualRegions {
      * paired row actually changed is decided afterwards, pixel by pixel ([changedBands]), so this tolerance
      * never hides a small edit such as a changed digit.
      */
-    private fun align(before: IntArray, beforeHeight: Int, after: IntArray, afterHeight: Int, width: Int): Alignment {
-        val pb = profiles(before, beforeHeight, width)
-        val pa = profiles(after, afterHeight, width)
+    private fun align(before: IntArray, beforeHeight: Int, after: IntArray, afterHeight: Int, width: Int, checkCancelled: () -> Unit): Alignment {
+        val pb = profiles(before, beforeHeight, width, checkCancelled)
+        val pa = profiles(after, afterHeight, width, checkCancelled)
         fun similar(i: Int, j: Int): Boolean {
             val bi = i * BANDS
             val aj = j * BANDS
@@ -156,12 +163,18 @@ internal object VisualRegions {
         val pairs = ArrayList<Long>()
         if (n > 0 && m > 0) {
             if (n.toLong() * m <= MAX_ALIGN_CELLS) {
-                lcs(n, m) { i, j -> similar(prefix + i, prefix + j) }.forEach { pairs += it }
+                lcs(n, m, checkCancelled) { i, j -> similar(prefix + i, prefix + j) }.forEach { pairs += it }
             } else {
                 // Too large to search tolerantly: fall back to exact row identity.
-                val beforeRows = List(n) { rowFingerprint(before, prefix + it, width) }
-                val afterRows = List(m) { rowFingerprint(after, prefix + it, width) }
-                com.bernaferrari.difflib.DiffUtils.diff(beforeRows, afterRows).let { patch ->
+                val beforeRows = List(n) {
+                    checkCancelled()
+                    rowFingerprint(before, prefix + it, width)
+                }
+                val afterRows = List(m) {
+                    checkCancelled()
+                    rowFingerprint(after, prefix + it, width)
+                }
+                com.bernaferrari.difflib.DiffUtils.diff(beforeRows, afterRows, checkCancelled).let { patch ->
                     var i = 0
                     var j = 0
                     patch.deltas.sortedBy { it.source.position }.forEach { delta ->
@@ -209,11 +222,12 @@ internal object VisualRegions {
     private fun pack(i: Int, j: Int): Long = (i.toLong() shl 32) or j.toLong()
 
     /** Longest common subsequence under [same]; returns the matched (i, j) pairs in order. Two bits per cell. */
-    private inline fun lcs(n: Int, m: Int, same: (Int, Int) -> Boolean): List<Long> {
+    private inline fun lcs(n: Int, m: Int, checkCancelled: () -> Unit, same: (Int, Int) -> Boolean): List<Long> {
         val directions = ByteArray(((n.toLong() * m + 3) / 4).toInt())
         var previous = IntArray(m + 1)
         var current = IntArray(m + 1)
         for (i in 0 until n) {
+            checkCancelled()
             current[0] = 0
             for (j in 0 until m) {
                 val direction: Int
@@ -257,9 +271,10 @@ internal object VisualRegions {
     }
 
     /** Per row: average luminance of [BANDS] column bands, smoothed over three rows. */
-    private fun profiles(pixels: IntArray, height: Int, width: Int): IntArray {
+    private fun profiles(pixels: IntArray, height: Int, width: Int, checkCancelled: () -> Unit): IntArray {
         val raw = IntArray(height * BANDS)
         for (y in 0 until height) {
+            if (y % 32 == 0) checkCancelled()
             for (k in 0 until BANDS) {
                 val from = k * width / BANDS
                 val to = maxOf(from + 1, (k + 1) * width / BANDS)
@@ -284,7 +299,7 @@ internal object VisualRegions {
      * (8 rows × 16 columns) holds enough strongly different pixels: a changed digit, word or picture always
      * does, while re-rasterised text leaves only a few scattered pixels per window.
      */
-    private fun changedBands(before: IntArray, beforeHeight: Int, after: IntArray, afterHeight: Int, width: Int, run: Run, pixels: PixelDifference): List<VisualRegion> {
+    private fun changedBands(before: IntArray, beforeHeight: Int, after: IntArray, afterHeight: Int, width: Int, run: Run, pixels: PixelDifference, checkCancelled: () -> Unit): List<VisualRegion> {
         val blockCount = width / BLOCK + 1
         val out = mutableListOf<VisualRegion>()
         var bandStart = -1
@@ -321,6 +336,7 @@ internal object VisualRegions {
             rowBlocks.clear()
         }
         for (r in 0 until run.length) {
+            if (r % 32 == 0) checkCancelled()
             val sourceRow = run.sourceStart + r
             val targetRow = run.targetStart + r
             val b = sourceRow * width

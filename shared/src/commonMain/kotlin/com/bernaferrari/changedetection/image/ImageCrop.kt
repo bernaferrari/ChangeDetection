@@ -1,6 +1,7 @@
 package com.bernaferrari.changedetection.image
 
 import androidx.compose.ui.graphics.ImageBitmap
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -21,40 +22,54 @@ internal fun pngSize(bytes: ByteArray): Pair<Int, Int>? {
  */
 internal expect suspend fun decodeCropPlatform(bytes: ByteArray, left: Float, top: Float, right: Float, bottom: Float, targetWidth: Int): ImageBitmap?
 
-/** Small cache: the same crops come back as you scroll, flip or switch modes. */
+/** Same rectangle consumers share a cancellable build; only completed results enter the LRU. */
 internal object CropCache {
+    private val cache = CropBitmapCache()
+    suspend fun get(bytes: ByteArray, left: Float, top: Float, right: Float, bottom: Float, targetWidth: Int): ImageBitmap? = cache.get(bytes, left, top, right, bottom, targetWidth)
+}
+
+internal class CropBitmapCache(
+    private val maxPixels: Long = 8_000_000,
+    private val decode: suspend (ByteArray, Float, Float, Float, Float, Int) -> ImageBitmap? = ::decodeCropPlatform,
+) {
     private val lock = Mutex()
+    private val builds = com.bernaferrari.changedetection.sync.PageCheckLocks()
     private val entries = LinkedHashMap<String, ImageBitmap>()
-    private const val MAX = 48
+    private var pixels = 0L
 
-    suspend fun get(bytes: ByteArray, left: Float, top: Float, right: Float, bottom: Float, targetWidth: Int): ImageBitmap? {
-        // Width is bucketed so tiny layout differences reuse the same crop.
-        val width = ((targetWidth + 63) / 64) * 64
-        val key = "${bytes.size}:${bytes.contentHashCodeSample()}:$left:$top:$right:$bottom:$width"
-        lock.withLock {
-            entries[key]?.let {
-                entries.remove(key)
-                entries[key] = it
-                return it
+    suspend fun get(bytes: ByteArray, left: Float, top: Float, right: Float, bottom: Float, targetWidth: Int): ImageBitmap? = withContext(Dispatchers.Default) {
+        kotlinx.coroutines.currentCoroutineContext().ensureActive()
+        val width = (((targetWidth.coerceIn(1, 2048) + 63) / 64) * 64)
+        // A sampled hash could return another page's crop. Hash the complete encoded capture off Main.
+        val key = "${com.bernaferrari.changedetection.util.CryptoUtils.sha256(bytes)}:$left:$top:$right:$bottom:$width"
+        suspend fun cached(): ImageBitmap? = lock.withLock {
+            entries.remove(key)?.also { entries[key] = it }
+        }
+        cached()?.let { return@withContext it }
+        builds.withLock(key) {
+            cached()?.let { return@withLock it }
+            val bitmap = try {
+                decode(bytes, left, top, right, bottom, width)
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                null
+            } ?: return@withLock null
+            kotlinx.coroutines.currentCoroutineContext().ensureActive()
+            val cost = bitmap.width.toLong() * bitmap.height
+            lock.withLock {
+                if (cost <= maxPixels) {
+                    entries[key] = bitmap
+                    pixels += cost
+                    while (pixels > maxPixels || entries.size > 48) {
+                        val oldest = entries.remove(entries.keys.first())!!
+                        pixels -= oldest.width.toLong() * oldest.height
+                    }
+                }
             }
+            bitmap
         }
-        val bitmap = withContext(Dispatchers.Default) { runCatching { decodeCropPlatform(bytes, left, top, right, bottom, width) }.getOrNull() } ?: return null
-        lock.withLock {
-            entries[key] = bitmap
-            while (entries.size > MAX) entries.remove(entries.keys.first())
-        }
-        return bitmap
     }
 
-    /** Hashing a few KB identifies a capture without reading megabytes on every lookup. */
-    private fun ByteArray.contentHashCodeSample(): Int {
-        var h = 1
-        val step = maxOf(1, size / 4096)
-        var i = 0
-        while (i < size) {
-            h = 31 * h + this[i]
-            i += step
-        }
-        return h
-    }
+    internal suspend fun retainedPixels(): Long = lock.withLock { pixels }
 }
