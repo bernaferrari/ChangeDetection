@@ -6,6 +6,7 @@ import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrokenImage
@@ -54,8 +55,8 @@ internal actual fun SnapshotImage(
 
     when (val current = state) {
         ImageLoadState.Loading -> {
-            Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+            Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth())
             }
         }
 

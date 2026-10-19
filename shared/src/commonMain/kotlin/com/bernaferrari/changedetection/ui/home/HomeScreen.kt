@@ -110,6 +110,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -426,7 +427,7 @@ internal fun PullToCheckBox(
 ) {
     val state = androidx.compose.material3.pulltorefresh.rememberPullToRefreshState()
     val threshold = androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.PositionalThreshold
-    val ready by remember { derivedStateOf { state.distanceFraction > 1f } }
+    val ready by remember { derivedStateOf { state.distanceFraction >= 1f } }
     val haptic = LocalHapticFeedback.current
     LaunchedEffect(ready) {
         if (ready && enabled && !refreshing && !state.isAnimating) {
@@ -436,39 +437,21 @@ internal fun PullToCheckBox(
     // Expand the title before pull-to-refresh consumes downward scroll at the top of the list.
     Box(modifier.pullToRefresh(isRefreshing = refreshing, state = state, enabled = enabled, threshold = threshold, onRefresh = onRefresh).nestedScroll(scrollBehavior.nestedScrollConnection)) {
         content()
-        if (refreshing || (enabled && state.distanceFraction > 0f)) {
-            Box(Modifier.align(Alignment.TopCenter).fillMaxWidth().height(threshold).clipToBounds(), contentAlignment = Alignment.TopCenter) {
-                Surface(
-                    modifier = Modifier.padding(horizontal = 16.dp).graphicsLayer {
-                        translationY = state.distanceFraction.coerceIn(0f, 1f) * threshold.toPx() - size.height
-                    },
-                    shape = CircleShape,
-                    color = if (ready || refreshing) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-                    contentColor = if (ready || refreshing) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
-                    shadowElevation = 2.dp,
-                ) {
-                    Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        when {
-                            refreshing -> LoadingIndicator(Modifier.size(24.dp))
-                            ready -> Icon(Icons.Rounded.Check, null, Modifier.size(24.dp))
-                            else -> androidx.compose.material3.CircularProgressIndicator(
-                                progress = { state.distanceFraction.coerceIn(0f, 1f) },
-                                modifier = Modifier.size(24.dp),
-                                strokeWidth = 2.dp,
-                            )
-                        }
-                        Text(
-                            stringResource(when {
-                                refreshing -> Res.string.pull_check_checking
-                                ready -> Res.string.pull_check_release
-                                else -> Res.string.pull_check_pull
-                            }),
-                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                            style = MaterialTheme.typography.labelLarge,
-                        )
-                    }
-                }
-            }
+        if (enabled || refreshing) {
+            val feedback = stringResource(when {
+                refreshing -> Res.string.pull_check_checking
+                ready -> Res.string.pull_check_release
+                else -> Res.string.pull_check_pull
+            })
+            androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.LoadingIndicator(
+                state = state,
+                isRefreshing = refreshing,
+                maxDistance = threshold,
+                modifier = Modifier.align(Alignment.TopCenter).semantics {
+                    stateDescription = feedback
+                    liveRegion = LiveRegionMode.Polite
+                }.testTag("pull-check-indicator"),
+            )
         }
     }
 }

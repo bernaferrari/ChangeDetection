@@ -16,8 +16,7 @@ import com.bernaferrari.changedetection.util.readableSnapshotText
 import com.fleeksoft.ksoup.Ksoup
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 
 /** One piece of an inline, word-level edit. */
@@ -79,6 +78,7 @@ sealed interface ChangePreview {
         val sizeChanged: Boolean,
         /** Row-aligned areas of change (handles pages that shifted or grew); biggest first is not guaranteed. */
         val regions: List<com.bernaferrari.changedetection.image.VisualRegion> = emptyList(),
+        val isPreparing: Boolean = false,
     ) : ChangePreview {
         /**
          * The one area worth showing on a card: the top-most thing that is new or different (what a person reads
@@ -98,13 +98,19 @@ class ChangePreviewRepository(
     private val snaps: SnapsRepository,
     private val preceding: suspend (Snap) -> Snap? = { null },
 ) {
-    private val cache = LinkedHashMap<String, ChangePreview>()
-    private val lock = Mutex()
+    private val cache = com.bernaferrari.changedetection.util.SynchronizedCache<String, ChangePreview>(MAX_CACHED)
+    private val versions = com.bernaferrari.changedetection.util.SynchronizedCache<String, ChangePreview>(MAX_CACHED)
+    private val builds = com.bernaferrari.changedetection.sync.PageCheckLocks()
+    private val capacity = kotlinx.coroutines.sync.Semaphore(2)
 
-    suspend fun latest(siteId: String): ChangePreview {
+    /** Immutable snapshot IDs let returning lists paint cached content on their first frame. */
+    fun cachedVersion(snapId: String?): ChangePreview? = snapId?.let { versions[it] }
+
+    suspend fun latest(siteId: String, onImagePair: (Snap, Snap) -> Unit = { _, _ -> }): ChangePreview {
         val pair = snaps.getLastNSnapsForSiteId(siteId, 2).orEmpty()
         val after = pair.getOrNull(0) ?: return ChangePreview.FirstVersion
         val before = pair.getOrNull(1) ?: return ChangePreview.FirstVersion
+        if (before.isImageSnapshot() && after.isImageSnapshot() && cache["${before.snapId}>${after.snapId}"] == null) onImagePair(before, after)
         return between(before, after)
     }
 
@@ -116,30 +122,36 @@ class ChangePreviewRepository(
 
     suspend fun between(before: Snap, after: Snap): ChangePreview {
         val key = "${before.snapId}>${after.snapId}"
-        lock.withLock { cache[key] }?.let { return it }
-        val preview = try {
-            withContext(Dispatchers.Default) { build(before, after) }
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (_: Exception) {
-            ChangePreview.Unavailable
+        cache[key]?.let { return it }
+        return builds.withLock(key) {
+            cache[key]?.let { return@withLock it }
+            val preview = try {
+                capacity.withPermit { withContext(Dispatchers.Default) { build(before, after) } }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                ChangePreview.Unavailable
+            }
+            // Missing/pruned files can return after Undo or a retry; failures are not immutable.
+            if (preview != ChangePreview.Unavailable) {
+                cache[key] = preview
+                versions[after.snapId] = preview
+            }
+            preview
         }
-        lock.withLock {
-            cache[key] = preview
-            while (cache.size > MAX_CACHED) cache.remove(cache.keys.first())
-        }
-        return preview
     }
 
     private suspend fun build(before: Snap, after: Snap): ChangePreview {
         if (before.isImageSnapshot() && after.isImageSnapshot()) {
+            val beforeBytes = snaps.getSnapContent(before.snapId)
+            val afterBytes = snaps.getSnapContent(after.snapId)
             val diff = PlatformImageDiff.compare(
-                beforeBytes = snaps.getSnapContent(before.snapId),
-                afterBytes = snaps.getSnapContent(after.snapId),
+                beforeBytes = beforeBytes,
+                afterBytes = afterBytes,
                 includeDiffImage = false,
             )
             if (diff.error != null && diff.dimensionMismatch == null) return ChangePreview.Unavailable
-            val visual = diff.visualChange ?: computeVisualChange(snaps.getSnapContent(before.snapId), snaps.getSnapContent(after.snapId))
+            val visual = diff.visualChange ?: computeVisualChange(beforeBytes, afterBytes)
             if (diff.dimensionMismatch == null && diff.differentPixels == 0L && diff.totalPixels > 0) return ChangePreview.NothingVisible
             return ChangePreview.Crop(
                 beforeSnapId = before.snapId,
