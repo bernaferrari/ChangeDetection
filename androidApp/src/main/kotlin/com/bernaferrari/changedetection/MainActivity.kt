@@ -76,6 +76,7 @@ class MainActivity : ComponentActivity() {
                                 .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName),
                         )
                     },
+                    supportsNotificationImages = true,
                     appVersion = BuildConfig.VERSION_NAME,
                 ),
                 initialSiteId = incomingComparisonSiteId,

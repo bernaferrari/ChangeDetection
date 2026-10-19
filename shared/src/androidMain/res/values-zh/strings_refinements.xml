@@ -1,0 +1,9 @@
+<resources>
+    <string name="change_notification_open_browser">在浏览器中打开</string>
+    <string name="change_notification_before">之前</string>
+    <string name="change_notification_now">现在</string>
+    <string name="change_notification_enabled">已启用变更通知</string>
+    <string name="change_notification_permission">需要通知权限</string>
+    <string name="change_notification_app_disabled">应用通知已关闭</string>
+    <string name="change_notification_channel_disabled">变更通知渠道已关闭</string>
+</resources>

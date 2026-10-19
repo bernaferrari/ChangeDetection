@@ -1,0 +1,9 @@
+<resources>
+    <string name="change_notification_open_browser">ব্রাউজারে খুলুন</string>
+    <string name="change_notification_before">আগে</string>
+    <string name="change_notification_now">এখন</string>
+    <string name="change_notification_enabled">পরিবর্তনের বিজ্ঞপ্তি চালু</string>
+    <string name="change_notification_permission">বিজ্ঞপ্তির অনুমতি প্রয়োজন</string>
+    <string name="change_notification_app_disabled">অ্যাপের বিজ্ঞপ্তি বন্ধ</string>
+    <string name="change_notification_channel_disabled">পরিবর্তনের বিজ্ঞপ্তির চ্যানেল বন্ধ</string>
+</resources>

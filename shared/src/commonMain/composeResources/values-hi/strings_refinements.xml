@@ -1,0 +1,4 @@
+<resources>
+    <string name="notification_images_title">बदलाव की सूचनाओं में चित्र</string>
+    <string name="notification_images_body">सेव किए गए पेज का निजी हो सकने वाला कंटेंट दिखाता है। लॉक स्क्रीन पर दृश्यता Android नियंत्रित करता है।</string>
+</resources>

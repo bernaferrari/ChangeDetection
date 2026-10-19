@@ -1,0 +1,9 @@
+<resources>
+    <string name="change_notification_open_browser">ब्राउज़र में खोलें</string>
+    <string name="change_notification_before">पहले</string>
+    <string name="change_notification_now">अब</string>
+    <string name="change_notification_enabled">बदलाव की सूचनाएँ चालू हैं</string>
+    <string name="change_notification_permission">सूचनाओं की अनुमति चाहिए</string>
+    <string name="change_notification_app_disabled">ऐप की सूचनाएँ बंद हैं</string>
+    <string name="change_notification_channel_disabled">बदलाव की सूचनाओं का चैनल बंद है</string>
+</resources>

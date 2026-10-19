@@ -1,0 +1,4 @@
+<resources>
+    <string name="notification_images_title">Bilder in Änderungsmeldungen</string>
+    <string name="notification_images_body">Zeigt gespeicherte, möglicherweise private Seiteninhalte. Android steuert die Sichtbarkeit auf dem Sperrbildschirm.</string>
+</resources>

@@ -1,0 +1,9 @@
+<resources>
+    <string name="change_notification_open_browser">Im Browser öffnen</string>
+    <string name="change_notification_before">Vorher</string>
+    <string name="change_notification_now">Jetzt</string>
+    <string name="change_notification_enabled">Änderungsmeldungen aktiviert</string>
+    <string name="change_notification_permission">Benachrichtigungsberechtigung erforderlich</string>
+    <string name="change_notification_app_disabled">App-Benachrichtigungen deaktiviert</string>
+    <string name="change_notification_channel_disabled">Kanal für Änderungsmeldungen deaktiviert</string>
+</resources>

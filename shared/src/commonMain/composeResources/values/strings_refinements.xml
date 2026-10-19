@@ -1,0 +1,4 @@
+<resources>
+    <string name="notification_images_title">Images in change alerts</string>
+    <string name="notification_images_body">Shows saved page content, which may be private. Android controls lock-screen visibility.</string>
+</resources>

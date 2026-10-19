@@ -68,6 +68,7 @@ data class PlatformActions(
     val stopTurbo: (() -> Unit)? = null,
     val requestNotifications: () -> Unit = {},
     val openNotificationSettings: (() -> Unit)? = null,
+    val supportsNotificationImages: Boolean = false,
     val appVersion: String = "",
 )
 
@@ -302,6 +303,7 @@ fun ChangeDetectionApp(
                                 platformActions.openEmail("bernaferrari2@gmail.com", "Change Detection Feedback")
                             },
                             onNotificationSettings = platformActions.openNotificationSettings,
+                            supportsNotificationImages = platformActions.supportsNotificationImages,
                             appVersion = platformActions.appVersion,
                         )
                     }

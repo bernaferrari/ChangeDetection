@@ -1,0 +1,4 @@
+<resources>
+    <string name="notification_images_title">পরিবর্তনের বিজ্ঞপ্তিতে ছবি</string>
+    <string name="notification_images_body">সংরক্ষিত পৃষ্ঠার ব্যক্তিগত হতে পারে এমন বিষয়বস্তু দেখায়। লক স্ক্রিনে দৃশ্যমানতা Android নিয়ন্ত্রণ করে।</string>
+</resources>
