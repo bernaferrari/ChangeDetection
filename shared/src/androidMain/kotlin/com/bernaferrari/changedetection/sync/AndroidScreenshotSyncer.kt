@@ -150,7 +150,11 @@ class AndroidScreenshotBrowserFactory(context: Context) : ScreenshotBrowserFacto
             site: Site,
             delayMs: Long,
         ): ScreenshotCaptureOutcome {
-            val screenshot = session.capture(site.url, delayMs, MAX_HEIGHT_PIXELS, hide = site.textExcludeSelector, only = site.textIncludeSelector)
+            val screenshot = if (site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT) {
+                session.captureText(site.url, delayMs, only = site.textIncludeSelector)
+            } else {
+                session.capture(site.url, delayMs, MAX_HEIGHT_PIXELS, hide = site.textExcludeSelector, only = site.textIncludeSelector)
+            }
             return ScreenshotCaptureOutcome.Success(screenshot.contentType, screenshot.bytes, screenshot.title, screenshot.icon)
         }
 

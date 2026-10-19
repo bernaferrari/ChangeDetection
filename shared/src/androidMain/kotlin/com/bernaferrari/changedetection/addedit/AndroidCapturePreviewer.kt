@@ -29,15 +29,22 @@ class AndroidCapturePreviewer(context: Context, engine: SyncEngine, private val 
         withTimeout(90_000) {
             val settings = preferences.data.first()
             val defaultMethod = ComparisonMethod.entries.firstOrNull { it.name == settings[SettingsViewModel.COMPARISON_METHOD_KEY] } ?: ComparisonMethod.SCREENSHOT
-            if (mode.resolve(defaultMethod) == ComparisonMethod.HTML) {
+            if (mode != CaptureMode.TEXT && mode.resolve(defaultMethod) == ComparisonMethod.HTML) {
                 html.capture(url, mode, region)
             } else {
                 withContext(Dispatchers.Main.immediate) {
                     val browser = browsers.create()
                     try {
-                        when (val result = browser.capture(previewSite(url).copy(textIncludeSelector = region.include, textExcludeSelector = region.exclude), settings[SettingsViewModel.BROWSER_DELAY_KEY] ?: 5_000L)) {
+                        when (val result = browser.capture(previewSite(url).copy(captureMode = mode, textIncludeSelector = region.include, textExcludeSelector = region.exclude), settings[SettingsViewModel.BROWSER_DELAY_KEY] ?: 5_000L)) {
                             // Same capture and hand-off as AndroidScreenshotSyncer, so it can stand in for the first check.
-                            is ScreenshotCaptureOutcome.Success -> CapturePreview.Image(result.bytes, result.title?.let { cleanTitle(it) }, result.icon, SyncEngine.FetchResult.Success(result.contentType, result.bytes, capturedWithBrowser = true))
+                            is ScreenshotCaptureOutcome.Success -> {
+                                val capture = SyncEngine.FetchResult.Success(result.contentType, result.bytes, capturedWithBrowser = true)
+                                if (mode == CaptureMode.TEXT) {
+                                    previewFromCapture(capture, url, mode, region)
+                                } else {
+                                    CapturePreview.Image(result.bytes, result.title?.let { cleanTitle(it) }, result.icon, capture)
+                                }
+                            }
 
                             is ScreenshotCaptureOutcome.Failure -> error(result.message)
                         }
