@@ -106,6 +106,8 @@ fun ActivityScreen(
     onOpenChange: (siteId: String, snapId: String) -> Unit,
     onOpenPage: (siteId: String) -> Unit,
     viewModel: LogsViewModel = koinViewModel(),
+    listState: androidx.compose.foundation.lazy.LazyListState = androidx.compose.foundation.lazy.rememberLazyListState(),
+    topBarState: androidx.compose.material3.TopAppBarState = androidx.compose.material3.rememberTopAppBarState(),
 ) {
     val items = viewModel.pagedSnaps.collectAsLazyPagingItems()
     val sites by viewModel.siteMap.collectAsStateWithLifecycle()
@@ -119,7 +121,7 @@ fun ActivityScreen(
     val restoreFailedText = stringResource(Res.string.snapshot_restore_failed)
     val retryText = stringResource(Res.string.retry)
     val undoText = stringResource(Res.string.undo)
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(state = topBarState)
     // Nothing to search until there is activity.
     val canSearch = items.itemCount > 0 || query.isNotBlank()
     BackHandler(enabled = searching) {
@@ -160,6 +162,7 @@ fun ActivityScreen(
     ) { padding ->
         ActivityFeed(
             items = items,
+            listState = listState,
             sites = sites,
             query = query,
             deleting = deleting,
@@ -202,6 +205,7 @@ internal fun ActivityFeed(
     onDelete: (Snap) -> Unit,
     modifier: Modifier = Modifier,
     deleting: Set<String> = emptySet(),
+    listState: androidx.compose.foundation.lazy.LazyListState = androidx.compose.foundation.lazy.rememberLazyListState(),
 ) {
     val failing = if (query.isBlank()) sites.values.filter { it.isSyncEnabled && !it.isSuccessful }.sortedBy { it.name() } else emptyList()
     if (failing.isEmpty() && items.itemCount == 0 && items.loadState.refresh is LoadState.Loading) {
@@ -211,7 +215,7 @@ internal fun ActivityFeed(
         return
     }
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-        LazyColumn(Modifier.widthIn(max = 720.dp).fillMaxSize().testTag("activity-list"), contentPadding = PaddingValues(bottom = 32.dp)) {
+        LazyColumn(Modifier.widthIn(max = 720.dp).fillMaxSize().testTag("activity-list"), state = listState, contentPadding = PaddingValues(bottom = 32.dp)) {
             if (failing.isNotEmpty()) {
                 item(key = "failures-header") { SectionHeader(stringResource(Res.string.home_section_attention), count = failing.size) }
                 itemsIndexed(failing, key = { _, it -> "failure-" + it.id }) { index, site ->

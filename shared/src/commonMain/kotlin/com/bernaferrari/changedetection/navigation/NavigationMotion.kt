@@ -59,8 +59,8 @@ private val EmphasizedDecelerate = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
  */
 internal fun <T : Any> fadeThrough(): AnimatedContentTransitionScope<Scene<T>>.() -> ContentTransform = {
     ContentTransform(
-        targetContentEnter = fadeIn(tween(durationMillis = 210, delayMillis = 90, easing = EmphasizedDecelerate)) +
-            scaleIn(tween(durationMillis = 210, delayMillis = 90, easing = EmphasizedDecelerate), initialScale = 0.92f),
-        initialContentExit = fadeOut(tween(durationMillis = 90, easing = EmphasizedAccelerate)),
+        targetContentEnter = fadeIn(tween(durationMillis = 140, delayMillis = 60, easing = EmphasizedDecelerate)) +
+            scaleIn(tween(durationMillis = 140, delayMillis = 60, easing = EmphasizedDecelerate), initialScale = 0.98f),
+        initialContentExit = fadeOut(tween(durationMillis = 60, easing = EmphasizedAccelerate)),
     )
 }
