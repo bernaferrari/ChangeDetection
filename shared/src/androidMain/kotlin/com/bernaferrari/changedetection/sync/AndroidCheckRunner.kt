@@ -34,7 +34,7 @@ class AndroidCheckRunner(
                 withTimeout(90_000) {
                     val stored = preferences.data.first()[SettingsViewModel.COMPARISON_METHOD_KEY]
                     val defaultMethod = ComparisonMethod.entries.firstOrNull { it.name == stored } ?: ComparisonMethod.SCREENSHOT
-                    if (site.captureMode.resolve(defaultMethod) == ComparisonMethod.HTML) {
+                    if (site.captureMode != com.bernaferrari.changedetection.repo.CaptureMode.TEXT && site.captureMode.resolve(defaultMethod) == ComparisonMethod.HTML) {
                         engine.syncSite(siteId)
                     } else {
                         screenshots.syncSites(listOf(site)).single()

@@ -21,6 +21,7 @@ import kotlin.math.roundToInt
 /** The app needs a cancellable page capture, not a second browser automation runtime. */
 internal class AndroidPageCapture(private val view: WebView) {
     private var rendererFailure: IOException? = null
+    private var navigationFailure: IOException? = null
 
     /**
      * @param hide CSS selectors of parts to ignore; made invisible (layout kept) before capture.
@@ -30,6 +31,34 @@ internal class AndroidPageCapture(private val view: WebView) {
         navigate(url)
         delay(settleDelayMs.coerceIn(0, 30_000))
         captureLoaded(maxHeight, hide, only)
+    }
+
+    /** Text watches must read the rendered DOM, just like the initial live preview.
+     * Keep screenshot cleanup out of this path: it mutates the content being watched.
+     */
+    suspend fun captureText(url: String, settleDelayMs: Long, only: String = ""): WebViewScreenshot = withContext(Dispatchers.Main.immediate) {
+        navigate(url)
+        delay(settleDelayMs.coerceIn(0, 30_000))
+        // A configured delay may be zero while the selected node is still arriving.
+        // Give missing content a bounded grace period, then let normal region validation
+        // report a genuinely removed selection. Never fall back to the whole page.
+        kotlinx.coroutines.withTimeoutOrNull(2_000) {
+            val ready = """(function(){try{var e=${if (only.isBlank()) "document.body" else "document.querySelector(${PageCleanup.js(only)})"};return !!e && !!e.innerText.trim();}catch(e){return true;}})()"""
+            while (evaluate(ready) != "true") {
+                navigationFailure?.let { throw it }
+                rendererFailure?.let { throw it }
+                delay(100)
+            }
+        }
+        navigationFailure?.let { throw it }
+        rendererFailure?.let { throw it }
+        val raw = evaluate("document.documentElement.outerHTML")
+        require(raw.length <= 12_000_000) { "The page is too large to preview" }
+        val html = kotlinx.serialization.json.Json.decodeFromString<String>(raw)
+        withContext(Dispatchers.Default) {
+            require(com.bernaferrari.changedetection.util.readableSnapshotText(html, true).isNotBlank()) { "The page returned no readable text" }
+        }
+        WebViewScreenshot("text/html", html.encodeToByteArray(), 0, 0)
     }
 
     /** Uses the already-loaded document, with the same cleanup and tiling as scheduled checks. */
@@ -90,6 +119,7 @@ internal class AndroidPageCapture(private val view: WebView) {
             evaluate("window.scrollTo({left:0,top:0,behavior:'instant'});0")
             clean(PageCleanup.MASK_RELATIVE_TIMES)
             awaitFrame()
+            navigationFailure?.let { throw it }
             rendererFailure?.let { throw it }
             val clip = if (only.isNotBlank()) {
                 readClip(only)
@@ -146,22 +176,29 @@ internal class AndroidPageCapture(private val view: WebView) {
 
     private suspend fun navigate(url: String) = withTimeout(30_000) {
         val loaded = CompletableDeferred<Unit>()
+        navigationFailure = null
+        fun fail(error: IOException) {
+            // Readiness can complete before a redirect or HTTP error arrives. Keep the
+            // error for the capture as well as the initial navigation awaiter.
+            navigationFailure = error
+            loaded.completeExceptionally(error)
+        }
         view.webViewClient = object : WebViewClient() {
             override fun onPageFinished(webView: WebView, finishedUrl: String) {
                 if (finishedUrl != "about:blank") loaded.complete(Unit)
             }
 
             override fun onReceivedError(webView: WebView, request: WebResourceRequest, error: WebResourceError) {
-                if (request.isForMainFrame) loaded.completeExceptionally(IOException(error.description.toString()))
+                if (request.isForMainFrame) fail(IOException(error.description.toString()))
             }
 
             override fun onReceivedHttpError(webView: WebView, request: WebResourceRequest, response: WebResourceResponse) {
-                if (request.isForMainFrame) loaded.completeExceptionally(IOException("HTTP ${response.statusCode}: ${response.reasonPhrase}"))
+                if (request.isForMainFrame) fail(IOException("HTTP ${response.statusCode}: ${response.reasonPhrase}"))
             }
 
             override fun onReceivedSslError(webView: WebView, handler: SslErrorHandler, error: SslError) {
                 handler.cancel()
-                loaded.completeExceptionally(SSLException("The page has an invalid TLS certificate"))
+                fail(SSLException("The page has an invalid TLS certificate"))
             }
 
             override fun onRenderProcessGone(webView: WebView, detail: RenderProcessGoneDetail): Boolean {
