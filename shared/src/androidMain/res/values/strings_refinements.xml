@@ -1,0 +1,9 @@
+<resources>
+    <string name="change_notification_open_browser">Open in browser</string>
+    <string name="change_notification_before">Before</string>
+    <string name="change_notification_now">Now</string>
+    <string name="change_notification_enabled">Change alerts enabled</string>
+    <string name="change_notification_permission">Notification permission needed</string>
+    <string name="change_notification_app_disabled">App notifications turned off</string>
+    <string name="change_notification_channel_disabled">Change alerts channel turned off</string>
+</resources>

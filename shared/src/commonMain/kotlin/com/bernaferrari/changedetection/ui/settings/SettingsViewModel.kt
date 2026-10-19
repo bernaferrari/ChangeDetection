@@ -49,6 +49,7 @@ data class SettingsUiState(
     val appPalette: AppPalette = AppPalette.defaultFor(supportsDynamicColors()),
     val comparisonMethod: ComparisonMethod = ComparisonMethod.SCREENSHOT,
     val browserDelayMs: Long = 5000,
+    val notificationImages: Boolean = false,
 )
 
 @KoinViewModel
@@ -139,6 +140,7 @@ class SettingsViewModel(
                         ComparisonMethod.valueOf(preferences[COMPARISON_METHOD_KEY] ?: ComparisonMethod.SCREENSHOT.name)
                     }.getOrElse { ComparisonMethod.SCREENSHOT },
                     browserDelayMs = preferences[BROWSER_DELAY_KEY] ?: 5000,
+                    notificationImages = preferences[com.bernaferrari.changedetection.sync.NotificationPreferences.IMAGE_PREVIEWS] ?: false,
                 )
             }.onStart { emit(SettingsUiState(isLoaded = false)) }
             .catch { error ->
@@ -200,5 +202,6 @@ class SettingsViewModel(
     fun updateThemeMode(themeMode: ThemeMode) = writePreference { it[THEME_MODE_KEY] = themeMode.name }
     fun updateAppPalette(palette: AppPalette) = writePreference { it[APP_PALETTE_KEY] = palette.name }
     fun updateComparisonMethod(method: ComparisonMethod) = writePreference { it[COMPARISON_METHOD_KEY] = method.name }
+    fun updateNotificationImages(enabled: Boolean) = writePreference { it[com.bernaferrari.changedetection.sync.NotificationPreferences.IMAGE_PREVIEWS] = enabled }
     fun updateBrowserDelay(delayMs: Long) = writePreference { it[BROWSER_DELAY_KEY] = delayMs }
 }

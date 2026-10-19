@@ -1,0 +1,4 @@
+<resources>
+    <string name="notification_images_title">在变更通知中显示图片</string>
+    <string name="notification_images_body">显示已保存的网页内容，其中可能包含隐私信息。锁屏可见性由 Android 控制。</string>
+</resources>

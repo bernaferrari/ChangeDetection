@@ -1,0 +1,4 @@
+<resources>
+    <string name="notification_images_title">Immagini negli avvisi di modifica</string>
+    <string name="notification_images_body">Mostra contenuti salvati che potrebbero essere privati. Android controlla la visibilità nella schermata di blocco.</string>
+</resources>

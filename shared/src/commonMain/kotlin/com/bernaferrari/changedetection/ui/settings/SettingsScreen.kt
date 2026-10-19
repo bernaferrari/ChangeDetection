@@ -93,9 +93,11 @@ fun SettingsScreen(
     onContactClick: () -> Unit = {},
     onNotificationSettings: (() -> Unit)? = null,
     appVersion: String = "",
+    supportsNotificationImages: Boolean = false,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val writeFailed by viewModel.writeFailed.collectAsStateWithLifecycle()
+    val notificationHealth = com.bernaferrari.changedetection.sync.notificationHealthDescription()
     var showChecks by remember { mutableStateOf(false) }
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -157,10 +159,22 @@ fun SettingsScreen(
                         if (onNotificationSettings != null) {
                             GroupRow(
                                 title = stringResource(Res.string.settings_notifications),
-                                supporting = stringResource(Res.string.settings_notifications_body),
+                                supporting = notificationHealth ?: stringResource(Res.string.settings_notifications_body),
                                 icon = Icons.Outlined.Notifications,
                                 onClick = onNotificationSettings,
                             )
+                        }
+                        if (supportsNotificationImages) {
+                            GroupRow(
+                                title = stringResource(Res.string.notification_images_title),
+                                supporting = stringResource(Res.string.notification_images_body),
+                                role = Role.Switch,
+                                checked = uiState.notificationImages,
+                                enabled = uiState.isLoaded,
+                                onClick = { viewModel.updateNotificationImages(!uiState.notificationImages) },
+                            ) {
+                                androidx.compose.material3.Switch(checked = uiState.notificationImages, onCheckedChange = null)
+                            }
                         }
                         SavedVersionsRow(uiState, viewModel::retryStorageLoading, viewModel::clearOlderVersions, showDivider = onNotificationSettings != null)
                     }

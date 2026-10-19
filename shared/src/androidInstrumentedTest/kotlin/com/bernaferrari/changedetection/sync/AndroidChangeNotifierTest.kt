@@ -57,6 +57,38 @@ class AndroidChangeNotifierTest {
         // The old token cannot be repointed to a newer capture by updating extras.
     }
 
+    @Test fun privateAlertHasGenericPublicVersionAndKeepsOnlyAlertOnce() = kotlinx.coroutines.runBlocking {
+        notifier.notifyChange(site("private"), "saved-1")
+        val notification = awaitAlerts { it.size == 1 }.single().notification
+        assertTrue(notification.flags and android.app.Notification.FLAG_ONLY_ALERT_ONCE != 0)
+        val public = requireNotNull(notification.publicVersion)
+        assertEquals(context.getString(com.bernaferrari.changedetection.library.R.string.app_name), public.extras.getString(android.app.Notification.EXTRA_TITLE))
+        assertFalse(public.extras.getString(android.app.Notification.EXTRA_TEXT).orEmpty().contains("private"))
+        assertNull(public.actions)
+        assertNull(public.contentIntent)
+        assertFalse(public.extras.containsKey(android.app.Notification.EXTRA_PICTURE))
+    }
+
+    @Test fun browserActionIsImmutableAndSeparateFromTheExactComparison() = kotlinx.coroutines.runBlocking {
+        notifier.notifyChange(site("browser"), "saved-1")
+        val first = awaitAlerts { it.size == 1 }.single().notification
+        val action = first.actions.single()
+        assertEquals(context.getString(com.bernaferrari.changedetection.library.R.string.change_notification_open_browser), action.title.toString())
+        assertNotEquals(first.contentIntent, action.actionIntent)
+        if (Build.VERSION.SDK_INT >= 31) {
+            assertTrue(action.actionIntent.isActivity)
+            assertTrue(action.actionIntent.isImmutable)
+        }
+        notifier.notifyChange(site("browser"), "saved-2")
+        val next = awaitAlerts { it.size == 1 && it.single().notification.contentIntent != first.contentIntent }.single().notification
+        assertNotEquals(action.actionIntent, next.actions.single().actionIntent)
+    }
+
+    @Test fun nonWebAddressesHaveNoBrowserAction() = kotlinx.coroutines.runBlocking {
+        notifier.notifyChange(site("bad").copy(url = "javascript:alert(1)"), "saved-1")
+        assertTrue(awaitAlerts { it.size == 1 }.single().notification.actions.isNullOrEmpty())
+    }
+
     private fun awaitAlerts(predicate: (Array<StatusBarNotification>) -> Boolean): Array<StatusBarNotification> {
         val deadline = SystemClock.elapsedRealtime() + 3_000
         do {

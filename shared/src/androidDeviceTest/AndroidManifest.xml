@@ -5,6 +5,7 @@
 
     <!-- Host activity for Compose UI tests in this library module's test APK. -->
     <application android:usesCleartextTraffic="true">
+        <activity android:name="com.bernaferrari.changedetection.sync.AlertTargetActivity" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:exported="false" />
         <activity android:name="com.bernaferrari.changedetection.ui.polish.PerfNavigationActivity" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:exported="false" />
         <activity
             android:name="androidx.activity.ComponentActivity"

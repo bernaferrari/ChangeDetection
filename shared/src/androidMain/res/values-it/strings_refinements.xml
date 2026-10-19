@@ -1,0 +1,9 @@
+<resources>
+    <string name="change_notification_open_browser">Apri nel browser</string>
+    <string name="change_notification_before">Prima</string>
+    <string name="change_notification_now">Ora</string>
+    <string name="change_notification_enabled">Avvisi di modifica attivati</string>
+    <string name="change_notification_permission">Serve il permesso per le notifiche</string>
+    <string name="change_notification_app_disabled">Notifiche dell’app disattivate</string>
+    <string name="change_notification_channel_disabled">Canale degli avvisi di modifica disattivato</string>
+</resources>

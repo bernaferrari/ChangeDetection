@@ -26,20 +26,18 @@ object ChangeNotificationContract {
 }
 
 /** Posts one actionable notification for each persisted, non-baseline website change. */
-class AndroidChangeNotifier(
+class AndroidChangeNotifier internal constructor(
     private val context: Context,
+    prepare: suspend (Site, String) -> PreparedAndroidAlert? = { site, id -> prepareAndroidAlert(context, site, id) },
 ) : ChangeNotifier {
-    private val delivery = ChangeAlertDelivery(prepare = { site, snapId ->
-        val koin = org.koin.mp.KoinPlatformTools.defaultContext().getOrNull()
-        if (koin == null) null else changeAlertText(site, snapId, koin.getOrNull(), koin.getOrNull()).second
-    }, publish = ::post)
+    private val delivery = ChangeAlertDelivery(prepare = prepare, publish = ::post)
 
     override suspend fun notifyChange(site: Site, snapId: String) {
         delivery.deliver(site, snapId)
     }
 
     @SuppressLint("MissingPermission")
-    private fun post(site: Site, snapId: String, summary: String?) {
+    private fun post(site: Site, snapId: String, prepared: PreparedAndroidAlert?) {
         val notificationManager = NotificationManagerCompat.from(context)
         if (!notificationManager.areNotificationsEnabled() || !hasNotificationPermission()) {
             Napier.d("Change alert skipped because notifications are unavailable")
@@ -70,9 +68,15 @@ class AndroidChangeNotifier(
         }
 
         val siteLabel = site.title?.trim().takeUnless { it.isNullOrEmpty() } ?: Uri.parse(site.url).host?.removePrefix("www.") ?: site.url
-        val message = summary ?: context.getString(R.string.change_notification_generic)
+        val message = prepared?.summary ?: context.getString(R.string.change_notification_generic)
 
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val publicVersion = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification_change)
+            .setContentTitle(context.getString(R.string.app_name))
+            .setContentText(context.getString(R.string.change_notification_generic))
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .build()
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification_change)
             .setContentTitle(context.getString(R.string.change_notification_named, siteLabel))
             .setOnlyAlertOnce(true)
@@ -83,11 +87,29 @@ class AndroidChangeNotifier(
             .setCategory(NotificationCompat.CATEGORY_EVENT)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+            .setPublicVersion(publicVersion)
             .setGroup(GROUP_KEY)
             .setWhen(System.currentTimeMillis())
-            .build()
+        browserPendingIntent(site, snapId)?.let { browser ->
+            builder.addAction(0, context.getString(R.string.change_notification_open_browser), browser)
+        }
+        prepared?.image?.let { bitmap ->
+            builder.setStyle(NotificationCompat.BigPictureStyle().bigPicture(bitmap).setSummaryText(message))
+        }
+        val notification = builder.build()
 
         notificationManager.notify(site.id, NOTIFICATION_ID, notification)
+    }
+
+    private fun browserPendingIntent(site: Site, snapId: String): PendingIntent? {
+        val uri = runCatching { Uri.parse(site.url) }.getOrNull() ?: return null
+        if (uri.scheme?.lowercase() !in setOf("https", "http") || uri.host.isNullOrBlank()) return null
+        val intent = Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        // Identifier participates in PendingIntent identity without changing the watched URL.
+        if (Build.VERSION.SDK_INT >= 29) intent.identifier = "changedetection/browser/${site.id}/$snapId"
+        return runCatching {
+            PendingIntent.getActivity(context, browserRequests.incrementAndGet(), intent, PendingIntent.FLAG_IMMUTABLE)
+        }.getOrNull()
     }
 
     private fun hasNotificationPermission(): Boolean = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
@@ -109,7 +131,8 @@ class AndroidChangeNotifier(
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 
-    private companion object {
+    internal companion object {
+        val browserRequests = java.util.concurrent.atomic.AtomicInteger(0)
         const val CHANNEL_ID = "website_changes_v1"
         const val GROUP_KEY = "website_changes"
         const val NOTIFICATION_ID = 0x40000000

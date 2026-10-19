@@ -1,0 +1,4 @@
+<resources>
+    <string name="notification_images_title">Imágenes en las alertas de cambios</string>
+    <string name="notification_images_body">Muestra contenido guardado que puede ser privado. Android controla la visibilidad en la pantalla de bloqueo.</string>
+</resources>

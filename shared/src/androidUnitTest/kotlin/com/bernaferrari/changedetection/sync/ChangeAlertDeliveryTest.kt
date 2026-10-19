@@ -77,6 +77,23 @@ class ChangeAlertDeliveryTest {
         assertEquals(listOf("B"), posted)
     }
 
+    @Test fun nonCancellablePreparationCannotDelayTheOrdinaryAlertOrRepostAfterDismissal() = runTest {
+        val posted = mutableListOf<String?>()
+        val delivery = ChangeAlertDelivery(prepare = { _, _ ->
+            withContext(NonCancellable) { delay(5_000) }
+            "Late picture"
+        }, publish = { _, _, content -> posted.add(content) })
+        val owner = async { delivery.deliver(page, "A") }
+        runCurrent()
+        advanceTimeBy(1_501)
+        runCurrent()
+        assertEquals("The ordinary fallback must post at the deadline", listOf<String?>(null), posted)
+        posted.clear() // Dismiss the alert while native image preparation is still winding down.
+        advanceUntilIdle()
+        owner.await()
+        assertTrue(posted.isEmpty())
+    }
+
     @Test fun boundedPreparationPostsOnceAndNeverRevivesADismissedAlert() = runTest {
         val posted = mutableListOf<String?>()
         val delivery = ChangeAlertDelivery(prepare = { _, _ ->
