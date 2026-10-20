@@ -44,6 +44,8 @@ play {
 
 android {
     namespace = "com.bernaferrari.changedetection"
+    // Used to extract debug symbols from native dependencies, even without app C++ sources.
+    ndkVersion = "29.0.14206865"
     compileSdk {
         version = release(37) {
             minorApiLevel = 2
@@ -89,6 +91,7 @@ android {
         named("release") {
             isMinifyEnabled = true
             isShrinkResources = true
+            ndk.debugSymbolLevel = "SYMBOL_TABLE"
 
             setProguardFiles(
                 listOf(
