@@ -1,5 +1,6 @@
 package com.bernaferrari.changedetection.sync
 
+import com.bernaferrari.changedetection.diagnostics.*
 import com.bernaferrari.changedetection.error.*
 import com.bernaferrari.changedetection.repo.capturePolicy
 import com.bernaferrari.changedetection.repo.Site
@@ -183,8 +184,10 @@ open class SyncEngine(
     }
 
     /** Reuses an editor preview only while history is empty; a newer check always wins. */
-    suspend fun establishFirstVersion(site: Site, result: FetchResult.Success): SyncResult = withSiteLock(site.id) {
-        processFetchResultUnlocked(site, result, site.threshold, firstVersionOnly = true)
+    suspend fun establishFirstVersion(site: Site, result: FetchResult.Success): SyncResult = recordDiagnostic(site.captureMode, site.textIncludeSelector.isNotBlank(), site.textExcludeSelector.isNotBlank(), DiagnosticTrigger.BASELINE, site.id) {
+        withSiteLock(site.id) {
+            processFetchResultUnlocked(site, result, site.threshold, firstVersionOnly = true)
+        }
     }
 
     /**
@@ -211,6 +214,7 @@ open class SyncEngine(
         }
         when (result) {
             is FetchResult.Success -> {
+                diagnosticMetric(DiagnosticStage.PREPARE_CONTENT, DiagnosticMetric.BYTES_BUCKET, if (result.data.isEmpty()) 0 else 32 - result.data.size.countLeadingZeroBits())
                 if (result.data.isEmpty()) {
                     processErrorResult(currentSite, FetchResult.Error("The page returned no content"))
                 } else if (site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT && result.contentType.startsWith("image/", true)) {
@@ -221,7 +225,7 @@ open class SyncEngine(
                     } catch (cancelled: CancellationException) {
                         throw cancelled
                     } catch (error: Exception) {
-                        processErrorResult(currentSite, FetchResult.Error("Could not read the saved baseline", DatabaseError(DatabaseError.Operation.READ, "Could not read the saved baseline", error)))
+                        processErrorResult(currentSite, FetchResult.Error("Could not process captured content", error))
                     }
                 }
             }
@@ -232,9 +236,19 @@ open class SyncEngine(
         }
     }
 
+    private suspend fun readBaseline(id: String): ByteArray = diagnosticStage(DiagnosticStage.READ_BASELINE) {
+        try {
+            fileStorage.readBytes(id)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            throw DatabaseError(DatabaseError.Operation.READ, "Could not read baseline file", e)
+        }
+    }
+
     /** Detection uses pixel evidence; filtered regions are only an explanation for the reader. */
     private suspend fun visiblyChanged(before: ByteArray, after: ByteArray): Boolean {
-        val difference = com.bernaferrari.changedetection.image.PlatformImageDiff.compare(before, after, includeDiffImage = false)
+        val difference = diagnosticStage(DiagnosticStage.COMPARE) { com.bernaferrari.changedetection.image.PlatformImageDiff.compare(before, after, includeDiffImage = false) }
         check(difference.error == null && (difference.totalPixels > 0 || difference.dimensionMismatch != null)) { "Could not compare screenshots" }
         return difference.dimensionMismatch != null || difference.differentPixels > 0
     }
@@ -245,7 +259,16 @@ open class SyncEngine(
         threshold: Int,
         firstVersionOnly: Boolean,
     ): SyncResult {
-        val lastSnap = snapsDao.getLastSnapForSiteId(site.id)
+        val lastSnap = diagnosticStage(DiagnosticStage.READ_BASELINE) {
+            try {
+                snapsDao.getLastSnapForSiteId(site.id)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                throw DatabaseError(DatabaseError.Operation.READ, "Could not read baseline metadata", e)
+            }
+        }
+        diagnosticMetric(DiagnosticStage.READ_BASELINE, DiagnosticMetric.BASELINE_PRESENT, if (lastSnap == null) 0 else 1)
         if (firstVersionOnly && lastSnap != null) return SyncResult.Success(site.id, hadChanges = false)
         // When reusing a preview, the commit below must still see this empty history.
         // Pages added before icons were captured get their real (high-resolution) icon from the HTML they already served.
@@ -255,7 +278,7 @@ open class SyncEngine(
         }
         val prepared = try {
             if (site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT) {
-                com.bernaferrari.changedetection.detection.prepareTextCapture(incoming.data, incoming.contentType, site.textRegion())
+                diagnosticStage(DiagnosticStage.PREPARE_CONTENT) { com.bernaferrari.changedetection.detection.prepareTextCapture(incoming.data, incoming.contentType, site.textRegion()) }
             } else {
                 null
             }
@@ -263,12 +286,14 @@ open class SyncEngine(
             return processErrorResult(site, FetchResult.Error(selection.message.orEmpty(), selection))
         }
         val result = if (prepared != null) incoming.copy(data = prepared.data) else incoming
-        val contentHash = if (result.contentType.startsWith("image/", true)) {
-            // A new browser renderer establishes a silent baseline, rather than a website-change alert.
-            val renderer = if (result.capturedWithBrowser) "image-v3" else "image-v2"
-            "$renderer:${site.capturePolicy().imageIdentity(result.capturedWithBrowser)}:${ContentHasher.hashContent(result.data)}"
-        } else {
-            prepared?.contentHash ?: ContentHasher.detectionHash(result.data, result.contentType, site.captureMode)
+        val contentHash = diagnosticStage(DiagnosticStage.PREPARE_CONTENT) {
+            if (result.contentType.startsWith("image/", true)) {
+                // A new browser renderer establishes a silent baseline, rather than a website-change alert.
+                val renderer = if (result.capturedWithBrowser) "image-v3" else "image-v2"
+                "$renderer:${site.capturePolicy().imageIdentity(result.capturedWithBrowser)}:${ContentHasher.hashContent(result.data)}"
+            } else {
+                prepared?.contentHash ?: ContentHasher.detectionHash(result.data, result.contentType, site.captureMode)
+            }
         }
         val isFirstSnap = lastSnap == null ||
             lastSnap.contentType.startsWith("image/", true) != result.contentType.startsWith("image/", true) ||
@@ -276,38 +301,41 @@ open class SyncEngine(
 
         // A stored normalized hash avoids loading and parsing the previous document
         // on every 30-second check. Legacy rows have no hash, so compare their bytes.
-        val hasContentChanged = when {
-            isFirstSnap -> true
-            lastSnap.contentHash.isNotEmpty() -> lastSnap.contentHash != contentHash
-            else -> ContentHasher.contentChanged(result.data, fileStorage.readBytes(lastSnap.snapId), result.contentType)
+        val hasContentChanged = diagnosticStage(DiagnosticStage.COMPARE) {
+            when {
+                isFirstSnap -> true
+                lastSnap.contentHash.isNotEmpty() -> lastSnap.contentHash != contentHash
+                else -> ContentHasher.contentChanged(result.data, readBaseline(lastSnap.snapId), result.contentType)
+            }
         }
         val explicitRule = site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT || site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.SOURCE
         val visualThreshold = site.visualFilterBasisPoints().takeIf { result.contentType.startsWith("image/", true) } ?: 0
-        val meetsThreshold = if (visualThreshold > 0 && !isFirstSnap && hasContentChanged) {
-            try {
-                val difference = com.bernaferrari.changedetection.image.PlatformImageDiff.compare(
-                    fileStorage.readBytes(requireNotNull(lastSnap).snapId),
-                    result.data,
-                    includeDiffImage = false,
-                )
-                if (difference.error != null || (difference.totalPixels <= 0 && difference.dimensionMismatch == null)) {
-                    return processErrorResult(site, FetchResult.Error("Could not compare screenshots", ContentError(ContentError.Reason.UNKNOWN)))
+        val meetsThreshold = diagnosticStage(DiagnosticStage.COMPARE) {
+            if (visualThreshold > 0 && !isFirstSnap && hasContentChanged) {
+                try {
+                    val difference = com.bernaferrari.changedetection.image.PlatformImageDiff.compare(
+                        readBaseline(requireNotNull(lastSnap).snapId),
+                        result.data,
+                        includeDiffImage = false,
+                    )
+                    if (difference.error != null || (difference.totalPixels <= 0 && difference.dimensionMismatch == null)) {
+                        throw ContentError(ContentError.Reason.UNKNOWN)
+                    }
+                    difference.dimensionMismatch != null || difference.differentPixels * 10_000 >= difference.totalPixels * visualThreshold
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    throw error
                 }
-                difference.dimensionMismatch != null || difference.differentPixels * 10_000 >= difference.totalPixels * visualThreshold
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (error: Exception) {
-                return processErrorResult(site, FetchResult.Error("Could not compare screenshots", error))
+            } else if (result.contentType.startsWith("image/", true) && !isFirstSnap && hasContentChanged && !explicitRule) {
+                // Encoding changes and pixel differences below the perceptual tolerance do not create a version.
+                // Region trimming must never discard the underlying pixel evidence.
+                visiblyChanged(readBaseline(requireNotNull(lastSnap).snapId), result.data)
+            } else {
+                visualThreshold > 0 || explicitRule || isFirstSnap || threshold <= 0 || !hasContentChanged ||
+                    ContentHasher.changedByteCount(result.data, readBaseline(lastSnap!!.snapId), result.contentType) >= threshold
             }
-        } else if (result.contentType.startsWith("image/", true) && !isFirstSnap && hasContentChanged && !explicitRule) {
-            // Encoding changes and pixel differences below the perceptual tolerance do not create a version.
-            // Region trimming must never discard the underlying pixel evidence.
-            visiblyChanged(fileStorage.readBytes(requireNotNull(lastSnap).snapId), result.data)
-        } else {
-            visualThreshold > 0 || explicitRule || isFirstSnap || threshold <= 0 || !hasContentChanged ||
-                ContentHasher.changedByteCount(result.data, fileStorage.readBytes(lastSnap!!.snapId), result.contentType) >= threshold
         }
-
         if (hasContentChanged && meetsThreshold) {
             return saveNewSnap(site, result, contentHash, lastSnap, isFirstSnap)
         } else {
@@ -349,31 +377,33 @@ open class SyncEngine(
                 contentHash = contentHash,
                 processedContentHash = contentHash,
             )
-            fileStorage.writeBytes(snapId, result.data)
+            diagnosticStage(DiagnosticStage.WRITE_FILE) { fileStorage.writeBytes(snapId, result.data) }
             currentCoroutineContext().ensureActive()
 
             // Complete this short commit even if Stop arrives at the suspension boundary.
             // The committed flag must be set before cancellation can be delivered on return.
             notificationSite = withContext(NonCancellable) {
-                val savedSite = inWriteTransaction {
-                    val current = currentCaptureSite(site) ?: return@inWriteTransaction null
-                    // A fresh start or history edit invalidates the comparison we just made.
-                    if (snapsDao.getLastSnapForSiteId(site.id)?.snapId != previousSnapId) return@inWriteTransaction null
-                    snapsDao.insertSnap(snap)
-                    sitesDao.updateSyncMetadata(
-                        siteId = site.id,
-                        timestamp = checkedAt,
-                        successful = true,
-                        isBrowser = result.contentType.contains("image", ignoreCase = true),
-                        isRead = if (!isFirstSnap) {
-                            false
-                        } else if (previousSnapId == null) {
-                            true
-                        } else {
-                            null
-                        },
-                    )
-                    current
+                val savedSite = diagnosticStage(DiagnosticStage.COMMIT_DATABASE) {
+                    inWriteTransaction {
+                        val current = currentCaptureSite(site) ?: return@inWriteTransaction null
+                        // A fresh start or history edit invalidates the comparison we just made.
+                        if (snapsDao.getLastSnapForSiteId(site.id)?.snapId != previousSnapId) return@inWriteTransaction null
+                        snapsDao.insertSnap(snap)
+                        sitesDao.updateSyncMetadata(
+                            siteId = site.id,
+                            timestamp = checkedAt,
+                            successful = true,
+                            isBrowser = result.contentType.contains("image", ignoreCase = true),
+                            isRead = if (!isFirstSnap) {
+                                false
+                            } else if (previousSnapId == null) {
+                                true
+                            } else {
+                                null
+                            },
+                        )
+                        current
+                    }
                 }
                 committed = savedSite != null
                 savedSite
@@ -387,6 +417,7 @@ open class SyncEngine(
                 "save_snap",
                 site.id,
             )
+            diagnosticFailure(error, CheckFailure.from(errorResult, error))
             try {
                 updateStatusIfCurrent(site, successful = false, isBrowser = site.isBrowser, failureCode = CheckFailure.from(errorResult, error).name)
             } catch (cancelled: CancellationException) {
@@ -412,7 +443,7 @@ open class SyncEngine(
         // Side effects after the commit can never remove durable history.
         if (!isFirstSnap && notificationSite.isNotificationEnabled) {
             try {
-                changeNotifier.notifyChange(notificationSite, snapId)
+                diagnosticStage(DiagnosticStage.NOTIFY) { changeNotifier.notifyChange(notificationSite, snapId) }
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
@@ -434,11 +465,13 @@ open class SyncEngine(
         it.url == site.url && it.isSyncEnabled && it.threshold == site.threshold && it.visualChangeThresholdBps == site.visualChangeThresholdBps && it.captureMode == site.captureMode && it.capturePolicy() == site.capturePolicy()
     }
 
-    private suspend fun updateStatusIfCurrent(site: Site, successful: Boolean, isBrowser: Boolean, expectedSnapshot: Snap? = null, failureCode: String? = null): Boolean = inWriteTransaction {
-        currentCaptureSite(site) ?: return@inWriteTransaction false
-        if (expectedSnapshot != null && snapsDao.getLastSnapForSiteId(site.id)?.snapId != expectedSnapshot.snapId) return@inWriteTransaction false
-        sitesDao.updateSyncMetadata(site.id, currentTimeMillis(), successful, isBrowser, isRead = null, failureCode = failureCode)
-        true
+    private suspend fun updateStatusIfCurrent(site: Site, successful: Boolean, isBrowser: Boolean, expectedSnapshot: Snap? = null, failureCode: String? = null): Boolean = diagnosticStage(DiagnosticStage.UPDATE_STATUS) {
+        inWriteTransaction {
+            currentCaptureSite(site) ?: return@inWriteTransaction false
+            if (expectedSnapshot != null && snapsDao.getLastSnapForSiteId(site.id)?.snapId != expectedSnapshot.snapId) return@inWriteTransaction false
+            sitesDao.updateSyncMetadata(site.id, currentTimeMillis(), successful, isBrowser, isRead = null, failureCode = failureCode)
+            true
+        }
     }
 
     private suspend fun processErrorResult(site: Site, result: FetchResult.Error): SyncResult {
@@ -449,6 +482,7 @@ open class SyncEngine(
             site.id,
         )
 
+        diagnosticFailure(result.throwable ?: Exception(), CheckFailure.from(errorResult, result.throwable))
         if (!updateStatusIfCurrent(site, successful = false, isBrowser = site.isBrowser, failureCode = CheckFailure.from(errorResult, result.throwable).name)) {
             return SyncResult.Skipped(site.id, "Page changed or paused during check")
         }
@@ -494,81 +528,84 @@ open class SyncEngine(
     /**
      * Fetch content from a website URL using Ktor.
      */
-    suspend fun fetchFromServer(site: Site): FetchResult = withContext(Dispatchers.Default) {
-        try {
-            httpClient.prepareGet(site.url) {
-                headers {
-                    append(HttpHeaders.UserAgent, USER_AGENT)
-                    append(HttpHeaders.Accept, "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                }
-                timeout {
-                    requestTimeoutMillis = REQUEST_TIMEOUT_MS
-                    connectTimeoutMillis = CONNECT_TIMEOUT_MS
-                }
-            }.execute { response ->
-                if (!response.status.isSuccess()) {
-                    val errorResult = errorHandler.handleError(
-                        NetworkError(response.status.value, "HTTP ${response.status.value}"),
-                        ErrorContext.SYNC_WORKER,
-                        "fetch_${site.id}",
-                        site.id,
-                    )
-                    return@execute FetchResult.Error(
-                        "HTTP ${response.status.value}: ${response.status.description}",
-                        throwable = NetworkError(response.status.value, "HTTP ${response.status.value}"),
-                        errorResult = errorResult,
-                    )
-                }
+    suspend fun fetchFromServer(site: Site): FetchResult = diagnosticStage(DiagnosticStage.NAVIGATE) {
+        withContext(Dispatchers.Default) {
+            try {
+                httpClient.prepareGet(site.url) {
+                    headers {
+                        append(HttpHeaders.UserAgent, USER_AGENT)
+                        append(HttpHeaders.Accept, "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    }
+                    timeout {
+                        requestTimeoutMillis = REQUEST_TIMEOUT_MS
+                        connectTimeoutMillis = CONNECT_TIMEOUT_MS
+                    }
+                }.execute { response ->
+                    diagnosticMetric(DiagnosticStage.NAVIGATE, DiagnosticMetric.HTTP_STATUS, response.status.value)
+                    if (!response.status.isSuccess()) {
+                        val errorResult = errorHandler.handleError(
+                            NetworkError(response.status.value, "HTTP ${response.status.value}"),
+                            ErrorContext.SYNC_WORKER,
+                            "fetch_${site.id}",
+                            site.id,
+                        )
+                        return@execute FetchResult.Error(
+                            "HTTP ${response.status.value}: ${response.status.description}",
+                            throwable = NetworkError(response.status.value, "HTTP ${response.status.value}"),
+                            errorResult = errorResult,
+                        )
+                    }
 
-                val contentType = response.contentType()?.toString() ?: "text/html"
+                    val contentType = response.contentType()?.toString() ?: "text/html"
 
-                // Check content size before loading
-                val contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull() ?: 0
-                if (contentLength > MAX_CONTENT_SIZE) {
-                    val errorResult = errorHandler.handleError(
-                        SyncError(SyncError.Reason.CONTENT_TOO_LARGE, "Content size: $contentLength"),
-                        ErrorContext.SYNC_WORKER,
-                        "fetch_${site.id}",
-                        site.id,
-                    )
-                    return@execute FetchResult.Error(
-                        "Content too large (${contentLength / 1024 / 1024}MB)",
-                        throwable = SyncError(SyncError.Reason.CONTENT_TOO_LARGE),
-                        errorResult = errorResult,
-                    )
-                }
-                // Stream the body so the size cap is enforced even without a
-                // Content-Length header, and keep binary payloads intact
-                // (decoding everything as text corrupted images and other binaries).
-                // Extract the charset label from the Content-Type header text
-                // (multiplatform-safe; response.charset() is JVM-only).
-                val charsetName = contentType.findCharset()?.takeIf { it.isNotBlank() } ?: "UTF-8"
-                val isText = contentType.isTextContentType()
+                    // Check content size before loading
+                    val contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull() ?: 0
+                    if (contentLength > MAX_CONTENT_SIZE) {
+                        val errorResult = errorHandler.handleError(
+                            SyncError(SyncError.Reason.CONTENT_TOO_LARGE, "Content size: $contentLength"),
+                            ErrorContext.SYNC_WORKER,
+                            "fetch_${site.id}",
+                            site.id,
+                        )
+                        return@execute FetchResult.Error(
+                            "Content too large (${contentLength / 1024 / 1024}MB)",
+                            throwable = SyncError(SyncError.Reason.CONTENT_TOO_LARGE),
+                            errorResult = errorResult,
+                        )
+                    }
+                    // Stream the body so the size cap is enforced even without a
+                    // Content-Length header, and keep binary payloads intact
+                    // (decoding everything as text corrupted images and other binaries).
+                    // Extract the charset label from the Content-Type header text
+                    // (multiplatform-safe; response.charset() is JVM-only).
+                    val charsetName = contentType.findCharset()?.takeIf { it.isNotBlank() } ?: "UTF-8"
+                    val isText = contentType.isTextContentType()
 
-                val bodyBytes = readCappedBody(response.bodyAsChannel())
-                val data = if (isText) {
-                    // Normalize text payloads to UTF-8 bytes (decodeByteArray falls
-                    // back to UTF-8 when the label is unknown).
-                    decodeByteArray(bodyBytes, charsetName).encodeToByteArray()
-                } else {
-                    bodyBytes
+                    val bodyBytes = readCappedBody(response.bodyAsChannel())
+                    val data = if (isText) {
+                        // Normalize text payloads to UTF-8 bytes (decodeByteArray falls
+                        // back to UTF-8 when the label is unknown).
+                        decodeByteArray(bodyBytes, charsetName).encodeToByteArray()
+                    } else {
+                        bodyBytes
+                    }
+                    FetchResult.Success(contentType, data)
                 }
-                FetchResult.Success(contentType, data)
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (e: Exception) {
+                val errorResult = errorHandler.handleError(
+                    e,
+                    ErrorContext.SYNC_WORKER,
+                    "fetch_${site.id}",
+                    site.id,
+                )
+                FetchResult.Error(
+                    e.message ?: "Unknown error",
+                    e,
+                    errorResult,
+                )
             }
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (e: Exception) {
-            val errorResult = errorHandler.handleError(
-                e,
-                ErrorContext.SYNC_WORKER,
-                "fetch_${site.id}",
-                site.id,
-            )
-            FetchResult.Error(
-                e.message ?: "Unknown error",
-                e,
-                errorResult,
-            )
         }
     }
 

@@ -175,14 +175,22 @@ fun AddEditConfirmScreen(
     // Reviewing is a step of its own that slides over the browser (a sheet inside the iOS sheet fought its
     // swipe-to-dismiss); back returns to the page with everything picked so far.
     val reviewStep: @Composable () -> Unit = {
-        com.bernaferrari.changedetection.util.BackHandler { if (!isSaving) { onClosePreview(); reviewing = false } }
+        com.bernaferrari.changedetection.util.BackHandler {
+            if (!isSaving) {
+                onClosePreview()
+                reviewing = false
+            }
+        }
         Scaffold(
             containerColor = MaterialTheme.colorScheme.surface,
             topBar = {
                 TopAppBar(
                     title = { Text(stringResource(if (isEditing) Res.string.editor_edit_title else Res.string.watch_this_page)) },
                     navigationIcon = {
-                        IconButton(enabled = !isSaving, onClick = { onClosePreview(); reviewing = false }) {
+                        IconButton(enabled = !isSaving, onClick = {
+                            onClosePreview()
+                            reviewing = false
+                        }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(Res.string.a11y_navigate_back))
                         }
                     },
@@ -478,7 +486,11 @@ fun AddEditConfirmScreen(
                                 isEditing = isEditing,
                                 advanced = {
                                     AdvancedOptions(
-                                        captureMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange,
+                                        captureMode,
+                                        textRegion,
+                                        regionError,
+                                        visualChangeThresholdBps,
+                                        onVisualChangeThresholdChange,
                                         onRegion = {
                                             onTextRegionChange(it)
                                             onPreview()
@@ -710,6 +722,7 @@ private fun PagePreviewCard(
                             FlowRow(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Button(onClick = onRetry, enabled = enabled) { Text(stringResource(Res.string.retry)) }
                                 OutlinedButton(onClick = onEditAddress, enabled = enabled) { Text(stringResource(Res.string.editor_change_address)) }
+                                com.bernaferrari.changedetection.diagnostics.DiagnosticsEntry()
                             }
                         }
 
@@ -846,7 +859,6 @@ private fun AddEditError.localizedMessage(): String = stringResource(
 
 /** Whether this platform can embed a browser for navigating, signing in and picking parts. Tests turn it off. */
 val LocalBrowserAvailable = androidx.compose.runtime.staticCompositionLocalOf { com.bernaferrari.changedetection.browser.supportsPageRegionSelection }
-
 
 /** The page name as a soft filled field: no label or underline, a primary outline only while editing; the pencil says it is editable. */
 @Composable

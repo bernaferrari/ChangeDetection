@@ -55,4 +55,16 @@ class CapturePreviewerTest {
             client.close()
         }
     }
+
+    @Test fun sourcePreviewPreservesTypedHttpFailure() = runTest {
+        val client = HttpClient(MockEngine { respond("unavailable", io.ktor.http.HttpStatusCode.ServiceUnavailable) })
+        try {
+            val previewer = HtmlCapturePreviewer(SyncEngine(client, mock(), mock(), mock(), mock(), ErrorHandler(), mock()))
+            val error = runCatching { previewer.capture("https://fixture.invalid", CaptureMode.SOURCE) }.exceptionOrNull()
+            assertTrue(error is com.bernaferrari.changedetection.error.NetworkError)
+            assertEquals(503, (error as com.bernaferrari.changedetection.error.NetworkError).code)
+        } finally {
+            client.close()
+        }
+    }
 }

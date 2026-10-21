@@ -1,0 +1,158 @@
+package com.bernaferrari.changedetection.diagnostics
+
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
+import com.bernaferrari.changedetection.repo.CaptureMode
+import kotlinx.coroutines.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.*
+import org.junit.Assert.*
+import org.junit.Test
+import java.io.File
+
+class DiagnosticStoreTest {
+    private val context = ApplicationProvider.getApplicationContext<Context>()
+    private fun runtime(): DiagnosticRuntime {
+        assertNotEquals(android.os.Looper.getMainLooper(), android.os.Looper.myLooper())
+        return DiagnosticRuntime(38, "3.0", DiagnosticVariant.DEBUG, "abcdef123456", 36, DiagnosticProvider.GOOGLE, "133.0.6943.137", DiagnosticSpace.AT_LEAST_256_MIB, 256)
+    }
+    private suspend fun fixture(block: suspend (AndroidDiagnosticStore, File, (Long) -> Unit) -> Unit) {
+        val dir = File(context.cacheDir, "diagnostic-test-${java.util.UUID.randomUUID()}")
+        var clock = 1_790_000_000_000L
+        val store = AndroidDiagnosticStore(context, dir, { clock }, ::runtime)
+        try {
+            block(store, dir) { clock = it }
+        } finally {
+            store.close()
+            dir.deleteRecursively()
+        }
+    }
+
+    @Test fun secretsNeverEnterDiskOrExportAndRestartPreservesSanitizedData() = runBlocking {
+        fixture { store, dir, _ ->
+            val secret = "https://user:password@secret.invalid/path?token=SECRET#private Cookie: session=VALUE <html>PERSONAL</html>"
+            val token = store.watchToken(secret)
+            store.append(DiagnosticAttempt(startedAt = 1_790_000_000_000L, mode = CaptureMode.TEXT, selected = true, excluded = true, trigger = DiagnosticTrigger.CHECK, watchToken = token, outcome = DiagnosticOutcome.FAILURE, events = listOf(DiagnosticEvent(DiagnosticStage.EXTRACT_TEXT, 10)), failure = DiagnosticFailure(DiagnosticStage.EXTRACT_TEXT, causes = listOf(exceptionKind(IllegalArgumentException(secret))))))
+            val report = store.report(secret)
+            assertEquals(1, report.attemptCount)
+            for (part in listOf("secret.invalid", "password", "SECRET", "Cookie", "PERSONAL", token, "startedAt", "attemptId")) assertFalse(part, report.json.contains(part))
+            assertTrue(report.json.contains("watch-1"))
+            assertTrue(report.json.contains("INVALID_CONTENT"))
+            assertFalse(dir.listFiles().orEmpty().filter { it.extension == "json" }.joinToString { it.readText() }.contains("SECRET"))
+            store.close()
+            val reopened = AndroidDiagnosticStore(context, dir, { 1_790_000_000_000L }, ::runtime)
+            try {
+                assertEquals(1, reopened.report(secret).attemptCount)
+            } finally {
+                reopened.close()
+            }
+        }
+    }
+
+    @Test fun retentionCountDiskAndReportLimitsRejectOversizedAndUnknownRawFields() = runBlocking {
+        fixture { store, dir, advance ->
+            repeat(120) { i ->
+                store.append(DiagnosticAttempt(startedAt = 1_790_000_000_000L, mode = CaptureMode.TEXT, selected = false, excluded = false, trigger = DiagnosticTrigger.CHECK, outcome = DiagnosticOutcome.SUCCESS, events = List(1000) { DiagnosticEvent(DiagnosticStage.COMPARE, it.toLong()) }))
+                if (i % 10 == 0) store.report()
+            }
+            var report = store.report()
+            val files = dir.listFiles().orEmpty().filter { it.name.startsWith("trace-") }
+            assertTrue(files.size <= AndroidDiagnosticStore.MAX_RECORDS)
+            assertTrue(files.sumOf { it.length() } <= AndroidDiagnosticStore.MAX_DISK_BYTES)
+            assertTrue(report.json.toByteArray().size <= AndroidDiagnosticStore.MAX_REPORT_BYTES)
+            assertTrue(report.attemptCount <= 10)
+            File(dir, "trace-oversized.json").writeBytes(ByteArray(AndroidDiagnosticStore.MAX_RECORD_BYTES + 1))
+            File(dir, "trace-unknown.json").writeText("{\"url\":\"https://private.invalid?token=SECRET\"}")
+            report = store.report()
+            assertFalse(report.json.contains("SECRET"))
+            assertFalse(File(dir, "trace-oversized.json").exists())
+            assertFalse(File(dir, "trace-unknown.json").exists())
+            advance(1_790_000_000_000L + AndroidDiagnosticStore.RETENTION_MS + 1)
+            assertEquals(0, store.report().attemptCount)
+        }
+    }
+
+    @Test fun incompleteCheckpointSurvivesRestartAndFinalRecordReplacesIt() = runBlocking {
+        fixture { store, dir, _ ->
+            val attempt = DiagnosticAttempt(startedAt = 1_790_000_000_000L, mode = CaptureMode.SCREENSHOT, selected = false, excluded = false, trigger = DiagnosticTrigger.CHECK, outcome = DiagnosticOutcome.INCOMPLETE, events = listOf(DiagnosticEvent(DiagnosticStage.CAPTURE_PIXELS, 100)))
+            store.append(attempt)
+            assertTrue(store.report().json.contains("INCOMPLETE"))
+            store.close()
+            val reopened = AndroidDiagnosticStore(context, dir, { 1_790_000_000_000L }, ::runtime)
+            try {
+                assertTrue(reopened.report().json.contains("CAPTURE_PIXELS"))
+                reopened.append(attempt.copy(outcome = DiagnosticOutcome.FAILURE, failure = DiagnosticFailure(DiagnosticStage.CAPTURE_PIXELS)))
+                val report = reopened.report()
+                assertEquals(1, report.attemptCount)
+                assertFalse(report.json.contains("INCOMPLETE"))
+            } finally {
+                reopened.close()
+            }
+        }
+    }
+
+    @Test fun runtimeStringsAreValidatedAndShareCacheIsBoundedWithReadOnlyIntent() = runBlocking {
+        val dir = File(context.cacheDir, "diagnostic-runtime-${java.util.UUID.randomUUID()}")
+        val store = AndroidDiagnosticStore(context, dir, { 1_790_000_000_000L }, { runtime().copy(versionName = "https://token=SECRET", providerVersion = "Cookie: SECRET", revision = "password=SECRET") })
+        try {
+            store.append(DiagnosticAttempt(startedAt = 1_790_000_000_000L, mode = CaptureMode.TEXT, selected = false, excluded = false, trigger = DiagnosticTrigger.PREVIEW, outcome = DiagnosticOutcome.SUCCESS, events = emptyList()))
+            val report = store.report()
+            assertFalse(report.json.contains("SECRET"))
+            assertTrue(report.json.contains("unavailable"))
+            repeat(12) { store.prepareShare(report) }
+            assertTrue(File(context.cacheDir, "shares").listFiles().orEmpty().count { it.name.startsWith("diagnostics-") } <= 8)
+            val file = store.prepareShare(report)
+            val chooser = diagnosticShareIntent(context, file)
+
+            @Suppress("DEPRECATION")
+            val send = chooser.getParcelableExtra<android.content.Intent>(android.content.Intent.EXTRA_INTENT)!!
+            assertEquals(android.content.Intent.ACTION_SEND, send.action)
+            assertTrue(send.flags and android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION != 0)
+            assertEquals(0, send.flags and android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        } finally {
+            store.close()
+            dir.deleteRecursively()
+        }
+    }
+
+    @Test fun concurrentWritersAndBrokenStorageCannotFailMonitoring() = runBlocking {
+        fixture { store, _, advance ->
+            advance(System.currentTimeMillis())
+            val prior = DiagnosticLog.sink
+            try {
+                DiagnosticLog.sink = store
+                coroutineScope {
+                    repeat(8) { worker ->
+                        launch(Dispatchers.Default) {
+                            repeat(4) {
+                                assertEquals(
+                                    worker,
+                                    recordDiagnostic(CaptureMode.TEXT, false, false, DiagnosticTrigger.CHECK, "watch-$worker") {
+                                        diagnosticStage(DiagnosticStage.COMPARE) { worker }
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+                val report = store.report()
+                assertTrue(report.attemptCount > 0)
+                assertTrue(report.json.toByteArray().size <= AndroidDiagnosticStore.MAX_REPORT_BYTES)
+            } finally {
+                DiagnosticLog.sink = prior
+            }
+        }
+        val blocked = File(context.cacheDir, "diagnostic-blocked-${java.util.UUID.randomUUID()}").apply { writeText("file instead of directory") }
+        val broken = AndroidDiagnosticStore(context, blocked, runtime = ::runtime)
+        val prior = DiagnosticLog.sink
+        try {
+            DiagnosticLog.sink = broken
+            assertEquals(42, recordDiagnostic(CaptureMode.TEXT, false, false, DiagnosticTrigger.CHECK, "watch") { 42 })
+            assertTrue(Json.parseToJsonElement(broken.report().json).jsonObject.getValue("droppedRecords").jsonPrimitive.int > 0)
+        } finally {
+            DiagnosticLog.sink = prior
+            broken.close()
+            blocked.delete()
+        }
+    }
+}

@@ -375,7 +375,10 @@ private fun DetailList(
         }
         if (failing) {
             item(key = "failure") {
-                FailureCallout(site.lastFailureCode, site.lastSuccessfulCheck, item.isSyncing, onCheck, onOpenUrl, onEdit, onSchedule)
+                Column {
+                    FailureCallout(site.lastFailureCode, site.lastSuccessfulCheck, item.isSyncing, onCheck, onOpenUrl, onEdit, onSchedule)
+                    com.bernaferrari.changedetection.diagnostics.DiagnosticsEntry(site.id)
+                }
             }
         }
         item(key = "latest") {

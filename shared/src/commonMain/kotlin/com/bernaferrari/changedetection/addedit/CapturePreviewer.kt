@@ -46,12 +46,10 @@ class HtmlCapturePreviewer(private val engine: SyncEngine) : CapturePreviewer {
     override suspend fun capture(url: String, mode: CaptureMode, region: com.bernaferrari.changedetection.detection.TextRegion): CapturePreview {
         check(mode != CaptureMode.SCREENSHOT) { "Screenshot monitoring is unavailable on this platform" }
         return when (val result = engine.fetchFromServer(previewSite(url))) {
-            is SyncEngine.FetchResult.Error -> error(result.errorResult?.userMessage ?: result.message)
-
+            is SyncEngine.FetchResult.Error -> throw (result.throwable ?: IllegalStateException(result.errorResult?.userMessage ?: result.message))
             is SyncEngine.FetchResult.Success -> previewFromCapture(result, url, mode, region)
         }
     }
-
 }
 
 private val titleTag = Regex("<title[^>]*>(.*?)</title>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
