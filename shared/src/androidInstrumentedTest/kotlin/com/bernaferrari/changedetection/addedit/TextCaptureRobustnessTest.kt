@@ -54,6 +54,35 @@ class TextCaptureRobustnessTest {
         unchanged(runner.check(site.id))
     }
 
+    @Test fun renderedHttpErrorsKeepTheirFailureCategory() = watch("") {
+        for ((status, expected) in listOf(
+            403 to com.bernaferrari.changedetection.error.CheckFailure.ACCESS_DENIED,
+            404 to com.bernaferrari.changedetection.error.CheckFailure.NOT_FOUND,
+            429 to com.bernaferrari.changedetection.error.CheckFailure.RATE_LIMITED,
+            503 to com.bernaferrari.changedetection.error.CheckFailure.SERVER,
+        )) {
+            server.response = { _, _ -> Response("Unavailable", status) }
+            val result = runner.check(site.id)
+            failedWithoutVersion(result)
+            val failure = result as SyncResult.Failed
+            assertEquals(
+                "Preserve the main-document HTTP status",
+                expected,
+                com.bernaferrari.changedetection.error.CheckFailure.from(failure.error, failure.exception),
+            )
+            val context = ApplicationProvider.getApplicationContext<Context>()
+            val report = com.bernaferrari.changedetection.diagnostics.AndroidDiagnostics.install(context).report(site.id)
+            val attempts = kotlinx.serialization.json.Json.parseToJsonElement(report.json)
+                .let { it as kotlinx.serialization.json.JsonObject }.getValue("attempts") as kotlinx.serialization.json.JsonArray
+            assertTrue("Actual rendered check must retain its HTTP callback and failure stage", attempts.any { row ->
+                val encoded = row.toString()
+                encoded.contains("\"category\":\"${expected.name}\"") &&
+                    encoded.contains("\"stage\":\"NAVIGATE\"") && encoded.contains("\"metric\":\"HTTP_STATUS\",\"code\":$status")
+            })
+            assertFalse(report.json.contains(server.url))
+        }
+    }
+
     @Test fun httpErrorPreservesBaselineAndRetryWorks() = watch("") {
         server.response = { _, _ -> Response("Unavailable", 503) }
         failedWithoutVersion(runner.check(site.id))

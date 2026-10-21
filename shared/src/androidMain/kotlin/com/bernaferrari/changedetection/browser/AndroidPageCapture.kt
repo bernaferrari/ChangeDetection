@@ -1,5 +1,6 @@
 package com.bernaferrari.changedetection.browser
 
+import com.bernaferrari.changedetection.diagnostics.*
 import android.net.http.SslError
 import android.view.Choreographer
 import android.webkit.*
@@ -21,24 +22,26 @@ import kotlin.math.roundToInt
 /** The app needs a cancellable page capture, not a second browser automation runtime. */
 internal class AndroidPageCapture(private val view: WebView) {
     private var rendererFailure: IOException? = null
-    private var navigationFailure: IOException? = null
+    private var navigationFailure: Exception? = null
 
     /**
      * @param hide CSS selectors of parts to ignore; made invisible (layout kept) before capture.
      * @param only CSS selector of the single part to watch; the capture is cropped to it.
      */
     suspend fun capture(url: String, settleDelayMs: Long, maxHeight: Int, hide: String = "", only: String = ""): WebViewScreenshot = withContext(Dispatchers.Main.immediate) {
-        navigate(url)
-        delay(settleDelayMs.coerceIn(0, 30_000))
-        captureLoaded(maxHeight, hide, only)
+        diagnosticMetric(DiagnosticStage.CREATE_BROWSER, DiagnosticMetric.ATTACHED, if (view.isAttachedToWindow) 1 else 0)
+        diagnosticStage(DiagnosticStage.NAVIGATE) { navigate(url) }
+        diagnosticStage(DiagnosticStage.SETTLE) { delay(settleDelayMs.coerceIn(0, 30_000)) }
+        diagnosticStage(DiagnosticStage.CAPTURE_PIXELS) { captureLoaded(maxHeight, hide, only) }
     }
 
     /** Text watches must read the rendered DOM, just like the initial live preview.
      * Keep screenshot cleanup out of this path: it mutates the content being watched.
      */
     suspend fun captureText(url: String, settleDelayMs: Long, only: String = ""): WebViewScreenshot = withContext(Dispatchers.Main.immediate) {
-        navigate(url)
-        delay(settleDelayMs.coerceIn(0, 30_000))
+        diagnosticMetric(DiagnosticStage.CREATE_BROWSER, DiagnosticMetric.ATTACHED, if (view.isAttachedToWindow) 1 else 0)
+        diagnosticStage(DiagnosticStage.NAVIGATE) { navigate(url) }
+        diagnosticStage(DiagnosticStage.SETTLE) { delay(settleDelayMs.coerceIn(0, 30_000)) }
         // A configured delay may be zero while the selected node is still arriving.
         // Give missing content a bounded grace period, then let normal region validation
         // report a genuinely removed selection. Never fall back to the whole page.
@@ -52,7 +55,7 @@ internal class AndroidPageCapture(private val view: WebView) {
         }
         navigationFailure?.let { throw it }
         rendererFailure?.let { throw it }
-        val raw = evaluate("document.documentElement.outerHTML")
+        val raw = diagnosticStage(DiagnosticStage.EXTRACT_TEXT) { evaluate("document.documentElement.outerHTML") }
         require(raw.length <= 12_000_000) { "The page is too large to preview" }
         val html = kotlinx.serialization.json.Json.decodeFromString<String>(raw)
         withContext(Dispatchers.Default) {
@@ -181,13 +184,17 @@ internal class AndroidPageCapture(private val view: WebView) {
     }
 
     private suspend fun evaluate(script: String): String = suspendCancellableCoroutine { continuation ->
-        view.evaluateJavascript(script) { result -> if (continuation.isActive) continuation.resumeWith(Result.success(result.orEmpty())) }
+        view.evaluateJavascript(script) { result ->
+            if (result == null || result == "null") continuation.context[DiagnosticSpan]?.callback(DiagnosticStage.EXTRACT_TEXT, DiagnosticMetric.CALLBACK_NULL, 1)
+            if (continuation.isActive) continuation.resumeWith(Result.success(result.orEmpty()))
+        }
     }
 
     private suspend fun navigate(url: String) = withTimeout(30_000) {
+        val trace = currentCoroutineContext()[DiagnosticSpan]
         val loaded = CompletableDeferred<Unit>()
         navigationFailure = null
-        fun fail(error: IOException) {
+        fun fail(error: Exception) {
             // Readiness can complete before a redirect or HTTP error arrives. Keep the
             // error for the capture as well as the initial navigation awaiter.
             navigationFailure = error
@@ -195,23 +202,34 @@ internal class AndroidPageCapture(private val view: WebView) {
         }
         view.webViewClient = object : WebViewClient() {
             override fun onPageFinished(webView: WebView, finishedUrl: String) {
-                if (finishedUrl != "about:blank") loaded.complete(Unit)
+                if (finishedUrl != "about:blank") {
+                    trace?.callback(DiagnosticStage.DOM_READY, DiagnosticMetric.DOM_READY, 1)
+                    loaded.complete(Unit)
+                }
             }
 
             override fun onReceivedError(webView: WebView, request: WebResourceRequest, error: WebResourceError) {
-                if (request.isForMainFrame) fail(IOException(error.description.toString()))
+                if (request.isForMainFrame) {
+                    trace?.callback(DiagnosticStage.NAVIGATE, DiagnosticMetric.WEBVIEW_ERROR, error.errorCode)
+                    fail(IOException(error.description.toString()))
+                }
             }
 
             override fun onReceivedHttpError(webView: WebView, request: WebResourceRequest, response: WebResourceResponse) {
-                if (request.isForMainFrame) fail(IOException("HTTP ${response.statusCode}: ${response.reasonPhrase}"))
+                if (request.isForMainFrame) {
+                    trace?.callback(DiagnosticStage.NAVIGATE, DiagnosticMetric.HTTP_STATUS, response.statusCode)
+                    fail(com.bernaferrari.changedetection.error.NetworkError(response.statusCode, "HTTP ${response.statusCode}"))
+                }
             }
 
             override fun onReceivedSslError(webView: WebView, handler: SslErrorHandler, error: SslError) {
+                trace?.callback(DiagnosticStage.NAVIGATE, DiagnosticMetric.TLS_ERROR, error.primaryError)
                 handler.cancel()
                 fail(SSLException("The page has an invalid TLS certificate"))
             }
 
             override fun onRenderProcessGone(webView: WebView, detail: RenderProcessGoneDetail): Boolean {
+                trace?.callback(DiagnosticStage.NAVIGATE, DiagnosticMetric.RENDERER_CRASH, if (detail.didCrash()) 1 else 0)
                 val error = IOException("The browser renderer stopped. Try the page again.")
                 rendererFailure = error
                 loaded.completeExceptionally(error)

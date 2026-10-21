@@ -1,5 +1,6 @@
 package com.bernaferrari.changedetection.addedit
 
+import com.bernaferrari.changedetection.diagnostics.*
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -17,6 +18,9 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
 class AndroidCapturePreviewer(context: Context, engine: SyncEngine, private val preferences: DataStore<Preferences>) : CapturePreviewer {
+    init {
+        AndroidDiagnostics.install(context)
+    }
     private val html = HtmlCapturePreviewer(engine)
     private val browsers = AndroidScreenshotBrowserFactory(context)
     private val singlePreview = Mutex()
@@ -26,30 +30,32 @@ class AndroidCapturePreviewer(context: Context, engine: SyncEngine, private val 
     override suspend fun keepAsFirstVersion(site: com.bernaferrari.changedetection.repo.Site, preview: CapturePreview): Boolean = html.keepAsFirstVersion(site, preview)
 
     override suspend fun capture(url: String, mode: CaptureMode, region: com.bernaferrari.changedetection.detection.TextRegion): CapturePreview = singlePreview.withLock {
-        withTimeout(90_000) {
-            val settings = preferences.data.first()
-            val defaultMethod = ComparisonMethod.entries.firstOrNull { it.name == settings[SettingsViewModel.COMPARISON_METHOD_KEY] } ?: ComparisonMethod.SCREENSHOT
-            if (mode != CaptureMode.TEXT && mode.resolve(defaultMethod) == ComparisonMethod.HTML) {
-                html.capture(url, mode, region)
-            } else {
-                withContext(Dispatchers.Main.immediate) {
-                    val browser = browsers.create()
-                    try {
-                        when (val result = browser.capture(previewSite(url).copy(captureMode = mode, textIncludeSelector = region.include, textExcludeSelector = region.exclude), settings[SettingsViewModel.BROWSER_DELAY_KEY] ?: 5_000L)) {
-                            // Same capture and hand-off as AndroidScreenshotSyncer, so it can stand in for the first check.
-                            is ScreenshotCaptureOutcome.Success -> {
-                                val capture = SyncEngine.FetchResult.Success(result.contentType, result.bytes, capturedWithBrowser = true)
-                                if (mode == CaptureMode.TEXT) {
-                                    previewFromCapture(capture, url, mode, region)
-                                } else {
-                                    CapturePreview.Image(result.bytes, result.title?.let { cleanTitle(it) }, result.icon, capture)
+        recordDiagnostic(mode, region.include.isNotBlank(), region.exclude.isNotBlank(), DiagnosticTrigger.PREVIEW) {
+            withTimeout(90_000) {
+                val settings = preferences.data.first()
+                val defaultMethod = ComparisonMethod.entries.firstOrNull { it.name == settings[SettingsViewModel.COMPARISON_METHOD_KEY] } ?: ComparisonMethod.SCREENSHOT
+                if (mode != CaptureMode.TEXT && mode.resolve(defaultMethod) == ComparisonMethod.HTML) {
+                    html.capture(url, mode, region)
+                } else {
+                    withContext(Dispatchers.Main.immediate) {
+                        val browser = browsers.create()
+                        try {
+                            when (val result = browser.capture(previewSite(url).copy(captureMode = mode, textIncludeSelector = region.include, textExcludeSelector = region.exclude), settings[SettingsViewModel.BROWSER_DELAY_KEY] ?: 5_000L)) {
+                                // Same capture and hand-off as AndroidScreenshotSyncer, so it can stand in for the first check.
+                                is ScreenshotCaptureOutcome.Success -> {
+                                    val capture = SyncEngine.FetchResult.Success(result.contentType, result.bytes, capturedWithBrowser = true)
+                                    if (mode == CaptureMode.TEXT) {
+                                        previewFromCapture(capture, url, mode, region)
+                                    } else {
+                                        CapturePreview.Image(result.bytes, result.title?.let { cleanTitle(it) }, result.icon, capture)
+                                    }
                                 }
-                            }
 
-                            is ScreenshotCaptureOutcome.Failure -> error(result.message)
+                                is ScreenshotCaptureOutcome.Failure -> error(result.message)
+                            }
+                        } finally {
+                            browser.close()
                         }
-                    } finally {
-                        browser.close()
                     }
                 }
             }

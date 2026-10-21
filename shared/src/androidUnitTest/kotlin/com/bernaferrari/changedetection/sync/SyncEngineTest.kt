@@ -852,6 +852,17 @@ class SyncEngineTest {
         verify(mockFileStorage).deleteFile(any())
     }
 
+    @Test fun `invalid snapshot metadata is not mislabeled as a database save failure`() = runTest {
+        val site = createTestSite()
+        whenever(mockSitesDao.getSiteById(site.id)).thenReturn(site)
+        whenever(mockSnapsDao.getLastSnapForSiteId(site.id)).thenReturn(createTestSnap(site.id).copy(timestamp = Long.MAX_VALUE, contentHash = "old-policy:hash"))
+        syncEngine = makeSyncEngine()
+        val result = syncEngine.processFetchResult(site, SyncEngine.FetchResult.Success("text/html", "new content".toByteArray())) as SyncResult.Failed
+        assertTrue(result.exception is IllegalStateException)
+        assertEquals(com.bernaferrari.changedetection.error.CheckFailure.UNKNOWN, com.bernaferrari.changedetection.error.CheckFailure.from(result.error, result.exception))
+        verify(mockFileStorage, never()).writeBytes(any(), any())
+    }
+
     // ========== Helper Methods ==========
 
     /** Builds the engine under test with a no-op write transaction (Room's

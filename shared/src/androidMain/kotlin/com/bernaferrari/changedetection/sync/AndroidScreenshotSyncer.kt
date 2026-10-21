@@ -1,5 +1,6 @@
 package com.bernaferrari.changedetection.sync
 
+import com.bernaferrari.changedetection.diagnostics.*
 import android.content.Context
 import android.view.ContextThemeWrapper
 import android.webkit.WebView
@@ -82,7 +83,7 @@ class AndroidScreenshotSyncer(
         if (!site.isSyncEnabled) return SyncResult.Skipped(site.id, "Sync disabled")
         var browser: ScreenshotBrowser? = null
         return try {
-            browser = browserFactory.create()
+            browser = diagnosticStage(DiagnosticStage.CREATE_BROWSER) { browserFactory.create() }
             when (val capture = browser.capture(site, delayMs)) {
                 is ScreenshotCaptureOutcome.Success -> {
                     capture.icon?.let { runCatching { onIcon(site.id, it) } }
@@ -104,7 +105,7 @@ class AndroidScreenshotSyncer(
             Napier.e("Screenshot check ran out of memory for ${site.id}", error)
             recordFailure(site, error)
         } finally {
-            runCatching { browser?.close() }
+            runCatching { diagnosticStage(DiagnosticStage.CLOSE_BROWSER) { browser?.close() } }
                 .onFailure { Napier.w("Failed to close screenshot browser", it) }
         }
     }
@@ -127,7 +128,7 @@ class AndroidScreenshotSyncer(
 }
 
 class AndroidScreenshotBrowserFactory(context: Context) : ScreenshotBrowserFactory {
-    private val appContext = context.applicationContext
+    private val appContext = context.applicationContext.also { AndroidDiagnostics.install(it) }
 
     override fun create(): ScreenshotBrowser {
         val themedContext = ContextThemeWrapper(appContext, android.R.style.Theme_DeviceDefault_Light)

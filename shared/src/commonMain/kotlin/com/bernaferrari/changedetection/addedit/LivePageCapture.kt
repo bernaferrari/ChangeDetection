@@ -1,5 +1,6 @@
 package com.bernaferrari.changedetection.addedit
 
+import com.bernaferrari.changedetection.diagnostics.*
 import com.bernaferrari.changedetection.browser.PageCleanup
 import com.bernaferrari.changedetection.detection.TextRegion
 import com.bernaferrari.changedetection.repo.CaptureMode
@@ -21,27 +22,29 @@ internal suspend fun captureLivePagePreview(
     mode: CaptureMode,
     region: TextRegion,
     onPreview: (CapturePreview) -> Unit = {},
-): CapturePreview? = withTimeout(90_000) {
-    // Source monitoring needs the original HTTP response, rather than the browser's modified DOM.
-    if (mode == CaptureMode.SOURCE || mode == CaptureMode.DEFAULT) return@withTimeout null
-    if (mode != CaptureMode.SCREENSHOT) {
-        // Read the URL and DOM in the same JavaScript turn. Picker styles are restored even
-        // if serialization fails or the caller is cancelled before the callback arrives.
-        val raw = navigator.readScript(liveTextCaptureScript(region))
-        return@withTimeout withContext(Dispatchers.Default) {
-            val result = decodeLiveTextCapture(raw, url) ?: return@withContext null
-            previewFromCapture(result, url, mode, region)
+): CapturePreview? = recordDiagnostic(mode, region.include.isNotBlank(), region.exclude.isNotBlank(), DiagnosticTrigger.INTERACTIVE_PREVIEW) {
+    withTimeout(90_000) {
+        // Source monitoring needs the original HTTP response, rather than the browser's modified DOM.
+        if (mode == CaptureMode.SOURCE || mode == CaptureMode.DEFAULT) return@withTimeout null
+        if (mode != CaptureMode.SCREENSHOT) {
+            // Read the URL and DOM in the same JavaScript turn. Picker styles are restored even
+            // if serialization fails or the caller is cancelled before the callback arrives.
+            val raw = diagnosticStage(DiagnosticStage.EXTRACT_TEXT) { navigator.readScript(liveTextCaptureScript(region)) }
+            return@withTimeout withContext(Dispatchers.Default) {
+                val result = decodeLiveTextCapture(raw, url) ?: return@withContext null
+                previewFromCapture(result, url, mode, region)
+            }
         }
-    }
-    navigator.readScript("window.__cdPick&&window.__cdPick.mark('','');window.__cdPick&&window.__cdPick.disable();0")
-    try {
-        val result = captureLoadedPageScreenshot(state, region, onPreview) ?: return@withTimeout null
-        // Screenshot tiling spans multiple frames, so check navigation again after capture.
-        val live = decodeLivePage(navigator.readScript("window.location.href")) ?: return@withTimeout null
-        if (live.url != url) return@withTimeout null
-        previewFromCapture(result, url, mode, region)
-    } finally {
-        navigator.evaluateJavaScript("window.__cdPick&&window.__cdPick.mark(${PageCleanup.js(region.include)},${PageCleanup.js(region.exclude)});0")
+        navigator.readScript("window.__cdPick&&window.__cdPick.mark('','');window.__cdPick&&window.__cdPick.disable();0")
+        try {
+            val result = diagnosticStage(DiagnosticStage.CAPTURE_PIXELS) { captureLoadedPageScreenshot(state, region, onPreview) } ?: return@withTimeout null
+            // Screenshot tiling spans multiple frames, so check navigation again after capture.
+            val live = decodeLivePage(navigator.readScript("window.location.href")) ?: return@withTimeout null
+            if (live.url != url) return@withTimeout null
+            previewFromCapture(result, url, mode, region)
+        } finally {
+            navigator.evaluateJavaScript("window.__cdPick&&window.__cdPick.mark(${PageCleanup.js(region.include)},${PageCleanup.js(region.exclude)});0")
+        }
     }
 }
 

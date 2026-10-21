@@ -5,6 +5,9 @@
 
     <!-- Host activity for Compose UI tests in this library module's test APK. -->
     <application android:usesCleartextTraffic="true">
+        <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.files" android:exported="false" android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
+        </provider>
         <activity android:name="com.bernaferrari.changedetection.sync.AlertTargetActivity" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:exported="false" />
         <activity android:name="com.bernaferrari.changedetection.ui.polish.PerfNavigationActivity" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:exported="false" />
         <activity

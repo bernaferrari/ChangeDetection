@@ -123,6 +123,7 @@ fun SettingsScreen(
             }
             LazyColumn(Modifier.widthIn(max = 720.dp).fillMaxSize(), contentPadding = PaddingValues(bottom = 40.dp)) {
                 if (writeFailed) item(key = "write-error") { SettingsWriteError(viewModel::retryPreferenceWrite) }
+                item(key = "diagnostics") { com.bernaferrari.changedetection.diagnostics.DiagnosticsEntry() }
                 item(key = "checking") {
                     GroupLabel(stringResource(Res.string.settings_group_checking), Modifier.padding(top = 0.dp))
                     ListGroup {
