@@ -488,16 +488,26 @@ private fun FailureCallout(code: String?, lastSuccess: Long?, checking: Boolean,
 
 private fun failureAdvice(failure: CheckFailure) = when (failure) {
     CheckFailure.SERVER, CheckFailure.TIMEOUT -> Res.string.advice_temporary
+
     CheckFailure.CONNECTION -> Res.string.advice_connection
+
     CheckFailure.LOGIN, CheckFailure.ACCESS_DENIED -> Res.string.advice_login
+
     CheckFailure.NOT_FOUND -> Res.string.advice_not_found
+
     CheckFailure.RATE_LIMITED -> Res.string.advice_rate
+
     CheckFailure.REGION -> Res.string.advice_region
+
     CheckFailure.CONTENT, CheckFailure.CONTENT_TOO_LARGE -> Res.string.advice_content
+
     CheckFailure.CAPTURE_UNAVAILABLE -> Res.string.advice_capture
+
     // The app knows these causes; say them instead of the catch-all.
     CheckFailure.STORAGE_FULL -> Res.string.check_failure_storage_full_detail
+
     CheckFailure.SAVE_FAILED -> Res.string.check_failure_save_failed_detail
+
     else -> Res.string.advice_generic
 }
 

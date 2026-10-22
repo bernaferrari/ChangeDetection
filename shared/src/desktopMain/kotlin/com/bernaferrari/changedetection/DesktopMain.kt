@@ -27,7 +27,7 @@ fun main() {
             androidx.compose.ui.graphics.painter.BitmapPainter(
                 Thread.currentThread().contextClassLoader.getResourceAsStream("app_icon.png")!!.use {
                     org.jetbrains.skia.Image.makeFromEncoded(it.readBytes()).toComposeImageBitmap()
-                }
+                },
             )
         }
         Window(

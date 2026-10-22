@@ -185,7 +185,15 @@ fun PageAvatar(
             Text(
                 letter,
                 style = MaterialTheme.typography.titleMedium.copy(fontSize = (size.value * 0.4f).sp, fontWeight = FontWeight.Bold),
-                color = (if (automaticColor) (if (dark) Color.White else Color(0xFF1B1B21)) else if (tint.luminance() > 0.5f) Color(0xFF1B1B21) else Color.White).copy(alpha = if (dimmed) 0.45f else 0.95f),
+                color = (
+                    if (automaticColor) {
+                        (if (dark) Color.White else Color(0xFF1B1B21))
+                    } else if (tint.luminance() > 0.5f) {
+                        Color(0xFF1B1B21)
+                    } else {
+                        Color.White
+                    }
+                    ).copy(alpha = if (dimmed) 0.45f else 0.95f),
             )
         }
     }
@@ -297,8 +305,7 @@ private fun shiftHue(color: Color, degrees: Float): Color {
 }
 
 /** The color a page gets when it first leaves its original icon for a shape: stable per page, like its automatic tint. */
-internal fun pageStartingColor(key: String): com.bernaferrari.changedetection.repo.PageIconColor =
-    com.bernaferrari.changedetection.repo.PageIconColor.entries.drop(1).let { it[(mixHash(key.hashCode()) ushr 8) % it.size] }
+internal fun pageStartingColor(key: String): com.bernaferrari.changedetection.repo.PageIconColor = com.bernaferrari.changedetection.repo.PageIconColor.entries.drop(1).let { it[(mixHash(key.hashCode()) ushr 8) % it.size] }
 
 /** Page icons come from the network; offline UI tests turn them off so nothing waits on a request. */
 val LocalPageIcons = androidx.compose.runtime.staticCompositionLocalOf { true }

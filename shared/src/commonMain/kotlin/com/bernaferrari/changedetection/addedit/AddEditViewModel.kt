@@ -105,8 +105,7 @@ class AddEditViewModel(
     private data class PreviewKey(val url: String, val mode: com.bernaferrari.changedetection.repo.CaptureMode, val region: com.bernaferrari.changedetection.detection.TextRegion)
     private val previewCache = mutableMapOf<PreviewKey, CapturePreview>()
 
-    private fun cachedPreview(state: AddEditUiState): CapturePreview? =
-        state.url.normalizeUrl()?.let { previewCache[PreviewKey(it, state.captureMode, state.textRegion)] }
+    private fun cachedPreview(state: AddEditUiState): CapturePreview? = state.url.normalizeUrl()?.let { previewCache[PreviewKey(it, state.captureMode, state.textRegion)] }
 
     fun dismissPreview() {
         previewGeneration++
@@ -138,18 +137,22 @@ class AddEditViewModel(
         _uiState.update { it.copy(preview = CapturePreviewState.Loading) }
         previewJob = viewModelScope.launch {
             try {
-                val live = if (liveCapture == null) null else try {
-                    liveCapture { content ->
-                        if (generation == previewGeneration) _uiState.update { it.copy(preview = CapturePreviewState.Ready(content)) }
+                val live = if (liveCapture == null) {
+                    null
+                } else {
+                    try {
+                        liveCapture { content ->
+                            if (generation == previewGeneration) _uiState.update { it.copy(preview = CapturePreviewState.Ready(content)) }
+                        }
+                    } catch (timeout: kotlinx.coroutines.TimeoutCancellationException) {
+                        kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                        null
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (error: Exception) {
+                        Napier.w("Could not capture the open page; falling back to a fresh preview", error)
+                        null
                     }
-                } catch (timeout: kotlinx.coroutines.TimeoutCancellationException) {
-                    kotlinx.coroutines.currentCoroutineContext().ensureActive()
-                    null
-                } catch (cancelled: CancellationException) {
-                    throw cancelled
-                } catch (error: Exception) {
-                    Napier.w("Could not capture the open page; falling back to a fresh preview", error)
-                    null
                 }
                 val content = live ?: previewer.capture(url, state.captureMode, state.textRegion)
                 previewCache[key] = content
@@ -486,7 +489,6 @@ class AddEditViewModel(
                 _uiState.update { current ->
                     current.copy(isSaving = false, saveComplete = true, savedSite = baseSite)
                 }
-
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {

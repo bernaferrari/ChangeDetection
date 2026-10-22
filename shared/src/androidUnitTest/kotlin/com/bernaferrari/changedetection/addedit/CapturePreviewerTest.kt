@@ -19,6 +19,10 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verifyNoInteractions
 
 class CapturePreviewerTest {
+    @Test fun multilinePageTitlesUseTheSameCommonRegexOnEveryPlatform() {
+        assertEquals("Tickets available", htmlTitle("<TITLE>Tickets\navailable</TITLE>"))
+    }
+
     @Test fun regionPreviewUsesTheSameSelectedContentAsCapture() = runTest {
         val html = "<nav>Ad</nav><div id='price'>100<span class='timer'>10s</span></div>"
         val client = HttpClient(MockEngine { respond(html, headers = headersOf("Content-Type", "text/html")) })

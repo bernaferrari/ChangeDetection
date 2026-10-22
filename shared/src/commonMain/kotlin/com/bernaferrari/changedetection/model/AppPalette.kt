@@ -41,7 +41,6 @@ enum class AppPalette(
 
         fun defaultFor(dynamicColorsAvailable: Boolean): AppPalette = if (dynamicColorsAvailable) DYNAMIC else DEFAULT
 
-        fun fromStoredName(value: String?, dynamicColorsAvailable: Boolean = false): AppPalette =
-            entries.firstOrNull { it.name == value } ?: defaultFor(dynamicColorsAvailable)
+        fun fromStoredName(value: String?, dynamicColorsAvailable: Boolean = false): AppPalette = entries.firstOrNull { it.name == value } ?: defaultFor(dynamicColorsAvailable)
     }
 }

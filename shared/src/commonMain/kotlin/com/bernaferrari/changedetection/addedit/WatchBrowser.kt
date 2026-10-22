@@ -251,7 +251,7 @@ internal fun WatchBrowser(
                         com.bernaferrari.changedetection.ui.components.SharedEmptyState(
                             icon = Icons.Rounded.Refresh,
                             title = stringResource(Res.string.local_browser_error_title),
-                            description = stringResource(Res.string.local_browser_error_body),
+                            description = stringResource(Res.string.browser_load_error_body),
                             primaryActionLabel = stringResource(Res.string.retry),
                             onPrimaryAction = { navigator.reload() },
                         )

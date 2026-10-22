@@ -6,6 +6,8 @@ import androidx.room3.PrimaryKey
 import androidx.room3.Query
 import androidx.room3.RoomDatabase
 import androidx.sqlite.SQLiteConnection
+import androidx.sqlite.async.prepare
+import androidx.sqlite.async.step
 
 /** No foreign key: cleanup must survive deletion of the owning page and snapshot. */
 @Entity(tableName = "pendingFileDeletions")

@@ -172,8 +172,11 @@ class AndroidDiagnosticStore internal constructor(
                     val previous = versionFile.takeIf { it.isFile }?.readText()?.trim()?.toIntOrNull()
                     if (previous == version) return@synchronized null
                     versionFile.writeText(version.toString())
-                    if (previous == null) AppEvent(AppEventKind.DATABASE_CREATED, now(), toVersion = version)
-                    else AppEvent(AppEventKind.DATABASE_UPGRADED, now(), fromVersion = previous, toVersion = version)
+                    if (previous == null) {
+                        AppEvent(AppEventKind.DATABASE_CREATED, now(), toVersion = version)
+                    } else {
+                        AppEvent(AppEventKind.DATABASE_UPGRADED, now(), fromVersion = previous, toVersion = version)
+                    }
                 }?.let(::recordEventNow)
             }
         }
@@ -209,27 +212,31 @@ class AndroidDiagnosticStore internal constructor(
         add("${failures.size} of ${attempts.size} recent attempts failed")
         failures.firstOrNull()?.attempt?.let { attempt ->
             val f = attempt.failure
-            add(listOfNotNull(
-                "Latest failure: ${f?.category?.name ?: "UNKNOWN"} at ${f?.stage?.name ?: "unknown stage"}",
-                f?.classes?.takeIf { it.isNotEmpty() }?.joinToString(" → "),
-                f?.detail,
-                "${((now() - attempt.startedAt) / 60_000).coerceAtLeast(0)} min ago",
-            ).joinToString(" · "))
+            add(
+                listOfNotNull(
+                    "Latest failure: ${f?.category?.name ?: "UNKNOWN"} at ${f?.stage?.name ?: "unknown stage"}",
+                    f?.classes?.takeIf { it.isNotEmpty() }?.joinToString(" → "),
+                    f?.detail,
+                    "${((now() - attempt.startedAt) / 60_000).coerceAtLeast(0)} min ago",
+                ).joinToString(" · "),
+            )
         }
         events.asReversed().forEach { e ->
             val ago = ((now() - e.at) / 3_600_000).let { if (it < 1) "under 1 h ago" else "$it h ago" }
-            add(listOfNotNull(
-                when (e.kind) {
-                    AppEventKind.DATABASE_CREATED -> "Database created at version ${e.toVersion}"
-                    AppEventKind.DATABASE_UPGRADED -> "Database upgraded ${e.fromVersion} → ${e.toVersion}"
-                    AppEventKind.DATABASE_RESET -> "Database was reset (no migration path; history was cleared)"
-                    AppEventKind.CRASH -> "Crash"
-                    AppEventKind.BACKGROUND_FAILURE -> "Background check failed"
-                },
-                e.classes.takeIf { it.isNotEmpty() }?.joinToString(" → "),
-                e.detail,
-                ago,
-            ).joinToString(" · "))
+            add(
+                listOfNotNull(
+                    when (e.kind) {
+                        AppEventKind.DATABASE_CREATED -> "Database created at version ${e.toVersion}"
+                        AppEventKind.DATABASE_UPGRADED -> "Database upgraded ${e.fromVersion} → ${e.toVersion}"
+                        AppEventKind.DATABASE_RESET -> "Database was reset (no migration path; history was cleared)"
+                        AppEventKind.CRASH -> "Crash"
+                        AppEventKind.BACKGROUND_FAILURE -> "Background check failed"
+                    },
+                    e.classes.takeIf { it.isNotEmpty() }?.joinToString(" → "),
+                    e.detail,
+                    ago,
+                ).joinToString(" · "),
+            )
         }
     }
 
@@ -313,15 +320,17 @@ object AndroidDiagnostics {
             }
         }
         buildRevision?.let { revision = it }
-        return (store ?: AndroidDiagnosticStore(context.applicationContext).also { created ->
-            store = created
-            // Save a crash's class names and scrubbed message, then let Android handle it as usual.
-            val previous = Thread.getDefaultUncaughtExceptionHandler()
-            Thread.setDefaultUncaughtExceptionHandler { thread, error ->
-                runCatching { created.recordEventNow(AppEvent(AppEventKind.CRASH, System.currentTimeMillis(), classes = errorClasses(error), detail = errorDetail(error))) }
-                previous?.uncaughtException(thread, error)
+        return (
+            store ?: AndroidDiagnosticStore(context.applicationContext).also { created ->
+                store = created
+                // Save a crash's class names and scrubbed message, then let Android handle it as usual.
+                val previous = Thread.getDefaultUncaughtExceptionHandler()
+                Thread.setDefaultUncaughtExceptionHandler { thread, error ->
+                    runCatching { created.recordEventNow(AppEvent(AppEventKind.CRASH, System.currentTimeMillis(), classes = errorClasses(error), detail = errorDetail(error))) }
+                    previous?.uncaughtException(thread, error)
+                }
             }
-        }).also { DiagnosticLog.sink = it }
+            ).also { DiagnosticLog.sink = it }
     }
 }
 

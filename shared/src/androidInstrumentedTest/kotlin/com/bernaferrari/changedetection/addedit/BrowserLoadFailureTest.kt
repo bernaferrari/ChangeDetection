@@ -15,6 +15,16 @@ import java.util.concurrent.atomic.AtomicBoolean
 class BrowserLoadFailureTest {
     @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
 
+    @Test fun firstVisitToAMissingPageDoesNotClaimASavedVersionWasLost() {
+        TestPageServer(404, "<title>Not found</title><p>This page does not exist</p>").use { server ->
+            show(server.url)
+            compose.waitUntil(20_000) { compose.onAllNodesWithText("Retry").fetchSemanticsNodes().isNotEmpty() }
+            compose.onNodeWithText("The saved version may no longer be available.").assertDoesNotExist()
+            compose.onNodeWithText("Check the page address and your connection, then try again.").assertIsDisplayed()
+            compose.onNodeWithText("Watch page").assertIsNotEnabled()
+        }
+    }
+
     @Test fun mainFrameHttpFailureCannotBeWatchedAndRetryRecovers() {
         TestPageServer(503, "<title>Unavailable</title><p>Please try later</p>").use { server ->
             show(server.url)

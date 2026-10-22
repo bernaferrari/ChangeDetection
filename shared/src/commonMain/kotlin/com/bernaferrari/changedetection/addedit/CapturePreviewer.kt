@@ -52,7 +52,7 @@ class HtmlCapturePreviewer(private val engine: SyncEngine) : CapturePreviewer {
     }
 }
 
-private val titleTag = Regex("<title[^>]*>(.*?)</title>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+private val titleTag = Regex("<title[^>]*>([\\s\\S]*?)</title>", RegexOption.IGNORE_CASE)
 private val ogTitle = Regex("<meta[^>]+property=[\"']og:title[\"'][^>]*content=([\"'])(.*?)\\1", RegexOption.IGNORE_CASE)
 
 /** The page's own name: Open Graph title first (usually cleanest), then `<title>`; cleaned to be a good default. */

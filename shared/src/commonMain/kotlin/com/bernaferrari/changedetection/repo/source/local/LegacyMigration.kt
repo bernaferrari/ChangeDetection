@@ -2,6 +2,8 @@ package com.bernaferrari.changedetection.repo.source.local
 
 import androidx.room3.migration.Migration
 import androidx.sqlite.SQLiteConnection
+import androidx.sqlite.async.prepare
+import androidx.sqlite.async.step
 
 /**
  * The one upgrade path: from the last public release of the original app to today's schema.

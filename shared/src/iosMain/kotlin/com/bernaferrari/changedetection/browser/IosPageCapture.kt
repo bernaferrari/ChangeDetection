@@ -99,7 +99,9 @@ object IosPageCapture {
     }
 
     private suspend fun captureDocument(web: WKWebView, hide: String, only: String, preservePage: Boolean = false): ByteArray {
-        suspend fun clean(script: String) { evaluate(web, if (preservePage) PageCleanup.reversible(script) else script) }
+        suspend fun clean(script: String) {
+            evaluate(web, if (preservePage) PageCleanup.reversible(script) else script)
+        }
         try {
             lastTitle = (evaluate(web, PageCleanup.TITLE) as? String)?.takeIf { it.isNotBlank() }
             lastIcon = (evaluate(web, PageCleanup.ICON) as? String)?.takeIf { it.startsWith("http") }
@@ -138,8 +140,10 @@ object IosPageCapture {
 
             ).bytes
         } finally {
-            if (preservePage) withContext(kotlinx.coroutines.NonCancellable) {
-                kotlinx.coroutines.withTimeoutOrNull(2_000) { evaluate(web, PageCleanup.RESTORE_CAPTURE) }
+            if (preservePage) {
+                withContext(kotlinx.coroutines.NonCancellable) {
+                    kotlinx.coroutines.withTimeoutOrNull(2_000) { evaluate(web, PageCleanup.RESTORE_CAPTURE) }
+                }
             }
         }
     }

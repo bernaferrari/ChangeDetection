@@ -28,8 +28,12 @@ class HomeScrollTest {
             MaterialTheme {
                 PullToCheckBox(
                     scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(),
-                    refreshing = refreshing, enabled = true,
-                    onRefresh = { refreshes++; refreshing = true },
+                    refreshing = refreshing,
+                    enabled = true,
+                    onRefresh = {
+                        refreshes++
+                        refreshing = true
+                    },
                     modifier = Modifier.size(400.dp, 700.dp),
                 ) {
                     LazyColumn(Modifier.fillMaxSize().testTag("list")) {
@@ -39,30 +43,38 @@ class HomeScrollTest {
             }
         }
         val list = compose.onNodeWithTag("list")
-        compose.onNodeWithText("Release to check pages").assertDoesNotExist()
+        val indicator = compose.onNodeWithTag("pull-check-indicator")
+        fun feedback(text: String) = indicator.assert(SemanticsMatcher.expectValue(androidx.compose.ui.semantics.SemanticsProperties.StateDescription, text))
+        feedback("Pull to check pages")
         list.performTouchInput {
             down(center.copy(y = 100f))
             moveBy(androidx.compose.ui.geometry.Offset(0f, 100f), delayMillis = 500)
         }
-        compose.onNodeWithText("Pull to check pages").assertExists()
+        feedback("Pull to check pages")
         compose.runOnIdle { assertEquals(0, refreshes) }
         list.performTouchInput { moveBy(androidx.compose.ui.geometry.Offset(0f, 160f), delayMillis = 500) }
-        compose.onNodeWithText("Release to check pages").assertIsDisplayed()
+        feedback("Release to check pages").assertIsDisplayed()
         compose.runOnIdle { assertEquals("Crossing the threshold must wait for release", 0, refreshes) }
         list.performTouchInput { moveBy(androidx.compose.ui.geometry.Offset(0f, -160f), delayMillis = 500) }
-        compose.onNodeWithText("Pull to check pages").assertExists()
-        list.performTouchInput { advanceEventTime(200); up() }
+        feedback("Pull to check pages")
+        list.performTouchInput {
+            advanceEventTime(200)
+            up()
+        }
         compose.waitForIdle()
         compose.runOnIdle { assertEquals("Retracting below the threshold cancels the check", 0, refreshes) }
         list.performTouchInput {
             down(center.copy(y = 100f))
             moveBy(androidx.compose.ui.geometry.Offset(0f, 260f), delayMillis = 500)
         }
-        compose.onNodeWithText("Release to check pages").assertIsDisplayed()
-        list.performTouchInput { advanceEventTime(200); up() }
+        feedback("Release to check pages").assertIsDisplayed()
+        list.performTouchInput {
+            advanceEventTime(200)
+            up()
+        }
         compose.waitForIdle()
         compose.runOnIdle { assertEquals(1, refreshes) }
-        compose.onNodeWithText("Checking pages…").assertIsDisplayed()
+        feedback("Checking pages…").assertIsDisplayed()
     }
 
     private fun verifyTitleExpansion(mouseWheel: Boolean) {

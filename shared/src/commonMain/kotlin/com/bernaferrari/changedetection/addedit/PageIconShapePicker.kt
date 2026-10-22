@@ -84,39 +84,39 @@ internal fun PageIconShapePicker(name: String, key: String, icon: String?, selec
             OriginalChip(name, key, icon, selected == PageIconShape.AUTOMATIC) { choose(PageIconShape.AUTOMATIC) }
             // One column for everything below: the shapes and colors share its edges.
             BoxWithConstraints(Modifier.widthIn(max = 400.dp).padding(top = 12.dp)) {
-            // The colors start and end where the first and last shapes do, not where their cells do.
-            val inset = ((maxWidth / 4 - SHAPE_SIZE) / 2).coerceAtLeast(0.dp)
-            Column {
-                Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    PageIconShape.entries.filter { it != PageIconShape.AUTOMATIC }.chunked(4).forEach { row ->
-                        Row {
-                            row.forEach { shape ->
-                                ShapeChoice(shape, selected == shape, { choose(shape) }, Modifier.weight(1f)) { motion ->
-                                    PageAvatar(
-                                        name,
-                                        key,
-                                        modifier = motion.modifier,
-                                        size = SHAPE_SIZE,
-                                        icon = icon,
-                                        iconShape = shape,
-                                        colors = shapeColors,
-                                        selectionProgress = motion.outlineProgress,
-                                        selectionColor = MaterialTheme.colorScheme.primary,
-                                        selectionGapColor = sheet,
-                                    )
+                // The colors start and end where the first and last shapes do, not where their cells do.
+                val inset = ((maxWidth / 4 - SHAPE_SIZE) / 2).coerceAtLeast(0.dp)
+                Column {
+                    Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        PageIconShape.entries.filter { it != PageIconShape.AUTOMATIC }.chunked(4).forEach { row ->
+                            Row {
+                                row.forEach { shape ->
+                                    ShapeChoice(shape, selected == shape, { choose(shape) }, Modifier.weight(1f)) { motion ->
+                                        PageAvatar(
+                                            name,
+                                            key,
+                                            modifier = motion.modifier,
+                                            size = SHAPE_SIZE,
+                                            icon = icon,
+                                            iconShape = shape,
+                                            colors = shapeColors,
+                                            selectionProgress = motion.outlineProgress,
+                                            selectionColor = MaterialTheme.colorScheme.primary,
+                                            selectionGapColor = sheet,
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
+                    AnimatedVisibility(
+                        visible = selected != PageIconShape.AUTOMATIC,
+                        enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
+                        exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top),
+                    ) {
+                        ColorGrid(current, Modifier.padding(top = 20.dp, start = inset, end = inset)) { onColorSelect(it.colors) }
+                    }
                 }
-                AnimatedVisibility(
-                    visible = selected != PageIconShape.AUTOMATIC,
-                    enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
-                    exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top),
-                ) {
-                    ColorGrid(current, Modifier.padding(top = 20.dp, start = inset, end = inset)) { onColorSelect(it.colors) }
-                }
-            }
             }
         }
     }

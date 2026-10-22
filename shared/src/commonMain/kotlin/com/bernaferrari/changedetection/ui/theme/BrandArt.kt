@@ -14,12 +14,14 @@ import androidx.compose.ui.unit.dp
  */
 object BrandArt {
     private fun ImageVector.Builder.stroke(path: String, width: Float) = addPath(
-        PathParser().parsePathString(path).toNodes(), stroke = SolidColor(Color.White), strokeLineWidth = width,
-        strokeLineCap = StrokeCap.Round, strokeLineJoin = StrokeJoin.Round
+        PathParser().parsePathString(path).toNodes(),
+        stroke = SolidColor(Color.White),
+        strokeLineWidth = width,
+        strokeLineCap = StrokeCap.Round,
+        strokeLineJoin = StrokeJoin.Round,
     )
 
-    private fun ImageVector.Builder.fill(path: String) =
-        addPath(PathParser().parsePathString(path).toNodes(), fill = SolidColor(Color.White))
+    private fun ImageVector.Builder.fill(path: String) = addPath(PathParser().parsePathString(path).toNodes(), fill = SolidColor(Color.White))
 
     /** The scanned page: viewfinder corners, the page, a picture, text lines and the change frame. */
     val Mark: ImageVector by lazy {
