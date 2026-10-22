@@ -1,0 +1,14 @@
+<resources>
+    <string name="diagnostics_export">Enviar relatório ao desenvolvedor</string>
+    <string name="diagnostics_title">Relatório de diagnóstico</string>
+    <string name="diagnostics_explanation">Revise este relatório local antes de compartilhar. Ele contém as etapas de cada verificação, os tempos, os tipos e as mensagens de erro sem endereços, caminhos e texto entre aspas, as atualizações recentes do banco de dados e os travamentos, e as versões do app e do WebView. Ele não contém endereços, títulos ou conteúdo das páginas, capturas de tela, cookies, cabeçalhos nem tokens. Nada é enviado automaticamente.</string>
+    <string name="diagnostics_scope">Até 10 tentativas recentes dos últimos 7 dias. Os relatórios têm limite de 64 KiB. Entradas incompletas podem indicar um registro interrompido ou perdido.</string>
+    <string name="diagnostics_loading">Preparando o relatório local…</string>
+    <string name="diagnostics_empty">Nenhuma tentativa recente registrada. Experimente a prévia ou verifique de novo e depois abra este relatório outra vez.</string>
+    <string name="diagnostics_unavailable">Não foi possível preparar o diagnóstico. O monitoramento e o histórico salvo não mudaram. Tente novamente.</string>
+    <string name="diagnostics_share">Enviar relatório</string>
+    <string name="diagnostics_close">Fechar</string>
+    <string name="diagnostics_retry">Tentar novamente</string>
+    <string name="diagnostics_content">Conteúdo do relatório</string>
+    <string name="diagnostics_page_scope">Tentativas recentes desta página</string>
+</resources>

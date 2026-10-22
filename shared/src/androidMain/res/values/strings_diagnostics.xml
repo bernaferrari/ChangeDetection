@@ -1,12 +1,12 @@
 <resources>
-    <string name="diagnostics_export">Export diagnostics</string>
+    <string name="diagnostics_export">Send report to developer</string>
     <string name="diagnostics_title">Diagnostics report</string>
-    <string name="diagnostics_explanation">Review this local report before sharing. It contains check stages, timings, error categories, and app and WebView versions. It excludes page addresses, titles, contents, screenshots, cookies, headers, and tokens. Nothing is sent automatically.</string>
+    <string name="diagnostics_explanation">Review this local report before sharing. It contains check stages, timings, error types and error messages with addresses, paths and quoted text removed, recent database upgrades and crashes, and app and WebView versions. It excludes page addresses, titles, contents, screenshots, cookies, headers, and tokens. Nothing is sent automatically.</string>
     <string name="diagnostics_scope">Up to 10 recent attempts from the past 7 days. Reports are limited to 64 KiB. Incomplete entries may reflect interrupted or dropped recording.</string>
     <string name="diagnostics_loading">Preparing local report…</string>
     <string name="diagnostics_empty">No recent attempts recorded. Try the preview or check again, then reopen this report.</string>
     <string name="diagnostics_unavailable">Could not prepare diagnostics. Monitoring and saved history are unchanged. Try again.</string>
-    <string name="diagnostics_share">Share report</string>
+    <string name="diagnostics_share">Send report</string>
     <string name="diagnostics_close">Close</string>
     <string name="diagnostics_retry">Try again</string>
     <string name="diagnostics_content">Report contents</string>

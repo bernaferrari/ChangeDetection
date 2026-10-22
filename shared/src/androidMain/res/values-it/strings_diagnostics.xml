@@ -1,0 +1,14 @@
+<resources>
+    <string name="diagnostics_export">Invia il rapporto allo sviluppatore</string>
+    <string name="diagnostics_title">Rapporto di diagnostica</string>
+    <string name="diagnostics_explanation">Controlla questo rapporto locale prima di condividerlo. Contiene le fasi di ogni controllo, i tempi, i tipi e i messaggi di errore senza indirizzi, percorsi e testo tra virgolette, gli aggiornamenti recenti del database e gli arresti anomali, e le versioni dell\'app e di WebView. Non contiene indirizzi, titoli o contenuti delle pagine, screenshot, cookie, intestazioni o token. Non viene inviato nulla in automatico.</string>
+    <string name="diagnostics_scope">Fino a 10 tentativi recenti degli ultimi 7 giorni. I rapporti hanno un limite di 64 KiB. Le voci incomplete possono indicare una registrazione interrotta o persa.</string>
+    <string name="diagnostics_loading">Preparazione del rapporto locale…</string>
+    <string name="diagnostics_empty">Nessun tentativo recente registrato. Prova l\'anteprima o ricontrolla, poi riapri questo rapporto.</string>
+    <string name="diagnostics_unavailable">Impossibile preparare la diagnostica. Il monitoraggio e la cronologia salvata non sono cambiati. Riprova.</string>
+    <string name="diagnostics_share">Invia rapporto</string>
+    <string name="diagnostics_close">Chiudi</string>
+    <string name="diagnostics_retry">Riprova</string>
+    <string name="diagnostics_content">Contenuto del rapporto</string>
+    <string name="diagnostics_page_scope">Tentativi recenti per questa pagina</string>
+</resources>

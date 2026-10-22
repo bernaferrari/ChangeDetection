@@ -44,7 +44,38 @@ class DiagnosticTraceTest {
         assertEquals(listOf(DiagnosticException.INVALID_CONTENT), final.failure.causes)
         assertFalse(Json.encodeToString(final).contains("SECRET"))
         assertFalse(Json.encodeToString(final).contains("private.invalid"))
+        assertFalse(Json.encodeToString(final).contains("PASSWORD"))
+        // Class names explain the failure; the untrusted message is never kept.
+        assertEquals(listOf("IllegalArgumentException"), final.failure.classes)
+        assertNull(final.failure.detail)
         assertTrue(sink.records.any { it.outcome == DiagnosticOutcome.INCOMPLETE })
+    }
+
+    /** Named like the real driver exception, which is what the recorder trusts. */
+    private class SQLiteException(message: String) : RuntimeException(message)
+
+    @Test fun databaseWriteFailureKeepsTheSqliteReasonButNotPathsOrValues() = runTest {
+        val sink = Sink()
+        DiagnosticLog.sink = sink
+        val sqlite = SQLiteException("database is locked (code 5): /data/user/0/app/databases/changes.db token=SECRET")
+        try {
+            recordDiagnostic(CaptureMode.TEXT, false, false, DiagnosticTrigger.CHECK) {
+                diagnosticStage(DiagnosticStage.COMMIT_DATABASE) { throw DatabaseError(DatabaseError.Operation.WRITE, "Failed to save snapshot", sqlite) }
+            }
+            fail("Expected failure")
+        } catch (_: DatabaseError) { }
+        val failure = sink.records.last().failure!!
+        assertEquals(DiagnosticStage.COMMIT_DATABASE, failure.stage)
+        assertEquals(listOf("DatabaseError", "SQLiteException"), failure.classes)
+        val detail = requireNotNull(failure.detail)
+        assertTrue(detail, detail.startsWith("database is locked (code 5)"))
+        assertFalse(detail, detail.contains("/data") || detail.contains("SECRET"))
+    }
+
+    @Test fun scrubbingRemovesAddressesPathsQuotesAndValues() {
+        val scrubbed = scrubErrorText("no such column: \"lastFailure\" at https://a.example/x?y=1 in /data/data/app/db user@mail.com id=123456 example.com")
+        listOf("https://", "/data", "user@mail.com", "123456", "example.com", "lastFailure").forEach { assertFalse(scrubbed, scrubbed.contains(it)) }
+        assertTrue(scrubbed, scrubbed.startsWith("no such column:"))
     }
 
     @Test fun recorderFailureCannotFailOrReplaceTheMonitoringResult() = runTest {

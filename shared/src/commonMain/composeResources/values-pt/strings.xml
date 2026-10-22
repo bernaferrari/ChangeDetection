@@ -284,7 +284,7 @@
     <string name="check_failure_storage_full">Armazenamento insuficiente</string>
     <string name="check_failure_storage_full_detail">Libere armazenamento e tente novamente. O histórico salvo é mantido.</string>
     <string name="check_failure_save_failed">Não foi possível salvar</string>
-    <string name="check_failure_save_failed_detail">Confira o espaço disponível e tente novamente. O histórico salvo é mantido.</string>
+    <string name="check_failure_save_failed_detail">Tente novamente. O histórico salvo é mantido. Se continuar acontecendo, envie um relatório.</string>
     <string name="check_failure_content_too_large">Página muito grande</string>
     <string name="check_failure_content_too_large_detail">A página excede o limite de captura. Escolha uma página menor ou outro método de captura.</string>
     <string name="check_failure_content">Conteúdo não compatível</string>

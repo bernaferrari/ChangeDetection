@@ -288,7 +288,7 @@
     <string name="check_failure_storage_full">存储空间不足</string>
     <string name="check_failure_storage_full_detail">请释放存储空间后重试，已保存的历史会保留。</string>
     <string name="check_failure_save_failed">无法保存检查结果</string>
-    <string name="check_failure_save_failed_detail">请检查可用存储空间后重试，已保存的历史会保留。</string>
+    <string name="check_failure_save_failed_detail">请重试，已保存的历史会保留。如果反复出现，请发送反馈。</string>
     <string name="check_failure_content_too_large">页面过大</string>
     <string name="check_failure_content_too_large_detail">此页面超出抓取大小限制，请选择更小的页面或其他抓取方式。</string>
     <string name="check_failure_content">不支持的内容</string>

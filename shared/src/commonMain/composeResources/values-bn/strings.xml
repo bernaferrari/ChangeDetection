@@ -296,7 +296,7 @@
     <string name="check_failure_storage_full">পর্যাপ্ত স্টোরেজ নেই</string>
     <string name="check_failure_storage_full_detail">স্টোরেজ খালি করে আবার চেষ্টা করুন। সংরক্ষিত ইতিহাস থাকবে।</string>
     <string name="check_failure_save_failed">পরীক্ষা সংরক্ষণ করা যায়নি</string>
-    <string name="check_failure_save_failed_detail">খালি স্টোরেজ দেখে আবার চেষ্টা করুন। সংরক্ষিত ইতিহাস থাকবে।</string>
+    <string name="check_failure_save_failed_detail">আবার চেষ্টা করুন। সংরক্ষিত ইতিহাস থাকবে। বারবার হলে একটি রিপোর্ট পাঠান।</string>
     <string name="check_failure_content_too_large">পৃষ্ঠা খুব বড়</string>
     <string name="check_failure_content_too_large_detail">এই পৃষ্ঠা ক্যাপচারের আকারসীমা ছাড়িয়েছে। ছোট পৃষ্ঠা বা অন্য পদ্ধতি বেছে নিন।</string>
     <string name="check_failure_content">বিষয়বস্তু সমর্থিত নয়</string>

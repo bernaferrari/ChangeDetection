@@ -1,0 +1,14 @@
+<resources>
+    <string name="diagnostics_export">ডেভেলপারকে রিপোর্ট পাঠান</string>
+    <string name="diagnostics_title">ডায়াগনস্টিক রিপোর্ট</string>
+    <string name="diagnostics_explanation">শেয়ার করার আগে এই লোকাল রিপোর্টটি দেখে নিন। এতে প্রতিটি পরীক্ষার ধাপ, সময়, ত্রুটির ধরন এবং ঠিকানা, পাথ ও উদ্ধৃত লেখা বাদ দিয়ে ত্রুটির বার্তা, ডেটাবেসের সাম্প্রতিক আপডেট ও ক্র্যাশ, এবং অ্যাপ ও WebView-এর ভার্সন আছে। এতে পেজের ঠিকানা, শিরোনাম, কনটেন্ট, স্ক্রিনশট, কুকি, হেডার বা টোকেন নেই। কিছুই নিজে থেকে পাঠানো হয় না।</string>
+    <string name="diagnostics_scope">গত 7 দিনের সাম্প্রতিক সর্বোচ্চ 10টি চেষ্টা। রিপোর্টের সীমা 64 KiB। অসম্পূর্ণ এন্ট্রি মানে রেকর্ডিং থেমে গেছে বা হারিয়ে গেছে হতে পারে।</string>
+    <string name="diagnostics_loading">লোকাল রিপোর্ট তৈরি হচ্ছে…</string>
+    <string name="diagnostics_empty">সাম্প্রতিক কোনো চেষ্টা রেকর্ড হয়নি। প্রিভিউ দেখুন বা আবার পরীক্ষা করুন, তারপর এই রিপোর্টটি আবার খুলুন।</string>
+    <string name="diagnostics_unavailable">ডায়াগনস্টিক তৈরি করা যায়নি। পর্যবেক্ষণ ও সংরক্ষিত ইতিহাস বদলায়নি। আবার চেষ্টা করুন।</string>
+    <string name="diagnostics_share">রিপোর্ট পাঠান</string>
+    <string name="diagnostics_close">বন্ধ করুন</string>
+    <string name="diagnostics_retry">আবার চেষ্টা করুন</string>
+    <string name="diagnostics_content">রিপোর্টের কনটেন্ট</string>
+    <string name="diagnostics_page_scope">এই পেজের সাম্প্রতিক চেষ্টা</string>
+</resources>

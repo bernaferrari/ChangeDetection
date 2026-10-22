@@ -296,7 +296,7 @@
     <string name="check_failure_storage_full">Not enough storage</string>
     <string name="check_failure_storage_full_detail">Free up storage and try again. Your saved history is kept.</string>
     <string name="check_failure_save_failed">Could not save check</string>
-    <string name="check_failure_save_failed_detail">Check available storage and try again. Your saved history is kept.</string>
+    <string name="check_failure_save_failed_detail">Try again. Your saved history is kept. If it keeps happening, send a report.</string>
     <string name="check_failure_content_too_large">Page too large</string>
     <string name="check_failure_content_too_large_detail">This page exceeds the capture size limit. Choose a smaller page or another capture method.</string>
     <string name="check_failure_content">Unsupported content</string>

@@ -68,7 +68,7 @@ internal fun DiagnosticsDialog(siteId: String?, onClose: () -> Unit, store: Andr
                         Text(context.getString(R.string.diagnostics_loading))
                     }
 
-                    report!!.attemptCount == 0 -> item { Text(context.getString(R.string.diagnostics_empty)) }
+                    report!!.isEmpty -> item { Text(context.getString(R.string.diagnostics_empty)) }
 
                     else -> {
                         item { Text(context.getString(R.string.diagnostics_content), style = MaterialTheme.typography.titleSmall) }
@@ -78,7 +78,7 @@ internal fun DiagnosticsDialog(siteId: String?, onClose: () -> Unit, store: Andr
             }
         },
         confirmButton = {
-            TextButton(enabled = report?.attemptCount?.let { it > 0 } == true && !sharing, onClick = {
+            TextButton(enabled = report?.isEmpty == false && !sharing, onClick = {
                 if (!sharing) {
                     sharing = true
                     scope.launch {
@@ -105,6 +105,9 @@ internal fun diagnosticShareIntent(context: Context, file: File): Intent {
     val send = Intent(Intent.ACTION_SEND).apply {
         type = "application/json"
         putExtra(Intent.EXTRA_STREAM, uri)
+        // Addressed to the developer, so "Send report" works in one tap from any mail app.
+        putExtra(Intent.EXTRA_EMAIL, arrayOf("bernaferrari2@gmail.com"))
+        putExtra(Intent.EXTRA_SUBJECT, "Change Detection diagnostics")
         clipData = ClipData.newRawUri("diagnostics.json", uri)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }

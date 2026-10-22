@@ -296,7 +296,7 @@
     <string name="check_failure_storage_full">Nicht genügend Speicher</string>
     <string name="check_failure_storage_full_detail">Gib Speicherplatz frei und versuche es erneut. Der gespeicherte Verlauf bleibt erhalten.</string>
     <string name="check_failure_save_failed">Prüfung konnte nicht gespeichert werden</string>
-    <string name="check_failure_save_failed_detail">Prüfe den freien Speicher und versuche es erneut. Der gespeicherte Verlauf bleibt erhalten.</string>
+    <string name="check_failure_save_failed_detail">Versuche es erneut. Der gespeicherte Verlauf bleibt erhalten. Wenn es wieder passiert, sende einen Bericht.</string>
     <string name="check_failure_content_too_large">Seite zu groß</string>
     <string name="check_failure_content_too_large_detail">Diese Seite überschreitet das Aufnahmelimit. Wähle eine kleinere Seite oder eine andere Aufnahmemethode.</string>
     <string name="check_failure_content">Nicht unterstützter Inhalt</string>

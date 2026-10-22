@@ -121,6 +121,7 @@ class SyncWorker(
             throw cancellation
         } catch (e: Exception) {
             Napier.e("Sync work failed", e)
+            com.bernaferrari.changedetection.diagnostics.DiagnosticLog.appEvent(com.bernaferrari.changedetection.diagnostics.AppEventKind.BACKGROUND_FAILURE, e)
             Result.retry()
         }
     }

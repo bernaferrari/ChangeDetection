@@ -22,19 +22,90 @@ import kotlin.time.TimeSource
 
 @Serializable data class DiagnosticEvent(val stage: DiagnosticStage, val elapsedMs: Long, val durationMs: Long = 0, val failed: Boolean = false, val metric: DiagnosticMetric? = null, val code: Int? = null)
 
-@Serializable data class DiagnosticFailure(val stage: DiagnosticStage, val category: CheckFailure? = null, val causes: List<DiagnosticException> = emptyList())
+/**
+ * [classes] are exception class names along the cause chain (no messages). [detail] is the first
+ * cause's message after [scrubErrorText]: no addresses, paths, quoted text or long numbers survive.
+ */
+@Serializable data class DiagnosticFailure(
+    val stage: DiagnosticStage,
+    val category: CheckFailure? = null,
+    val causes: List<DiagnosticException> = emptyList(),
+    val classes: List<String> = emptyList(),
+    val detail: String? = null,
+)
+
+/** Things that happen outside a page check but explain why checks fail. */
+@Serializable enum class AppEventKind { DATABASE_CREATED, DATABASE_UPGRADED, DATABASE_RESET, CRASH, BACKGROUND_FAILURE }
+
+@Serializable data class AppEvent(
+    val kind: AppEventKind,
+    val at: Long,
+    val fromVersion: Int? = null,
+    val toVersion: Int? = null,
+    val classes: List<String> = emptyList(),
+    val detail: String? = null,
+)
 
 @Serializable data class DiagnosticAttempt(val attemptId: String = diagnosticId(), val schema: Int = 1, val startedAt: Long, val mode: CaptureMode, val selected: Boolean, val excluded: Boolean, val trigger: DiagnosticTrigger, val watchToken: String = "", val outcome: DiagnosticOutcome, val events: List<DiagnosticEvent>, val failure: DiagnosticFailure? = null)
 
 interface DiagnosticSink {
     suspend fun watchToken(watchId: String?): String
     suspend fun append(attempt: DiagnosticAttempt)
+    /** Must not block or throw; a crash handler may call it. */
+    fun appEvent(event: AppEvent) {}
+    /** The database opened at [version]; the sink decides whether that's new (created or upgraded). */
+    fun databaseOpened(version: Int) {}
 }
 
-/** No arbitrary strings, URLs, messages or content enter this schema. Android installs a bounded sink. */
+/** No URLs, page content or raw messages enter this schema; error text is scrubbed first. Android installs a bounded sink. */
 object DiagnosticLog {
     @kotlin.concurrent.Volatile var sink: DiagnosticSink? = null
+
+    /** Records an app-level event. Never throws: diagnostics must not make things worse. */
+    fun appEvent(kind: AppEventKind, error: Throwable? = null, fromVersion: Int? = null, toVersion: Int? = null) {
+        try {
+            sink?.appEvent(AppEvent(kind, kotlin.time.Clock.System.now().toEpochMilliseconds(), fromVersion, toVersion, errorClasses(error), errorDetail(error)))
+        } catch (_: Throwable) { }
+    }
+
+    fun databaseOpened(version: Int) {
+        try { sink?.databaseOpened(version) } catch (_: Throwable) { }
+    }
 }
+
+/** Exception class names along the cause chain, outermost first. Names only, never messages. */
+fun errorClasses(error: Throwable?): List<String> =
+    generateSequence(error) { it.cause }.take(4).map { it::class.simpleName ?: "Anonymous" }.filter(::isSafeClassName).toList()
+
+internal fun isSafeClassName(name: String) = name.length in 1..64 && name.all { it.isLetterOrDigit() || it == '_' || it == '$' }
+
+/**
+ * The message of the deepest SQLite or file error in the cause chain, scrubbed. Only those layers
+ * are trusted: they say things like "database is locked" or "disk I/O error" and never carry page
+ * content. Every other exception (parsers, network, the app's own wrappers) contributes its class
+ * name only, because its message may contain what the page said.
+ */
+fun errorDetail(error: Throwable?): String? = generateSequence(error) { it.cause }.take(6)
+    .filter(::isSystemLevelError)
+    .mapNotNull { it.message?.let(::scrubErrorText) }
+    .lastOrNull { it.isNotBlank() }
+
+private fun isSystemLevelError(error: Throwable): Boolean =
+    error::class.simpleName.orEmpty().contains("SQLite") || error is kotlinx.io.IOException
+
+/** Keeps the shape of an error ("no such column: lastFailureCode") and drops anything that could identify a page or person. */
+fun scrubErrorText(text: String): String = text
+    .replace(Regex("""[a-zA-Z][a-zA-Z0-9+.-]*://\S+"""), "<url>")
+    .replace(Regex("""\S+@\S+\.\S+"""), "<email>")
+    .replace(Regex("""(/[^\s/]+){2,}/?"""), "<path>")
+    .replace(Regex(""""[^"]*"|'[^']*'|`[^`]*`"""), "<text>")
+    .replace(Regex("""\b\d{5,}\b"""), "<n>")
+    .replace(Regex("""(\w+)=\S+"""), "$1=<value>")
+    .replace(Regex("""\b(?:[a-z0-9-]+\.)+(?:com|net|org|io|dev|app|br|co|uk|de|info)\b""", RegexOption.IGNORE_CASE), "<host>")
+    .filter { it.isLetterOrDigit() || it in " _:.,;()=<>#+-[]/" }
+    .replace(Regex("""\s+"""), " ")
+    .trim()
+    .take(200)
 
 internal class DiagnosticSpan : AbstractCoroutineContextElement(Key) {
     companion object Key : CoroutineContext.Key<DiagnosticSpan>
@@ -59,7 +130,8 @@ internal class DiagnosticSpan : AbstractCoroutineContextElement(Key) {
         if (error is CancellationException) cancelled = true
         val resolvedCategory = category ?: diagnosticCategory(error)
         val causes = generateSequence(error) { it.cause }.take(4).map(::exceptionKind).toList()
-        failure = failure?.copy(category = category ?: failure?.category ?: resolvedCategory) ?: DiagnosticFailure(stage ?: active, resolvedCategory, causes)
+        failure = failure?.copy(category = category ?: failure?.category ?: resolvedCategory)
+            ?: DiagnosticFailure(stage ?: active, resolvedCategory, causes, errorClasses(error), errorDetail(error))
     }
     fun callback(stage: DiagnosticStage, metric: DiagnosticMetric, code: Int) {
         callbacks.trySend(DiagnosticEvent(stage, began.elapsedNow().inWholeMilliseconds.coerceIn(0, 600_000), metric = metric, code = code.coerceIn(-100, 599)))

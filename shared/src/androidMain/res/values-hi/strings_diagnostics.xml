@@ -1,0 +1,14 @@
+<resources>
+    <string name="diagnostics_export">डेवलपर को रिपोर्ट भेजें</string>
+    <string name="diagnostics_title">डायग्नोस्टिक रिपोर्ट</string>
+    <string name="diagnostics_explanation">शेयर करने से पहले इस लोकल रिपोर्ट को देख लें। इसमें हर जाँच के चरण, समय, गड़बड़ी के प्रकार और पते, पाथ और उद्धृत टेक्स्ट हटाकर गड़बड़ी के संदेश, डेटाबेस के हाल के अपडेट और क्रैश, और ऐप व WebView के वर्शन हैं। इसमें पेज के पते, शीर्षक, कंटेंट, स्क्रीनशॉट, कुकी, हेडर या टोकन नहीं हैं। कुछ भी अपने-आप नहीं भेजा जाता।</string>
+    <string name="diagnostics_scope">पिछले 7 दिनों की हाल की 10 कोशिशें तक। रिपोर्ट की सीमा 64 KiB है। अधूरी एंट्री का मतलब हो सकता है कि रिकॉर्डिंग रुक गई या छूट गई।</string>
+    <string name="diagnostics_loading">लोकल रिपोर्ट तैयार हो रही है…</string>
+    <string name="diagnostics_empty">हाल की कोई कोशिश रिकॉर्ड नहीं हुई। प्रीव्यू आज़माएँ या फिर से जाँचें, फिर यह रिपोर्ट दोबारा खोलें।</string>
+    <string name="diagnostics_unavailable">डायग्नोस्टिक तैयार नहीं हो सका। निगरानी और सहेजा गया इतिहास नहीं बदला है। फिर कोशिश करें।</string>
+    <string name="diagnostics_share">रिपोर्ट भेजें</string>
+    <string name="diagnostics_close">बंद करें</string>
+    <string name="diagnostics_retry">फिर कोशिश करें</string>
+    <string name="diagnostics_content">रिपोर्ट का कंटेंट</string>
+    <string name="diagnostics_page_scope">इस पेज की हाल की कोशिशें</string>
+</resources>
