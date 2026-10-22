@@ -74,11 +74,14 @@ class TextCaptureRobustnessTest {
             val report = com.bernaferrari.changedetection.diagnostics.AndroidDiagnostics.install(context).report(site.id)
             val attempts = kotlinx.serialization.json.Json.parseToJsonElement(report.json)
                 .let { it as kotlinx.serialization.json.JsonObject }.getValue("attempts") as kotlinx.serialization.json.JsonArray
-            assertTrue("Actual rendered check must retain its HTTP callback and failure stage", attempts.any { row ->
-                val encoded = row.toString()
-                encoded.contains("\"category\":\"${expected.name}\"") &&
-                    encoded.contains("\"stage\":\"NAVIGATE\"") && encoded.contains("\"metric\":\"HTTP_STATUS\",\"code\":$status")
-            })
+            assertTrue(
+                "Actual rendered check must retain its HTTP callback and failure stage",
+                attempts.any { row ->
+                    val encoded = row.toString()
+                    encoded.contains("\"category\":\"${expected.name}\"") &&
+                        encoded.contains("\"stage\":\"NAVIGATE\"") && encoded.contains("\"metric\":\"HTTP_STATUS\",\"code\":$status")
+                },
+            )
             assertFalse(report.json.contains(server.url))
         }
     }

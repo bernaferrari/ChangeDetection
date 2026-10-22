@@ -72,7 +72,9 @@ object PageCleanup {
         val outside = if (top != null && bottom != null) {
             require(top.isFinite() && bottom.isFinite() && bottom > top)
             "if(r.bottom+window.scrollY<=$top||r.top+window.scrollY>=$bottom)return;"
-        } else ""
+        } else {
+            ""
+        }
         return "(function(){var p=0;document.querySelectorAll('img').forEach(function(i){var r=i.getBoundingClientRect();if(r.width<2||r.height<2)return;$outside if(!i.complete)p++;});var n=(performance.getEntriesByType&&performance.getEntriesByType('resource').length)||0;return p+','+n;})()"
     }
 

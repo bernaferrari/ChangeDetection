@@ -4,6 +4,8 @@ import androidx.room3.RoomDatabase
 import androidx.room3.migration.Migration
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.SQLiteDriver
+import androidx.sqlite.async.prepare
+import androidx.sqlite.async.step
 import com.bernaferrari.changedetection.diagnostics.AppEventKind
 import com.bernaferrari.changedetection.diagnostics.DiagnosticLog
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +33,11 @@ private val databaseDiagnosticsCallback = object : RoomDatabase.Callback() {
     override suspend fun onOpen(connection: SQLiteConnection) {
         val version = try {
             val statement = connection.prepare("PRAGMA user_version")
-            try { if (statement.step()) statement.getLong(0).toInt() else -1 } finally { statement.close() }
+            try {
+                if (statement.step()) statement.getLong(0).toInt() else -1
+            } finally {
+                statement.close()
+            }
         } catch (_: Exception) {
             -1
         }

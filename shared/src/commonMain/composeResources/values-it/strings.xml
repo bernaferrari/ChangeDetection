@@ -196,6 +196,7 @@
     <string name="a11y_saved_screenshot_source_only">Schermata salvata da %1$s</string>
     <string name="local_browser_error_title">Impossibile aprire questa pagina</string>
     <string name="local_browser_error_body">La versione salvata potrebbe non essere più disponibile.</string>
+    <string name="browser_load_error_body">Controlla l’indirizzo della pagina e la connessione, poi riprova.</string>
     <string name="local_browser_empty_snapshot">Questa versione non ha contenuto visualizzabile.</string>
     <string name="delete_site_message">Verranno eliminati definitivamente \"%1$s\" e tutte le versioni salvate.</string>
     <string name="site_unnamed">questa pagina</string>

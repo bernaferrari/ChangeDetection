@@ -39,7 +39,9 @@ class TurboSheetUiTest {
         compose.setContent {
             ChangeDetectionTheme {
                 TurboSetupSheet(
-                    pages, preselected = setOf("p0"), state = TurboState(),
+                    pages,
+                    preselected = setOf("p0"),
+                    state = TurboState(),
                     onDismiss = { dismissed = true },
                     modifier = Modifier.width(360.dp).height(600.dp),
                 ) { _, _, _ -> }

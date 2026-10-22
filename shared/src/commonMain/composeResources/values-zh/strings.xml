@@ -200,6 +200,7 @@
     <string name="a11y_saved_screenshot_source_only">%1$s 的已保存截图</string>
     <string name="local_browser_error_title">无法打开此页面</string>
     <string name="local_browser_error_body">已保存的版本可能已不可用。</string>
+    <string name="browser_load_error_body">请检查网页地址和网络连接，然后重试。</string>
     <string name="local_browser_empty_snapshot">此版本没有可显示的内容。</string>
     <string name="delete_site_message">这将永久删除“%1$s”及其所有已保存的版本。</string>
     <string name="site_unnamed">此页面</string>

@@ -24,7 +24,7 @@ import kotlin.time.TimeSource
 
 /**
  * [classes] are exception class names along the cause chain (no messages). [detail] is the first
- * cause's message after [scrubErrorText]: no addresses, paths, quoted text or long numbers survive.
+ * cause's recognized system-error reason after [scrubErrorText]. Free-form messages are never retained.
  */
 @Serializable data class DiagnosticFailure(
     val stage: DiagnosticStage,
@@ -51,8 +51,10 @@ import kotlin.time.TimeSource
 interface DiagnosticSink {
     suspend fun watchToken(watchId: String?): String
     suspend fun append(attempt: DiagnosticAttempt)
+
     /** Must not block or throw; a crash handler may call it. */
     fun appEvent(event: AppEvent) {}
+
     /** The database opened at [version]; the sink decides whether that's new (created or upgraded). */
     fun databaseOpened(version: Int) {}
 }
@@ -69,43 +71,45 @@ object DiagnosticLog {
     }
 
     fun databaseOpened(version: Int) {
-        try { sink?.databaseOpened(version) } catch (_: Throwable) { }
+        try {
+            sink?.databaseOpened(version)
+        } catch (_: Throwable) { }
     }
 }
 
 /** Exception class names along the cause chain, outermost first. Names only, never messages. */
-fun errorClasses(error: Throwable?): List<String> =
-    generateSequence(error) { it.cause }.take(4).map { it::class.simpleName ?: "Anonymous" }.filter(::isSafeClassName).toList()
+fun errorClasses(error: Throwable?): List<String> = generateSequence(error) { it.cause }.take(4).map { it::class.simpleName ?: "Anonymous" }.filter(::isSafeClassName).toList()
 
 internal fun isSafeClassName(name: String) = name.length in 1..64 && name.all { it.isLetterOrDigit() || it == '_' || it == '$' }
 
 /**
- * The message of the deepest SQLite or file error in the cause chain, scrubbed. Only those layers
- * are trusted: they say things like "database is locked" or "disk I/O error" and never carry page
- * content. Every other exception (parsers, network, the app's own wrappers) contributes its class
- * name only, because its message may contain what the page said.
+ * The deepest recognized SQLite or IO reason, using fixed phrases rather than free-form text.
+ * IO exceptions also include network failures and WebView descriptions, which can contain private data.
+ * Unknown reasons contribute class names only.
  */
 fun errorDetail(error: Throwable?): String? = generateSequence(error) { it.cause }.take(6)
     .filter(::isSystemLevelError)
     .mapNotNull { it.message?.let(::scrubErrorText) }
     .lastOrNull { it.isNotBlank() }
 
-private fun isSystemLevelError(error: Throwable): Boolean =
-    error::class.simpleName.orEmpty().contains("SQLite") || error is kotlinx.io.IOException
+private fun isSystemLevelError(error: Throwable): Boolean = error::class.simpleName.orEmpty().contains("SQLite") || error is kotlinx.io.IOException
 
-/** Keeps the shape of an error ("no such column: lastFailureCode") and drops anything that could identify a page or person. */
-fun scrubErrorText(text: String): String = text
-    .replace(Regex("""[a-zA-Z][a-zA-Z0-9+.-]*://\S+"""), "<url>")
-    .replace(Regex("""\S+@\S+\.\S+"""), "<email>")
-    .replace(Regex("""(/[^\s/]+){2,}/?"""), "<path>")
-    .replace(Regex(""""[^"]*"|'[^']*'|`[^`]*`"""), "<text>")
-    .replace(Regex("""\b\d{5,}\b"""), "<n>")
-    .replace(Regex("""(\w+)=\S+"""), "$1=<value>")
-    .replace(Regex("""\b(?:[a-z0-9-]+\.)+(?:com|net|org|io|dev|app|br|co|uk|de|info)\b""", RegexOption.IGNORE_CASE), "<host>")
-    .filter { it.isLetterOrDigit() || it in " _:.,;()=<>#+-[]/" }
-    .replace(Regex("""\s+"""), " ")
-    .trim()
-    .take(200)
+/** Also applied when reading older records: no free-form error text enters disk or an exported report. */
+fun scrubErrorText(text: String): String {
+    val reason = safeSystemReasons.firstOrNull { text.contains(it, ignoreCase = true) } ?: return ""
+    val code = systemErrorCode.find(text)?.groupValues?.get(1)?.toIntOrNull()
+    return reason + (code?.let { " (code $it)" } ?: "")
+}
+
+private val systemErrorCode = Regex("""\b(?:error code|code)\s*[:=]?\s*(\d{1,4})\b""", RegexOption.IGNORE_CASE)
+private val safeSystemReasons = listOf(
+    "database table is locked", "database is locked", "database or disk is full", "disk is full",
+    "no space left", "ENOSPC", "SQLITE_FULL", "disk I/O error", "SQLITE_IOERR",
+    "unable to open database file", "attempt to write a readonly database", "database disk image is malformed",
+    "file is not a database", "no such column:", "no such table:", "no such index:",
+    "UNIQUE constraint failed", "NOT NULL constraint failed", "FOREIGN KEY constraint failed",
+    "CHECK constraint failed", "permission denied", "read-only file system", "too many open files",
+)
 
 internal class DiagnosticSpan : AbstractCoroutineContextElement(Key) {
     companion object Key : CoroutineContext.Key<DiagnosticSpan>

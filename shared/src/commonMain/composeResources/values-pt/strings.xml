@@ -196,6 +196,7 @@
     <string name="a11y_saved_screenshot_source_only">Captura de tela salva de %1$s</string>
     <string name="local_browser_error_title">Não foi possível abrir esta página</string>
     <string name="local_browser_error_body">A versão salva pode não estar mais disponível.</string>
+    <string name="browser_load_error_body">Verifique o endereço da página e sua conexão e tente novamente.</string>
     <string name="local_browser_empty_snapshot">Esta versão não tem conteúdo exibível.</string>
     <string name="delete_site_message">Isto excluirá permanentemente \"%1$s\" e todas as suas versões salvas.</string>
     <string name="site_unnamed">esta página</string>

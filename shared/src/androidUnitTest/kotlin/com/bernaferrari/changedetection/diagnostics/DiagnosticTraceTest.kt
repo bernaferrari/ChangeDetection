@@ -13,6 +13,27 @@ import org.junit.Test
 class DiagnosticTraceTest {
     private val previous = DiagnosticLog.sink
 
+    @Test fun networkAndPageIoErrorsNeverContributeMessagesToTheReport() = runTest {
+        val sink = Sink()
+        DiagnosticLog.sink = sink
+        for (error in listOf(
+            java.net.UnknownHostException("private.customer.xyz: No address associated with hostname"),
+            java.net.ConnectException("Failed to connect to account.private.xyz/203.0.113.7:443"),
+            java.io.IOException("Patient Alice Smith invoice overdue"),
+        )) {
+            try {
+                recordDiagnostic(CaptureMode.TEXT, false, false, DiagnosticTrigger.CHECK) {
+                    diagnosticStage(DiagnosticStage.NAVIGATE) { throw error }
+                }
+            } catch (_: java.io.IOException) { }
+            val failure = requireNotNull(sink.records.last().failure)
+            assertNull(error::class.simpleName, failure.detail)
+            assertEquals(listOf(error::class.simpleName), failure.classes)
+        }
+        val report = Json.encodeToString(sink.records)
+        for (secret in listOf("private.customer.xyz", "account.private.xyz", "203.0.113.7", "Alice Smith")) assertFalse(secret, report.contains(secret))
+    }
+
     @After fun restore() {
         DiagnosticLog.sink = previous
     }
@@ -76,6 +97,12 @@ class DiagnosticTraceTest {
         val scrubbed = scrubErrorText("no such column: \"lastFailure\" at https://a.example/x?y=1 in /data/data/app/db user@mail.com id=123456 example.com")
         listOf("https://", "/data", "user@mail.com", "123456", "example.com", "lastFailure").forEach { assertFalse(scrubbed, scrubbed.contains(it)) }
         assertTrue(scrubbed, scrubbed.startsWith("no such column:"))
+    }
+
+    @Test fun recognizedSystemReasonsNeverPreserveSurroundingPrivateText() {
+        assertEquals("disk I/O error (code 10)", scrubErrorText("disk I/O error (code 10) while reading Patient Alice Smith at private.customer.xyz [2001:db8::1]"))
+        assertEquals("no such column:", scrubErrorText("no such column: private.customer.xyz"))
+        assertEquals("", scrubErrorText("Failed to connect to [2001:db8::1]:443"))
     }
 
     @Test fun recorderFailureCannotFailOrReplaceTheMonitoringResult() = runTest {

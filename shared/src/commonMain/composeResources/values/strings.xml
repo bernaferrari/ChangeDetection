@@ -208,6 +208,7 @@
     <string name="a11y_saved_screenshot_source_only">Saved screenshot from %1$s</string>
     <string name="local_browser_error_title">Couldn’t open this page</string>
     <string name="local_browser_error_body">The saved version may no longer be available.</string>
+    <string name="browser_load_error_body">Check the page address and your connection, then try again.</string>
     <string name="local_browser_empty_snapshot">This version has no displayable content.</string>
     <string name="delete_site_message">This will permanently delete \"%1$s\" and all its saved versions.</string>
     <string name="site_unnamed">this page</string>

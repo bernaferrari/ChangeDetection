@@ -26,7 +26,10 @@ internal actual suspend fun captureLoadedPageScreenshot(state: WebViewState, reg
             val scale = minOf(1f, 512f / width)
             val thumbnail = android.graphics.Bitmap.createBitmap((width * scale).toInt().coerceAtLeast(1), (height * scale).toInt().coerceAtLeast(1), android.graphics.Bitmap.Config.ARGB_8888)
             try {
-                android.graphics.Canvas(thumbnail).apply { scale(scale, scale); view.draw(this) }
+                android.graphics.Canvas(thumbnail).apply {
+                    scale(scale, scale)
+                    view.draw(this)
+                }
                 val bytes = withContext(Dispatchers.Default) {
                     java.io.ByteArrayOutputStream().use { output ->
                         check(thumbnail.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, output))
@@ -55,5 +58,4 @@ internal actual suspend fun captureLoadedPageScreenshot(state: WebViewState, reg
     }
 }
 
-internal actual fun createWatchWebView(param: com.multiplatform.webview.web.WebViewFactoryParam): com.multiplatform.webview.web.NativeWebView =
-    android.webkit.WebView(MutableContextWrapper(param.context))
+internal actual fun createWatchWebView(param: com.multiplatform.webview.web.WebViewFactoryParam): com.multiplatform.webview.web.NativeWebView = android.webkit.WebView(MutableContextWrapper(param.context))

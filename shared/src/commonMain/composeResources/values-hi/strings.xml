@@ -208,6 +208,7 @@
     <string name="a11y_saved_screenshot_source_only">%1$s का सहेजा गया स्क्रीनशॉट</string>
     <string name="local_browser_error_title">यह पेज खुल नहीं पाया</string>
     <string name="local_browser_error_body">सहेजा गया संस्करण शायद अब उपलब्ध नहीं है।</string>
+    <string name="browser_load_error_body">पेज का पता और अपना कनेक्शन जाँचें, फिर दोबारा कोशिश करें।</string>
     <string name="local_browser_empty_snapshot">इस संस्करण में दिखाने योग्य कॉन्टेंट नहीं है।</string>
     <string name="delete_site_message">“%1$s” और उसके सभी सहेजे गए संस्करण हमेशा के लिए मिट जाएँगे।</string>
     <string name="site_unnamed">यह पेज</string>

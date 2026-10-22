@@ -12,6 +12,22 @@ import java.io.File
 
 class DiagnosticStoreTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
+
+    @Test fun reportsRemovePrivateDetailsFromPreviouslyStoredAttemptsAndEvents() = runBlocking {
+        fixture { store, dir, _ ->
+            dir.mkdirs()
+            val secret = "Patient Alice Smith at private.customer.xyz/203.0.113.7:443"
+            val attempt = DiagnosticAttempt(startedAt = 1_790_000_000_000L, mode = CaptureMode.TEXT, selected = false, excluded = false, trigger = DiagnosticTrigger.CHECK, outcome = DiagnosticOutcome.FAILURE, events = emptyList(), failure = DiagnosticFailure(DiagnosticStage.NAVIGATE, classes = listOf("IOException"), detail = secret))
+            val safeRuntime = withContext(Dispatchers.IO) { runtime() }
+            File(dir, "trace-${attempt.attemptId}.json").writeText(Json.encodeToString(StoredDiagnostic(safeRuntime, attempt)))
+            File(dir, "app-events.json").writeText(Json.encodeToString(listOf(AppEvent(AppEventKind.BACKGROUND_FAILURE, attempt.startedAt, classes = listOf("IOException"), detail = "disk I/O error $secret"))))
+            val report = store.report()
+            assertEquals(1, report.attemptCount)
+            assertEquals(1, report.eventCount)
+            for (part in listOf("Alice Smith", "private.customer.xyz", "203.0.113.7")) assertFalse(part, report.json.contains(part))
+            assertTrue(report.json.contains("disk I/O error"))
+        }
+    }
     private fun runtime(): DiagnosticRuntime {
         assertNotEquals(android.os.Looper.getMainLooper(), android.os.Looper.myLooper())
         return DiagnosticRuntime(38, "3.0", DiagnosticVariant.DEBUG, "abcdef123456", 36, DiagnosticProvider.GOOGLE, "133.0.6943.137", DiagnosticSpace.AT_LEAST_256_MIB, 256)

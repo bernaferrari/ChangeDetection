@@ -58,7 +58,10 @@ android {
         targetSdk = 37
         versionCode = 39
         versionName = "3.0"
-        val diagnosticRevision = providers.exec { workingDir(rootProject.projectDir); commandLine("git", "rev-parse", "--short=12", "HEAD") }.standardOutput.asText.get().trim()
+        val diagnosticRevision = providers.exec {
+            workingDir(rootProject.projectDir)
+            commandLine("git", "rev-parse", "--short=12", "HEAD")
+        }.standardOutput.asText.get().trim()
         buildConfigField("String", "DIAGNOSTIC_REVISION", "\"$diagnosticRevision\"")
     }
 

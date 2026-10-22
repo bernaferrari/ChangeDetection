@@ -69,6 +69,8 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.androidx.room.runtime)
+            implementation(libs.sqlite.async)
+            implementation(libs.material.kolor)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
@@ -129,7 +131,6 @@ kotlin {
             implementation(libs.sqlite.bundled)
 
             implementation(libs.androidx.palette.ktx)
-            implementation(libs.material.kolor)
 
             implementation(libs.androidx.browser)
 
@@ -141,7 +142,6 @@ kotlin {
                 implementation(compose.desktop.currentOs)
                 implementation(libs.ktor.client.okhttp)
                 implementation(libs.kotlinx.coroutines.swing)
-                implementation(libs.material.kolor)
                 implementation(libs.sqlite.bundled)
             }
         }
@@ -158,12 +158,10 @@ kotlin {
         iosMain.dependencies {
             implementation(libs.kmpwright.core)
             implementation(libs.ktor.client.darwin)
-            implementation(libs.material.kolor)
             implementation(libs.sqlite.bundled)
         }
         wasmJsMain.dependencies {
             implementation(project(":sqliteWasmWorker"))
-            implementation(libs.material.kolor)
             implementation(libs.okio)
         }
 

@@ -162,9 +162,14 @@ class LocalizationTest {
                 Triple(2, 1, "2 changes across 1 day in the last 30 days"),
                 Triple(2, 2, "2 changes across 2 days in the last 30 days"),
             )) {
-                assertEquals(expected, getString(Res.string.detail_calendar_summary,
-                    getPluralString(Res.plurals.detail_changes_count, changes, changes),
-                    getPluralString(Res.plurals.detail_calendar_days, days, days)))
+                assertEquals(
+                    expected,
+                    getString(
+                        Res.string.detail_calendar_summary,
+                        getPluralString(Res.plurals.detail_changes_count, changes, changes),
+                        getPluralString(Res.plurals.detail_calendar_days, days, days),
+                    ),
+                )
             }
         } finally {
             Locale.setDefault(previous)

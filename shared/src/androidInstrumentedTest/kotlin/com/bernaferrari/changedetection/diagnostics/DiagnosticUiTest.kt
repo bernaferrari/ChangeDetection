@@ -74,7 +74,9 @@ class DiagnosticUiTest {
         }
         compose.waitUntil(5_000) { foreground().contains("ChooserActivity") }
         assertTrue("System chooser should be foreground; never select a recipient", foreground().contains("ChooserActivity"))
-        ParcelFileDescriptor.AutoCloseInputStream(automation.executeShellCommand("input keyevent 4")).use { it.readBytes() }
+        // The chooser Activity can be resumed before its window accepts input.
+        automation.waitForIdle(100, 5_000)
+        assertTrue(automation.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK))
         compose.waitUntil(5_000) { runCatching { compose.onAllNodesWithText("Close").fetchSemanticsNodes().isNotEmpty() }.getOrDefault(false) }
         compose.onNodeWithText("Close").assertIsEnabled().performClick()
         compose.onNodeWithText("Synthetic failed page").assertIsDisplayed()

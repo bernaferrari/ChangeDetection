@@ -196,6 +196,7 @@
     <string name="a11y_saved_screenshot_source_only">Captura de pantalla guardada de %1$s</string>
     <string name="local_browser_error_title">No se pudo abrir esta página</string>
     <string name="local_browser_error_body">Puede que la versión guardada ya no esté disponible.</string>
+    <string name="browser_load_error_body">Comprueba la dirección de la página y tu conexión, e inténtalo de nuevo.</string>
     <string name="local_browser_empty_snapshot">Esta versión no tiene contenido que mostrar.</string>
     <string name="delete_site_message">Esto eliminará permanentemente \"%1$s\" y todas sus versiones guardadas.</string>
     <string name="site_unnamed">esta página</string>

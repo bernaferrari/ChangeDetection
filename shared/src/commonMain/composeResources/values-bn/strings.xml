@@ -208,6 +208,7 @@
     <string name="a11y_saved_screenshot_source_only">%1$s-এর সংরক্ষিত স্ক্রিনশট</string>
     <string name="local_browser_error_title">এই পৃষ্ঠা খোলা যায়নি</string>
     <string name="local_browser_error_body">সংরক্ষিত সংস্করণটি হয়তো আর নেই।</string>
+    <string name="browser_load_error_body">পৃষ্ঠার ঠিকানা ও আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</string>
     <string name="local_browser_empty_snapshot">এই সংস্করণে দেখানোর মতো বিষয়বস্তু নেই।</string>
     <string name="delete_site_message">“%1$s” ও তার সব সংরক্ষিত সংস্করণ স্থায়ীভাবে মুছে যাবে।</string>
     <string name="site_unnamed">এই পৃষ্ঠা</string>

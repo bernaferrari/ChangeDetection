@@ -48,6 +48,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.a11y_saved_sc
 import com.bernaferrari.changedetection.shared.generated.resources.a11y_saved_screenshot_source_only
 import com.bernaferrari.changedetection.shared.generated.resources.local_browser_empty_snapshot
 import com.bernaferrari.changedetection.shared.generated.resources.local_browser_error_body
+import com.bernaferrari.changedetection.shared.generated.resources.browser_load_error_body
 import com.bernaferrari.changedetection.shared.generated.resources.local_browser_error_title
 import com.bernaferrari.changedetection.shared.generated.resources.local_browser_title_live
 import com.bernaferrari.changedetection.shared.generated.resources.local_browser_title_snapshot
@@ -91,7 +92,7 @@ fun LocalBrowserScreen(
             (isLocalSnapshot && state.hasError) || (!isLocalSnapshot && safeUrl.isBlank()) -> SharedEmptyState(
                 icon = Icons.Default.ErrorOutline,
                 title = stringResource(Res.string.local_browser_error_title),
-                description = stringResource(Res.string.local_browser_error_body),
+                description = stringResource(if (isLocalSnapshot) Res.string.local_browser_error_body else Res.string.browser_load_error_body),
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
@@ -251,7 +252,7 @@ internal fun LiveBrowserPage(url: String, modifier: Modifier) {
                     SharedEmptyState(
                         icon = Icons.Default.ErrorOutline,
                         title = stringResource(Res.string.local_browser_error_title),
-                        description = stringResource(Res.string.local_browser_error_body),
+                        description = stringResource(Res.string.browser_load_error_body),
                         primaryActionLabel = stringResource(Res.string.retry),
                         onPrimaryAction = { attempt++ },
                     )

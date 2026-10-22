@@ -112,8 +112,10 @@ class LiveBrowserWatchJourneyTest {
                     web.get().evaluateJavascript("document.getElementById('product').click();${outsideCapture}window.location.href") { current.set(decodeBrowserUrl(it)) }
                 }
                 compose.waitUntil(5_000) { current.get() == expected }
-                if (selectedPart) compose.runOnUiThread {
-                    model.setTextRegion(com.bernaferrari.changedetection.detection.TextRegion(include = "#details"))
+                if (selectedPart) {
+                    compose.runOnUiThread {
+                        model.setTextRegion(com.bernaferrari.changedetection.detection.TextRegion(include = "#details"))
+                    }
                 }
                 val startedAt = android.os.SystemClock.elapsedRealtime()
                 compose.onNode(hasText("Watch this page") and hasClickAction()).performClick()

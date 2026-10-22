@@ -208,6 +208,7 @@
     <string name="a11y_saved_screenshot_source_only">Gespeicherter Screenshot von %1$s</string>
     <string name="local_browser_error_title">Seite konnte nicht geöffnet werden</string>
     <string name="local_browser_error_body">Die gespeicherte Version ist möglicherweise nicht mehr verfügbar.</string>
+    <string name="browser_load_error_body">Prüfe die Seitenadresse und deine Verbindung und versuche es erneut.</string>
     <string name="local_browser_empty_snapshot">Diese Version enthält keinen darstellbaren Inhalt.</string>
     <string name="delete_site_message">„%1$s“ und alle gespeicherten Versionen werden endgültig gelöscht.</string>
     <string name="site_unnamed">diese Seite</string>
