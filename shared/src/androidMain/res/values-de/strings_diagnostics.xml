@@ -1,0 +1,14 @@
+<resources>
+    <string name="diagnostics_export">Bericht an den Entwickler senden</string>
+    <string name="diagnostics_title">Diagnosebericht</string>
+    <string name="diagnostics_explanation">Prüfe diesen lokalen Bericht vor dem Teilen. Er enthält die Schritte jeder Prüfung, Zeiten, Fehlerarten und Fehlermeldungen ohne Adressen, Pfade und zitierten Text, kürzliche Datenbank-Updates und Abstürze sowie die Versionen von App und WebView. Er enthält keine Seitenadressen, Titel, Inhalte, Screenshots, Cookies, Header oder Tokens. Es wird nichts automatisch gesendet.</string>
+    <string name="diagnostics_scope">Bis zu 10 kürzliche Versuche aus den letzten 7 Tagen. Berichte sind auf 64 KiB begrenzt. Unvollständige Einträge können auf eine unterbrochene oder verlorene Aufzeichnung hinweisen.</string>
+    <string name="diagnostics_loading">Lokaler Bericht wird vorbereitet…</string>
+    <string name="diagnostics_empty">Keine kürzlichen Versuche aufgezeichnet. Probiere die Vorschau aus oder prüfe erneut und öffne dann diesen Bericht noch einmal.</string>
+    <string name="diagnostics_unavailable">Die Diagnose konnte nicht vorbereitet werden. Überwachung und gespeicherter Verlauf sind unverändert. Versuche es erneut.</string>
+    <string name="diagnostics_share">Bericht senden</string>
+    <string name="diagnostics_close">Schließen</string>
+    <string name="diagnostics_retry">Erneut versuchen</string>
+    <string name="diagnostics_content">Inhalt des Berichts</string>
+    <string name="diagnostics_page_scope">Kürzliche Versuche für diese Seite</string>
+</resources>

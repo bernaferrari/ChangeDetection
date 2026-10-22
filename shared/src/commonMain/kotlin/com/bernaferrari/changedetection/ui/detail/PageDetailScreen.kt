@@ -495,6 +495,9 @@ private fun failureAdvice(failure: CheckFailure) = when (failure) {
     CheckFailure.REGION -> Res.string.advice_region
     CheckFailure.CONTENT, CheckFailure.CONTENT_TOO_LARGE -> Res.string.advice_content
     CheckFailure.CAPTURE_UNAVAILABLE -> Res.string.advice_capture
+    // The app knows these causes; say them instead of the catch-all.
+    CheckFailure.STORAGE_FULL -> Res.string.check_failure_storage_full_detail
+    CheckFailure.SAVE_FAILED -> Res.string.check_failure_save_failed_detail
     else -> Res.string.advice_generic
 }
 

@@ -296,7 +296,7 @@
     <string name="check_failure_storage_full">स्टोरेज पर्याप्त नहीं</string>
     <string name="check_failure_storage_full_detail">स्टोरेज खाली करके फिर कोशिश करें। सहेजा गया इतिहास रहेगा।</string>
     <string name="check_failure_save_failed">जाँच सहेजी नहीं जा सकी</string>
-    <string name="check_failure_save_failed_detail">खाली स्टोरेज जाँचें और फिर कोशिश करें। सहेजा गया इतिहास रहेगा।</string>
+    <string name="check_failure_save_failed_detail">फिर कोशिश करें। सहेजा गया इतिहास रहेगा। अगर ऐसा बार-बार हो, तो रिपोर्ट भेजें।</string>
     <string name="check_failure_content_too_large">पेज बहुत बड़ा है</string>
     <string name="check_failure_content_too_large_detail">यह पेज कैप्चर की आकार सीमा से बड़ा है। छोटा पेज या दूसरा कैप्चर तरीका चुनें।</string>
     <string name="check_failure_content">यह कॉन्टेंट समर्थित नहीं</string>

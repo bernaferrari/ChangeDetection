@@ -284,7 +284,7 @@
     <string name="check_failure_storage_full">Almacenamiento insuficiente</string>
     <string name="check_failure_storage_full_detail">Libera espacio e inténtalo de nuevo. El historial guardado se conserva.</string>
     <string name="check_failure_save_failed">No se pudo guardar</string>
-    <string name="check_failure_save_failed_detail">Comprueba el espacio disponible e inténtalo de nuevo. El historial guardado se conserva.</string>
+    <string name="check_failure_save_failed_detail">Inténtalo de nuevo. El historial guardado se conserva. Si sigue pasando, envía un informe.</string>
     <string name="check_failure_content_too_large">Página demasiado grande</string>
     <string name="check_failure_content_too_large_detail">La página supera el límite de captura. Elige una página más pequeña u otro método.</string>
     <string name="check_failure_content">Contenido no compatible</string>

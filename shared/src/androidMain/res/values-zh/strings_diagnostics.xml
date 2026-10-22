@@ -1,0 +1,14 @@
+<resources>
+    <string name="diagnostics_export">发送检查记录</string>
+    <string name="diagnostics_title">检查记录</string>
+    <string name="diagnostics_explanation">分享前请先查看这个本地记录。其中包含每次检查的过程、用时、错误类型，以及已删除地址、文件位置和原文的错误消息、最近的数据更新和意外关闭，以及应用和 WebView 版本。不包含页面地址、标题、内容、截图、Cookie、请求信息或登录信息。不会自动发送任何内容。</string>
+    <string name="diagnostics_scope">最多包含最近 7 天内的 10 次尝试。大小上限为 64 KiB。不完整的条目可能是记录被中断或没有保存。</string>
+    <string name="diagnostics_loading">正在准备本地记录…</string>
+    <string name="diagnostics_empty">最近没有记录到尝试。试试预览或重新检查，然后再次打开。</string>
+    <string name="diagnostics_unavailable">无法准备检查记录。监控和已保存的历史没有变化。请重试。</string>
+    <string name="diagnostics_share">发送记录</string>
+    <string name="diagnostics_close">关闭</string>
+    <string name="diagnostics_retry">重试</string>
+    <string name="diagnostics_content">记录内容</string>
+    <string name="diagnostics_page_scope">此页面的最近尝试</string>
+</resources>

@@ -42,6 +42,8 @@ enum class CheckFailure {
                 }
             }
             if (error is SnapshotStorageError) return if (error.lowSpace) STORAGE_FULL else SAVE_FAILED
+            // SQLite reports a full disk as a database error; say what it is.
+            if (generateSequence(error) { it.cause }.take(6).any(::isDiskFull)) return STORAGE_FULL
             if (error is SyncError && error.reason == SyncError.Reason.CONTENT_TOO_LARGE) return CONTENT_TOO_LARGE
             return when (result.type) {
                 ErrorType.CONNECTIVITY, ErrorType.NETWORK -> CONNECTION
@@ -55,4 +57,10 @@ enum class CheckFailure {
             }
         }
     }
+}
+
+private fun isDiskFull(error: Throwable): Boolean {
+    if (error::class.simpleName == "SQLiteFullException") return true
+    val message = error.message ?: return false
+    return listOf("disk is full", "SQLITE_FULL", "ENOSPC", "No space left").any { message.contains(it, ignoreCase = true) }
 }

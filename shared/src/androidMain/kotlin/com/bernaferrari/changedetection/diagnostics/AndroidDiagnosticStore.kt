@@ -24,8 +24,9 @@ import javax.crypto.spec.SecretKeySpec
 @Serializable data class DiagnosticRuntime(val versionCode: Long, val versionName: String, val variant: DiagnosticVariant, val revision: String, val androidApi: Int, val provider: DiagnosticProvider, val providerVersion: String, val space: DiagnosticSpace, val heapLimitMiB: Int)
 
 @Serializable internal data class StoredDiagnostic(val runtime: DiagnosticRuntime, val attempt: DiagnosticAttempt)
-class DiagnosticReport internal constructor(val json: String, val attemptCount: Int) {
+class DiagnosticReport internal constructor(val json: String, val attemptCount: Int, val eventCount: Int = 0) {
     val lines: List<String> = json.lines()
+    val isEmpty: Boolean get() = attemptCount == 0 && eventCount == 0
 }
 
 /** Fixed schema limits apply on write AND read, including files left by an older process. */
@@ -130,7 +131,7 @@ class AndroidDiagnosticStore internal constructor(
             androidApi = value.runtime.androidApi.coerceIn(1, 100),
             heapLimitMiB = value.runtime.heapLimitMiB.coerceIn(0, 65_536),
         )
-        return StoredDiagnostic(safeRuntime, a.copy(events = a.events.take(64).map { it.copy(elapsedMs = it.elapsedMs.coerceIn(0, 600_000), durationMs = it.durationMs.coerceIn(0, 600_000), code = it.code?.coerceIn(-100, 599)) }, failure = a.failure?.copy(causes = a.failure.causes.take(4))))
+        return StoredDiagnostic(safeRuntime, a.copy(events = a.events.take(64).map { it.copy(elapsedMs = it.elapsedMs.coerceIn(0, 600_000), durationMs = it.durationMs.coerceIn(0, 600_000), code = it.code?.coerceIn(-100, 599)) }, failure = a.failure?.copy(causes = a.failure.causes.take(4), classes = a.failure.classes.filter(::isSafeClassName).take(4), detail = a.failure.detail?.let(::scrubErrorText)?.takeIf { it.isNotBlank() })))
     }
 
     private fun retained(): List<File> {
@@ -153,15 +154,98 @@ class AndroidDiagnosticStore internal constructor(
         return keep
     }
 
+    // App events: database changes, crashes, background failures. Small, bounded, kept longer than
+    // check attempts because a bad upgrade can explain failures for weeks.
+    private val eventsLock = Any()
+    private val eventsFile: File get() = File(directory, "app-events.json")
+    private val versionFile: File get() = File(directory, "database-version")
+
+    override fun appEvent(event: AppEvent) {
+        writerScope.launch { runCatching { recordEventNow(event) } }
+    }
+
+    override fun databaseOpened(version: Int) {
+        writerScope.launch {
+            runCatching {
+                synchronized(eventsLock) {
+                    check(directory.exists() || directory.mkdirs())
+                    val previous = versionFile.takeIf { it.isFile }?.readText()?.trim()?.toIntOrNull()
+                    if (previous == version) return@synchronized null
+                    versionFile.writeText(version.toString())
+                    if (previous == null) AppEvent(AppEventKind.DATABASE_CREATED, now(), toVersion = version)
+                    else AppEvent(AppEventKind.DATABASE_UPGRADED, now(), fromVersion = previous, toVersion = version)
+                }?.let(::recordEventNow)
+            }
+        }
+    }
+
+    /** Synchronous so a crash handler can save the event before the process dies. */
+    fun recordEventNow(event: AppEvent) = synchronized(eventsLock) {
+        check(directory.exists() || directory.mkdirs())
+        val events = (readEvents() + sanitizeEvent(event)).filterNotNull().takeLast(MAX_EVENTS)
+        val temporary = File(directory, "app-events.json.partial")
+        temporary.writeText(compact.encodeToString(events))
+        if (!temporary.renameTo(eventsFile)) temporary.delete()
+    }
+
+    private fun readEvents(): List<AppEvent> = synchronized(eventsLock) {
+        runCatching { compact.decodeFromString<List<AppEvent>>(eventsFile.readText()) }.getOrDefault(emptyList()).mapNotNull(::sanitizeEvent)
+    }
+
+    private fun sanitizeEvent(event: AppEvent): AppEvent? {
+        if (event.at < now() - EVENT_RETENTION_MS || event.at > now() + 60_000) return null
+        return event.copy(
+            fromVersion = event.fromVersion?.coerceIn(-1, 10_000),
+            toVersion = event.toVersion?.coerceIn(-1, 10_000),
+            classes = event.classes.filter(::isSafeClassName).take(4),
+            detail = event.detail?.let(::scrubErrorText)?.takeIf { it.isNotBlank() },
+        )
+    }
+
+    /** Plain sentences at the top of the report, so it can be read without decoding the JSON below. */
+    private fun summary(runtime: DiagnosticRuntime, attempts: List<StoredDiagnostic>, events: List<AppEvent>): List<String> = buildList {
+        add("App ${runtime.versionName} (${runtime.variant.name.lowercase()}) · Android API ${runtime.androidApi} · WebView ${runtime.providerVersion} (${runtime.provider.name.lowercase()}) · free storage ${runtime.space.name.lowercase().replace('_', ' ')}")
+        val failures = attempts.filter { it.attempt.outcome == DiagnosticOutcome.FAILURE }
+        add("${failures.size} of ${attempts.size} recent attempts failed")
+        failures.firstOrNull()?.attempt?.let { attempt ->
+            val f = attempt.failure
+            add(listOfNotNull(
+                "Latest failure: ${f?.category?.name ?: "UNKNOWN"} at ${f?.stage?.name ?: "unknown stage"}",
+                f?.classes?.takeIf { it.isNotEmpty() }?.joinToString(" → "),
+                f?.detail,
+                "${((now() - attempt.startedAt) / 60_000).coerceAtLeast(0)} min ago",
+            ).joinToString(" · "))
+        }
+        events.asReversed().forEach { e ->
+            val ago = ((now() - e.at) / 3_600_000).let { if (it < 1) "under 1 h ago" else "$it h ago" }
+            add(listOfNotNull(
+                when (e.kind) {
+                    AppEventKind.DATABASE_CREATED -> "Database created at version ${e.toVersion}"
+                    AppEventKind.DATABASE_UPGRADED -> "Database upgraded ${e.fromVersion} → ${e.toVersion}"
+                    AppEventKind.DATABASE_RESET -> "Database was reset (no migration path; history was cleared)"
+                    AppEventKind.CRASH -> "Crash"
+                    AppEventKind.BACKGROUND_FAILURE -> "Background check failed"
+                },
+                e.classes.takeIf { it.isNotEmpty() }?.joinToString(" → "),
+                e.detail,
+                ago,
+            ).joinToString(" · "))
+        }
+    }
+
     suspend fun report(watchId: String? = null): DiagnosticReport = withContext(Dispatchers.IO) {
         flush()
         val selected = watchId?.let { watchToken(it) }
         mutex.withLock {
             val header = sanitize(StoredDiagnostic(runtime(), DiagnosticAttempt(startedAt = now(), mode = com.bernaferrari.changedetection.repo.CaptureMode.DEFAULT, selected = false, excluded = false, trigger = DiagnosticTrigger.CHECK, outcome = DiagnosticOutcome.INCOMPLETE, events = emptyList())))!!.runtime
+            val events = readEvents()
+            val kept = mutableListOf<StoredDiagnostic>()
             fun envelope(rows: List<JsonElement>) = buildJsonObject {
                 put("schema", 1)
+                put("summary", JsonArray(summary(header, kept, events).map(::JsonPrimitive)))
                 put("runtime", compact.encodeToJsonElement(header))
                 put("droppedRecords", dropped.get().coerceIn(0, 100_000))
+                put("appEvents", compact.encodeToJsonElement(events))
                 put("attempts", JsonArray(rows))
             }
             val rows = mutableListOf<JsonElement>()
@@ -182,10 +266,11 @@ class AndroidDiagnosticStore internal constructor(
                 val candidate = envelope(rows + row)
                 if (json.encodeToString(candidate).toByteArray().size > MAX_REPORT_BYTES) break
                 rows += row
+                kept += value
                 if (rows.size == MAX_REPORT_RECORDS) break
             }
             val report = envelope(rows)
-            DiagnosticReport(json.encodeToString(report), rows.size)
+            DiagnosticReport(json.encodeToString(report), rows.size, events.size)
         }
     }
 
@@ -207,6 +292,8 @@ class AndroidDiagnosticStore internal constructor(
         const val MAX_REPORT_BYTES = 64 * 1024
         const val MAX_REPORT_RECORDS = 10
         const val RETENTION_MS = 7 * 24 * 3_600_000L
+        const val MAX_EVENTS = 30
+        const val EVENT_RETENTION_MS = 30 * 24 * 3_600_000L
     }
 }
 
@@ -226,7 +313,15 @@ object AndroidDiagnostics {
             }
         }
         buildRevision?.let { revision = it }
-        return (store ?: AndroidDiagnosticStore(context.applicationContext).also { store = it }).also { DiagnosticLog.sink = it }
+        return (store ?: AndroidDiagnosticStore(context.applicationContext).also { created ->
+            store = created
+            // Save a crash's class names and scrubbed message, then let Android handle it as usual.
+            val previous = Thread.getDefaultUncaughtExceptionHandler()
+            Thread.setDefaultUncaughtExceptionHandler { thread, error ->
+                runCatching { created.recordEventNow(AppEvent(AppEventKind.CRASH, System.currentTimeMillis(), classes = errorClasses(error), detail = errorDetail(error))) }
+                previous?.uncaughtException(thread, error)
+            }
+        }).also { DiagnosticLog.sink = it }
     }
 }
 

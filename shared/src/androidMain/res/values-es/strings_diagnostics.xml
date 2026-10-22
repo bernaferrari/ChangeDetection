@@ -1,0 +1,14 @@
+<resources>
+    <string name="diagnostics_export">Enviar informe al desarrollador</string>
+    <string name="diagnostics_title">Informe de diagnóstico</string>
+    <string name="diagnostics_explanation">Revisa este informe local antes de compartirlo. Incluye las fases de cada comprobación, los tiempos, los tipos y mensajes de error sin direcciones, rutas ni texto entre comillas, las actualizaciones recientes de la base de datos y los cierres inesperados, y las versiones de la app y de WebView. No incluye direcciones, títulos ni contenido de las páginas, capturas, cookies, cabeceras ni tokens. No se envía nada automáticamente.</string>
+    <string name="diagnostics_scope">Hasta 10 intentos recientes de los últimos 7 días. Los informes tienen un límite de 64 KiB. Las entradas incompletas pueden deberse a un registro interrumpido o perdido.</string>
+    <string name="diagnostics_loading">Preparando el informe local…</string>
+    <string name="diagnostics_empty">No hay intentos recientes registrados. Prueba la vista previa o vuelve a comprobar, y luego abre este informe de nuevo.</string>
+    <string name="diagnostics_unavailable">No se pudo preparar el diagnóstico. El seguimiento y el historial guardado no han cambiado. Inténtalo de nuevo.</string>
+    <string name="diagnostics_share">Enviar informe</string>
+    <string name="diagnostics_close">Cerrar</string>
+    <string name="diagnostics_retry">Reintentar</string>
+    <string name="diagnostics_content">Contenido del informe</string>
+    <string name="diagnostics_page_scope">Intentos recientes de esta página</string>
+</resources>

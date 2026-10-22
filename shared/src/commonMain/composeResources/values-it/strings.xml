@@ -284,7 +284,7 @@
     <string name="check_failure_storage_full">Spazio insufficiente</string>
     <string name="check_failure_storage_full_detail">Libera spazio e riprova. La cronologia salvata viene conservata.</string>
     <string name="check_failure_save_failed">Salvataggio non riuscito</string>
-    <string name="check_failure_save_failed_detail">Controlla lo spazio disponibile e riprova. La cronologia salvata viene conservata.</string>
+    <string name="check_failure_save_failed_detail">Riprova. La cronologia salvata viene conservata. Se succede ancora, invia un rapporto.</string>
     <string name="check_failure_content_too_large">Pagina troppo grande</string>
     <string name="check_failure_content_too_large_detail">La pagina supera il limite di acquisizione. Scegli una pagina più piccola o un altro metodo.</string>
     <string name="check_failure_content">Contenuto non supportato</string>

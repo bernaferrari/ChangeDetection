@@ -51,4 +51,12 @@ class CheckFailureTest {
         assertEquals(CheckFailure.UNKNOWN, CheckFailure.fromCode("FUTURE_REASON"))
         assertEquals(CheckFailure.UNKNOWN, classify(IllegalStateException("unrecognized problem")))
     }
+
+    private class SQLiteFullException(message: String) : RuntimeException(message)
+
+    @Test fun aFullDiskReportedByTheDatabaseIsStorageNotAGenericSaveFailure() {
+        assertEquals(CheckFailure.STORAGE_FULL, classify(DatabaseError(DatabaseError.Operation.WRITE, "Failed to save snapshot", SQLiteFullException("full"))))
+        assertEquals(CheckFailure.STORAGE_FULL, classify(DatabaseError(DatabaseError.Operation.WRITE, "Failed to save snapshot", RuntimeException("database or disk is full (code 13)"))))
+        assertEquals(CheckFailure.SAVE_FAILED, classify(DatabaseError(DatabaseError.Operation.WRITE, "Failed to save snapshot", RuntimeException("database is locked"))))
+    }
 }
