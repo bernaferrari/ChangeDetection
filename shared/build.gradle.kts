@@ -233,7 +233,7 @@ compose.desktop {
                 menu = true
             }
             linux {
-                iconFile.set(project.file("src/desktopMain/composeResources/drawable/app_icon.png"))
+                iconFile.set(project.file("src/desktopMain/resources/app_icon.png"))
                 packageName = "changedetection"
                 shortcut = true
             }

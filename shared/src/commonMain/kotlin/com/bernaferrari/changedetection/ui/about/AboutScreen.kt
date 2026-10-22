@@ -74,12 +74,8 @@ import com.bernaferrari.changedetection.ui.kit.AppMark
 import com.bernaferrari.changedetection.ui.kit.GroupLabel
 import com.bernaferrari.changedetection.ui.kit.GroupRow
 import com.bernaferrari.changedetection.ui.kit.ListGroup
+import com.bernaferrari.changedetection.ui.kit.SocialLogos
 import com.bernaferrari.changedetection.localization.stringResource
-import org.jetbrains.compose.resources.painterResource
-import com.bernaferrari.changedetection.shared.generated.resources.github_logo
-import com.bernaferrari.changedetection.shared.generated.resources.x_logo
-import com.bernaferrari.changedetection.shared.generated.resources.reddit_logo
-import com.bernaferrari.changedetection.shared.generated.resources.linkedin_logo
 
 /**
  * About, in the Expressive style: the app mark on a slowly turning shape, the two things people come here
@@ -257,10 +253,10 @@ private fun Note(modifier: Modifier = Modifier) {
 @Composable
 private fun Elsewhere(onClick: (String) -> Unit) {
     val links = listOf(
-        Triple("GitHub", "https://github.com/bernaferrari", Res.drawable.github_logo),
-        Triple("X", "https://x.com/bernaferrari", Res.drawable.x_logo),
-        Triple("Reddit", "https://www.reddit.com/user/bernaferrari", Res.drawable.reddit_logo),
-        Triple("LinkedIn", "https://www.linkedin.com/in/bernaferrari", Res.drawable.linkedin_logo),
+        Triple("GitHub", "https://github.com/bernaferrari", SocialLogos.GitHub),
+        Triple("X", "https://x.com/bernaferrari", SocialLogos.X),
+        Triple("Reddit", "https://www.reddit.com/user/bernaferrari", SocialLogos.Reddit),
+        Triple("LinkedIn", "https://www.linkedin.com/in/bernaferrari", SocialLogos.LinkedIn),
     )
     FlowRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalArrangement = Arrangement.spacedBy(2.dp), maxItemsInEachRow = 4) {
         links.forEachIndexed { index, (label, url, icon) ->
@@ -277,7 +273,7 @@ private fun Elsewhere(onClick: (String) -> Unit) {
                 modifier = Modifier.weight(1f).heightIn(min = 56.dp),
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(painterResource(icon), contentDescription = label, modifier = Modifier.size(24.dp))
+                    Icon(icon, contentDescription = label, modifier = Modifier.size(24.dp))
                 }
             }
         }

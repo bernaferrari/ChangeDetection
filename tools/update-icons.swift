@@ -103,9 +103,7 @@ try write("""
 
 """, "\(res)/drawable/launcher_foreground.xml")
 try copy("artwork/app-icon/notification.xml", "\(res)/drawable/ic_notification_change.xml")
-for name in ["brand_mark", "brand_change"] {
-    try copy("artwork/app-icon/\(name).xml", "shared/src/commonMain/composeResources/drawable/\(name).xml")
-}
+// brand_mark.xml and brand_change.xml are mirrored by hand in ui/theme/BrandArt.kt (Kotlin vectors).
 
 // Split the glass artwork using the rounded page silhouette, not a rectangular cut.
 let page = CGMutablePath()
@@ -141,9 +139,7 @@ try run("/usr/bin/xcrun", ["ictool", url("iosApp/iosApp/AppIcon.icon").path,
 
 let desktop = "shared/src/desktopMain"
 let complete = composite(1024, scale: appleForegroundScale)
-for name in ["app_icon", "app_icon_dark"] {
-    try write(png(complete), "\(desktop)/composeResources/drawable/\(name).png")
-}
+try write(png(complete), "\(desktop)/resources/app_icon.png")
 for (path, size) in [("website/app/icon.png", 512), ("website/app/apple-icon.png", 180), ("website/public/logo.png", 512), ("webDemo/src/wasmJsMain/resources/icon.png", 512)] {
     try write(png(composite(size, scale: appleForegroundScale)), path)
 }

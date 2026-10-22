@@ -18,10 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.bernaferrari.changedetection.shared.generated.resources.Res
-import com.bernaferrari.changedetection.shared.generated.resources.brand_change
-import com.bernaferrari.changedetection.shared.generated.resources.brand_mark
-import org.jetbrains.compose.resources.painterResource
 
 /** The same scanned-page and highlighted-change mark used by the platform icons. */
 @Composable
@@ -47,8 +43,8 @@ fun ChangeDetectionBrandMark(
     Surface(modifier = modifier, shape = BrandMarkShape, color = containerColor) {
         Box {
             val artwork = Modifier.fillMaxSize().padding(6.dp)
-            Icon(painterResource(Res.drawable.brand_mark), null, artwork, tint = contentColor)
-            Icon(painterResource(Res.drawable.brand_change), null, artwork, tint = signalColor.copy(alpha = signalAlpha))
+            Icon(BrandArt.Mark, null, artwork, tint = contentColor)
+            Icon(BrandArt.Change, null, artwork, tint = signalColor.copy(alpha = signalAlpha))
         }
     }
 }
