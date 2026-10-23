@@ -1,6 +1,5 @@
 package com.bernaferrari.changedetection.error
 
-import io.github.aakira.napier.Napier
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.plugins.HttpRequestTimeoutException
@@ -425,10 +424,10 @@ class ErrorHandler {
             }
 
         when (result.severity) {
-            ErrorSeverity.INFO -> Napier.i(message, tag = tag)
-            ErrorSeverity.WARNING -> Napier.w(message, tag = tag)
-            ErrorSeverity.ERROR -> Napier.e(message, error, tag = tag)
-            ErrorSeverity.CRITICAL -> Napier.e("CRITICAL: $message", error, tag = tag)
+            ErrorSeverity.INFO -> appLog.i(message, tag = tag)
+            ErrorSeverity.WARNING -> appLog.w(message, tag = tag)
+            ErrorSeverity.ERROR -> appLog.e(message, error, tag = tag)
+            ErrorSeverity.CRITICAL -> appLog.e("CRITICAL: $message", error, tag = tag)
         }
     }
 
@@ -616,3 +615,5 @@ fun <T> Result<T>.getErrorResult(
     errorHandler: ErrorHandler,
     context: ErrorContext = ErrorContext.GENERAL,
 ): ErrorResult? = exceptionOrNull()?.let { errorHandler.handleError(it, context) }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("ErrorHandler")

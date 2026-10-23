@@ -53,7 +53,7 @@ fun MainViewController(): UIViewController {
         kotlinx.coroutines.MainScope().launch {
             kotlinx.coroutines.delay(3_000)
             runCatching { com.bernaferrari.changedetection.browser.IosPageCapture.capture(url, 2_500) }
-                .onFailure { io.github.aakira.napier.Napier.e("captureTest failed", it) }
+                .onFailure { appLog.e("captureTest failed", it) }
         }
     }
     // iOS gives background refresh only occasionally, so returning to the app catches up on due pages.
@@ -66,7 +66,7 @@ fun MainViewController(): UIViewController {
                 } catch (cancelled: kotlinx.coroutines.CancellationException) {
                     throw cancelled
                 } catch (error: Exception) {
-                    io.github.aakira.napier.Napier.w("Foreground checks failed", error)
+                    appLog.w("Foreground checks failed", error)
                 }
             }
         }
@@ -101,3 +101,5 @@ fun MainViewController(): UIViewController {
         )
     }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("MainViewController")

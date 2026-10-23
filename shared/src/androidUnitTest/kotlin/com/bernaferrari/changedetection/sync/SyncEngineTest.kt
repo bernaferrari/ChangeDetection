@@ -863,6 +863,40 @@ class SyncEngineTest {
         verify(mockFileStorage, never()).writeBytes(any(), any())
     }
 
+    @Test fun `logging failure cannot change an unchanged check or replace its network error`() = runTest {
+        val site = createTestSite()
+        val html = "<html><body>Same content</body></html>"
+        var status = HttpStatusCode.OK
+        mockHttpClient = HttpClient(MockEngine { respond(html, status, headersOf(HttpHeaders.ContentType, "text/html")) })
+        whenever(mockSitesDao.getSiteById(any())).thenReturn(site)
+        whenever(mockSnapsDao.getLastSnapForSiteId(any())).thenReturn(createTestSnap(site.id).copy(contentHash = ContentHasher.hashHtmlContent(html.toByteArray())))
+        whenever(mockFileStorage.readBytes(any())).thenReturn(html.toByteArray())
+        syncEngine = makeSyncEngine()
+        val calls = java.util.concurrent.atomic.AtomicInteger()
+        com.bernaferrari.changedetection.logging.AppLog.configure(
+            listOf(object : co.touchlab.kermit.LogWriter() {
+                override fun log(severity: co.touchlab.kermit.Severity, message: String, tag: String, throwable: Throwable?) {
+                    calls.incrementAndGet()
+                    throw ArrayIndexOutOfBoundsException("logger boundary fixture")
+                }
+            }),
+        )
+        try {
+            repeat(2) {
+                val result = syncEngine.syncSite(site.id)
+                assertTrue(result is SyncResult.Success && !result.hadChanges)
+            }
+            status = HttpStatusCode.ServiceUnavailable
+            val result = syncEngine.syncSite(site.id) as SyncResult.Failed
+            assertEquals(CheckFailure.SERVER, CheckFailure.from(result.error, result.exception))
+            assertTrue(calls.get() > 2)
+            verify(mockSnapsDao, never()).insertSnap(any())
+        } finally {
+            com.bernaferrari.changedetection.logging.AppLog.configureDebugLogging(false)
+            mockHttpClient.close()
+        }
+    }
+
     // ========== Helper Methods ==========
 
     /** Builds the engine under test with a no-op write transaction (Room's

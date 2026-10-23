@@ -46,7 +46,7 @@ internal object DesktopBrowserRuntime {
                         progress { onInitialized { markInitialized() } }
                     },
                     onError = { failure ->
-                        io.github.aakira.napier.Napier.e("Desktop browser initialization failed", failure)
+                        appLog.e("Desktop browser initialization failed", failure)
                         mutableState.value = State.Failed
                     },
                     onRestartRequired = { mutableState.value = State.Failed },
@@ -56,7 +56,7 @@ internal object DesktopBrowserRuntime {
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (failure: Throwable) {
-                io.github.aakira.napier.Napier.e("Desktop browser initialization failed", failure)
+                appLog.e("Desktop browser initialization failed", failure)
                 mutableState.value = State.Failed
             }
         }
@@ -74,3 +74,5 @@ internal object DesktopBrowserRuntime {
         if (wasStarted) org.cef.CefApp.getInstanceIfAny()?.dispose()
     }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("DesktopBrowserRuntime")

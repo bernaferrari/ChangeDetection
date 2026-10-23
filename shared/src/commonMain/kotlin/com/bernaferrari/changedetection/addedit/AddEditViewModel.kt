@@ -15,7 +15,6 @@ import com.bernaferrari.changedetection.extensions.normalizeUrl
 import com.bernaferrari.changedetection.extensions.canonicalUrlKey
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.source.SitesRepository
-import io.github.aakira.napier.Napier
 import io.ktor.http.Url
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ensureActive
@@ -150,7 +149,7 @@ class AddEditViewModel(
                     } catch (cancelled: CancellationException) {
                         throw cancelled
                     } catch (error: Exception) {
-                        Napier.w("Could not capture the open page; falling back to a fresh preview", error)
+                        appLog.w("Could not capture the open page; falling back to a fresh preview", error)
                         null
                     }
                 }
@@ -196,7 +195,7 @@ class AddEditViewModel(
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (error: Exception) {
-                    Napier.w("Could not load the default capture method", error)
+                    appLog.w("Could not load the default capture method", error)
                 } finally {
                     _uiState.update { it.copy(isLoading = false) }
                 }
@@ -236,7 +235,7 @@ class AddEditViewModel(
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            Napier.e("Failed to load monitor", error)
+            appLog.e("Failed to load monitor", error)
             _uiState.update {
                 it.copy(
                     isLoading = false,
@@ -474,13 +473,13 @@ class AddEditViewModel(
                 // it again. Leaving this screen must not abandon the commit halfway.
                 val kept = firstVersion != null && kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
                     runCatching { previewer.keepAsFirstVersion(baseSite, firstVersion) }
-                        .onFailure { Napier.w("Could not keep the preview as the first version", it) }
+                        .onFailure { appLog.w("Could not keep the preview as the first version", it) }
                         .getOrDefault(false)
                 }
                 // Saving succeeded even if the best-effort initial check cannot be scheduled.
                 if (!kept) {
                     runCatching { monitoringManager.reloadSite(baseSite) }
-                        .onFailure { Napier.w("Monitor saved, but its initial check could not be scheduled", it) }
+                        .onFailure { appLog.w("Monitor saved, but its initial check could not be scheduled", it) }
                 }
                 if (siteId == null) {
                     _events.trySend(AddEditEvent.MonitorAdded)
@@ -492,7 +491,7 @@ class AddEditViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
-                Napier.e("Failed to save monitor", error)
+                appLog.e("Failed to save monitor", error)
                 _uiState.update {
                     it.copy(
                         isSaving = false,
@@ -506,3 +505,5 @@ class AddEditViewModel(
 
 /** A preview older than this is too stale to stand in for the page's first version. */
 private const val FIRST_VERSION_MAX_AGE_MS = 10 * 60 * 1000L
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("AddEditViewModel")

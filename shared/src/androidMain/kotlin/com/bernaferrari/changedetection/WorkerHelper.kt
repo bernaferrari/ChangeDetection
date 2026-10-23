@@ -12,7 +12,6 @@ import com.bernaferrari.changedetection.background.MonitoringManager
 import com.bernaferrari.changedetection.background.SyncJobInfo
 import com.bernaferrari.changedetection.background.SyncState
 import com.bernaferrari.changedetection.repo.Site
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.glance.appwidget.updateAll
@@ -35,7 +34,7 @@ class WorkerHelper(
                 session = session,
                 preferences = dataStore,
                 afterPublish = { com.bernaferrari.changedetection.widgets.QuickMonitorWidget().updateAll(context) },
-                onFailure = { Napier.w("Could not publish Turbo state; retrying", it) },
+                onFailure = { appLog.w("Could not publish Turbo state; retrying", it) },
             )
         }
     }
@@ -62,7 +61,7 @@ class WorkerHelper(
     fun getSiteWorkInfoFlow(siteId: String) = WorkManager.getInstance(context).getWorkInfosByTagFlow(siteId)
 
     override fun reloadSite(site: Site) {
-        Napier.d("Scheduling one-time work for site: ${site.id}")
+        appLog.d("Scheduling one-time work for site: ${site.id}")
 
         val work =
             OneTimeWorkRequestBuilder<SyncWorker>()
@@ -79,7 +78,7 @@ class WorkerHelper(
             .beginUniqueWork("reload_${site.id}", ExistingWorkPolicy.REPLACE, work)
             .enqueue()
 
-        Napier.d("One-time work scheduled for site: ${site.id}")
+        appLog.d("One-time work scheduled for site: ${site.id}")
     }
 
     override fun startQuickMonitor(
@@ -87,24 +86,24 @@ class WorkerHelper(
         intervalSeconds: Int,
         durationMinutes: Int,
     ) {
-        Napier.d("Starting Quick Monitor for ${siteIds.size} sites: $siteIds (${intervalSeconds}s interval)")
+        appLog.d("Starting Quick Monitor for ${siteIds.size} sites: $siteIds (${intervalSeconds}s interval)")
 
         try {
             if (siteIds.isEmpty()) {
-                Napier.e("Cannot start Quick Monitor with empty site list")
+                appLog.e("Cannot start Quick Monitor with empty site list")
                 return
             }
 
             QuickMonitorService.start(context, siteIds, intervalSeconds, durationMinutes)
-            Napier.d("QuickMonitorService.start() called successfully")
+            appLog.d("QuickMonitorService.start() called successfully")
         } catch (e: Exception) {
-            Napier.e("Failed to start QuickMonitorService: ${e.message}")
+            appLog.e("Failed to start QuickMonitorService: ${e.message}")
             throw e
         }
     }
 
     override fun stopQuickMonitor() {
-        Napier.d("Stopping Quick Monitor")
+        appLog.d("Stopping Quick Monitor")
         WorkManager.getInstance(context).cancelAllWorkByTag("quick_monitor")
         session.stop()
         QuickMonitorService.stop(context)
@@ -132,3 +131,5 @@ class WorkerHelper(
         }
     }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("WorkerHelper")

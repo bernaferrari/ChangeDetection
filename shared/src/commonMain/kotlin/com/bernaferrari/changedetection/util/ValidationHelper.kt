@@ -1,7 +1,6 @@
 package com.bernaferrari.changedetection.util
 
 import com.fleeksoft.ksoup.Ksoup
-import io.github.aakira.napier.Napier
 import kotlinx.serialization.json.Json
 
 /**
@@ -291,9 +290,9 @@ object ValidationHelper {
         errorMessage: String? = null,
     ) {
         if (isValid) {
-            Napier.d("✅ Validation: $fieldName is valid")
+            appLog.d("✅ Validation: $fieldName is valid")
         } else {
-            Napier.w("⚠️  Validation: $fieldName failed - $errorMessage")
+            appLog.w("⚠️  Validation: $fieldName failed - $errorMessage")
         }
     }
 }
@@ -310,3 +309,5 @@ inline fun <T> validateAndLog(
     ValidationHelper.logValidationResult(label, isValid, errorMessage)
     return isValid
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("ValidationHelper")

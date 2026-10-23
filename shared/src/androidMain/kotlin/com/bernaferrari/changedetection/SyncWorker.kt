@@ -17,7 +17,6 @@ import com.bernaferrari.changedetection.library.R
 import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.sync.SyncResult
 import com.bernaferrari.changedetection.ui.settings.SettingsViewModel
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.CancellationException
 import org.koin.android.annotation.KoinWorker
@@ -36,7 +35,7 @@ class SyncWorker(
     }
 
     init {
-        Napier.d("SyncWorker created successfully with Koin")
+        appLog.d("SyncWorker created successfully with Koin")
     }
 
     @Volatile
@@ -106,7 +105,7 @@ class SyncWorker(
     }
 
     override suspend fun doWork(): Result {
-        Napier.d("SyncWorker.doWork() starting")
+        appLog.d("SyncWorker.doWork() starting")
         return try {
             val siteId = inputData.getString("id")
 
@@ -120,7 +119,7 @@ class SyncWorker(
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (e: Exception) {
-            Napier.e("Sync work failed", e)
+            appLog.e("Sync work failed", e)
             com.bernaferrari.changedetection.diagnostics.DiagnosticLog.appEvent(com.bernaferrari.changedetection.diagnostics.AppEventKind.BACKGROUND_FAILURE, e)
             Result.retry()
         }
@@ -167,3 +166,5 @@ class SyncWorker(
         }.getOrElse { ComparisonMethod.SCREENSHOT }
     }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("SyncWorker")

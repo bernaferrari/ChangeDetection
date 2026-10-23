@@ -6,7 +6,6 @@ import com.bernaferrari.changedetection.repo.source.local.PendingFileDeletionDao
 import com.bernaferrari.changedetection.repo.source.local.SnapsDao
 import com.bernaferrari.changedetection.util.FileStorage
 import com.bernaferrari.changedetection.util.fileIoDispatcher
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -68,7 +67,7 @@ class SnapshotFileCleanup(
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                Napier.w("Could not drain pending snapshot cleanup; retrying later", error)
+                appLog.w("Could not drain pending snapshot cleanup; retrying later", error)
             }
             delay(60_000)
         }
@@ -79,7 +78,9 @@ class SnapshotFileCleanup(
     } catch (cancelled: CancellationException) {
         throw cancelled
     } catch (error: Exception) {
-        Napier.w("Snapshot cleanup remains pending", error)
+        appLog.w("Snapshot cleanup remains pending", error)
         false
     }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("SnapshotFileCleanup")

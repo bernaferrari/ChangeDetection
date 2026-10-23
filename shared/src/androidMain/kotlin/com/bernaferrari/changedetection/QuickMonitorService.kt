@@ -20,7 +20,6 @@ import com.bernaferrari.changedetection.background.TurboEndReason
 import com.bernaferrari.changedetection.background.TURBO_DURATION_MINUTES
 import com.bernaferrari.changedetection.background.TURBO_INTERVAL_SECONDS
 import com.bernaferrari.changedetection.library.R
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.*
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -104,7 +103,7 @@ class QuickMonitorService :
                 }
             }
         } catch (error: Exception) {
-            Napier.e("Could not start Turbo", error)
+            appLog.e("Could not start Turbo", error)
             finish(TurboEndReason.StartFailed)
         }
         return START_NOT_STICKY
@@ -134,7 +133,7 @@ class QuickMonitorService :
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun createNotification(state: TurboNotificationState): Notification {
-        Napier.d("Creating notification for ${state.pageCount} sites")
+        appLog.d("Creating notification for ${state.pageCount} sites")
 
         val stopIntent = Intent(this, QuickMonitorService::class.java).apply {
             action = ACTION_STOP
@@ -193,7 +192,9 @@ class QuickMonitorService :
 
             val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
-            Napier.d("Notification channel created: $CHANNEL_ID")
+            appLog.d("Notification channel created: $CHANNEL_ID")
         }
     }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("QuickMonitorService")

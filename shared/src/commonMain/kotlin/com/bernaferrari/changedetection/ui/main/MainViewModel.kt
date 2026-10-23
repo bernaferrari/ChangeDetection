@@ -23,7 +23,6 @@ import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.sync.SyncProgressTracker
 import com.bernaferrari.changedetection.util.ApplicationScope
-import io.github.aakira.napier.Napier
 import kotlin.time.Clock
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -326,7 +325,7 @@ class MainViewModel(
             // acknowledges the request. ENQUEUED retries are not active checks.
             com.bernaferrari.changedetection.background.awaitSiteRequest(syncStatusFlow, siteId)
         } catch (e: Exception) {
-            Napier.e("Failed to monitor work for site $siteId: ${e.message}")
+            appLog.e("Failed to monitor work for site $siteId: ${e.message}")
         } finally {
             _optimisticLoadingSites.update { it - siteId }
         }
@@ -410,3 +409,5 @@ class MainViewModel(
 }
 
 private fun getNow() = kotlin.time.Clock.System.now().toEpochMilliseconds()
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("MainViewModel")

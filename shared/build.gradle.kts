@@ -84,7 +84,7 @@ kotlin {
             implementation(libs.jetbrains.compose.material.icons.extended)
             implementation(libs.androidx.graphics.shapes)
 
-            implementation(libs.napier)
+            implementation(libs.kermit)
 
             implementation(libs.androidx.paging.common)
             implementation(libs.androidx.paging.compose)

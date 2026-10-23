@@ -22,6 +22,7 @@ class App :
 
     override fun onCreate() {
         super.onCreate()
+        com.bernaferrari.changedetection.logging.AppLog.configureDebugLogging(BuildConfig.DEBUG)
         com.bernaferrari.changedetection.diagnostics.AndroidDiagnostics.install(this, BuildConfig.BUILD_TYPE, BuildConfig.DIAGNOSTIC_REVISION)
 
         // Register MainActivity with the library's provider

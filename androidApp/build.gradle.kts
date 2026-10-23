@@ -56,7 +56,7 @@ android {
         applicationId = "com.bernaferrari.changedetection"
         minSdk = 26
         targetSdk = 37
-        versionCode = 39
+        versionCode = 40
         versionName = "3.0"
         val diagnosticRevision = providers.exec {
             workingDir(rootProject.projectDir)
@@ -137,5 +137,5 @@ dependencies {
     implementation(libs.androidx.glance.appwidget)
 
     // Logging
-    implementation(libs.napier)
+    // Logging is configured through shared AppLog.
 }
