@@ -12,7 +12,6 @@ import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.util.FileStorage
-import io.github.aakira.napier.Napier
 import com.bernaferrari.changedetection.util.formatDate
 import com.bernaferrari.changedetection.repo.source.local.SitesDao
 import com.bernaferrari.changedetection.repo.source.local.SnapsDao
@@ -180,7 +179,7 @@ class LogsViewModel(
             } catch (t: Throwable) {
                 pendingDeletions.update { it - snap.snapId }
                 pending.deleted.cancel()
-                Napier.e("Failed to delete snapshot ${snap.snapId}", t)
+                appLog.e("Failed to delete snapshot ${snap.snapId}", t)
                 false
             }
         }
@@ -210,7 +209,7 @@ class LogsViewModel(
             } catch (error: Exception) {
                 // Retain the backup while the UI offers Retry. Never re-insert a
                 // row if its bytes could not be safely restored first.
-                Napier.e("Failed to restore snapshot ${snap.snapId}", error)
+                appLog.e("Failed to restore snapshot ${snap.snapId}", error)
                 false
             }
         }
@@ -232,3 +231,5 @@ class LogsViewModel(
         super.onCleared()
     }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("LogsViewModel")

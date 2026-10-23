@@ -11,7 +11,6 @@ import com.bernaferrari.changedetection.browser.configureChangeDetectionWebView
 import com.bernaferrari.changedetection.browser.destroySafely
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.ui.settings.SettingsViewModel
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -99,14 +98,14 @@ class AndroidScreenshotSyncer(
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (error: Exception) {
-            Napier.e("Screenshot check failed for ${site.id}", error)
+            appLog.e("Screenshot check failed for ${site.id}", error)
             recordFailure(site, error)
         } catch (error: OutOfMemoryError) {
-            Napier.e("Screenshot check ran out of memory for ${site.id}", error)
+            appLog.e("Screenshot check ran out of memory for ${site.id}", error)
             recordFailure(site, error)
         } finally {
             runCatching { diagnosticStage(DiagnosticStage.CLOSE_BROWSER) { browser?.close() } }
-                .onFailure { Napier.w("Failed to close screenshot browser", it) }
+                .onFailure { appLog.w("Failed to close screenshot browser", it) }
         }
     }
 
@@ -170,3 +169,5 @@ class AndroidScreenshotBrowserFactory(context: Context) : ScreenshotBrowserFacto
         const val VIEWPORT_HEIGHT = 1_920
     }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("AndroidScreenshotSyncer")

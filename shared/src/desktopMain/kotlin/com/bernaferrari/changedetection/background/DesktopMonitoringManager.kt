@@ -21,7 +21,7 @@ class DesktopMonitoringManager(
     init {
         scope.launch {
             persistTurboSession(session, preferences, onFailure = {
-                io.github.aakira.napier.Napier.w("Could not save Turbo state; retrying", it)
+                appLog.w("Could not save Turbo state; retrying", it)
             })
         }
     }
@@ -90,3 +90,5 @@ actual fun createBackgroundScheduler(): BackgroundScheduler = object : Backgroun
     override fun stopQuickMonitor() = Unit
     override fun isPeriodicSyncScheduled() = false
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("DesktopMonitoringManager")

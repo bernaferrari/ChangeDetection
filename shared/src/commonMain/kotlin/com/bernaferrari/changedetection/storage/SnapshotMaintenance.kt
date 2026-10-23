@@ -4,7 +4,6 @@ import androidx.room3.withWriteTransaction
 import com.bernaferrari.changedetection.repo.source.local.ChangeDatabase
 import com.bernaferrari.changedetection.repo.source.local.SnapsDao
 import com.bernaferrari.changedetection.util.FileStorage
-import io.github.aakira.napier.Napier
 import com.bernaferrari.changedetection.util.fileIoDispatcher
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive

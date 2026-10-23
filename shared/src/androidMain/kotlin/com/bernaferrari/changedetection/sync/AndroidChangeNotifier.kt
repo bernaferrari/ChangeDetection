@@ -16,7 +16,6 @@ import androidx.core.content.ContextCompat
 import com.bernaferrari.changedetection.MainActivityProvider
 import com.bernaferrari.changedetection.library.R
 import com.bernaferrari.changedetection.repo.Site
-import io.github.aakira.napier.Napier
 
 /** Intent contract shared by change alerts and the Android app entry point. */
 object ChangeNotificationContract {
@@ -40,7 +39,7 @@ class AndroidChangeNotifier internal constructor(
     private fun post(site: Site, snapId: String, prepared: PreparedAndroidAlert?) {
         val notificationManager = NotificationManagerCompat.from(context)
         if (!notificationManager.areNotificationsEnabled() || !hasNotificationPermission()) {
-            Napier.d("Change alert skipped because notifications are unavailable")
+            appLog.d("Change alert skipped because notifications are unavailable")
             return
         }
 
@@ -63,7 +62,7 @@ class AndroidChangeNotifier internal constructor(
                 PendingIntent.FLAG_IMMUTABLE,
             )
         }.getOrElse { error ->
-            Napier.w("Unable to create the change-notification deep link", error)
+            appLog.w("Unable to create the change-notification deep link", error)
             return
         }
 
@@ -138,3 +137,5 @@ class AndroidChangeNotifier internal constructor(
         const val NOTIFICATION_ID = 0x40000000
     }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("AndroidChangeNotifier")

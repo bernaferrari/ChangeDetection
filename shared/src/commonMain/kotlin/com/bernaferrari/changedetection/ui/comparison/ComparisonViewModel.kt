@@ -22,7 +22,6 @@ import com.bernaferrari.changedetection.platform.ShareManager
 import com.bernaferrari.changedetection.util.ApplicationScope
 import com.bernaferrari.changedetection.util.UnifiedDiffUtils
 import com.bernaferrari.changedetection.util.decodeByteArray
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.Job
@@ -215,7 +214,7 @@ class ComparisonViewModel(
                 throw cancelled
             } catch (e: Exception) {
                 if (generation != loadGeneration) return@launch
-                Napier.w("Could not load saved comparison", e)
+                appLog.w("Could not load saved comparison", e)
                 _uiState.value =
                     _uiState.value.copy(
                         isLoading = false,
@@ -239,7 +238,7 @@ class ComparisonViewModel(
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                Napier.w("Could not refresh page check status", error)
+                appLog.w("Could not refresh page check status", error)
             }
         }
     }
@@ -276,7 +275,7 @@ class ComparisonViewModel(
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                Napier.w("Could not refresh saved versions", error)
+                appLog.w("Could not refresh saved versions", error)
             }
         }
     }
@@ -402,7 +401,7 @@ class ComparisonViewModel(
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
             } catch (e: Exception) {
-                Napier.w("Could not load saved comparison", e)
+                appLog.w("Could not load saved comparison", e)
                 _uiState.update { current ->
                     if (generation != contentGeneration || current.snaps.getOrNull(current.selectedPairIndex ?: -1)?.snapId != snap1.snapId || current.snaps.getOrNull((current.selectedPairIndex ?: -2) + 1)?.snapId != snap2.snapId) return@update current
                     current.copy(
@@ -461,7 +460,7 @@ class ComparisonViewModel(
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
             } catch (e: Exception) {
-                Napier.w("Could not load saved comparison", e)
+                appLog.w("Could not load saved comparison", e)
                 _uiState.update {
                     if (generation != contentGeneration || it.singleSnap?.snapId != snap.snapId) return@update it
                     it.copy(
@@ -492,7 +491,7 @@ class ComparisonViewModel(
         } catch (cancelled: kotlinx.coroutines.CancellationException) {
             throw cancelled
         } catch (error: Exception) {
-            Napier.w("Could not acknowledge saved comparison", error)
+            appLog.w("Could not acknowledge saved comparison", error)
             _actionMessages.send("read_failed")
             null
         } finally {
@@ -515,7 +514,7 @@ class ComparisonViewModel(
         } catch (cancelled: kotlinx.coroutines.CancellationException) {
             throw cancelled
         } catch (error: Exception) {
-            Napier.w("Could not undo acknowledgement", error)
+            appLog.w("Could not undo acknowledgement", error)
             _actionMessages.send("read_failed")
         }
     }
@@ -542,7 +541,7 @@ class ComparisonViewModel(
             }.onSuccess {
                 _deleteResult.value = true
             }.onFailure { e ->
-                Napier.e(tag = "ComparisonViewModel") { "Failed to delete site ${site.id}: ${e.message}" }
+                appLog.e("Failed to delete site ${site.id}", e)
                 errorHandler.handleError(e, ErrorContext.DELETE_SITE, userAction = "delete site")
                 _deleteResult.value = false
             }
@@ -562,10 +561,12 @@ class ComparisonViewModel(
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
             } catch (e: Exception) {
-                Napier.e(tag = "ComparisonViewModel") { "Failed to prune site ${site.id}: ${e.message}" }
+                appLog.e("Failed to prune site ${site.id}", e)
                 errorHandler.handleError(e, ErrorContext.DATABASE_OPERATION, userAction = "prune snapshots")
                 _actionMessages.trySend("prune_failed")
             }
         }
     }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("ComparisonViewModel")

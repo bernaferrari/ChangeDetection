@@ -5,7 +5,6 @@ import com.bernaferrari.changedetection.repo.ContentTypeInfo
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SnapsDataSource
 import com.bernaferrari.changedetection.util.FileStorage
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
@@ -110,7 +109,7 @@ class SnapsLocalDataSource constructor(
         val newSnap = mSnapsDao.getSnapById(newId)
 
         if (originalSnap == null || newSnap == null) {
-            Napier.w("⚠️ Snap not found: original=$originalSnap, new=$newSnap")
+            appLog.w("⚠️ Snap not found: original=$originalSnap, new=$newSnap")
             return@withContext null
         }
 
@@ -120,7 +119,7 @@ class SnapsLocalDataSource constructor(
 
             (originalSnap to originalContent) to (newSnap to newContent)
         } catch (e: Exception) {
-            Napier.e("❌ Error reading snap content: ${e.message}")
+            appLog.e("❌ Error reading snap content: ${e.message}")
             null
         }
     }
@@ -137,3 +136,5 @@ class SnapsLocalDataSource constructor(
         mSnapsDao.getLastProcessedContentHash(siteId)
     }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("SnapsLocalDataSource")

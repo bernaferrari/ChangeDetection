@@ -13,7 +13,6 @@ import com.bernaferrari.changedetection.util.FileStorage
 import com.bernaferrari.changedetection.extensions.findCharset
 import com.bernaferrari.changedetection.util.decodeByteArray
 import com.bernaferrari.changedetection.util.isTextContentType
-import io.github.aakira.napier.Napier
 import com.fleeksoft.ksoup.Ksoup
 import io.ktor.client.*
 import io.ktor.client.plugins.*
@@ -153,12 +152,12 @@ open class SyncEngine(
         val site = sitesDao.getSiteById(siteId)
 
         if (site == null) {
-            Napier.w("Site not found: $siteId")
+            appLog.w("Site not found: $siteId")
             return@withContext SyncResult.Skipped(siteId, "Site not found")
         }
 
         if (!site.isSyncEnabled) {
-            Napier.d("Sync disabled for site: ${site.title}")
+            appLog.d("Sync disabled for site: ${site.title}")
             return@withContext SyncResult.Skipped(siteId, "Sync disabled")
         }
 
@@ -167,7 +166,7 @@ open class SyncEngine(
             return@withContext processErrorResult(site, FetchResult.Error(error.message.orEmpty(), error))
         }
 
-        Napier.i("Syncing: ${site.title ?: site.url}")
+        appLog.i("Syncing: ${site.title ?: site.url}")
 
         val fetchResult = fetchFromServer(site)
         processFetchResultUnlocked(site, fetchResult, site.threshold)
@@ -210,7 +209,7 @@ open class SyncEngine(
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            Napier.w("Orphan cleanup will retry on a later check", error)
+            appLog.w("Orphan cleanup will retry on a later check", error)
         }
         when (result) {
             is FetchResult.Success -> {
@@ -341,7 +340,7 @@ open class SyncEngine(
         } else {
             val updated = updateStatusIfCurrent(site, successful = true, isBrowser = result.contentType.contains("image", ignoreCase = true), expectedSnapshot = lastSnap)
             if (!updated) return SyncResult.Skipped(site.id, "Page changed or paused during check")
-            Napier.d("No changes for ${site.url}")
+            appLog.d("No changes for ${site.url}")
             return SyncResult.Success(site.id, hadChanges = false)
         }
     }
@@ -423,7 +422,7 @@ open class SyncEngine(
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (statusError: Exception) {
-                Napier.w("Could not record failed snapshot status for ${site.id}", statusError)
+                appLog.w("Could not record failed snapshot status for ${site.id}", statusError)
             }
             return SyncResult.Failed(site.id, errorResult, error)
         } finally {
@@ -433,9 +432,9 @@ open class SyncEngine(
                 withContext(NonCancellable) {
                     runCatching {
                         if (!fileStorage.deleteFile(snapId) && fileStorage.fileExists(snapId)) {
-                            if (!fileStorage.deleteFile(snapId)) Napier.w("Orphan cleanup will retry snapshot $snapId")
+                            if (!fileStorage.deleteFile(snapId)) appLog.w("Orphan cleanup will retry snapshot $snapId")
                         }
-                    }.onFailure { Napier.w("Could not clean up incomplete snapshot $snapId", it) }
+                    }.onFailure { appLog.w("Could not clean up incomplete snapshot $snapId", it) }
                 }
             }
         }
@@ -447,7 +446,7 @@ open class SyncEngine(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
-                Napier.w("Saved change, but notification delivery failed for ${site.id}", error)
+                appLog.w("Saved change, but notification delivery failed for ${site.id}", error)
             }
         }
         try {
@@ -455,7 +454,7 @@ open class SyncEngine(
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            Napier.w("Saved version retained; history maintenance will retry", error)
+            appLog.w("Saved version retained; history maintenance will retry", error)
         }
         return SyncResult.Success(site.id, hadChanges = !isFirstSnap, snapId = snapId, contentSize = result.data.size)
     }
@@ -486,7 +485,7 @@ open class SyncEngine(
         if (!updateStatusIfCurrent(site, successful = false, isBrowser = site.isBrowser, failureCode = CheckFailure.from(errorResult, result.throwable).name)) {
             return SyncResult.Skipped(site.id, "Page changed or paused during check")
         }
-        Napier.e("✗ Sync failed for ${site.url}: ${result.message}", result.throwable)
+        appLog.e("✗ Sync failed for ${site.url}: ${result.message}", result.throwable)
 
         return SyncResult.Failed(site.id, errorResult, result.throwable)
     }
@@ -501,7 +500,7 @@ open class SyncEngine(
         val results = mutableListOf<SyncResult>()
         var successCount = 0
 
-        Napier.i("Starting sync for ${sites.size} sites")
+        appLog.i("Starting sync for ${sites.size} sites")
 
         for (site in sites) {
             if (site.isSyncEnabled) {
@@ -513,7 +512,7 @@ open class SyncEngine(
             }
         }
 
-        Napier.i("Sync complete: $successCount/${sites.size} succeeded")
+        appLog.i("Sync complete: $successCount/${sites.size} succeeded")
         successCount to results
     }
 
@@ -678,3 +677,5 @@ open class SyncEngine(
         const val MAX_CONTENT_SIZE = 10L * 1024 * 1024 // 10MB limit
     }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("SyncEngine")

@@ -1,6 +1,5 @@
 package com.bernaferrari.changedetection.background
 
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.launch
 import kotlinx.cinterop.*
 import platform.Foundation.NSError
@@ -45,19 +44,19 @@ class IosBackgroundScheduler : BackgroundScheduler {
         val intervalSeconds = (intervalMinutes * 60).coerceAtLeast(MIN_INTERVAL_SECONDS.toLong()).toDouble()
         request.earliestBeginDate = NSDate().dateByAddingTimeInterval(intervalSeconds)
 
-        Napier.i("Scheduling iOS periodic sync: every $intervalMinutes min", tag = "BackgroundScheduler")
+        appLog.i("Scheduling iOS periodic sync: every $intervalMinutes min", tag = "BackgroundScheduler")
         // Submit the request
         try {
             submitBackgroundRequest(request)
             periodicScheduled = true
         } catch (e: Exception) {
             periodicScheduled = false
-            Napier.e("Failed to schedule periodic sync: ${e.message}", e, tag = "BackgroundScheduler")
+            appLog.e("Failed to schedule periodic sync: ${e.message}", e, tag = "BackgroundScheduler")
         }
     }
 
     override fun cancelPeriodicSync() {
-        Napier.i("Canceling iOS periodic sync", tag = "BackgroundScheduler")
+        appLog.i("Canceling iOS periodic sync", tag = "BackgroundScheduler")
         BGTaskScheduler.sharedScheduler.cancelTaskRequestWithIdentifier(PERIODIC_SYNC_TASK_ID)
         periodicScheduled = false
     }
@@ -65,7 +64,7 @@ class IosBackgroundScheduler : BackgroundScheduler {
     override fun requestImmediateSync(siteId: String) {
         // On iOS, we can't really do "immediate" background work
         // The app needs to be in foreground
-        Napier.d("iOS: Immediate sync requested for $siteId - handle in foreground", tag = "BackgroundScheduler")
+        appLog.d("iOS: Immediate sync requested for $siteId - handle in foreground", tag = "BackgroundScheduler")
     }
 
     @OptIn(ExperimentalForeignApi::class)
@@ -74,7 +73,7 @@ class IosBackgroundScheduler : BackgroundScheduler {
         intervalSeconds: Int,
     ) {
         // iOS doesn't support rapid polling in background
-        Napier.i("Scheduling iOS quick monitor task", tag = "BackgroundScheduler")
+        appLog.i("Scheduling iOS quick monitor task", tag = "BackgroundScheduler")
 
         val request = BGAppRefreshTaskRequest(identifier = QUICK_MONITOR_TASK_ID)
         request.earliestBeginDate = NSDate().dateByAddingTimeInterval(MIN_INTERVAL_SECONDS)
@@ -82,7 +81,7 @@ class IosBackgroundScheduler : BackgroundScheduler {
         try {
             submitBackgroundRequest(request)
         } catch (e: Exception) {
-            Napier.e("Failed to schedule quick monitor: ${e.message}", e, tag = "BackgroundScheduler")
+            appLog.e("Failed to schedule quick monitor: ${e.message}", e, tag = "BackgroundScheduler")
         }
     }
 
@@ -124,7 +123,7 @@ class IosBackgroundScheduler : BackgroundScheduler {
         work: suspend () -> Unit,
         reschedule: suspend () -> Unit = { schedulePeriodicSync(periodicIntervalMinutes, periodicConstraints) },
     ) {
-        Napier.i("Registering iOS background task handlers", tag = "BackgroundScheduler")
+        appLog.i("Registering iOS background task handlers", tag = "BackgroundScheduler")
         listOf(PERIODIC_SYNC_TASK_ID, QUICK_MONITOR_TASK_ID).forEach { identifier ->
             BGTaskScheduler.sharedScheduler.registerForTaskWithIdentifier(identifier = identifier, usingQueue = null) { task ->
                 if (task == null) return@registerForTaskWithIdentifier
@@ -138,7 +137,7 @@ class IosBackgroundScheduler : BackgroundScheduler {
                         task.setTaskCompletedWithSuccess(false)
                         throw cancelled
                     } catch (error: Exception) {
-                        Napier.w("iOS background checks failed", error)
+                        appLog.w("iOS background checks failed", error)
                         task.setTaskCompletedWithSuccess(false)
                     }
                 }
@@ -168,3 +167,5 @@ private val sharedScheduler = IosBackgroundScheduler()
 fun registerIosBackgroundTasks() = sharedScheduler.registerDefaultBackgroundWork()
 
 actual fun createBackgroundScheduler(): BackgroundScheduler = sharedScheduler
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("IosBackgroundScheduler")

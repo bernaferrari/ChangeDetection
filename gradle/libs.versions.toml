@@ -33,7 +33,7 @@ material3 = "1.5.0-beta02"
 materialKolor = "6.0.0"
 mockito = "5.24.0"
 mockito-kotlin = "6.4.0"
-napier = "2.7.1"
+kermit = "2.2.0"
 nav3 = "1.2.0"
 nav3Lifecycle = "2.11.0"
 node = "26.11.1"
@@ -132,7 +132,7 @@ material-kolor = { module = "com.materialkolor:material-kolor-material3", versio
 # Testing - Mockito
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito-kotlin" }
-napier = { module = "io.github.aakira:napier", version.ref = "napier" }
+kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 skiko-wasm-js = { module = "org.jetbrains.skiko:skiko-wasm-js", version.ref = "skiko" }
 sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }

@@ -5,7 +5,6 @@ import android.webkit.CookieManager
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -61,7 +60,7 @@ internal fun WebView.destroySafely(
         removeAllViews()
         destroy()
     } catch (e: Exception) {
-        Napier.e("Failed to destroy WebView", e)
+        appLog.e("Failed to destroy WebView", e)
     }
 }
 
@@ -89,3 +88,5 @@ private const val DEFAULT_VIEWPORT_HEIGHT = 1920
 private const val MIN_SCREENSHOT_SCALE = 0.1
 private const val NAVIGATION_TIMEOUT_MS = 30_000L
 private const val LOAD_STATE_TIMEOUT_MS = 10_000L
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("AndroidWebViewTools")

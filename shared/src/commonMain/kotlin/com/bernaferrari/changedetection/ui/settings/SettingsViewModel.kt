@@ -85,7 +85,7 @@ class SettingsViewModel(
         snapshots.observeStorageBytes().combine(snapshots.observeOlderVersionBytes()) { bytes, clearable -> StorageSummary(bytes = bytes, clearable = clearable) }
             .onStart { emit(StorageSummary()) }
             .catch { error ->
-                io.github.aakira.napier.Napier.w("Could not load history storage size", error)
+                appLog.w("Could not load history storage size", error)
                 emit(StorageSummary(failed = true))
             }
     }
@@ -106,7 +106,7 @@ class SettingsViewModel(
                 clearState.value = ClearState.Idle
                 throw error
             } catch (error: Exception) {
-                io.github.aakira.napier.Napier.w("Could not clear older versions", error)
+                appLog.w("Could not clear older versions", error)
                 clearState.value = ClearState.Failed
                 retryStorageLoading()
             }
@@ -144,7 +144,7 @@ class SettingsViewModel(
                 )
             }.onStart { emit(SettingsUiState(isLoaded = false)) }
             .catch { error ->
-                io.github.aakira.napier.Napier.w("Could not load settings", error)
+                appLog.w("Could not load settings", error)
                 emit(SettingsUiState(isLoaded = false, loadFailed = true))
             }
     }.combine(clearState) { state, clear ->
@@ -189,7 +189,7 @@ class SettingsViewModel(
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (error: Exception) {
-                    io.github.aakira.napier.Napier.w("Could not save preference", error)
+                    appLog.w("Could not save preference", error)
                     if (generation == writeGeneration) {
                         failedWrite = change
                         _writeFailed.value = true
@@ -205,3 +205,5 @@ class SettingsViewModel(
     fun updateNotificationImages(enabled: Boolean) = writePreference { it[com.bernaferrari.changedetection.sync.NotificationPreferences.IMAGE_PREVIEWS] = enabled }
     fun updateBrowserDelay(delayMs: Long) = writePreference { it[BROWSER_DELAY_KEY] = delayMs }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("SettingsViewModel")

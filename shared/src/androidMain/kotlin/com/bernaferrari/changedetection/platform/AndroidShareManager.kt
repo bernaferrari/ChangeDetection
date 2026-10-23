@@ -4,7 +4,6 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
-import io.github.aakira.napier.Napier
 import java.io.File
 
 class AndroidShareManager(
@@ -27,7 +26,7 @@ class AndroidShareManager(
                 }
             context.startActivity(chooser)
         } catch (e: Exception) {
-            Napier.e("Failed to share text", e)
+            appLog.e("Failed to share text", e)
         }
     }
 
@@ -66,7 +65,9 @@ class AndroidShareManager(
                 }
             context.startActivity(chooser)
         } catch (e: Exception) {
-            Napier.e("Failed to share file", e)
+            appLog.e("Failed to share file", e)
         }
     }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("AndroidShareManager")

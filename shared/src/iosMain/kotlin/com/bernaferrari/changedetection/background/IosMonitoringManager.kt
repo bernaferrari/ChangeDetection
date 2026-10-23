@@ -2,7 +2,6 @@ package com.bernaferrari.changedetection.background
 
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.sync.SyncEngine
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -45,7 +44,7 @@ class IosMonitoringManager(
     init {
         scope.launch {
             persistTurboSession(turboSession, dataStore, onFailure = {
-                Napier.w("Could not save Turbo state; retrying", it)
+                appLog.w("Could not save Turbo state; retrying", it)
             })
         }
     }
@@ -53,7 +52,7 @@ class IosMonitoringManager(
     override fun getSyncStatusFlow(): Flow<List<SyncJobInfo>> = _syncStatus.asStateFlow()
 
     override fun reloadSite(site: Site) {
-        Napier.d("iOS: Reloading site ${site.id}")
+        appLog.d("iOS: Reloading site ${site.id}")
         scope.launch {
             updateSyncStatus(site.id, SyncState.RUNNING)
             try {
@@ -62,7 +61,7 @@ class IosMonitoringManager(
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
             } catch (e: Exception) {
-                Napier.e("iOS: Failed to sync site ${site.id}", e)
+                appLog.e("iOS: Failed to sync site ${site.id}", e)
                 updateSyncStatus(site.id, SyncState.FAILED)
             }
         }
@@ -125,3 +124,5 @@ class IosMonitoringManager(
         scope.cancel()
     }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("IosMonitoringManager")

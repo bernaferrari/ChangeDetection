@@ -3,7 +3,6 @@ package com.bernaferrari.changedetection.sync
 import com.bernaferrari.changedetection.preview.ChangePreviewRepository
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import platform.UserNotifications.UNAuthorizationOptionAlert
@@ -45,7 +44,7 @@ class IosChangeNotifier : ChangeNotifier {
 fun requestIosNotificationPermission() {
     UNUserNotificationCenter.currentNotificationCenter().requestAuthorizationWithOptions(
         UNAuthorizationOptionAlert or UNAuthorizationOptionSound or UNAuthorizationOptionBadge,
-    ) { _, error -> if (error != null) Napier.w("Notification permission failed: ${error.localizedDescription}") }
+    ) { _, error -> if (error != null) appLog.w("Notification permission failed: ${error.localizedDescription}") }
 }
 
 /** Bridges notification taps (handled in Swift) into the Compose navigation. */
@@ -64,3 +63,5 @@ object IosDeepLinks {
         pendingChange.value = null
     }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("IosChangeNotifier")
