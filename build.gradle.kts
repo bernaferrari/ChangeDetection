@@ -39,13 +39,3 @@ subprojects {
         }
     }
 }
-
-allprojects {
-    plugins.withType<org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnPlugin> {
-        // Ktor's Node dependency pins a vulnerable ws release; keep browser tooling on the patched version.
-        the<org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnRootExtension>().resolution("ws", libs.versions.ws.get())
-    }
-    plugins.withType<org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmNodeJsPlugin> {
-        the<org.jetbrains.kotlin.gradle.targets.wasm.nodejs.WasmNodeJsEnvSpec>().version.set(libs.versions.node.get())
-    }
-}
