@@ -1,5 +1,6 @@
 package com.bernaferrari.changedetection.addedit
 
+import com.bernaferrari.changedetection.browser.WatchCaptureViewport
 import android.view.View
 import android.content.MutableContextWrapper
 import com.bernaferrari.changedetection.browser.AndroidPageCapture
@@ -48,8 +49,8 @@ internal actual suspend fun captureLoadedPageScreenshot(state: WebViewState, reg
         // window (which also contains the loading overlay).
         captureContext.baseContext = originalContext.applicationContext
         // Match scheduled checks' viewport so the first comparison does not detect a layout change.
-        view.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(1920, View.MeasureSpec.EXACTLY))
-        view.layout(0, 0, 1080, 1920)
+        view.measure(View.MeasureSpec.makeMeasureSpec(WatchCaptureViewport.WIDTH, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(WatchCaptureViewport.HEIGHT, View.MeasureSpec.EXACTLY))
+        view.layout(0, 0, WatchCaptureViewport.WIDTH, WatchCaptureViewport.HEIGHT)
         val shot = AndroidPageCapture(view).captureLoaded(maxHeight = 10_000, hide = region.exclude, only = region.include, preservePage = true)
         validate()
         SyncEngine.FetchResult.Success(shot.contentType, shot.bytes, capturedWithBrowser = true, validateCapture = validate)
@@ -62,6 +63,10 @@ internal actual suspend fun captureLoadedPageScreenshot(state: WebViewState, reg
 }
 
 internal actual fun createWatchWebView(param: com.multiplatform.webview.web.WebViewFactoryParam): com.multiplatform.webview.web.NativeWebView = object : android.webkit.WebView(MutableContextWrapper(param.context)) {
+    init {
+        layout(0, 0, WatchCaptureViewport.WIDTH, WatchCaptureViewport.HEIGHT)
+        settings.loadWithOverviewMode = true
+    }
     override fun loadUrl(url: String) {
         com.bernaferrari.changedetection.browser.WebViewCaptureHealth.of(this).begin(url)
         super.loadUrl(url)

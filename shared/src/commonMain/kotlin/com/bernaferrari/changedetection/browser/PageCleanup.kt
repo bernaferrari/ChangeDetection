@@ -36,6 +36,28 @@ object PageCleanup {
         })()
     """.trimIndent()
 
+    /**
+     * Lazy images load only once a real screen shows them, which a capture browser may never do. Loading them up front
+     * makes every capture of an unchanged page complete and identical, and lets readiness checks finish.
+     */
+    const val LOAD_LAZY_IMAGES = "(function(){var c=0;document.querySelectorAll('img[loading=\"lazy\"],iframe[loading=\"lazy\"]').forEach(function(e){e.loading='eager';c++;});return c;})()"
+
+    /**
+     * A video shows a different frame on every capture and a running animation a different moment; neither is a change
+     * to the page. Videos are hidden (their space is kept) and animations end at once, the way "reduce motion" does.
+     */
+    const val FREEZE_MOTION = "(function(){var s=document.createElement('style');s.textContent='video{visibility:hidden !important}*,*::before,*::after{animation-duration:0s !important;animation-delay:0s !important;animation-iteration-count:1 !important;transition-duration:0s !important;transition-delay:0s !important;scroll-behavior:auto !important;caret-color:transparent !important}';document.head.appendChild(s);return 0;})()"
+
+    /**
+     * "Get our app" banners near the top are shown at random (Wikipedia's appears on some visits only) and push the whole
+     * page down, so every check would differ. A block that mentions an app and offers an install button (often a plain
+     * element, not a link) is removed. Banners arrive late, so captures run this again just before taking pixels.
+     */
+    const val HIDE_APP_BANNERS = "(function(){var label=/^\\s*(install|get( the)? app|open( in)?( the)? app|use the app|instalar|instale|baixar( o)? app|abrir( no)? app|descargar( la)? app|installieren|app (öffnen|installieren)|installa|apri( nell[’']?)?app|安装|打开应用|ইনস্টল|इंस्टॉल)\\s*$/i,app=/\\bapp\\b|aplicativo|aplicación|applicazione|应用|অ্যাপ|ऐप/i,c=0;document.querySelectorAll('body *').forEach(function(b){if(b.children.length>2||!label.test(b.innerText||''))return;var hit=null;for(var e=b.parentElement,d=0;e&&e!==document.body&&d<6;e=e.parentElement,d++){var r=e.getBoundingClientRect();if(r.top+scrollY>innerHeight*1.5||r.height>innerHeight*0.6)break;if(r.width>=innerWidth*0.8&&app.test(e.innerText||'')){hit=e;break;}}if(hit){hit.style.setProperty('display','none','important');c++;}});return c;})()"
+
+    /** The rules that make two captures of an unchanged page match, run before the page is measured. */
+    val STABILIZE = listOf(LOAD_LAZY_IMAGES, FREEZE_MOTION, HIDE_APP_BANNERS)
+
     /** Cookie / consent / LGPD overlays are noise in every capture; hide floating ones that say so. */
     const val HIDE_CONSENT = "(function(){var k=/cookie|consent|gdpr|lgpd|privacidade|privacy|tracking/i;document.querySelectorAll('body *').forEach(function(e){var p=getComputedStyle(e).position;if((p==='fixed'||p==='sticky')&&e.offsetHeight<window.innerHeight*0.9&&k.test((e.id||'')+' '+(typeof e.className==='string'?e.className:'')+' '+(e.innerText||'').slice(0,400)))e.style.setProperty('display','none','important');});return 0;})()"
 

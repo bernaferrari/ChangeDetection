@@ -105,6 +105,7 @@ object IosPageCapture {
         try {
             lastTitle = (evaluate(web, PageCleanup.TITLE) as? String)?.takeIf { it.isNotBlank() }
             lastIcon = (evaluate(web, PageCleanup.ICON) as? String)?.takeIf { it.startsWith("http") }
+            PageCleanup.STABILIZE.forEach { clean(it) }
             clean(PageCleanup.HIDE_CONSENT)
             clean(PageCleanup.HIDE_ADS)
             if (hide.isNotBlank()) clean(PageCleanup.hide(hide))
@@ -126,6 +127,7 @@ object IosPageCapture {
             if (!preservePage) delay(300)
             // Ads injected while scrolling, and bottom bars, are hidden right before the first tile.
             clean(PageCleanup.HIDE_ADS)
+            clean(PageCleanup.HIDE_APP_BANNERS)
             clean(PageCleanup.HIDE_BOTTOM_FLOATING)
             val clip = if (only.isNotBlank()) elementRect(web, only) ?: error("The part you picked is no longer on the page") else null
             val region = clip?.let { Rectangle(it.left, it.top, it.right - it.left, it.bottom - it.top) }

@@ -13,6 +13,18 @@ import java.io.File
 class DiagnosticStoreTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
 
+    @Test fun captureGeometryIsBoundedAndContainsNoDocumentData() = runBlocking {
+        fixture { store, _, _ ->
+            val context = com.bernaferrari.changedetection.diagnostics.CaptureDiagnostic(Int.MAX_VALUE, -1, Int.MAX_VALUE, -1, Int.MAX_VALUE, -1, Int.MAX_VALUE, -1, Int.MAX_VALUE, true, Int.MAX_VALUE)
+            store.append(com.bernaferrari.changedetection.diagnostics.DiagnosticAttempt(startedAt = 1_790_000_000_000L, mode = com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT, selected = true, excluded = false, trigger = com.bernaferrari.changedetection.diagnostics.DiagnosticTrigger.CHECK, outcome = com.bernaferrari.changedetection.diagnostics.DiagnosticOutcome.FAILURE, events = listOf(com.bernaferrari.changedetection.diagnostics.DiagnosticEvent(com.bernaferrari.changedetection.diagnostics.DiagnosticStage.CAPTURE_PIXELS, 0, capture = context))))
+            val json = store.report().json
+            assertFalse(json.contains("2147483647"))
+            assertTrue(json.contains("nativeWidth"))
+            assertFalse(json.contains("selector"))
+            assertFalse(json.contains("documentText"))
+        }
+    }
+
     @Test fun summaryShowsBuildAndTlsContextRemainsBoundedAndTyped() = runBlocking {
         fixture { store, _, _ ->
             val tls = DiagnosticTlsContext(3, List(100) { it }, TlsRequestKind.UNKNOWN, TlsUrlRelation.DIFFERENT_ORIGIN, true, false, false)

@@ -37,6 +37,32 @@ class VisualRegionsTest {
         assertTrue(region.afterBottom - region.afterTop <= 6f / ah + 0.001f)
     }
 
+    /**
+     * A page pushed down a few rows by something blank above (an ad slot that filled) and captured to the same fixed
+     * height: every row moved and the bottom slid past the cut, but nothing a person would see changed.
+     */
+    @Test fun aShiftedPageCutAtTheSameHeightIsNotAChange() {
+        val width = 120
+        val (before, h) = page(width, listOf(1, 2, 3, 4, 5, 6, 7, 8))
+        val shift = 3
+        val after = IntArray(width * shift) { white } + before.copyOf(width * (h - shift))
+        val change = requireNotNull(VisualRegions.compare(before, h, after, h, width))
+        assertTrue(change.regions.toString(), change.regions.isEmpty())
+    }
+
+    /** The same shift with a real edit: the edit is still found, and only the edit. */
+    @Test fun aRealEditIsStillFoundOnAShiftedPage() {
+        val width = 120
+        val (before, h) = page(width, listOf(1, 2, 3, 4, 5, 6, 7, 8))
+        val shift = 3
+        val after = IntArray(width * shift) { white } + before.copyOf(width * (h - shift))
+        // A new bold mark inside block 4 (rows 30..35 before, +3 after), like a digit that changed.
+        for (y in 31 + shift..35 + shift) for (x in 60..67) after[y * width + x] = ink
+        val region = requireNotNull(VisualRegions.compare(before, h, after, h, width)).regions.single()
+        assertEquals(VisualRegion.Kind.Changed, region.kind)
+        assertTrue(region.left <= 60f / width && region.right >= 68f / width)
+    }
+
     @Test fun identicalPagesHaveNoAreas() {
         val (before, h) = page(40, listOf(1, 2, 3))
         assertTrue(requireNotNull(VisualRegions.compare(before, h, before.copyOf(), h, 40)).regions.isEmpty())

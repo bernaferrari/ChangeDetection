@@ -25,6 +25,7 @@ enum class CheckFailure {
         fun fromCode(code: String?): CheckFailure = entries.firstOrNull { it.name == code } ?: UNKNOWN
 
         fun from(result: ErrorResult, error: Throwable?): CheckFailure {
+            if (error is com.bernaferrari.changedetection.browser.CaptureNotReadyException) return TIMEOUT
             if (error is ContentError && error.reason == ContentError.Reason.CAPTURE_UNAVAILABLE) return CAPTURE_UNAVAILABLE
             if (error is com.bernaferrari.changedetection.detection.TextRegionException) return REGION
             if (isTlsFailure(error)) return TLS

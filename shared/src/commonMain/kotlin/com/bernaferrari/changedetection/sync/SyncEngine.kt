@@ -244,11 +244,18 @@ open class SyncEngine(
         }
     }
 
-    /** Detection uses pixel evidence; filtered regions are only an explanation for the reader. */
+    /**
+     * Pixel evidence first: identical captures are never a change. Differing pixels must then survive the row-aligned
+     * comparison, which forgives content that only moved or was re-drawn a fraction of a pixel off (a page pushed down
+     * by an ad slot reads as "everything changed" pixel by pixel). Without any verified area, nothing a person would
+     * see changed, so no version is saved and nobody is notified. If areas cannot be computed, pixels decide.
+     */
     private suspend fun visiblyChanged(before: ByteArray, after: ByteArray, opaqueWhiteBackdrop: Boolean): Boolean {
         val difference = diagnosticStage(DiagnosticStage.COMPARE) { com.bernaferrari.changedetection.image.PlatformImageDiff.compare(before, after, includeDiffImage = false, opaqueWhiteBackdrop = opaqueWhiteBackdrop) }
         check(difference.error == null && (difference.totalPixels > 0 || difference.dimensionMismatch != null)) { "Could not compare screenshots" }
-        return difference.dimensionMismatch != null || difference.differentPixels > 0
+        if (difference.dimensionMismatch == null && difference.differentPixels == 0L) return false
+        val areas = diagnosticStage(DiagnosticStage.COMPARE) { difference.visualChange ?: com.bernaferrari.changedetection.image.computeVisualChange(before, after, opaqueWhiteBackdrop = opaqueWhiteBackdrop) }
+        return areas == null || areas.regions.isNotEmpty()
     }
 
     private suspend fun processSuccessResult(
@@ -281,6 +288,7 @@ open class SyncEngine(
                 null
             }
         } catch (selection: com.bernaferrari.changedetection.detection.TextRegionException) {
+            diagnosticMetric(DiagnosticStage.PREPARE_CONTENT, DiagnosticMetric.REGION_RESULT, selection.issue?.ordinal ?: (100 + selection.failure.ordinal))
             return processErrorResult(site, FetchResult.Error(selection.message.orEmpty(), selection))
         }
         val result = if (prepared != null) incoming.copy(data = prepared.data) else incoming
@@ -311,8 +319,9 @@ open class SyncEngine(
         val meetsThreshold = diagnosticStage(DiagnosticStage.COMPARE) {
             if (visualThreshold > 0 && !isFirstSnap && hasContentChanged) {
                 try {
+                    val baseline = readBaseline(requireNotNull(lastSnap).snapId)
                     val difference = com.bernaferrari.changedetection.image.PlatformImageDiff.compare(
-                        readBaseline(requireNotNull(lastSnap).snapId),
+                        baseline,
                         result.data,
                         includeDiffImage = false,
                         opaqueWhiteBackdrop = result.capturedWithBrowser,
@@ -320,7 +329,9 @@ open class SyncEngine(
                     if (difference.error != null || (difference.totalPixels <= 0 && difference.dimensionMismatch == null)) {
                         throw ContentError(ContentError.Reason.UNKNOWN)
                     }
-                    difference.dimensionMismatch != null || difference.differentPixels * 10_000 >= difference.totalPixels * visualThreshold
+                    val enoughPixels = difference.dimensionMismatch != null || difference.differentPixels * 10_000 >= difference.totalPixels * visualThreshold
+                    // Same rule as without a threshold: content that only moved is not a change, however many pixels moved.
+                    enoughPixels && (difference.visualChange ?: com.bernaferrari.changedetection.image.computeVisualChange(baseline, result.data, opaqueWhiteBackdrop = result.capturedWithBrowser))?.regions?.isNotEmpty() != false
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (error: Exception) {

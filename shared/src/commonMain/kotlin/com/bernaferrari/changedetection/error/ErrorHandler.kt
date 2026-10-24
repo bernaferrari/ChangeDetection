@@ -83,6 +83,8 @@ class ErrorHandler {
 
         is AuthenticationError -> handleAuthenticationError(error)
 
+        is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> handleTimeoutError()
+
         is ContentError -> handleContentError(error)
 
         is HttpRequestTimeoutException -> handleTimeoutError()

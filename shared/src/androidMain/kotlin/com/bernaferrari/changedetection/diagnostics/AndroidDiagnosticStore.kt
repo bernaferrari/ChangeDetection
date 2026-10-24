@@ -131,7 +131,7 @@ class AndroidDiagnosticStore internal constructor(
             androidApi = value.runtime.androidApi.coerceIn(1, 100),
             heapLimitMiB = value.runtime.heapLimitMiB.coerceIn(0, 65_536),
         )
-        return StoredDiagnostic(safeRuntime, a.copy(events = a.events.take(64).map { it.copy(elapsedMs = it.elapsedMs.coerceIn(0, 600_000), durationMs = it.durationMs.coerceIn(0, 600_000), code = it.code?.coerceIn(-100, 599), tls = it.tls?.let { tls -> tls.copy(primary = tls.primary.coerceIn(0, 5), errors = tls.errors.filter { code -> code in 0..5 }.distinct().sorted().take(6)) }) }, failure = a.failure?.copy(causes = a.failure.causes.take(4), classes = a.failure.classes.filter(::isSafeClassName).take(4), detail = a.failure.detail?.let(::scrubErrorText)?.takeIf { it.isNotBlank() })))
+        return StoredDiagnostic(safeRuntime, a.copy(events = a.events.take(64).map { it.copy(elapsedMs = it.elapsedMs.coerceIn(0, 600_000), durationMs = it.durationMs.coerceIn(0, 600_000), code = it.code?.coerceIn(-100, 599), capture = it.capture?.bounded(), tls = it.tls?.let { tls -> tls.copy(primary = tls.primary.coerceIn(0, 5), errors = tls.errors.filter { code -> code in 0..5 }.distinct().sorted().take(6)) }) }, failure = a.failure?.copy(causes = a.failure.causes.take(4), classes = a.failure.classes.filter(::isSafeClassName).take(4), detail = a.failure.detail?.let(::scrubErrorText)?.takeIf { it.isNotBlank() })))
     }
 
     private fun retained(): List<File> {
