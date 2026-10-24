@@ -13,7 +13,7 @@ class RealCaptureProbe {
         val b = File("/tmp/g1-b.png")
         assumeTrue(a.exists() && b.exists())
         val change = requireNotNull(computeVisualChange(a.readBytes(), b.readBytes()))
-        println("share=${change.changedShare} heightDelta=${change.heightDelta}")
+        println("share=${change.changedShare} heightDelta=${change.heightDelta} visible=${change.visible} moved=${change.moved} decision=${!change.moved || change.visible}")
         val before = ImageIO.read(a)
         val after = ImageIO.read(b)
         val out = File("/tmp/regions").apply {

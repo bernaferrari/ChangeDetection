@@ -48,6 +48,17 @@ class VisualRegionsTest {
         val after = IntArray(width * shift) { white } + before.copyOf(width * (h - shift))
         val change = requireNotNull(VisualRegions.compare(before, h, after, h, width))
         assertTrue(change.regions.toString(), change.regions.isEmpty())
+        // It moved and nothing verified remains, so a check must not save it as a version.
+        assertTrue(change.moved && !change.visible)
+    }
+
+    /** A flat page that changed colour has nothing worth a card, but nothing moved, so checks go by its pixels. */
+    @Test fun aFlatAreaThatChangedColourIsDecidedByItsPixels() {
+        val width = 60
+        val height = 40
+        val green = IntArray(width * height) { 0xFF00FF00.toInt() }
+        val blue = IntArray(width * height) { 0xFF0000FF.toInt() }
+        assertTrue(!requireNotNull(VisualRegions.compare(green, height, blue, height, width)).moved)
     }
 
     /** The same shift with a real edit: the edit is still found, and only the edit. */

@@ -28,6 +28,14 @@ data class VisualChange(
     val changedShare: Float,
     /** The page got taller (>0) or shorter (<0), as a share of the old height. */
     val heightDelta: Float,
+    /**
+     * Whether any content moved between the captures (rows paired at a different height, or rows added or removed).
+     * A page renders the same pixels every time when nothing moves, so then every differing pixel is a real change;
+     * movement is what makes text re-draw differently, so then only [visible] areas count.
+     */
+    val moved: Boolean = false,
+    /** Verified areas, including flat ones too blank to be worth a card in [regions]. Checks use this when [moved]. */
+    val visible: Boolean = regions.isNotEmpty(),
 )
 
 /**
@@ -121,19 +129,35 @@ internal object VisualRegions {
             checkCancelled()
             isBlankRow(after, it, width)
         }
-        val merged = merge(raw, MERGE_GAP_ROWS.toFloat() / afterHeight, MERGE_GAP_ROWS.toFloat() / beforeHeight)
+
+        // Very long pages are captured to a fixed height. When something new pushes the page down, the old
+        // bottom falls out of the capture: it was pushed out of view, not removed from the page.
+        fun pushedOut(region: VisualRegion) = region.kind == VisualRegion.Kind.Removed && beforeHeight == afterHeight && region.afterTop >= 1f - 2f / afterHeight
+        val verified = merge(raw, MERGE_GAP_ROWS.toFloat() / afterHeight, MERGE_GAP_ROWS.toFloat() / beforeHeight)
+            // The same content drawn a few pixels off, or pushed down by something above it, is not a change.
+            .filterNot { it.kind == VisualRegion.Kind.Changed && sameAfterShift(it, before, beforeHeight, after, afterHeight, width, pixels, checkCancelled) }
+            // Blank space that appeared or went away (a hidden ad slot that grew) only moved the page.
+            .filterNot { it.kind != VisualRegion.Kind.Changed && trimBlank(it, beforeBlank, afterBlank) == null }
+            .filterNot(::pushedOut)
+            // Slivers thinner than a line of text are what a fractional move leaves behind.
+            .filter { maxOf((it.afterBottom - it.afterTop) * afterHeight, (it.beforeBottom - it.beforeTop) * beforeHeight) >= MIN_REGION_ROWS }
+        // What is shown is trimmed further: blank space is not worth a card.
+        val merged = verified
             .mapNotNull { trimBlank(it, beforeBlank, afterBlank) }
             .map { growToBlank(it, beforeBlank, afterBlank) }
             .filter { maxOf((it.afterBottom - it.afterTop) * afterHeight, (it.beforeBottom - it.beforeTop) * beforeHeight) >= MIN_REGION_ROWS }
-            // The same content drawn a few pixels off, or pushed down by something above it, is not a change.
-            .filterNot { it.kind == VisualRegion.Kind.Changed && sameAfterShift(it, before, beforeHeight, after, afterHeight, width, pixels, checkCancelled) }
-            // Very long pages are captured to a fixed height. When something new pushes the page down, the old
-            // bottom falls out of the capture: it was pushed out of view, not removed from the page.
-            .filterNot { it.kind == VisualRegion.Kind.Removed && beforeHeight == afterHeight && it.afterTop >= 1f - 2f / afterHeight }
+            .filterNot(::pushedOut)
+
+        // Only content can move: flat rows pair with any other flat rows, so a band that changed colour may look shifted.
+        fun hasContent(start: Int, count: Int, blank: BooleanArray) = (start until minOf(start + count, blank.size)).any { !blank[it] }
+        val moved = alignment.runs.any { it.sourceStart != it.targetStart && hasContent(it.sourceStart, it.length, beforeBlank) } ||
+            alignment.gaps.any { it.sourceCount != it.targetCount && (hasContent(it.sourceStart, it.sourceCount, beforeBlank) || hasContent(it.targetStart, it.targetCount, afterBlank)) }
         return VisualChange(
             regions = merged.sortedByDescending { it.weight }.take(MAX_REGIONS).sortedBy { if (it.kind == VisualRegion.Kind.Removed) it.beforeTop else it.afterTop },
             changedShare = (changedRows.toFloat() / afterHeight).coerceIn(0f, 1f),
             heightDelta = (afterHeight - beforeHeight).toFloat() / beforeHeight,
+            moved = moved,
+            visible = verified.isNotEmpty(),
         )
     }
 
