@@ -12,6 +12,7 @@ import com.bernaferrari.changedetection.localization.stringResource
 @Composable
 fun checkFailureTitle(code: String?): String = stringResource(
     when (CheckFailure.fromCode(code)) {
+        CheckFailure.TLS -> Res.string.check_failure_tls
         CheckFailure.CONNECTION -> Res.string.check_failure_connection
         CheckFailure.TIMEOUT -> Res.string.check_failure_timeout
         CheckFailure.LOGIN -> Res.string.check_failure_login
@@ -33,6 +34,7 @@ fun checkFailureTitle(code: String?): String = stringResource(
 fun CheckFailureNotice(code: String?, modifier: Modifier = Modifier, actions: @Composable RowScope.() -> Unit = {}) {
     val detail = stringResource(
         when (CheckFailure.fromCode(code)) {
+            CheckFailure.TLS -> Res.string.check_failure_tls_detail
             CheckFailure.CONNECTION -> Res.string.check_failure_connection_detail
             CheckFailure.TIMEOUT -> Res.string.check_failure_timeout_detail
             CheckFailure.LOGIN -> Res.string.check_failure_login_detail

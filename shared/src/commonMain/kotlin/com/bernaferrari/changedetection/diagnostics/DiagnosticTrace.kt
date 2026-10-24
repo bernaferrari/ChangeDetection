@@ -22,7 +22,9 @@ import kotlin.time.TimeSource
 
 /** Fixed values only: request URLs are compared in memory and never retained in a report. */
 @Serializable enum class TlsRequestKind { MAIN_DOCUMENT, SUBRESOURCE, UNKNOWN }
+
 @Serializable enum class TlsUrlRelation { REQUESTED, STARTED, COMMITTED, SAME_ORIGIN, DIFFERENT_ORIGIN, UNKNOWN }
+
 @Serializable data class DiagnosticTlsContext(
     val primary: Int,
     val errors: List<Int>,
@@ -181,7 +183,7 @@ internal fun exceptionKind(error: Throwable): DiagnosticException = when {
     error is com.bernaferrari.changedetection.error.SnapshotStorageError -> DiagnosticException.STORAGE
     error is com.bernaferrari.changedetection.error.DatabaseError -> DiagnosticException.DATABASE
     error is com.bernaferrari.changedetection.detection.TextRegionException -> DiagnosticException.REGION
-    error::class.simpleName in setOf("SSLException", "SSLHandshakeException", "CertificateException") -> DiagnosticException.TLS
+    com.bernaferrari.changedetection.error.isDirectTlsFailure(error) -> DiagnosticException.TLS
     error::class.simpleName in setOf("SQLiteException", "SQLiteFullException", "SQLiteDiskIOException") -> DiagnosticException.SQLITE
     error is kotlinx.serialization.SerializationException -> DiagnosticException.JSON
     error is IllegalArgumentException -> DiagnosticException.INVALID_CONTENT
@@ -254,6 +256,8 @@ suspend fun <T> recordDiagnostic(mode: CaptureMode, selected: Boolean, excluded:
 private fun diagnosticId(): String = kotlin.random.Random.nextBytes(16).joinToString("") { (it.toInt() and 255).toString(16).padStart(2, '0') }
 
 private fun diagnosticCategory(error: Throwable): CheckFailure = when {
+    com.bernaferrari.changedetection.error.isTlsFailure(error) -> CheckFailure.TLS
+
     error is TimeoutCancellationException -> CheckFailure.TIMEOUT
 
     error is com.bernaferrari.changedetection.error.NetworkError -> when (error.code) {

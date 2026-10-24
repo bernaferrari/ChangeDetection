@@ -124,8 +124,27 @@ internal fun ComparisonMode.labelResource(): StringResource = when (this) {
     ComparisonMode.ImageAfter -> Res.string.preview_after
 }
 
+private val LocalScreenshotCanvasColor = androidx.compose.runtime.staticCompositionLocalOf<androidx.compose.ui.graphics.Color?> { null }
+
 @Composable
 internal fun ImageComparisonContent(
+    beforeBytes: ByteArray?,
+    afterBytes: ByteArray?,
+    imageDiff: SnapshotImageDiff?,
+    mode: ComparisonMode,
+    modifier: Modifier = Modifier,
+    onRetry: (() -> Unit)? = null,
+    cursor: RegionCursor = remember { RegionCursor() },
+    isPreparing: Boolean = false,
+    opaqueWhiteBackdrop: Boolean = false,
+) {
+    androidx.compose.runtime.CompositionLocalProvider(LocalScreenshotCanvasColor provides if (opaqueWhiteBackdrop) androidx.compose.ui.graphics.Color.White else null) {
+        ImageComparisonBody(beforeBytes, afterBytes, imageDiff, mode, modifier, onRetry, cursor, isPreparing)
+    }
+}
+
+@Composable
+private fun ImageComparisonBody(
     beforeBytes: ByteArray?,
     afterBytes: ByteArray?,
     imageDiff: SnapshotImageDiff?,
@@ -439,7 +458,7 @@ private fun ImageSwipeComparison(
         // remain readable, and captures of different heights still share one scroll range.
         Box(
             Modifier.fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceBright)
+                .background(LocalScreenshotCanvasColor.current ?: MaterialTheme.colorScheme.surfaceBright)
                 .verticalScroll(rememberScrollState())
                 .testTag("screenshot-scroll"),
         ) {
@@ -546,9 +565,10 @@ internal fun ImageViewport(
     label: String?,
     contentDescription: String? = label,
     modifier: Modifier = Modifier,
+    opaqueWhiteBackdrop: Boolean = false,
 ) {
     Box(
-        modifier = modifier.background(MaterialTheme.colorScheme.surfaceBright),
+        modifier = modifier.background(if (opaqueWhiteBackdrop) androidx.compose.ui.graphics.Color.White else LocalScreenshotCanvasColor.current ?: MaterialTheme.colorScheme.surfaceBright),
         contentAlignment = Alignment.Center,
     ) {
         val labelInset = if (label == null) 0.dp else with(LocalDensity.current) { MaterialTheme.typography.labelMedium.lineHeight.toDp() } + 24.dp

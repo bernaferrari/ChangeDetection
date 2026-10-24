@@ -714,6 +714,8 @@ private fun PagePreviewCard(
                                     when (state.reason) {
                                         PreviewFailure.TIMEOUT -> Res.string.check_failure_timeout_detail
                                         PreviewFailure.REGION -> Res.string.check_failure_region_detail
+                                        PreviewFailure.TLS -> Res.string.check_failure_tls_detail
+                                        PreviewFailure.CONNECTION -> Res.string.check_failure_connection_detail
                                         PreviewFailure.UNAVAILABLE -> Res.string.check_failure_unknown_detail
                                     },
                                 ),

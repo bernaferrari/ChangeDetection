@@ -8,6 +8,14 @@ class CheckFailureTest {
     private val handler = ErrorHandler()
     private fun classify(error: Throwable) = CheckFailure.from(handler.handleError(error), error)
 
+    @Test fun tlsFailuresAreNotPresentedAsOfflineIncludingWrappedCauses() {
+        val handler = ErrorHandler()
+        for (error in listOf<Throwable>(javax.net.ssl.SSLException("private.invalid"), javax.net.ssl.SSLProtocolException("private.invalid"), javax.net.ssl.SSLKeyException("private.invalid"), java.security.cert.CertificateParsingException("private.invalid"), java.io.IOException("outer", javax.net.ssl.SSLHandshakeException("private.invalid")))) {
+            val result = handler.handleError(error, ErrorContext.SYNC_WORKER, "tls")
+            assertEquals("TLS", CheckFailure.from(result, error).name)
+        }
+    }
+
     @Test fun httpFailuresKeepActionableReasons() {
         mapOf(
             401 to CheckFailure.LOGIN,

@@ -381,9 +381,10 @@ class ComparisonViewModel(
                                 PlatformImageDiff.compare(
                                     beforeBytes = secondBytes,
                                     afterBytes = firstBytes,
+                                    opaqueWhiteBackdrop = com.bernaferrari.changedetection.image.renderedScreenshotPair(snap2, snap1),
                                 ).let { diff ->
                                     // Row-aligned areas, so a shifted page reads as "a story was added" instead of "everything changed".
-                                    if (diff.visualChange != null) diff else diff.copy(visualChange = com.bernaferrari.changedetection.image.computeVisualChange(secondBytes, firstBytes))
+                                    if (diff.visualChange != null) diff else diff.copy(visualChange = com.bernaferrari.changedetection.image.computeVisualChange(secondBytes, firstBytes, opaqueWhiteBackdrop = com.bernaferrari.changedetection.image.renderedScreenshotPair(snap2, snap1)))
                                 }
                             } else {
                                 null

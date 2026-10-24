@@ -14,6 +14,7 @@ internal actual object PlatformImageDiff {
         afterBytes: ByteArray,
         threshold: Double,
         includeDiffImage: Boolean,
+        opaqueWhiteBackdrop: Boolean,
     ): SnapshotImageDiff = withContext(desktopImageDispatcher) {
         val pixelsDiffer = PixelDifference(threshold)
         val decodedBefore = decodeDesktopImage(beforeBytes, 1_000_000, 2048)
@@ -61,6 +62,10 @@ internal actual object PlatformImageDiff {
         val afterPixels = IntArray(after.width * after.height)
         before.readPixels(beforePixels)
         after.readPixels(afterPixels)
+        if (opaqueWhiteBackdrop) {
+            beforePixels.flattenOnWhite()
+            afterPixels.flattenOnWhite()
+        }
 
         val diffPixels = if (includeDiffImage) IntArray(beforePixels.size) else null
         var differentPixels = 0L

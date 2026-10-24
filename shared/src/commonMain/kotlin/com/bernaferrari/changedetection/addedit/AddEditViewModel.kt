@@ -31,7 +31,7 @@ import kotlin.uuid.Uuid
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
 
-enum class PreviewFailure { TIMEOUT, REGION, UNAVAILABLE }
+enum class PreviewFailure { TIMEOUT, REGION, TLS, CONNECTION, UNAVAILABLE }
 
 sealed interface CapturePreviewState {
     data object Idle : CapturePreviewState
@@ -175,7 +175,16 @@ class AddEditViewModel(
             } catch (error: Exception) {
                 if (generation == previewGeneration) {
                     _uiState.update {
-                        it.copy(preview = CapturePreviewState.Failed(if (error is com.bernaferrari.changedetection.detection.TextRegionException) PreviewFailure.REGION else PreviewFailure.UNAVAILABLE))
+                        it.copy(
+                            preview = CapturePreviewState.Failed(
+                                when {
+                                    error is com.bernaferrari.changedetection.detection.TextRegionException -> PreviewFailure.REGION
+                                    com.bernaferrari.changedetection.error.isTlsFailure(error) -> PreviewFailure.TLS
+                                    generateSequence(error as Throwable) { it.cause }.take(6).any { it is kotlinx.io.IOException } -> PreviewFailure.CONNECTION
+                                    else -> PreviewFailure.UNAVAILABLE
+                                },
+                            ),
+                        )
                     }
                 }
             }

@@ -489,6 +489,8 @@ private fun FailureCallout(code: String?, lastSuccess: Long?, checking: Boolean,
 private fun failureAdvice(failure: CheckFailure) = when (failure) {
     CheckFailure.SERVER, CheckFailure.TIMEOUT -> Res.string.advice_temporary
 
+    CheckFailure.TLS -> Res.string.check_failure_tls_detail
+
     CheckFailure.CONNECTION -> Res.string.advice_connection
 
     CheckFailure.LOGIN, CheckFailure.ACCESS_DENIED -> Res.string.advice_login

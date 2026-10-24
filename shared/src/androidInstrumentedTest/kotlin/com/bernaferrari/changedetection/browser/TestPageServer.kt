@@ -5,6 +5,11 @@ import java.net.Socket
 import java.util.concurrent.Executors
 
 internal class TestPageServer(@Volatile var status: Int, @Volatile var html: String, private val cacheControl: String = "no-store", private val resourceDelayMs: Long = 0, private val socket: ServerSocket = ServerSocket(0), scheme: String = "http") : AutoCloseable {
+    @Volatile var redirectTo: String? = null
+
+    @Volatile var disconnect = false
+
+    @Volatile var responseDelayMs = 0L
     private val executor = Executors.newCachedThreadPool()
     val url = "$scheme://127.0.0.1:${socket.localPort}/"
     init {
@@ -23,9 +28,11 @@ internal class TestPageServer(@Volatile var status: Int, @Volatile var html: Str
                 val line = input.readLine() ?: return
                 if (line.isEmpty()) break
             }
+            if (disconnect) return
+            if (responseDelayMs > 0) Thread.sleep(responseDelayMs.coerceIn(0, 30_000))
             if (resourceDelayMs > 0 && request.contains(" /slow-image ")) Thread.sleep(resourceDelayMs)
             val bytes = html.toByteArray()
-            val headers = "HTTP/1.1 $status ${if (status == 200) "OK" else "Unavailable"}\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: ${bytes.size}\r\nCache-Control: $cacheControl\r\nConnection: close\r\n\r\n"
+            val headers = "HTTP/1.1 $status ${if (status == 200) "OK" else "Unavailable"}\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: ${bytes.size}\r\nCache-Control: $cacheControl\r\n${redirectTo?.let { "Location: $it\r\n" }.orEmpty()}Connection: close\r\n\r\n"
             client.getOutputStream().apply {
                 write(headers.toByteArray())
                 write(bytes)

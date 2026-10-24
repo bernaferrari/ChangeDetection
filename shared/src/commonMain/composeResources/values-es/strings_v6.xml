@@ -180,7 +180,7 @@
     <string name="detail_fix_settings">Corregir ajustes</string>
     <string name="detail_check_less">Comprobar con menos frecuencia</string>
     <string name="advice_temporary">El sitio está ocupado o caído. Suele ser temporal; seguiremos intentándolo.</string>
-    <string name="advice_connection">Este dispositivo no pudo conectarse a internet. Lo intentaremos de nuevo cuando vuelva la conexión.</string>
+    <string name="advice_connection">No se pudo conectar con esta página. Comprueba la dirección y tu conexión e inténtalo de nuevo.</string>
     <string name="advice_login">Esta página requiere iniciar sesión. Las comprobaciones por captura de pantalla pueden reutilizar la sesión del navegador de la app en este dispositivo. Las de texto y código fuente no pueden.</string>
     <string name="advice_not_found">La página ya no existe. Comprueba si el enlace sigue siendo correcto.</string>
     <string name="advice_rate">El sitio pide que reduzcamos la frecuencia. Comprobar menos a menudo suele solucionarlo.</string>

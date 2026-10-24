@@ -438,4 +438,6 @@
         <item quantity="one">%1$d giorno</item>
         <item quantity="other">%1$d giorni</item>
     </plurals>
+    <string name="check_failure_tls">Connessione sicura non riuscita</string>
+    <string name="check_failure_tls_detail">Non è stato possibile verificare la connessione sicura alla pagina. La cronologia salvata viene conservata. Riprova più tardi o apri il sito nel browser.</string>
 </resources>

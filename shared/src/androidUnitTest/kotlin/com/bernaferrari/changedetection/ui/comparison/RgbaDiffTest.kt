@@ -8,6 +8,25 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class RgbaDiffTest {
+    @Test fun screenshotBackdropMatchesLegacyAlphaWithoutChangingRawImageSemantics() {
+        val legacy = RgbaImage(1, 1, byteArrayOf(0, 0, 0, 0))
+        val white = RgbaImage(1, 1, byteArrayOf(-1, -1, -1, -1))
+        val original = legacy.pixels.copyOf()
+        assertFalse(RgbaDiff.compare(legacy, white, 0.0, false).match)
+        assertTrue(RgbaDiff.compare(legacy, white, 0.0, false, opaqueWhiteBackdrop = true).match)
+        assertArrayEquals(original, legacy.pixels)
+    }
+
+    @Test fun screenshotBackdropPreservesPartialAlphaEdgesAndRealForegroundChanges() {
+        val redEdge = RgbaImage(1, 1, byteArrayOf(-1, 0, 0, -128))
+        val onWhite = RgbaImage(1, 1, byteArrayOf(-1, 127, 127, -1))
+        assertTrue(RgbaDiff.compare(redEdge, onWhite, 0.0, false, opaqueWhiteBackdrop = true).match)
+        val blue = RgbaImage(1, 1, byteArrayOf(0, 0, -1, -1))
+        assertFalse(RgbaDiff.compare(redEdge, blue, 0.0, false, opaqueWhiteBackdrop = true).match)
+        val black = RgbaImage(1, 1, byteArrayOf(0, 0, 0, -1))
+        assertFalse(RgbaDiff.compare(onWhite, black, 0.0, false, opaqueWhiteBackdrop = true).match)
+    }
+
     @Test fun defaultSensitivityRetainsBroadLowContrastButIgnoresAntialiasingNoise() {
         fun image(channel: Int) = RgbaImage(64, 64, ByteArray(64 * 64 * 4) { if (it % 4 == 3) 255.toByte() else channel.toByte() })
         val before = image(255)

@@ -9,6 +9,7 @@ internal actual object PlatformImageDiff {
         afterBytes: ByteArray,
         threshold: Double,
         includeDiffImage: Boolean,
+        opaqueWhiteBackdrop: Boolean,
     ): SnapshotImageDiff {
         val pixelsDiffer = PixelDifference(threshold)
         val before = runCatching { beforeBytes.decodeToImageBitmap() }.getOrNull()
@@ -52,6 +53,10 @@ internal actual object PlatformImageDiff {
         val afterPixels = IntArray(after.width * after.height)
         before.readPixels(beforePixels)
         after.readPixels(afterPixels)
+        if (opaqueWhiteBackdrop) {
+            beforePixels.flattenOnWhite()
+            afterPixels.flattenOnWhite()
+        }
 
         var differentPixels = 0L
         val bounds = ChangedBoundsTracker(before.width)

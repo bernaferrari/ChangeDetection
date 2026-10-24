@@ -912,7 +912,10 @@ class SyncEngineTest {
         val site = createTestSite()
         whenever(mockSitesDao.getSiteById(site.id)).thenReturn(site)
         var valid = true
-        whenever(mockFileStorage.writeBytes(any(), any())).thenAnswer { valid = false; Unit }
+        whenever(mockFileStorage.writeBytes(any(), any())).thenAnswer {
+            valid = false
+            Unit
+        }
         syncEngine = makeSyncEngine()
         val capture = SyncEngine.FetchResult.Success("text/html", "<body>Ready content</body>".encodeToByteArray(), validateCapture = { if (!valid) throw javax.net.ssl.SSLException("Invalid TLS") })
         assertTrue(syncEngine.establishFirstVersion(site, capture) is SyncResult.Failed)

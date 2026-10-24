@@ -588,7 +588,7 @@
     <string name="detail_fix_settings">Einstellungen korrigieren</string>
     <string name="detail_check_less">Seltener prüfen</string>
     <string name="advice_temporary">Die Website ist ausgelastet oder nicht erreichbar. Das ist meist vorübergehend. Wir versuchen es weiter.</string>
-    <string name="advice_connection">Dieses Gerät hat keine Internetverbindung. Sobald du wieder online bist, versuchen wir es erneut.</string>
+    <string name="advice_connection">Die Verbindung zu dieser Seite konnte nicht hergestellt werden. Prüfe die Adresse und deine Verbindung und versuche es erneut.</string>
     <string name="advice_login">Diese Seite erfordert eine Anmeldung. Screenshot-Prüfungen können die Anmeldung im App-Browser auf diesem Gerät verwenden. Text- und Quelltextprüfungen können das nicht.</string>
     <string name="advice_not_found">Die Seite existiert nicht mehr. Prüfe, ob der Link noch stimmt.</string>
     <string name="advice_rate">Die Website verlangt weniger Anfragen. Ein längeres Prüfintervall hilft meist.</string>
@@ -823,4 +823,6 @@
         <item quantity="other">%1$d Tagen</item>
     </plurals>
     <string name="comparison_finding_changes">Änderungen werden gesucht…</string>
+    <string name="check_failure_tls">Sichere Verbindung fehlgeschlagen</string>
+    <string name="check_failure_tls_detail">Die sichere Verbindung zur Seite konnte nicht überprüft werden. Dein gespeicherter Verlauf bleibt erhalten. Versuche es später erneut oder öffne die Website im Browser.</string>
 </resources>

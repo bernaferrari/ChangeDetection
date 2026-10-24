@@ -22,6 +22,7 @@ internal fun WebView.configureChangeDetectionWebView(
     overviewMode: Boolean = true,
     acceptThirdPartyCookies: Boolean = false,
 ) {
+    setBackgroundColor(android.graphics.Color.WHITE)
     settings.apply {
         javaScriptEnabled = true
         domStorageEnabled = true

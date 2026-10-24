@@ -438,4 +438,6 @@
         <item quantity="one">%1$d day</item>
         <item quantity="other">%1$d days</item>
     </plurals>
+    <string name="check_failure_tls">Secure connection failed</string>
+    <string name="check_failure_tls_detail">The page’s secure connection could not be verified. Your saved history is kept. Try again later or check the website in your browser.</string>
 </resources>

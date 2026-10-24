@@ -180,7 +180,7 @@
     <string name="detail_fix_settings">Fix settings</string>
     <string name="detail_check_less">Check less often</string>
     <string name="advice_temporary">The site is busy or down. This is usually temporary; we’ll keep trying.</string>
-    <string name="advice_connection">This device couldn’t reach the internet. We’ll try again when you’re back online.</string>
+    <string name="advice_connection">Could not connect to this page. Check the page address and your connection, then try again.</string>
     <string name="advice_login">This page needs a sign-in. Screenshot checks can reuse the app browser’s sign-in on this device. Text and source checks cannot.</string>
     <string name="advice_not_found">The page doesn’t exist anymore. Check that the link is still right.</string>
     <string name="advice_rate">The site is asking us to slow down. Checking less often usually fixes this.</string>
