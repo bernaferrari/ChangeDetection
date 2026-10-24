@@ -44,7 +44,10 @@ class PageCaptureHealthTest {
         assertEquals(TlsUrlRelation.DIFFERENT_ORIGIN, sub.relation)
         assertEquals(listOf(0, 3), sub.errors)
         assertTrue(sub.committed && sub.finished)
-        assertRejected { h.validate() }
+        // Refused like Chrome does: the page is still the real page, just without that frame.
+        assertFalse(sub.blocking)
+        h.validate()
+        assertEquals(1, h.blockedResources())
         h.begin(page)
         h.started(page)
         h.request(other, true)
@@ -52,24 +55,74 @@ class PageCaptureHealthTest {
         assertEquals(TlsRequestKind.MAIN_DOCUMENT, redirect.requestKind)
         assertEquals(TlsUrlRelation.DIFFERENT_ORIGIN, redirect.relation)
         assertFalse(redirect.committed)
+        assertTrue(redirect.blocking)
         assertRejected { h.validate() }
         val json = Json.encodeToString(listOf(sub, redirect))
         for (secret in listOf("private.invalid", "other.invalid", "SECRET", "PASSWORD", "https://", "cookie", "token")) assertFalse(secret, json.contains(secret))
     }
 
-    @Test fun unknownAndMixedRequestsStayUnknownAndBoundsAreEnforced() = runTest {
+    @Test fun unknownAndMixedRequestsStayUnknownAndBlockUntilThePageCommits() = runTest {
         val h = PageCaptureHealth()
         h.begin("https://main.invalid")
-        assertEquals(TlsRequestKind.UNKNOWN, h.ssl("https://missing.invalid", 3, listOf(3)).requestKind)
+        val missing = h.ssl("https://missing.invalid", 3, listOf(3))
+        assertEquals(TlsRequestKind.UNKNOWN, missing.requestKind)
+        // A server redirect is never intercepted, so an unseen URL before commit may be the page itself.
+        assertTrue(missing.blocking)
         h.request("https://mixed.invalid", true)
         h.request("https://mixed.invalid", false)
         assertEquals(TlsRequestKind.UNKNOWN, h.ssl("https://mixed.invalid", 3, listOf(3)).requestKind)
+        assertRejected { h.validate() }
+    }
+
+    @Test fun reportedFailureASubresourceRedirectingToAnUntrustedHostKeepsTheCapture() = runTest {
+        // The shared report: the page loaded and committed, then a resource it pulled in (redirected to a host with an
+        // untrusted certificate, so never seen by shouldInterceptRequest) failed TLS 350 ms later.
+        val h = PageCaptureHealth()
+        val page = "https://news.invalid/"
+        h.begin(page)
+        h.request(page, true)
+        h.started(page)
+        h.committed(page)
+        val epoch = h.epoch()
+        h.request("https://cdn.invalid/pixel.gif", false)
+        val late = h.ssl("https://tracker.invalid/pixel.gif", 3, listOf(3))
+        h.finished()
+        assertEquals(TlsRequestKind.UNKNOWN, late.requestKind)
+        assertEquals(TlsUrlRelation.DIFFERENT_ORIGIN, late.relation)
+        assertFalse(late.blocking)
+        h.validate(epoch)
+    }
+
+    @Test fun anUnseenUrlDuringANewMainFrameNavigationBlocks() = runTest {
+        val h = PageCaptureHealth()
+        val page = "https://news.invalid/"
+        h.begin(page)
+        h.request(page, true)
+        h.started(page)
+        h.committed(page)
+        // Script navigates; the request is seen, then its server redirect lands on an untrusted host.
+        h.request("https://news.invalid/next", true)
+        assertTrue(h.ssl("https://evil.invalid/next", 3, listOf(3)).blocking)
+        assertRejected { h.validate() }
+    }
+
+    @Test fun boundsKeepBlockingFailuresAndLimitRefusedResources() = runTest {
+        val h = PageCaptureHealth()
+        h.begin("https://main.invalid")
+        h.request("https://main.invalid", true)
+        h.started("https://main.invalid")
+        h.committed("https://main.invalid")
         repeat(500) {
             h.request("https://$it.invalid", false)
-            h.ssl("https://$it.invalid", 3, listOf(3))
+            assertFalse(h.ssl("https://$it.invalid", 3, listOf(3)).blocking)
         }
+        assertEquals(500, h.blockedResources())
         assertEquals(8, h.observations().size)
-        assertEquals(TlsRequestKind.UNKNOWN, h.ssl("https://499.invalid", 3, listOf(3)).requestKind)
+        h.validate()
+        // Main-frame evidence survives any number of sub-resources.
+        h.request("https://main.invalid/again", true)
+        assertTrue(h.ssl("https://main.invalid/again", 3, listOf(3)).blocking)
+        assertTrue(h.observations().first().blocking)
         assertRejected { h.validate() }
     }
 

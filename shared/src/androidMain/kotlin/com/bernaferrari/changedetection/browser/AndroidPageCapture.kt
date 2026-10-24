@@ -217,8 +217,12 @@ internal class AndroidPageCapture(private val view: WebView) {
                 health.request(request.url.toString(), request.isForMainFrame)
                 return null
             }
-            override fun onPageStarted(webView: WebView, url: String?, favicon: android.graphics.Bitmap?) { health.started(url) }
-            override fun onPageCommitVisible(webView: WebView, url: String?) { health.committed(url) }
+            override fun onPageStarted(webView: WebView, url: String?, favicon: android.graphics.Bitmap?) {
+                health.started(url)
+            }
+            override fun onPageCommitVisible(webView: WebView, url: String?) {
+                health.committed(url)
+            }
             override fun onPageFinished(webView: WebView, finishedUrl: String) {
                 health.finished()
                 if (finishedUrl != "about:blank") {
@@ -242,9 +246,13 @@ internal class AndroidPageCapture(private val view: WebView) {
             }
 
             override fun onReceivedSslError(webView: WebView, handler: SslErrorHandler, error: SslError) {
+                // Always refused, never proceeded. Only the page itself failing makes the capture invalid;
+                // an image or frame with a bad certificate is left out, as Chrome does.
                 handler.cancel()
-                trace?.tls(health.ssl(error.url, error.primaryError, (0..5).filter(error::hasError)))
-                fail(SSLException("The page has an invalid TLS certificate"))
+                val tls = health.ssl(error.url, error.primaryError, (0..5).filter(error::hasError))
+                // A few refused resources explain a capture; dozens would crowd the check's own stages out of the report.
+                if (tls.blocking || health.blockedResources() <= 3) trace?.tls(tls)
+                if (tls.blocking) fail(SSLException("The page has an invalid TLS certificate"))
             }
 
             override fun onRenderProcessGone(webView: WebView, detail: RenderProcessGoneDetail): Boolean {

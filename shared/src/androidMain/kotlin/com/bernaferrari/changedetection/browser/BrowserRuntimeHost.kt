@@ -51,7 +51,7 @@ internal actual fun rememberBrowserPlatformParams(): com.multiplatform.webview.w
                 pendingErrors.clear()
                 super.onPageStarted(view, url, favicon)
                 state.errorsForCurrentRequest.addAll(early)
-                if (health.observations().isNotEmpty()) state.errorsForCurrentRequest.add(tlsError())
+                if (health.hasBlockingFailure()) state.errorsForCurrentRequest.add(tlsError())
             }
 
             override fun onPageFinished(view: android.webkit.WebView, url: String?) {
@@ -69,10 +69,10 @@ internal actual fun rememberBrowserPlatformParams(): com.multiplatform.webview.w
 
             override fun onReceivedSslError(view: android.webkit.WebView, handler: android.webkit.SslErrorHandler, error: android.net.http.SslError) {
                 handler.cancel()
-                WebViewCaptureHealth.of(view).ssl(error.url, error.primaryError, (0..5).filter(error::hasError))
-                // isFromMainFrame here means capture-blocking for WatchBrowser. The callback
-                // itself has no main-frame flag; typed diagnostics retain UNKNOWN where needed.
-                fail(error.url, tlsError())
+                // Same rule as scheduled checks: a refused image or frame leaves the page usable; the page itself
+                // failing TLS blocks watching it.
+                val tls = WebViewCaptureHealth.of(view).ssl(error.url, error.primaryError, (0..5).filter(error::hasError))
+                if (tls.blocking) fail(error.url, tlsError())
             }
         },
     )
