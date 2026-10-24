@@ -41,8 +41,8 @@ class TlsCaptureHealthTest {
         untrustedTlsPage().use { tls -> TestPageServer(200, "<html><body>Redirect<script>location.href='${tls.url}'</script></body></html>").use { rejects(it.url) } }
     }
 
-    @Test fun invalidEmbeddedResourceCannotBeWatched() {
-        untrustedTlsPage().use { tls -> TestPageServer(200, "<html><body>Content<iframe src='${tls.url}'></iframe></body></html>").use { rejects(it.url) } }
+    @Test fun invalidEmbeddedResourceIsLeftOutAndThePageCanStillBeWatched() {
+        untrustedTlsPage().use { tls -> TestPageServer(200, "<html><body>Content<iframe src='${tls.url}'></iframe></body></html>").use { accepts(it.url) } }
     }
 
     @Test fun lateTlsRevokesReadyPreviewAndHealthyNavigationRecovers() = untrustedTlsPage().use { tls ->
@@ -59,10 +59,23 @@ class TlsCaptureHealthTest {
             compose.waitUntil(5_000) { live.get() != null }
             val preview = pump { live.get().capturePreview!!.invoke {} }
             assertNotNull(preview?.firstVersion)
+            // A late frame with a bad certificate is refused but leaves the capture valid.
             compose.runOnUiThread { findWeb(compose.activity.window.decorView)!!.evaluateJavascript("document.body.insertAdjacentHTML('beforeend', '<iframe src=\"${tls.url}\"></iframe>');0", null) }
             compose.waitUntil(30_000) {
+                var refused = false
+                compose.runOnUiThread { refused = WebViewCaptureHealth.of(findWeb(compose.activity.window.decorView)!!).blockedResources() > 0 }
+                refused
+            }
+            pump {
+                database(mode = CaptureMode.SCREENSHOT) { engine, site, _, _, _ ->
+                    assertTrue(engine.establishFirstVersion(site, requireNotNull(preview?.firstVersion)) is SyncResult.Success)
+                }
+            }
+            // The page itself navigating to an untrusted host revokes the ready capture.
+            compose.runOnUiThread { findWeb(compose.activity.window.decorView)!!.evaluateJavascript("location.href='${tls.url}';0", null) }
+            compose.waitUntil(30_000) {
                 var failed = false
-                compose.runOnUiThread { failed = WebViewCaptureHealth.of(findWeb(compose.activity.window.decorView)!!).observations().isNotEmpty() }
+                compose.runOnUiThread { failed = WebViewCaptureHealth.of(findWeb(compose.activity.window.decorView)!!).hasBlockingFailure() }
                 failed
             }
             pump {
@@ -91,7 +104,8 @@ class TlsCaptureHealthTest {
                     assertTrue(runner.check(site.id) is SyncResult.Success)
                     val baseline = db.snapsDao().getAllSnapsForSiteId(site.id).single()
                     val bytes = files.readBytes(baseline.snapId)
-                    server.html = "<html><body>Partial changed content<iframe src='${tls.url}'></iframe></body></html>"
+                    // The page now sends readers to a host with an untrusted certificate: never saved as a change.
+                    server.html = "<html><body>Partial changed content<script>location.href='${tls.url}'</script></body></html>"
                     repeat(2) {
                         val result = runner.check(site.id)
                         assertTrue(result.toString(), result is SyncResult.Failed)
@@ -112,7 +126,23 @@ class TlsCaptureHealthTest {
         }
     }
 
-    @Test fun freshEditPreviewsRejectInvalidMainRedirectAndSubresourceThenRecover() = untrustedTlsPage().use { tls ->
+    @Test fun checksKeepWorkingWhenOnlyAnEmbeddedResourceHasAnInvalidCertificate() = untrustedTlsPage().use { tls ->
+        TestPageServer(200, "<html><body>Original healthy content<iframe src='${tls.url}'></iframe></body></html>").use { server ->
+            pump {
+                database(server.url, CaptureMode.SCREENSHOT) { engine, site, db, files, _ ->
+                    val runner = runner(engine, db, files)
+                    // The shared report: a first version saved, then every scheduled check failed on the frame's certificate.
+                    repeat(2) {
+                        val result = runner.check(site.id)
+                        assertTrue(result.toString(), result is SyncResult.Success)
+                    }
+                    assertEquals(1, db.snapsDao().getAllSnapsForSiteId(site.id).size)
+                }
+            }
+        }
+    }
+
+    @Test fun freshEditPreviewsRejectInvalidMainAndRedirectButKeepPagesWithAnInvalidResource() = untrustedTlsPage().use { tls ->
         val healthy = "<html><body style='background:white;color:black'><h1 id='watched'>Healthy content</h1></body></html>"
         TestPageServer(200, healthy).use { server ->
             pump {
@@ -133,8 +163,13 @@ class TlsCaptureHealthTest {
                                 else -> healthy
                             }
                             val target = if (scenario == "main") tls.url else server.url
-                            val error = runCatching { previewer.capture(target, mode, region) }.exceptionOrNull()
-                            assertTrue("$mode $scenario: ${error?.javaClass?.simpleName}", error is javax.net.ssl.SSLException)
+                            val outcome = runCatching { previewer.capture(target, mode, region) }
+                            if (scenario == "subresource") {
+                                assertNotNull("$mode $scenario: ${outcome.exceptionOrNull()}", outcome.getOrNull()?.firstVersion)
+                            } else {
+                                val error = outcome.exceptionOrNull()
+                                assertTrue("$mode $scenario: ${error?.javaClass?.simpleName}", error is javax.net.ssl.SSLException)
+                            }
                             assertTrue(db.snapsDao().getAllSnapsForSiteId(site.id).isEmpty())
                             assertEquals(0, notifications.get())
                             server.html = healthy
@@ -196,6 +231,16 @@ class TlsCaptureHealthTest {
             scope.cancel()
         }
     }
+    private fun accepts(url: String) {
+        compose.setContent { ChangeDetectionTheme(false, false) { WatchBrowser(url, "", emptyList(), { _, _ -> }, {}, {}, {}, "Watch page") } }
+        compose.waitUntil(40_000) {
+            runCatching {
+                compose.onNodeWithText("Watch page").assertIsEnabled()
+                true
+            }.getOrDefault(false)
+        }
+    }
+
     private fun rejects(url: String) {
         compose.setContent { ChangeDetectionTheme(false, false) { WatchBrowser(url, "", emptyList(), { _, _ -> }, {}, {}, {}, "Watch page") } }
         compose.waitUntil(40_000) {

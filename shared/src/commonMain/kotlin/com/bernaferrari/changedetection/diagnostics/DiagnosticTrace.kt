@@ -31,6 +31,11 @@ import kotlin.time.TimeSource
     val navigationStarted: Boolean,
     val committed: Boolean,
     val finished: Boolean,
+    /**
+     * False when only a sub-resource (image, script, frame) was refused: like Chrome, the page is kept without it.
+     * True when the page itself could not be loaded securely, so nothing from it may be saved.
+     */
+    val blocking: Boolean = true,
 )
 
 @Serializable data class DiagnosticEvent(val stage: DiagnosticStage, val elapsedMs: Long, val durationMs: Long = 0, val failed: Boolean = false, val metric: DiagnosticMetric? = null, val code: Int? = null, val tls: DiagnosticTlsContext? = null)

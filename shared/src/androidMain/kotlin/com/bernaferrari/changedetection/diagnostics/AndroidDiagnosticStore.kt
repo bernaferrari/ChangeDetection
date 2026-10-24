@@ -205,6 +205,16 @@ class AndroidDiagnosticStore internal constructor(
         )
     }
 
+    private fun describeTls(tls: DiagnosticTlsContext): String {
+        val what = when (tls.requestKind) {
+            TlsRequestKind.MAIN_DOCUMENT -> "the page itself"
+            TlsRequestKind.SUBRESOURCE -> "a sub-resource"
+            TlsRequestKind.UNKNOWN -> "an unobserved request"
+        }
+        val where = tls.relation.name.lowercase().replace('_', ' ')
+        return "TLS error ${tls.primary} on $what ($where, ${if (tls.committed) "after" else "before"} the page committed)"
+    }
+
     /** Plain sentences at the top of the report, so it can be read without decoding the JSON below. */
     private fun summary(runtime: DiagnosticRuntime, attempts: List<StoredDiagnostic>, events: List<AppEvent>): List<String> = buildList {
         add("App ${runtime.versionName} · version code ${runtime.versionCode} · revision ${runtime.revision} (${runtime.variant.name.lowercase()}) · Android API ${runtime.androidApi} · WebView ${runtime.providerVersion} (${runtime.provider.name.lowercase()}) · free storage ${runtime.space.name.lowercase().replace('_', ' ')}")
@@ -217,10 +227,14 @@ class AndroidDiagnosticStore internal constructor(
                     "Latest failure: ${f?.category?.name ?: "UNKNOWN"} at ${f?.stage?.name ?: "unknown stage"}",
                     f?.classes?.takeIf { it.isNotEmpty() }?.joinToString(" → "),
                     f?.detail,
+                    attempt.events.lastOrNull { it.tls?.blocking == true }?.tls?.let(::describeTls),
                     "${((now() - attempt.startedAt) / 60_000).coerceAtLeast(0)} min ago",
                 ).joinToString(" · "),
             )
         }
+        // Refused sub-resources do not fail a check, but they explain a capture missing an image or frame.
+        val refused = attempts.sumOf { stored -> stored.attempt.events.count { it.tls?.blocking == false } }
+        if (refused > 0) add("$refused sub-resource certificate errors were refused and left out of captures; those checks continued")
         events.asReversed().forEach { e ->
             val ago = ((now() - e.at) / 3_600_000).let { if (it < 1) "under 1 h ago" else "$it h ago" }
             add(
