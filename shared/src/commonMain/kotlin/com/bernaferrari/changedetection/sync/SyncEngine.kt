@@ -245,8 +245,8 @@ open class SyncEngine(
     }
 
     /** Detection uses pixel evidence; filtered regions are only an explanation for the reader. */
-    private suspend fun visiblyChanged(before: ByteArray, after: ByteArray): Boolean {
-        val difference = diagnosticStage(DiagnosticStage.COMPARE) { com.bernaferrari.changedetection.image.PlatformImageDiff.compare(before, after, includeDiffImage = false) }
+    private suspend fun visiblyChanged(before: ByteArray, after: ByteArray, opaqueWhiteBackdrop: Boolean): Boolean {
+        val difference = diagnosticStage(DiagnosticStage.COMPARE) { com.bernaferrari.changedetection.image.PlatformImageDiff.compare(before, after, includeDiffImage = false, opaqueWhiteBackdrop = opaqueWhiteBackdrop) }
         check(difference.error == null && (difference.totalPixels > 0 || difference.dimensionMismatch != null)) { "Could not compare screenshots" }
         return difference.dimensionMismatch != null || difference.differentPixels > 0
     }
@@ -315,6 +315,7 @@ open class SyncEngine(
                         readBaseline(requireNotNull(lastSnap).snapId),
                         result.data,
                         includeDiffImage = false,
+                        opaqueWhiteBackdrop = result.capturedWithBrowser,
                     )
                     if (difference.error != null || (difference.totalPixels <= 0 && difference.dimensionMismatch == null)) {
                         throw ContentError(ContentError.Reason.UNKNOWN)
@@ -328,7 +329,7 @@ open class SyncEngine(
             } else if (result.contentType.startsWith("image/", true) && !isFirstSnap && hasContentChanged && !explicitRule) {
                 // Encoding changes and pixel differences below the perceptual tolerance do not create a version.
                 // Region trimming must never discard the underlying pixel evidence.
-                visiblyChanged(readBaseline(requireNotNull(lastSnap).snapId), result.data)
+                visiblyChanged(readBaseline(requireNotNull(lastSnap).snapId), result.data, result.capturedWithBrowser)
             } else {
                 visualThreshold > 0 || explicitRule || isFirstSnap || threshold <= 0 || !hasContentChanged ||
                     ContentHasher.changedByteCount(result.data, readBaseline(lastSnap!!.snapId), result.contentType) >= threshold

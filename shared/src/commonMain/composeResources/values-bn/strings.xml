@@ -588,7 +588,7 @@
     <string name="detail_fix_settings">সেটিংস ঠিক করুন</string>
     <string name="detail_check_less">কম ঘনঘন পরীক্ষা করুন</string>
     <string name="advice_temporary">ওয়েবসাইট ব্যস্ত বা বন্ধ। সাধারণত এটি সাময়িক; আমরা চেষ্টা চালিয়ে যাব।</string>
-    <string name="advice_connection">এই ডিভাইস ইন্টারনেটে পৌঁছাতে পারেনি। অনলাইনে ফিরলে আবার চেষ্টা করব।</string>
+    <string name="advice_connection">এই পৃষ্ঠার সঙ্গে সংযোগ স্থাপন করা যায়নি। পৃষ্ঠার ঠিকানা ও আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</string>
     <string name="advice_login">এই পৃষ্ঠায় সাইন ইন করতে হবে। স্ক্রিনশট পরীক্ষা এই ডিভাইসে অ্যাপের ব্রাউজারের সাইন ইন ব্যবহার করতে পারে। টেক্সট ও সোর্স পরীক্ষা তা পারে না।</string>
     <string name="advice_not_found">পৃষ্ঠা আর নেই। লিংক এখনও ঠিক আছে কি না দেখুন।</string>
     <string name="advice_rate">ওয়েবসাইট কম অনুরোধ করতে বলছে। কম ঘনঘন পরীক্ষা করলে সাধারণত ঠিক হয়।</string>
@@ -823,4 +823,6 @@
         <item quantity="other">%1$d দিন</item>
     </plurals>
     <string name="comparison_finding_changes">পরিবর্তন খোঁজা হচ্ছে…</string>
+    <string name="check_failure_tls">নিরাপদ সংযোগ স্থাপন করা যায়নি</string>
+    <string name="check_failure_tls_detail">পৃষ্ঠার নিরাপদ সংযোগ যাচাই করা যায়নি। আপনার সংরক্ষিত ইতিহাস অক্ষত আছে। পরে আবার চেষ্টা করুন বা ব্রাউজারে ওয়েবসাইটটি খুলুন।</string>
 </resources>

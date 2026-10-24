@@ -368,8 +368,8 @@ class ErrorHandler {
             errorName.contains("SSL", ignoreCase = true) ->
                 ErrorResult(
                     type = ErrorType.CONNECTIVITY,
-                    userMessage = "SSL error",
-                    description = "Secure connection failed",
+                    userMessage = "Secure connection failed",
+                    description = "The secure connection could not be verified",
                     severity = ErrorSeverity.WARNING,
                     isRetryable = false,
                     suggestedActions = listOf("The site may have certificate issues"),
@@ -379,7 +379,7 @@ class ErrorHandler {
             else ->
                 ErrorResult(
                     type = ErrorType.CONNECTIVITY,
-                    userMessage = "No internet connection",
+                    userMessage = "Could not connect to the page",
                     severity = ErrorSeverity.WARNING,
                     isRetryable = true,
                     suggestedActions = listOf("Check your connection", "Try again"),

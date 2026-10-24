@@ -254,6 +254,24 @@ class AddEditViewModelTest {
     }
 
     @Test
+    fun `preview keeps TLS distinct from generic unavailability`() = runTest {
+        val editor = createViewModel(previewer = CapturePreviewer { _, _ -> throw javax.net.ssl.SSLHandshakeException("fixture") })
+        editor.setUrl("example.com")
+        editor.requestPreview()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals("TLS", (editor.uiState.value.preview as CapturePreviewState.Failed).reason.name)
+    }
+
+    @Test
+    fun `preview connection failure does not imply the device is offline`() = runTest {
+        val editor = createViewModel(previewer = CapturePreviewer { _, _ -> throw java.io.IOException("fixture") })
+        editor.setUrl("example.com")
+        editor.requestPreview()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals("CONNECTION", (editor.uiState.value.preview as CapturePreviewState.Failed).reason.name)
+    }
+
+    @Test
     fun `preview failure can be retried and changing method clears the sample`() = runTest {
         var attempts = 0
         val editor = createViewModel(

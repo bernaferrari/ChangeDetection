@@ -13,6 +13,7 @@ internal actual object PlatformImageDiff {
         afterBytes: ByteArray,
         threshold: Double,
         includeDiffImage: Boolean,
+        opaqueWhiteBackdrop: Boolean,
     ): SnapshotImageDiff = withContext(Dispatchers.Default) {
         val context = currentCoroutineContext()
         context.ensureActive()
@@ -37,7 +38,7 @@ internal actual object PlatformImageDiff {
             )
         }
 
-        val diff = RgbaDiff.compare(beforeImage, afterImage, threshold, includeDiffImage) { context.ensureActive() }
+        val diff = RgbaDiff.compare(beforeImage, afterImage, threshold, includeDiffImage, opaqueWhiteBackdrop) { context.ensureActive() }
 
         return@withContext SnapshotImageDiff(
             match = diff.match && before.originalWidth == after.originalWidth && before.originalHeight == after.originalHeight,

@@ -340,6 +340,7 @@ fun ComparisonScreen(
                                 onRetry = viewModel::retryComparison,
                                 cursor = regionCursor,
                                 isPreparing = uiState.isLoadingDiff,
+                                opaqueWhiteBackdrop = older != null && newer != null && com.bernaferrari.changedetection.image.renderedScreenshotPair(older, newer),
                             )
 
                             uiState.isLoadingDiff -> com.bernaferrari.changedetection.ui.components.DelayedLoadingIndicator(Modifier.align(Alignment.Center).testTag("comparison-progress"))

@@ -110,6 +110,8 @@ internal fun WatchBrowser(
 ) {
     val state = rememberWebViewState(startUrl).apply {
         webSettings.androidWebSettings.domStorageEnabled = true
+        // Match fresh browser captures; transparent page CSS uses the normal white browser canvas.
+        webSettings.backgroundColor = androidx.compose.ui.graphics.Color.White
     }
     val navigator = rememberWebViewNavigator()
     val bridge = rememberWebViewJsBridge(navigator)

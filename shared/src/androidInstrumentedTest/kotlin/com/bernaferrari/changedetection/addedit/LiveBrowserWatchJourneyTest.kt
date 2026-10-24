@@ -119,12 +119,12 @@ class LiveBrowserWatchJourneyTest {
                 }
                 val startedAt = android.os.SystemClock.elapsedRealtime()
                 compose.onNode(hasText("Watch this page") and hasClickAction()).performClick()
-                compose.waitUntil(1_000) {
+                compose.waitUntil(5_000) {
                     compose.onAllNodes(hasText("Start watching") and hasClickAction()).fetchSemanticsNodes().isNotEmpty()
                 }
                 println("Preview review opened in ${android.os.SystemClock.elapsedRealtime() - startedAt} ms")
                 if (method == ComparisonMethod.SCREENSHOT && !selectedPart) {
-                    compose.waitUntil(1_000) {
+                    compose.waitUntil(5_000) {
                         compose.onAllNodesWithTag("browser-preview").fetchSemanticsNodes().isNotEmpty()
                     }
                     println("Visible browser preview in ${android.os.SystemClock.elapsedRealtime() - startedAt} ms")
@@ -147,7 +147,17 @@ class LiveBrowserWatchJourneyTest {
                 }
                 val elapsed = android.os.SystemClock.elapsedRealtime() - startedAt
                 println("Live preview ready in $elapsed ms")
-                assertTrue("A loaded preview must not wait on failed images or resources outside its capture ($elapsed ms)", elapsed < 1_800)
+                // The 30s readiness timeout is shorter than the resource's 45s response.
+                // Assert the resource is still pending, rather than a hardware-dependent
+                // deadline: the unchanged control takes 8s on the software renderer.
+                if (longPage) {
+                    val ignoredResourceStillPending = AtomicBoolean(false)
+                    compose.runOnUiThread {
+                        web.get().evaluateJavascript("!document.querySelector('img[src=\"/slow-image\"]').complete") { value -> ignoredResourceStillPending.set(value == "true") }
+                    }
+                    compose.waitUntil(2_000) { ignoredResourceStillPending.get() }
+                    assertTrue("The preview completed while the out-of-capture image was still pending", ignoredResourceStillPending.get())
+                }
                 val reviewed = (model.uiState.value.preview as CapturePreviewState.Ready).content
                 if (method == ComparisonMethod.HTML) {
                     assertTrue("Reuse client-side state that a new request would lose", (reviewed as CapturePreview.Html).text.contains("Only in the open browser"))

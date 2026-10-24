@@ -180,7 +180,7 @@
     <string name="detail_fix_settings">Correggi le impostazioni</string>
     <string name="detail_check_less">Controlla meno spesso</string>
     <string name="advice_temporary">Il sito è occupato o non disponibile. Di solito è temporaneo: continueremo a riprovare.</string>
-    <string name="advice_connection">Questo dispositivo non è riuscito a connettersi a internet. Riproveremo quando la connessione sarà disponibile.</string>
+    <string name="advice_connection">Impossibile connettersi a questa pagina. Controlla l’indirizzo e la connessione, poi riprova.</string>
     <string name="advice_login">Questa pagina richiede l’accesso. I controlli con screenshot possono riutilizzare l’accesso del browser dell’app su questo dispositivo. I controlli di testo e codice sorgente non possono.</string>
     <string name="advice_not_found">La pagina non esiste più. Verifica che il link sia ancora corretto.</string>
     <string name="advice_rate">Il sito ci chiede di rallentare. Controllare meno spesso di solito risolve il problema.</string>

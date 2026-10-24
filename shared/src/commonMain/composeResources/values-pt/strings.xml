@@ -438,4 +438,6 @@
         <item quantity="one">%1$d dia</item>
         <item quantity="other">%1$d dias</item>
     </plurals>
+    <string name="check_failure_tls">Não foi possível estabelecer uma conexão segura</string>
+    <string name="check_failure_tls_detail">Não foi possível verificar a conexão segura com a página. O histórico salvo foi preservado. Tente novamente mais tarde ou abra o site no navegador.</string>
 </resources>

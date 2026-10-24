@@ -15,6 +15,7 @@ internal actual object PlatformImageDiff {
         afterBytes: ByteArray,
         threshold: Double,
         includeDiffImage: Boolean,
+        opaqueWhiteBackdrop: Boolean,
     ): SnapshotImageDiff = withContext(Dispatchers.Default) {
         val context = currentCoroutineContext()
         context.ensureActive()
@@ -25,7 +26,11 @@ internal actual object PlatformImageDiff {
         }
         val (beforePixels, width, beforeHeight) = before
         val (afterPixels, afterWidth, afterHeight) = after
-        val visual = computeVisualChange(beforeBytes, afterBytes, threshold)
+        if (opaqueWhiteBackdrop) {
+            beforePixels.flattenOnWhite { context.ensureActive() }
+            afterPixels.flattenOnWhite { context.ensureActive() }
+        }
+        val visual = computeVisualChange(beforeBytes, afterBytes, threshold, opaqueWhiteBackdrop)
         if (width != afterWidth || beforeHeight != afterHeight) {
             return@withContext SnapshotImageDiff(
                 match = false,

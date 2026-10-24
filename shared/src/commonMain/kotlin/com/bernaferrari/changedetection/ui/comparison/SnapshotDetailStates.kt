@@ -95,6 +95,7 @@ internal fun SingleSnapshotState(
             label = null,
             contentDescription = screenshotDescription,
             modifier = modifier,
+            opaqueWhiteBackdrop = snap.contentHash.startsWith("image-v3:"),
         )
     } else if (content != null) {
         val isHtml = remember(snap.contentType) {

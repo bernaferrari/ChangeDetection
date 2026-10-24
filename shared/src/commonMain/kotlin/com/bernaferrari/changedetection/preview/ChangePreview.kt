@@ -155,9 +155,10 @@ class ChangePreviewRepository(
                 beforeBytes = beforeBytes,
                 afterBytes = afterBytes,
                 includeDiffImage = false,
+                opaqueWhiteBackdrop = com.bernaferrari.changedetection.image.renderedScreenshotPair(before, after),
             )
             if (diff.error != null && diff.dimensionMismatch == null) return ChangePreview.Unavailable
-            val visual = diff.visualChange ?: computeVisualChange(beforeBytes, afterBytes)
+            val visual = diff.visualChange ?: computeVisualChange(beforeBytes, afterBytes, opaqueWhiteBackdrop = com.bernaferrari.changedetection.image.renderedScreenshotPair(before, after))
             if (diff.dimensionMismatch == null && diff.differentPixels == 0L && diff.totalPixels > 0) return ChangePreview.NothingVisible
             return ChangePreview.Crop(
                 beforeSnapId = before.snapId,

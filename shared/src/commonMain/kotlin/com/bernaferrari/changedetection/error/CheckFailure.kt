@@ -5,6 +5,7 @@ import io.ktor.client.plugins.ResponseException
 /** Stable persisted categories; never store raw exception text or response bodies as UI copy. */
 enum class CheckFailure {
     CONNECTION,
+    TLS,
     TIMEOUT,
     LOGIN,
     ACCESS_DENIED,
@@ -26,6 +27,7 @@ enum class CheckFailure {
         fun from(result: ErrorResult, error: Throwable?): CheckFailure {
             if (error is ContentError && error.reason == ContentError.Reason.CAPTURE_UNAVAILABLE) return CAPTURE_UNAVAILABLE
             if (error is com.bernaferrari.changedetection.detection.TextRegionException) return REGION
+            if (isTlsFailure(error)) return TLS
             val responseCode = when (error) {
                 is NetworkError -> error.code
                 is ResponseException -> error.response.status.value
@@ -64,3 +66,10 @@ private fun isDiskFull(error: Throwable): Boolean {
     val message = error.message ?: return false
     return listOf("disk is full", "SQLITE_FULL", "ENOSPC", "No space left").any { message.contains(it, ignoreCase = true) }
 }
+
+/** JVM type checks cover every framework TLS/certificate subtype, including release builds. */
+internal expect fun isPlatformTlsFailure(error: Throwable): Boolean
+
+private val tlsClassNames = setOf("SSLException", "SSLHandshakeException", "SSLPeerUnverifiedException", "SSLProtocolException", "SSLKeyException", "CertificateException", "CertificateExpiredException", "CertificateNotYetValidException", "CertificateParsingException", "CertPathValidatorException", "CertPathBuilderException", "TLSException", "TlsException")
+internal fun isDirectTlsFailure(error: Throwable): Boolean = isPlatformTlsFailure(error) || error::class.simpleName in tlsClassNames
+internal fun isTlsFailure(error: Throwable?): Boolean = generateSequence(error) { it.cause }.take(6).any(::isDirectTlsFailure)

@@ -588,7 +588,7 @@
     <string name="detail_fix_settings">सेटिंग ठीक करें</string>
     <string name="detail_check_less">कम बार जाँचें</string>
     <string name="advice_temporary">वेबसाइट व्यस्त या बंद है। यह अक्सर अस्थायी होता है; हम कोशिश करते रहेंगे।</string>
-    <string name="advice_connection">यह डिवाइस इंटरनेट से नहीं जुड़ सका। आपके ऑनलाइन होने पर फिर कोशिश करेंगे।</string>
+    <string name="advice_connection">इस पेज से कनेक्ट नहीं हो सका। पेज का पता और अपना कनेक्शन जाँचें, फिर दोबारा कोशिश करें।</string>
     <string name="advice_login">इस पेज पर लॉग इन ज़रूरी है। स्क्रीनशॉट जाँचें इस डिवाइस पर ऐप के ब्राउज़र का लॉग इन इस्तेमाल कर सकती हैं। टेक्स्ट और सोर्स की जाँचें ऐसा नहीं कर सकतीं।</string>
     <string name="advice_not_found">पेज अब मौजूद नहीं है। जाँचें कि लिंक अब भी सही है।</string>
     <string name="advice_rate">वेबसाइट कम अनुरोध करने को कह रही है। कम बार जाँचने से अक्सर समस्या ठीक हो जाती है।</string>
@@ -823,4 +823,6 @@
         <item quantity="other">%1$d दिनों</item>
     </plurals>
     <string name="comparison_finding_changes">बदलाव खोजे जा रहे हैं…</string>
+    <string name="check_failure_tls">सुरक्षित कनेक्शन नहीं हो सका</string>
+    <string name="check_failure_tls_detail">पेज के सुरक्षित कनेक्शन की पुष्टि नहीं हो सकी। आपका सहेजा गया इतिहास सुरक्षित है। बाद में दोबारा कोशिश करें या वेबसाइट को ब्राउज़र में खोलें।</string>
 </resources>

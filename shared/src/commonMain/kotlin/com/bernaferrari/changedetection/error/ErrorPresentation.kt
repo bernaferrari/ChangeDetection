@@ -21,6 +21,7 @@ internal fun errorPresentation(result: ErrorResult, error: Throwable?): ErrorPre
         }
     }
     val pair = when (CheckFailure.from(result, error)) {
+        CheckFailure.TLS -> Res.string.check_failure_tls to Res.string.check_failure_tls_detail
         CheckFailure.CONNECTION -> Res.string.check_failure_connection to Res.string.check_failure_connection_detail
         CheckFailure.TIMEOUT -> Res.string.check_failure_timeout to Res.string.check_failure_timeout_detail
         CheckFailure.LOGIN -> Res.string.check_failure_login to Res.string.advice_login
