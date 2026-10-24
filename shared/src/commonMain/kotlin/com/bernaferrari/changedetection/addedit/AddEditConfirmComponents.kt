@@ -2,6 +2,7 @@
 
 package com.bernaferrari.changedetection.addedit
 
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import com.bernaferrari.changedetection.repo.PageIconShape
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -865,7 +866,7 @@ val LocalBrowserAvailable = androidx.compose.runtime.staticCompositionLocalOf { 
 
 /** The page name as a soft filled field: no label or underline, a primary outline only while editing; the pencil says it is editable. */
 @Composable
-private fun PageNameField(value: String, onValueChange: (String) -> Unit, placeholder: String, enabled: Boolean, modifier: Modifier = Modifier) {
+internal fun PageNameField(value: String, onValueChange: (String) -> Unit, placeholder: String, enabled: Boolean, modifier: Modifier = Modifier) {
     val interactions = remember { MutableInteractionSource() }
     val focused by interactions.collectIsFocusedAsState()
     val scheme = MaterialTheme.colorScheme
@@ -873,19 +874,35 @@ private fun PageNameField(value: String, onValueChange: (String) -> Unit, placeh
     val border by animateColorAsState(if (focused) scheme.primary else Color.Transparent, label = "name-border")
     val container by animateColorAsState(if (focused) scheme.surface else scheme.surfaceContainerHigh, label = "name-container")
     val label = stringResource(Res.string.editor_name)
+    // The field owns its text while typing; the page's own title (or an edit elsewhere) still replaces it. The last value
+    // sent is remembered so an older echo of the user's own typing can never overwrite newer keystrokes.
+    val state = androidx.compose.foundation.text.input.rememberTextFieldState(value)
+    var lastSent by remember { mutableStateOf(value) }
+    val latestOnValueChange by androidx.compose.runtime.rememberUpdatedState(onValueChange)
+    LaunchedEffect(value) {
+        if (value != lastSent && value != state.text.toString()) state.setTextAndPlaceCursorAtEnd(value)
+        lastSent = value
+    }
+    LaunchedEffect(state) {
+        androidx.compose.runtime.snapshotFlow { state.text.toString() }.collect { text ->
+            if (text != lastSent) {
+                lastSent = text
+                latestOnValueChange(text)
+            }
+        }
+    }
     androidx.compose.foundation.text.BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
+        state = state,
         enabled = enabled,
-        singleLine = true,
+        lineLimits = androidx.compose.foundation.text.input.TextFieldLineLimits.SingleLine,
         textStyle = MaterialTheme.typography.titleLarge.copy(color = scheme.onSurface),
         cursorBrush = androidx.compose.ui.graphics.SolidColor(scheme.primary),
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done, capitalization = KeyboardCapitalization.Sentences),
-        keyboardActions = androidx.compose.foundation.text.KeyboardActions(onDone = { focusManager.clearFocus() }),
+        onKeyboardAction = { focusManager.clearFocus() },
         interactionSource = interactions,
         // No visible label; screen readers still hear what the field is.
         modifier = modifier.semantics { contentDescription = label },
-        decorationBox = { inner ->
+        decorator = { inner ->
             Row(
                 Modifier
                     .clip(RoundedCornerShape(16.dp))
@@ -895,7 +912,7 @@ private fun PageNameField(value: String, onValueChange: (String) -> Unit, placeh
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(Modifier.weight(1f)) {
-                    if (value.isEmpty()) Text(placeholder, style = MaterialTheme.typography.titleLarge, color = scheme.onSurfaceVariant.copy(alpha = 0.7f), maxLines = 1)
+                    if (state.text.isEmpty()) Text(placeholder, style = MaterialTheme.typography.titleLarge, color = scheme.onSurfaceVariant.copy(alpha = 0.7f), maxLines = 1)
                     inner()
                 }
                 if (!focused) Icon(Icons.Outlined.Edit, null, Modifier.padding(start = 8.dp).size(18.dp), tint = scheme.onSurfaceVariant)
