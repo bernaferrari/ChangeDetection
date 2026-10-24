@@ -2,6 +2,7 @@
 
 package com.bernaferrari.changedetection.ui.logs
 
+import com.bernaferrari.changedetection.util.displayPageAddress
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
@@ -274,6 +275,7 @@ internal fun ActivityFeed(
                         site = sites[model.snap.siteId],
                         onOpen = { onOpenChange(model.snap.siteId, model.snap.snapId) },
                         onDelete = { onDelete(model.snap) },
+                        query = query,
                         canDelete = model.snap.snapId !in deleting,
                     )
 
@@ -312,7 +314,7 @@ private fun DayHeader(date: String, next: LogUiModel?) {
 }
 
 @Composable
-internal fun ActivityRow(shape: androidx.compose.ui.graphics.Shape, snap: Snap, site: Site?, onOpen: () -> Unit, onDelete: () -> Unit, canDelete: Boolean, preview: ChangePreview? = rememberVersionPreview(snap)) {
+internal fun ActivityRow(shape: androidx.compose.ui.graphics.Shape, snap: Snap, site: Site?, onOpen: () -> Unit, onDelete: () -> Unit, canDelete: Boolean, preview: ChangePreview? = rememberVersionPreview(snap), query: String = "") {
     var menu by remember { mutableStateOf(false) }
     val name = site?.name() ?: stringResource(Res.string.activity_deleted_page)
     val first = preview == ChangePreview.FirstVersion
@@ -327,7 +329,18 @@ internal fun ActivityRow(shape: androidx.compose.ui.graphics.Shape, snap: Snap, 
         ) {
             PageAvatar(name, snap.siteId, size = 40.dp, icon = site?.avatarIcon(), iconShape = site?.iconShape ?: com.bernaferrari.changedetection.repo.PageIconShape.AUTOMATIC, colors = site?.colors ?: (0 to 0))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(com.bernaferrari.changedetection.ui.kit.highlightMatches(name, query), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                // Found by its address: show the address with the match, so the result explains itself.
+                val address = site?.url?.displayPageAddress()
+                if (address != null && query.isNotBlank() && !com.bernaferrari.changedetection.ui.kit.matchesQuery(name, query) && com.bernaferrari.changedetection.ui.kit.matchesQuery(address, query)) {
+                    Text(
+                        com.bernaferrari.changedetection.ui.kit.highlightMatches(address, query),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 val subtitle = if (first) stringResource(Res.string.activity_started_short) else previewLabel(preview)
                 if (subtitle.isNotBlank()) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {

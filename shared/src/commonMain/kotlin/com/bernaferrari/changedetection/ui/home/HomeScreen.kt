@@ -125,6 +125,9 @@ import com.bernaferrari.changedetection.ui.components.ErrorBanner
 import com.bernaferrari.changedetection.ui.components.checkFailureTitle
 import com.bernaferrari.changedetection.ui.kit.Callout
 import com.bernaferrari.changedetection.ui.kit.ChangePreviewBlock
+import com.bernaferrari.changedetection.ui.kit.highlightMatches
+import com.bernaferrari.changedetection.ui.kit.matchesQuery
+import com.bernaferrari.changedetection.util.displayPageAddress
 import com.bernaferrari.changedetection.ui.kit.NewBadge
 import com.bernaferrari.changedetection.ui.kit.PageAvatar
 import com.bernaferrari.changedetection.ui.kit.segmentShape
@@ -372,6 +375,7 @@ fun HomeScreen(
                             onOpen = { if (selecting) selection = selection.toggle(row.site.id) else onOpenChange(row.site.id, row.snap?.snapId) },
                             onLongPress = { selection = selection.toggle(row.site.id) },
                             onMarkRead = { viewModel.markRead(row) },
+                            query = if (searching) query else "",
                             modifier = Modifier.animateItem().padding(horizontal = 16.dp, vertical = 6.dp),
                         )
                     }
@@ -402,6 +406,7 @@ fun HomeScreen(
                             selecting = selecting,
                             onClick = { if (selecting) selection = selection.toggle(row.site.id) else onOpenPage(row.site.id) },
                             onLongPress = { selection = selection.toggle(row.site.id) },
+                            query = if (searching) query else "",
                             modifier = Modifier.animateItem().padding(horizontal = 16.dp, vertical = 1.dp),
                         )
                     }
@@ -689,6 +694,8 @@ private fun ChangeCard(
     onOpen: () -> Unit,
     onLongPress: () -> Unit,
     onMarkRead: () -> Unit,
+    /** The search being typed; matches are highlighted in the name and address. */
+    query: String = "",
     modifier: Modifier = Modifier,
 ) {
     val preview = rememberLatestPreview(row.site.id, row.snap?.snapId)
@@ -716,9 +723,11 @@ private fun ChangeCard(
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (selecting) SelectMark(selected) else PageAvatar(row.site.name(), row.site.id, size = 44.dp, icon = row.site.avatarIcon(), iconShape = row.site.iconShape, colors = row.site.colors)
                 Column(Modifier.weight(1f)) {
-                    Text(row.site.name(), style = MaterialTheme.typography.titleMedium, maxLines = if (largeText) 3 else 1, overflow = TextOverflow.Ellipsis)
+                    Text(highlightMatches(row.site.name(), query), style = MaterialTheme.typography.titleMedium, maxLines = if (largeText) 3 else 1, overflow = TextOverflow.Ellipsis)
+                    // The address shown is the full one while searching, so a match anywhere in it is visible.
+                    val address = if (query.isNotBlank() && !matchesQuery(row.site.name(), query)) row.site.url.displayPageAddress() else row.site.domain()
                     Text(
-                        if (largeText) row.site.domain() else row.site.domain() + " · " + getRelativeTimeLabel(row.snap?.timestamp ?: row.site.timestamp),
+                        highlightMatches(if (largeText) address else address + " · " + getRelativeTimeLabel(row.snap?.timestamp ?: row.site.timestamp), query),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = if (largeText) 3 else 1,
@@ -772,6 +781,8 @@ private fun PageRow(
     selecting: Boolean,
     onClick: () -> Unit,
     onLongPress: () -> Unit,
+    /** The search being typed; matches are highlighted, and an address-only match shows the address. */
+    query: String = "",
     modifier: Modifier = Modifier,
 ) {
     val site = row.site
@@ -807,12 +818,22 @@ private fun PageRow(
         if (selecting) SelectMark(selected) else PageAvatar(site.name(), site.id, dimmed = paused, icon = site.avatarIcon(), iconShape = site.iconShape, colors = site.colors)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
-                site.name(),
+                highlightMatches(site.name(), query),
                 style = MaterialTheme.typography.titleMedium,
                 color = if (paused) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
                 maxLines = if (largeText) 3 else 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            // Found by its address: show the address with the match, so the result explains itself.
+            if (query.isNotBlank() && !matchesQuery(site.name(), query) && matchesQuery(site.url.displayPageAddress(), query)) {
+                Text(
+                    highlightMatches(site.url.displayPageAddress(), query),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 val statusColor = if (failing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                 when {
