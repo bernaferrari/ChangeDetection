@@ -6,6 +6,7 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
@@ -27,6 +28,19 @@ actual fun DiagnosticsEntry(siteId: String?) {
     val context = LocalContext.current
     TextButton(onClick = { show = true }, modifier = Modifier.testTag("export-diagnostics")) { Text(context.getString(R.string.diagnostics_export)) }
     if (show) DiagnosticsDialog(siteId, onClose = { show = false })
+}
+
+@Composable
+actual fun DiagnosticsRow() {
+    var show by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    com.bernaferrari.changedetection.ui.kit.GroupRow(
+        context.getString(R.string.diagnostics_export),
+        modifier = Modifier.testTag("export-diagnostics"),
+        icon = androidx.compose.material.icons.Icons.Outlined.BugReport,
+        onClick = { show = true },
+    )
+    if (show) DiagnosticsDialog(null, onClose = { show = false })
 }
 
 /** Preparing, file IO and JSON work are owned by the dialog and leave Compose on cancellation. */
@@ -64,8 +78,10 @@ internal fun DiagnosticsDialog(siteId: String?, onClose: () -> Unit, store: Andr
                     }
 
                     report == null -> item {
-                        LinearProgressIndicator(Modifier.fillMaxWidth())
-                        Text(context.getString(R.string.diagnostics_loading))
+                        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            com.bernaferrari.changedetection.ui.components.AppLoadingIndicator(size = 32.dp)
+                            Text(context.getString(R.string.diagnostics_loading))
+                        }
                     }
 
                     report!!.isEmpty -> item { Text(context.getString(R.string.diagnostics_empty)) }

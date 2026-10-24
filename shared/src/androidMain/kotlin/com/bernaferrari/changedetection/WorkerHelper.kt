@@ -58,8 +58,6 @@ class WorkerHelper(
 
     fun getWorkInfoFlow() = WorkManager.getInstance(context).getWorkInfosByTagFlow(UNIQUEWORK)
 
-    fun getSiteWorkInfoFlow(siteId: String) = WorkManager.getInstance(context).getWorkInfosByTagFlow(siteId)
-
     override fun reloadSite(site: Site) {
         appLog.d("Scheduling one-time work for site: ${site.id}")
 

@@ -321,7 +321,8 @@ fun AddEditConfirmScreen(
             containerColor = MaterialTheme.colorScheme.surface,
             topBar = {
                 TopAppBar(
-                    title = { Text(stringResource(if (isEditing) Res.string.editor_edit_title else Res.string.home_watch_page)) },
+                    // A new page has its own headline below, so the bar only carries Close.
+                    title = { if (isEditing) Text(stringResource(Res.string.editor_edit_title)) },
                     navigationIcon = {
                         IconButton(enabled = !isSaving, onClick = onNavigateUp) {
                             Icon(

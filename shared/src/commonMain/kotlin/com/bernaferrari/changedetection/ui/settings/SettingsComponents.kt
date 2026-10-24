@@ -369,27 +369,6 @@ internal fun ComparisonMethodSelector(
 }
 
 @Composable
-internal fun SettingsLeadingIcon(
-    icon: ImageVector,
-    tint: Color = MaterialTheme.colorScheme.primary,
-) {
-    Box(
-        modifier = Modifier
-            .size(40.dp)
-            .clip(MaterialTheme.shapes.small)
-            .background(tint.copy(alpha = 0.12f)),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = tint,
-            modifier = Modifier.size(20.dp),
-        )
-    }
-}
-
-@Composable
 private fun SettingsIcon(icon: ImageVector, tint: Color) {
     Surface(shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.surfaceContainer) {
         Box(Modifier.size(38.dp), contentAlignment = Alignment.Center) {

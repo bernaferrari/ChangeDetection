@@ -422,7 +422,7 @@
     <string name="image_diff_dimensions_supporting">নিচের ক্যাপচার তুলনা করুন; আকার আলাদা হওয়ায় সরাসরি পিক্সেল তুলনা সম্ভব নয়।</string>
     <string name="turbo_card_cadence">প্রতি %1$s · %2$s</string>
     <string name="preview_before">আগে</string>
-    <string name="preview_after">এখন</string>
+    <string name="preview_after">পরে</string>
     <string name="preview_first_version">প্রথম সংস্করণ সংরক্ষিত। পরিবর্তন এখানে দেখা যাবে।</string>
     <string name="preview_invisible">শুধু লুকানো অংশ বদলেছে</string>
     <string name="preview_invisible_body">স্ক্রিপ্ট বা মার্কআপ, পড়ার মতো লেখা নয়</string>
@@ -822,4 +822,5 @@
         <item quantity="one">%1$d দিন</item>
         <item quantity="other">%1$d দিন</item>
     </plurals>
+    <string name="comparison_finding_changes">পরিবর্তন খোঁজা হচ্ছে…</string>
 </resources>

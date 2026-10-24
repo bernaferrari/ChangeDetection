@@ -14,7 +14,7 @@
     <string name="image_diff_dimensions_supporting">Compare the captures below; their different sizes prevent a direct pixel comparison.</string>
     <string name="turbo_card_cadence">Every %1$s · %2$s</string>
     <string name="preview_before">Before</string>
-    <string name="preview_after">Now</string>
+    <string name="preview_after">After</string>
     <string name="preview_first_version">First version saved. Changes will show up here.</string>
     <string name="preview_invisible">Only hidden parts changed</string>
     <string name="preview_invisible_body">Scripts or markup, nothing you can read</string>

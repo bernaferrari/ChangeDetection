@@ -515,8 +515,13 @@ private fun HomeTopBar(
         title = {
             Text(
                 when {
+                    // Blank until the pages load, so the hero never reads "Change Detection" and then jumps to a count.
+                    rows == null -> ""
+
                     pages.isEmpty() -> stringResource(Res.string.app_name)
+
                     unreadCount > 0 -> pluralStringResource(Res.plurals.home_new_changes, unreadCount, unreadCount)
+
                     else -> stringResource(Res.string.home_nothing_new)
                 },
                 // The slot is called with separate expanded/collapsed text styles.
@@ -735,24 +740,8 @@ private fun ChangeCard(
             }
             Spacer(Modifier.height(14.dp))
             ChangePreviewBlock(preview)
-            val footer = previewFooter(preview)
-            if (footer.isNotEmpty()) {
-                Text(
-                    footer,
-                    Modifier.padding(start = 4.dp, top = 10.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
         }
     }
-}
-
-@Composable
-private fun previewFooter(preview: ChangePreview?): String = when (preview) {
-    is ChangePreview.Crop -> com.bernaferrari.changedetection.ui.kit.cropSummary(preview)
-    is ChangePreview.Words -> if (preview.otherChanges > 0) pluralStringResource(Res.plurals.preview_more_changes, preview.otherChanges, preview.otherChanges) else ""
-    else -> ""
 }
 
 internal fun formatPercent(value: Double): String = when {

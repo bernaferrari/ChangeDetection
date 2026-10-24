@@ -36,6 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
@@ -69,6 +71,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.crop_changed
 import com.bernaferrari.changedetection.shared.generated.resources.crop_added
 import com.bernaferrari.changedetection.shared.generated.resources.crop_removed
 import com.bernaferrari.changedetection.shared.generated.resources.preview_added
+import com.bernaferrari.changedetection.shared.generated.resources.preview_more_changes
 import com.bernaferrari.changedetection.shared.generated.resources.preview_reordered
 import com.bernaferrari.changedetection.shared.generated.resources.preview_reordered_body
 import com.bernaferrari.changedetection.shared.generated.resources.preview_removed
@@ -159,63 +162,89 @@ fun ChangePreviewBlock(preview: ChangePreview?, modifier: Modifier = Modifier, c
     AnimatedContent(
         targetState = preview,
         transitionSpec = { fadeIn() togetherWith fadeOut() },
-        contentKey = { it?.let { p -> p::class } },
+        contentKey = { if (it is ChangePreview.Crop && it.isPreparing) "preparing" else it?.let { p -> p::class } },
         modifier = modifier.fillMaxWidth(),
         label = "preview",
     ) { current ->
-        when (current) {
-            // Comparing two full-page captures takes a moment; a gentle pulse says it is on its way.
-            null -> {
-                val pulse = androidx.compose.animation.core.rememberInfiniteTransition(label = "preview-loading")
-                val alpha by pulse.animateFloat(
-                    initialValue = 0.45f,
-                    targetValue = 1f,
-                    animationSpec = androidx.compose.animation.core.infiniteRepeatable(androidx.compose.animation.core.tween(900), androidx.compose.animation.core.RepeatMode.Reverse),
-                    label = "preview-loading-alpha",
-                )
-                Box(
-                    Modifier.fillMaxWidth().height(cropHeight).graphicsLayer { this.alpha = alpha }.clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow),
-                )
-            }
+        Column {
+            PreviewBody(current, cropHeight)
+            PreviewFooter(current)
+        }
+    }
+}
 
-            is ChangePreview.Words -> Column(
-                Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                val label = if (current.numbersOnly) stringResource(Res.string.preview_numbers_only) else current.section
-                if (!label.isNullOrBlank()) {
-                    Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-                DiffText(editText(current.segments, MaterialTheme.marks, current.leadingEllipsis, current.trailingEllipsis), maxLines = 4)
-            }
+@Composable
+private fun PreviewBody(current: ChangePreview?, cropHeight: Dp) {
+    when (current) {
+        // Comparing two full-page captures takes a moment; a gentle pulse says it is on its way.
+        null -> Box(Modifier.fillMaxWidth().height(cropHeight).clip(MaterialTheme.shapes.large).placeholderPulse())
 
-            is ChangePreview.Crop -> Box {
+        is ChangePreview.Words -> Column(
+            Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            val label = if (current.numbersOnly) stringResource(Res.string.preview_numbers_only) else current.section
+            if (!label.isNullOrBlank()) {
+                Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            DiffText(editText(current.segments, MaterialTheme.marks, current.leadingEllipsis, current.trailingEllipsis), maxLines = 4)
+        }
+
+        // While a screenshot change is prepared, the two tiles it will fill pulse in place.
+        is ChangePreview.Crop -> Row(Modifier.fillMaxWidth().height(cropHeight), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (current.isPreparing) {
+                repeat(2) { Box(Modifier.weight(1f).fillMaxHeight().clip(TileShape).placeholderPulse()) }
+            } else {
                 val lead = current.lead
                 val beforeBounds = lead?.let { ChangedBounds(it.left, it.beforeTop, it.right, it.beforeBottom) } ?: current.bounds
                 val afterBounds = lead?.let { ChangedBounds(it.left, it.afterTop, it.right, it.afterBottom) } ?: current.bounds
-                Row(Modifier.fillMaxWidth().height(cropHeight), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    CropTile(current.beforeSnapId, beforeBounds, stringResource(Res.string.preview_before), false, Modifier.weight(1f))
-                    CropTile(current.afterSnapId, afterBounds, stringResource(Res.string.preview_after), true, Modifier.weight(1f))
+                // Like the reader's change cards: something new or gone has one side worth showing, not two.
+                when (lead?.kind) {
+                    com.bernaferrari.changedetection.image.VisualRegion.Kind.Added -> CropTile(current.afterSnapId, afterBounds, stringResource(Res.string.visual_added), true, Modifier.weight(1f))
+
+                    com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed -> CropTile(current.beforeSnapId, beforeBounds, stringResource(Res.string.visual_removed), false, Modifier.weight(1f))
+
+                    else -> {
+                        CropTile(current.beforeSnapId, beforeBounds, stringResource(Res.string.preview_before), false, Modifier.weight(1f))
+                        CropTile(current.afterSnapId, afterBounds, stringResource(Res.string.preview_after), true, Modifier.weight(1f))
+                    }
                 }
-                if (current.isPreparing) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
             }
-
-            is ChangePreview.Large -> if (current.reordered) {
-                QuietFact(Icons.Outlined.Layers, stringResource(Res.string.preview_reordered), stringResource(Res.string.preview_reordered_body))
-            } else if (current.samples.isEmpty()) {
-                QuietFact(Icons.Outlined.Layers, stringResource(Res.string.preview_large), stringResource(Res.string.preview_large_body, current.changedLines, current.totalLines))
-            } else {
-                LargeChange(current)
-            }
-
-            ChangePreview.Invisible -> QuietFact(Icons.Outlined.VisibilityOff, stringResource(Res.string.preview_invisible), stringResource(Res.string.preview_invisible_body))
-
-            ChangePreview.NothingVisible -> QuietFact(Icons.Outlined.VisibilityOff, stringResource(Res.string.preview_nothing_visible), stringResource(Res.string.preview_nothing_visible_body))
-
-            ChangePreview.FirstVersion -> Text(stringResource(Res.string.preview_first_version), Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(14.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-            ChangePreview.Unavailable -> Text(stringResource(Res.string.preview_unavailable), Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(14.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+
+        is ChangePreview.Large -> if (current.reordered) {
+            QuietFact(Icons.Outlined.Layers, stringResource(Res.string.preview_reordered), stringResource(Res.string.preview_reordered_body))
+        } else if (current.samples.isEmpty()) {
+            QuietFact(Icons.Outlined.Layers, stringResource(Res.string.preview_large), stringResource(Res.string.preview_large_body, current.changedLines, current.totalLines))
+        } else {
+            LargeChange(current)
+        }
+
+        ChangePreview.Invisible -> QuietFact(Icons.Outlined.VisibilityOff, stringResource(Res.string.preview_invisible), stringResource(Res.string.preview_invisible_body))
+
+        ChangePreview.NothingVisible -> QuietFact(Icons.Outlined.VisibilityOff, stringResource(Res.string.preview_nothing_visible), stringResource(Res.string.preview_nothing_visible_body))
+
+        ChangePreview.FirstVersion -> Text(stringResource(Res.string.preview_first_version), Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(14.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+        ChangePreview.Unavailable -> Text(stringResource(Res.string.preview_unavailable), Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainerLow).padding(14.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/** How big the change is ("7 changes", "+2 more changes"), under every preview that has more than it shows. */
+@Composable
+private fun PreviewFooter(current: ChangePreview?) {
+    val text = when (current) {
+        is ChangePreview.Crop -> if (current.isPreparing) null else cropSummary(current)
+        is ChangePreview.Words -> if (current.otherChanges > 0) com.bernaferrari.changedetection.localization.pluralStringResource(Res.plurals.preview_more_changes, current.otherChanges, current.otherChanges) else return
+        else -> return
+    }
+    val modifier = Modifier.padding(start = 4.dp, top = 10.dp)
+    if (text == null) {
+        // Holds the line the count will fill, so the card does not grow when it arrives.
+        val height = with(androidx.compose.ui.platform.LocalDensity.current) { MaterialTheme.typography.bodySmall.lineHeight.toDp() }
+        Box(modifier.size(width = 72.dp, height = height).clip(RoundedCornerShape(50)).placeholderPulse())
+    } else {
+        Text(text, modifier, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -278,93 +307,13 @@ fun cropSummary(preview: ChangePreview.Crop): String {
 }
 
 /**
- * The most important area of a screenshot change, as one wide tile: zoomed to the change and outlined, so it
- * is readable at a glance. The Before/After pill flips the tile in place (a tap elsewhere still opens the change); each side is cropped from its own
- * capture, so content that moved down the page still lines up.
+ * One capture at full page width, centered on the changed area. The page around the change is washed out, so the
+ * change stands out without a second frame inside the tile's own border. A change taller than the tile starts at its top.
  */
 @Composable
-fun RegionPair(beforeSnapId: String, afterSnapId: String, region: com.bernaferrari.changedetection.image.VisualRegion, height: Dp, modifier: Modifier = Modifier) {
-    val kind = region.kind
-    val canFlip = kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Changed
-    var showBefore by remember(beforeSnapId, afterSnapId) { mutableStateOf(kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed) }
-    val marks = MaterialTheme.marks
-    val shape = RoundedCornerShape(16.dp)
-    val label = stringResource(
-        when {
-            kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Added -> Res.string.visual_added
-            kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed -> Res.string.visual_removed
-            showBefore -> Res.string.preview_before
-            else -> Res.string.preview_after
-        },
-    )
-    Box(
-        modifier
-            .fillMaxWidth()
-            .height(height)
-            .clip(shape)
-            .background(marks.page)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape)
-            .semantics { contentDescription = label },
-    ) {
-        androidx.compose.animation.Crossfade(showBefore, label = "flip") { before ->
-            val snapId = if (before) beforeSnapId else afterSnapId
-            val bounds = if (before) {
-                ChangedBounds(region.left, region.beforeTop, region.right, region.beforeBottom)
-            } else {
-                ChangedBounds(region.left, region.afterTop, region.right, region.afterBottom)
-            }
-            ChangeSpot(snapId, bounds, outline = marks.highlightEdge, modifier = Modifier.fillMaxSize())
-        }
-        if (canFlip) {
-            BeforeAfterPill(showBefore, onSelect = { showBefore = it }, modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp))
-        } else {
-            Box(
-                Modifier.align(Alignment.BottomEnd).padding(8.dp).clip(RoundedCornerShape(8.dp))
-                    .background(if (showBefore) MaterialTheme.colorScheme.surfaceContainerHigh else marks.highlight)
-                    .padding(horizontal = 8.dp, vertical = 3.dp),
-            ) {
-                Text(label, style = MaterialTheme.typography.labelMedium, color = if (showBefore) MaterialTheme.colorScheme.onSurfaceVariant else marks.onHighlight)
-            }
-        }
-    }
-}
-
-@Composable
-private fun BeforeAfterPill(showBefore: Boolean, onSelect: (Boolean) -> Unit, modifier: Modifier = Modifier) {
-    val marks = MaterialTheme.marks
-    Row(
-        modifier.clip(RoundedCornerShape(10.dp)).background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.94f)).padding(2.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        listOf(true to stringResource(Res.string.preview_before), false to stringResource(Res.string.preview_after)).forEach { (before, text) ->
-            val selected = showBefore == before
-            Text(
-                text,
-                Modifier.clip(RoundedCornerShape(8.dp))
-                    .background(
-                        if (!selected) {
-                            androidx.compose.ui.graphics.Color.Transparent
-                        } else if (before) {
-                            MaterialTheme.colorScheme.surface
-                        } else {
-                            marks.highlight
-                        },
-                    )
-                    .clickable { onSelect(before) }
-                    .padding(horizontal = 10.dp, vertical = 4.dp),
-                style = MaterialTheme.typography.labelMedium,
-                color = if (selected && !before) marks.onHighlight else MaterialTheme.colorScheme.onSurface.copy(alpha = if (selected) 1f else 0.7f),
-            )
-        }
-    }
-}
-
-/**
- * One capture, zoomed so the changed area fills the tile's width (never past 3×), centered on it, with the area
- * outlined. A change taller than the tile starts at its top.
- */
-@Composable
-private fun ChangeSpot(snapId: String, bounds: ChangedBounds, outline: androidx.compose.ui.graphics.Color, modifier: Modifier = Modifier) {
+private fun ChangeSpot(snapId: String, changed: ChangedBounds?, modifier: Modifier = Modifier) {
+    // Without a known area (a size change), the top of the page is shown as it is.
+    val bounds = changed ?: ChangedBounds(0f, 0f, 1f, 0.12f)
     val snaps = remember { optional<SnapsRepository>() }
     val loaded by produceState<Pair<ByteArray?, Boolean>>(null to false, snapId) {
         value = try {
@@ -383,11 +332,8 @@ private fun ChangeSpot(snapId: String, bounds: ChangedBounds, outline: androidx.
 
     BoxWithConstraints(modifier.clipToBounds()) {
         if (bytes == null || aspect <= 0f) {
-            if (loaded.second && (bytes == null || aspect == 0f)) {
-                Text(stringResource(Res.string.preview_unavailable), Modifier.align(Alignment.Center).padding(12.dp), style = MaterialTheme.typography.bodySmall)
-            } else {
-                androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
-            }
+            // Reading a capture from disk is quick: the blank page stays until it is ready, with no progress bar.
+            if (loaded.second && (bytes == null || aspect == 0f)) UnavailableTile()
             return@BoxWithConstraints
         }
         val data = requireNotNull(bytes)
@@ -395,79 +341,75 @@ private fun ChangeSpot(snapId: String, bounds: ChangedBounds, outline: androidx.
         val boxW = constraints.maxWidth.toFloat()
         val boxH = constraints.maxHeight.toFloat()
         // Full page width, like the comparison: natural text size, nothing cut at the sides.
-        val l = 0f
-        val r = 1f
-        val imageW = boxW / (r - l)
-        val imageH = imageW / aspect
+        val imageH = boxW / aspect
         val top = bounds.top * imageH
         val bottom = bounds.bottom * imageH
         val pad = with(density) { 14.dp.toPx() }
         val y = if (bottom - top + pad * 2 <= boxH) boxH / 2f - (top + bottom) / 2f else pad - top
         val offsetY = y.coerceIn(minOf(0f, boxH - imageH), 0f)
-        val offsetX = -l * imageW
         // Decode just the visible window of the capture (cached), not the whole page.
         val windowTop = (-offsetY / imageH).coerceIn(0f, 1f)
         val windowBottom = ((-offsetY + boxH) / imageH).coerceIn(windowTop, 1f)
-        val cropState by produceState<Pair<androidx.compose.ui.graphics.ImageBitmap?, Boolean>>(null to false, data, l, r, windowTop, windowBottom, boxW) {
+        val cropState by produceState<Pair<androidx.compose.ui.graphics.ImageBitmap?, Boolean>>(null to false, data, windowTop, windowBottom, boxW) {
             value = value.first to false
-            value = com.bernaferrari.changedetection.image.CropCache.get(data, l, windowTop, r, windowBottom, boxW.roundToInt()) to true
+            value = com.bernaferrari.changedetection.image.CropCache.get(data, 0f, windowTop, 1f, windowBottom, boxW.roundToInt()) to true
         }
         val crop = cropState.first
-        if (!cropState.second) {
-            androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
-        } else if (crop == null) {
-            Text(stringResource(Res.string.preview_unavailable), Modifier.align(Alignment.Center).padding(12.dp), style = MaterialTheme.typography.bodySmall)
+        if (cropState.second && crop == null) {
+            UnavailableTile()
+            return@BoxWithConstraints
         }
+        val shown by androidx.compose.animation.core.animateFloatAsState(if (crop != null) 1f else 0f, label = "crop-in")
         crop?.let {
             androidx.compose.foundation.Image(
                 it,
                 null,
-                Modifier.fillMaxWidth().height(with(density) { ((windowBottom - windowTop) * imageH).toDp() }),
+                Modifier.fillMaxWidth().height(with(density) { ((windowBottom - windowTop) * imageH).toDp() }).graphicsLayer { alpha = shown },
                 contentScale = ContentScale.FillBounds,
                 filterQuality = androidx.compose.ui.graphics.FilterQuality.Medium,
             )
         }
-        androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
-            val edge = 2.dp.toPx()
-            val inset = 3.dp.toPx()
-            val left = (bounds.left * imageW + offsetX - inset).coerceAtLeast(edge)
-            val right = (bounds.right * imageW + offsetX + inset).coerceAtMost(size.width - edge)
-            val rectTop = (top + offsetY - inset).coerceAtLeast(edge)
-            val rectBottom = (bottom + offsetY + inset).coerceAtMost(size.height - edge)
-            if (right > left && rectBottom > rectTop) {
-                drawRoundRect(
-                    outline,
-                    topLeft = androidx.compose.ui.geometry.Offset(left, rectTop),
-                    size = androidx.compose.ui.geometry.Size(right - left, rectBottom - rectTop),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(8.dp.toPx()),
-                    style = androidx.compose.ui.graphics.drawscope.Stroke(edge),
-                )
+        val wash = MaterialTheme.marks.page.copy(alpha = 0.6f * shown)
+        if (changed != null) {
+            androidx.compose.foundation.Canvas(Modifier.matchParentSize()) {
+                val inset = 4.dp.toPx()
+                val rectTop = (top + offsetY - inset).coerceIn(0f, size.height)
+                val rectBottom = (bottom + offsetY + inset).coerceIn(rectTop, size.height)
+                if (rectTop > 0f) drawRect(wash, size = androidx.compose.ui.geometry.Size(size.width, rectTop))
+                if (rectBottom < size.height) drawRect(wash, topLeft = androidx.compose.ui.geometry.Offset(0f, rectBottom), size = androidx.compose.ui.geometry.Size(size.width, size.height - rectBottom))
             }
         }
     }
 }
 
-/** Before and after, cropped to the same changed area, side by side. */
 @Composable
-fun CropPair(beforeSnapId: String, afterSnapId: String, bounds: ChangedBounds?, height: Dp, modifier: Modifier = Modifier) {
-    Row(modifier.fillMaxWidth().height(height), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        CropTile(beforeSnapId, bounds, stringResource(Res.string.preview_before), highlighted = false, Modifier.weight(1f))
-        CropTile(afterSnapId, bounds, stringResource(Res.string.preview_after), highlighted = true, Modifier.weight(1f))
-    }
+private fun androidx.compose.foundation.layout.BoxScope.UnavailableTile() {
+    Text(
+        stringResource(Res.string.preview_unavailable),
+        Modifier.align(Alignment.Center).padding(12.dp),
+        style = MaterialTheme.typography.bodySmall,
+        color = androidx.compose.ui.graphics.Color(0xFF5F5E66),
+        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+    )
 }
 
+private val TileShape = RoundedCornerShape(16.dp)
+
+/**
+ * One side of a change: the same treatment as the reader's change cards, where only the newer capture wears
+ * the highlight colour.
+ */
 @Composable
 fun CropTile(snapId: String, bounds: ChangedBounds?, label: String, highlighted: Boolean, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(16.dp)
     val marks = MaterialTheme.marks
     Box(
         modifier
             .fillMaxSize()
-            .clip(shape)
+            .clip(TileShape)
             .background(marks.page)
-            .border(if (highlighted) 2.5.dp else 1.dp, if (highlighted) marks.highlightEdge else MaterialTheme.colorScheme.outlineVariant, shape),
+            .border(if (highlighted) 2.dp else 1.dp, if (highlighted) marks.highlightEdge else MaterialTheme.colorScheme.outlineVariant, TileShape),
     ) {
-        ChangeSpot(snapId, bounds ?: ChangedBounds(0f, 0f, 1f, 0.12f), if (highlighted) marks.highlightEdge else MaterialTheme.colorScheme.outlineVariant, Modifier.fillMaxSize())
+        ChangeSpot(snapId, bounds, Modifier.fillMaxSize())
         Box(
             Modifier.align(Alignment.BottomEnd).padding(6.dp).clip(RoundedCornerShape(7.dp))
                 .background(if (highlighted) marks.highlight else MaterialTheme.colorScheme.surfaceContainerHigh)
@@ -478,45 +420,18 @@ fun CropTile(snapId: String, bounds: ChangedBounds?, label: String, highlighted:
     }
 }
 
-/**
- * Scales the capture so the changed area fills the tile, centered, never zooming past 3×.
- * Without bounds (identical pixels, size change) the top of the page is shown.
- */
+/** A soft pulse for content that is on its way, in place of progress bars. */
 @Composable
-fun CroppedImage(bytes: ByteArray, bounds: ChangedBounds?, modifier: Modifier = Modifier) {
-    val padded = bounds?.let {
-        val padX = 0.04f
-        val padY = 0.02f
-        val minWidth = 1f / 3f
-        var left = (it.left - padX).coerceAtLeast(0f)
-        var right = (it.right + padX).coerceAtMost(1f)
-        if (right - left < minWidth) {
-            val center = (left + right) / 2f
-            left = (center - minWidth / 2f).coerceIn(0f, 1f - minWidth)
-            right = left + minWidth
-        }
-        ChangedBounds(left, (it.top - padY).coerceAtLeast(0f), right, (it.bottom + padY).coerceAtMost(1f))
-    }
-    Box(modifier.clipToBounds()) {
-        SnapshotImage(
-            bytes = bytes,
-            contentDescription = null,
-            contentScale = ContentScale.FillWidth,
-            modifier = Modifier.layout { measurable, constraints ->
-                val boxWidth = constraints.maxWidth
-                val boxHeight = constraints.maxHeight
-                val region = padded ?: ChangedBounds(0f, 0f, 1f, 1f)
-                val imageWidth = (boxWidth / region.width).roundToInt().coerceAtLeast(boxWidth)
-                val placeable = measurable.measure(Constraints.fixedWidth(imageWidth))
-                layout(boxWidth, boxHeight) {
-                    val x = -(region.left * imageWidth).roundToInt()
-                    val centerY = if (padded == null) 0f else (region.top + region.height / 2f) * placeable.height
-                    val y = if (padded == null) 0 else (boxHeight / 2f - centerY).roundToInt().coerceIn(minOf(0, boxHeight - placeable.height), 0)
-                    placeable.place(x, y)
-                }
-            },
-        )
-    }
+fun Modifier.placeholderPulse(): Modifier {
+    val pulse = androidx.compose.animation.core.rememberInfiniteTransition(label = "placeholder")
+    val alpha by pulse.animateFloat(
+        initialValue = 0.5f,
+        targetValue = 1f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(androidx.compose.animation.core.tween(900), androidx.compose.animation.core.RepeatMode.Reverse),
+        label = "placeholder-alpha",
+    )
+    val color = MaterialTheme.colorScheme.surfaceContainerHigh
+    return drawBehind { drawRect(color, alpha = alpha) }
 }
 
 /** Resolves a dependency when the app's container is running; previews and UI tests may not have one. */

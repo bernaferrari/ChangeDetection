@@ -551,7 +551,7 @@ private fun LatestChange(item: SiteAndLastSnap, onCompare: (String) -> Unit, onM
                         }
                         if (unread) NewBadge(text = stringResource(Res.string.badge_new))
                     }
-                    ChangePreviewBlock(preview, cropHeight = 132.dp)
+                    ChangePreviewBlock(preview)
                     val compareButton: @Composable (Modifier) -> Unit = { buttonModifier ->
                         Button(onClick = { onCompare(snap.snapId) }, modifier = buttonModifier.heightIn(min = 48.dp)) { Text(stringResource(Res.string.detail_compare_action)) }
                     }

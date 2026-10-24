@@ -70,7 +70,7 @@ class ChangeReaderUiTest {
         compose.onNodeWithText("Unchanged context 500").assertDoesNotExist()
         compose.runOnIdle { assertTrue("Expanded context shifts the change anchor", state.changeIndices.single() >= 500) }
         compose.onNodeWithText("Jump").performClick()
-        compose.onNodeWithContentDescription("Now: Price 12", substring = true).assertIsDisplayed()
+        compose.onNodeWithContentDescription("After: Price 12", substring = true).assertIsDisplayed()
         compose.runOnIdle { assertEquals(0, state.current) }
     }
 
@@ -84,12 +84,12 @@ class ChangeReaderUiTest {
         compose.onNodeWithText("Show full comparison").performClick()
         compose.waitUntil(5_000) { state.changeCount == 1 }
         compose.onAllNodesWithText("Show 88 more lines").onFirst().performScrollTo().performClick()
-        compose.onNodeWithContentDescription("Now: New line 100").assertDoesNotExist()
-        compose.onNodeWithTag("comparison-lines").performScrollToNode(hasContentDescription("Now: New line 100"))
-        compose.onNodeWithContentDescription("Now: New line 100").assertIsDisplayed()
+        compose.onNodeWithContentDescription("After: New line 100").assertDoesNotExist()
+        compose.onNodeWithTag("comparison-lines").performScrollToNode(hasContentDescription("After: New line 100"))
+        compose.onNodeWithContentDescription("After: New line 100").assertIsDisplayed()
         compose.onNodeWithTag("comparison-lines").performScrollToNode(hasText("Show fewer lines"))
         compose.onNodeWithText("Show fewer lines").performClick()
-        compose.onNodeWithContentDescription("Now: New line 100").assertDoesNotExist()
+        compose.onNodeWithContentDescription("After: New line 100").assertDoesNotExist()
     }
 
     @Test fun busyPagesOpenAsNewRemovedAndNumberDigest() {
@@ -105,7 +105,7 @@ class ChangeReaderUiTest {
     @Test fun inlineChangesDescribeBeforeAndAfterForScreenReaders() {
         show("Price 10", "Price 12")
         compose.waitUntil(5_000) { state.changeCount == 1 }
-        compose.onNodeWithContentDescription("Before: Price 10\nNow: Price 12").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Before: Price 10\nAfter: Price 12").assertIsDisplayed()
     }
 
     @Test fun hiddenChangeExplanationAndSourceActionRemainReachableAtLargeTextSize() {

@@ -598,22 +598,11 @@ class ContentError(
     enum class Reason { EMPTY, UNSUPPORTED, CAPTURE_UNAVAILABLE, ENCODING, UNKNOWN }
 }
 
-// Extension functions
-fun Throwable.toErrorResult(
-    errorHandler: ErrorHandler,
-    context: ErrorContext = ErrorContext.GENERAL,
-): ErrorResult = errorHandler.handleError(this, context)
-
 suspend fun <T> Result<T>.handleError(
     errorHandler: ErrorHandler,
     context: ErrorContext = ErrorContext.GENERAL,
 ): Result<T> = onFailure { error ->
     errorHandler.handleError(error, context)
 }
-
-fun <T> Result<T>.getErrorResult(
-    errorHandler: ErrorHandler,
-    context: ErrorContext = ErrorContext.GENERAL,
-): ErrorResult? = exceptionOrNull()?.let { errorHandler.handleError(it, context) }
 
 private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("ErrorHandler")

@@ -142,7 +142,7 @@ class DesktopAppJourneyTest {
                 db.snapsDao().insertSnap(com.bernaferrari.changedetection.repo.Snap(afterId, "visual", now, "image/png", "UTF-8", afterBytes.size))
             }
             compose.onNodeWithText("Home").performClick()
-            compose.waitUntil(10_000) { compose.onAllNodesWithText("Before").fetchSemanticsNodes().isNotEmpty() && compose.onAllNodesWithText("Now").fetchSemanticsNodes().isNotEmpty() }
+            compose.waitUntil(10_000) { compose.onAllNodesWithText("Before").fetchSemanticsNodes().isNotEmpty() && compose.onAllNodesWithText("After").fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithText("No visual change detected").assertDoesNotExist()
             compose.onNodeWithText("Activity").performClick()
             compose.waitUntil(10_000) { compose.onAllNodesWithText("of the page", substring = true).fetchSemanticsNodes().isNotEmpty() }

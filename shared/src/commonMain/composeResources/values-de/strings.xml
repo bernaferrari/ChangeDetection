@@ -422,7 +422,7 @@
     <string name="image_diff_dimensions_supporting">Vergleiche die Aufnahmen unten. Ihre unterschiedlichen Größen verhindern einen direkten Pixelvergleich.</string>
     <string name="turbo_card_cadence">Alle %1$s · %2$s</string>
     <string name="preview_before">Vorher</string>
-    <string name="preview_after">Jetzt</string>
+    <string name="preview_after">Nachher</string>
     <string name="preview_first_version">Erste Version gespeichert. Änderungen erscheinen hier.</string>
     <string name="preview_invisible">Nur ausgeblendete Bereiche geändert</string>
     <string name="preview_invisible_body">Skripte oder Markup, kein lesbarer Text</string>
@@ -822,4 +822,5 @@
         <item quantity="one">%1$d Tag</item>
         <item quantity="other">%1$d Tagen</item>
     </plurals>
+    <string name="comparison_finding_changes">Änderungen werden gesucht…</string>
 </resources>

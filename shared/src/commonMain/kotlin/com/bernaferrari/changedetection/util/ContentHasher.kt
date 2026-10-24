@@ -99,8 +99,6 @@ object ContentHasher {
  */
 fun ByteArray.hashedWith(): String = ContentHasher.hashContent(this)
 
-fun ByteArray.htmlHashedWith(): String = ContentHasher.hashHtmlContent(this)
-
 fun ByteArray.isChangedFrom(
     previous: ByteArray,
     contentType: String,

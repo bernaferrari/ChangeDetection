@@ -505,19 +505,6 @@ internal object VisualRegions {
     }
 }
 
-/** Nearest-neighbour downscale of ARGB pixels to [targetWidth], keeping the aspect ratio. */
-internal fun scaleArgb(pixels: IntArray, width: Int, height: Int, targetWidth: Int): Triple<IntArray, Int, Int> {
-    if (width <= targetWidth) return Triple(pixels, width, height)
-    val targetHeight = maxOf(1, (height.toLong() * targetWidth / width).toInt())
-    val out = IntArray(targetWidth * targetHeight)
-    for (y in 0 until targetHeight) {
-        val sy = (y.toLong() * height / targetHeight).toInt()
-        val row = sy * width
-        for (x in 0 until targetWidth) out[y * targetWidth + x] = pixels[row + (x.toLong() * width / targetWidth).toInt()]
-    }
-    return Triple(out, targetWidth, targetHeight)
-}
-
 /** Wide enough that one changed digit in body text stays a dense spot after averaging. */
 internal const val REGION_WORKING_WIDTH = 540
 

@@ -8,7 +8,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.DeleteSweep
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
@@ -186,38 +185,6 @@ internal fun MonitoringSettingsSection(
 }
 
 @Composable
-internal fun BrowserDelayChoiceDialog(
-    selectedDelay: Long,
-    onDismiss: () -> Unit,
-    onConfirm: (Long) -> Unit,
-) {
-    var pendingDelay by remember(selectedDelay) { mutableLongStateOf(selectedDelay) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(Res.string.settings_browser_delay_title)) },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)) {
-                Text(
-                    stringResource(Res.string.settings_browser_delay_subtitle),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                BrowserDelaySelector(selectedDelay = pendingDelay, onDelaySelected = { pendingDelay = it })
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(pendingDelay) }) {
-                Text(stringResource(Res.string.done))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(Res.string.dialog_cancel))
-            }
-        },
-    )
-}
-
-@Composable
 internal fun ComparisonMethodChoiceDialog(
     selectedMethod: ComparisonMethod,
     onDismiss: () -> Unit,
@@ -371,7 +338,7 @@ internal fun HistoryStorageDialog(
                 )
                 if (clearing) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        CircularProgressIndicator(Modifier.size(24.dp))
+                        com.bernaferrari.changedetection.ui.components.AppLoadingIndicator(size = 32.dp)
                         Text(stringResource(Res.string.loading))
                     }
                 } else if (clearFailed && onClearOlder != null) {

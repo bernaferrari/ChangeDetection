@@ -14,7 +14,8 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.SpanStyle
 
-import androidx.compose.material.icons.rounded.Article
+import androidx.compose.material.icons.automirrored.rounded.Article
+import androidx.compose.material.icons.automirrored.rounded.Notes
 import androidx.compose.material.icons.rounded.Difference
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Update
@@ -203,6 +204,15 @@ fun ComparisonScreen(
         else -> listOf(ComparisonMode.Text)
     }
     var mode by remember(isImagePair, isHtmlPair) { mutableStateOf(modes.first()) }
+    // The home card already found this pair's changes; the reader opens on them while its full comparison runs.
+    val knownRegions = remember(older?.snapId, newer?.snapId, isImagePair) {
+        if (!isImagePair || older == null || newer == null) {
+            null
+        } else {
+            (com.bernaferrari.changedetection.ui.kit.optional<com.bernaferrari.changedetection.preview.ChangePreviewRepository>()?.cachedBetween(older.snapId, newer.snapId) as? com.bernaferrari.changedetection.preview.ChangePreview.Crop)?.regions?.takeIf { it.isNotEmpty() }
+        }
+    }
+    val shownImageDiff = uiState.imageDiff ?: knownRegions?.takeIf { uiState.isLoadingDiff }?.let(::provisionalImageDiff)
     val markRead: () -> Unit = {
         scope.launch {
             val receipt = viewModel.markVisibleComparisonRead() ?: return@launch
@@ -218,11 +228,13 @@ fun ComparisonScreen(
         topBar = {
             val canShare = !uiState.requestedSnapshotUnavailable && ((isImagePair && uiState.imageDiff != null) || (uiState.snapContent1 != null && uiState.snapContent2 != null))
             com.bernaferrari.changedetection.ui.navigation.AppTopBar(
-                title = uiState.site?.name() ?: stringResource(Res.string.app_name),
+                // Blank while the page loads, so the title never flashes the app's name first.
+                title = uiState.site?.name() ?: if (uiState.isLoading) "" else stringResource(Res.string.app_name),
                 subtitle = uiState.site?.url?.displayPageAddress(),
                 onBack = if (showNavigateUp) onNavigateUp else null,
-                actions = if (canShare && uiState.snaps.size > 1) {
-                    listOf(com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.comparison_share), Icons.Outlined.Share, "square.and.arrow.up") { share(viewModel, uiState, mode) })
+                // Present from the first frame of a comparison and enabled once it can be shared, so the bar never shifts.
+                actions = if (uiState.snaps.size > 1 && uiState.singleSnap == null && !uiState.requestedSnapshotUnavailable) {
+                    listOf(com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.comparison_share), Icons.Outlined.Share, "square.and.arrow.up", enabled = canShare) { share(viewModel, uiState, mode) })
                 } else {
                     emptyList()
                 },
@@ -237,7 +249,7 @@ fun ComparisonScreen(
             )
         },
         bottomBar = {
-            val comparing = uiState.snaps.size > 1 && uiState.singleSnap == null && !uiState.isLoadingDiff
+            val comparing = uiState.snaps.size > 1 && uiState.singleSnap == null && (!uiState.isLoadingDiff || (isImagePair && shownImageDiff != null))
             // One bar steps through changes in every mode that has them, next to Mark read.
             val cursor: ChangeCursor = if (isImagePair) regionCursor else reader
             val showNav = comparing && cursor.changeCount > 1 && when (mode) {
@@ -278,13 +290,11 @@ fun ComparisonScreen(
                 uiState.snaps.size == 1 || uiState.singleSnap != null -> Column(Modifier.fillMaxSize()) {
                     if (uiState.newVersionAvailable) NewVersionAction { viewModel.selectPairForComparison(0) }
                     val snap = uiState.singleSnap ?: uiState.snaps.first()
-                    if (uiState.snaps.size > 1) {
-                        GroupRow(
-                            title = friendlyDateTime(snap.timestamp),
-                            supporting = stringResource(Res.string.label_first_version),
-                            onClick = { showVersions = true },
-                            modifier = Modifier.widthIn(max = 720.dp).align(Alignment.CenterHorizontally),
-                        ) { Icon(Icons.Rounded.UnfoldMore, stringResource(Res.string.comparison_section_snapshots)) }
+                    // Web pages read as text or as the page itself, switched like the comparison's modes.
+                    val singleModes = if (snap.isHtmlSnapshot() && uiState.singleSnapContent != null) listOf(ComparisonMode.SavedText, ComparisonMode.Html) else emptyList()
+                    var singleMode by remember(snap.snapId) { mutableStateOf(ComparisonMode.SavedText) }
+                    Column(Modifier.widthIn(max = 720.dp).align(Alignment.CenterHorizontally)) {
+                        SavedVersionHeader(snap, singleModes, singleMode, onVersions = if (uiState.snaps.size > 1) ({ showVersions = true }) else null) { singleMode = it }
                     }
                     SingleSnapshotState(
                         snap = snap,
@@ -294,6 +304,7 @@ fun ComparisonScreen(
                         hasError = uiState.error != null,
                         onRetry = viewModel::retryComparison,
                         onCheckNow = { viewModel.reloadSite() },
+                        asPage = singleMode == ComparisonMode.Html,
                         modifier = Modifier.fillMaxWidth().weight(1f),
                     )
                 }
@@ -316,15 +327,22 @@ fun ComparisonScreen(
                     Box(Modifier.widthIn(max = 720.dp).fillMaxWidth().weight(1f).align(Alignment.CenterHorizontally).testTag("comparison-reader"), contentAlignment = Alignment.TopCenter) {
                         val content1 = uiState.snapContent1
                         val content2 = uiState.snapContent2
+                        val screenshotsReady = uiState.snapBytes1 != null && uiState.snapBytes2 != null
                         when {
-                            uiState.isLoadingDiff -> {
-                                if (isImagePair && uiState.snapBytes1 != null && uiState.snapBytes2 != null) {
-                                    ImageComparisonContent(uiState.snapBytes2, uiState.snapBytes1, null, ComparisonMode.ImageSwipe, Modifier.fillMaxSize(), isPreparing = true)
-                                }
-                                androidx.compose.material3.LinearProgressIndicator(Modifier.align(Alignment.TopCenter).fillMaxWidth().testTag("comparison-progress"))
-                            }
+                            // One view from the first frame: the changes found for the card that was tapped, or the
+                            // slider while they are found, then the full comparison in the same place.
+                            isImagePair && (!uiState.isLoadingDiff || screenshotsReady) -> ImageComparisonContent(
+                                uiState.snapBytes2,
+                                uiState.snapBytes1,
+                                shownImageDiff,
+                                mode,
+                                Modifier.fillMaxSize(),
+                                onRetry = viewModel::retryComparison,
+                                cursor = regionCursor,
+                                isPreparing = uiState.isLoadingDiff,
+                            )
 
-                            isImagePair -> ImageComparisonContent(uiState.snapBytes2, uiState.snapBytes1, uiState.imageDiff, mode, Modifier.fillMaxSize(), onRetry = viewModel::retryComparison, cursor = regionCursor)
+                            uiState.isLoadingDiff -> com.bernaferrari.changedetection.ui.components.DelayedLoadingIndicator(Modifier.align(Alignment.Center).testTag("comparison-progress"))
 
                             content1 != null && content2 != null -> when (mode) {
                                 ComparisonMode.Html -> RenderedHtmlComparison(oldContent = content2, newContent = content1, modifier = Modifier.fillMaxSize())
@@ -430,6 +448,7 @@ private fun modeLabel(mode: ComparisonMode): String = stringResource(
         ComparisonMode.ImageDiff -> Res.string.reader_mode_page
         ComparisonMode.ImageBefore -> Res.string.preview_before
         ComparisonMode.ImageAfter -> Res.string.preview_after
+        ComparisonMode.SavedText -> Res.string.mode_text
     },
 )
 
@@ -446,8 +465,29 @@ private fun NewVersionAction(onLatest: () -> Unit) {
  */
 @Composable
 internal fun ComparisonHeader(snaps: List<Snap>, pairIndex: Int, modes: List<ComparisonMode>, mode: ComparisonMode, onVersions: () -> Unit, onMode: (ComparisonMode) -> Unit) {
-    androidx.compose.foundation.layout.FlowRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        VersionNavigator(snaps, pairIndex, onShowAll = onVersions, modifier = Modifier.width(IntrinsicSize.Max))
+    ReaderHeader(modes, mode, onMode) { modifier -> VersionNavigator(snaps, pairIndex, onShowAll = onVersions, modifier = modifier) }
+}
+
+/** The same header for one saved version: when it was saved, and Text or Page for web pages. */
+@Composable
+private fun SavedVersionHeader(snap: Snap, modes: List<ComparisonMode>, mode: ComparisonMode, onVersions: (() -> Unit)?, onMode: (ComparisonMode) -> Unit) {
+    ReaderHeader(modes, mode, onMode) { modifier ->
+        VersionPill(stringResource(Res.string.single_saved_on, friendlyDateTime(snap.timestamp)), formatTimestamp(snap.timestamp), onVersions, modifier)
+    }
+}
+
+/** One row: the versions take what the modes leave and wrap their dates. Only very large text stacks them. */
+@Composable
+private fun ReaderHeader(modes: List<ComparisonMode>, mode: ComparisonMode, onMode: (ComparisonMode) -> Unit, versions: @Composable (Modifier) -> Unit) {
+    if (LocalDensity.current.fontScale > 1.3f) {
+        androidx.compose.foundation.layout.FlowRow(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            versions(Modifier.width(IntrinsicSize.Max))
+            if (modes.size > 1) ModeSwitcher(modes, mode, onMode)
+        }
+        return
+    }
+    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        versions(Modifier.weight(1f, fill = false))
         if (modes.size > 1) ModeSwitcher(modes, mode, onMode)
     }
 }
@@ -456,29 +496,38 @@ internal fun ComparisonHeader(snaps: List<Snap>, pairIndex: Int, modes: List<Com
 internal fun VersionNavigator(snaps: List<Snap>, selectedIndex: Int, onShowAll: () -> Unit, modifier: Modifier = Modifier) {
     val newer = snaps.getOrNull(selectedIndex) ?: return
     val older = snaps.getOrNull(selectedIndex + 1)
+    val range = older?.let { comparisonRange(it.timestamp, newer.timestamp) }
+    val beforeLabel = stringResource(Res.string.preview_before)
+    val afterLabel = stringResource(Res.string.preview_after)
+    VersionPill(
+        label = range?.label ?: friendlyDateTime(newer.timestamp),
+        description = range?.let { "$beforeLabel: ${it.before}. $afterLabel: ${it.after}" } ?: formatTimestamp(newer.timestamp),
+        onClick = onShowAll,
+        modifier = modifier,
+    )
+}
+
+/** The dates on screen as a pill; with [onClick] it opens every saved version. */
+@Composable
+private fun VersionPill(label: String, description: String, onClick: (() -> Unit)?, modifier: Modifier = Modifier) {
     Surface(
         shape = MaterialTheme.shapes.extraLarge,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         modifier = modifier.testTag("version-navigator"),
     ) {
-        val range = older?.let { comparisonRange(it.timestamp, newer.timestamp) }
-        val label = range?.label ?: friendlyDateTime(newer.timestamp)
-        val beforeLabel = stringResource(Res.string.preview_before)
-        val afterLabel = stringResource(Res.string.preview_after)
-        val description = range?.let { "$beforeLabel: ${it.before}. $afterLabel: ${it.after}" } ?: formatTimestamp(newer.timestamp)
         Row(
             Modifier.heightIn(min = 52.dp).clip(MaterialTheme.shapes.extraLarge)
-                .clickable(onClickLabel = stringResource(Res.string.reader_versions_title), onClick = onShowAll)
-                .padding(start = 16.dp, end = 10.dp, top = 12.dp, bottom = 12.dp),
+                .then(if (onClick != null) Modifier.clickable(onClickLabel = stringResource(Res.string.reader_versions_title), onClick = onClick) else Modifier)
+                .padding(start = 16.dp, end = if (onClick != null) 10.dp else 16.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 label,
-                Modifier.weight(1f).clearAndSetSemantics { contentDescription = description },
+                Modifier.weight(1f, fill = false).clearAndSetSemantics { contentDescription = description },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
             )
-            Icon(Icons.Rounded.KeyboardArrowDown, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (onClick != null) Icon(Icons.Rounded.KeyboardArrowDown, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -513,63 +562,17 @@ private fun ModeSwitcher(modes: List<ComparisonMode>, selected: ComparisonMode, 
 
 private fun modeIcon(mode: ComparisonMode): androidx.compose.ui.graphics.vector.ImageVector = when (mode) {
     ComparisonMode.Text, ComparisonMode.ImageChanges -> Icons.Rounded.Difference
-    ComparisonMode.Html, ComparisonMode.ImageDiff -> Icons.Rounded.Article
+    ComparisonMode.Html, ComparisonMode.ImageDiff -> Icons.AutoMirrored.Rounded.Article
     ComparisonMode.Source -> Icons.Rounded.Code
     ComparisonMode.ImageSwipe -> ModeIcons.Slider
     ComparisonMode.ImageBefore -> Icons.Rounded.History
     ComparisonMode.ImageAfter -> Icons.Rounded.Update
-}
-
-/** What changed in [snap] since [previous]: the changed area for screenshots, the changed words for text. */
-@Composable
-private fun ChangeThumb(snap: Snap, previous: Snap?, modifier: Modifier = Modifier) {
-    val preview = if (previous != null) rememberPairPreview(previous.snapId, snap.snapId) else null
-    Box(modifier.clip(MaterialTheme.shapes.small).background(androidx.compose.ui.graphics.Color.White).border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.small)) {
-        if (snap.isImageSnapshot()) {
-            val bytes by produceState<ByteArray?>(null, snap.snapId) {
-                value = runCatching { com.bernaferrari.changedetection.ui.kit.optional<com.bernaferrari.changedetection.repo.source.SnapsRepository>()?.getSnapContent(snap.snapId) }.getOrNull()
-            }
-            val lead = (preview as? com.bernaferrari.changedetection.preview.ChangePreview.Crop)?.lead
-            bytes?.let { data ->
-                if (lead != null) {
-                    // Only the changed rectangle is decoded (cached), not the whole page.
-                    val top = if (lead.kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed) lead.beforeTop else lead.afterTop
-                    val bottom = if (lead.kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed) lead.beforeBottom else lead.afterBottom
-                    val source = if (lead.kind == com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed) previous?.snapId else snap.snapId
-                    val sourceBytes by produceState<ByteArray?>(null, source) {
-                        value = source?.let { id -> runCatching { com.bernaferrari.changedetection.ui.kit.optional<com.bernaferrari.changedetection.repo.source.SnapsRepository>()?.getSnapContent(id) }.getOrNull() }
-                    }
-                    val crop by produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, sourceBytes, top, bottom) {
-                        value = sourceBytes?.let { com.bernaferrari.changedetection.image.CropCache.get(it, 0f, top, 1f, bottom, 256) }
-                    }
-                    crop?.let { androidx.compose.foundation.Image(it, null, Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
-                } else {
-                    com.bernaferrari.changedetection.ui.kit.CaptureTop(snap.snapId, Modifier.fillMaxSize(), decodeWidth = 240)
-                }
-            }
-        } else {
-            Text(previewLabel(preview), Modifier.padding(4.dp), style = MaterialTheme.typography.labelSmall.copy(fontSize = androidx.compose.ui.unit.TextUnit(8f, androidx.compose.ui.unit.TextUnitType.Sp)), color = androidx.compose.ui.graphics.Color(0xFF1B1B21), maxLines = 4, overflow = TextOverflow.Clip)
-        }
-    }
+    ComparisonMode.SavedText -> Icons.AutoMirrored.Rounded.Notes
 }
 
 @Composable
 private fun ReaderBar(reader: ChangeCursor, showNav: Boolean, canMarkRead: Boolean, onMarkRead: () -> Unit) {
     val scope = rememberCoroutineScope()
-    if (!showNav) {
-        Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp), contentAlignment = Alignment.Center) {
-            Button(
-                onClick = onMarkRead,
-                modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth().heightIn(min = 56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer),
-            ) {
-                Icon(Icons.Rounded.Check, null)
-                Spacer(Modifier.size(8.dp))
-                Text(stringResource(Res.string.mark_read_short), style = MaterialTheme.typography.titleMedium)
-            }
-        }
-        return
-    }
     Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 12.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
         Surface(
             modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth(),
@@ -611,100 +614,12 @@ private fun ReaderBar(reader: ChangeCursor, showNav: Boolean, canMarkRead: Boole
                         Text(stringResource(Res.string.mark_read_short))
                     }
                 }
+                // The same floating bar in every mode: arrows when there is more than one change, Mark read when unread.
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    navigation(Modifier.weight(1f))
-                    if (canMarkRead) readButton(Modifier)
+                    if (showNav) navigation(Modifier.weight(1f))
+                    if (canMarkRead) readButton(if (showNav) Modifier else Modifier.weight(1f))
                 }
             }
         }
-    }
-}
-
-/**
- * Every saved version, newest first and grouped by day. Each row shows what changed in that version, so
- * "the one where the price dropped" is easy to spot; the pair on screen is marked.
- */
-@Composable
-internal fun VersionSheet(snaps: List<Snap>, selectedIndex: Int, selectedSingleSnapId: String?, onDismiss: () -> Unit, onSelect: (Int) -> Unit) {
-    val list = androidx.compose.foundation.lazy.rememberLazyListState()
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = MaterialTheme.colorScheme.surfaceContainerLow) {
-        LazyColumn(Modifier.fillMaxWidth().testTag("version-list"), state = list, contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp, top = 4.dp)) {
-            item(key = "title") {
-                Column(Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp)) {
-                    Text(stringResource(Res.string.reader_versions_title), style = MaterialTheme.typography.headlineSmall)
-                    Text(stringResource(Res.string.reader_versions_body), Modifier.padding(top = 4.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            snaps.indices.groupBy { snaps[it].timestamp.localDate() }.forEach { (_, indices) ->
-                item(key = "day-" + snaps[indices.first()].snapId) {
-                    Text(
-                        friendlyDay(snaps[indices.first()].timestamp),
-                        Modifier.padding(start = 8.dp, top = 16.dp, bottom = 8.dp),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-                indices.forEachIndexed { position, index ->
-                    val snap = snaps[index]
-                    item(key = snap.snapId) {
-                        val previous = snaps.getOrNull(index + 1)
-                        val isAfter = index == selectedIndex || snap.snapId == selectedSingleSnapId
-                        val isBefore = selectedIndex >= 0 && index == selectedIndex + 1
-                        val shape = groupShape(position, indices.size)
-                        Surface(
-                            onClick = { onSelect(index) },
-                            shape = shape,
-                            color = if (isAfter) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceBright,
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp),
-                        ) {
-                            Row(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                ChangeThumb(snap, previous, Modifier.size(width = 64.dp, height = 48.dp))
-                                Column(Modifier.weight(1f)) {
-                                    Text(formatTime(snap.timestamp), style = MaterialTheme.typography.titleMedium, color = if (isAfter) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface)
-                                    Text(
-                                        if (previous == null) stringResource(Res.string.label_first_version) else previewLabel(rememberPairPreview(previous.snapId, snap.snapId)),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = if (isAfter) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                }
-                                when {
-                                    snap.snapId == selectedSingleSnapId -> SelectionTag(stringResource(Res.string.comparison_selected))
-                                    isAfter -> SelectionTag(stringResource(Res.string.preview_after))
-                                    isBefore -> SelectionTag(stringResource(Res.string.preview_before), quiet = true)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    // Open with the pair on screen in view.
-    LaunchedEffect(Unit) { if (selectedIndex > 2) list.scrollToItem(selectedIndex) }
-}
-
-/** Rounded at the ends of a day's group, like the app's other grouped lists. */
-@Composable
-private fun groupShape(position: Int, count: Int): androidx.compose.ui.graphics.Shape {
-    val large = 20.dp
-    val small = 4.dp
-    return androidx.compose.foundation.shape.RoundedCornerShape(
-        topStart = if (position == 0) large else small,
-        topEnd = if (position == 0) large else small,
-        bottomStart = if (position == count - 1) large else small,
-        bottomEnd = if (position == count - 1) large else small,
-    )
-}
-
-@Composable
-private fun SelectionTag(text: String, quiet: Boolean = false) {
-    Surface(
-        shape = MaterialTheme.shapes.small,
-        color = if (quiet) MaterialTheme.colorScheme.surfaceContainerHighest else MaterialTheme.colorScheme.primary,
-        contentColor = if (quiet) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary,
-    ) {
-        Text(text, Modifier.padding(horizontal = 10.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium)
     }
 }

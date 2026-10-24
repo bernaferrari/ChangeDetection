@@ -102,4 +102,5 @@
     <string name="error_invalid_input">Controlla queste impostazioni</string>
     <string name="error_invalid_input_detail">Controlla l’indirizzo della pagina e le impostazioni, poi riprova.</string>
     <string name="comparison_new_version">Nuova versione disponibile</string>
+    <string name="comparison_finding_changes">Ricerca delle modifiche…</string>
 </resources>
