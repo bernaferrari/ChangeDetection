@@ -13,6 +13,20 @@ import java.io.File
 class DiagnosticStoreTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
 
+    @Test fun summaryShowsBuildAndTlsContextRemainsBoundedAndTyped() = runBlocking {
+        fixture { store, _, _ ->
+            val tls = DiagnosticTlsContext(3, List(100) { it }, TlsRequestKind.UNKNOWN, TlsUrlRelation.DIFFERENT_ORIGIN, true, false, false)
+            store.append(DiagnosticAttempt(startedAt = 1_790_000_000_000L, mode = CaptureMode.TEXT, selected = false, excluded = false, trigger = DiagnosticTrigger.PREVIEW, outcome = DiagnosticOutcome.FAILURE, events = listOf(DiagnosticEvent(DiagnosticStage.NAVIGATE, 0, tls = tls))))
+            val report = Json.parseToJsonElement(store.report().json).jsonObject
+            val header = report.getValue("summary").jsonArray.first().jsonPrimitive.content
+            assertTrue(header, header.contains("version code 38"))
+            assertTrue(header, header.contains("revision abcdef123456"))
+            assertFalse(report.toString().contains("private.invalid"))
+            val context = report.getValue("attempts").jsonArray.single().jsonObject.getValue("attempt").jsonObject.getValue("events").jsonArray.single().jsonObject.getValue("tls").jsonObject
+            assertEquals((0..5).toList(), context.getValue("errors").jsonArray.map { it.jsonPrimitive.int })
+        }
+    }
+
     @Test fun reportsRemovePrivateDetailsFromPreviouslyStoredAttemptsAndEvents() = runBlocking {
         fixture { store, dir, _ ->
             dir.mkdirs()

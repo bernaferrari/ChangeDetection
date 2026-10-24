@@ -11,3 +11,5 @@ internal actual suspend fun captureLoadedPageScreenshot(state: WebViewState, reg
 }
 
 internal actual fun createWatchWebView(param: com.multiplatform.webview.web.WebViewFactoryParam): com.multiplatform.webview.web.NativeWebView = com.multiplatform.webview.web.defaultWebViewFactory(param)
+
+internal actual suspend fun loadedPageCaptureValidator(state: WebViewState): suspend () -> Unit = {}

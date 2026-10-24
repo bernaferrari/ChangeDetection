@@ -126,3 +126,6 @@ kotlin-js-store/*
 !kotlin-js-store/wasm/
 kotlin-js-store/wasm/*
 !kotlin-js-store/wasm/yarn.lock
+
+# Disposable untrusted TLS fixture for Android device tests; never a signing key.
+!/shared/src/androidDeviceTest/assets/tls-fixture.p12

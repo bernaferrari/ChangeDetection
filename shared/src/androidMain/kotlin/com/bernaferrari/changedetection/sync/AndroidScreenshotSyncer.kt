@@ -22,6 +22,7 @@ sealed interface ScreenshotCaptureOutcome {
         val bytes: ByteArray,
         val title: String? = null,
         val icon: String? = null,
+        val validateCapture: suspend () -> Unit = {},
     ) : ScreenshotCaptureOutcome
 
     data class Failure(
@@ -88,7 +89,7 @@ class AndroidScreenshotSyncer(
                     capture.icon?.let { runCatching { onIcon(site.id, it) } }
                     syncEngine.processFetchResult(
                         site,
-                        SyncEngine.FetchResult.Success(capture.contentType, capture.bytes, capturedWithBrowser = true),
+                        SyncEngine.FetchResult.Success(capture.contentType, capture.bytes, capturedWithBrowser = true, validateCapture = capture.validateCapture),
                         site.threshold,
                     )
                 }
@@ -155,7 +156,7 @@ class AndroidScreenshotBrowserFactory(context: Context) : ScreenshotBrowserFacto
             } else {
                 session.capture(site.url, delayMs, MAX_HEIGHT_PIXELS, hide = site.textExcludeSelector, only = site.textIncludeSelector)
             }
-            return ScreenshotCaptureOutcome.Success(screenshot.contentType, screenshot.bytes, screenshot.title, screenshot.icon)
+            return ScreenshotCaptureOutcome.Success(screenshot.contentType, screenshot.bytes, screenshot.title, screenshot.icon, session.captureValidator())
         }
 
         override fun close() {

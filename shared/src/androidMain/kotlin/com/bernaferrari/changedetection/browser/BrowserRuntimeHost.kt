@@ -24,6 +24,7 @@ internal actual val supportsPageRegionSelection: Boolean = true
 internal actual fun rememberBrowserPlatformParams(): com.multiplatform.webview.web.PlatformWebViewParams? = androidx.compose.runtime.remember {
     com.multiplatform.webview.web.PlatformWebViewParams(
         client = object : com.multiplatform.webview.web.AccompanistWebViewClient() {
+            private fun tlsError() = com.multiplatform.webview.web.WebViewError(android.webkit.WebViewClient.ERROR_FAILED_SSL_HANDSHAKE, "Certificate validation failed", true)
             private val pendingErrors = mutableListOf<Pair<String, com.multiplatform.webview.web.WebViewError>>()
 
             private fun fail(url: String, error: com.multiplatform.webview.web.WebViewError) {
@@ -31,17 +32,31 @@ internal actual fun rememberBrowserPlatformParams(): com.multiplatform.webview.w
                 state.errorsForCurrentRequest.add(error)
             }
 
+            override fun shouldInterceptRequest(view: android.webkit.WebView?, request: android.webkit.WebResourceRequest?): android.webkit.WebResourceResponse? {
+                if (view != null && request != null) WebViewCaptureHealth.of(view).request(request.url.toString(), request.isForMainFrame)
+                return super.shouldInterceptRequest(view, request)
+            }
+
+            override fun onPageCommitVisible(view: android.webkit.WebView, url: String?) {
+                WebViewCaptureHealth.of(view).committed(url)
+                super.onPageCommitVisible(view, url)
+            }
+
             override fun onPageStarted(view: android.webkit.WebView, url: String?, favicon: android.graphics.Bitmap?) {
                 // Chromium can report the HTTP failure before onPageStarted. The library clears
                 // errors here, so carry only this navigation's early failures across that reset.
+                val health = WebViewCaptureHealth.of(view)
+                health.started(url)
                 val early = pendingErrors.filter { it.first == url }.map { it.second }
                 pendingErrors.clear()
                 super.onPageStarted(view, url, favicon)
                 state.errorsForCurrentRequest.addAll(early)
+                if (health.observations().isNotEmpty()) state.errorsForCurrentRequest.add(tlsError())
             }
 
             override fun onPageFinished(view: android.webkit.WebView, url: String?) {
                 pendingErrors.clear()
+                WebViewCaptureHealth.of(view).finished()
                 super.onPageFinished(view, url)
             }
 
@@ -53,11 +68,11 @@ internal actual fun rememberBrowserPlatformParams(): com.multiplatform.webview.w
             }
 
             override fun onReceivedSslError(view: android.webkit.WebView, handler: android.webkit.SslErrorHandler, error: android.net.http.SslError) {
-                // Keep WebView's default certificate rejection; never offer a bypass.
-                super.onReceivedSslError(view, handler, error)
-                if (error.url == state.lastLoadedUrl) {
-                    fail(error.url, com.multiplatform.webview.web.WebViewError(android.webkit.WebViewClient.ERROR_FAILED_SSL_HANDSHAKE, "Certificate validation failed", true))
-                }
+                handler.cancel()
+                WebViewCaptureHealth.of(view).ssl(error.url, error.primaryError, (0..5).filter(error::hasError))
+                // isFromMainFrame here means capture-blocking for WatchBrowser. The callback
+                // itself has no main-frame flag; typed diagnostics retain UNKNOWN where needed.
+                fail(error.url, tlsError())
             }
         },
     )
