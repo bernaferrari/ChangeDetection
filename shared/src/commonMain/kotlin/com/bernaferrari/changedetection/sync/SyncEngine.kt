@@ -98,7 +98,7 @@ open class SyncEngine(
      * Fetch result for internal use.
      */
     sealed class FetchResult {
-        data class Success(val contentType: String, val data: ByteArray, val capturedWithBrowser: Boolean = false) : FetchResult() {
+        data class Success(val contentType: String, val data: ByteArray, val capturedWithBrowser: Boolean = false, val validateCapture: suspend () -> Unit = {}) : FetchResult() {
             override fun equals(other: Any?): Boolean {
                 if (this === other) return true
                 if (other == null || this::class != other::class) return false
@@ -218,6 +218,7 @@ open class SyncEngine(
                     processErrorResult(currentSite, FetchResult.Error("This address returns an image. Choose screenshots or source monitoring."))
                 } else {
                     try {
+                        result.validateCapture()
                         processSuccessResult(currentSite, result, threshold, firstVersionOnly)
                     } catch (cancelled: CancellationException) {
                         throw cancelled
@@ -336,6 +337,7 @@ open class SyncEngine(
         if (hasContentChanged && meetsThreshold) {
             return saveNewSnap(site, result, contentHash, lastSnap, isFirstSnap)
         } else {
+            result.validateCapture()
             val updated = updateStatusIfCurrent(site, successful = true, isBrowser = result.contentType.contains("image", ignoreCase = true), expectedSnapshot = lastSnap)
             if (!updated) return SyncResult.Skipped(site.id, "Page changed or paused during check")
             appLog.d("No changes for ${site.url}")
@@ -374,6 +376,7 @@ open class SyncEngine(
                 contentHash = contentHash,
                 processedContentHash = contentHash,
             )
+            result.validateCapture()
             diagnosticStage(DiagnosticStage.WRITE_FILE) { fileStorage.writeBytes(snapId, result.data) }
             currentCoroutineContext().ensureActive()
 
@@ -382,6 +385,7 @@ open class SyncEngine(
             notificationSite = withContext(NonCancellable) {
                 val savedSite = diagnosticStage(DiagnosticStage.COMMIT_DATABASE) {
                     inWriteTransaction {
+                        result.validateCapture()
                         val current = currentCaptureSite(site) ?: return@inWriteTransaction null
                         // A fresh start or history edit invalidates the comparison we just made.
                         if (snapsDao.getLastSnapForSiteId(site.id)?.snapId != previousSnapId) return@inWriteTransaction null
@@ -399,6 +403,7 @@ open class SyncEngine(
                                 null
                             },
                         )
+                        result.validateCapture()
                         current
                     }
                 }

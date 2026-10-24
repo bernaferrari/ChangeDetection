@@ -4,10 +4,9 @@ import java.net.ServerSocket
 import java.net.Socket
 import java.util.concurrent.Executors
 
-internal class TestPageServer(@Volatile var status: Int, @Volatile var html: String, private val cacheControl: String = "no-store", private val resourceDelayMs: Long = 0) : AutoCloseable {
-    private val socket = ServerSocket(0)
+internal class TestPageServer(@Volatile var status: Int, @Volatile var html: String, private val cacheControl: String = "no-store", private val resourceDelayMs: Long = 0, private val socket: ServerSocket = ServerSocket(0), scheme: String = "http") : AutoCloseable {
     private val executor = Executors.newCachedThreadPool()
-    val url = "http://127.0.0.1:${socket.localPort}/"
+    val url = "$scheme://127.0.0.1:${socket.localPort}/"
     init {
         executor.submit {
             while (!socket.isClosed) {

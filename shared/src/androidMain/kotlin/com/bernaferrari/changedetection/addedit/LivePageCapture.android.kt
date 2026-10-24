@@ -11,6 +11,8 @@ import kotlinx.coroutines.withContext
 
 internal actual suspend fun captureLoadedPageScreenshot(state: WebViewState, region: TextRegion, onPreview: (CapturePreview) -> Unit): SyncEngine.FetchResult.Success? = withContext(Dispatchers.Main.immediate) {
     val view = state.nativeWebView
+    val validate = loadedPageCaptureValidator(state)
+    validate()
     val left = view.left
     val top = view.top
     val width = view.width
@@ -49,7 +51,8 @@ internal actual suspend fun captureLoadedPageScreenshot(state: WebViewState, reg
         view.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(1920, View.MeasureSpec.EXACTLY))
         view.layout(0, 0, 1080, 1920)
         val shot = AndroidPageCapture(view).captureLoaded(maxHeight = 10_000, hide = region.exclude, only = region.include, preservePage = true)
-        SyncEngine.FetchResult.Success(shot.contentType, shot.bytes, capturedWithBrowser = true)
+        validate()
+        SyncEngine.FetchResult.Success(shot.contentType, shot.bytes, capturedWithBrowser = true, validateCapture = validate)
     } finally {
         view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
         view.layout(left, top, left + width, top + height)
@@ -58,4 +61,24 @@ internal actual suspend fun captureLoadedPageScreenshot(state: WebViewState, reg
     }
 }
 
-internal actual fun createWatchWebView(param: com.multiplatform.webview.web.WebViewFactoryParam): com.multiplatform.webview.web.NativeWebView = android.webkit.WebView(MutableContextWrapper(param.context))
+internal actual fun createWatchWebView(param: com.multiplatform.webview.web.WebViewFactoryParam): com.multiplatform.webview.web.NativeWebView = object : android.webkit.WebView(MutableContextWrapper(param.context)) {
+    override fun loadUrl(url: String) {
+        com.bernaferrari.changedetection.browser.WebViewCaptureHealth.of(this).begin(url)
+        super.loadUrl(url)
+    }
+    override fun loadUrl(url: String, additionalHttpHeaders: MutableMap<String, String>) {
+        com.bernaferrari.changedetection.browser.WebViewCaptureHealth.of(this).begin(url)
+        super.loadUrl(url, additionalHttpHeaders)
+    }
+    override fun reload() {
+        com.bernaferrari.changedetection.browser.WebViewCaptureHealth.of(this).begin(url)
+        super.reload()
+    }
+}
+
+internal actual suspend fun loadedPageCaptureValidator(state: WebViewState): suspend () -> Unit = withContext(Dispatchers.Main.immediate) {
+    val health = com.bernaferrari.changedetection.browser.WebViewCaptureHealth.of(state.nativeWebView)
+    val epoch = health.epoch()
+    val validate: suspend () -> Unit = { health.validate(epoch) }
+    validate
+}

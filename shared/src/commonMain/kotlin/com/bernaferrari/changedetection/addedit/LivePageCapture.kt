@@ -26,13 +26,16 @@ internal suspend fun captureLivePagePreview(
     withTimeout(90_000) {
         // Source monitoring needs the original HTTP response, rather than the browser's modified DOM.
         if (mode == CaptureMode.SOURCE || mode == CaptureMode.DEFAULT) return@withTimeout null
+        val validate = loadedPageCaptureValidator(state)
+        validate()
         if (mode != CaptureMode.SCREENSHOT) {
             // Read the URL and DOM in the same JavaScript turn. Picker styles are restored even
             // if serialization fails or the caller is cancelled before the callback arrives.
             val raw = diagnosticStage(DiagnosticStage.EXTRACT_TEXT) { navigator.readScript(liveTextCaptureScript(region)) }
+            validate()
             return@withTimeout withContext(Dispatchers.Default) {
                 val result = decodeLiveTextCapture(raw, url) ?: return@withContext null
-                previewFromCapture(result, url, mode, region)
+                previewFromCapture(result.copy(validateCapture = validate), url, mode, region)
             }
         }
         navigator.readScript("window.__cdPick&&window.__cdPick.mark('','');window.__cdPick&&window.__cdPick.disable();0")
@@ -41,7 +44,8 @@ internal suspend fun captureLivePagePreview(
             // Screenshot tiling spans multiple frames, so check navigation again after capture.
             val live = decodeLivePage(navigator.readScript("window.location.href")) ?: return@withTimeout null
             if (live.url != url) return@withTimeout null
-            previewFromCapture(result, url, mode, region)
+            validate()
+            previewFromCapture(result.copy(validateCapture = validate), url, mode, region)
         } finally {
             navigator.evaluateJavaScript("window.__cdPick&&window.__cdPick.mark(${PageCleanup.js(region.include)},${PageCleanup.js(region.exclude)});0")
         }
@@ -74,6 +78,8 @@ internal fun decodeLiveTextCapture(value: String, url: String): SyncEngine.Fetch
 private suspend fun WebViewNavigator.readScript(script: String): String = suspendCancellableCoroutine { continuation ->
     evaluateJavaScript(script) { value -> if (continuation.isActive) continuation.resume(value) }
 }
+
+internal expect suspend fun loadedPageCaptureValidator(state: WebViewState): suspend () -> Unit
 
 internal expect suspend fun captureLoadedPageScreenshot(state: WebViewState, region: TextRegion, onPreview: (CapturePreview) -> Unit): SyncEngine.FetchResult.Success?
 

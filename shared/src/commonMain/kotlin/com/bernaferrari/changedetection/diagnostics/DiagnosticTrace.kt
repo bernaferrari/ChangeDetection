@@ -20,7 +20,20 @@ import kotlin.time.TimeSource
 
 @Serializable enum class DiagnosticMetric { HTTP_STATUS, WEBVIEW_ERROR, TLS_ERROR, RENDERER_CRASH, ATTACHED, DOM_READY, CALLBACK_NULL, BYTES_BUCKET, BASELINE_PRESENT }
 
-@Serializable data class DiagnosticEvent(val stage: DiagnosticStage, val elapsedMs: Long, val durationMs: Long = 0, val failed: Boolean = false, val metric: DiagnosticMetric? = null, val code: Int? = null)
+/** Fixed values only: request URLs are compared in memory and never retained in a report. */
+@Serializable enum class TlsRequestKind { MAIN_DOCUMENT, SUBRESOURCE, UNKNOWN }
+@Serializable enum class TlsUrlRelation { REQUESTED, STARTED, COMMITTED, SAME_ORIGIN, DIFFERENT_ORIGIN, UNKNOWN }
+@Serializable data class DiagnosticTlsContext(
+    val primary: Int,
+    val errors: List<Int>,
+    val requestKind: TlsRequestKind,
+    val relation: TlsUrlRelation,
+    val navigationStarted: Boolean,
+    val committed: Boolean,
+    val finished: Boolean,
+)
+
+@Serializable data class DiagnosticEvent(val stage: DiagnosticStage, val elapsedMs: Long, val durationMs: Long = 0, val failed: Boolean = false, val metric: DiagnosticMetric? = null, val code: Int? = null, val tls: DiagnosticTlsContext? = null)
 
 /**
  * [classes] are exception class names along the cause chain (no messages). [detail] is the first
@@ -139,6 +152,9 @@ internal class DiagnosticSpan : AbstractCoroutineContextElement(Key) {
     }
     fun callback(stage: DiagnosticStage, metric: DiagnosticMetric, code: Int) {
         callbacks.trySend(DiagnosticEvent(stage, began.elapsedNow().inWholeMilliseconds.coerceIn(0, 600_000), metric = metric, code = code.coerceIn(-100, 599)))
+    }
+    fun tls(context: DiagnosticTlsContext) {
+        callbacks.trySend(DiagnosticEvent(DiagnosticStage.NAVIGATE, began.elapsedNow().inWholeMilliseconds.coerceIn(0, 600_000), metric = DiagnosticMetric.TLS_ERROR, code = context.primary, tls = context))
     }
     suspend fun snapshot() = lock.withLock {
         // Draining a callback for a checkpoint must retain it for later checkpoints and the final record.

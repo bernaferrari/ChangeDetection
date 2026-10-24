@@ -43,7 +43,7 @@ class AndroidCapturePreviewer(context: Context, engine: SyncEngine, private val 
                             when (val result = browser.capture(previewSite(url).copy(captureMode = mode, textIncludeSelector = region.include, textExcludeSelector = region.exclude), settings[SettingsViewModel.BROWSER_DELAY_KEY] ?: 5_000L)) {
                                 // Same capture and hand-off as AndroidScreenshotSyncer, so it can stand in for the first check.
                                 is ScreenshotCaptureOutcome.Success -> {
-                                    val capture = SyncEngine.FetchResult.Success(result.contentType, result.bytes, capturedWithBrowser = true)
+                                    val capture = SyncEngine.FetchResult.Success(result.contentType, result.bytes, capturedWithBrowser = true, validateCapture = result.validateCapture)
                                     if (mode == CaptureMode.TEXT) {
                                         previewFromCapture(capture, url, mode, region)
                                     } else {

@@ -897,6 +897,30 @@ class SyncEngineTest {
         }
     }
 
+    @Test fun `revoked live preview cannot create baseline or notify`() = runTest {
+        val site = createTestSite()
+        whenever(mockSitesDao.getSiteById(site.id)).thenReturn(site)
+        syncEngine = makeSyncEngine()
+        val capture = SyncEngine.FetchResult.Success("text/html", "<body>Partial content</body>".encodeToByteArray(), validateCapture = { throw javax.net.ssl.SSLException("Invalid TLS") })
+        assertTrue(syncEngine.establishFirstVersion(site, capture) is SyncResult.Failed)
+        verify(mockSnapsDao, never()).insertSnap(any())
+        verify(mockFileStorage, never()).writeBytes(any(), any())
+        verifyNoInteractions(mockChangeNotifier)
+    }
+
+    @Test fun `late TLS before database commit removes staged file without history or alert`() = runTest {
+        val site = createTestSite()
+        whenever(mockSitesDao.getSiteById(site.id)).thenReturn(site)
+        var valid = true
+        whenever(mockFileStorage.writeBytes(any(), any())).thenAnswer { valid = false; Unit }
+        syncEngine = makeSyncEngine()
+        val capture = SyncEngine.FetchResult.Success("text/html", "<body>Ready content</body>".encodeToByteArray(), validateCapture = { if (!valid) throw javax.net.ssl.SSLException("Invalid TLS") })
+        assertTrue(syncEngine.establishFirstVersion(site, capture) is SyncResult.Failed)
+        verify(mockSnapsDao, never()).insertSnap(any())
+        verify(mockFileStorage).deleteFile(any())
+        verifyNoInteractions(mockChangeNotifier)
+    }
+
     // ========== Helper Methods ==========
 
     /** Builds the engine under test with a no-op write transaction (Room's

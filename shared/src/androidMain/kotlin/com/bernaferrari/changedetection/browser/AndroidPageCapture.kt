@@ -21,6 +21,11 @@ import kotlin.math.roundToInt
 
 /** The app needs a cancellable page capture, not a second browser automation runtime. */
 internal class AndroidPageCapture(private val view: WebView) {
+    private val health = WebViewCaptureHealth.of(view)
+    fun captureValidator(): suspend () -> Unit {
+        val epoch = health.epoch()
+        return { health.validate(epoch) }
+    }
     private var rendererFailure: IOException? = null
     private var navigationFailure: Exception? = null
 
@@ -55,17 +60,22 @@ internal class AndroidPageCapture(private val view: WebView) {
         }
         navigationFailure?.let { throw it }
         rendererFailure?.let { throw it }
+        val epoch = health.epoch()
+        health.validate(epoch)
         val raw = diagnosticStage(DiagnosticStage.EXTRACT_TEXT) { evaluate("document.documentElement.outerHTML") }
         require(raw.length <= 12_000_000) { "The page is too large to preview" }
         val html = kotlinx.serialization.json.Json.decodeFromString<String>(raw)
         withContext(Dispatchers.Default) {
             require(com.bernaferrari.changedetection.util.readableSnapshotText(html, true).isNotBlank()) { "The page returned no readable text" }
         }
+        health.validate(epoch)
         WebViewScreenshot("text/html", html.encodeToByteArray(), 0, 0)
     }
 
     /** Uses the already-loaded document, with the same cleanup and tiling as scheduled checks. */
     suspend fun captureLoaded(maxHeight: Int, hide: String = "", only: String = "", preservePage: Boolean = false): WebViewScreenshot = withContext(Dispatchers.Main.immediate) {
+        val epoch = health.epoch()
+        health.validate(epoch)
         suspend fun clean(script: String) {
             evaluate(if (preservePage) PageCleanup.reversible(script) else script)
         }
@@ -152,6 +162,7 @@ internal class AndroidPageCapture(private val view: WebView) {
 
                 afterFirstTile = { clean(PageCleanup.HIDE_PINNED) },
             )
+            health.validate(epoch)
             WebViewScreenshot("image/png", shot.bytes, shot.width, shot.height, title, icon)
         } finally {
             if (preservePage) {
@@ -194,6 +205,7 @@ internal class AndroidPageCapture(private val view: WebView) {
         val trace = currentCoroutineContext()[DiagnosticSpan]
         val loaded = CompletableDeferred<Unit>()
         navigationFailure = null
+        health.begin(url)
         fun fail(error: Exception) {
             // Readiness can complete before a redirect or HTTP error arrives. Keep the
             // error for the capture as well as the initial navigation awaiter.
@@ -201,7 +213,14 @@ internal class AndroidPageCapture(private val view: WebView) {
             loaded.completeExceptionally(error)
         }
         view.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(webView: WebView, request: WebResourceRequest): WebResourceResponse? {
+                health.request(request.url.toString(), request.isForMainFrame)
+                return null
+            }
+            override fun onPageStarted(webView: WebView, url: String?, favicon: android.graphics.Bitmap?) { health.started(url) }
+            override fun onPageCommitVisible(webView: WebView, url: String?) { health.committed(url) }
             override fun onPageFinished(webView: WebView, finishedUrl: String) {
+                health.finished()
                 if (finishedUrl != "about:blank") {
                     trace?.callback(DiagnosticStage.DOM_READY, DiagnosticMetric.DOM_READY, 1)
                     loaded.complete(Unit)
@@ -223,8 +242,8 @@ internal class AndroidPageCapture(private val view: WebView) {
             }
 
             override fun onReceivedSslError(webView: WebView, handler: SslErrorHandler, error: SslError) {
-                trace?.callback(DiagnosticStage.NAVIGATE, DiagnosticMetric.TLS_ERROR, error.primaryError)
                 handler.cancel()
+                trace?.tls(health.ssl(error.url, error.primaryError, (0..5).filter(error::hasError)))
                 fail(SSLException("The page has an invalid TLS certificate"))
             }
 
