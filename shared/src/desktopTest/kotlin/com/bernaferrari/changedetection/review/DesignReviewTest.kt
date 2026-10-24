@@ -198,6 +198,16 @@ class DesignReviewTest {
         waitForText("new changes", substring = true)
         runCatching { waitForText("of the page changed", substring = true, timeout = 15_000) }
         shot("${p}01-home")
+        // Search marks why each result matched: in the name, or in the address when only that matches.
+        onNodeWithContentDescription("Search pages").performClick()
+        onNode(hasSetTextAction()).performTextInput("dis")
+        waitForIdle()
+        shot("${p}03-home-search")
+        onNode(hasSetTextAction()).performTextReplacement("campus")
+        waitForIdle()
+        shot("${p}03b-home-search-address")
+        onNodeWithContentDescription("Close search").performClick()
+        waitForTag("home-list")
         onNodeWithTag("home-list").performScrollToKey("card-fellowship")
         onAllNodesWithText("Fellowship guide").onFirst().performClick()
         waitForLabel("Changes")
