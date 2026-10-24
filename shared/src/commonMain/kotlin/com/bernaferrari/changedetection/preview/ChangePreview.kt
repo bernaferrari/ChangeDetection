@@ -107,6 +107,9 @@ class ChangePreviewRepository(
     /** Immutable snapshot IDs let returning lists paint cached content on their first frame. */
     fun cachedVersion(snapId: String?): ChangePreview? = snapId?.let { versions[it] }
 
+    /** The preview already built for this pair, if any; never computes. */
+    fun cachedBetween(beforeSnapId: String, afterSnapId: String): ChangePreview? = cache["$beforeSnapId>$afterSnapId"]
+
     suspend fun latest(siteId: String, onImagePair: (Snap, Snap) -> Unit = { _, _ -> }): ChangePreview {
         val pair = snaps.getLastNSnapsForSiteId(siteId, 2).orEmpty()
         val after = pair.getOrNull(0) ?: return ChangePreview.FirstVersion

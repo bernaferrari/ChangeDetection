@@ -120,14 +120,19 @@ fun PageAvatar(
     val painter = icon?.takeIf { it.startsWith("http") && LocalPageIcons.current }?.let { url ->
         coil3.compose.rememberAsyncImagePainter(remember(url) { coil3.request.ImageRequest.Builder(context).data(url).size(192).build() })
     }
-    val loaded = painter?.state?.collectAsState()?.value is coil3.compose.AsyncImagePainter.State.Success
+    val iconState = painter?.state?.collectAsState()?.value
+    val loaded = iconState is coil3.compose.AsyncImagePainter.State.Success
+    // While a known icon is read (usually from cache), hold its plain tile: a letter in a coloured lobe that is
+    // replaced a moment later reads as a glitch. The letter is only for pages whose icon is missing or broken.
+    val pending = painter != null && !loaded && iconState !is coil3.compose.AsyncImagePainter.State.Error
+    val iconAlpha by androidx.compose.animation.core.animateFloatAsState(if (loaded) 1f else 0f, tween(180), label = "page-icon-in")
     // A real icon is the page's identity: left fully automatic it fills a rounded tile edge to edge, like an app icon. Once a
     // shape or color is chosen, it sits inset on that backdrop instead, so expressive lobes never crop it and the color shows.
     // The tinted shape and letter stand in only while it loads or when the page has none.
     val fullBleed = iconShape == PageIconShape.AUTOMATIC && automaticColor
     // Icons are drawn for light backgrounds: left automatic they sit on a light tile in both themes.
     val iconBackdrop by animateColorAsState(if (automaticColor) IconTile else chosenColor.vivid(dark), tween(220), label = "page-icon-backdrop")
-    val polygon = if (loaded && iconShape == PageIconShape.AUTOMATIC) TilePolygon else iconShape.polygon() ?: AvatarShapes[(hash ushr 4) % AvatarShapes.size]
+    val polygon = if ((loaded || pending) && iconShape == PageIconShape.AUTOMATIC) TilePolygon else iconShape.polygon() ?: AvatarShapes[(hash ushr 4) % AvatarShapes.size]
     val outline = rememberMorphingShape(polygon)
     val ringColor = selectionColor ?: MaterialTheme.colorScheme.primary
     val ringGapColor = selectionGapColor
@@ -156,8 +161,8 @@ fun PageAvatar(
             .clip(outline)
             .background(
                 when {
-                    loaded && automaticColor -> SolidColor(iconBackdrop)
-                    loaded -> vividBrush(iconBackdrop)
+                    (loaded || pending) && automaticColor -> SolidColor(iconBackdrop)
+                    loaded || pending -> vividBrush(iconBackdrop)
                     dimmed -> SolidColor(MaterialTheme.colorScheme.surfaceContainerHighest)
                     automaticColor -> SolidColor(tint)
                     else -> vividBrush(tint)
@@ -172,16 +177,10 @@ fun PageAvatar(
                 contentDescription = null,
                 modifier = if (fullBleed) Modifier.fillMaxSize() else Modifier.fillMaxSize(0.58f).clip(RoundedCornerShape(size * 0.12f)),
                 contentScale = if (fullBleed) androidx.compose.ui.layout.ContentScale.Crop else androidx.compose.ui.layout.ContentScale.Fit,
-                alpha = if (!loaded) {
-                    0f
-                } else if (dimmed) {
-                    0.45f
-                } else {
-                    1f
-                },
+                alpha = iconAlpha * if (dimmed) 0.45f else 1f,
             )
         }
-        if (!loaded) {
+        if (!loaded && !pending) {
             Text(
                 letter,
                 style = MaterialTheme.typography.titleMedium.copy(fontSize = (size.value * 0.4f).sp, fontWeight = FontWeight.Bold),
@@ -440,19 +439,6 @@ fun NewBadge(modifier: Modifier = Modifier, text: String = "New") {
             .padding(horizontal = 10.dp, vertical = 3.dp),
     ) {
         Text(text, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onPrimary)
-    }
-}
-
-/** Small outlined status pill, for "Paused", "Screenshot" and similar facts. */
-@Composable
-fun FactPill(text: String, modifier: Modifier = Modifier, icon: ImageVector? = null, container: Color = MaterialTheme.colorScheme.surfaceContainer, content: Color = MaterialTheme.colorScheme.onSurfaceVariant) {
-    Row(
-        modifier.clip(RoundedCornerShape(8.dp)).background(container).padding(horizontal = 8.dp, vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        if (icon != null) Icon(icon, null, Modifier.size(14.dp), tint = content)
-        Text(text, style = MaterialTheme.typography.labelMedium, color = content)
     }
 }
 

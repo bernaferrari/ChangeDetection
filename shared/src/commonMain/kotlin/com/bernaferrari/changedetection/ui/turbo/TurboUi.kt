@@ -403,7 +403,8 @@ fun TurboLiveScreen(
                         FilledTonalButton(
                             onClick = onStop,
                             modifier = Modifier.weight(1f).heightIn(min = 56.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.12f), contentColor = MaterialTheme.colorScheme.error),
+                            // The theme's own destructive tonal pair: a see-through red over the page read as a disabled button.
+                            colors = ButtonDefaults.filledTonalButtonColors(containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer),
                         ) {
                             Icon(Icons.Rounded.Stop, null)
                             Spacer(Modifier.size(8.dp))

@@ -79,6 +79,8 @@ internal fun SingleSnapshotState(
     hasError: Boolean,
     onRetry: () -> Unit,
     onCheckNow: (() -> Unit)? = null,
+    /** Show a web page as the page itself instead of its text; the reader's header switches it. */
+    asPage: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val spacing = MaterialTheme.spacing
@@ -87,39 +89,23 @@ internal fun SingleSnapshotState(
             Res.string.a11y_saved_screenshot_capture,
             formatTimestamp(snap.timestamp),
         )
-        Box(modifier = modifier) {
-            ImageViewport(
-                bytes = bytes,
-                label = null,
-                contentDescription = screenshotDescription,
-                modifier = Modifier.fillMaxSize(),
-            )
-
-            SnapshotTimestampLabel(
-                timestamp = snap.timestamp,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = spacing.xl),
-            )
-        }
+        // When it was saved is in the header above, not floating over the capture.
+        ImageViewport(
+            bytes = bytes,
+            label = null,
+            contentDescription = screenshotDescription,
+            modifier = modifier,
+        )
     } else if (content != null) {
         val isHtml = remember(snap.contentType) {
             snap.isHtmlSnapshot()
         }
 
-        var asPage by remember(snap.snapId) { mutableStateOf(false) }
-        Column(modifier = modifier) {
-            if (isHtml) {
-                com.bernaferrari.changedetection.ui.kit.ConnectedChoice(listOf(false, true), asPage, { asPage = it }, Modifier.padding(vertical = 8.dp)) {
-                    stringResource(if (it) Res.string.reader_mode_page else Res.string.mode_text)
-                }
-            }
-            Box(Modifier.weight(1f).fillMaxWidth()) {
-                if (isHtml && asPage) {
-                    SecureSnapshotWebView(html = content, modifier = Modifier.fillMaxSize())
-                } else {
-                    ReadableSnapshot(snap, content, isHtml)
-                }
+        Box(modifier) {
+            if (isHtml && asPage) {
+                SecureSnapshotWebView(html = content, modifier = Modifier.fillMaxSize())
+            } else {
+                ReadableSnapshot(content, isHtml)
             }
         }
     } else if (isLoadingContent) {
@@ -217,7 +203,7 @@ internal fun SingleSnapshotState(
 
 /** One saved version, read like the page: its words in the reading face, with when it was saved. */
 @Composable
-private fun ReadableSnapshot(snap: Snap, content: String, isHtml: Boolean) {
+private fun ReadableSnapshot(content: String, isHtml: Boolean) {
     val lines by androidx.compose.runtime.produceState<List<String>?>(null, content) {
         value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
             com.bernaferrari.changedetection.util.readableSnapshotText(content, isHtml).lines().filter { it.isNotBlank() }
@@ -234,38 +220,9 @@ private fun ReadableSnapshot(snap: Snap, content: String, isHtml: Boolean) {
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 24.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            item(key = "saved") {
-                Text(
-                    stringResource(Res.string.single_saved_on, com.bernaferrari.changedetection.ui.kit.friendlyDateTime(snap.timestamp)),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 6.dp),
-                )
-            }
             items(loaded.size) { index ->
                 Text(loaded[index], style = com.bernaferrari.changedetection.ui.theme.Reading.body.copy(color = MaterialTheme.colorScheme.onSurface))
             }
         }
-    }
-}
-
-@Composable
-internal fun SnapshotTimestampLabel(
-    timestamp: Long,
-    modifier: Modifier = Modifier,
-) {
-    val spacing = MaterialTheme.spacing
-    Surface(
-        modifier = modifier,
-        shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
-        tonalElevation = spacing.xxs,
-    ) {
-        Text(
-            text = com.bernaferrari.changedetection.ui.kit.friendlyDateTime(timestamp),
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.padding(horizontal = spacing.md, vertical = spacing.xs),
-            color = MaterialTheme.colorScheme.primary,
-        )
     }
 }

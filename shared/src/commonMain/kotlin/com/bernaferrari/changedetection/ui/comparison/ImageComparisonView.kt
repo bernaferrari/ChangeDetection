@@ -73,8 +73,9 @@ import com.bernaferrari.changedetection.shared.generated.resources.image_diff_di
 import com.bernaferrari.changedetection.shared.generated.resources.image_diff_changed_percent
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.a11y_drag_screenshot_comparison
-import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_after
-import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_before
+import com.bernaferrari.changedetection.shared.generated.resources.preview_after
+import com.bernaferrari.changedetection.shared.generated.resources.comparison_finding_changes
+import com.bernaferrari.changedetection.shared.generated.resources.preview_before
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_pixel_diff
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_rendered
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_swipe
@@ -108,16 +109,19 @@ internal enum class ComparisonMode {
     ImageSwipe,
     ImageBefore,
     ImageAfter,
+
+    /** One saved version read as text: there is nothing to compare, so it is not "Changes". */
+    SavedText,
 }
 
 internal fun ComparisonMode.labelResource(): StringResource = when (this) {
     ComparisonMode.Source -> Res.string.comparison_mode_source
-    ComparisonMode.Text, ComparisonMode.ImageChanges -> Res.string.comparison_mode_text
+    ComparisonMode.Text, ComparisonMode.ImageChanges, ComparisonMode.SavedText -> Res.string.comparison_mode_text
     ComparisonMode.Html -> Res.string.comparison_mode_rendered
     ComparisonMode.ImageDiff -> Res.string.comparison_mode_pixel_diff
     ComparisonMode.ImageSwipe -> Res.string.comparison_mode_swipe
-    ComparisonMode.ImageBefore -> Res.string.comparison_mode_before
-    ComparisonMode.ImageAfter -> Res.string.comparison_mode_after
+    ComparisonMode.ImageBefore -> Res.string.preview_before
+    ComparisonMode.ImageAfter -> Res.string.preview_after
 }
 
 @Composable
@@ -152,12 +156,10 @@ internal fun ImageComparisonContent(
             return@Box
         }
 
-        if (isPreparing && imageDiff == null && mode != ComparisonMode.ImageBefore && mode != ComparisonMode.ImageAfter) {
-            Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf(beforeBytes to stringResource(Res.string.comparison_mode_before), afterBytes to stringResource(Res.string.comparison_mode_after)).forEach { (bytes, label) ->
-                    ImageViewport(bytes, label, modifier = Modifier.weight(1f).fillMaxHeight())
-                }
-            }
+        // Until the changes are found, the views that need them show the slider (the third mode), which needs none.
+        if (isPreparing && mode in listOf(ComparisonMode.ImageChanges, ComparisonMode.ImageDiff) && imageDiff?.visualChange?.regions.isNullOrEmpty()) {
+            ImageSwipeComparison(beforeBytes, afterBytes, Modifier.fillMaxSize())
+            PreparingPill(Modifier.align(Alignment.BottomCenter).padding(16.dp))
             return@Box
         }
 
@@ -216,7 +218,7 @@ internal fun ImageComparisonContent(
             ComparisonMode.ImageBefore -> {
                 ImageViewport(
                     bytes = beforeBytes,
-                    label = stringResource(Res.string.comparison_mode_before),
+                    label = stringResource(Res.string.preview_before),
                     modifier = Modifier.fillMaxSize(),
                 )
             }
@@ -224,7 +226,7 @@ internal fun ImageComparisonContent(
             ComparisonMode.ImageAfter -> {
                 ImageViewport(
                     bytes = afterBytes,
-                    label = stringResource(Res.string.comparison_mode_after),
+                    label = stringResource(Res.string.preview_after),
                     modifier = Modifier.fillMaxSize(),
                 )
             }
@@ -233,6 +235,31 @@ internal fun ImageComparisonContent(
         }
     }
 }
+
+/** Shown over the slider while the changed areas are still being found. */
+@Composable
+private fun PreparingPill(modifier: Modifier = Modifier) {
+    Surface(modifier = modifier, shape = CircleShape, color = MaterialTheme.colorScheme.inverseSurface, shadowElevation = 3.dp) {
+        Row(Modifier.padding(start = 8.dp, end = 16.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            com.bernaferrari.changedetection.ui.components.AppLoadingIndicator(size = 24.dp, color = MaterialTheme.colorScheme.inverseOnSurface)
+            Text(stringResource(Res.string.comparison_finding_changes), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.inverseOnSurface)
+        }
+    }
+}
+
+/** Before the full comparison lands: the areas already found for the card, so the reader opens on them. */
+internal fun provisionalImageDiff(regions: List<com.bernaferrari.changedetection.image.VisualRegion>) = SnapshotImageDiff(
+    match = false,
+    mismatchPercentage = 0.0,
+    differentPixels = 0,
+    totalPixels = 0,
+    beforeWidth = 0,
+    beforeHeight = 0,
+    afterWidth = 0,
+    afterHeight = 0,
+    diffImagePng = null,
+    visualChange = com.bernaferrari.changedetection.image.VisualChange(regions, changedShare = 0f, heightDelta = 0f),
+)
 
 /** Status messages share the reader's space and remain scrollable at large font sizes. */
 @Composable
@@ -386,8 +413,8 @@ private fun DimensionMismatchPanel(
     modifier: Modifier = Modifier,
 ) {
     Row(modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(1.dp)) {
-        ImageViewport(beforeBytes, stringResource(Res.string.comparison_mode_before), modifier = Modifier.weight(1f).fillMaxHeight())
-        ImageViewport(afterBytes, stringResource(Res.string.comparison_mode_after), modifier = Modifier.weight(1f).fillMaxHeight())
+        ImageViewport(beforeBytes, stringResource(Res.string.preview_before), modifier = Modifier.weight(1f).fillMaxHeight())
+        ImageViewport(afterBytes, stringResource(Res.string.preview_after), modifier = Modifier.weight(1f).fillMaxHeight())
     }
 }
 
@@ -417,10 +444,10 @@ private fun ImageSwipeComparison(
                 .testTag("screenshot-scroll"),
         ) {
             Box(Modifier.fillMaxWidth().padding(top = labelInset)) {
-                WidthSizedImage(beforeBytes, stringResource(Res.string.comparison_mode_before))
+                WidthSizedImage(beforeBytes, stringResource(Res.string.preview_before))
             }
             Box(Modifier.fillMaxWidth().padding(top = labelInset).clip(HorizontalSplitShape(splitX))) {
-                WidthSizedImage(afterBytes, stringResource(Res.string.comparison_mode_after))
+                WidthSizedImage(afterBytes, stringResource(Res.string.preview_after))
             }
         }
 
@@ -431,8 +458,8 @@ private fun ImageSwipeComparison(
                 .fillMaxWidth()
                 .padding(12.dp),
         ) {
-            ImagePillLabel(stringResource(Res.string.comparison_mode_before), Modifier.align(AbsoluteAlignment.TopLeft))
-            ImagePillLabel(stringResource(Res.string.comparison_mode_after), Modifier.align(AbsoluteAlignment.TopRight))
+            ImagePillLabel(stringResource(Res.string.preview_before), Modifier.align(AbsoluteAlignment.TopLeft))
+            ImagePillLabel(stringResource(Res.string.preview_after), Modifier.align(AbsoluteAlignment.TopRight))
         }
 
         Box(

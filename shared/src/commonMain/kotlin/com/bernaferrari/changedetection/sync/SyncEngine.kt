@@ -94,8 +94,6 @@ open class SyncEngine(
         progressTracker.track(siteId, block)
     }
 
-    suspend fun isSiteSyncing(siteId: String): Boolean = pageLocks.isLocked(siteId)
-
     /**
      * Fetch result for internal use.
      */

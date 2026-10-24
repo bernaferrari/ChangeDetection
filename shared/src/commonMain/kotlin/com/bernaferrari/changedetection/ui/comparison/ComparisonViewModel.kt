@@ -61,8 +61,12 @@ data class ComparisonUiState(
     val newVersionAvailable: Boolean = false,
 ) {
     val showsLatestComparison: Boolean
-        get() = !isLoading && !isLoadingDiff && error == null && imageDiff?.error == null &&
+        // Screenshots are on screen (as the slider, or the changes found earlier) before the comparison finishes.
+        get() = !isLoading && (!isLoadingDiff || showsScreenshotsWhileComparing) && error == null && imageDiff?.error == null &&
             !requestedSnapshotUnavailable && snaps.size > 1 && selectedPairIndex == 0
+    private val showsScreenshotsWhileComparing: Boolean
+        get() = snapBytes1 != null && snapBytes2 != null && snaps.getOrNull(selectedPairIndex ?: -1)?.isImageSnapshot() == true &&
+            snaps.getOrNull((selectedPairIndex ?: -2) + 1)?.isImageSnapshot() == true
     val canMarkRead: Boolean
         get() = showsLatestComparison && site?.isRead == false && !isUpdatingReadState
 }

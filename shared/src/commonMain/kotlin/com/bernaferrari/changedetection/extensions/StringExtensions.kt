@@ -58,35 +58,9 @@ fun String.isValidUrl(): Boolean {
     }.getOrDefault(false)
 }
 
-fun String.removeClutterAndBeautifyHtmlIfNecessary(type: String): String = if (type == "text/html") HtmlSanitizer.sanitize(this) else this
-
-fun String.unescapeHtml(): String = Parser.unescapeEntities(this, true)
-
 fun String.findCharset(): String = "charset=([^()<>@,;:\"/\\[\\]?.=\\s]*)"
     .toRegex()
     .find(this)
     ?.value
     ?.replace("charset=", "")
     ?: ""
-
-// this will convert all relative paths into absolute
-fun String.replaceRelativePathWithAbsolute(absolute: String): String = this.replace("=\\s*['\"][^'\"\\s]+\\.\\w{3,4}['\"]".toRegex()) {
-    if (absolute.isBlank()) return@replace absolute
-
-    val valueWithoutWhitespace = it.value.replace(" ", "")
-    val cleanValue = valueWithoutWhitespace.substring(2, valueWithoutWhitespace.length - 1)
-
-    if (cleanValue.matches(regexEmail()) || cleanValue.matches(regexValidWebsite())) {
-        it.value
-    } else {
-        val website = if (absolute.last() != '/') "$absolute/" else absolute
-        "=${it.value.last()}$website" + it.value.replace("=\\s*['\"]".toRegex(), "")
-    }
-}
-
-internal fun regexEmail(): Regex = "^(([\\w-]+\\.)+[\\w-]+|([a-zA-Z]|[\\w-]{2,}))@((([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9])\\.([0-1]?[0-9]{1,2}|25[0-5]|2[0-4][0-9]))|([a-zA-Z]+[\\w-]+\\.)+[a-zA-Z]{2,4})$"
-    .toRegex()
-
-internal fun regexValidWebsite(): Regex = "(http|https)://.*".toRegex()
-
-fun String.fixUrlIfNecessary(): String = this.normalizeUrl() ?: this.trim()

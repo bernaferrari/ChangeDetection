@@ -64,8 +64,6 @@ internal fun WebView.destroySafely(
     }
 }
 
-internal fun readCookiesForUrl(url: String): String = CookieManager.getInstance().getCookie(url).orEmpty()
-
 private fun WebView.ensureLaidOut() {
     if (width > 0 && height > 0) return
 

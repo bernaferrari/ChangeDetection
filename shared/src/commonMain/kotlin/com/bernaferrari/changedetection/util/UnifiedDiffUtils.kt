@@ -16,53 +16,6 @@ object UnifiedDiffUtils {
         val originalCount: Int,
     )
 
-    fun parseUnifiedDiff(diff: List<String>): Patch<String> {
-        var inPrelude = true
-        val rawChunk = mutableListOf<Array<String>>()
-        val patch = Patch<String>()
-        var oldLn = 0
-        var newLn = 0
-
-        for (line in diff) {
-            if (inPrelude) {
-                if (line.startsWith("+++")) {
-                    inPrelude = false
-                }
-                continue
-            }
-            val matchResult = UNIFIED_DIFF_CHUNK_REGEXP.find(line)
-            if (matchResult != null) {
-                processLinesInPrevChunk(rawChunk, patch, oldLn, newLn)
-                // groupValues[0] is whole match
-                // Groups: 1, 2, 3, 4
-                oldLn = matchResult.groups[1]?.value?.toIntOrNull() ?: 1
-                // group 2 is optional.
-                // We don't use group 2 in logic? Original: oldLn = matcher.group(1).toInt()...
-                // The original code IGNORED group 2 and 4?
-                // Original: oldLn = matcher.group(1)?.toInt() ?: 1
-                //           newLn = matcher.group(3)?.toInt() ?: 1
-                // Yes, it ignored line counts (groups 2 and 4).
-
-                newLn = matchResult.groups[3]?.value?.toIntOrNull() ?: 1
-
-                if (oldLn == 0) oldLn = 1
-                if (newLn == 0) newLn = 1
-            } else {
-                if (line.isNotEmpty()) {
-                    val tag = line.substring(0, 1)
-                    val rest = line.substring(1)
-                    if (tag == " " || tag == "+" || tag == "-") {
-                        rawChunk.add(arrayOf(tag, rest))
-                    }
-                } else {
-                    rawChunk.add(arrayOf(" ", ""))
-                }
-            }
-        }
-        processLinesInPrevChunk(rawChunk, patch, oldLn, newLn)
-        return patch
-    }
-
     private fun processLinesInPrevChunk(
         rawChunk: MutableList<Array<String>>,
         patch: Patch<String>,

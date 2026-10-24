@@ -412,7 +412,7 @@
     <string name="image_diff_dimensions_supporting">请比较下方截图。由于尺寸不同，无法直接逐像素比较。</string>
     <string name="turbo_card_cadence">每 %1$s · %2$s</string>
     <string name="preview_before">之前</string>
-    <string name="preview_after">现在</string>
+    <string name="preview_after">之后</string>
     <string name="preview_first_version">已保存首个版本，之后的变化将显示在这里。</string>
     <string name="preview_invisible">只有隐藏部分有变化</string>
     <string name="preview_invisible_body">脚本或标记变化，没有可读文本变化</string>
@@ -789,4 +789,5 @@
     <plurals name="detail_calendar_days">
         <item quantity="other">%1$d 天</item>
     </plurals>
+    <string name="comparison_finding_changes">正在查找变化…</string>
 </resources>

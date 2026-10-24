@@ -39,7 +39,4 @@ enum class SyncState {
     FAILED,
     CANCELLED,
     BLOCKED,
-    ;
-
-    fun isRunningOrEnqueued(): Boolean = this == RUNNING || this == ENQUEUED
 }

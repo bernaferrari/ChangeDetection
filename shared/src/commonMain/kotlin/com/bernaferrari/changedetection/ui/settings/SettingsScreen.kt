@@ -123,7 +123,6 @@ fun SettingsScreen(
             }
             LazyColumn(Modifier.widthIn(max = 720.dp).fillMaxSize(), contentPadding = PaddingValues(bottom = 40.dp)) {
                 if (writeFailed) item(key = "write-error") { SettingsWriteError(viewModel::retryPreferenceWrite) }
-                item(key = "diagnostics") { com.bernaferrari.changedetection.diagnostics.DiagnosticsEntry() }
                 item(key = "checking") {
                     GroupLabel(stringResource(Res.string.settings_group_checking), Modifier.padding(top = 0.dp))
                     ListGroup {
@@ -186,6 +185,7 @@ fun SettingsScreen(
                         GroupRow(stringResource(Res.string.how_it_works), icon = Icons.AutoMirrored.Outlined.HelpOutline, onClick = onHowItWorksClick)
                         GroupRow(stringResource(Res.string.about_title), supporting = stringResource(Res.string.settings_about_value, appVersion), icon = Icons.Outlined.Info, showDivider = true, onClick = onAboutClick)
                         GroupRow(stringResource(Res.string.settings_feedback), icon = Icons.Outlined.MailOutline, showDivider = true, onClick = onContactClick)
+                        com.bernaferrari.changedetection.diagnostics.DiagnosticsRow()
                     }
                 }
             }

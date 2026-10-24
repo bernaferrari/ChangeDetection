@@ -95,8 +95,6 @@ class MainViewModel(
 
     internal fun onDeleteSite(site: Site) = deletions.stage(site)
 
-    internal suspend fun resolveDeletion(ticket: UndoableDeletion.Ticket<Site>, chooseUndo: suspend () -> Boolean) = deletions.resolve(ticket, chooseUndo)
-
     internal suspend fun resolveDeletions(tickets: List<UndoableDeletion.Ticket<Site>>, chooseUndo: suspend () -> Boolean) = deletions.resolveAll(tickets, chooseUndo)
 
     /** Deletes right away; used when the user already confirmed and no undo is offered. */
@@ -135,13 +133,6 @@ class MainViewModel(
                 )
             }
         }
-    }
-
-    suspend fun getRecentContentTypes(siteId: String): List<ContentTypeInfo> = runCatching {
-        mSnapsRepository.getContentTypeInfo(siteId)
-    }.getOrElse { error ->
-        showError(error, ErrorContext.GENERAL, siteId)
-        emptyList()
     }
 
     fun updateIconShape(siteId: String, shape: PageIconShape) {

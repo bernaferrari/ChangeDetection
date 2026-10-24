@@ -297,17 +297,4 @@ object ValidationHelper {
     }
 }
 
-/**
- * Extension function for easy validation with logging
- */
-inline fun <T> validateAndLog(
-    label: String,
-    value: T,
-    validator: (T) -> Pair<Boolean, String?>,
-): Boolean {
-    val (isValid, errorMessage) = validator(value)
-    ValidationHelper.logValidationResult(label, isValid, errorMessage)
-    return isValid
-}
-
 private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("ValidationHelper")
