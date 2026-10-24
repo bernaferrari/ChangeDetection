@@ -27,6 +27,34 @@ class DiagnosticStoreTest {
         }
     }
 
+    @Test fun summaryNamesTheTlsProblemAndSplitsChecksFromPreviews() = runBlocking {
+        fixture { store, _, _ ->
+            // The shape of a shared report: two failed checks, previews that failed or were abandoned, one first version.
+            fun attempt(trigger: DiagnosticTrigger, outcome: DiagnosticOutcome, events: List<DiagnosticEvent> = emptyList()) = DiagnosticAttempt(
+                startedAt = 1_790_000_000_000L,
+                mode = CaptureMode.SCREENSHOT,
+                selected = false,
+                excluded = false,
+                trigger = trigger,
+                outcome = outcome,
+                events = events,
+                failure = if (outcome == DiagnosticOutcome.FAILURE) DiagnosticFailure(DiagnosticStage.CAPTURE_PIXELS, causes = listOf(DiagnosticException.TLS), classes = listOf("SSLException")) else null,
+            )
+            val page = DiagnosticTlsContext(3, listOf(3), TlsRequestKind.UNKNOWN, TlsUrlRelation.DIFFERENT_ORIGIN, true, false, false, blocking = true)
+            val image = DiagnosticTlsContext(1, listOf(1), TlsRequestKind.SUBRESOURCE, TlsUrlRelation.DIFFERENT_ORIGIN, true, true, true, blocking = false)
+            store.append(attempt(DiagnosticTrigger.CHECK, DiagnosticOutcome.SUCCESS, listOf(DiagnosticEvent(DiagnosticStage.SETTLE, 0, metric = DiagnosticMetric.TLS_ERROR, code = 1, tls = image))))
+            store.append(attempt(DiagnosticTrigger.CHECK, DiagnosticOutcome.FAILURE, listOf(DiagnosticEvent(DiagnosticStage.NAVIGATE, 0, metric = DiagnosticMetric.TLS_ERROR, code = 3, tls = page))))
+            store.append(attempt(DiagnosticTrigger.PREVIEW, DiagnosticOutcome.FAILURE))
+            store.append(attempt(DiagnosticTrigger.PREVIEW, DiagnosticOutcome.CANCELLED))
+            store.append(attempt(DiagnosticTrigger.BASELINE, DiagnosticOutcome.SUCCESS))
+            val summary = Json.parseToJsonElement(store.report().json).jsonObject.getValue("summary").jsonArray.map { it.jsonPrimitive.content }
+            val all = summary.joinToString("\n")
+            assertTrue(all, summary.contains("Checks: 1 of 2 failed · Previews: 1 of 2 failed, 1 cancelled · First versions: 0 of 1 failed"))
+            assertTrue(all, all.contains("Latest TLS failure: Untrusted certificate on an unobserved request (different origin, before the page committed)"))
+            assertTrue(all, all.contains("1 sub-resource certificate errors were refused"))
+        }
+    }
+
     @Test fun reportsRemovePrivateDetailsFromPreviouslyStoredAttemptsAndEvents() = runBlocking {
         fixture { store, dir, _ ->
             dir.mkdirs()

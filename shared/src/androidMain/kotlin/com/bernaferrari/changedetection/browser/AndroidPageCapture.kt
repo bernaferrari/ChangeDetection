@@ -194,6 +194,21 @@ internal class AndroidPageCapture(private val view: WebView) {
         const val MAX_PIXELS = 7_000_000L
     }
 
+    /**
+     * WebView reports only failing HTTP statuses. The document's own status comes from the Navigation Timing entry,
+     * so a report shows "200" for a page that loaded and a check that failed later, as the plain fetch already does.
+     */
+    private suspend fun recordDocumentStatus() {
+        val status = try {
+            evaluate("(performance.getEntriesByType('navigation')[0]||{}).responseStatus||0").toIntOrNull() ?: 0
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            0
+        }
+        if (status > 0) diagnosticMetric(DiagnosticStage.NAVIGATE, DiagnosticMetric.HTTP_STATUS, status)
+    }
+
     private suspend fun evaluate(script: String): String = suspendCancellableCoroutine { continuation ->
         view.evaluateJavascript(script) { result ->
             if (result == null || result == "null") continuation.context[DiagnosticSpan]?.callback(DiagnosticStage.EXTRACT_TEXT, DiagnosticMetric.CALLBACK_NULL, 1)
@@ -274,6 +289,7 @@ internal class AndroidPageCapture(private val view: WebView) {
                 if (ready == "true") loaded.complete(Unit) else delay(100)
             }
             loaded.await()
+            recordDocumentStatus()
         } finally {
             if (!loaded.isCompleted) view.stopLoading()
         }

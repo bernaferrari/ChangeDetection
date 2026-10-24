@@ -205,6 +205,16 @@ class AndroidDiagnosticStore internal constructor(
         )
     }
 
+    /** android.net.http.SslError's primary codes, in words. */
+    private fun tlsErrorName(code: Int) = when (code) {
+        0 -> "Not yet valid"
+        1 -> "Expired"
+        2 -> "Wrong host"
+        3 -> "Untrusted"
+        4 -> "Invalid date"
+        else -> "Invalid"
+    }
+
     private fun describeTls(tls: DiagnosticTlsContext): String {
         val what = when (tls.requestKind) {
             TlsRequestKind.MAIN_DOCUMENT -> "the page itself"
@@ -212,7 +222,7 @@ class AndroidDiagnosticStore internal constructor(
             TlsRequestKind.UNKNOWN -> "an unobserved request"
         }
         val where = tls.relation.name.lowercase().replace('_', ' ')
-        return "TLS error ${tls.primary} on $what ($where, ${if (tls.committed) "after" else "before"} the page committed)"
+        return "${tlsErrorName(tls.primary)} certificate on $what ($where, ${if (tls.committed) "after" else "before"} the page committed)"
     }
 
     /** Plain sentences at the top of the report, so it can be read without decoding the JSON below. */
@@ -220,6 +230,20 @@ class AndroidDiagnosticStore internal constructor(
         add("App ${runtime.versionName} · version code ${runtime.versionCode} · revision ${runtime.revision} (${runtime.variant.name.lowercase()}) · Android API ${runtime.androidApi} · WebView ${runtime.providerVersion} (${runtime.provider.name.lowercase()}) · free storage ${runtime.space.name.lowercase().replace('_', ' ')}")
         val failures = attempts.filter { it.attempt.outcome == DiagnosticOutcome.FAILURE }
         add("${failures.size} of ${attempts.size} recent attempts failed")
+        // Scheduled checks failing is a different problem from previews the user abandoned, so each kind is counted apart.
+        add(
+            attempts.groupBy { it.attempt.trigger }.entries.sortedBy { it.key.ordinal }.joinToString(" · ") { (trigger, group) ->
+                val failed = group.count { it.attempt.outcome == DiagnosticOutcome.FAILURE }
+                val cancelled = group.count { it.attempt.outcome == DiagnosticOutcome.CANCELLED }
+                val label = when (trigger) {
+                    DiagnosticTrigger.CHECK -> "Checks"
+                    DiagnosticTrigger.PREVIEW -> "Previews"
+                    DiagnosticTrigger.INTERACTIVE_PREVIEW -> "Browser previews"
+                    DiagnosticTrigger.BASELINE -> "First versions"
+                }
+                "$label: $failed of ${group.size} failed" + if (cancelled > 0) ", $cancelled cancelled" else ""
+            },
+        )
         failures.firstOrNull()?.attempt?.let { attempt ->
             val f = attempt.failure
             add(
@@ -227,11 +251,11 @@ class AndroidDiagnosticStore internal constructor(
                     "Latest failure: ${f?.category?.name ?: "UNKNOWN"} at ${f?.stage?.name ?: "unknown stage"}",
                     f?.classes?.takeIf { it.isNotEmpty() }?.joinToString(" → "),
                     f?.detail,
-                    attempt.events.lastOrNull { it.tls?.blocking == true }?.tls?.let(::describeTls),
                     "${((now() - attempt.startedAt) / 60_000).coerceAtLeast(0)} min ago",
                 ).joinToString(" · "),
             )
         }
+        failures.firstNotNullOfOrNull { stored -> stored.attempt.events.lastOrNull { it.tls?.blocking == true }?.tls }?.let { add("Latest TLS failure: ${describeTls(it)}") }
         // Refused sub-resources do not fail a check, but they explain a capture missing an image or frame.
         val refused = attempts.sumOf { stored -> stored.attempt.events.count { it.tls?.blocking == false } }
         if (refused > 0) add("$refused sub-resource certificate errors were refused and left out of captures; those checks continued")
