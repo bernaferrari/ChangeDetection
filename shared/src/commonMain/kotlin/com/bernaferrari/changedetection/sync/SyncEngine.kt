@@ -245,17 +245,17 @@ open class SyncEngine(
     }
 
     /**
-     * Pixel evidence first: identical captures are never a change. Differing pixels must then survive the row-aligned
-     * comparison, which forgives content that only moved or was re-drawn a fraction of a pixel off (a page pushed down
-     * by an ad slot reads as "everything changed" pixel by pixel). Without any verified area, nothing a person would
-     * see changed, so no version is saved and nobody is notified. If areas cannot be computed, pixels decide.
+     * Pixel evidence first: identical captures are never a change. A page renders the same pixels every time when
+     * nothing moves, so if no content moved, every differing pixel is a real change (a faint colour, a one-row line, a
+     * small icon). Movement is what makes text re-draw differently (a page pushed down by an ad slot reads as
+     * "everything changed" pixel by pixel), so then only verified areas count. If areas cannot be computed, pixels decide.
      */
     private suspend fun visiblyChanged(before: ByteArray, after: ByteArray, opaqueWhiteBackdrop: Boolean): Boolean {
         val difference = diagnosticStage(DiagnosticStage.COMPARE) { com.bernaferrari.changedetection.image.PlatformImageDiff.compare(before, after, includeDiffImage = false, opaqueWhiteBackdrop = opaqueWhiteBackdrop) }
         check(difference.error == null && (difference.totalPixels > 0 || difference.dimensionMismatch != null)) { "Could not compare screenshots" }
         if (difference.dimensionMismatch == null && difference.differentPixels == 0L) return false
         val areas = diagnosticStage(DiagnosticStage.COMPARE) { difference.visualChange ?: com.bernaferrari.changedetection.image.computeVisualChange(before, after, opaqueWhiteBackdrop = opaqueWhiteBackdrop) }
-        return areas == null || areas.regions.isNotEmpty()
+        return areas == null || !areas.moved || areas.visible
     }
 
     private suspend fun processSuccessResult(
@@ -331,7 +331,7 @@ open class SyncEngine(
                     }
                     val enoughPixels = difference.dimensionMismatch != null || difference.differentPixels * 10_000 >= difference.totalPixels * visualThreshold
                     // Same rule as without a threshold: content that only moved is not a change, however many pixels moved.
-                    enoughPixels && (difference.visualChange ?: com.bernaferrari.changedetection.image.computeVisualChange(baseline, result.data, opaqueWhiteBackdrop = result.capturedWithBrowser))?.regions?.isNotEmpty() != false
+                    enoughPixels && (difference.visualChange ?: com.bernaferrari.changedetection.image.computeVisualChange(baseline, result.data, opaqueWhiteBackdrop = result.capturedWithBrowser))?.let { !it.moved || it.visible } != false
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (error: Exception) {
