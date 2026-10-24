@@ -1,6 +1,7 @@
 package com.bernaferrari.changedetection.image
 
 import com.bernaferrari.changedetection.detection.PixelDifference
+import kotlin.math.roundToInt
 
 /** One area of a screenshot change, in fractions of each capture's size so any resolution can use it. */
 data class VisualRegion(
@@ -93,7 +94,7 @@ internal object VisualRegions {
             // Rows paired by the alignment: look for real edits inside them, band by band.
             changedBands(before, beforeHeight, after, afterHeight, width, run, pixels, checkCancelled).forEach { band ->
                 raw += band
-                changedRows += ((band.afterBottom - band.afterTop) * afterHeight).toInt()
+                changedRows += ((band.afterBottom - band.afterTop) * afterHeight).roundToInt()
             }
         }
         alignment.gaps.forEach { gap ->
@@ -140,12 +141,12 @@ internal object VisualRegions {
             .filterNot { it.kind != VisualRegion.Kind.Changed && trimBlank(it, beforeBlank, afterBlank) == null }
             .filterNot(::pushedOut)
             // Slivers thinner than a line of text are what a fractional move leaves behind.
-            .filter { maxOf((it.afterBottom - it.afterTop) * afterHeight, (it.beforeBottom - it.beforeTop) * beforeHeight) >= MIN_REGION_ROWS }
+            .filter { thickness(it, beforeHeight, afterHeight) >= MIN_REGION_ROWS }
         // What is shown is trimmed further: blank space is not worth a card.
         val merged = verified
             .mapNotNull { trimBlank(it, beforeBlank, afterBlank) }
             .map { growToBlank(it, beforeBlank, afterBlank) }
-            .filter { maxOf((it.afterBottom - it.afterTop) * afterHeight, (it.beforeBottom - it.beforeTop) * beforeHeight) >= MIN_REGION_ROWS }
+            .filter { thickness(it, beforeHeight, afterHeight) >= MIN_REGION_ROWS }
             .filterNot(::pushedOut)
 
         // Only content can move: flat rows pair with any other flat rows, so a band that changed colour may look shifted.
@@ -160,6 +161,12 @@ internal object VisualRegions {
             visible = verified.isNotEmpty(),
         )
     }
+
+    /** Rows an area spans on its taller side. Rounded: edges are stored as fractions, so 4 rows can come back as 3.9999. */
+    private fun thickness(region: VisualRegion, beforeHeight: Int, afterHeight: Int): Int = maxOf(
+        ((region.afterBottom - region.afterTop) * afterHeight).roundToInt(),
+        ((region.beforeBottom - region.beforeTop) * beforeHeight).roundToInt(),
+    )
 
     /** Consecutive rows paired one to one: old rows [sourceStart, +length) with new rows [targetStart, +length). */
     private class Run(val sourceStart: Int, val targetStart: Int, val length: Int)
@@ -405,11 +412,11 @@ internal object VisualRegions {
      * the best offset and is kept.
      */
     private fun sameAfterShift(region: VisualRegion, before: IntArray, beforeHeight: Int, after: IntArray, afterHeight: Int, width: Int, pixels: PixelDifference, checkCancelled: () -> Unit): Boolean {
-        val top = (region.afterTop * afterHeight).toInt().coerceIn(0, afterHeight)
-        val bottom = (region.afterBottom * afterHeight).toInt().coerceIn(top, afterHeight)
+        val top = (region.afterTop * afterHeight).roundToInt().coerceIn(0, afterHeight)
+        val bottom = (region.afterBottom * afterHeight).roundToInt().coerceIn(top, afterHeight)
         val rows = bottom - top
         if (rows <= 0) return false
-        val anchor = (region.beforeTop * beforeHeight).toInt()
+        val anchor = (region.beforeTop * beforeHeight).roundToInt()
         // Small areas (the slivers a shift leaves) may have moved far; a large one only by a few pixels.
         val reach = if (rows <= SHIFT_FAR_MAX_ROWS) SHIFT_FAR_ROWS else SHIFT_NEAR_ROWS
         // Whole rows, not just the area's columns: a narrow real edit could resemble something nearby, but the rest of
@@ -501,8 +508,8 @@ internal object VisualRegions {
      */
     private fun trimBlank(region: VisualRegion, beforeBlank: BooleanArray, afterBlank: BooleanArray): VisualRegion? {
         fun range(top: Float, bottom: Float, blank: BooleanArray): Pair<Int, Int>? {
-            var t = (top * blank.size).toInt().coerceIn(0, blank.size)
-            var b = (bottom * blank.size).toInt().coerceIn(t, blank.size)
+            var t = (top * blank.size).roundToInt().coerceIn(0, blank.size)
+            var b = (bottom * blank.size).roundToInt().coerceIn(t, blank.size)
             while (t < b && blank[t]) t++
             while (b > t && blank[b - 1]) b--
             return if (b - t >= MIN_REGION_ROWS) t to b else null
@@ -533,8 +540,8 @@ internal object VisualRegions {
     private fun growToBlank(region: VisualRegion, beforeBlank: BooleanArray, afterBlank: BooleanArray): VisualRegion {
         fun grow(top: Float, bottom: Float, blank: BooleanArray): Pair<Float, Float> {
             if (bottom <= top) return top to bottom
-            var t = (top * blank.size).toInt().coerceIn(0, blank.size - 1)
-            var b = (bottom * blank.size).toInt().coerceIn(t + 1, blank.size)
+            var t = (top * blank.size).roundToInt().coerceIn(0, blank.size - 1)
+            var b = (bottom * blank.size).roundToInt().coerceIn(t + 1, blank.size)
             var steps = 0
             while (t > 0 && !blank[t - 1] && steps++ < MAX_GROW_ROWS) t--
             steps = 0

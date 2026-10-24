@@ -26,6 +26,9 @@ class RealPageRepeatProbe {
         val urls = InstrumentationRegistry.getArguments().getString("realPages")?.split('~')?.map { it.trim() }?.filter { it.isNotBlank() }.orEmpty()
         assumeTrue("Pass realPages to run this probe", urls.isNotEmpty())
         val context = ApplicationProvider.getApplicationContext<Context>()
+        val captures =
+            InstrumentationRegistry.getArguments().getString("realPageCaptures")?.toIntOrNull()
+                ?.coerceIn(2, 20) ?: 3
         val dir = File(context.getExternalFilesDir(null), "real-page-probe").apply {
             deleteRecursively()
             mkdirs()
@@ -33,7 +36,7 @@ class RealPageRepeatProbe {
         val report = StringBuilder()
         for (url in urls) {
             val name = url.substringAfter("://").replace(Regex("[^A-Za-z0-9]+"), "-").take(60)
-            val shots = (0 until 3).map { index ->
+            val shots = (0 until captures).map { index ->
                 withContext(Dispatchers.Main.immediate) {
                     val browser = AndroidScreenshotBrowserFactory(context).create()
                     try {

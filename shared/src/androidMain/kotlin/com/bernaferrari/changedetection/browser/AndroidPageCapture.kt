@@ -319,21 +319,30 @@ internal class AndroidPageCapture(private val view: WebView) {
     }
 
     /**
-     * Blocks a page fills in by script after it settles (related articles, comments) arrive as network requests,
-     * not as images or a taller page. Give them a moment: continue once no new request has started for about half a
-     * second, or after [NETWORK_QUIET_MAX_MS] regardless. Best effort only, so a page that polls forever is still captured.
+     * Pages keep filling themselves in after they look settled: blocks fetched late (related articles, comments) and
+     * script upgrades of the first HTML (Wikipedia's mobile site turns plain sections into collapsible ones). Neither
+     * shows up as a pending image or a taller page. Continue once no new request has started and the page's scripts
+     * have not changed its content for about [QUIET_POLLS] polls, or after [NETWORK_QUIET_MAX_MS] regardless: best
+     * effort only, so a page that polls or animates forever is still captured.
      */
     private suspend fun awaitNetworkQuiet() {
-        val started = android.os.SystemClock.elapsedRealtime()
-        var previous = -1
-        var quiet = 0
-        while (android.os.SystemClock.elapsedRealtime() - started < NETWORK_QUIET_MAX_MS) {
-            checkNavigation()
-            val count = evaluate("performance.getEntriesByType('resource').length").toIntOrNull() ?: return
-            quiet = if (count == previous) quiet + 1 else 0
-            previous = count
-            if (quiet >= 3) return
-            delay(200)
+        // Counts the page's own content changes; style changes (carousels, our cleanup) are not content.
+        evaluate("(function(){if(window.__cdQuiet)return 0;window.__cdMutations=0;window.__cdQuiet=new MutationObserver(function(r){window.__cdMutations+=r.length});window.__cdQuiet.observe(document.documentElement,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','hidden','open','aria-expanded','src','srcset']});return 0;})()")
+        try {
+            val started = android.os.SystemClock.elapsedRealtime()
+            var previous = ""
+            var quiet = 0
+            while (android.os.SystemClock.elapsedRealtime() - started < NETWORK_QUIET_MAX_MS) {
+                checkNavigation()
+                val activity =
+                    evaluate("performance.getEntriesByType('resource').length+','+(window.__cdMutations||0)")
+                quiet = if (activity == previous) quiet + 1 else 0
+                previous = activity
+                if (quiet >= QUIET_POLLS) return
+                delay(200)
+            }
+        } finally {
+            evaluate("(function(){if(window.__cdQuiet){window.__cdQuiet.disconnect();delete window.__cdQuiet;}return 0;})()")
         }
     }
 
@@ -368,6 +377,7 @@ internal class AndroidPageCapture(private val view: WebView) {
     private companion object {
         const val READY_TIMEOUT_MS = 8_000L
         const val NETWORK_QUIET_MAX_MS = 1_500L
+        const val QUIET_POLLS = 3
         const val PIXEL_SCALE = 2.0
         const val MAX_PIXELS = 7_000_000L
     }
