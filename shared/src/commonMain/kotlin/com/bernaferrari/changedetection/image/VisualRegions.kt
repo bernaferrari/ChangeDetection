@@ -48,6 +48,11 @@ internal object VisualRegions {
     private const val MAX_REGIONS = 24
     private const val MAX_GROW_ROWS = 90
 
+    /** How far (working rows) a Changed area's content may have moved and still count as the same content. */
+    private const val SHIFT_NEAR_ROWS = 6
+    private const val SHIFT_FAR_ROWS = 72
+    private const val SHIFT_FAR_MAX_ROWS = 160
+
     /** Column block used to tell a dense edit from scattered noise. */
     private const val BLOCK = 16
     private const val MIN_CLUSTER_PIXELS = 14
@@ -120,6 +125,8 @@ internal object VisualRegions {
             .mapNotNull { trimBlank(it, beforeBlank, afterBlank) }
             .map { growToBlank(it, beforeBlank, afterBlank) }
             .filter { maxOf((it.afterBottom - it.afterTop) * afterHeight, (it.beforeBottom - it.beforeTop) * beforeHeight) >= MIN_REGION_ROWS }
+            // The same content drawn a few pixels off, or pushed down by something above it, is not a change.
+            .filterNot { it.kind == VisualRegion.Kind.Changed && sameAfterShift(it, before, beforeHeight, after, afterHeight, width, pixels, checkCancelled) }
             // Very long pages are captured to a fixed height. When something new pushes the page down, the old
             // bottom falls out of the capture: it was pushed out of view, not removed from the page.
             .filterNot { it.kind == VisualRegion.Kind.Removed && beforeHeight == afterHeight && it.afterTop >= 1f - 2f / afterHeight }
@@ -363,6 +370,78 @@ internal object VisualRegions {
         }
         flush()
         return out
+    }
+
+    /**
+     * Whether a Changed area is really the old content at another height. Pages shift for reasons that are not
+     * changes (an ad slot that filled, a late font), which re-draws text a fraction of a pixel off and, on captures cut
+     * at a fixed height, slides different content past the cut. The offset where the old rows match the area's new rows
+     * best is found first; if at that offset there is no dense cluster of differences (the same test that finds edits)
+     * and almost no differing pixel, nothing a person would see changed. A real edit, even one digit, still differs at
+     * the best offset and is kept.
+     */
+    private fun sameAfterShift(region: VisualRegion, before: IntArray, beforeHeight: Int, after: IntArray, afterHeight: Int, width: Int, pixels: PixelDifference, checkCancelled: () -> Unit): Boolean {
+        val top = (region.afterTop * afterHeight).toInt().coerceIn(0, afterHeight)
+        val bottom = (region.afterBottom * afterHeight).toInt().coerceIn(top, afterHeight)
+        val rows = bottom - top
+        if (rows <= 0) return false
+        val anchor = (region.beforeTop * beforeHeight).toInt()
+        // Small areas (the slivers a shift leaves) may have moved far; a large one only by a few pixels.
+        val reach = if (rows <= SHIFT_FAR_MAX_ROWS) SHIFT_FAR_ROWS else SHIFT_NEAR_ROWS
+        // Whole rows, not just the area's columns: a narrow real edit could resemble something nearby, but the rest of
+        // its row only lines up at the true offset, where the edit itself still differs.
+        val left = 0
+        val right = width
+        val blockCount = width / BLOCK + 1
+        val firstSource = if (region.beforeBottom > region.beforeTop) anchor else top
+        // The offset where the old rows match best, judged on raw pixels (no forgiveness), nearest first on ties.
+        var bestShift = Int.MIN_VALUE
+        var bestCount = Long.MAX_VALUE
+        for (step in 0..reach) {
+            for (shift in if (step == 0) intArrayOf(0) else intArrayOf(step, -step)) {
+                checkCancelled()
+                val source = firstSource + shift
+                if (source < 1 || source + rows >= beforeHeight - 1) continue
+                var count = 0L
+                for (r in 0 until rows) {
+                    val b = (source + r) * width
+                    val a = (top + r) * width
+                    for (x in left until right) if (pixels.changed(before[b + x], after[a + x])) count++
+                    if (count >= bestCount) break
+                }
+                if (count < bestCount) {
+                    bestCount = count
+                    bestShift = shift
+                }
+            }
+        }
+        if (bestShift == Int.MIN_VALUE) return false
+        // At that offset, the usual test: no dense cluster of differences, and almost no differing pixels at all.
+        val source = firstSource + bestShift
+        val window = Array(DENSITY_ROWS) { IntArray(blockCount) }
+        val totals = IntArray(blockCount)
+        var differing = 0L
+        val allowed = maxOf(4L, rows.toLong() * (right - left) / 100)
+        for (r in 0 until rows) {
+            checkCancelled()
+            val slot = window[r % DENSITY_ROWS]
+            for (k in 0 until blockCount) totals[k] -= slot[k]
+            slot.fill(0)
+            for (x in left until right) {
+                if (pixels.changed(before[(source + r) * width + x], after[(top + r) * width + x]) &&
+                    stillDifferent(before, beforeHeight, source + r, after, afterHeight, top + r, x, width)
+                ) {
+                    slot[x / BLOCK]++
+                    differing++
+                }
+            }
+            for (k in 0 until blockCount) {
+                totals[k] += slot[k]
+                if (totals[k] >= MIN_CLUSTER_PIXELS) return false
+            }
+            if (differing > allowed) return false
+        }
+        return true
     }
 
     /**

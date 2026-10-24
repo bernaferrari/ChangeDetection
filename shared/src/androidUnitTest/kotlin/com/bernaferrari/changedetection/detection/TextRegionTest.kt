@@ -7,6 +7,18 @@ import org.junit.Test
 class TextRegionTest {
     private fun text(html: String, region: TextRegion) = readableSnapshotText(region.extractHtml(html, true), true)
 
+    @Test fun missingExcludedAndEmptySelectionsHaveDistinctSafeReasons() {
+        fun issue(region: TextRegion, html: String): TextRegionIssue? = try {
+            region.extractHtml(html, true)
+            null
+        } catch (e: TextRegionException) {
+            e.issue
+        }
+        org.junit.Assert.assertEquals(TextRegionIssue.NO_MATCH, issue(TextRegion("#missing"), "<p>Readable</p>"))
+        org.junit.Assert.assertEquals(TextRegionIssue.EXCLUDED, issue(TextRegion("#target", "#target"), "<p id='target'>Readable</p>"))
+        org.junit.Assert.assertEquals(TextRegionIssue.EMPTY_TEXT, issue(TextRegion("#target"), "<div id='target'><img src='/image'></div>"))
+    }
+
     @Test fun `exclusions do not shift positional include selectors`() {
         val html = "<main><p id='noise'>Ad</p><p>Watched stock</p><p>Other product</p></main>"
         assertEquals("Watched stock", text(html, TextRegion("main > p:nth-child(2)", "#noise")))

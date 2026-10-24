@@ -36,14 +36,14 @@ data class TextRegion(val include: String = "", val exclude: String = "") {
                 generateSequence(element) { it.parent() }.none { it in excluded }
             }.toSet()
         }
-        if (include.isNotBlank() && matches.isEmpty()) throw TextRegionException(TextRegionFailure.REGION_MISSING)
+        if (include.isNotBlank() && matches.isEmpty()) throw TextRegionException(TextRegionFailure.REGION_MISSING, issue = if (document.select(include.trim()).isEmpty()) TextRegionIssue.NO_MATCH else TextRegionIssue.EXCLUDED)
         // Select outermost surviving subtrees before mutation, retaining document order.
         val roots = matches.filter { element ->
             generateSequence(element.parent()) { it.parent() }.none { it in matches }
         }
         excluded.forEach { it.remove() }
         val result = if (include.isBlank()) document.outerHtml() else roots.joinToString("\n") { it.outerHtml() }
-        if (readableSnapshotText(result, true).isBlank()) throw TextRegionException(TextRegionFailure.REGION_MISSING)
+        if (readableSnapshotText(result, true).isBlank()) throw TextRegionException(TextRegionFailure.REGION_MISSING, issue = TextRegionIssue.EMPTY_TEXT)
         return result
     }
 
@@ -61,9 +61,11 @@ data class TextRegion(val include: String = "", val exclude: String = "") {
     }
 }
 
+enum class TextRegionIssue { NO_MATCH, EXCLUDED, EMPTY_TEXT, NOT_VISIBLE, INVALID_SYNTAX, NON_HTML }
+
 enum class TextRegionFailure { INVALID_SELECTOR, REGION_MISSING, HTML_REQUIRED }
 
-class TextRegionException(val failure: TextRegionFailure, cause: Throwable? = null) :
+class TextRegionException(val failure: TextRegionFailure, cause: Throwable? = null, val issue: TextRegionIssue? = null) :
     IllegalArgumentException(
         when (failure) {
             TextRegionFailure.INVALID_SELECTOR -> "Use a valid CSS selector without regular-expression selectors."

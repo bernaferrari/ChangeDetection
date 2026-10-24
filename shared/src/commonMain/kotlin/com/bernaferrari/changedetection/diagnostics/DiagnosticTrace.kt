@@ -18,7 +18,7 @@ import kotlin.time.TimeSource
 
 @Serializable enum class DiagnosticException { HTTP, DATABASE, REGION, TIMEOUT, CANCELLED, STORAGE, IO, TLS, INVALID_CONTENT, JSON, SQLITE, OTHER }
 
-@Serializable enum class DiagnosticMetric { HTTP_STATUS, WEBVIEW_ERROR, TLS_ERROR, RENDERER_CRASH, ATTACHED, DOM_READY, CALLBACK_NULL, BYTES_BUCKET, BASELINE_PRESENT }
+@Serializable enum class DiagnosticMetric { HTTP_STATUS, WEBVIEW_ERROR, TLS_ERROR, RENDERER_CRASH, ATTACHED, DOM_READY, CALLBACK_NULL, BYTES_BUCKET, BASELINE_PRESENT, CAPTURE_CONTEXT, CAPTURE_ISSUE, REGION_RESULT }
 
 /** Fixed values only: request URLs are compared in memory and never retained in a report. */
 @Serializable enum class TlsRequestKind { MAIN_DOCUMENT, SUBRESOURCE, UNKNOWN }
@@ -40,7 +40,24 @@ import kotlin.time.TimeSource
     val blocking: Boolean = true,
 )
 
-@Serializable data class DiagnosticEvent(val stage: DiagnosticStage, val elapsedMs: Long, val durationMs: Long = 0, val failed: Boolean = false, val metric: DiagnosticMetric? = null, val code: Int? = null, val tls: DiagnosticTlsContext? = null)
+/** Geometry/resource state only. Numeric bounds also apply when importing older reports. */
+@Serializable data class CaptureDiagnostic(
+    val nativeWidth: Int,
+    val nativeHeight: Int,
+    val layoutWidthTenths: Int,
+    val visualWidthTenths: Int,
+    val nativeScaleMilli: Int,
+    val densityMilli: Int,
+    val selectedMatches: Int,
+    val selectedWidthTenths: Int,
+    val selectedHeightTenths: Int,
+    val fontsLoading: Boolean,
+    val pendingImages: Int,
+) {
+    fun bounded() = copy(nativeWidth = nativeWidth.coerceIn(0, 16_384), nativeHeight = nativeHeight.coerceIn(0, 32_768), layoutWidthTenths = layoutWidthTenths.coerceIn(0, 200_000), visualWidthTenths = visualWidthTenths.coerceIn(0, 200_000), nativeScaleMilli = nativeScaleMilli.coerceIn(0, 50_000), densityMilli = densityMilli.coerceIn(0, 16_000), selectedMatches = selectedMatches.coerceIn(0, 1_000), selectedWidthTenths = selectedWidthTenths.coerceIn(0, 1_000_000), selectedHeightTenths = selectedHeightTenths.coerceIn(0, 1_000_000), pendingImages = pendingImages.coerceIn(0, 1_000))
+}
+
+@Serializable data class DiagnosticEvent(val stage: DiagnosticStage, val elapsedMs: Long, val durationMs: Long = 0, val failed: Boolean = false, val metric: DiagnosticMetric? = null, val code: Int? = null, val tls: DiagnosticTlsContext? = null, val capture: CaptureDiagnostic? = null)
 
 /**
  * [classes] are exception class names along the cause chain (no messages). [detail] is the first
@@ -152,6 +169,9 @@ internal class DiagnosticSpan : AbstractCoroutineContextElement(Key) {
         active = stage
         if (events.size < 64) events += DiagnosticEvent(stage, began.elapsedNow().inWholeMilliseconds.coerceIn(0, 600_000), duration.coerceIn(0, 600_000), failed, metric, code?.coerceIn(-100, 599))
     }
+    suspend fun capture(context: CaptureDiagnostic, stage: DiagnosticStage) = lock.withLock {
+        if (events.size < 64) events += DiagnosticEvent(stage, began.elapsedNow().inWholeMilliseconds.coerceIn(0, 600_000), metric = DiagnosticMetric.CAPTURE_CONTEXT, capture = context.bounded())
+    }
     suspend fun failed(error: Throwable, category: CheckFailure? = null, stage: DiagnosticStage? = null) = lock.withLock {
         if (error is CancellationException) cancelled = true
         val resolvedCategory = category ?: diagnosticCategory(error)
@@ -177,6 +197,7 @@ internal class DiagnosticSpan : AbstractCoroutineContextElement(Key) {
 }
 
 internal fun exceptionKind(error: Throwable): DiagnosticException = when {
+    error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> DiagnosticException.TIMEOUT
     error is TimeoutCancellationException -> DiagnosticException.TIMEOUT
     error is CancellationException -> DiagnosticException.CANCELLED
     error is com.bernaferrari.changedetection.error.NetworkError -> DiagnosticException.HTTP
@@ -256,6 +277,8 @@ suspend fun <T> recordDiagnostic(mode: CaptureMode, selected: Boolean, excluded:
 private fun diagnosticId(): String = kotlin.random.Random.nextBytes(16).joinToString("") { (it.toInt() and 255).toString(16).padStart(2, '0') }
 
 private fun diagnosticCategory(error: Throwable): CheckFailure = when {
+    error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> CheckFailure.TIMEOUT
+
     com.bernaferrari.changedetection.error.isTlsFailure(error) -> CheckFailure.TLS
 
     error is TimeoutCancellationException -> CheckFailure.TIMEOUT
@@ -280,4 +303,8 @@ private fun diagnosticCategory(error: Throwable): CheckFailure = when {
     error is kotlinx.io.IOException -> CheckFailure.CONNECTION
 
     else -> CheckFailure.UNKNOWN
+}
+
+suspend fun diagnosticCapture(context: CaptureDiagnostic, stage: DiagnosticStage = DiagnosticStage.CAPTURE_PIXELS) {
+    currentCoroutineContext()[DiagnosticSpan]?.capture(context, stage)
 }

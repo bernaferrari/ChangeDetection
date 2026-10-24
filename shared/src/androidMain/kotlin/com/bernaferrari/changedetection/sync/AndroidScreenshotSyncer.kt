@@ -12,6 +12,7 @@ import com.bernaferrari.changedetection.browser.destroySafely
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.ui.settings.SettingsViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -96,6 +97,9 @@ class AndroidScreenshotSyncer(
 
                 is ScreenshotCaptureOutcome.Failure -> recordFailure(site, capture.message, capture.error)
             }
+        } catch (timeout: kotlinx.coroutines.TimeoutCancellationException) {
+            kotlinx.coroutines.currentCoroutineContext().ensureActive()
+            recordFailure(site, timeout)
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (error: Exception) {
@@ -166,8 +170,8 @@ class AndroidScreenshotBrowserFactory(context: Context) : ScreenshotBrowserFacto
 
     private companion object {
         const val MAX_HEIGHT_PIXELS = 10_000
-        const val VIEWPORT_WIDTH = 1_080
-        const val VIEWPORT_HEIGHT = 1_920
+        const val VIEWPORT_WIDTH = com.bernaferrari.changedetection.browser.WatchCaptureViewport.WIDTH
+        const val VIEWPORT_HEIGHT = com.bernaferrari.changedetection.browser.WatchCaptureViewport.HEIGHT
     }
 }
 

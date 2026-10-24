@@ -95,6 +95,22 @@ class AndroidScreenshotSyncerTest {
     }
 
     @Test
+    fun `an internal capture timeout is a failed check and does not cancel the batch`() = runTest(dispatcher) {
+        val browser = FakeBrowser {
+            kotlinx.coroutines.withTimeout(10) {
+                kotlinx.coroutines.delay(100)
+                ScreenshotCaptureOutcome.Success("image/png", PNG_BYTES)
+            }
+        }
+        val engine = successfulEngine()
+        val syncer = AndroidScreenshotSyncer(engine, dataStore(), SyncProgressTracker()) { browser }
+        val result = runCatching { syncer.syncSites(listOf(site("timeout"))) }
+        assertTrue("An internal timeout must not cancel its caller: ${result.exceptionOrNull()}", result.isSuccess)
+        verify(engine).processFetchResult(any(), argThat { this is SyncEngine.FetchResult.Error && throwable is kotlinx.coroutines.TimeoutCancellationException }, any())
+        assertTrue(browser.closed)
+    }
+
+    @Test
     fun `cancellation is rethrown and browser is always closed`() = runTest(dispatcher) {
         val browser = FakeBrowser { throw CancellationException("cancelled") }
         val tracker = SyncProgressTracker()

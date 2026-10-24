@@ -33,6 +33,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.ImeAction
@@ -111,6 +112,7 @@ internal fun WatchBrowser(
 ) {
     val state = rememberWebViewState(startUrl).apply {
         webSettings.androidWebSettings.domStorageEnabled = true
+        webSettings.androidWebSettings.useWideViewPort = true
         // Match fresh browser captures; transparent page CSS uses the normal white browser canvas.
         webSettings.backgroundColor = androidx.compose.ui.graphics.Color.White
     }
@@ -247,7 +249,7 @@ internal fun WatchBrowser(
         ) { padding ->
             Box(Modifier.fillMaxSize().padding(padding)) {
                 BrowserRuntimeHost(Modifier.fillMaxSize()) {
-                    WebView(state = state, modifier = Modifier.fillMaxSize(), navigator = navigator, webViewJsBridge = bridge, onCreated = { _ -> }, factory = ::createWatchWebView, platformWebViewParams = com.bernaferrari.changedetection.browser.rememberBrowserPlatformParams())
+                    WebView(state = state, modifier = Modifier.fillMaxSize().testTag("watch-browser-content").then(com.bernaferrari.changedetection.browser.watchCaptureViewportModifier()), navigator = navigator, webViewJsBridge = bridge, onCreated = { _ -> }, factory = ::createWatchWebView, platformWebViewParams = com.bernaferrari.changedetection.browser.rememberBrowserPlatformParams())
                 }
                 if (loadFailed) {
                     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {

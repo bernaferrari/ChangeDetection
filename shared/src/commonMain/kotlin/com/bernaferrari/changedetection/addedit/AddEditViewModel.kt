@@ -178,6 +178,7 @@ class AddEditViewModel(
                         it.copy(
                             preview = CapturePreviewState.Failed(
                                 when {
+                                    error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> PreviewFailure.TIMEOUT
                                     error is com.bernaferrari.changedetection.detection.TextRegionException -> PreviewFailure.REGION
                                     com.bernaferrari.changedetection.error.isTlsFailure(error) -> PreviewFailure.TLS
                                     generateSequence(error as Throwable) { it.cause }.take(6).any { it is kotlinx.io.IOException } -> PreviewFailure.CONNECTION
