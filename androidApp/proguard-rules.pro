@@ -1,6 +1,6 @@
 # App ProGuard rules
-# Most rules are provided by libraries via their bundled rules
-# and shared's consumer-rules.pro
+# Most rules are provided by libraries via their bundled rules (WorkManager keeps worker names, Room and
+# kotlinx.serialization use generated code). App-specific rules live here.
 
 # Keep line numbers for crash reports
 -keepattributes SourceFile,LineNumberTable
