@@ -132,11 +132,27 @@ class TlsCaptureHealthTest {
                 database(server.url, CaptureMode.SCREENSHOT) { engine, site, db, files, _ ->
                     val runner = runner(engine, db, files)
                     // The shared report: a first version saved, then every scheduled check failed on the frame's certificate.
-                    repeat(2) {
-                        val result = runner.check(site.id)
-                        assertTrue(result.toString(), result is SyncResult.Success)
+                    val attempts = java.util.Collections.synchronizedList(mutableListOf<com.bernaferrari.changedetection.diagnostics.DiagnosticAttempt>())
+                    val previous = com.bernaferrari.changedetection.diagnostics.DiagnosticLog.sink
+                    com.bernaferrari.changedetection.diagnostics.DiagnosticLog.sink = object : com.bernaferrari.changedetection.diagnostics.DiagnosticSink {
+                        override suspend fun watchToken(watchId: String?) = "watch"
+                        override suspend fun append(attempt: com.bernaferrari.changedetection.diagnostics.DiagnosticAttempt) {
+                            attempts += attempt
+                        }
+                    }
+                    try {
+                        repeat(2) {
+                            val result = runner.check(site.id)
+                            assertTrue(result.toString(), result is SyncResult.Success)
+                        }
+                    } finally {
+                        com.bernaferrari.changedetection.diagnostics.DiagnosticLog.sink = previous
                     }
                     assertEquals(1, db.snapsDao().getAllSnapsForSiteId(site.id).size)
+                    // The report says the page itself loaded (200) and that a frame was refused, not that the check broke.
+                    val events = attempts.filter { it.outcome != com.bernaferrari.changedetection.diagnostics.DiagnosticOutcome.INCOMPLETE }.flatMap { it.events }
+                    assertTrue(events.toString(), events.any { it.metric == com.bernaferrari.changedetection.diagnostics.DiagnosticMetric.HTTP_STATUS && it.code == 200 })
+                    assertTrue(events.toString(), events.any { it.tls?.blocking == false })
                 }
             }
         }

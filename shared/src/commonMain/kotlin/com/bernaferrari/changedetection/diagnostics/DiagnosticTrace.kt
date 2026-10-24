@@ -135,7 +135,9 @@ internal class DiagnosticSpan : AbstractCoroutineContextElement(Key) {
     private val lock = Mutex()
     private val events = mutableListOf<DiagnosticEvent>()
     private val callbacks = kotlinx.coroutines.channels.Channel<DiagnosticEvent>(16)
-    private var active = DiagnosticStage.QUEUED
+
+    // Read by WebView callbacks on other threads, to file late events under the step that was running.
+    @kotlin.concurrent.Volatile private var active = DiagnosticStage.QUEUED
     private var failure: DiagnosticFailure? = null
     private var cancelled = false
     var checkpoint: (suspend () -> Unit)? = null
@@ -159,7 +161,8 @@ internal class DiagnosticSpan : AbstractCoroutineContextElement(Key) {
         callbacks.trySend(DiagnosticEvent(stage, began.elapsedNow().inWholeMilliseconds.coerceIn(0, 600_000), metric = metric, code = code.coerceIn(-100, 599)))
     }
     fun tls(context: DiagnosticTlsContext) {
-        callbacks.trySend(DiagnosticEvent(DiagnosticStage.NAVIGATE, began.elapsedNow().inWholeMilliseconds.coerceIn(0, 600_000), metric = DiagnosticMetric.TLS_ERROR, code = context.primary, tls = context))
+        // A refused certificate can arrive long after navigation (a late image or frame): file it under the step it interrupted.
+        callbacks.trySend(DiagnosticEvent(active, began.elapsedNow().inWholeMilliseconds.coerceIn(0, 600_000), metric = DiagnosticMetric.TLS_ERROR, code = context.primary, tls = context))
     }
     suspend fun snapshot() = lock.withLock {
         // Draining a callback for a checkpoint must retain it for later checkpoints and the final record.
@@ -180,7 +183,7 @@ internal fun exceptionKind(error: Throwable): DiagnosticException = when {
     error is com.bernaferrari.changedetection.detection.TextRegionException -> DiagnosticException.REGION
     error::class.simpleName in setOf("SSLException", "SSLHandshakeException", "CertificateException") -> DiagnosticException.TLS
     error::class.simpleName in setOf("SQLiteException", "SQLiteFullException", "SQLiteDiskIOException") -> DiagnosticException.SQLITE
-    error::class.simpleName in setOf("JsonDecodingException", "SerializationException") -> DiagnosticException.JSON
+    error is kotlinx.serialization.SerializationException -> DiagnosticException.JSON
     error is IllegalArgumentException -> DiagnosticException.INVALID_CONTENT
     error is kotlinx.io.IOException -> DiagnosticException.IO
     else -> DiagnosticException.OTHER
