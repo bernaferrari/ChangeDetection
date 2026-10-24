@@ -110,6 +110,8 @@ class CaptureEditorUiTest {
             compose.onNodeWithText("Open page").assertIsDisplayed().performClick()
             compose.waitUntil(5000) { compose.onAllNodesWithText("Watch this page").fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithText("Watch this page").performClick()
+            // The review step slides in; on a busy device it can take more than a frame.
+            compose.waitUntil(5_000) { compose.onAllNodesWithText("View full screenshot").fetchSemanticsNodes().isNotEmpty() }
             compose.onNodeWithText("View full screenshot").performScrollTo().performClick()
             compose.onNodeWithText("Done").assertIsDisplayed()
             compose.waitUntil(5_000) {

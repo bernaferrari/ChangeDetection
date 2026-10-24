@@ -2,6 +2,7 @@
 
 package com.bernaferrari.changedetection.addedit
 
+import androidx.compose.material3.SliderState
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 
@@ -374,7 +375,7 @@ private fun BrowseToolbar(picks: Int, onPick: () -> Unit, onWatch: () -> Unit, w
 
 /** uBlock-style picking: tap a part, widen it with the slider, then watch only it or ignore it. */
 @Composable
-private fun PickerPanel(
+internal fun PickerPanel(
     current: PickedPart?,
     only: String,
     ignored: List<String>,
@@ -425,11 +426,15 @@ private fun PickerPanel(
                     if (part.maxDepth > 0) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(stringResource(Res.string.picker_smaller), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            // One state per element; the thumb moves as it is dragged and follows the page when the picked part changes.
+                            val slider = remember(part.maxDepth) { SliderState(part.depth.toFloat(), (part.maxDepth - 1).coerceAtLeast(0), 0f..part.maxDepth.toFloat()) }
+                            LaunchedEffect(slider, part.depth) { slider.value = part.depth.toFloat() }
                             Slider(
-                                value = part.depth.toFloat(),
-                                onValueChange = { onDepth(kotlin.math.round(it).toInt()) },
-                                valueRange = 0f..part.maxDepth.toFloat(),
-                                steps = (part.maxDepth - 1).coerceAtLeast(0),
+                                state = slider,
+                                onValueChange = {
+                                    slider.value = it
+                                    onDepth(kotlin.math.round(it).toInt())
+                                },
                                 modifier = Modifier.weight(1f),
                             )
                             Text(stringResource(Res.string.picker_larger), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
