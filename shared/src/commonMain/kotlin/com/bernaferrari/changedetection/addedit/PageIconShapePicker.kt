@@ -1,5 +1,6 @@
 package com.bernaferrari.changedetection.addedit
 
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
@@ -72,7 +73,7 @@ internal fun PageIconShapePicker(name: String, key: String, icon: String?, selec
     val title = stringResource(Res.string.editor_icon_shape_title)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden, enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)),
         containerColor = sheet,
         modifier = Modifier.semantics { paneTitle = title },
     ) {
