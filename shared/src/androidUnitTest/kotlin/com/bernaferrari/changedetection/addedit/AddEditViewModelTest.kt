@@ -355,7 +355,7 @@ class AddEditViewModelTest {
     @Test
     fun `canonical duplicate is rejected before saving`() = runTest {
         val dataSource = FakeSitesDataSource().apply {
-            savedSite = existingSite("saved-page", "https://example.com/").copy(captureMode = com.bernaferrari.changedetection.repo.CaptureMode.TEXT)
+            savedSite = existingSite("saved-page", "https://example.com/#details").copy(captureMode = com.bernaferrari.changedetection.repo.CaptureMode.TEXT)
         }
         val viewModel = createViewModel(dataSource = dataSource)
 
@@ -563,6 +563,20 @@ class AddEditViewModelTest {
         mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
         assertTrue(editor.uiState.value.saveComplete)
         assertEquals(listOf(requireNotNull(source.savedSite?.id)), manager.reloaded)
+    }
+
+    @Test fun `known unsupported screenshot selection is not saved`() = runTest {
+        val source = FakeSitesDataSource()
+        val editor = createViewModel(dataSource = source, previewer = CapturePreviewer { _, _ -> throw com.bernaferrari.changedetection.detection.TextRegionException(com.bernaferrari.changedetection.detection.TextRegionFailure.INVALID_SELECTOR, issue = com.bernaferrari.changedetection.detection.TextRegionIssue.MULTIPLE_MATCHES) })
+        editor.setCaptureMode(com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT)
+        editor.setUrl("https://example.com/")
+        editor.requestPreview()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(PreviewFailure.MULTIPLE_REGIONS, (editor.uiState.value.preview as CapturePreviewState.Failed).reason)
+        editor.saveSite()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        org.junit.Assert.assertNull(source.savedSite)
+        assertFalse(editor.uiState.value.saveComplete)
     }
 
     private fun createViewModel(

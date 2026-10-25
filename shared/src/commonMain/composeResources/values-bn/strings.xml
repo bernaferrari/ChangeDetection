@@ -765,7 +765,7 @@
         <item quantity="other">%1$dটি সরেছে</item>
     </plurals>
     <string name="detail_sign_in">সাইন ইন করুন</string>
-    <string name="browser_session_note">Android-এ টেক্সট ও স্ক্রিনশট পরীক্ষা এই ব্রাউজারে সংরক্ষিত সাইন-ইন কুকি ব্যবহার করতে পারে। সোর্স পরীক্ষা তা করে না। কিছু সাইট আপনাকে আবার সাইন ইন করতে বলতে পারে।</string>
+    <string name="browser_session_note">টেক্সট ও স্ক্রিনশট অ্যাপের ব্রাউজার প্রোফাইল ব্যবহার করে। কোনো সাইটে সাইন ইন করলে বা অ্যাকাউন্ট বদলালে সেই সাইটের পর্যবেক্ষণ প্রভাবিত হয়। সেশনের মেয়াদ শেষ হতে পারে। কোড পরীক্ষা ব্রাউজারের সাইন-ইন কুকি ব্যবহার করে না।</string>
     <string name="turbo_next_check">পরের পরীক্ষা %1$d সেকেন্ডে</string>
     <string name="picker_selected_image">একটি ছবি</string>
     <string name="picker_selected_frame">এম্বেড করা ফ্রেম (প্রায়ই বিজ্ঞাপন)</string>
@@ -825,4 +825,14 @@
     <string name="comparison_finding_changes">পরিবর্তন খোঁজা হচ্ছে…</string>
     <string name="check_failure_tls">নিরাপদ সংযোগ স্থাপন করা যায়নি</string>
     <string name="check_failure_tls_detail">পৃষ্ঠার নিরাপদ সংযোগ যাচাই করা যায়নি। আপনার সংরক্ষিত ইতিহাস অক্ষত আছে। পরে আবার চেষ্টা করুন বা ব্রাউজারে ওয়েবসাইটটি খুলুন।</string>
+    <string name="preview_single_visual_region">স্ক্রিনশট পর্যবেক্ষণে একটিমাত্র এলাকা বেছে নেওয়া যায়। একটি উপাদান বেছে নিন বা একাধিক এলাকা পর্যবেক্ষণ করতে টেক্সটে যান।</string>
+    <string name="share_failed">এই বিষয়বস্তু শেয়ার করা যায়নি। আবার চেষ্টা করুন বা অন্য অ্যাপ বেছে নিন।</string>
+    <string name="external_open_failed">অন্য অ্যাপ খোলা যায়নি। উপযুক্ত অ্যাপ ইনস্টল করুন বা আবার চেষ্টা করুন।</string>
+    <string name="check_failure_background_restricted">ব্যাকগ্রাউন্ড পরীক্ষা শুরু করা যায়নি</string>
+    <string name="check_failure_background_restricted_detail">Android এই ব্যাকগ্রাউন্ড পরীক্ষা শুরু করার অনুমতি দেয়নি। অ্যাপ খুলে আবার চেষ্টা করুন। আগের ইতিহাস রাখা হয়েছে।</string>
+    <string name="check_failure_saved_content_unavailable">সংরক্ষিত সংস্করণ পাওয়া যাচ্ছে না</string>
+    <string name="check_failure_saved_content_unavailable_detail">সংরক্ষিত সংস্করণটি নেই বা নষ্ট হয়েছে। আগের ইতিহাস রাখা হয়েছে। ডিভাইসে খালি স্টোরেজ দেখুন এবং সমস্যা চলতে থাকলে রিপোর্ট পাঠান।</string>
+    <string name="check_failure_capture_incomplete">পৃষ্ঠার ক্যাপচার অসম্পূর্ণ</string>
+    <string name="check_failure_capture_incomplete_detail">পর্যবেক্ষণ করা পৃষ্ঠার কিছু অংশ লোড করা যায়নি। সংরক্ষিত ইতিহাস রাখা হয়েছে। আবার চেষ্টা করুন বা পৃষ্ঠার প্রিভিউ দেখুন।</string>
+    <string name="text_http_capability_note">এই প্ল্যাটফর্মে টেক্সট পর্যবেক্ষণ HTTP উত্তর পড়ে। JavaScript বিষয়বস্তু ও ব্রাউজারের সাইন-ইন কুকি এতে থাকে না।</string>
 </resources>

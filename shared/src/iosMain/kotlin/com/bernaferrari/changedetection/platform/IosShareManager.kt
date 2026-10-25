@@ -3,6 +3,7 @@
 package com.bernaferrari.changedetection.platform
 
 import kotlinx.cinterop.useContents
+import platform.Foundation.valueForKey
 import platform.CoreGraphics.CGRectMake
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIApplication
@@ -17,9 +18,11 @@ class IosShareManager : ShareManager {
 
     /** From whatever is on screen (a sheet included); on iPad the share sheet is a popover by the share button. */
     private fun present(text: String) {
-        val window = UIApplication.sharedApplication.keyWindow ?: UIApplication.sharedApplication.windows.firstOrNull() as? UIWindow ?: return
-        var top: UIViewController = window.rootViewController ?: return
+        val application = UIApplication.sharedApplication
+        val window = application.keyWindow ?: ((application.valueForKey("windows") as? List<*>)?.firstOrNull() as? UIWindow) ?: throw ShareUnavailableException()
+        var top: UIViewController = window.rootViewController ?: throw ShareUnavailableException()
         while (true) top = top.presentedViewController ?: break
+        if (top.view.window == null || top.isBeingDismissed()) throw ShareUnavailableException()
         val sheet = UIActivityViewController(listOf(text), null)
         sheet.popoverPresentationController?.let { popover: platform.UIKit.UIPopoverPresentationController ->
             popover.sourceView = top.view

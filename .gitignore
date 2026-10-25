@@ -37,6 +37,11 @@ proguard/
 
 # Android Studio captures folder
 captures/
+# Keep the two public visual regression fixtures in clean checkouts.
+!shared/src/desktopTest/resources/captures/
+shared/src/desktopTest/resources/captures/*
+!shared/src/desktopTest/resources/captures/short-text-edit-before.png
+!shared/src/desktopTest/resources/captures/short-text-edit-after.png
 
 # IntelliJ
 *.iml

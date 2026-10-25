@@ -74,6 +74,10 @@ import kotlin.time.TimeSource
 /** Things that happen outside a page check but explain why checks fail. */
 @Serializable enum class AppEventKind { DATABASE_CREATED, DATABASE_UPGRADED, DATABASE_RESET, CRASH, BACKGROUND_FAILURE }
 
+@Serializable enum class AppBuildVariant { DEBUG, RELEASE, UNKNOWN }
+@Serializable data class AppEventBuild(val versionCode: Long, val revision: String, val variant: AppBuildVariant)
+@Serializable enum class AppEventStage { WORKER_FOREGROUND, WORKER_CHECK, TURBO_LAUNCH, TURBO_FOREGROUND, TURBO_SERVICE_START }
+
 @Serializable data class AppEvent(
     val kind: AppEventKind,
     val at: Long,
@@ -81,6 +85,8 @@ import kotlin.time.TimeSource
     val toVersion: Int? = null,
     val classes: List<String> = emptyList(),
     val detail: String? = null,
+    val build: AppEventBuild? = null,
+    val stage: AppEventStage? = null,
 )
 
 @Serializable data class DiagnosticAttempt(val attemptId: String = diagnosticId(), val schema: Int = 1, val startedAt: Long, val mode: CaptureMode, val selected: Boolean, val excluded: Boolean, val trigger: DiagnosticTrigger, val watchToken: String = "", val outcome: DiagnosticOutcome, val events: List<DiagnosticEvent>, val failure: DiagnosticFailure? = null)
@@ -101,9 +107,9 @@ object DiagnosticLog {
     @kotlin.concurrent.Volatile var sink: DiagnosticSink? = null
 
     /** Records an app-level event. Never throws: diagnostics must not make things worse. */
-    fun appEvent(kind: AppEventKind, error: Throwable? = null, fromVersion: Int? = null, toVersion: Int? = null) {
+    fun appEvent(kind: AppEventKind, error: Throwable? = null, fromVersion: Int? = null, toVersion: Int? = null, stage: AppEventStage? = null) {
         try {
-            sink?.appEvent(AppEvent(kind, kotlin.time.Clock.System.now().toEpochMilliseconds(), fromVersion, toVersion, errorClasses(error), errorDetail(error)))
+            sink?.appEvent(AppEvent(kind, kotlin.time.Clock.System.now().toEpochMilliseconds(), fromVersion, toVersion, errorClasses(error), errorDetail(error), stage = stage))
         } catch (_: Throwable) { }
     }
 
@@ -197,7 +203,7 @@ internal class DiagnosticSpan : AbstractCoroutineContextElement(Key) {
 }
 
 internal fun exceptionKind(error: Throwable): DiagnosticException = when {
-    error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> DiagnosticException.TIMEOUT
+    error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> if (error.issue == com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED) DiagnosticException.HTTP else DiagnosticException.TIMEOUT
     error is TimeoutCancellationException -> DiagnosticException.TIMEOUT
     error is CancellationException -> DiagnosticException.CANCELLED
     error is com.bernaferrari.changedetection.error.NetworkError -> DiagnosticException.HTTP
@@ -277,7 +283,7 @@ suspend fun <T> recordDiagnostic(mode: CaptureMode, selected: Boolean, excluded:
 private fun diagnosticId(): String = kotlin.random.Random.nextBytes(16).joinToString("") { (it.toInt() and 255).toString(16).padStart(2, '0') }
 
 private fun diagnosticCategory(error: Throwable): CheckFailure = when {
-    error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> CheckFailure.TIMEOUT
+    error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> if (error.issue == com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED) CheckFailure.CAPTURE_INCOMPLETE else CheckFailure.TIMEOUT
 
     com.bernaferrari.changedetection.error.isTlsFailure(error) -> CheckFailure.TLS
 

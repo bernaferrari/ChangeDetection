@@ -75,7 +75,7 @@
         <item quantity="other">%1$d rimosse</item>
     </plurals>
     <string name="detail_sign_in">Accedi</string>
-    <string name="browser_session_note">Su Android, i controlli di testo e screenshot possono riutilizzare i cookie di accesso salvati in questo browser. I controlli del codice sorgente no. Alcuni siti potrebbero chiederti di accedere di nuovo.</string>
+    <string name="browser_session_note">Testo e Screenshot usano il profilo del browser dell’app. Accedere o cambiare account su un sito influisce sulle pagine monitorate di quel sito. Le sessioni possono scadere. Codice non usa i cookie di accesso del browser.</string>
     <string name="turbo_next_check">Prossimo controllo tra %1$d s</string>
     <string name="picker_selected_image">Un’immagine</string>
     <string name="picker_selected_frame">Un riquadro incorporato (spesso una pubblicità)</string>

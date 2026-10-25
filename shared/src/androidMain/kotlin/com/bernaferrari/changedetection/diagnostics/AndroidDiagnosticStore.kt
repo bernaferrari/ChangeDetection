@@ -35,6 +35,7 @@ class AndroidDiagnosticStore internal constructor(
     directory: File? = null,
     private val now: () -> Long = System::currentTimeMillis,
     private val runtime: () -> DiagnosticRuntime = { diagnosticRuntime(context) },
+    private val eventBuild: () -> AppEventBuild? = { diagnosticEventBuild(context) },
 ) : DiagnosticSink,
     AutoCloseable {
     private val explicitDirectory = directory
@@ -42,6 +43,7 @@ class AndroidDiagnosticStore internal constructor(
     private val mutex = Mutex()
     private sealed interface Write {
         data class Attempt(val value: DiagnosticAttempt) : Write
+        data class Event(val value: AppEvent) : Write
         data class Flush(val ready: CompletableDeferred<Unit>) : Write
     }
 
@@ -59,6 +61,7 @@ class AndroidDiagnosticStore internal constructor(
                         dropped.incrementAndGet()
                     }
 
+                    is Write.Event -> runCatching { recordEventNow(command.value) }.onFailure { dropped.incrementAndGet() }
                     is Write.Flush -> command.ready.complete(Unit)
                 }
             }
@@ -161,7 +164,8 @@ class AndroidDiagnosticStore internal constructor(
     private val versionFile: File get() = File(directory, "database-version")
 
     override fun appEvent(event: AppEvent) {
-        writerScope.launch { runCatching { recordEventNow(event) } }
+        val stamped = event.copy(build = event.build ?: runCatching(eventBuild).getOrNull())
+        if (!queue.trySend(Write.Event(stamped)).isSuccess) dropped.incrementAndGet()
     }
 
     override fun databaseOpened(version: Int) {
@@ -185,7 +189,8 @@ class AndroidDiagnosticStore internal constructor(
     /** Synchronous so a crash handler can save the event before the process dies. */
     fun recordEventNow(event: AppEvent) = synchronized(eventsLock) {
         check(directory.exists() || directory.mkdirs())
-        val events = (readEvents() + sanitizeEvent(event)).filterNotNull().takeLast(MAX_EVENTS)
+        val stamped = event.copy(build = event.build ?: runCatching(eventBuild).getOrNull())
+        val events = (readEvents() + sanitizeEvent(stamped)).filterNotNull().takeLast(MAX_EVENTS)
         val temporary = File(directory, "app-events.json.partial")
         temporary.writeText(compact.encodeToString(events))
         if (!temporary.renameTo(eventsFile)) temporary.delete()
@@ -198,6 +203,7 @@ class AndroidDiagnosticStore internal constructor(
     private fun sanitizeEvent(event: AppEvent): AppEvent? {
         if (event.at < now() - EVENT_RETENTION_MS || event.at > now() + 60_000) return null
         return event.copy(
+            build = event.build?.copy(versionCode = event.build.versionCode.coerceIn(0, Int.MAX_VALUE.toLong()), revision = event.build.revision.takeIf { Regex("[0-9a-f]{7,40}").matches(it) } ?: "unavailable"),
             fromVersion = event.fromVersion?.coerceIn(-1, 10_000),
             toVersion = event.toVersion?.coerceIn(-1, 10_000),
             classes = event.classes.filter(::isSafeClassName).take(4),
@@ -272,6 +278,8 @@ class AndroidDiagnosticStore internal constructor(
                     },
                     e.classes.takeIf { it.isNotEmpty() }?.joinToString(" → "),
                     e.detail,
+                    e.stage?.let { "stage ${it.name}" },
+                    e.build?.let { "version code ${it.versionCode} · revision ${it.revision} (${it.variant.name.lowercase()})" } ?: "Build not recorded (older event)",
                     ago,
                 ).joinToString(" · "),
             )
@@ -391,4 +399,15 @@ private fun diagnosticRuntime(context: Context): DiagnosticRuntime {
         else -> DiagnosticSpace.AT_LEAST_256_MIB
     }
     return DiagnosticRuntime(if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong(), info.versionName.orEmpty(), AndroidDiagnostics.variant, AndroidDiagnostics.revision, Build.VERSION.SDK_INT, provider, web?.versionName.orEmpty(), space, (Runtime.getRuntime().maxMemory() / (1024 * 1024)).toInt())
+}
+
+/** App-event attribution is captured when the event occurs; old files remain unattributed. */
+@Suppress("DEPRECATION")
+private fun diagnosticEventBuild(context: Context): AppEventBuild {
+    val info = context.packageManager.getPackageInfo(context.packageName, 0)
+    return AppEventBuild(if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong(), AndroidDiagnostics.revision, when (AndroidDiagnostics.variant) {
+        DiagnosticVariant.DEBUG -> AppBuildVariant.DEBUG
+        DiagnosticVariant.RELEASE -> AppBuildVariant.RELEASE
+        DiagnosticVariant.UNKNOWN -> AppBuildVariant.UNKNOWN
+    })
 }

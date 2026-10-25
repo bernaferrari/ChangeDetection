@@ -79,8 +79,10 @@ class QuickMonitorService :
             finish(TurboEndReason.NoSites)
             return START_NOT_STICKY
         }
+        var startStage = com.bernaferrari.changedetection.diagnostics.AppEventStage.TURBO_FOREGROUND
         try {
             ServiceCompat.startForeground(this, NOTIFICATION_ID, createNotification(TurboNotificationState(true, ids.size, interval)), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            startStage = com.bernaferrari.changedetection.diagnostics.AppEventStage.TURBO_SERVICE_START
             if (!session.state.value.isActive) {
                 wakeLock = (getSystemService(POWER_SERVICE) as PowerManager)
                     .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ChangeDetection:Turbo")
@@ -104,6 +106,7 @@ class QuickMonitorService :
             }
         } catch (error: Exception) {
             appLog.e("Could not start Turbo", error)
+            com.bernaferrari.changedetection.diagnostics.DiagnosticLog.appEvent(com.bernaferrari.changedetection.diagnostics.AppEventKind.BACKGROUND_FAILURE, error, stage = startStage)
             finish(TurboEndReason.StartFailed)
         }
         return START_NOT_STICKY

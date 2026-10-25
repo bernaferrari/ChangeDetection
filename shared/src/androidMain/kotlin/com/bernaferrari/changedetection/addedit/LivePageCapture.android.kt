@@ -82,6 +82,7 @@ internal actual fun createWatchWebView(param: com.multiplatform.webview.web.WebV
 }
 
 internal actual suspend fun loadedPageCaptureValidator(state: WebViewState): suspend () -> Unit = withContext(Dispatchers.Main.immediate) {
+    AndroidPageCapture(state.nativeWebView).validateCurrentResources()
     val health = com.bernaferrari.changedetection.browser.WebViewCaptureHealth.of(state.nativeWebView)
     val epoch = health.epoch()
     val validate: suspend () -> Unit = { health.validate(epoch) }

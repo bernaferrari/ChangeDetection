@@ -60,8 +60,14 @@ internal actual fun rememberBrowserPlatformParams(): com.multiplatform.webview.w
                 super.onPageFinished(view, url)
             }
 
+            override fun onReceivedError(view: android.webkit.WebView, request: android.webkit.WebResourceRequest?, error: android.webkit.WebResourceError?) {
+                request?.takeIf { !it.isForMainFrame }?.let { WebViewCaptureHealth.of(view).resourceError(it.url.toString()) }
+                super.onReceivedError(view, request, error)
+            }
+
             override fun onReceivedHttpError(view: android.webkit.WebView, request: android.webkit.WebResourceRequest, response: android.webkit.WebResourceResponse) {
                 super.onReceivedHttpError(view, request, response)
+                if (!request.isForMainFrame) WebViewCaptureHealth.of(view).resourceError(request.url.toString())
                 if (request.isForMainFrame) {
                     fail(request.url.toString(), com.multiplatform.webview.web.WebViewError(response.statusCode, response.reasonPhrase, true))
                 }
@@ -69,8 +75,7 @@ internal actual fun rememberBrowserPlatformParams(): com.multiplatform.webview.w
 
             override fun onReceivedSslError(view: android.webkit.WebView, handler: android.webkit.SslErrorHandler, error: android.net.http.SslError) {
                 handler.cancel()
-                // Same rule as scheduled checks: a refused image or frame leaves the page usable; the page itself
-                // failing TLS blocks watching it.
+                // Same completeness policy as scheduled checks: every TLS refusal invalidates capture.
                 val tls = WebViewCaptureHealth.of(view).ssl(error.url, error.primaryError, (0..5).filter(error::hasError))
                 if (tls.blocking) fail(error.url, tlsError())
             }

@@ -60,8 +60,8 @@ class MainActivity : ComponentActivity() {
             ChangeDetectionRootApp(
                 platformActions =
                 PlatformActions(
-                    openUrl = { url -> openUrl(context, url) },
-                    openEmail = { email, subject -> openEmail(context, email, subject) },
+                    openUrl = { url -> if (!openUrl(context, url)) showExternalOpenFailure(context) },
+                    openEmail = { email, subject -> if (!openEmail(context, email, subject)) showExternalOpenFailure(context) },
                     startTurbo = { siteIds, intervalSeconds, durationMinutes ->
                         requestNotificationPermissionIfNeeded()
                         mainViewModel.startQuickMonitor(siteIds, intervalSeconds, durationMinutes)
@@ -71,10 +71,9 @@ class MainActivity : ComponentActivity() {
                     },
                     requestNotifications = ::requestNotificationPermissionIfNeeded,
                     openNotificationSettings = {
-                        startActivity(
-                            Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                                .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName),
-                        )
+                        try {
+                            startActivity(Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName))
+                        } catch (_: Exception) { showExternalOpenFailure(context) }
                     },
                     supportsNotificationImages = true,
                     appVersion = BuildConfig.VERSION_NAME,
@@ -116,54 +115,44 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private fun Intent.extractComparisonSiteAndSnapIds(): Pair<String, String?>? = if (getBooleanExtra(ChangeNotificationContract.EXTRA_OPEN_COMPARISON, false)) {
+private fun Intent.extractComparisonSiteAndSnapIds(): Pair<String, String?>? = runCatching { if (getBooleanExtra(ChangeNotificationContract.EXTRA_OPEN_COMPARISON, false)) {
     getStringExtra(ChangeNotificationContract.EXTRA_SITE_ID)
         ?.takeIf(String::isNotBlank)
         ?.let { siteId -> siteId to getStringExtra(ChangeNotificationContract.EXTRA_SNAP_ID)?.takeIf(String::isNotBlank) }
 } else {
     null
-}
+} }.getOrNull()
 
-private fun Intent.extractSharedUrl(): String? = if (extractComparisonSiteAndSnapIds() != null) {
-    null
-} else {
-    when (action) {
-        Intent.ACTION_VIEW -> dataString
-
-        Intent.ACTION_SEND -> getStringExtra(Intent.EXTRA_TEXT)
-            ?.lineSequence()
-            ?.flatMap { it.splitToSequence(' ', '\t') }
-            ?.map { it.trim().trimEnd('.', ',', ')', ']') }
-            ?.firstOrNull { it.startsWith("http://") || it.startsWith("https://") }
-
+private fun Intent.extractSharedUrl(): String? = runCatching {
+    if (extractComparisonSiteAndSnapIds() != null) null else when (action) {
+        Intent.ACTION_VIEW -> dataString?.takeIf { it.length <= 8_192 && (it.startsWith("http://") || it.startsWith("https://")) }
+        Intent.ACTION_SEND -> getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()?.let { com.bernaferrari.changedetection.platform.extractSharedWebUrl(it) }
         else -> null
     }
+}.getOrNull()
+
+private fun showExternalOpenFailure(context: android.content.Context) {
+    android.widget.Toast.makeText(context, com.bernaferrari.changedetection.library.R.string.external_open_failed, android.widget.Toast.LENGTH_LONG).show()
 }
 
 private fun openUrl(
     context: android.content.Context,
     url: String,
-) {
-    try {
+): Boolean = try {
         val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, url.toUri())
         context.startActivity(intent)
-    } catch (e: Exception) {
-        // Handle error
-    }
-}
+        true
+    } catch (_: Exception) { false }
 
 private fun openEmail(
     context: android.content.Context,
     email: String,
     subject: String,
-) {
-    try {
+): Boolean = try {
         val intent =
             android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
                 data = "mailto:$email?subject=${android.net.Uri.encode(subject)}".toUri()
             }
         context.startActivity(intent)
-    } catch (e: Exception) {
-        // Handle error
-    }
-}
+        true
+    } catch (_: Exception) { false }

@@ -8,6 +8,11 @@ fun interface ChangeNotifier {
     val supportsDelivery: Boolean get() = true
 
     suspend fun notifyChange(site: Site, snapId: String)
+
+    /** Notifiers that prepare asynchronously must check eligibility after preparation, just before posting. */
+    suspend fun notifyChangeIfCurrent(site: Site, snapId: String, isCurrent: suspend () -> Boolean) {
+        if (isCurrent()) notifyChange(site, snapId)
+    }
 }
 
 /** Platforms without notification delivery still participate in the shared sync pipeline. */

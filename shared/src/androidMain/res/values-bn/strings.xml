@@ -21,4 +21,5 @@
     <string name="start">শুরু করুন</string>
     <string name="change_notification_named">%1$s বদলেছে</string>
     <string name="change_notification_generic">পরিবর্তন দেখতে ট্যাপ করুন।</string>
+    <string name="external_open_failed">অন্য অ্যাপ খোলা যায়নি। উপযুক্ত অ্যাপ ইনস্টল করুন বা আবার চেষ্টা করুন।</string>
 </resources>

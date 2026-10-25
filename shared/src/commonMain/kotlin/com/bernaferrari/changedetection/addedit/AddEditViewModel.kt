@@ -31,7 +31,7 @@ import kotlin.uuid.Uuid
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
 
-enum class PreviewFailure { TIMEOUT, REGION, TLS, CONNECTION, UNAVAILABLE }
+enum class PreviewFailure { TIMEOUT, CAPTURE_INCOMPLETE, REGION, MULTIPLE_REGIONS, TLS, CONNECTION, UNAVAILABLE }
 
 sealed interface CapturePreviewState {
     data object Idle : CapturePreviewState
@@ -178,8 +178,8 @@ class AddEditViewModel(
                         it.copy(
                             preview = CapturePreviewState.Failed(
                                 when {
-                                    error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> PreviewFailure.TIMEOUT
-                                    error is com.bernaferrari.changedetection.detection.TextRegionException -> PreviewFailure.REGION
+                                    error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> if (error.issue == com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED) PreviewFailure.CAPTURE_INCOMPLETE else PreviewFailure.TIMEOUT
+                                    error is com.bernaferrari.changedetection.detection.TextRegionException -> if (error.issue == com.bernaferrari.changedetection.detection.TextRegionIssue.MULTIPLE_MATCHES) PreviewFailure.MULTIPLE_REGIONS else PreviewFailure.REGION
                                     com.bernaferrari.changedetection.error.isTlsFailure(error) -> PreviewFailure.TLS
                                     generateSequence(error as Throwable) { it.cause }.take(6).any { it is kotlinx.io.IOException } -> PreviewFailure.CONNECTION
                                     else -> PreviewFailure.UNAVAILABLE
@@ -351,6 +351,7 @@ class AddEditViewModel(
 
     fun saveSite() {
         val state = _uiState.value
+        if ((state.preview as? CapturePreviewState.Failed)?.reason == PreviewFailure.MULTIPLE_REGIONS) return
         if (!validateRegion(state)) return
         val normalizedUrl = state.url.normalizeUrl()
         if (normalizedUrl == null) {
@@ -391,6 +392,7 @@ class AddEditViewModel(
 
     private fun performSave(startFresh: Boolean) {
         val state = _uiState.value
+        if ((state.preview as? CapturePreviewState.Failed)?.reason == PreviewFailure.MULTIPLE_REGIONS) return
         if (!validateRegion(state)) return
         val normalizedUrl = state.url.normalizeUrl()
         if (normalizedUrl == null) {
@@ -472,6 +474,10 @@ class AddEditViewModel(
                 // A quick Start tap should keep the in-flight browser capture, not throw it
                 // away and load the page again. Configuration remains available until saving.
                 pendingLivePreview?.join()
+                if ((_uiState.value.preview as? CapturePreviewState.Failed)?.reason == PreviewFailure.MULTIPLE_REGIONS) {
+                    _uiState.update { it.copy(isSaving = false) }
+                    return@launch
+                }
                 monitoringManager.updateSchedule()
                 sitesRepository.saveSite(baseSite, resetHistory = startFresh && existingSite != null, requireExisting = siteId != null)
                 // Any edit to the address, mode or parts discards the preview, so a ready one shows exactly this page.

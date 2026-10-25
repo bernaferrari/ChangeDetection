@@ -18,8 +18,10 @@ class IosChangeNotifier : ChangeNotifier {
     private val delivery = ChangeAlertDelivery(prepare = { site, snapId ->
         val koin = org.koin.mp.KoinPlatformTools.defaultContext().getOrNull()
         changeAlertText(site, snapId, koin?.getOrNull<SnapsRepository>(), koin?.getOrNull<ChangePreviewRepository>()).second
-    }, publish = { site, snapId, summary ->
+    }, publish = { site, snapId, summary, isCurrent ->
         val (title, fallback) = changeAlertText(site, snapId, null, null)
+        // Localized fallback resources may suspend too; validate after that final preparation.
+        if (!isCurrent()) return@ChangeAlertDelivery
         val content = UNMutableNotificationContent().apply {
             setTitle(title)
             setBody(summary ?: fallback)
@@ -38,6 +40,8 @@ class IosChangeNotifier : ChangeNotifier {
     })
 
     override suspend fun notifyChange(site: Site, snapId: String) = delivery.deliver(site, snapId)
+
+    override suspend fun notifyChangeIfCurrent(site: Site, snapId: String, isCurrent: suspend () -> Boolean) = delivery.deliver(site, snapId, isCurrent)
 }
 
 /** Asks once; iOS remembers the answer and only shows the system prompt the first time. */

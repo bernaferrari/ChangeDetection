@@ -41,6 +41,7 @@ internal class AndroidPageCapture(private val view: WebView) {
         diagnosticMetric(DiagnosticStage.CREATE_BROWSER, DiagnosticMetric.ATTACHED, if (view.isAttachedToWindow) 1 else 0)
         diagnosticStage(DiagnosticStage.NAVIGATE) { navigate(url) }
         diagnosticStage(DiagnosticStage.SETTLE) { delay(settleDelayMs.coerceIn(0, 30_000)) }
+        validateBrowserSessionState(url, evaluate(RenderedCaptureScripts.SESSION))
         diagnosticStage(DiagnosticStage.CAPTURE_PIXELS) { captureLoaded(maxHeight, hide, only) }
     }
 
@@ -52,6 +53,7 @@ internal class AndroidPageCapture(private val view: WebView) {
         diagnosticMetric(DiagnosticStage.CREATE_BROWSER, DiagnosticMetric.ATTACHED, if (view.isAttachedToWindow) 1 else 0)
         diagnosticStage(DiagnosticStage.NAVIGATE) { navigate(url) }
         diagnosticStage(DiagnosticStage.SETTLE) { delay(settleDelayMs.coerceIn(0, 30_000)) }
+        validateBrowserSessionState(url, evaluate(RenderedCaptureScripts.SESSION))
         // A configured delay may be zero while the selected node is still arriving.
         // Give missing content a bounded grace period, then let normal region validation
         // report a genuinely removed selection. Never fall back to the whole page.
@@ -68,6 +70,7 @@ internal class AndroidPageCapture(private val view: WebView) {
         navigationFailure?.let { throw it }
         rendererFailure?.let { throw it }
         val epoch = health.epoch()
+        registerResourceDependencies(only)
         health.validate(epoch)
         diagnosticCapture(captureContext(only), contentStage)
         val raw = diagnosticStage(DiagnosticStage.EXTRACT_TEXT) { evaluate("document.documentElement.outerHTML") }
@@ -156,6 +159,8 @@ internal class AndroidPageCapture(private val view: WebView) {
                 val pageHeight = view.contentHeight.toDouble() * view.scale
                 require(pageHeight <= 100_000) { "This page is too tall for a screenshot. Use page text monitoring." }
             }
+            registerResourceDependencies(only)
+            health.validate(epoch)
             val before = captureContext(only)
             diagnosticCapture(before)
             val region = clip?.let { Rectangle(it[0], it[1], it[2] - it[0], it[3] - it[1]) }
@@ -180,6 +185,7 @@ internal class AndroidPageCapture(private val view: WebView) {
             ) {
                 notReady(CaptureIssue.LAYOUT_CHANGED)
             }
+            registerResourceDependencies(only)
             health.validate(epoch)
             WebViewScreenshot("image/png", shot.bytes, shot.width, shot.height, title, icon)
         } finally {
@@ -249,13 +255,16 @@ internal class AndroidPageCapture(private val view: WebView) {
         throw TextRegionException(failure, issue = issue)
     }
 
+    private suspend fun visibleVisualRegion(selector: String): Boolean = evaluate("""(function(){var e=document.querySelector(${PageCleanup.js(selector)});if(!e)return false;var v=getComputedStyle(e).visibility;if(v==='hidden'||v==='collapse')return false;for(var a=e;a;a=a.parentElement){var s=getComputedStyle(a);if(s.display==='none'||s.contentVisibility==='hidden'||parseFloat(s.opacity)===0)return false;}return true})()""") == "true"
+
     private suspend fun awaitSelectedRegion(selector: String, requireText: Boolean) {
         val started = android.os.SystemClock.elapsedRealtime()
         while (true) {
             checkNavigation()
             val state = regionState(selector)
             if (state.firstOrNull() == -1.0) regionFailure(TextRegionFailure.INVALID_SELECTOR)
-            if (state.size == 6 && state[0] > 0 && (if (requireText) state[5] > 0 else state[3] > state[1] && state[4] > state[2])) return
+            if (!requireText && state.firstOrNull()?.let { it > 1 } == true) regionFailure(TextRegionFailure.INVALID_SELECTOR, TextRegionIssue.MULTIPLE_MATCHES)
+            if (state.size == 6 && state[0] > 0 && (if (requireText) state[5] > 0 else state[3] > state[1] && state[4] > state[2] && visibleVisualRegion(selector))) return
             if (android.os.SystemClock.elapsedRealtime() - started >= READY_TIMEOUT_MS) {
                 diagnosticCapture(captureContext(selector), contentStage)
                 regionFailure(
@@ -274,20 +283,34 @@ internal class AndroidPageCapture(private val view: WebView) {
     private suspend fun readClip(selector: String): List<Double> {
         val state = regionState(selector)
         if (state.firstOrNull() == -1.0) regionFailure(TextRegionFailure.INVALID_SELECTOR)
+        if (state.firstOrNull()?.let { it > 1 } == true) regionFailure(TextRegionFailure.INVALID_SELECTOR, TextRegionIssue.MULTIPLE_MATCHES)
         if (state.size != 6 || state[0] <= 0 || state[3] <= state[1] || state[4] <= state[2]) regionFailure(TextRegionFailure.REGION_MISSING)
+        if (!visibleVisualRegion(selector)) regionFailure(TextRegionFailure.REGION_MISSING, TextRegionIssue.EXCLUDED)
         return state.subList(1, 5)
     }
 
+    /** URLs stay bounded and in memory; exported diagnostics contain only fixed capture failure reasons. */
+    internal suspend fun validateCurrentResources(selector: String = "") = withContext(Dispatchers.Main.immediate) {
+        registerResourceDependencies(selector)
+        health.validate()
+    }
+
+    private suspend fun registerResourceDependencies(selector: String) {
+        val raw = evaluate("""(function(){var u=new Set();function add(v){if(v&&/^https?:/i.test(v))u.add(v)}document.querySelectorAll('script[src],link[rel~=stylesheet][href],iframe[src]').forEach(function(e){add(e.src||e.href)});var roots=${if (selector.isBlank()) "[document.body]" else "Array.from(document.querySelectorAll(${PageCleanup.js(selector)}))"};roots.forEach(function(root){if(!root)return;var all=[root].concat(Array.from(root.querySelectorAll('*'))).slice(0,5000);all.forEach(function(e){var r=e.getBoundingClientRect(),s=getComputedStyle(e);if(r.width<2||r.height<2||s.visibility==='hidden'||s.display==='none'||parseFloat(s.opacity)===0)return;if(e.tagName==='IMG')add(e.currentSrc||e.src);var re=/url\((?:"([^"]*)"|'([^']*)'|([^)]*))\)/g,m;while((m=re.exec(s.backgroundImage)))add(m[1]||m[2]||m[3]);});});return JSON.stringify(Array.from(u).slice(0,513))})()""")
+        val values = kotlinx.serialization.json.Json.decodeFromString<List<String>>(kotlinx.serialization.json.Json.decodeFromString<String>(raw))
+        health.dependencies(values)
+    }
+
     private fun resourceScript(top: Double, bottom: Double, selector: String) = """(function(){
-        var p=0, families={}, root=${if (selector.isBlank()) "document.body" else "document.querySelector(${PageCleanup.js(selector)})"};
+        var p=0, fontChecks=[], root=${if (selector.isBlank()) "document.body" else "document.querySelector(${PageCleanup.js(selector)})"};
         if(!root)return '0,0,0,0';
         function visible(e){var r=e.getBoundingClientRect(),s=getComputedStyle(e);if(r.width<2||r.height<2||r.bottom+scrollY<=$top||r.top+scrollY>=$bottom||s.visibility==='hidden'||s.display==='none')return false;for(var a=e;a;a=a.parentElement)if(parseFloat(getComputedStyle(a).opacity)===0)return false;return true;}
         var images=Array.from(root.querySelectorAll('img'));if(root.tagName==='IMG')images.push(root);
-        images.forEach(function(i){if(visible(i)&&!i.complete)p++});
+        images.forEach(function(i){if(visible(i)&&(!i.complete||i.naturalWidth===0))p++});
         var walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),n,count=0;
-        while((n=walker.nextNode())&&count++<5000){var e=n.parentElement;if(!n.nodeValue.trim()||!e||!visible(e))continue;getComputedStyle(e).fontFamily.split(',').forEach(function(f){families[f.trim().replace(/^['"]|['"]$/g,'').toLowerCase()]=true})}
-        var fonts=0;if(document.fonts)document.fonts.forEach(function(f){var family=f.family.trim().replace(/^['"]|['"]$/g,'').toLowerCase();if(f.status==='loading'&&families[family])fonts++});
-        return [p,fonts,document.documentElement.clientWidth,Math.min(Math.max(document.documentElement.scrollHeight,document.body.scrollHeight),$bottom)].join(',')
+        while((n=walker.nextNode())&&count++<5000){var e=n.parentElement;if(!n.nodeValue.trim()||!e||!visible(e))continue;var style=getComputedStyle(e);fontChecks.push([style.font||(style.fontSize+' '+style.fontFamily),n.nodeValue.slice(0,128)])}
+        var fonts=0,badFont=false;if(document.fonts)fontChecks.forEach(function(q){try{if(!document.fonts.check(q[0],q[1])){fonts++;if(document.fonts.status!=='loading')badFont=true}}catch(e){badFont=true}});
+        return [p,badFont?-1:fonts,document.documentElement.clientWidth,Math.min(Math.max(document.documentElement.scrollHeight,document.body.scrollHeight),$bottom)].join(',')
     })()"""
 
     private suspend fun awaitResources(top: Double, bottom: Double, selector: String) {
@@ -298,6 +321,7 @@ internal class AndroidPageCapture(private val view: WebView) {
             checkNavigation()
             val state = evaluate(resourceScript(top, bottom, selector)).trim('"').split(',').mapNotNull(String::toDoubleOrNull)
             if (state.size != 4) notReady(CaptureIssue.VIEWPORT_NOT_READY)
+            if (state[1] < 0) notReady(CaptureIssue.RESOURCE_FAILED)
             val signature = state.drop(2).joinToString(",") + if (selector.isBlank()) "" else readClip(selector).joinToString(",")
             quiet = if (state[0] == 0.0 && state[1] == 0.0 && signature == previous) quiet + 1 else 0
             previous = signature
@@ -435,6 +459,7 @@ internal class AndroidPageCapture(private val view: WebView) {
             }
 
             override fun onReceivedError(webView: WebView, request: WebResourceRequest, error: WebResourceError) {
+                if (!request.isForMainFrame) health.resourceError(request.url.toString())
                 if (request.isForMainFrame) {
                     trace?.callback(DiagnosticStage.NAVIGATE, DiagnosticMetric.WEBVIEW_ERROR, error.errorCode)
                     fail(IOException(error.description.toString()))
@@ -442,6 +467,7 @@ internal class AndroidPageCapture(private val view: WebView) {
             }
 
             override fun onReceivedHttpError(webView: WebView, request: WebResourceRequest, response: WebResourceResponse) {
+                if (!request.isForMainFrame) health.resourceError(request.url.toString())
                 if (request.isForMainFrame) {
                     trace?.callback(DiagnosticStage.NAVIGATE, DiagnosticMetric.HTTP_STATUS, response.statusCode)
                     fail(com.bernaferrari.changedetection.error.NetworkError(response.statusCode, "HTTP ${response.statusCode}"))
@@ -449,8 +475,7 @@ internal class AndroidPageCapture(private val view: WebView) {
             }
 
             override fun onReceivedSslError(webView: WebView, handler: SslErrorHandler, error: SslError) {
-                // Always refused, never proceeded. Only the page itself failing makes the capture invalid;
-                // an image or frame with a bad certificate is left out, as Chrome does.
+                // Refuse invalid TLS and reject incomplete monitored content, including sub-resources.
                 handler.cancel()
                 val tls = health.ssl(error.url, error.primaryError, (0..5).filter(error::hasError))
                 // A few refused resources explain a capture; dozens would crowd the check's own stages out of the report.

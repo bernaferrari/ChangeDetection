@@ -21,4 +21,5 @@
     <string name="start">Iniciar</string>
     <string name="change_notification_named">%1$s mudou</string>
     <string name="change_notification_generic">Toque para ver o que mudou.</string>
+    <string name="external_open_failed">Não foi possível abrir outro app. Instale um app compatível ou tente novamente.</string>
 </resources>

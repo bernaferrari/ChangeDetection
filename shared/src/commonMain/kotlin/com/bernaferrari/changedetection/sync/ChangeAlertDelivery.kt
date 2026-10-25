@@ -7,16 +7,19 @@ import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-/** Delivery belongs to its caller. Preparation may be superseded; publication is serialized and awaited. */
+/**
+ * Delivery belongs to its caller. Preparation may be superseded; publication is serialized and awaited.
+ * Publishers that suspend before native submission must recheck the supplied eligibility predicate afterward.
+ */
 internal class ChangeAlertDelivery<T>(
     private val prepare: suspend (Site, String) -> T?,
-    private val publish: suspend (Site, String, T?) -> Unit,
+    private val publish: suspend (Site, String, T?, suspend () -> Boolean) -> Unit,
 ) {
     private val mutex = Mutex()
     private val pending = mutableMapOf<String, Deferred<Unit>>()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    suspend fun deliver(site: Site, snapId: String) = coroutineScope {
+    suspend fun deliver(site: Site, snapId: String, isCurrent: suspend () -> Boolean = { true }) = coroutineScope {
         lateinit var job: Deferred<Unit>
         job = async(start = CoroutineStart.LAZY) {
             val preparation = async {
@@ -42,7 +45,11 @@ internal class ChangeAlertDelivery<T>(
             mutex.withLock {
                 if (pending[site.id] === job) {
                     // Do not release publication ownership before a native asynchronous post acknowledges submission.
-                    withContext(NonCancellable) { withTimeout(5_000) { publish(site, snapId, summary) } }
+                    withContext(NonCancellable) {
+                        withTimeout(5_000) {
+                            if (isCurrent()) publish(site, snapId, summary, isCurrent)
+                        }
+                    }
                 }
             }
         }

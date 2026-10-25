@@ -120,7 +120,7 @@ class ComparisonViewModel(
                     append(site.url)
                 }
             }
-            shareManager.shareText(text, site.title ?: site.url)
+            shareTextOrReportFailure(text, site.title ?: site.url)
         }
     }
 
@@ -138,7 +138,17 @@ class ComparisonViewModel(
                 appendLine()
                 append(site.url)
             }
-            shareManager.shareText(text, site.title ?: site.url)
+            shareTextOrReportFailure(text, site.title ?: site.url)
+        }
+    }
+
+    private suspend fun shareTextOrReportFailure(text: String, title: String) {
+        try {
+            shareManager.shareText(text, title)
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            _actionMessages.send(getString(Res.string.share_failed))
         }
     }
 

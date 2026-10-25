@@ -440,4 +440,14 @@
     </plurals>
     <string name="check_failure_tls">Secure connection failed</string>
     <string name="check_failure_tls_detail">The page’s secure connection could not be verified. Your saved history is kept. Try again later or check the website in your browser.</string>
+    <string name="preview_single_visual_region">Screenshot monitoring supports one selected area. Choose one element or switch to Text to watch multiple areas.</string>
+    <string name="share_failed">Could not share this content. Try again or choose another app.</string>
+    <string name="external_open_failed">Could not open another app. Install a compatible app or try again.</string>
+    <string name="check_failure_background_restricted">Background check could not start</string>
+    <string name="check_failure_background_restricted_detail">Android did not allow this background check to start. Open the app and try again. Existing history is preserved.</string>
+    <string name="check_failure_saved_content_unavailable">Saved version unavailable</string>
+    <string name="check_failure_saved_content_unavailable_detail">The saved version is missing or damaged. Existing history has been kept. Check available device storage and send a report if the problem continues.</string>
+    <string name="check_failure_capture_incomplete">Page capture incomplete</string>
+    <string name="check_failure_capture_incomplete_detail">Part of the watched page could not be loaded. Saved history has been kept. Try again or preview the page.</string>
+    <string name="text_http_capability_note">Text monitoring on this platform reads the HTTP response. JavaScript content and browser sign-in cookies are not included.</string>
 </resources>

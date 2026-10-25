@@ -88,6 +88,10 @@ class CoreDiModule {
     fun snapshotFileCleanup(database: ChangeDatabase, fileStorage: FileStorage): com.bernaferrari.changedetection.storage.SnapshotFileCleanup = com.bernaferrari.changedetection.storage.SnapshotFileCleanup(database.pendingFileDeletionDao(), database.snapsDao(), fileStorage)
 
     @Single
+    fun changeAlertOutbox(database: ChangeDatabase, notifier: ChangeNotifier): com.bernaferrari.changedetection.sync.ChangeAlertOutbox =
+        com.bernaferrari.changedetection.sync.ChangeAlertOutbox(database.pendingChangeAlertDao(), database.siteDao(), database.snapsDao(), notifier)
+
+    @Single
     fun syncEngine(
         httpClient: HttpClient,
         database: ChangeDatabase,
@@ -97,6 +101,7 @@ class CoreDiModule {
         errorHandler: ErrorHandler,
         changeNotifier: ChangeNotifier,
         progressTracker: SyncProgressTracker,
+        alertOutbox: com.bernaferrari.changedetection.sync.ChangeAlertOutbox,
         cleanup: com.bernaferrari.changedetection.storage.SnapshotFileCleanup,
     ): SyncEngine = SyncEngine(
         httpClient,
@@ -108,6 +113,7 @@ class CoreDiModule {
         changeNotifier,
         progressTracker,
         com.bernaferrari.changedetection.storage.SnapshotMaintenance(database, snapsDao, fileStorage, cleanup = cleanup),
+        alertOutbox,
     )
 
     @Single

@@ -75,7 +75,7 @@
         <item quantity="other">%1$d eliminadas</item>
     </plurals>
     <string name="detail_sign_in">Iniciar sesión</string>
-    <string name="browser_session_note">En Android, las comprobaciones de texto y capturas de pantalla pueden reutilizar las cookies de inicio de sesión guardadas en este navegador. Las de código fuente no. Algunos sitios pueden pedirte que inicies sesión de nuevo.</string>
+    <string name="browser_session_note">Texto y Captura de pantalla usan el perfil del navegador de la app. Iniciar sesión o cambiar de cuenta en un sitio afecta a sus páginas vigiladas. Las sesiones pueden caducar. Código no usa las cookies de inicio de sesión del navegador.</string>
     <string name="turbo_next_check">Próxima comprobación en %1$d s</string>
     <string name="picker_selected_image">Una imagen</string>
     <string name="picker_selected_frame">Un marco incrustado (a menudo un anuncio)</string>

@@ -96,6 +96,7 @@ class WorkerHelper(
             appLog.d("QuickMonitorService.start() called successfully")
         } catch (e: Exception) {
             appLog.e("Failed to start QuickMonitorService: ${e.message}")
+            com.bernaferrari.changedetection.diagnostics.DiagnosticLog.appEvent(com.bernaferrari.changedetection.diagnostics.AppEventKind.BACKGROUND_FAILURE, e, stage = com.bernaferrari.changedetection.diagnostics.AppEventStage.TURBO_LAUNCH)
             throw e
         }
     }

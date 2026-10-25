@@ -23,6 +23,7 @@ fun initKoin(appDeclaration: KoinAppDeclaration = {}): KoinApplication = koinApp
 }.also { application ->
     koinApplication = application
     application.koin.get<ApplicationScope>().scope.launch { application.koin.get<SnapshotFileCleanup>().run() }
+    application.koin.get<ApplicationScope>().scope.launch { application.koin.get<com.bernaferrari.changedetection.sync.ChangeAlertOutbox>().run() }
 }
 
 // Helper for iOS to get SyncEngine

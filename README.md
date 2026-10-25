@@ -44,7 +44,7 @@ A page changed. Was it the price, an application deadline, or just a rotating ba
 3. Review the capture, choose a comparison mode, and save it.
 4. Check manually or set up automatic checks. Open a change to compare it with the previous version.
 
-On Android, text and screenshot checks can reuse sign-in cookies saved in the in-app browser. Source checks do not use those cookies. Some sites require you to sign in again, and pages with extra verification may not work reliably.
+On Android and iOS, Text and Screenshot checks use the rendered browser page and its saved sign-in session. Source checks fetch HTTP without that browser session. Desktop Text checks also read the HTTP response: JavaScript-created content and browser sign-in cookies are not supported there, and setup previews use the same HTTP capture before saving. Watches that use a browser share one profile on each device, so switching accounts on a site affects its watches. Sessions can expire; a redirect to a sign-in form stops the check and keeps history. A same-address sign-in wall cannot always be distinguished from an intentional page change. Pages with extra verification may not work reliably.
 
 For a ticket release, restock, or approaching deadline, **Turbo** checks selected pages every 5, 15, 30, or 60 seconds for up to three hours. Frequent checks use more battery and data; use the interval you actually need.
 

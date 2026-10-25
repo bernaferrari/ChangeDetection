@@ -37,8 +37,19 @@ class AndroidFileStorage(
         }
     }
 
-    override fun readBytes(fileName: String): ByteArray = context.openFileInput(fileName).use {
-        it.readBytes()
+    override fun readBytes(fileName: String): ByteArray {
+        if (context.getFileStreamPath(fileName).length() > MAX_SNAPSHOT_BYTES) throw java.io.IOException("Saved snapshot exceeds the supported size")
+        return context.openFileInput(fileName).use {
+            val output = java.io.ByteArrayOutputStream()
+            val buffer = ByteArray(16_384)
+            while (true) {
+                val count = it.read(buffer)
+                if (count < 0) break
+                if (output.size().toLong() + count > MAX_SNAPSHOT_BYTES) throw java.io.IOException("Saved snapshot exceeds the supported size")
+                output.write(buffer, 0, count)
+            }
+            output.toByteArray()
+        }
     }
 
     override fun deleteFile(fileName: String): Boolean = context.deleteFile(fileName)

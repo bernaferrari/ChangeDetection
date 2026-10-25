@@ -48,6 +48,7 @@ data class Snap(
     val contentSize: Int,
     val contentHash: String = "", // SHA-256 hash for fast comparison
     val processedContentHash: String = "", // Hash of processed/cleaned content
+    @ColumnInfo(defaultValue = "''") val payloadHash: String = "", // Exact stored-byte integrity; legacy rows remain unmodified.
 ) {
     @OptIn(ExperimentalUuidApi::class)
     @Ignore

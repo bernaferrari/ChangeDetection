@@ -29,10 +29,14 @@ class AndroidChangeNotifier internal constructor(
     private val context: Context,
     prepare: suspend (Site, String) -> PreparedAndroidAlert? = { site, id -> prepareAndroidAlert(context, site, id) },
 ) : ChangeNotifier {
-    private val delivery = ChangeAlertDelivery(prepare = prepare, publish = ::post)
+    private val delivery = ChangeAlertDelivery(prepare = prepare, publish = { site, id, prepared, _ -> post(site, id, prepared) })
 
     override suspend fun notifyChange(site: Site, snapId: String) {
         delivery.deliver(site, snapId)
+    }
+
+    override suspend fun notifyChangeIfCurrent(site: Site, snapId: String, isCurrent: suspend () -> Boolean) {
+        delivery.deliver(site, snapId, isCurrent)
     }
 
     @SuppressLint("MissingPermission")

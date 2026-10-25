@@ -734,7 +734,7 @@
         <item quantity="other">%1$d 个删除</item>
     </plurals>
     <string name="detail_sign_in">登录</string>
-    <string name="browser_session_note">在 Android 上，文本和截图检查可以使用此浏览器保存的登录 Cookie。源代码检查不会使用这些 Cookie。部分网站可能会要求你重新登录。</string>
+    <string name="browser_session_note">文本和截图使用相同的应用内浏览器登录信息。登录或切换网站账户会更改该网站的监测内容。会话可能过期。代码检查不使用浏览器的登录 Cookie。</string>
     <string name="turbo_next_check">%1$d 秒后再次检查</string>
     <string name="picker_selected_image">图片</string>
     <string name="picker_selected_frame">嵌入式框架（通常是广告）</string>
@@ -792,4 +792,14 @@
     <string name="comparison_finding_changes">正在查找变化…</string>
     <string name="check_failure_tls">安全连接失败</string>
     <string name="check_failure_tls_detail">无法确认页面的安全连接。已保存的历史记录会保留。请稍后重试，或在浏览器中打开网站。</string>
+    <string name="preview_single_visual_region">截图监测支持一个选定区域。请选择一个元素，或切换为文本以监测多个区域。</string>
+    <string name="share_failed">无法分享此内容。请重试或选择其他应用。</string>
+    <string name="external_open_failed">无法打开其他应用。请下载支持此内容的应用，或重试。</string>
+    <string name="check_failure_background_restricted">无法开始后台检查</string>
+    <string name="check_failure_background_restricted_detail">Android 拒绝开始此后台检查。请打开应用后重试。现有历史记录已保留。</string>
+    <string name="check_failure_saved_content_unavailable">已保存的版本不可用</string>
+    <string name="check_failure_saved_content_unavailable_detail">已保存的版本不存在或无效。现有历史记录已保留。请检查设备可用存储空间，如果问题继续出现，请发送问题信息。</string>
+    <string name="check_failure_capture_incomplete">页面内容不完整</string>
+    <string name="check_failure_capture_incomplete_detail">无法加载监测页面的部分内容。已保存的历史记录已保留。请重试或预览页面。</string>
+    <string name="text_http_capability_note">此平台的文本监测读取 HTTP 返回的内容，不包含 JavaScript 内容或浏览器的登录 Cookie。</string>
 </resources>

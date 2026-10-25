@@ -74,6 +74,7 @@ open class SyncEngine(
     private val changeNotifier: ChangeNotifier = NoOpChangeNotifier,
     private val progressTracker: SyncProgressTracker = SyncProgressTracker(),
     private val maintenance: com.bernaferrari.changedetection.storage.SnapshotMaintenance? = null,
+    private val alertOutbox: ChangeAlertOutbox? = null,
 ) {
     private val pageLocks = PageCheckLocks()
 
@@ -212,7 +213,9 @@ open class SyncEngine(
         when (result) {
             is FetchResult.Success -> {
                 diagnosticMetric(DiagnosticStage.PREPARE_CONTENT, DiagnosticMetric.BYTES_BUCKET, if (result.data.isEmpty()) 0 else 32 - result.data.size.countLeadingZeroBits())
-                if (result.data.isEmpty()) {
+                if (result.data.size > com.bernaferrari.changedetection.util.MAX_SNAPSHOT_BYTES) {
+                    processErrorResult(currentSite, FetchResult.Error("Captured content exceeds the supported size", SyncError(SyncError.Reason.CONTENT_TOO_LARGE)))
+                } else if (result.data.isEmpty()) {
                     processErrorResult(currentSite, FetchResult.Error("The page returned no content"))
                 } else if (site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT && result.contentType.startsWith("image/", true)) {
                     processErrorResult(currentSite, FetchResult.Error("This address returns an image. Choose screenshots or source monitoring."))
@@ -222,6 +225,8 @@ open class SyncEngine(
                         processSuccessResult(currentSite, result, threshold, firstVersionOnly)
                     } catch (cancelled: CancellationException) {
                         throw cancelled
+                    } catch (stale: BaselineChangedDuringCheck) {
+                        SyncResult.Skipped(site.id, "History changed during check")
                     } catch (error: Exception) {
                         processErrorResult(currentSite, FetchResult.Error("Could not process captured content", error))
                     }
@@ -236,11 +241,52 @@ open class SyncEngine(
 
     private suspend fun readBaseline(id: String): ByteArray = diagnosticStage(DiagnosticStage.READ_BASELINE) {
         try {
-            fileStorage.readBytes(id)
+            withContext(com.bernaferrari.changedetection.util.fileIoDispatcher) { fileStorage.readBytes(id) }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            throw DatabaseError(DatabaseError.Operation.READ, "Could not read baseline file", e)
+            throw BaselineIntegrityError(e)
+        }
+    }
+
+    /** Verify immutable bytes, rather than treating a metadata hash as proof that its file is healthy. */
+    private suspend fun verifiedBaseline(snap: Snap): ByteArray {
+        val bytes = try { readBaseline(snap.snapId) } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            if (snapsDao.getLastSnapForSiteId(snap.siteId)?.snapId != snap.snapId) throw BaselineChangedDuringCheck()
+            throw error
+        }
+        val digest = snap.contentHash.substringAfterLast(':')
+        val legacyExpected = try { if (snap.payloadHash.isEmpty() && digest.matches(Regex("[0-9a-fA-F]{64}"))) {
+            when {
+                snap.contentHash.startsWith("image-v2:") || snap.contentHash.startsWith("image-v3:") || snap.contentHash.startsWith("screenshot-v1:") || snap.contentHash.startsWith("source-v1:") -> ContentHasher.hashContent(bytes)
+                snap.contentHash.startsWith("text-v1:") || snap.contentHash.startsWith("text-region-v2:") -> ContentHasher.detectionHash(bytes, snap.contentType, com.bernaferrari.changedetection.repo.CaptureMode.TEXT).substringAfterLast(':')
+                ':' !in snap.contentHash -> if (snap.contentType.contains("html", true)) ContentHasher.hashHtmlContent(bytes) else ContentHasher.hashContent(bytes)
+                else -> null // Unknown old policy has no trustworthy original byte checksum.
+            }
+        } else null } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            if (snapsDao.getLastSnapForSiteId(snap.siteId)?.snapId != snap.snapId) throw BaselineChangedDuringCheck()
+            throw BaselineIntegrityError(error)
+        }
+        if (bytes.isEmpty() || bytes.size != snap.contentSize ||
+                (snap.payloadHash.isNotEmpty() && ContentHasher.hashContent(bytes) != snap.payloadHash) ||
+                (snap.payloadHash.isEmpty() && legacyExpected != null && !legacyExpected.equals(digest, ignoreCase = true))) {
+                if (snapsDao.getLastSnapForSiteId(snap.siteId)?.snapId != snap.snapId) throw BaselineChangedDuringCheck()
+                throw BaselineIntegrityError()
+        }
+        return bytes
+    }
+
+    private suspend fun retryPendingAlerts(siteId: String) {
+        try {
+            diagnosticStage(DiagnosticStage.NOTIFY) { alertOutbox?.drain(siteId) }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            appLog.w("Saved alert remains queued for retry", error)
         }
     }
 
@@ -275,6 +321,9 @@ open class SyncEngine(
         }
         diagnosticMetric(DiagnosticStage.READ_BASELINE, DiagnosticMetric.BASELINE_PRESENT, if (lastSnap == null) 0 else 1)
         if (firstVersionOnly && lastSnap != null) return SyncResult.Success(site.id, hadChanges = false)
+        var checkedBaseline: ByteArray? = null
+        suspend fun baselineContent(): ByteArray = checkedBaseline ?: verifiedBaseline(requireNotNull(lastSnap)).also { checkedBaseline = it }
+
         // When reusing a preview, the commit below must still see this empty history.
         // Pages added before icons were captured get their real (high-resolution) icon from the HTML they already served.
         if (site.iconUrl.isBlank() && incoming.contentType.contains("html", true)) {
@@ -311,15 +360,16 @@ open class SyncEngine(
             when {
                 isFirstSnap -> true
                 lastSnap.contentHash.isNotEmpty() -> lastSnap.contentHash != contentHash
-                else -> ContentHasher.contentChanged(result.data, readBaseline(lastSnap.snapId), result.contentType)
+                else -> ContentHasher.contentChanged(result.data, baselineContent(), result.contentType)
             }
         }
+        if (!hasContentChanged && lastSnap != null) baselineContent()
         val explicitRule = site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT || site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.SOURCE
         val visualThreshold = site.visualFilterBasisPoints().takeIf { result.contentType.startsWith("image/", true) } ?: 0
         val meetsThreshold = diagnosticStage(DiagnosticStage.COMPARE) {
             if (visualThreshold > 0 && !isFirstSnap && hasContentChanged) {
                 try {
-                    val baseline = readBaseline(requireNotNull(lastSnap).snapId)
+                    val baseline = baselineContent()
                     val difference = com.bernaferrari.changedetection.image.PlatformImageDiff.compare(
                         baseline,
                         result.data,
@@ -340,10 +390,10 @@ open class SyncEngine(
             } else if (result.contentType.startsWith("image/", true) && !isFirstSnap && hasContentChanged && !explicitRule) {
                 // Encoding changes and pixel differences below the perceptual tolerance do not create a version.
                 // Region trimming must never discard the underlying pixel evidence.
-                visiblyChanged(readBaseline(requireNotNull(lastSnap).snapId), result.data, result.capturedWithBrowser)
+                visiblyChanged(baselineContent(), result.data, result.capturedWithBrowser)
             } else {
                 visualThreshold > 0 || explicitRule || isFirstSnap || threshold <= 0 || !hasContentChanged ||
-                    ContentHasher.changedByteCount(result.data, readBaseline(lastSnap!!.snapId), result.contentType) >= threshold
+                    ContentHasher.changedByteCount(result.data, baselineContent(), result.contentType) >= threshold
             }
         }
         if (hasContentChanged && meetsThreshold) {
@@ -352,6 +402,7 @@ open class SyncEngine(
             result.validateCapture()
             val updated = updateStatusIfCurrent(site, successful = true, isBrowser = result.contentType.contains("image", ignoreCase = true), expectedSnapshot = lastSnap)
             if (!updated) return SyncResult.Skipped(site.id, "Page changed or paused during check")
+            retryPendingAlerts(site.id)
             appLog.d("No changes for ${site.url}")
             return SyncResult.Success(site.id, hadChanges = false)
         }
@@ -387,6 +438,7 @@ open class SyncEngine(
                 contentSize = result.data.size,
                 contentHash = contentHash,
                 processedContentHash = contentHash,
+                payloadHash = ContentHasher.hashContent(result.data),
             )
             result.validateCapture()
             diagnosticStage(DiagnosticStage.WRITE_FILE) { fileStorage.writeBytes(snapId, result.data) }
@@ -402,6 +454,7 @@ open class SyncEngine(
                         // A fresh start or history edit invalidates the comparison we just made.
                         if (snapsDao.getLastSnapForSiteId(site.id)?.snapId != previousSnapId) return@inWriteTransaction null
                         snapsDao.insertSnap(snap)
+                        if (!isFirstSnap) alertOutbox?.enqueue(current, snap)
                         sitesDao.updateSyncMetadata(
                             siteId = site.id,
                             timestamp = checkedAt,
@@ -455,7 +508,9 @@ open class SyncEngine(
         }
 
         // Side effects after the commit can never remove durable history.
-        if (!isFirstSnap && notificationSite.isNotificationEnabled) {
+        if (alertOutbox != null) {
+            retryPendingAlerts(site.id)
+        } else if (!isFirstSnap && notificationSite.isNotificationEnabled) {
             try {
                 diagnosticStage(DiagnosticStage.NOTIFY) { changeNotifier.notifyChange(notificationSite, snapId) }
             } catch (error: CancellationException) {
@@ -694,3 +749,5 @@ open class SyncEngine(
 }
 
 private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("SyncEngine")
+
+private class BaselineChangedDuringCheck : Exception()

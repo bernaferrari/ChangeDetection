@@ -30,7 +30,7 @@ class VisualFilterJourneyTest {
             entered.complete(Unit)
             release.await()
             null
-        }, publish = { _, id, _ -> notices.add(id) })
+        }, publish = { _, id, _, _ -> notices.add(id) })
         val engine = SyncEngine(client, db, db.siteDao(), db.snapsDao(), files, ErrorHandler(), ChangeNotifier { site, id -> delivery.deliver(site, id) })
         val site = Site("Page", "https://example.test", 0L, "", "page", 0 to 0).copy(captureMode = CaptureMode.SCREENSHOT)
         try {
@@ -265,7 +265,7 @@ class VisualFilterJourneyTest {
             val results = listOf(broken, healthy).map { engine.processFetchResult(it, SyncEngine.FetchResult.Success("text/html", "<p>Available</p>".encodeToByteArray())) }
             assertTrue(results[0] is SyncResult.Failed)
             assertTrue(results[1] is SyncResult.Success)
-            assertEquals("SAVE_FAILED", db.siteDao().getSiteById(broken.id)?.lastFailureCode)
+            assertEquals("SAVED_CONTENT_UNAVAILABLE", db.siteDao().getSiteById(broken.id)?.lastFailureCode)
             assertEquals("missing", db.snapsDao().getLastSnapForSiteId(broken.id)?.snapId)
             assertNotNull(db.snapsDao().getLastSnapForSiteId(healthy.id))
             assertTrue(notices.isEmpty())
