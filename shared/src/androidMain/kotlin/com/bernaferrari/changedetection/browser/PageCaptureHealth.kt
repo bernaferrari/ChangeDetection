@@ -31,15 +31,37 @@ internal class PageCaptureHealth {
     private val resourceErrors = LinkedHashSet<String>()
     private val watchedDependencies = LinkedHashSet<String>()
     private var dependencyOverflow = false
+    private var resourceErrorOverflow = false
+
+    // Fragments select content within a resource; browsers omit them from HTTP requests.
+    // Keep queries and encoded '#' characters: those can identify different server resources.
+    private fun resourceKey(url: String) = url.substringBefore('#')
+
     @Synchronized fun resourceError(url: String) {
-        if (url.length <= 4096 && resourceErrors.size < 512) resourceErrors += url else dependencyOverflow = true
+        val key = resourceKey(url)
+        if (key in resourceErrors) return
+        if (key.length <= 4096 && resourceErrors.size < 512) {
+            resourceErrors += key
+        } else {
+            resourceErrorOverflow = true
+        }
     }
+
     @Synchronized fun dependencies(urls: List<String>) {
         // Retain this document's dependency union so another preview cannot revoke an older preview's checks.
-        dependencyOverflow = dependencyOverflow || (watchedDependencies + urls).size > 512
-        for (url in urls) if (url.length <= 4096 && watchedDependencies.size < 512) watchedDependencies += url
+        for (url in urls) {
+            val key = resourceKey(url)
+            if (key in watchedDependencies) continue
+            if (key.length <= 4096 && watchedDependencies.size < 512) {
+                watchedDependencies += key
+            } else {
+                dependencyOverflow = true
+            }
+        }
     }
-    @Synchronized private fun incompleteResources() = resourceErrors.any { it in watchedDependencies } || (dependencyOverflow && resourceErrors.isNotEmpty())
+
+    @Synchronized private fun incompleteResources() = resourceErrorOverflow || resourceErrors.any { it in watchedDependencies } ||
+        (dependencyOverflow && resourceErrors.isNotEmpty())
 
     @Synchronized fun begin(url: String?) {
         generation++
@@ -57,6 +79,7 @@ internal class PageCaptureHealth {
         resourceErrors.clear()
         watchedDependencies.clear()
         dependencyOverflow = false
+        resourceErrorOverflow = false
     }
 
     @Synchronized fun started(url: String?) {
