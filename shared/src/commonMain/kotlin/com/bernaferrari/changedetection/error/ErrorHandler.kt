@@ -63,11 +63,31 @@ class ErrorHandler {
         is ServerResponseException -> handleServerError(error)
 
         // Custom app errors
+        is BackgroundExecutionUnavailable -> ErrorResult(
+            type = ErrorType.UNKNOWN,
+            userMessage = "Background check could not start",
+            description = "Open the app and try again. Existing history is preserved.",
+            severity = ErrorSeverity.WARNING,
+            isRetryable = true,
+            recoveryAction = RecoveryAction.RETRY,
+        )
+
+        is kotlinx.coroutines.TimeoutCancellationException -> handleTimeoutError()
+
         is NetworkError -> handleNetworkError(error.code)
 
         is ValidationError -> handleValidationError(error)
 
         is DatabaseError -> handleDatabaseError(error)
+
+        is BaselineIntegrityError -> ErrorResult(
+            type = ErrorType.CONTENT,
+            userMessage = "Saved version unavailable",
+            description = "Existing history has been kept. Check available device storage and send a report if the problem continues.",
+            severity = ErrorSeverity.ERROR,
+            isRetryable = true,
+            recoveryAction = RecoveryAction.RETRY,
+        )
 
         is SnapshotStorageError -> ErrorResult(
             type = ErrorType.DATABASE,
@@ -83,7 +103,14 @@ class ErrorHandler {
 
         is AuthenticationError -> handleAuthenticationError(error)
 
-        is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> handleTimeoutError()
+        is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> if (error.issue == com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED) ErrorResult(
+            type = ErrorType.NETWORK,
+            userMessage = "Page capture incomplete",
+            description = "Part of the watched page could not be loaded. Saved history has been kept. Try again or preview the page.",
+            severity = ErrorSeverity.WARNING,
+            isRetryable = true,
+            recoveryAction = RecoveryAction.RETRY,
+        ) else handleTimeoutError()
 
         is ContentError -> handleContentError(error)
 

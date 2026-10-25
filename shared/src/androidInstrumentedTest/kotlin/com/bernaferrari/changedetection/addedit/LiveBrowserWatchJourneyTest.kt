@@ -66,7 +66,7 @@ class LiveBrowserWatchJourneyTest {
         val keptPreview = AtomicReference<CapturePreview>()
         val saved = CompletableDeferred<String>()
         val store = ViewModelStore()
-        val html = """<img src="/missing-image.png" width="16" height="16"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Constant title</title><button id="product" onclick="history.pushState({},'', '/product/b');document.getElementById('details').textContent='Only in the open browser';document.body.style.background='#0000ff' ">Product B</button><p id="details">Product details</p><span id="age">2 hours ago</span><div id="footer" style="position:fixed;bottom:0;height:30px;background:red">Page controls</div>"""
+        val html = """<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4//8/AAX+Av4N70a4AAAAAElFTkSuQmCC" width="16" height="16"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Constant title</title><button id="product" onclick="history.pushState({},'', '/product/b');document.getElementById('details').textContent='Only in the open browser';document.body.style.background='#0000ff' ">Product B</button><p id="details">Product details</p><span id="age">2 hours ago</span><div id="footer" style="position:fixed;bottom:0;height:30px;background:red">Page controls</div>"""
         try {
             TestPageServer(200, html, resourceDelayMs = if (longPage) 45_000 else 0).use { server ->
                 val draftUrl = server.url + "catalog"

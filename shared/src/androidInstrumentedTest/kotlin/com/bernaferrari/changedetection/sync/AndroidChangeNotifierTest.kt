@@ -17,6 +17,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlinx.coroutines.async
 
 @RunWith(AndroidJUnit4::class)
 class AndroidChangeNotifierTest {
@@ -87,6 +88,29 @@ class AndroidChangeNotifierTest {
     @Test fun nonWebAddressesHaveNoBrowserAction() = kotlinx.coroutines.runBlocking {
         notifier.notifyChange(site("bad").copy(url = "javascript:alert(1)"), "saved-1")
         assertTrue(awaitAlerts { it.size == 1 }.single().notification.actions.isNullOrEmpty())
+    }
+
+    @Test fun eligibilityRevokedDuringPreparationDoesNotReachTheNotificationManager() = kotlinx.coroutines.runBlocking {
+        val entered = kotlinx.coroutines.CompletableDeferred<Unit>()
+        val release = kotlinx.coroutines.CompletableDeferred<Unit>()
+        val current = java.util.concurrent.atomic.AtomicBoolean(true)
+        val preparing = AndroidChangeNotifier(context, prepare = { _, _ ->
+            entered.complete(Unit)
+            release.await()
+            null
+        })
+        val owner = async {
+            preparing.notifyChangeIfCurrent(site("revoked"), "saved-1") { current.get() }
+        }
+        entered.await()
+        current.set(false)
+        release.complete(Unit)
+        owner.await()
+        assertTrue(manager.activeNotifications.isEmpty())
+
+        current.set(true)
+        preparing.notifyChangeIfCurrent(site("revoked"), "saved-2") { current.get() }
+        assertEquals("revoked", awaitAlerts { it.size == 1 }.single().tag)
     }
 
     private fun awaitAlerts(predicate: (Array<StatusBarNotification>) -> Boolean): Array<StatusBarNotification> {

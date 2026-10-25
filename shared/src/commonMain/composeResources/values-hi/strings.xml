@@ -765,7 +765,7 @@
         <item quantity="other">%1$d हटे</item>
     </plurals>
     <string name="detail_sign_in">लॉग इन करें</string>
-    <string name="browser_session_note">Android पर टेक्स्ट और स्क्रीनशॉट की जाँचें इस ब्राउज़र में सेव की गई साइन-इन कुकी का इस्तेमाल कर सकती हैं। सोर्स की जाँचें ऐसा नहीं करतीं। कुछ साइटें आपको फिर से साइन इन करने के लिए कह सकती हैं।</string>
+    <string name="browser_session_note">टेक्स्ट और स्क्रीनशॉट ऐप के ब्राउज़र प्रोफ़ाइल का उपयोग करते हैं। किसी साइट में साइन इन करने या खाता बदलने से उस साइट की निगरानी प्रभावित होती है। सत्र समाप्त हो सकते हैं। कोड जाँच ब्राउज़र की साइन-इन कुकी का उपयोग नहीं करती।</string>
     <string name="turbo_next_check">अगली जाँच %1$d सेकंड में</string>
     <string name="picker_selected_image">एक तस्वीर</string>
     <string name="picker_selected_frame">एम्बेडेड फ़्रेम (अक्सर विज्ञापन)</string>
@@ -825,4 +825,14 @@
     <string name="comparison_finding_changes">बदलाव खोजे जा रहे हैं…</string>
     <string name="check_failure_tls">सुरक्षित कनेक्शन नहीं हो सका</string>
     <string name="check_failure_tls_detail">पेज के सुरक्षित कनेक्शन की पुष्टि नहीं हो सकी। आपका सहेजा गया इतिहास सुरक्षित है। बाद में दोबारा कोशिश करें या वेबसाइट को ब्राउज़र में खोलें।</string>
+    <string name="preview_single_visual_region">स्क्रीनशॉट निगरानी में एक ही क्षेत्र चुना जा सकता है। कई क्षेत्रों की निगरानी के लिए एक तत्व चुनें या टेक्स्ट पर जाएँ।</string>
+    <string name="share_failed">यह सामग्री साझा नहीं की जा सकी। फिर कोशिश करें या कोई दूसरा ऐप चुनें।</string>
+    <string name="external_open_failed">दूसरा ऐप नहीं खोला जा सका। कोई संगत ऐप इंस्टॉल करें या फिर कोशिश करें।</string>
+    <string name="check_failure_background_restricted">बैकग्राउंड जाँच शुरू नहीं हो सकी</string>
+    <string name="check_failure_background_restricted_detail">Android ने यह बैकग्राउंड जाँच शुरू करने की अनुमति नहीं दी। ऐप खोलें और फिर कोशिश करें। मौजूदा इतिहास सुरक्षित है।</string>
+    <string name="check_failure_saved_content_unavailable">सेव किया गया संस्करण उपलब्ध नहीं है</string>
+    <string name="check_failure_saved_content_unavailable_detail">सेव किया गया संस्करण मौजूद नहीं है या खराब है। मौजूदा इतिहास सुरक्षित रखा गया है। डिवाइस में उपलब्ध स्टोरेज जाँचें और समस्या बनी रहने पर रिपोर्ट भेजें।</string>
+    <string name="check_failure_capture_incomplete">पेज कैप्चर अधूरा है</string>
+    <string name="check_failure_capture_incomplete_detail">निगरानी वाले पेज का कुछ हिस्सा लोड नहीं हो सका। सेव किया गया इतिहास सुरक्षित रखा गया है। फिर कोशिश करें या पेज का प्रीव्यू देखें।</string>
+    <string name="text_http_capability_note">इस प्लेटफ़ॉर्म पर टेक्स्ट निगरानी HTTP प्रतिक्रिया पढ़ती है। JavaScript की सामग्री और ब्राउज़र की साइन-इन कुकी शामिल नहीं होतीं।</string>
 </resources>

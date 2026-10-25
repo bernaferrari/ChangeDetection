@@ -21,7 +21,7 @@ class ChangeAlertDeliveryTest {
         val delivery = ChangeAlertDelivery(prepare = { _, id ->
             if (id == "A") delay(10_000)
             id
-        }, publish = { _, id, _ -> posted.add(id) })
+        }, publish = { _, id, _, _ -> posted.add(id) })
         val owner = async { delivery.deliver(page, "A") }
         runCurrent()
         owner.cancelAndJoin()
@@ -33,7 +33,7 @@ class ChangeAlertDeliveryTest {
     @Test fun asynchronousPublicationIsAcknowledgedBeforeTheOwnerCompletes() = runTest {
         val submitted = CompletableDeferred<Unit>()
         val acknowledged = CompletableDeferred<Unit>()
-        val delivery = ChangeAlertDelivery(prepare = { _, _ -> null }, publish = { _, _, _ ->
+        val delivery = ChangeAlertDelivery(prepare = { _, _ -> null }, publish = { _, _, _, _ ->
             submitted.complete(Unit)
             acknowledged.await()
         })
@@ -50,7 +50,7 @@ class ChangeAlertDeliveryTest {
         val delivery = ChangeAlertDelivery(prepare = { _, id ->
             gate.await()
             id
-        }, publish = { _, id, _ -> posted.add(id) })
+        }, publish = { _, id, _, _ -> posted.add(id) })
         val owner = async { delivery.deliver(page, "A") }
         runCurrent()
         assertFalse("The owning worker must not finish before posting", owner.isCompleted)
@@ -65,7 +65,7 @@ class ChangeAlertDeliveryTest {
         val delivery = ChangeAlertDelivery(prepare = { _, id ->
             if (id == "A") withContext(NonCancellable) { delay(1000) }
             id
-        }, publish = { _, id, _ -> posted.add(id) })
+        }, publish = { _, id, _, _ -> posted.add(id) })
         val first = async { delivery.deliver(page, "A") }
         runCurrent()
         val second = async { delivery.deliver(page, "B") }
@@ -82,7 +82,7 @@ class ChangeAlertDeliveryTest {
         val delivery = ChangeAlertDelivery(prepare = { _, _ ->
             withContext(NonCancellable) { delay(5_000) }
             "Late picture"
-        }, publish = { _, _, content -> posted.add(content) })
+        }, publish = { _, _, content, _ -> posted.add(content) })
         val owner = async { delivery.deliver(page, "A") }
         runCurrent()
         advanceTimeBy(1_501)
@@ -99,7 +99,7 @@ class ChangeAlertDeliveryTest {
         val delivery = ChangeAlertDelivery(prepare = { _, _ ->
             delay(10_000)
             "Late"
-        }, publish = { _, _, summary -> posted.add(summary) })
+        }, publish = { _, _, summary, _ -> posted.add(summary) })
         val first = async { delivery.deliver(page, "A") }
         runCurrent()
         advanceTimeBy(1501)
@@ -109,6 +109,24 @@ class ChangeAlertDeliveryTest {
         posted.clear() // The user dismisses the notification.
         advanceTimeBy(15_000)
         runCurrent()
+        assertTrue(posted.isEmpty())
+    }
+
+    @Test fun nativePublisherCanRevalidateAfterItsOwnSuspendingFallbackPreparation() = runTest {
+        val preparingFallback = CompletableDeferred<Unit>()
+        val fallbackReady = CompletableDeferred<Unit>()
+        val posted = mutableListOf<String>()
+        var current = true
+        val delivery = ChangeAlertDelivery(prepare = { _, _ -> null }, publish = { _, id, _, isCurrent ->
+            preparingFallback.complete(Unit)
+            fallbackReady.await()
+            if (isCurrent()) posted += id
+        })
+        val owner = async { delivery.deliver(page, "A") { current } }
+        preparingFallback.await()
+        current = false
+        fallbackReady.complete(Unit)
+        owner.await()
         assertTrue(posted.isEmpty())
     }
 }

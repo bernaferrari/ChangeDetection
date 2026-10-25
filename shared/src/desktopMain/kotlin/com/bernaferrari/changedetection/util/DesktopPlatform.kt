@@ -73,7 +73,21 @@ internal class DesktopFileStorage(
     private companion object {
         const val MIN_FREE_BYTES = 32L * 1024 * 1024
     }
-    override fun readBytes(fileName: String): ByteArray = file(fileName).readBytes()
+    override fun readBytes(fileName: String): ByteArray {
+        val source = file(fileName)
+        if (source.length() > MAX_SNAPSHOT_BYTES) throw java.io.IOException("Saved snapshot exceeds the supported size")
+        return source.inputStream().use { input ->
+            val output = java.io.ByteArrayOutputStream()
+            val buffer = ByteArray(16_384)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                if (output.size().toLong() + count > MAX_SNAPSHOT_BYTES) throw java.io.IOException("Saved snapshot exceeds the supported size")
+                output.write(buffer, 0, count)
+            }
+            output.toByteArray()
+        }
+    }
     override fun deleteFile(fileName: String): Boolean = file(fileName).delete()
     override fun fileExists(fileName: String): Boolean = file(fileName).isFile
     override fun orphanCandidates(olderThan: Long): List<String> = directory.listFiles().orEmpty().filter { it.isFile && it.lastModified() < olderThan && (it.name.matches(Regex("[0-9a-fA-F-]{36}")) || it.name.matches(Regex("capture-[0-9]+\\.tmp"))) }.map { it.name }

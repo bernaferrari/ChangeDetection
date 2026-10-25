@@ -24,8 +24,11 @@ class IosFileStorage : FileStorage {
 
     override fun readBytes(fileName: String): ByteArray {
         val path = getFilePath(fileName)
+        val size = (fileManager.attributesOfItemAtPath(path, null)?.get(NSFileSize) as? NSNumber)?.longLongValue
+        if (size != null && size > MAX_SNAPSHOT_BYTES) throw DatabaseError(DatabaseError.Operation.READ, "Saved snapshot exceeds the supported size")
         val data = NSData.dataWithContentsOfFile(path)
             ?: throw DatabaseError(DatabaseError.Operation.READ, "Could not read saved snapshot")
+        if (data.length > MAX_SNAPSHOT_BYTES.toULong()) throw DatabaseError(DatabaseError.Operation.READ, "Saved snapshot exceeds the supported size")
         return data.toKByteArray()
     }
 

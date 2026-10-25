@@ -21,4 +21,5 @@
     <string name="start">शुरू करें</string>
     <string name="change_notification_named">%1$s बदला</string>
     <string name="change_notification_generic">बदलाव देखने के लिए टैप करें।</string>
+    <string name="external_open_failed">दूसरा ऐप नहीं खोला जा सका। कोई संगत ऐप इंस्टॉल करें या फिर कोशिश करें।</string>
 </resources>

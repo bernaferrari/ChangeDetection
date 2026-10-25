@@ -440,4 +440,14 @@
     </plurals>
     <string name="check_failure_tls">Connessione sicura non riuscita</string>
     <string name="check_failure_tls_detail">Non è stato possibile verificare la connessione sicura alla pagina. La cronologia salvata viene conservata. Riprova più tardi o apri il sito nel browser.</string>
+    <string name="preview_single_visual_region">Il monitoraggio con screenshot supporta una sola area selezionata. Scegli un elemento o passa a Testo per monitorare più aree.</string>
+    <string name="share_failed">Impossibile condividere questo contenuto. Riprova o scegli un’altra app.</string>
+    <string name="external_open_failed">Impossibile aprire un’altra app. Installa un’app compatibile o riprova.</string>
+    <string name="check_failure_background_restricted">Impossibile avviare il controllo in background</string>
+    <string name="check_failure_background_restricted_detail">Android non ha consentito di avviare questo controllo in background. Apri l’app e riprova. La cronologia esistente viene conservata.</string>
+    <string name="check_failure_saved_content_unavailable">Versione salvata non disponibile</string>
+    <string name="check_failure_saved_content_unavailable_detail">La versione salvata manca o è danneggiata. La cronologia esistente è stata conservata. Controlla lo spazio disponibile sul dispositivo e invia un rapporto se il problema persiste.</string>
+    <string name="check_failure_capture_incomplete">Cattura della pagina incompleta</string>
+    <string name="check_failure_capture_incomplete_detail">Impossibile caricare parte della pagina monitorata. La cronologia salvata è stata conservata. Riprova o visualizza l’anteprima della pagina.</string>
+    <string name="text_http_capability_note">Su questa piattaforma il monitoraggio del testo legge la risposta HTTP. Non include contenuti JavaScript né i cookie di accesso del browser.</string>
 </resources>

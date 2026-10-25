@@ -12,6 +12,7 @@ import com.bernaferrari.changedetection.localization.stringResource
 @Composable
 fun checkFailureTitle(code: String?): String = stringResource(
     when (CheckFailure.fromCode(code)) {
+        CheckFailure.BACKGROUND_RESTRICTED -> Res.string.check_failure_background_restricted
         CheckFailure.TLS -> Res.string.check_failure_tls
         CheckFailure.CONNECTION -> Res.string.check_failure_connection
         CheckFailure.TIMEOUT -> Res.string.check_failure_timeout
@@ -21,10 +22,13 @@ fun checkFailureTitle(code: String?): String = stringResource(
         CheckFailure.RATE_LIMITED -> Res.string.check_failure_rate_limited
         CheckFailure.SERVER -> Res.string.check_failure_server
         CheckFailure.STORAGE_FULL -> Res.string.check_failure_storage_full
+        CheckFailure.SAVED_CONTENT_UNAVAILABLE -> Res.string.check_failure_saved_content_unavailable
         CheckFailure.SAVE_FAILED -> Res.string.check_failure_save_failed
         CheckFailure.CONTENT_TOO_LARGE -> Res.string.check_failure_content_too_large
         CheckFailure.CONTENT -> Res.string.check_failure_content
+        CheckFailure.CAPTURE_INCOMPLETE -> Res.string.check_failure_capture_incomplete
         CheckFailure.CAPTURE_UNAVAILABLE -> Res.string.check_failure_capture_unavailable
+        CheckFailure.MULTIPLE_VISUAL_REGIONS -> Res.string.check_failure_region
         CheckFailure.REGION -> Res.string.check_failure_region
         CheckFailure.UNKNOWN -> Res.string.check_failure_unknown
     },
@@ -34,6 +38,7 @@ fun checkFailureTitle(code: String?): String = stringResource(
 fun CheckFailureNotice(code: String?, modifier: Modifier = Modifier, actions: @Composable RowScope.() -> Unit = {}) {
     val detail = stringResource(
         when (CheckFailure.fromCode(code)) {
+            CheckFailure.BACKGROUND_RESTRICTED -> Res.string.check_failure_background_restricted_detail
             CheckFailure.TLS -> Res.string.check_failure_tls_detail
             CheckFailure.CONNECTION -> Res.string.check_failure_connection_detail
             CheckFailure.TIMEOUT -> Res.string.check_failure_timeout_detail
@@ -43,10 +48,13 @@ fun CheckFailureNotice(code: String?, modifier: Modifier = Modifier, actions: @C
             CheckFailure.RATE_LIMITED -> Res.string.check_failure_rate_limited_detail
             CheckFailure.SERVER -> Res.string.check_failure_server_detail
             CheckFailure.STORAGE_FULL -> Res.string.check_failure_storage_full_detail
+            CheckFailure.SAVED_CONTENT_UNAVAILABLE -> Res.string.check_failure_saved_content_unavailable_detail
             CheckFailure.SAVE_FAILED -> Res.string.check_failure_save_failed_detail
             CheckFailure.CONTENT_TOO_LARGE -> Res.string.check_failure_content_too_large_detail
             CheckFailure.CONTENT -> Res.string.check_failure_content_detail
+            CheckFailure.CAPTURE_INCOMPLETE -> Res.string.check_failure_capture_incomplete_detail
             CheckFailure.CAPTURE_UNAVAILABLE -> Res.string.check_failure_capture_unavailable_detail
+            CheckFailure.MULTIPLE_VISUAL_REGIONS -> Res.string.preview_single_visual_region
             CheckFailure.REGION -> Res.string.check_failure_region_detail
             CheckFailure.UNKNOWN -> Res.string.check_failure_unknown_detail
         },

@@ -5,6 +5,7 @@ import io.ktor.client.plugins.ResponseException
 /** Stable persisted categories; never store raw exception text or response bodies as UI copy. */
 enum class CheckFailure {
     CONNECTION,
+    BACKGROUND_RESTRICTED,
     TLS,
     TIMEOUT,
     LOGIN,
@@ -14,10 +15,13 @@ enum class CheckFailure {
     SERVER,
     STORAGE_FULL,
     SAVE_FAILED,
+    SAVED_CONTENT_UNAVAILABLE,
     CONTENT_TOO_LARGE,
     CONTENT,
     CAPTURE_UNAVAILABLE,
+    CAPTURE_INCOMPLETE,
     REGION,
+    MULTIPLE_VISUAL_REGIONS,
     UNKNOWN,
     ;
 
@@ -25,9 +29,12 @@ enum class CheckFailure {
         fun fromCode(code: String?): CheckFailure = entries.firstOrNull { it.name == code } ?: UNKNOWN
 
         fun from(result: ErrorResult, error: Throwable?): CheckFailure {
-            if (error is com.bernaferrari.changedetection.browser.CaptureNotReadyException) return TIMEOUT
+            if (error is BaselineIntegrityError) return SAVED_CONTENT_UNAVAILABLE
+            if (error is BackgroundExecutionUnavailable) return BACKGROUND_RESTRICTED
+            if (error is kotlinx.coroutines.TimeoutCancellationException) return TIMEOUT
+            if (error is com.bernaferrari.changedetection.browser.CaptureNotReadyException) return if (error.issue == com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED) CAPTURE_INCOMPLETE else TIMEOUT
             if (error is ContentError && error.reason == ContentError.Reason.CAPTURE_UNAVAILABLE) return CAPTURE_UNAVAILABLE
-            if (error is com.bernaferrari.changedetection.detection.TextRegionException) return REGION
+            if (error is com.bernaferrari.changedetection.detection.TextRegionException) return if (error.issue == com.bernaferrari.changedetection.detection.TextRegionIssue.MULTIPLE_MATCHES) MULTIPLE_VISUAL_REGIONS else REGION
             if (isTlsFailure(error)) return TLS
             val responseCode = when (error) {
                 is NetworkError -> error.code

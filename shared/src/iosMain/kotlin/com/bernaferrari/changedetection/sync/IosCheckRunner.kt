@@ -16,16 +16,17 @@ class IosCheckRunner(
     private val engine: SyncEngine,
     private val preferences: DataStore<Preferences>,
 ) : CheckRunner {
-    override suspend fun check(siteId: String): SyncResult {
-        val site = sites.getSiteById(siteId) ?: return SyncResult.Skipped(siteId, "Page deleted")
-        if (!site.isSyncEnabled) return SyncResult.Skipped(siteId, "Page paused")
+    private val locks = PageCheckLocks()
+    override suspend fun check(siteId: String): SyncResult = locks.withLock(siteId) {
+        val site = sites.getSiteById(siteId) ?: return@withLock SyncResult.Skipped(siteId, "Page deleted")
+        if (!site.isSyncEnabled) return@withLock SyncResult.Skipped(siteId, "Page paused")
         val settings = preferences.data.first()
         val defaultMethod = ComparisonMethod.entries.firstOrNull { it.name == settings[SettingsViewModel.COMPARISON_METHOD_KEY] } ?: ComparisonMethod.SCREENSHOT
-        if (site.captureMode.resolve(defaultMethod) == ComparisonMethod.HTML) return engine.syncSite(siteId)
-        return try {
-            val png = IosPageCapture.capture(site.url, settings[SettingsViewModel.BROWSER_DELAY_KEY] ?: DEFAULT_SETTLE_MS, hide = site.textExcludeSelector, only = site.textIncludeSelector)
-            IosPageCapture.lastIcon?.let { sites.updateIcon(site.id, it) }
-            engine.processFetchResult(site, SyncEngine.FetchResult.Success("image/png", png, capturedWithBrowser = true), site.threshold)
+        if (site.captureMode != com.bernaferrari.changedetection.repo.CaptureMode.TEXT && site.captureMode.resolve(defaultMethod) == ComparisonMethod.HTML) return@withLock engine.syncSite(siteId)
+        try {
+            val page = IosPageCapture.capturePage(site.url, settings[SettingsViewModel.BROWSER_DELAY_KEY] ?: DEFAULT_SETTLE_MS, hide = site.textExcludeSelector, only = site.textIncludeSelector, text = site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT)
+            page.icon?.let { sites.updateIcon(site.id, it) }
+            engine.processFetchResult(site, SyncEngine.FetchResult.Success(page.contentType, page.bytes, capturedWithBrowser = true, validateCapture = page.validateCapture), site.threshold)
         } catch (timeout: kotlinx.coroutines.TimeoutCancellationException) {
             kotlinx.coroutines.currentCoroutineContext().ensureActive()
             engine.processFetchResult(site, SyncEngine.FetchResult.Error("Page capture timed out", timeout), site.threshold)

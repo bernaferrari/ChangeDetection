@@ -48,7 +48,9 @@ internal fun CapturePreviewPanel(state: CapturePreviewState, enabled: Boolean, o
                         stringResource(
                             when (state.reason) {
                                 PreviewFailure.TIMEOUT -> Res.string.check_failure_timeout_detail
+                                        PreviewFailure.CAPTURE_INCOMPLETE -> Res.string.check_failure_capture_incomplete_detail
                                 PreviewFailure.REGION -> Res.string.check_failure_region_detail
+                                PreviewFailure.MULTIPLE_REGIONS -> Res.string.preview_single_visual_region
                                 PreviewFailure.TLS -> Res.string.check_failure_tls_detail
                                 PreviewFailure.CONNECTION -> Res.string.check_failure_connection_detail
                                 PreviewFailure.UNAVAILABLE -> Res.string.check_failure_unknown_detail

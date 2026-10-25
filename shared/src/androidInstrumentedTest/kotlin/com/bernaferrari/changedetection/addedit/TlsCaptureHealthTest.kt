@@ -41,11 +41,11 @@ class TlsCaptureHealthTest {
         untrustedTlsPage().use { tls -> TestPageServer(200, "<html><body>Redirect<script>location.href='${tls.url}'</script></body></html>").use { rejects(it.url) } }
     }
 
-    @Test fun invalidEmbeddedResourceIsLeftOutAndThePageCanStillBeWatched() {
-        untrustedTlsPage().use { tls -> TestPageServer(200, "<html><body>Content<iframe src='${tls.url}'></iframe></body></html>").use { accepts(it.url) } }
+    @Test fun invalidEmbeddedResourceCannotBeWatched() {
+        untrustedTlsPage().use { tls -> TestPageServer(200, "<html><body>Content<iframe src='${tls.url}'></iframe></body></html>").use { rejects(it.url) } }
     }
 
-    @Test fun lateTlsRevokesReadyPreviewAndHealthyNavigationRecovers() = untrustedTlsPage().use { tls ->
+    @Test fun lateEmbeddedTlsRevokesReadyPreviewAndHealthyNavigationRecovers() = untrustedTlsPage().use { tls ->
         TestPageServer(200, "<html><body>Healthy document</body></html>").use { server ->
             val live = AtomicReference<LivePage>()
             compose.setContent { ChangeDetectionTheme(false, false) { WatchBrowser(server.url, "", emptyList(), { _, _ -> }, {}, { live.set(it) }, {}, "Watch page") } }
@@ -59,31 +59,22 @@ class TlsCaptureHealthTest {
             compose.waitUntil(5_000) { live.get() != null }
             val preview = pump { live.get().capturePreview!!.invoke {} }
             assertNotNull(preview?.firstVersion)
-            // A late frame with a bad certificate is refused but leaves the capture valid.
+            // The preview was ready before this frame arrived. Refusing it makes completeness
+            // unproven, so even the previously returned ready capture must fail promotion.
             compose.runOnUiThread { findWeb(compose.activity.window.decorView)!!.evaluateJavascript("document.body.insertAdjacentHTML('beforeend', '<iframe src=\"${tls.url}\"></iframe>');0", null) }
-            compose.waitUntil(30_000) {
-                var refused = false
-                compose.runOnUiThread { refused = WebViewCaptureHealth.of(findWeb(compose.activity.window.decorView)!!).blockedResources() > 0 }
-                refused
-            }
-            pump {
-                database(mode = CaptureMode.SCREENSHOT) { engine, site, _, _, _ ->
-                    assertTrue(engine.establishFirstVersion(site, requireNotNull(preview?.firstVersion)) is SyncResult.Success)
-                }
-            }
-            // The page itself navigating to an untrusted host revokes the ready capture.
-            compose.runOnUiThread { findWeb(compose.activity.window.decorView)!!.evaluateJavascript("location.href='${tls.url}';0", null) }
             compose.waitUntil(30_000) {
                 var failed = false
                 compose.runOnUiThread { failed = WebViewCaptureHealth.of(findWeb(compose.activity.window.decorView)!!).hasBlockingFailure() }
                 failed
             }
+            compose.waitUntil(5_000) { runCatching { compose.onNodeWithText("Watch page").assertIsNotEnabled();true }.getOrDefault(false) }
             pump {
-                database(mode = CaptureMode.SCREENSHOT) { engine, site, db, _, _ ->
+                database(server.url, CaptureMode.SCREENSHOT) { engine, site, db, _, notifications ->
                     val rejected = engine.establishFirstVersion(site, requireNotNull(preview?.firstVersion))
-                    assertTrue(rejected is SyncResult.Failed)
+                    assertTrue(rejected.toString(), rejected is SyncResult.Failed)
                     assertTrue((rejected as SyncResult.Failed).exception is javax.net.ssl.SSLException)
                     assertTrue(db.snapsDao().getAllSnapsForSiteId(site.id).isEmpty())
+                    assertEquals(0, notifications.get())
                 }
             }
             compose.runOnUiThread { findWeb(compose.activity.window.decorView)!!.loadUrl(server.url) }
@@ -93,6 +84,19 @@ class TlsCaptureHealthTest {
                     true
                 }.getOrDefault(false)
             }
+            live.set(null)
+            compose.onNodeWithText("Watch page").performClick()
+            compose.waitUntil(5_000) { live.get() != null }
+            val recovered = pump { live.get().capturePreview!!.invoke {} }
+            assertNotNull(recovered?.firstVersion)
+            pump {
+                database(server.url, CaptureMode.SCREENSHOT) { engine, site, db, _, notifications ->
+                    assertTrue(engine.establishFirstVersion(site, requireNotNull(recovered?.firstVersion)) is SyncResult.Success)
+                    assertEquals(1, db.snapsDao().getAllSnapsForSiteId(site.id).size)
+                    assertEquals(0, notifications.get())
+                }
+            }
+
         }
     }
 
@@ -126,39 +130,56 @@ class TlsCaptureHealthTest {
         }
     }
 
-    @Test fun checksKeepWorkingWhenOnlyAnEmbeddedResourceHasAnInvalidCertificate() = untrustedTlsPage().use { tls ->
-        TestPageServer(200, "<html><body>Original healthy content<iframe src='${tls.url}'></iframe></body></html>").use { server ->
+    @Test fun embeddedTlsFailuresPreserveScreenshotHistoryAndDoNotNotifyThenRecover() = untrustedTlsPage().use { tls ->
+        val healthy = "<html><body>Original healthy content</body></html>"
+        TestPageServer(200, healthy).use { server ->
             pump {
-                database(server.url, CaptureMode.SCREENSHOT) { engine, site, db, files, _ ->
+                database(server.url, CaptureMode.SCREENSHOT) { engine, site, db, files, notifications ->
                     val runner = runner(engine, db, files)
-                    // The shared report: a first version saved, then every scheduled check failed on the frame's certificate.
+                    assertTrue(runner.check(site.id) is SyncResult.Success)
+                    val baseline = db.snapsDao().getAllSnapsForSiteId(site.id).single()
+                    val bytes = files.readBytes(baseline.snapId)
+                    server.html = "<html><body>Partial changed content<iframe src='${tls.url}'></iframe></body></html>"
                     val attempts = java.util.Collections.synchronizedList(mutableListOf<com.bernaferrari.changedetection.diagnostics.DiagnosticAttempt>())
                     val previous = com.bernaferrari.changedetection.diagnostics.DiagnosticLog.sink
                     com.bernaferrari.changedetection.diagnostics.DiagnosticLog.sink = object : com.bernaferrari.changedetection.diagnostics.DiagnosticSink {
                         override suspend fun watchToken(watchId: String?) = "watch"
-                        override suspend fun append(attempt: com.bernaferrari.changedetection.diagnostics.DiagnosticAttempt) {
-                            attempts += attempt
-                        }
+                        override suspend fun append(attempt: com.bernaferrari.changedetection.diagnostics.DiagnosticAttempt) { attempts += attempt }
                     }
                     try {
                         repeat(2) {
                             val result = runner.check(site.id)
-                            assertTrue(result.toString(), result is SyncResult.Success)
+                            assertTrue(result.toString(), result is SyncResult.Failed)
+                            assertTrue((result as SyncResult.Failed).exception is javax.net.ssl.SSLException)
+                            assertEquals(listOf(baseline.snapId), db.snapsDao().getAllSnapsForSiteId(site.id).map { it.snapId })
+                            assertArrayEquals(bytes, files.readBytes(baseline.snapId))
+                            assertEquals(0, notifications.get())
                         }
                     } finally {
                         com.bernaferrari.changedetection.diagnostics.DiagnosticLog.sink = previous
                     }
-                    assertEquals(1, db.snapsDao().getAllSnapsForSiteId(site.id).size)
-                    // The report says the page itself loaded (200) and that a frame was refused, not that the check broke.
-                    val events = attempts.filter { it.outcome != com.bernaferrari.changedetection.diagnostics.DiagnosticOutcome.INCOMPLETE }.flatMap { it.events }
-                    assertTrue(events.toString(), events.any { it.metric == com.bernaferrari.changedetection.diagnostics.DiagnosticMetric.HTTP_STATUS && it.code == 200 })
-                    assertTrue(events.toString(), events.any { it.tls?.blocking == false })
+                    // A strict early abort need not reach HTTP-status collection. The retained
+                    // evidence must instead identify a TLS failure and its blocking classification.
+                    val completed = attempts.filter { it.outcome != com.bernaferrari.changedetection.diagnostics.DiagnosticOutcome.INCOMPLETE }
+                    assertEquals(2, completed.size)
+                    assertTrue(completed.toString(), completed.all { it.outcome == com.bernaferrari.changedetection.diagnostics.DiagnosticOutcome.FAILURE && it.failure?.category == com.bernaferrari.changedetection.error.CheckFailure.TLS })
+                    val tlsEvents = completed.flatMap { it.events }.mapNotNull { it.tls }
+                    assertTrue("A refused embedded certificate must be recorded", tlsEvents.isNotEmpty())
+                    assertTrue(tlsEvents.toString(), tlsEvents.all { it.blocking && it.primary in 0..5 && it.errors.all { code -> code in 0..5 } })
+                    assertTrue(tlsEvents.toString(), tlsEvents.any { it.relation == com.bernaferrari.changedetection.diagnostics.TlsUrlRelation.DIFFERENT_ORIGIN && it.requestKind in setOf(com.bernaferrari.changedetection.diagnostics.TlsRequestKind.SUBRESOURCE, com.bernaferrari.changedetection.diagnostics.TlsRequestKind.UNKNOWN) })
+                    assertFalse(completed.toString().contains(tls.url))
+                    server.html = healthy
+                    val recovery = runner.check(site.id)
+                    assertTrue(recovery.toString(), recovery is SyncResult.Success && !recovery.hadChanges)
+                    assertEquals(listOf(baseline.snapId), db.snapsDao().getAllSnapsForSiteId(site.id).map { it.snapId })
+                    assertArrayEquals(bytes, files.readBytes(baseline.snapId))
+                    assertEquals(0, notifications.get())
                 }
             }
         }
     }
 
-    @Test fun freshEditPreviewsRejectInvalidMainAndRedirectButKeepPagesWithAnInvalidResource() = untrustedTlsPage().use { tls ->
+    @Test fun freshEditPreviewsRejectInvalidMainRedirectAndEmbeddedTlsThenRecover() = untrustedTlsPage().use { tls ->
         val healthy = "<html><body style='background:white;color:black'><h1 id='watched'>Healthy content</h1></body></html>"
         TestPageServer(200, healthy).use { server ->
             pump {
@@ -180,12 +201,8 @@ class TlsCaptureHealthTest {
                             }
                             val target = if (scenario == "main") tls.url else server.url
                             val outcome = runCatching { previewer.capture(target, mode, region) }
-                            if (scenario == "subresource") {
-                                assertNotNull("$mode $scenario: ${outcome.exceptionOrNull()}", outcome.getOrNull()?.firstVersion)
-                            } else {
-                                val error = outcome.exceptionOrNull()
-                                assertTrue("$mode $scenario: ${error?.javaClass?.simpleName}", error is javax.net.ssl.SSLException)
-                            }
+                            val error = outcome.exceptionOrNull()
+                            assertTrue("$mode $scenario: ${error?.javaClass?.simpleName}", error is javax.net.ssl.SSLException)
                             assertTrue(db.snapsDao().getAllSnapsForSiteId(site.id).isEmpty())
                             assertEquals(0, notifications.get())
                             server.html = healthy
@@ -247,25 +264,17 @@ class TlsCaptureHealthTest {
             scope.cancel()
         }
     }
-    private fun accepts(url: String) {
-        compose.setContent { ChangeDetectionTheme(false, false) { WatchBrowser(url, "", emptyList(), { _, _ -> }, {}, {}, {}, "Watch page") } }
-        compose.waitUntil(40_000) {
-            runCatching {
-                compose.onNodeWithText("Watch page").assertIsEnabled()
-                true
-            }.getOrDefault(false)
-        }
-    }
-
     private fun rejects(url: String) {
         compose.setContent { ChangeDetectionTheme(false, false) { WatchBrowser(url, "", emptyList(), { _, _ -> }, {}, {}, {}, "Watch page") } }
         compose.waitUntil(40_000) {
-            var done = false
-            compose.runOnUiThread { done = findWeb(compose.activity.window.decorView)?.progress == 100 }
-            done
+            var blocked = false
+            compose.runOnUiThread { blocked = findWeb(compose.activity.window.decorView)?.let { WebViewCaptureHealth.of(it).hasBlockingFailure() } == true }
+            blocked && runCatching { compose.onNodeWithText("Watch page").assertIsNotEnabled();true }.getOrDefault(false)
         }
-        val until = System.nanoTime() + 2_000_000_000L
-        compose.waitUntil(4_000) { System.nanoTime() >= until }
+        compose.runOnUiThread {
+            val observations = WebViewCaptureHealth.of(requireNotNull(findWeb(compose.activity.window.decorView))).observations()
+            assertTrue(observations.toString(), observations.isNotEmpty() && observations.all { it.blocking })
+        }
         compose.onNodeWithText("Watch page").assertIsNotEnabled()
     }
     private fun findWeb(view: View): WebView? = when (view) {

@@ -17,6 +17,7 @@ import java.net.URLEncoder
 import com.bernaferrari.changedetection.localization.stringResource
 import com.bernaferrari.changedetection.shared.generated.resources.app_name
 import com.bernaferrari.changedetection.shared.generated.resources.desktop_development
+import com.bernaferrari.changedetection.shared.generated.resources.external_open_failed
 
 fun main() {
     initKoin()
@@ -40,6 +41,7 @@ fun main() {
             state = rememberWindowState(width = 430.dp, height = 900.dp),
             onPreviewKeyEvent = { it.key == Key.Escape && it.type == KeyEventType.KeyDown && back.dispatch() },
         ) {
+            val externalFailureMessage = stringResource(Res.string.external_open_failed)
             LaunchedEffect(Unit) {
                 Desktop.getDesktop().requestForeground(true)
                 window.toFront()
@@ -48,12 +50,18 @@ fun main() {
             CompositionLocalProvider(LocalDesktopBackDispatcher provides back) {
                 ChangeDetectionRootApp(
                     PlatformActions(
-                        openUrl = { Desktop.getDesktop().browse(URI(it)) },
-                        openEmail = { email, subject -> Desktop.getDesktop().mail(URI("mailto:$email?subject=${URLEncoder.encode(subject, "UTF-8").replace("+", "%20")}")) },
+                        openUrl = { url -> openExternal(externalFailureMessage) { Desktop.getDesktop().browse(URI(url)) } },
+                        openEmail = { email, subject -> openExternal(externalFailureMessage) { Desktop.getDesktop().mail(URI("mailto:$email?subject=${URLEncoder.encode(subject, "UTF-8").replace("+", "%20")}")) } },
                         appVersion = stringResource(Res.string.desktop_development),
                     ),
                 )
             }
         }
+    }
+}
+
+private fun openExternal(message: String, action: () -> Unit) {
+    try { action() } catch (_: Exception) {
+        javax.swing.JOptionPane.showMessageDialog(null, message, "Change Detection", javax.swing.JOptionPane.ERROR_MESSAGE)
     }
 }

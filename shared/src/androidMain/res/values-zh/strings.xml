@@ -20,4 +20,5 @@
     <string name="start">启动</string>
     <string name="change_notification_named">%1$s 有变化</string>
     <string name="change_notification_generic">点按查看变化。</string>
+    <string name="external_open_failed">无法打开其他应用。请下载支持此内容的应用，或重试。</string>
 </resources>

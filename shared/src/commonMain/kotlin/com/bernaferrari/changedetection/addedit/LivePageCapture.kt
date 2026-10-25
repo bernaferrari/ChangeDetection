@@ -25,9 +25,10 @@ internal suspend fun captureLivePagePreview(
 ): CapturePreview? = recordDiagnostic(mode, region.include.isNotBlank(), region.exclude.isNotBlank(), DiagnosticTrigger.INTERACTIVE_PREVIEW) {
     withTimeout(90_000) {
         // Source monitoring needs the original HTTP response, rather than the browser's modified DOM.
-        if (mode == CaptureMode.SOURCE || mode == CaptureMode.DEFAULT) return@withTimeout null
+        if (!reusesLivePageCapture(mode)) return@withTimeout null
         val validate = loadedPageCaptureValidator(state)
         validate()
+        com.bernaferrari.changedetection.browser.validateBrowserSessionState(url, navigator.readScript(com.bernaferrari.changedetection.browser.RenderedCaptureScripts.SESSION))
         if (mode != CaptureMode.SCREENSHOT) {
             // Read the URL and DOM in the same JavaScript turn. Picker styles are restored even
             // if serialization fails or the caller is cancelled before the callback arrives.
@@ -85,3 +86,9 @@ internal expect suspend fun captureLoadedPageScreenshot(state: WebViewState, reg
 
 /** Platform factory for the live browser, including its reusable Android capture context. */
 internal expect fun createWatchWebView(param: com.multiplatform.webview.web.WebViewFactoryParam): com.multiplatform.webview.web.NativeWebView
+
+/** Only reuse the live DOM when subsequent checks use the same browser strategy. */
+internal fun reusesLivePageCapture(mode: CaptureMode): Boolean = mode == CaptureMode.SCREENSHOT || (mode == CaptureMode.TEXT && reusesLoadedTextCapture)
+
+/** HTTP-only platforms must prepare their baseline through the same HTTP preview as checks. */
+internal expect val reusesLoadedTextCapture: Boolean

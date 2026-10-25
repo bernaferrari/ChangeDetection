@@ -75,7 +75,7 @@
         <item quantity="other">%1$d saíram</item>
     </plurals>
     <string name="detail_sign_in">Entrar</string>
-    <string name="browser_session_note">No Android, verificações de texto e capturas de tela podem reutilizar os cookies de login salvos neste navegador. Verificações de código-fonte não. Alguns sites podem pedir que você entre novamente.</string>
+    <string name="browser_session_note">Texto e Captura de tela usam o perfil do navegador do app. Entrar ou trocar de conta em um site afeta as páginas monitoradas desse site. As sessões podem expirar. Código não usa cookies de login do navegador.</string>
     <string name="turbo_next_check">Próxima verificação em %1$d s</string>
     <string name="picker_selected_image">Uma imagem</string>
     <string name="picker_selected_frame">Um quadro incorporado (geralmente um anúncio)</string>

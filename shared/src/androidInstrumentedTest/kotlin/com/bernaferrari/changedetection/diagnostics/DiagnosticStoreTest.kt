@@ -13,6 +13,41 @@ import java.io.File
 class DiagnosticStoreTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
 
+    @Test fun appEventsKeepTheirEventTimeBuildAndLegacyEventsStayUnattributed() = runBlocking {
+        val dir = File(context.cacheDir, "event-build-${java.util.UUID.randomUUID()}")
+        val at = 1_790_000_000_000L
+        var build = AppEventBuild(41, "abcdef123456", AppBuildVariant.RELEASE)
+        val store = AndroidDiagnosticStore(context, dir, { at }, ::runtime, { build })
+        try {
+            dir.mkdirs()
+            File(dir, "app-events.json").writeText(Json.encodeToString(listOf(AppEvent(AppEventKind.CRASH, at, classes = listOf("IOException")))))
+            store.appEvent(AppEvent(AppEventKind.BACKGROUND_FAILURE, at, stage = AppEventStage.WORKER_FOREGROUND))
+            build = AppEventBuild(42, "123456abcdef", AppBuildVariant.DEBUG)
+            val report = Json.parseToJsonElement(store.report().json).jsonObject
+            val events = report.getValue("appEvents").jsonArray
+            assertFalse(events[0].jsonObject.containsKey("build"))
+            val saved = events[1].jsonObject.getValue("build").jsonObject
+            assertEquals(41, saved.getValue("versionCode").jsonPrimitive.int)
+            assertEquals("abcdef123456", saved.getValue("revision").jsonPrimitive.content)
+            assertEquals("RELEASE", saved.getValue("variant").jsonPrimitive.content)
+            assertEquals("WORKER_FOREGROUND", events[1].jsonObject.getValue("stage").jsonPrimitive.content)
+            assertTrue(report.getValue("summary").toString().contains("Build not recorded (older event)"))
+        } finally { store.close();dir.deleteRecursively() }
+    }
+
+    @Test fun storedEventBuildMetadataCannotExportRawInput() = runBlocking {
+        fixture { store, dir, _ ->
+            dir.mkdirs()
+            val event = AppEvent(AppEventKind.CRASH, 1_790_000_000_000L, build = AppEventBuild(Long.MAX_VALUE, "https://private.invalid/person?token=SECRET", AppBuildVariant.UNKNOWN))
+            File(dir, "app-events.json").writeText(Json.encodeToString(listOf(event)))
+            val json = store.report().json
+            assertFalse(json.contains("private.invalid"))
+            assertFalse(json.contains("SECRET"))
+            assertFalse(json.contains(Long.MAX_VALUE.toString()))
+            assertTrue(json.contains("unavailable"))
+        }
+    }
+
     @Test fun captureGeometryIsBoundedAndContainsNoDocumentData() = runBlocking {
         fixture { store, _, _ ->
             val context = com.bernaferrari.changedetection.diagnostics.CaptureDiagnostic(Int.MAX_VALUE, -1, Int.MAX_VALUE, -1, Int.MAX_VALUE, -1, Int.MAX_VALUE, -1, Int.MAX_VALUE, true, Int.MAX_VALUE)

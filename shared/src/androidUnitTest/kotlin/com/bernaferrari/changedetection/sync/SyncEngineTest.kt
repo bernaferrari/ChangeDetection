@@ -333,7 +333,7 @@ class SyncEngineTest {
             }
         }
 
-        val previousSnap = createTestSnap(site.id).copy(contentHash = ContentHasher.hashHtmlContent(contentBytes))
+        val previousSnap = createTestSnap(site.id).copy(contentSize = contentBytes.size, contentHash = ContentHasher.hashHtmlContent(contentBytes))
 
         whenever(mockSitesDao.getSiteById(any())).thenReturn(site)
         whenever(mockSnapsDao.getLastSnapForSiteId(any())).thenReturn(previousSnap)
@@ -485,6 +485,7 @@ class SyncEngineTest {
         assertEquals("100", com.bernaferrari.changedetection.util.readableSnapshotText(bytes.firstValue.decodeToString(), true))
         assertFalse(bytes.firstValue.decodeToString().contains("timer"))
         assertFalse(bytes.firstValue.decodeToString().contains("Ad A"))
+        whenever(mockFileStorage.readBytes(any())).thenAnswer { bytes.firstValue }
         val unchanged = syncEngine.processFetchResult(site, SyncEngine.FetchResult.Success("text/html", first.replace("Ad A", "Ad B").replace("10s", "9s").toByteArray()))
         assertTrue(unchanged is SyncResult.Success && !unchanged.hadChanges)
         val changed = syncEngine.processFetchResult(site, SyncEngine.FetchResult.Success("text/html", first.replace("100", "200").toByteArray()))
@@ -516,17 +517,19 @@ class SyncEngineTest {
     }
 
     @Test
-    fun `readable text ignores markup without reading or replacing the saved capture`() = runTest {
+    fun `readable text ignores markup while verifying and preserving the saved capture`() = runTest {
         val site = createTestSite().copy(captureMode = com.bernaferrari.changedetection.repo.CaptureMode.TEXT)
         whenever(mockSitesDao.getSiteById(site.id)).thenReturn(site)
         val before = "<p class='old'>Price 100</p>".toByteArray()
-        val snap = createTestSnap(site.id).copy(contentType = "text/html", contentHash = ContentHasher.detectionHash(before, "text/html", site.captureMode))
+        val snap = createTestSnap(site.id).copy(contentSize = before.size, contentType = "text/html", contentHash = ContentHasher.detectionHash(before, "text/html", site.captureMode))
         whenever(mockSnapsDao.getLastSnapForSiteId(site.id)).thenReturn(snap)
+        whenever(mockFileStorage.readBytes(snap.snapId)).thenReturn(before)
         syncEngine = makeSyncEngine()
         val result = syncEngine.processFetchResult(site, SyncEngine.FetchResult.Success("text/html", "<p class='new'>Price 100</p>".toByteArray()))
         assertTrue(result is SyncResult.Success && !result.hadChanges)
         verify(mockSnapsDao, never()).insertSnap(any())
-        verify(mockFileStorage, never()).readBytes(any())
+        verify(mockFileStorage).readBytes(snap.snapId)
+        verify(mockFileStorage, never()).writeBytes(any(), any())
     }
 
     @Test
@@ -718,9 +721,10 @@ class SyncEngineTest {
     fun `fresh start during unchanged comparison stays waiting for its new baseline`() = runTest {
         val site = createTestSite()
         val content = "same page".toByteArray()
-        val previous = createTestSnap(site.id).copy(contentHash = com.bernaferrari.changedetection.util.ContentHasher.hashContent(content))
+        val previous = createTestSnap(site.id).copy(contentSize = content.size, contentHash = com.bernaferrari.changedetection.util.ContentHasher.hashContent(content))
         whenever(mockSitesDao.getSiteById(site.id)).thenReturn(site)
         whenever(mockSnapsDao.getLastSnapForSiteId(site.id)).thenReturn(previous, null)
+        whenever(mockFileStorage.readBytes(previous.snapId)).thenReturn(content)
         syncEngine = makeSyncEngine()
 
         assertTrue(syncEngine.processFetchResult(site, SyncEngine.FetchResult.Success("text/plain", content)) is SyncResult.Skipped)
@@ -869,7 +873,7 @@ class SyncEngineTest {
         var status = HttpStatusCode.OK
         mockHttpClient = HttpClient(MockEngine { respond(html, status, headersOf(HttpHeaders.ContentType, "text/html")) })
         whenever(mockSitesDao.getSiteById(any())).thenReturn(site)
-        whenever(mockSnapsDao.getLastSnapForSiteId(any())).thenReturn(createTestSnap(site.id).copy(contentHash = ContentHasher.hashHtmlContent(html.toByteArray())))
+        whenever(mockSnapsDao.getLastSnapForSiteId(any())).thenReturn(createTestSnap(site.id).copy(contentSize = html.toByteArray().size, contentHash = ContentHasher.hashHtmlContent(html.toByteArray())))
         whenever(mockFileStorage.readBytes(any())).thenReturn(html.toByteArray())
         syncEngine = makeSyncEngine()
         val calls = java.util.concurrent.atomic.AtomicInteger()

@@ -9,10 +9,9 @@ import javax.net.ssl.SSLException
  * One document's TLS health, shared by interactive capture and persistence. No WebView reference.
  * URL observations are bounded, memory-only, and used solely for classification.
  *
- * Certificate errors are always refused (the handler is cancelled, never proceeded). What they mean for a capture
- * depends on what was refused, the way Chrome treats them:
- * - the page itself, or a redirect of it: the document is not the real page, so the capture is rejected;
- * - an image, script, frame or other sub-resource: only that resource is missing, so the page is kept without it.
+ * Certificate errors are always refused. A monitor may promote a capture only when its watched content
+ * is complete; without a proven optional-resource policy, every refused request invalidates the document.
+ * Request classification remains diagnostic evidence, not permission to omit content silently.
  */
 internal class PageCaptureHealth {
     private var generation = 0L
@@ -29,6 +28,18 @@ internal class PageCaptureHealth {
     private val blockingFailures = mutableListOf<DiagnosticTlsContext>()
     private val refusedResources = mutableListOf<DiagnosticTlsContext>()
     private var blocked = 0
+    private val resourceErrors = LinkedHashSet<String>()
+    private val watchedDependencies = LinkedHashSet<String>()
+    private var dependencyOverflow = false
+    @Synchronized fun resourceError(url: String) {
+        if (url.length <= 4096 && resourceErrors.size < 512) resourceErrors += url else dependencyOverflow = true
+    }
+    @Synchronized fun dependencies(urls: List<String>) {
+        // Retain this document's dependency union so another preview cannot revoke an older preview's checks.
+        dependencyOverflow = dependencyOverflow || (watchedDependencies + urls).size > 512
+        for (url in urls) if (url.length <= 4096 && watchedDependencies.size < 512) watchedDependencies += url
+    }
+    @Synchronized private fun incompleteResources() = resourceErrors.any { it in watchedDependencies } || (dependencyOverflow && resourceErrors.isNotEmpty())
 
     @Synchronized fun begin(url: String?) {
         generation++
@@ -43,6 +54,9 @@ internal class PageCaptureHealth {
         blockingFailures.clear()
         refusedResources.clear()
         blocked = 0
+        resourceErrors.clear()
+        watchedDependencies.clear()
+        dependencyOverflow = false
     }
 
     @Synchronized fun started(url: String?) {
@@ -102,25 +116,15 @@ internal class PageCaptureHealth {
                 }
             }
         }
-        val blocking = when (kind) {
-            TlsRequestKind.MAIN_DOCUMENT -> true
-
-            TlsRequestKind.SUBRESOURCE -> false
-
-            // Server redirects never reach shouldInterceptRequest, so an unseen URL is the page's own redirect
-            // while no document has committed or a main-frame navigation is in flight. Otherwise it is a
-            // resource of the committed page (often one that redirected to another host).
-            TlsRequestKind.UNKNOWN ->
-                relation == TlsUrlRelation.UNKNOWN || relation == TlsUrlRelation.REQUESTED || relation == TlsUrlRelation.STARTED ||
-                    relation == TlsUrlRelation.COMMITTED || committed == null || mainPending
-        }
+        val blocking = true
         val context = DiagnosticTlsContext(primary.coerceIn(0, 5), codes.filter { it in 0..5 }.distinct().sorted().take(6), kind, relation, started != null, committed != null, finished, blocking)
-        if (blocking) {
-            blockingSinceFinish = true
-            if (blockingFailures.size < MAX_FAILURES) blockingFailures += context
-        } else {
+        blockingSinceFinish = true
+        val resource = kind == TlsRequestKind.SUBRESOURCE || (kind == TlsRequestKind.UNKNOWN && committed != null && !mainPending && relation == TlsUrlRelation.DIFFERENT_ORIGIN)
+        if (resource) {
             blocked++
             if (refusedResources.size < MAX_FAILURES) refusedResources += context
+        } else if (blockingFailures.size < MAX_FAILURES) {
+            blockingFailures += context
         }
         return context
     }
@@ -130,8 +134,8 @@ internal class PageCaptureHealth {
     /** Blocking failures first: they decide validity and are never crowded out by refused resources. */
     @Synchronized fun observations() = blockingFailures + refusedResources
 
-    /** True once the page itself failed TLS; sub-resources refused on their own never make a capture invalid. */
-    @Synchronized fun hasBlockingFailure() = blockingFailures.isNotEmpty()
+    /** Every refused request makes completeness unproven, including sub-resources. */
+    @Synchronized fun hasBlockingFailure() = blockingFailures.isNotEmpty() || blocked > 0
 
     /** How many sub-resources were refused for this document (they are missing from the capture). */
     @Synchronized fun blockedResources() = blocked
@@ -140,8 +144,9 @@ internal class PageCaptureHealth {
 
     /** Called again after asynchronous capture and immediately before baseline promotion. */
     suspend fun validate(epoch: Long = epoch()) {
+        if (incompleteResources()) throw CaptureNotReadyException(CaptureIssue.RESOURCE_FAILED)
         if (!valid(epoch)) {
-            synchronized(this) { blockingFailures.toList() }.forEach { currentCoroutineContext()[DiagnosticSpan]?.tls(it) }
+            observations().forEach { currentCoroutineContext()[DiagnosticSpan]?.tls(it) }
             throw SSLException("The page could not be captured with valid TLS")
         }
     }

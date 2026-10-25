@@ -44,9 +44,9 @@ class PageCaptureHealthTest {
         assertEquals(TlsUrlRelation.DIFFERENT_ORIGIN, sub.relation)
         assertEquals(listOf(0, 3), sub.errors)
         assertTrue(sub.committed && sub.finished)
-        // Refused like Chrome does: the page is still the real page, just without that frame.
-        assertFalse(sub.blocking)
-        h.validate()
+        // A browser may omit a frame; a monitor must not promote incomplete content.
+        assertTrue(sub.blocking)
+        assertRejected { h.validate() }
         assertEquals(1, h.blockedResources())
         h.begin(page)
         h.started(page)
@@ -74,7 +74,7 @@ class PageCaptureHealthTest {
         assertRejected { h.validate() }
     }
 
-    @Test fun reportedFailureASubresourceRedirectingToAnUntrustedHostKeepsTheCapture() = runTest {
+    @Test fun subresourceRedirectingToAnUntrustedHostRejectsIncompleteCapture() = runTest {
         // The shared report: the page loaded and committed, then a resource it pulled in (redirected to a host with an
         // untrusted certificate, so never seen by shouldInterceptRequest) failed TLS 350 ms later.
         val h = PageCaptureHealth()
@@ -89,8 +89,8 @@ class PageCaptureHealthTest {
         h.finished()
         assertEquals(TlsRequestKind.UNKNOWN, late.requestKind)
         assertEquals(TlsUrlRelation.DIFFERENT_ORIGIN, late.relation)
-        assertFalse(late.blocking)
-        h.validate(epoch)
+        assertTrue(late.blocking)
+        assertRejected { h.validate(epoch) }
     }
 
     @Test fun anUnseenUrlDuringANewMainFrameNavigationBlocks() = runTest {
@@ -114,11 +114,11 @@ class PageCaptureHealthTest {
         h.committed("https://main.invalid")
         repeat(500) {
             h.request("https://$it.invalid", false)
-            assertFalse(h.ssl("https://$it.invalid", 3, listOf(3)).blocking)
+            assertTrue(h.ssl("https://$it.invalid", 3, listOf(3)).blocking)
         }
         assertEquals(500, h.blockedResources())
         assertEquals(8, h.observations().size)
-        h.validate()
+        assertRejected { h.validate() }
         // Main-frame evidence survives any number of sub-resources.
         h.request("https://main.invalid/again", true)
         assertTrue(h.ssl("https://main.invalid/again", 3, listOf(3)).blocking)

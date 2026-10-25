@@ -32,6 +32,7 @@ interface SitesDao {
             latest.timestamp AS latest_timestamp, latest.contentType AS latest_contentType,
             latest.contentCharset AS latest_contentCharset, latest.contentSize AS latest_contentSize,
             latest.contentHash AS latest_contentHash, latest.processedContentHash AS latest_processedContentHash,
+            latest.payloadHash AS latest_payloadHash,
             (SELECT COUNT(*) FROM snaps WHERE siteId = sites.siteId) AS snapshotCount
         FROM sites
         LEFT JOIN snaps latest ON latest.snapId = (

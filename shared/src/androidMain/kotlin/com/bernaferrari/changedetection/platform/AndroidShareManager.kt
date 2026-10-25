@@ -27,6 +27,7 @@ class AndroidShareManager(
             context.startActivity(chooser)
         } catch (e: Exception) {
             appLog.e("Failed to share text", e)
+            throw ShareUnavailableException(e)
         }
     }
 
@@ -40,7 +41,7 @@ class AndroidShareManager(
             check(cacheDir.exists() || cacheDir.mkdirs()) { "Unable to prepare the share cache" }
             val safeFileName = File(fileName).name
             require(safeFileName == fileName && safeFileName.isNotBlank()) { "Invalid share file name" }
-            val file = File(cacheDir, safeFileName)
+            val file = File.createTempFile("share-", "-$safeFileName", cacheDir)
             file.writeText(text)
 
             val uri =
@@ -66,6 +67,7 @@ class AndroidShareManager(
             context.startActivity(chooser)
         } catch (e: Exception) {
             appLog.e("Failed to share file", e)
+            throw ShareUnavailableException(e)
         }
     }
 }

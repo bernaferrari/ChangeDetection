@@ -472,7 +472,7 @@ private fun FailureCallout(code: String?, lastSuccess: Long?, checking: Boolean,
         modifier = Modifier.padding(bottom = 12.dp),
         actions = {
             when (failure) {
-                CheckFailure.REGION, CheckFailure.CONTENT, CheckFailure.CONTENT_TOO_LARGE, CheckFailure.CAPTURE_UNAVAILABLE ->
+                CheckFailure.REGION, CheckFailure.MULTIPLE_VISUAL_REGIONS, CheckFailure.CONTENT, CheckFailure.CONTENT_TOO_LARGE, CheckFailure.CAPTURE_UNAVAILABLE ->
                     Button(onClick = onEdit) { Text(stringResource(Res.string.detail_fix_settings)) }
 
                 CheckFailure.RATE_LIMITED -> Button(onClick = onSchedule) { Text(stringResource(Res.string.detail_check_less)) }
@@ -489,6 +489,8 @@ private fun FailureCallout(code: String?, lastSuccess: Long?, checking: Boolean,
 private fun failureAdvice(failure: CheckFailure) = when (failure) {
     CheckFailure.SERVER, CheckFailure.TIMEOUT -> Res.string.advice_temporary
 
+    CheckFailure.BACKGROUND_RESTRICTED -> Res.string.check_failure_background_restricted_detail
+
     CheckFailure.TLS -> Res.string.check_failure_tls_detail
 
     CheckFailure.CONNECTION -> Res.string.advice_connection
@@ -499,14 +501,20 @@ private fun failureAdvice(failure: CheckFailure) = when (failure) {
 
     CheckFailure.RATE_LIMITED -> Res.string.advice_rate
 
+    CheckFailure.MULTIPLE_VISUAL_REGIONS -> Res.string.preview_single_visual_region
+
     CheckFailure.REGION -> Res.string.advice_region
 
     CheckFailure.CONTENT, CheckFailure.CONTENT_TOO_LARGE -> Res.string.advice_content
+
+    CheckFailure.CAPTURE_INCOMPLETE -> Res.string.check_failure_capture_incomplete_detail
 
     CheckFailure.CAPTURE_UNAVAILABLE -> Res.string.advice_capture
 
     // The app knows these causes; say them instead of the catch-all.
     CheckFailure.STORAGE_FULL -> Res.string.check_failure_storage_full_detail
+
+    CheckFailure.SAVED_CONTENT_UNAVAILABLE -> Res.string.check_failure_saved_content_unavailable_detail
 
     CheckFailure.SAVE_FAILED -> Res.string.check_failure_save_failed_detail
 

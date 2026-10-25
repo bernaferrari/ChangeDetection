@@ -765,7 +765,7 @@
         <item quantity="other">%1$d entfernt</item>
     </plurals>
     <string name="detail_sign_in">Anmelden</string>
-    <string name="browser_session_note">Unter Android können Text- und Screenshot-Prüfungen die gespeicherten Anmelde-Cookies dieses Browsers verwenden. Quelltextprüfungen tun dies nicht. Manche Websites verlangen möglicherweise eine erneute Anmeldung.</string>
+    <string name="browser_session_note">Text und Screenshot verwenden das Browserprofil der App. Anmelden oder Kontowechsel auf einer Website beeinflusst deren überwachte Seiten. Sitzungen können ablaufen. Code verwendet keine Anmelde-Cookies des Browsers.</string>
     <string name="turbo_next_check">Nächste Prüfung in %1$d Sek.</string>
     <string name="picker_selected_image">Ein Bild</string>
     <string name="picker_selected_frame">Eingebetteter Frame (oft eine Anzeige)</string>
@@ -825,4 +825,14 @@
     <string name="comparison_finding_changes">Änderungen werden gesucht…</string>
     <string name="check_failure_tls">Sichere Verbindung fehlgeschlagen</string>
     <string name="check_failure_tls_detail">Die sichere Verbindung zur Seite konnte nicht überprüft werden. Dein gespeicherter Verlauf bleibt erhalten. Versuche es später erneut oder öffne die Website im Browser.</string>
+    <string name="preview_single_visual_region">Die Screenshot-Überwachung unterstützt einen ausgewählten Bereich. Wähle ein Element oder wechsle zu Text, um mehrere Bereiche zu überwachen.</string>
+    <string name="share_failed">Dieser Inhalt konnte nicht geteilt werden. Versuche es erneut oder wähle eine andere App.</string>
+    <string name="external_open_failed">Eine andere App konnte nicht geöffnet werden. Installiere eine kompatible App oder versuche es erneut.</string>
+    <string name="check_failure_background_restricted">Hintergrundprüfung konnte nicht starten</string>
+    <string name="check_failure_background_restricted_detail">Android hat den Start dieser Hintergrundprüfung nicht erlaubt. Öffne die App und versuche es erneut. Der vorhandene Verlauf bleibt erhalten.</string>
+    <string name="check_failure_saved_content_unavailable">Gespeicherte Version nicht verfügbar</string>
+    <string name="check_failure_saved_content_unavailable_detail">Die gespeicherte Version fehlt oder ist beschädigt. Der vorhandene Verlauf wurde beibehalten. Prüfe den verfügbaren Gerätespeicher und sende einen Bericht, wenn das Problem weiter besteht.</string>
+    <string name="check_failure_capture_incomplete">Seitenaufnahme unvollständig</string>
+    <string name="check_failure_capture_incomplete_detail">Ein Teil der überwachten Seite konnte nicht geladen werden. Der gespeicherte Verlauf wurde beibehalten. Versuche es erneut oder öffne die Seitenvorschau.</string>
+    <string name="text_http_capability_note">Auf dieser Plattform liest die Textüberwachung die HTTP-Antwort. JavaScript-Inhalte und Anmelde-Cookies des Browsers sind nicht enthalten.</string>
 </resources>

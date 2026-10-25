@@ -272,7 +272,11 @@ fun AddEditConfirmScreen(
                     saveError?.localizedMessage()?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
                     FootNote(Icons.Outlined.Schedule, stringResource(Res.string.monitor_editor_cadence_hint))
                     // Explained where it matters: right before watching a page you may have signed in to.
-                    if (browserAvailable && visualMode) FootNote(Icons.Outlined.Lock, stringResource(Res.string.browser_session_note))
+                    if (captureMode == CaptureMode.TEXT && !com.bernaferrari.changedetection.repo.supportsRenderedTextMonitoring) {
+                        FootNote(Icons.Outlined.Info, stringResource(Res.string.text_http_capability_note))
+                    } else if (browserAvailable && (visualMode || captureMode == CaptureMode.TEXT)) {
+                        FootNote(Icons.Outlined.Lock, stringResource(Res.string.browser_session_note))
+                    }
                 }
             }
         }
@@ -714,7 +718,9 @@ private fun PagePreviewCard(
                                 stringResource(
                                     when (state.reason) {
                                         PreviewFailure.TIMEOUT -> Res.string.check_failure_timeout_detail
+                                        PreviewFailure.CAPTURE_INCOMPLETE -> Res.string.check_failure_capture_incomplete_detail
                                         PreviewFailure.REGION -> Res.string.check_failure_region_detail
+                                        PreviewFailure.MULTIPLE_REGIONS -> Res.string.preview_single_visual_region
                                         PreviewFailure.TLS -> Res.string.check_failure_tls_detail
                                         PreviewFailure.CONNECTION -> Res.string.check_failure_connection_detail
                                         PreviewFailure.UNAVAILABLE -> Res.string.check_failure_unknown_detail

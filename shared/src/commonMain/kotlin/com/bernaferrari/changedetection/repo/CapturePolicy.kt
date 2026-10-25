@@ -17,5 +17,5 @@ internal fun Site.capturePolicy(): CapturePolicy = CapturePolicy(
     },
 )
 
-/** Browser fragments can identify distinct client-side routes. HTTP captures never send them. */
-internal fun CaptureMode.usesBrowserIdentity(): Boolean = this == CaptureMode.SCREENSHOT || this == CaptureMode.DEFAULT
+/** Browser fragments can identify distinct client-side routes. HTTP source captures never send them. Preserve Text routes consistently for creation/editing on every platform. */
+internal fun CaptureMode.usesBrowserIdentity(): Boolean = this == CaptureMode.SCREENSHOT || this == CaptureMode.DEFAULT || (this == CaptureMode.TEXT && supportsRenderedTextMonitoring)

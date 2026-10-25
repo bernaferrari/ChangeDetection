@@ -73,3 +73,12 @@ private suspend fun SQLiteConnection.exec(sql: String) = prepare(sql).use { it.s
 private suspend fun SQLiteConnection.columns(table: String): Set<String> = prepare("PRAGMA table_info(`$table`)").use { statement ->
     buildSet { while (statement.step()) add(statement.getText(1)) }
 }
+
+/** Add integrity metadata and durable delivery intent without rewriting any saved bytes or history. */
+val MIGRATION_4_5: Migration = object : Migration(4, 5) {
+    override suspend fun migrate(connection: SQLiteConnection) {
+        connection.exec("ALTER TABLE snaps ADD COLUMN payloadHash TEXT NOT NULL DEFAULT ''")
+        connection.exec("CREATE TABLE IF NOT EXISTS pendingChangeAlerts (snapId TEXT NOT NULL PRIMARY KEY, siteId TEXT NOT NULL, createdAt INTEGER NOT NULL, policyIdentity TEXT NOT NULL, lastAttemptAt INTEGER NOT NULL DEFAULT 0, FOREIGN KEY(siteId) REFERENCES sites(siteId) ON UPDATE NO ACTION ON DELETE CASCADE, FOREIGN KEY(snapId) REFERENCES snaps(snapId) ON UPDATE NO ACTION ON DELETE CASCADE)")
+        connection.exec("CREATE INDEX IF NOT EXISTS index_pendingChangeAlerts_siteId ON pendingChangeAlerts(siteId)")
+    }
+}

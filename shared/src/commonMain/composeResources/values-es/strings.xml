@@ -440,4 +440,14 @@
     </plurals>
     <string name="check_failure_tls">No se pudo establecer una conexión segura</string>
     <string name="check_failure_tls_detail">No se pudo verificar la conexión segura con la página. Tu historial guardado se conserva. Inténtalo más tarde o abre el sitio en tu navegador.</string>
+    <string name="preview_single_visual_region">La vigilancia por captura de pantalla admite una sola zona seleccionada. Elige un elemento o cambia a Texto para vigilar varias zonas.</string>
+    <string name="share_failed">No se pudo compartir este contenido. Inténtalo de nuevo o elige otra app.</string>
+    <string name="external_open_failed">No se pudo abrir otra app. Instala una app compatible o inténtalo de nuevo.</string>
+    <string name="check_failure_background_restricted">No se pudo iniciar la comprobación en segundo plano</string>
+    <string name="check_failure_background_restricted_detail">Android no permitió iniciar esta comprobación en segundo plano. Abre la app e inténtalo de nuevo. El historial existente se conserva.</string>
+    <string name="check_failure_saved_content_unavailable">Versión guardada no disponible</string>
+    <string name="check_failure_saved_content_unavailable_detail">La versión guardada falta o está dañada. El historial existente se ha conservado. Comprueba el espacio disponible del dispositivo y envía un informe si el problema continúa.</string>
+    <string name="check_failure_capture_incomplete">Captura de página incompleta</string>
+    <string name="check_failure_capture_incomplete_detail">No se pudo cargar parte de la página vigilada. El historial guardado se ha conservado. Inténtalo de nuevo o previsualiza la página.</string>
+    <string name="text_http_capability_note">En esta plataforma, la vigilancia de texto lee la respuesta HTTP. No incluye el contenido de JavaScript ni las cookies de inicio de sesión del navegador.</string>
 </resources>
