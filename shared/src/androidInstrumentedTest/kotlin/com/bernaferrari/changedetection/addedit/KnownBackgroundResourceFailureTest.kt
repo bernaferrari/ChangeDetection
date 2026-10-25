@@ -37,7 +37,7 @@ class KnownBackgroundResourceFailureTest {
     @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
 
     @Test fun failedVisibleCssBackgroundMustNotCreateHistoryOrNotifyAndHealthyRecoveryIsUnchanged() = BackgroundImageServer().use { image ->
-        val html = "<html><head><meta name='viewport' content='width=device-width,initial-scale=1'></head><body><p>Unchanged page inventory</p><div id='watched' style=\"width:280px;height:240px;background-image:url('${image.url}');background-size:280px 240px\"></div></body></html>"
+        val html = "<html><head><meta name='viewport' content='width=device-width,initial-scale=1'></head><body><p>Unchanged page inventory</p><div id='watched' style=\"width:280px;height:240px;background-image:url('${image.url}#watched-background');background-size:280px 240px\"></div></body></html>"
         TestPageServer(200, html).use { server ->
             compose.setContent { Text("HTTP background fixture") }
             pump {
