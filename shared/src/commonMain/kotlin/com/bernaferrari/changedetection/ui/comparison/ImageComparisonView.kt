@@ -466,7 +466,10 @@ private fun ImageSwipeComparison(
                 WidthSizedImage(beforeBytes, stringResource(Res.string.preview_before))
             }
             Box(Modifier.fillMaxWidth().padding(top = labelInset).clip(HorizontalSplitShape(splitX))) {
-                WidthSizedImage(afterBytes, stringResource(Res.string.preview_after))
+                // Both captures decode together; one indicator, not two cut apart by the split.
+                androidx.compose.runtime.CompositionLocalProvider(LocalShowsImageLoading provides false) {
+                    WidthSizedImage(afterBytes, stringResource(Res.string.preview_after))
+                }
             }
         }
 

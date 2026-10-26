@@ -45,7 +45,7 @@ internal fun SimpleDiffView(oldContent: String, newContent: String, modifier: Mo
     }
     val content = diff
     if (content == null) {
-        Box(modifier, contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        Box(modifier, contentAlignment = Alignment.Center) { com.bernaferrari.changedetection.ui.components.DelayedLoadingIndicator() }
         return
     }
     val listState = remember(oldContent, newContent) { androidx.compose.foundation.lazy.LazyListState() }

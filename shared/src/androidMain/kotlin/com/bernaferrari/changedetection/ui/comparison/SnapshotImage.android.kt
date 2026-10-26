@@ -6,11 +6,9 @@ import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrokenImage
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -54,18 +52,14 @@ internal actual fun SnapshotImage(
     }
 
     when (val current = state) {
-        ImageLoadState.Loading -> {
-            Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth())
-            }
-        }
+        ImageLoadState.Loading -> SnapshotImageLoading(modifier)
 
         is ImageLoadState.Ready -> {
             DisposableEffect(current.strips) {
                 onDispose { current.strips.bitmaps.forEach(Bitmap::recycle) }
             }
             val painter = remember(current.strips) { StripsPainter(current.strips) }
-            Image(painter = painter, contentDescription = contentDescription, modifier = modifier, contentScale = contentScale)
+            Image(painter = painter, contentDescription = contentDescription, modifier = modifier.snapshotFadeIn(current.strips), contentScale = contentScale)
         }
 
         ImageLoadState.Failed -> {

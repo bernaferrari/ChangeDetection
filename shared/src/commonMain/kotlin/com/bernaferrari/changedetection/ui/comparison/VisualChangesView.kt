@@ -143,7 +143,7 @@ private fun PageOverview(afterBytes: ByteArray, regions: List<VisualRegion>, cur
                 value = com.bernaferrari.changedetection.image.CropCache.get(afterBytes, 0f, 0f, 1f, 1f, widthPx)
             }
             Box(Modifier.fillMaxWidth().height(available)) {
-                thumb?.let { androidx.compose.foundation.Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.FillBounds) }
+                thumb?.let { androidx.compose.foundation.Image(it, null, Modifier.fillMaxSize().snapshotFadeIn(it), contentScale = ContentScale.FillBounds) }
             }
             Canvas(Modifier.matchParentSize()) {
                 regions.forEachIndexed { index, region ->
@@ -283,7 +283,7 @@ private fun CropLabelled(label: String?, bytes: ByteArray, left: Float, right: F
                     .background(if (crop == null) MaterialTheme.colorScheme.surfaceContainerHigh else Color.White),
             ) {
                 crop?.let {
-                    androidx.compose.foundation.Image(it, null, Modifier.fillMaxSize(), contentScale = ContentScale.FillBounds, filterQuality = androidx.compose.ui.graphics.FilterQuality.Medium)
+                    androidx.compose.foundation.Image(it, null, Modifier.fillMaxSize().snapshotFadeIn(it), contentScale = ContentScale.FillBounds, filterQuality = androidx.compose.ui.graphics.FilterQuality.Medium)
                 }
                 if (removed) {
                     Box(Modifier.matchParentSize().background(marks.removed.copy(alpha = 0.08f)))

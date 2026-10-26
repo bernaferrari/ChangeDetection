@@ -30,7 +30,6 @@ import androidx.compose.material.icons.rounded.Numbers
 import androidx.compose.material.icons.rounded.UnfoldLess
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -303,7 +302,7 @@ internal fun ChangeReader(
     val loaded = content
     if (loaded == null) {
         SideEffect { state.changeIndices = emptyList() }
-        Box(modifier, contentAlignment = Alignment.Center) { LoadingIndicator() }
+        Box(modifier, contentAlignment = Alignment.Center) { com.bernaferrari.changedetection.ui.components.DelayedLoadingIndicator() }
         return
     }
     if (loaded.changes == 0) {
