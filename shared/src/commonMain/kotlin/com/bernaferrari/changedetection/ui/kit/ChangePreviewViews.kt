@@ -108,6 +108,8 @@ fun rememberVersionPreview(snap: com.bernaferrari.changedetection.repo.Snap): Ch
     val repository = remember { optional<ChangePreviewRepository>() }
     val preview by androidx.compose.runtime.key(snap.snapId) {
         produceState<ChangePreview?>(repository?.cachedVersion(snap.snapId), snap.snapId) {
+            // Already known: no query for the previous version, no work at all while a list scrolls past it.
+            if (value != null) return@produceState
             value = loadPreview { repository?.forVersion(snap) }
         }
     }

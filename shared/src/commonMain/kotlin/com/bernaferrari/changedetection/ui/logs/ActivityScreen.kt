@@ -261,6 +261,9 @@ internal fun ActivityFeed(
                     is LogUiModel.Header -> "h" + model.date
                     null -> "p$index"
                 }
+            }, contentType = { index ->
+                // Headers and rows recycle only into their own kind, instead of being rebuilt from scratch.
+                if (items.peek(index) is LogUiModel.Header) "header" else "row"
             }) { index ->
                 when (val model = items[index]) {
                     is LogUiModel.Header -> DayHeader(model.date, if (index + 1 < items.itemCount) items.peek(index + 1) else null)
