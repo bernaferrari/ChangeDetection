@@ -20,20 +20,25 @@ import org.junit.runner.RunWith
 class CaptureEditorUiTest {
     @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
 
-    @Test fun regionPresetsAndCustomSelectorsWorkAtLargeText() {
+    @Test fun regionPickerAndCustomSelectorsWorkAtLargeText() {
+        var picks = 0
         var region by mutableStateOf(com.bernaferrari.changedetection.detection.TextRegion())
         compose.setContent {
             val density = androidx.compose.ui.platform.LocalDensity.current
             CompositionLocalProvider(androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(density.density, 2f)) {
                 ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
                     Column(Modifier.verticalScroll(rememberScrollState())) {
-                        TextRegionFields(region, error = false, enabled = true, onChoose = { region = it })
+                        TextRegionFields(region, error = false, enabled = true, onChoose = { region = it }, onPick = { picks++ })
                     }
                 }
             }
         }
-        compose.onNodeWithText("Main content").performScrollTo().performClick()
-        compose.runOnIdle { assertEquals(MAIN_TEXT_REGION, region.include) }
+        compose.onNodeWithText("Main content").assertDoesNotExist()
+        compose.onNodeWithText("Pick parts").performScrollTo().performClick()
+        compose.runOnIdle {
+            assertEquals(1, picks)
+            assertEquals("", region.include)
+        }
         compose.onNodeWithText("CSS selectors").performScrollTo().performClick()
         compose.onNodeWithText("Include CSS selector (optional)").performScrollTo().performTextReplacement("#price")
         compose.onNodeWithText("Ignore CSS selector (optional)").performScrollTo().performTextReplacement(".timer")

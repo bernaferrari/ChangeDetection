@@ -35,6 +35,24 @@ class AddEditViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    @Test fun missingPreviewRegionHasSpecificRecoveryReason() = runTest {
+        val source = FakeSitesDataSource()
+        val editor = createViewModel(
+            dataSource = source,
+            previewer = CapturePreviewer { _, _ ->
+                throw com.bernaferrari.changedetection.detection.TextRegionException(
+                    com.bernaferrari.changedetection.detection.TextRegionFailure.REGION_MISSING,
+                    issue = com.bernaferrari.changedetection.detection.TextRegionIssue.NO_MATCH,
+                )
+            },
+        )
+        editor.setUrl("example.com")
+        editor.requestPreview()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(CapturePreviewState.Failed(PreviewFailure.NO_MATCH), editor.uiState.value.preview)
+        assertEquals(null, source.savedSite)
+    }
+
     @Test fun `saving an editor after its page was deleted does not recreate it`() = runTest {
         val source = FakeSitesDataSource().apply { savedSite = existingSite("page", "https://example.com") }
         val editor = createViewModel(siteId = "page", dataSource = source)

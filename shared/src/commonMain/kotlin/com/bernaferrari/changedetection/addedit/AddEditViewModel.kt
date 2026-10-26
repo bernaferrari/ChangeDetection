@@ -31,7 +31,7 @@ import kotlin.uuid.Uuid
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinViewModel
 
-enum class PreviewFailure { TIMEOUT, CAPTURE_INCOMPLETE, REGION, MULTIPLE_REGIONS, TLS, CONNECTION, UNAVAILABLE }
+enum class PreviewFailure { TIMEOUT, CAPTURE_INCOMPLETE, REGION, NO_MATCH, MULTIPLE_REGIONS, TLS, CONNECTION, UNAVAILABLE }
 
 sealed interface CapturePreviewState {
     data object Idle : CapturePreviewState
@@ -179,9 +179,17 @@ class AddEditViewModel(
                             preview = CapturePreviewState.Failed(
                                 when {
                                     error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> if (error.issue == com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED) PreviewFailure.CAPTURE_INCOMPLETE else PreviewFailure.TIMEOUT
-                                    error is com.bernaferrari.changedetection.detection.TextRegionException -> if (error.issue == com.bernaferrari.changedetection.detection.TextRegionIssue.MULTIPLE_MATCHES) PreviewFailure.MULTIPLE_REGIONS else PreviewFailure.REGION
+
+                                    error is com.bernaferrari.changedetection.detection.TextRegionException -> when (error.issue) {
+                                        com.bernaferrari.changedetection.detection.TextRegionIssue.MULTIPLE_MATCHES -> PreviewFailure.MULTIPLE_REGIONS
+                                        com.bernaferrari.changedetection.detection.TextRegionIssue.NO_MATCH -> PreviewFailure.NO_MATCH
+                                        else -> PreviewFailure.REGION
+                                    }
+
                                     com.bernaferrari.changedetection.error.isTlsFailure(error) -> PreviewFailure.TLS
+
                                     generateSequence(error as Throwable) { it.cause }.take(6).any { it is kotlinx.io.IOException } -> PreviewFailure.CONNECTION
+
                                     else -> PreviewFailure.UNAVAILABLE
                                 },
                             ),

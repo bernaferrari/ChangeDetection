@@ -69,6 +69,7 @@ import kotlin.time.TimeSource
     val causes: List<DiagnosticException> = emptyList(),
     val classes: List<String> = emptyList(),
     val detail: String? = null,
+    val regionIssue: com.bernaferrari.changedetection.detection.TextRegionIssue? = null,
 )
 
 /** Things that happen outside a page check but explain why checks fail. */
@@ -185,7 +186,7 @@ internal class DiagnosticSpan : AbstractCoroutineContextElement(Key) {
         val resolvedCategory = category ?: diagnosticCategory(error)
         val causes = generateSequence(error) { it.cause }.take(4).map(::exceptionKind).toList()
         failure = failure?.copy(category = category ?: failure?.category ?: resolvedCategory)
-            ?: DiagnosticFailure(stage ?: active, resolvedCategory, causes, errorClasses(error), errorDetail(error))
+            ?: DiagnosticFailure(stage ?: active, resolvedCategory, causes, errorClasses(error), errorDetail(error), (error as? com.bernaferrari.changedetection.detection.TextRegionException)?.issue)
     }
     fun callback(stage: DiagnosticStage, metric: DiagnosticMetric, code: Int) {
         callbacks.trySend(DiagnosticEvent(stage, began.elapsedNow().inWholeMilliseconds.coerceIn(0, 600_000), metric = metric, code = code.coerceIn(-100, 599)))

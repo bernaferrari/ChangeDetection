@@ -452,4 +452,5 @@
     <string name="text_http_capability_note">Nesta plataforma, o monitoramento de texto lê a resposta HTTP. O conteúdo JavaScript e os cookies de login do navegador não são incluídos.</string>
     <string name="check_failure_document_changed">A página mudou durante a captura</string>
     <string name="check_failure_document_changed_detail">A página navegou durante a preparação desta verificação. O histórico foi preservado. Tente novamente.</string>
+    <string name="preview_region_no_match">Nenhuma parte desta página corresponde à seleção. Escolha a área que deseja monitorar ou selecione Página inteira.</string>
 </resources>

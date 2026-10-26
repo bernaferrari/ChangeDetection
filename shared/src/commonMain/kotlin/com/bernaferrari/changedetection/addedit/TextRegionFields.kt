@@ -11,34 +11,34 @@ import com.bernaferrari.changedetection.detection.TextRegion
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import com.bernaferrari.changedetection.localization.stringResource
 
-private enum class RegionChoice { Whole, Main, Custom }
-
-internal const val MAIN_TEXT_REGION = "main, [role=main], article"
+private enum class RegionChoice { Whole, Custom }
 
 @Composable
-internal fun TextRegionFields(region: TextRegion, error: Boolean, enabled: Boolean, onChoose: (TextRegion) -> Unit, onType: (TextRegion) -> Unit = onChoose) {
-    val main = region.include == MAIN_TEXT_REGION && region.exclude.isBlank()
-    val custom = !region.isEmpty && !main
+internal fun TextRegionFields(region: TextRegion, error: Boolean, enabled: Boolean, onChoose: (TextRegion) -> Unit, onType: (TextRegion) -> Unit = onChoose, onPick: (() -> Unit)? = null) {
+    val custom = !region.isEmpty
     var selectors by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(stringResource(Res.string.text_region_title), style = MaterialTheme.typography.titleSmall)
-        // The same button group as Screenshot / Text; a picked or typed region shows as a third, chosen option.
-        val options = if (custom) listOf(RegionChoice.Whole, RegionChoice.Main, RegionChoice.Custom) else listOf(RegionChoice.Whole, RegionChoice.Main)
+        // Choosing a part opens the real picker; never invent a selector without inspecting the page.
+        val options = listOf(RegionChoice.Whole, RegionChoice.Custom)
         val whole = stringResource(Res.string.text_region_whole)
-        val mainLabel = stringResource(Res.string.text_region_main)
+        val choose = stringResource(Res.string.picker_title)
         val picked = stringResource(Res.string.editor_part_picked)
         com.bernaferrari.changedetection.ui.kit.ConnectedChoice(
             options = options,
             selected = when {
                 custom -> RegionChoice.Custom
-                main -> RegionChoice.Main
                 else -> RegionChoice.Whole
             },
             onSelect = { choice ->
                 when (choice) {
                     RegionChoice.Whole -> onChoose(TextRegion())
-                    RegionChoice.Main -> onChoose(TextRegion(MAIN_TEXT_REGION))
-                    RegionChoice.Custom -> selectors = true
+
+                    RegionChoice.Custom -> if (onPick != null) {
+                        onPick()
+                    } else {
+                        selectors = true
+                    }
                 }
             },
             modifier = Modifier,
@@ -46,8 +46,7 @@ internal fun TextRegionFields(region: TextRegion, error: Boolean, enabled: Boole
         ) {
             when (it) {
                 RegionChoice.Whole -> whole
-                RegionChoice.Main -> mainLabel
-                RegionChoice.Custom -> picked
+                RegionChoice.Custom -> if (custom) picked else choose
             }
         }
         TextButton(onClick = { selectors = !selectors }, enabled = enabled, contentPadding = PaddingValues(horizontal = 4.dp)) {

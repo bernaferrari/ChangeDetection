@@ -227,6 +227,17 @@ fun AddEditConfirmScreen(
                 ) {
                     PagePreviewCard(
                         url = url, title = title, iconUrl = iconUrl, iconShape = iconShape, onIconShapeChange = onIconShapeChange, iconColors = iconColors, onIconColorChange = onIconColorChange, onTitleChange = onTitleChange, preview = preview, enabled = !isSaving,
+                        onPickRegion = if (browserAvailable) {
+                            (
+                                {
+                                    onClosePreview()
+                                    reviewing = false
+                                    browsing = true
+                                }
+                                )
+                        } else {
+                            null
+                        },
                         onRetry = onPreview, onEditAddress = {
                             onClosePreview()
                             reviewing = false
@@ -253,13 +264,26 @@ fun AddEditConfirmScreen(
                         onExpandedChange = { moreOptions = it },
                         isEditing = isEditing,
                         advanced = {
-                            AdvancedOptions(captureMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange, {
-                                onTextRegionChange(it)
-                                onPreview()
-                            }, {
-                                typedRegion = true
-                                onTextRegionChange(it)
-                            }, isSaving)
+                            AdvancedOptions(
+                                captureMode, textRegion, regionError, visualChangeThresholdBps, onVisualChangeThresholdChange, {
+                                    onTextRegionChange(it)
+                                    onPreview()
+                                }, {
+                                    typedRegion = true
+                                    onTextRegionChange(it)
+                                }, isSaving,
+                                onPick = if (browserAvailable) {
+                                    (
+                                        {
+                                            onClosePreview()
+                                            reviewing = false
+                                            browsing = true
+                                        }
+                                        )
+                                } else {
+                                    null
+                                },
+                            )
                         },
                     )
                     if (duplicateSiteId != null) {
@@ -452,6 +476,7 @@ fun AddEditConfirmScreen(
                                 onTitleChange = onTitleChange,
                                 preview = preview,
                                 enabled = !isSaving,
+                                onPickRegion = if (browserAvailable) ({ browsing = true }) else null,
                                 onRetry = onPreview,
                                 onEditAddress = { urlFocus.requestFocus() },
                                 onSelectRegion = if (textMode && !isSaving) {
@@ -506,6 +531,7 @@ fun AddEditConfirmScreen(
                                             onTextRegionChange(it)
                                         },
                                         isSaving = isSaving,
+                                        onPick = if (browserAvailable) ({ browsing = true }) else null,
                                     )
                                 },
                             )
@@ -621,6 +647,7 @@ private fun PagePreviewCard(
     enabled: Boolean,
     onRetry: () -> Unit,
     onEditAddress: () -> Unit,
+    onPickRegion: (() -> Unit)? = null,
     onSelectRegion: ((com.bernaferrari.changedetection.detection.TextRegion) -> Unit)?,
     textRegion: com.bernaferrari.changedetection.detection.TextRegion,
     /** Screenshots preview at a fixed height; loading reserves it so the sheet does not jump when it arrives. */
@@ -719,6 +746,7 @@ private fun PagePreviewCard(
                                     when (state.reason) {
                                         PreviewFailure.TIMEOUT -> Res.string.check_failure_timeout_detail
                                         PreviewFailure.CAPTURE_INCOMPLETE -> Res.string.check_failure_capture_incomplete_detail
+                                        PreviewFailure.NO_MATCH -> Res.string.preview_region_no_match
                                         PreviewFailure.REGION -> Res.string.check_failure_region_detail
                                         PreviewFailure.MULTIPLE_REGIONS -> Res.string.preview_single_visual_region
                                         PreviewFailure.TLS -> Res.string.check_failure_tls_detail
@@ -730,6 +758,9 @@ private fun PagePreviewCard(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             FlowRow(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                if (state.reason in setOf(PreviewFailure.REGION, PreviewFailure.NO_MATCH, PreviewFailure.MULTIPLE_REGIONS) && onPickRegion != null) {
+                                    Button(onClick = onPickRegion, enabled = enabled) { Text(stringResource(Res.string.picker_title)) }
+                                }
                                 Button(onClick = onRetry, enabled = enabled) { Text(stringResource(Res.string.retry)) }
                                 OutlinedButton(onClick = onEditAddress, enabled = enabled) { Text(stringResource(Res.string.editor_change_address)) }
                                 com.bernaferrari.changedetection.diagnostics.DiagnosticsEntry()
@@ -824,8 +855,9 @@ private fun AdvancedOptions(
     onRegion: (com.bernaferrari.changedetection.detection.TextRegion) -> Unit,
     onRegionTyped: (com.bernaferrari.changedetection.detection.TextRegion) -> Unit,
     isSaving: Boolean,
+    onPick: (() -> Unit)?,
 ) {
-    TextRegionFields(textRegion, regionError, !isSaving, onChoose = onRegion, onType = onRegionTyped)
+    TextRegionFields(textRegion, regionError, !isSaving, onChoose = onRegion, onType = onRegionTyped, onPick = onPick)
     if (captureMode == CaptureMode.SCREENSHOT || captureMode == CaptureMode.DEFAULT) {
         VisualChangeFilterField(visualChangeThresholdBps, !isSaving, onVisualChangeThresholdChange)
     }

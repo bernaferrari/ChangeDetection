@@ -837,4 +837,5 @@
     <string name="text_http_capability_note">Auf dieser Plattform liest die Textüberwachung die HTTP-Antwort. JavaScript-Inhalte und Anmelde-Cookies des Browsers sind nicht enthalten.</string>
     <string name="check_failure_document_changed">Seite während der Aufnahme geändert</string>
     <string name="check_failure_document_changed_detail">Die Seite hat während der Prüfung navigiert. Der gespeicherte Verlauf bleibt erhalten. Versuche es erneut.</string>
+    <string name="preview_region_no_match">Kein Bereich dieser Seite entspricht der Auswahl. Wähle den Bereich aus, den du überwachen möchtest, oder wähle Ganze Seite.</string>
 </resources>
