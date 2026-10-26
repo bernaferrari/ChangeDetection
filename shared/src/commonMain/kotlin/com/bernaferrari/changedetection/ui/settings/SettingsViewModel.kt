@@ -80,17 +80,17 @@ class SettingsViewModel(
 
     private data class StorageSummary(val bytes: Long? = null, val clearable: Long = 0, val failed: Boolean = false)
 
+    // Kept as state: returning to Settings shows the last known size and refreshes it in place, never a placeholder again.
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
-    private val storageSummary = reloadStorage.flatMapLatest {
+    private val storageSummary: StateFlow<StorageSummary> = reloadStorage.flatMapLatest {
         // Each total starts on its own: the size shows as soon as it is known, not when the slower one is.
-        snapshots.observeStorageBytes().map<Long, Long?> { it }.onStart { emit(null) }
+        snapshots.observeStorageBytes()
             .combine(snapshots.observeOlderVersionBytes().onStart { emit(0L) }) { bytes, clearable -> StorageSummary(bytes = bytes, clearable = clearable) }
-            .onStart { emit(StorageSummary()) }
             .catch { error ->
                 appLog.w("Could not load history storage size", error)
                 emit(StorageSummary(failed = true))
             }
-    }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), StorageSummary())
 
     private enum class ClearState { Idle, Clearing, Failed }
     private val clearState = MutableStateFlow(ClearState.Idle)
@@ -144,7 +144,8 @@ class SettingsViewModel(
                     browserDelayMs = preferences[BROWSER_DELAY_KEY] ?: 5000,
                     notificationImages = preferences[com.bernaferrari.changedetection.sync.NotificationPreferences.IMAGE_PREVIEWS] ?: false,
                 )
-            }.onStart { emit(SettingsUiState(isLoaded = false)) }
+            }
+            // No "loading" on the way back: the last settings stay on screen while they are read again.
             .catch { error ->
                 appLog.w("Could not load settings", error)
                 emit(SettingsUiState(isLoaded = false, loadFailed = true))
