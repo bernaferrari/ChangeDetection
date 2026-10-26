@@ -21,6 +21,7 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 
 /** One piece of an inline, word-level edit. */
+@kotlinx.serialization.Serializable
 data class EditSegment(val text: String, val kind: Kind) {
     enum class Kind { Same, Added, Removed }
 }
@@ -31,11 +32,14 @@ data class EditSegment(val text: String, val kind: Kind) {
  * Real diffs can be thousands of lines of noisy text. The card never shows the diff itself; it shows
  * one of these bounded summaries instead, picked from the size and type of the change.
  */
+@kotlinx.serialization.Serializable
 sealed interface ChangePreview {
     /** Only one version exists, so there is nothing to compare yet. */
+    @kotlinx.serialization.Serializable
     data object FirstVersion : ChangePreview
 
     /** A small text edit: one changed passage with a little context, plus how many other passages changed. */
+    @kotlinx.serialization.Serializable
     data class Words(
         val section: String?,
         val segments: List<EditSegment>,
@@ -50,6 +54,7 @@ sealed interface ChangePreview {
      * Too much changed to quote as one passage. Instead of the diff, a few representative one-line
      * samples (meaningful words first, number churn last) plus the size of the change.
      */
+    @kotlinx.serialization.Serializable
     data class Large(
         val changedLines: Int,
         val totalLines: Int,
@@ -65,12 +70,15 @@ sealed interface ChangePreview {
     ) : ChangePreview
 
     /** The content changed, but not in a way that is visible as text (scripts, markup, whitespace). */
+    @kotlinx.serialization.Serializable
     data object Invisible : ChangePreview
 
     /** Two screenshots that differ only by re-rendering or movement: nothing visible changed. */
+    @kotlinx.serialization.Serializable
     data object NothingVisible : ChangePreview
 
     /** Screenshot pages: the two captures plus the box around changed pixels. */
+    @kotlinx.serialization.Serializable
     data class Crop(
         val beforeSnapId: String,
         val afterSnapId: String,
@@ -91,12 +99,15 @@ sealed interface ChangePreview {
     }
 
     /** The pair cannot be compared (missing file, mixed capture methods). */
+    @kotlinx.serialization.Serializable
     data object Unavailable : ChangePreview
 }
 
 /** Builds and caches previews keyed by the newest version, so a card renders its preview once. */
 class ChangePreviewRepository(
     private val snaps: SnapsRepository,
+    /** Keeps finished previews across launches; memory alone forgets them whenever the process ends. */
+    private val store: PreviewStore? = null,
     private val preceding: suspend (Snap) -> Snap? = { null },
 ) {
     private val cache = com.bernaferrari.changedetection.util.SynchronizedCache<String, ChangePreview>(MAX_CACHED)
@@ -114,7 +125,9 @@ class ChangePreviewRepository(
         val pair = snaps.getLastNSnapsForSiteId(siteId, 2).orEmpty()
         val after = pair.getOrNull(0) ?: return ChangePreview.FirstVersion
         val before = pair.getOrNull(1) ?: return ChangePreview.FirstVersion
-        if (before.isImageSnapshot() && after.isImageSnapshot() && cache["${before.snapId}>${after.snapId}"] == null) onImagePair(before, after)
+        // Only a pair that really has to be compared shows its placeholder; a stored preview arrives at once.
+        val key = "${before.snapId}>${after.snapId}"
+        if (before.isImageSnapshot() && after.isImageSnapshot() && cache[key] == null && store?.get(key) == null) onImagePair(before, after)
         return between(before, after)
     }
 
@@ -129,6 +142,11 @@ class ChangePreviewRepository(
         cache[key]?.let { return it }
         return builds.withLock(key) {
             cache[key]?.let { return@withLock it }
+            store?.get(key)?.let { stored ->
+                cache[key] = stored
+                versions[after.snapId] = stored
+                return@withLock stored
+            }
             val preview = try {
                 capacity.withPermit { withContext(Dispatchers.Default) { build(before, after) } }
             } catch (cancelled: CancellationException) {
@@ -140,6 +158,7 @@ class ChangePreviewRepository(
             if (preview != ChangePreview.Unavailable) {
                 cache[key] = preview
                 versions[after.snapId] = preview
+                store?.put(key, preview)
             }
             preview
         }
