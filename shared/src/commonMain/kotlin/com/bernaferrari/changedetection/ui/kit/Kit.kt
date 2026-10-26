@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -549,6 +550,8 @@ fun GroupRow(
     onClick: (() -> Unit)? = null,
     role: Role = Role.Button,
     checked: Boolean? = null,
+    /** The supporting line is still being worked out: its place is held quietly instead of saying "Loading". */
+    supportingPending: Boolean = false,
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
     Row(
@@ -574,7 +577,12 @@ fun GroupRow(
         }
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(title, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium), color = if (enabled) titleColor else titleColor.copy(alpha = 0.4f))
-            if (supporting != null) {
+            if (supportingPending) {
+                val line = with(androidx.compose.ui.platform.LocalDensity.current) { MaterialTheme.typography.bodyMedium.lineHeight.toDp() }
+                Box(Modifier.height(line), contentAlignment = Alignment.CenterStart) {
+                    Box(Modifier.size(width = 88.dp, height = 12.dp).clip(RoundedCornerShape(50)).placeholderPulse())
+                }
+            } else if (supporting != null) {
                 Text(supporting, style = MaterialTheme.typography.bodyMedium, color = supportingColor)
             }
         }

@@ -82,7 +82,9 @@ class SettingsViewModel(
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     private val storageSummary = reloadStorage.flatMapLatest {
-        snapshots.observeStorageBytes().combine(snapshots.observeOlderVersionBytes()) { bytes, clearable -> StorageSummary(bytes = bytes, clearable = clearable) }
+        // Each total starts on its own: the size shows as soon as it is known, not when the slower one is.
+        snapshots.observeStorageBytes().map<Long, Long?> { it }.onStart { emit(null) }
+            .combine(snapshots.observeOlderVersionBytes().onStart { emit(0L) }) { bytes, clearable -> StorageSummary(bytes = bytes, clearable = clearable) }
             .onStart { emit(StorageSummary()) }
             .catch { error ->
                 appLog.w("Could not load history storage size", error)

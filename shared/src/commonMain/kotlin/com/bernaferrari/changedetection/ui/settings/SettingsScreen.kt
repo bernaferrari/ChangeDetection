@@ -117,7 +117,12 @@ fun SettingsScreen(
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
             if (!uiState.isLoaded) {
-                SettingsLoadState(uiState.loadFailed, viewModel::retryLoading)
+                // Preferences arrive within a frame or two; only a read that is really slow shows anything.
+                if (uiState.loadFailed) {
+                    SettingsLoadState(failed = true, viewModel::retryLoading)
+                } else {
+                    com.bernaferrari.changedetection.ui.components.DelayedLoadingIndicator(Modifier.align(Alignment.Center))
+                }
                 return@Box
             }
             LazyColumn(Modifier.widthIn(max = 720.dp).fillMaxSize(), contentPadding = PaddingValues(bottom = 40.dp)) {
