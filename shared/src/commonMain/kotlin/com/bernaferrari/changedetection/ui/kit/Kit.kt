@@ -125,7 +125,12 @@ fun PageAvatar(
     // While a known icon is read (usually from cache), hold its plain tile: a letter in a coloured lobe that is
     // replaced a moment later reads as a glitch. The letter is only for pages whose icon is missing or broken.
     val pending = painter != null && !loaded && iconState !is coil3.compose.AsyncImagePainter.State.Error
-    val iconAlpha by androidx.compose.animation.core.animateFloatAsState(if (loaded) 1f else 0f, tween(180), label = "page-icon-in")
+    // Coil answers a known icon from memory or disk within a frame or two: it appears as is, like it never left. Only an
+    // icon that really had to be downloaded fades in, so scrolling and coming back never look like loading again.
+    val shownAt = remember(painter) { kotlin.time.TimeSource.Monotonic.markNow() }
+    val instant = remember(painter, loaded) { loaded && shownAt.elapsedNow().inWholeMilliseconds < 150 }
+    val fade by androidx.compose.animation.core.animateFloatAsState(if (loaded) 1f else 0f, tween(180), label = "page-icon-in")
+    val iconAlpha = if (instant) 1f else fade
     // A real icon is the page's identity: left fully automatic it fills a rounded tile edge to edge, like an app icon. Once a
     // shape or color is chosen, it sits inset on that backdrop instead, so expressive lobes never crop it and the color shows.
     // The tinted shape and letter stand in only while it loads or when the page has none.
