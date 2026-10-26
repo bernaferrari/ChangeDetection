@@ -408,6 +408,11 @@ test("language tabs and collapsibles mount previews only on demand and reuse the
       .evaluate((n, old) => n === old, original),
   );
   await page.getByRole("tab", { name: "Exported", exact: true }).click();
+  await page.waitForFunction(
+    () =>
+      document.querySelector(".editor-view:not([hidden]) .canvas-surface")
+        ?.dataset.previewSource === "exported",
+  );
   await active(page).locator(".missing").waitFor();
   await page.getByRole("tab", { name: "Live", exact: true }).click();
   assert(
@@ -449,7 +454,7 @@ test("project dialogs use shadcn to discover, connect, rename and remove folders
   await page
     .getByRole("searchbox", { name: "Search projects", exact: true })
     .fill("Library");
-  await page.getByRole("link", { name: "View project", exact: true }).click();
+  await page.getByRole("link", { name: "View images", exact: true }).click();
   await page.locator(".library-image img").evaluate((img) => img.decode());
   await page
     .getByRole("button", { name: "Manage Library", exact: true })
@@ -630,4 +635,463 @@ test("the compiled UI opens a shadcn launch screen directly from disk", async (t
       .getByRole("button", { name: "Copy command", exact: true })
       .isVisible(),
   );
+});
+
+function addViewerGallery({ roots, write }, count = 3) {
+  const listing = roots[0] + "/store-listing",
+    gallery = JSON.parse(fs.readFileSync(listing + "/gallery.json"));
+  for (let i = 1; i < count; i++) {
+    const feature = `detail-${i + 1}`;
+    gallery.phone.push({ feature, file: `phone/0${i + 1}-${feature}.png` });
+    write(`${listing}/en-US/phone/0${i + 1}-${feature}.png`, png(400, 800));
+  }
+  write(listing + "/gallery.json", gallery);
+  for (const locale of ["en-US", "de-DE"]) {
+    const file = `${listing}/${locale}/copy.json`,
+      copy = JSON.parse(fs.readFileSync(file));
+    for (let i = 1; i < count; i++)
+      copy[`detail-${i + 1}`] = {
+        title: locale === "en-US" ? `Detail ${i + 1}` : "",
+        body: "",
+      };
+    write(file, copy);
+  }
+}
+const viewer = (page) => page.locator(".image-viewer");
+async function waitViewer(page, type) {
+  await viewer(page).waitFor();
+  if (type)
+    assert.equal(await viewer(page).getAttribute("data-media-type"), type);
+  await viewer(page).locator(".image-viewer-stage[aria-busy=false]").waitFor();
+}
+async function viewerIndex(page, index) {
+  await page.waitForFunction(
+    (index) =>
+      document.querySelector(".image-viewer")?.dataset.imageIndex ===
+      String(index),
+    index,
+  );
+}
+
+test("overview images open a shadcn gallery with wrapping navigation, zoom, panning and restored focus", async (t) => {
+  const f = await setup(t),
+    { page } = f;
+  addViewerGallery(f);
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Enlarge Alpha screenshot 1", exact: true })
+    .waitFor();
+  let documents = 0;
+  page.on("request", (r) => {
+    if (r.isNavigationRequest() && r.frame() === page.mainFrame()) documents++;
+  });
+  const trigger = page.getByRole("button", {
+    name: "Enlarge Alpha screenshot 1",
+    exact: true,
+  });
+  await trigger.click();
+  await waitViewer(page, "image");
+  assert.equal(await page.context().pages().length, 1);
+  assert.equal(await viewer(page).getAttribute("data-image-index"), "0");
+  await page.keyboard.press("ArrowRight");
+  await viewerIndex(page, 1);
+  await waitViewer(page);
+  await viewer(page)
+    .getByRole("button", { name: /Show screenshot 3:/ })
+    .click();
+  await viewerIndex(page, 2);
+  await waitViewer(page);
+  await page.keyboard.press("ArrowRight");
+  await viewerIndex(page, 0);
+  await waitViewer(page);
+  await viewer(page)
+    .getByRole("button", { name: /Show screenshot 1:/ })
+    .click();
+  assert.equal(
+    await viewer(page).locator(".image-viewer-stage").getAttribute("aria-busy"),
+    "false",
+    "Re-selecting the current image must not leave a loader stuck",
+  );
+  const before = await viewer(page)
+    .getByRole("status", { name: "Image zoom", exact: true })
+    .textContent();
+  await viewer(page)
+    .getByRole("button", { name: "Actual image size", exact: true })
+    .click();
+  await page.waitForFunction(
+    () =>
+      document.querySelector('.image-viewer [aria-label="Image zoom"]')
+        .textContent === "100%",
+  );
+  assert.notEqual(before, "100%");
+  const stage = viewer(page).locator(".image-viewer-stage"),
+    bounds = await stage.boundingBox(),
+    top = await stage.evaluate((n) => n.scrollTop);
+  await page.mouse.move(
+    bounds.x + bounds.width / 2,
+    bounds.y + bounds.height / 2,
+  );
+  await page.mouse.down();
+  await page.mouse.move(
+    bounds.x + bounds.width / 2,
+    bounds.y + bounds.height / 2 + 65,
+    { steps: 5 },
+  );
+  await page.mouse.up();
+  assert.notEqual(await stage.evaluate((n) => n.scrollTop), top);
+  await viewer(page)
+    .getByRole("button", { name: "Fit image", exact: true })
+    .click();
+  assert.equal(
+    await viewer(page)
+      .getByRole("status", { name: "Image zoom", exact: true })
+      .textContent(),
+    before,
+  );
+  assert(
+    await viewer(page)
+      .getByRole("link", { name: "Download image", exact: true })
+      .isVisible(),
+  );
+  await page.keyboard.press("Escape");
+  await viewer(page).waitFor({ state: "hidden" });
+  await page.waitForFunction(
+    () =>
+      document.activeElement?.getAttribute("aria-label") ===
+      "Enlarge Alpha screenshot 1",
+  );
+  assert.equal(documents, 0);
+});
+
+test("live and exported gallery cards use the same viewer without reloading their original previews", async (t) => {
+  const f = await setup(t),
+    { page, base, projects } = f;
+  addViewerGallery(f);
+  await page.goto(base + projects[0].editorURL + "?view=cards");
+  await active(page).locator("iframe.preview-ready").first().waitFor();
+  const original = await active(page)
+    .locator("iframe")
+    .first()
+    .evaluateHandle((node) => node);
+  await active(page)
+    .getByRole("button", { name: "Enlarge Hello screenshot", exact: true })
+    .click();
+  await waitViewer(page, "live");
+  assert(
+    (await viewer(page).locator("iframe").getAttribute("src")).includes(
+      "slide=0",
+    ),
+  );
+  await viewer(page)
+    .getByRole("button", { name: "Next screenshot", exact: true })
+    .click();
+  await viewerIndex(page, 1);
+  await waitViewer(page);
+  assert(
+    (await viewer(page).locator("iframe").getAttribute("src")).includes(
+      "slide=1",
+    ),
+  );
+  await viewer(page)
+    .getByRole("button", { name: "Close image viewer", exact: true })
+    .click();
+  await viewer(page).waitFor({ state: "hidden" });
+  assert(
+    await active(page)
+      .locator("iframe")
+      .first()
+      .evaluate((node, old) => node === old, original),
+  );
+  await page.getByRole("tab", { name: "Exported", exact: true }).click();
+  await page.waitForFunction(
+    () =>
+      document.querySelector(".editor-view:not([hidden]) .canvas-surface")
+        ?.dataset.previewSource === "exported",
+  );
+  await active(page)
+    .getByRole("button", { name: "Enlarge Hello screenshot", exact: true })
+    .click();
+  await waitViewer(page, "image");
+  await page.keyboard.press("Escape");
+  await viewer(page).waitFor({ state: "hidden" });
+  await page.getByRole("tab", { name: "Live", exact: true }).click();
+  await choice(page, "Language", "German (Germany)");
+  await page.waitForFunction(() =>
+    document
+      .querySelector(".editor-view:not([hidden]) iframe")
+      ?.src.includes("locale=de-DE"),
+  );
+  await active(page)
+    .getByRole("button", { name: "Enlarge Hello screenshot", exact: true })
+    .click();
+  await waitViewer(page, "live");
+  assert(
+    (await viewer(page).locator("iframe").getAttribute("src")).includes(
+      "locale=de-DE",
+    ),
+  );
+  await viewer(page).getByText("Untranslated copy", { exact: true }).waitFor();
+});
+
+test("library image dialogs recover from missing files and support touch swipe on a phone", async (t) => {
+  const f = await setup(t),
+    { page, store, library, write, base } = f;
+  write(library + "/screenshots/second.png", png(160, 80));
+  write(library + "/screenshots/broken.png", "invalid image");
+  const [project] = await store.add([library]);
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto(base + `/studio/?project=${project.id}`);
+  await page
+    .getByRole("button", {
+      name: "Enlarge screenshots/broken.png",
+      exact: true,
+    })
+    .click();
+  await viewer(page).getByRole("alert").waitFor();
+  write(library + "/screenshots/broken.png", png(80, 160));
+  await viewer(page)
+    .getByRole("button", { name: "Try again", exact: true })
+    .click();
+  await waitViewer(page, "image");
+  const before = Number(await viewer(page).getAttribute("data-image-index"));
+  const stage = await viewer(page).locator(".image-viewer-stage").boundingBox(),
+    cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setTouchEmulationEnabled", { enabled: true });
+  const x = stage.x + stage.width * 0.75,
+    y = stage.y + stage.height * 0.5;
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [{ x, y }],
+  });
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchMove",
+    touchPoints: [{ x: x - stage.width * 0.5, y }],
+  });
+  await cdp.send("Input.dispatchTouchEvent", {
+    type: "touchEnd",
+    touchPoints: [],
+  });
+  await viewerIndex(page, (before + 1) % 3);
+  await waitViewer(page);
+  assert.equal(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth - innerWidth,
+    ),
+    0,
+  );
+  const dialogBox = await viewer(page).boundingBox();
+  assert(dialogBox.x >= 0 && dialogBox.x + dialogBox.width <= 320);
+  await viewer(page)
+    .getByRole("button", { name: "Close image viewer", exact: true })
+    .click();
+  await viewer(page).waitFor({ state: "hidden" });
+});
+
+test("the copy preview shares the gallery dialog and never saves unsaved words automatically", async (t) => {
+  const f = await setup(t),
+    { page, base, projects, roots } = f;
+  addViewerGallery(f);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(base + projects[0].editorURL + "?view=copy");
+  const area = page.getByRole("textbox", {
+    name: "en-US hello title",
+    exact: true,
+  });
+  await area.fill("Draft stays in the editor");
+  await page.getByRole("button", { name: "Preview", exact: true }).click();
+  await waitViewer(page, "live");
+  await viewer(page)
+    .getByText(
+      "This preview uses the saved copy. Save your changes to include the latest words.",
+      { exact: true },
+    )
+    .waitFor();
+  await viewer(page)
+    .getByRole("button", { name: "Next screenshot", exact: true })
+    .click();
+  await viewerIndex(page, 1);
+  await waitViewer(page);
+  await page.keyboard.press("Escape");
+  await viewer(page).waitFor({ state: "hidden" });
+  assert.equal(await area.inputValue(), "Draft stays in the editor");
+  assert.equal(
+    JSON.parse(fs.readFileSync(roots[0] + "/store-listing/en-US/copy.json"))
+      .hello.title,
+    "Alpha",
+  );
+  await page.waitForFunction(
+    () => document.activeElement?.textContent.trim() === "Preview",
+  );
+  assert(
+    await page
+      .getByRole("button", { name: "Preview", exact: true })
+      .evaluate((node) => node === document.activeElement),
+  );
+});
+
+test("a long gallery stays fitted and keeps controls visible on mobile and after resize", async (t) => {
+  const fixture = await setup(t),
+    { page, base, projects } = fixture;
+  addViewerGallery(fixture, 8);
+  await page.goto(base + projects[0].editorURL + "?view=cards");
+  await active(page)
+    .getByRole("button", { name: "Enlarge Hello screenshot", exact: true })
+    .click();
+  await waitViewer(page, "live");
+  for (const width of [390, 320, 900]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.waitForFunction(() => {
+      const dialog = document.querySelector(".image-viewer"),
+        button = dialog?.querySelector('[aria-label="Close image viewer"]'),
+        stage = dialog?.querySelector(".image-viewer-stage");
+      if (!dialog || !button || !stage) return false;
+      const b = button.getBoundingClientRect(),
+        r = dialog.getBoundingClientRect(),
+        s = stage.getBoundingClientRect();
+      return (
+        r.x >= 0 &&
+        r.right <= innerWidth &&
+        r.y >= 0 &&
+        r.bottom <= innerHeight &&
+        b.x >= 0 &&
+        b.right <= innerWidth &&
+        b.y >= 0 &&
+        b.bottom <= innerHeight &&
+        s.width <= innerWidth
+      );
+    });
+    assert.equal(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth - innerWidth,
+      ),
+      0,
+    );
+  }
+  await page.keyboard.press("End");
+  await viewerIndex(page, 7);
+  await waitViewer(page);
+  const selected = viewer(page).getByRole("button", {
+      name: /Show screenshot 8:/,
+    }),
+    strip = viewer(page).locator('[data-slot="scroll-area-viewport"]');
+  await page.waitForFunction(() => {
+    const selected = document.querySelector(
+        '.image-viewer [aria-current="true"]',
+      ),
+      strip = document.querySelector(
+        '.image-viewer [data-slot="scroll-area-viewport"]',
+      );
+    if (!selected || !strip) return false;
+    const a = selected.getBoundingClientRect(),
+      b = strip.getBoundingClientRect();
+    return a.x >= b.x - 1 && a.right <= b.right + 1;
+  });
+});
+
+test("project filters use connected shadcn tab panels and fit narrow screens", async (t) => {
+  const { page, store, library } = await setup(t);
+  await store.add([library]);
+  await page.reload();
+  const tabs = page.getByRole("tablist", { name: "Project filters" });
+  const all = tabs.getByRole("tab", { name: "All projects", exact: true });
+  const inProgress = tabs.getByRole("tab", {
+    name: "In progress",
+    exact: true,
+  });
+  const libraries = tabs.getByRole("tab", {
+    name: "Libraries & setup",
+    exact: true,
+  });
+  await all.waitFor();
+  await page.waitForFunction(
+    () => document.querySelectorAll(".workspace-card").length === 3,
+  );
+  await all.focus();
+  await page.keyboard.press("ArrowRight");
+  await page.waitForFunction(() =>
+    document
+      .querySelector('[data-slot="tabs-trigger"][data-state="active"]')
+      ?.textContent.includes("In progress"),
+  );
+  assert.equal(await inProgress.getAttribute("aria-selected"), "true");
+  assert.equal(await page.locator(".workspace-card").count(), 2);
+  await libraries.click();
+  const panel = page.getByRole("tabpanel");
+  assert.equal(
+    await panel.getAttribute("id"),
+    await libraries.getAttribute("aria-controls"),
+  );
+  assert.equal(
+    await panel.getAttribute("aria-labelledby"),
+    await libraries.getAttribute("id"),
+  );
+  assert.equal(await panel.locator(".workspace-card").count(), 1);
+  await page
+    .getByRole("searchbox", { name: "Search projects" })
+    .fill("does-not-exist");
+  await page.getByText("No matching projects", { exact: true }).waitFor();
+  await page
+    .getByRole("button", { name: "Clear filters", exact: true })
+    .click();
+  assert.equal(await all.getAttribute("aria-selected"), "true");
+  assert.equal(await panel.locator(".workspace-card").count(), 3);
+  for (const width of [320, 390, 798, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.waitForFunction(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    );
+    const geometry = await tabs.evaluate((el) => ({
+      width: el.clientWidth,
+      scrollWidth: el.scrollWidth,
+      height: el.clientHeight,
+      scrollHeight: el.scrollHeight,
+      clipped: [...el.children].some((child) => {
+        const r = child.getBoundingClientRect(),
+          box = el.getBoundingClientRect();
+        return (
+          r.left < box.left ||
+          r.right > box.right + 1 ||
+          r.bottom > box.bottom + 1
+        );
+      }),
+    }));
+    assert(
+      geometry.scrollWidth <= geometry.width + 1,
+      `horizontal tab overflow at ${width}`,
+    );
+    assert(
+      geometry.scrollHeight <= geometry.height + 1,
+      `vertical tab overflow at ${width}`,
+    );
+    assert(!geometry.clipped, `clipped tab at ${width}`);
+    await page.screenshot({
+      path: `/tmp/studio-refined-${width}.png`,
+      fullPage: width === 1440,
+    });
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page
+    .locator(".sidebar")
+    .getByRole("link", { name: "Alpha", exact: true })
+    .click();
+  await page.locator(".workspace-table").waitFor();
+  await page.getByRole("link", { name: "Open studio", exact: true }).click();
+  await active(page).locator("iframe.preview-ready").waitFor();
+  await view(page, "Languages");
+  const languageTabs = page.getByRole("tablist", { name: "Language filters" });
+  await languageTabs
+    .getByRole("tab", { name: "Needs copy", exact: true })
+    .click();
+  assert.equal(await active(page).locator(".language-row:visible").count(), 1);
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    const overflow = await languageTabs.evaluate((el) => ({
+      x: el.scrollWidth - el.clientWidth,
+      y: el.scrollHeight - el.clientHeight,
+    }));
+    assert(
+      overflow.x <= 1 && overflow.y <= 1,
+      `language tabs overflow at ${width}: ${JSON.stringify(overflow)}`,
+    );
+  }
 });
