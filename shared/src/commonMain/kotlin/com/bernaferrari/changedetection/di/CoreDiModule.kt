@@ -117,5 +117,5 @@ class CoreDiModule {
     )
 
     @Single
-    fun changePreviews(snaps: SnapsRepository, snapsDao: SnapsDao): com.bernaferrari.changedetection.preview.ChangePreviewRepository = com.bernaferrari.changedetection.preview.ChangePreviewRepository(snaps) { snapsDao.getPrecedingSnap(it.siteId, it.timestamp, it.snapId) }
+    fun changePreviews(snaps: SnapsRepository, snapsDao: SnapsDao, files: com.bernaferrari.changedetection.util.FileStorage): com.bernaferrari.changedetection.preview.ChangePreviewRepository = com.bernaferrari.changedetection.preview.ChangePreviewRepository(snaps, com.bernaferrari.changedetection.preview.PreviewStore(files)) { snapsDao.getPrecedingSnap(it.siteId, it.timestamp, it.snapId) }
 }

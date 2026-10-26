@@ -4,6 +4,7 @@ import com.bernaferrari.changedetection.detection.PixelDifference
 import kotlin.math.roundToInt
 
 /** One area of a screenshot change, in fractions of each capture's size so any resolution can use it. */
+@kotlinx.serialization.Serializable
 data class VisualRegion(
     val kind: Kind,
     /** Horizontal extent (shared by both captures). */
