@@ -42,7 +42,7 @@ PLAYWRIGHT_MODULE=/path/to/node_modules/playwright node store-listing/studio/exp
 
 The exporter serves the repository itself and writes `en-US/<kind>/NN-feature.jpg`, a joined `contact-<kind>.jpg` per device, and `en-US/assets.json`. It fails if fonts don't load, copy, callouts or commits leave the canvas, a headline overflows, copy overlaps the app, a capture has the wrong aspect ratio, or any request fails. Device frames deliberately run off the bottom edge.
 
-## Localized screenshots (Studio v4.0)
+## Localized screenshots (Studio v4.2)
 
 `gallery.json` is shared layout; `<locale>/copy.json` contains only words. Add or refresh a language with `node store-listing/studio/locales.cjs --init de-DE` from the repository root (existing words are preserved). `node store-listing/studio/locales.cjs` reports copy, capture and layout coverage. Other supported languages are scaffolded as drafts with empty fields.
 
@@ -61,3 +61,7 @@ Project and view navigation now updates in place, preserving the sidebar and rec
 The editor includes searchable language coverage, copy-completion filters and expandable previews. Copy supports search, missing-field filtering, card navigation and field status; English reference editing uses one column. On narrow screens, Preview opens the saved artwork in a dialog. The gallery includes Previous/Next scroll controls.
 
 Studio v4 uses React and official shadcn/ui components throughout, including the expandable Sidebar and mobile Sheet drawer. The sidebar footer offers Light, Dark and System appearance; Cmd/Ctrl+K searches projects. Interface source lives in the master repository’s `ui/src/`; run `npm ci` and `npm run build` there before syncing. This app receives the compiled local bundle and still starts with the same Node server command.
+
+Screenshot images now open a shared shadcn gallery dialog with thumbnails, wrapping arrows, keyboard/swipe navigation, Fit and 1:1 zoom, panning and explicit original/download actions. Live cards preserve their language and device. Escape returns focus to the clicked image; browsing does not save or change copy.
+
+Studio v4.2 refines the project overview, language screens and shared controls with a neutral shadcn theme, keyboard-accessible filter tabs, compact project cards and responsive headers.

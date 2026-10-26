@@ -27,8 +27,6 @@ kotlinxSerializationJson = "1.12.0"
 ksp = "2.3.12"
 ktor = "3.6.0"
 ktx = "1.19.1"
-lifecycle = "2.11.0"
-material3 = "1.5.0-beta02"
 materialKolor = "6.0.0"
 mockito = "5.24.0"
 mockito-kotlin = "6.4.0"
@@ -40,7 +38,7 @@ paging = "3.5.3"
 paletteKtx = "1.1.0"
 playPublisher = "4.1.1"
 room = "3.0.3"
-skiko = "0.153.0"
+skiko = "0.156.0"
 spotless = "8.10.4"
 sqlite = "2.7.1"
 startup = "1.2.0"
@@ -52,11 +50,8 @@ kmpwright-core = "io.github.bernaferrari:kmpwright-core:0.0.2"
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
 androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
-androidx-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 androidx-compose-material3-window-size = { module = "androidx.compose.material3:material3-window-size-class" }
-androidx-compose-ui = { module = "androidx.compose.ui:ui" }
 androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
-androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "ktx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
@@ -64,7 +59,6 @@ androidx-datastore-preferences-core = { module = "androidx.datastore:datastore-p
 androidx-glance = { module = "androidx.glance:glance", version.ref = "glance" }
 androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
 androidx-graphics-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = "graphicsShapes" }
-androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "nav3Lifecycle" }
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3" }
