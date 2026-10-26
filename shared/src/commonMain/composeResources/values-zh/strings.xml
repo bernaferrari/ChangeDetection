@@ -91,7 +91,7 @@
     <string name="settings_sync_monitoring_in_background">后台监测</string>
     <string name="settings_background_sync_summary">自动检查页面</string>
     <string name="step_number">第 %1$d 步</string>
-    <string name="theme_system_title">系统</string>
+    <string name="theme_system_title">自动</string>
     <string name="theme_system_desc">跟随设备设置</string>
     <string name="theme_light_title">浅色</string>
     <string name="theme_light_desc">始终使用浅色主题</string>

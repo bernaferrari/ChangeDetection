@@ -158,7 +158,7 @@ fun previewLabel(preview: ChangePreview?): String = when (preview) {
 
 /** The card body: a bounded preview, whatever the size of the real diff. */
 @Composable
-fun ChangePreviewBlock(preview: ChangePreview?, modifier: Modifier = Modifier, cropHeight: Dp = 148.dp) {
+fun ChangePreviewBlock(preview: ChangePreview?, modifier: Modifier = Modifier, cropHeight: Dp = 148.dp, stacked: Boolean = true) {
     AnimatedContent(
         targetState = preview,
         transitionSpec = { fadeIn() togetherWith fadeOut() },
@@ -167,14 +167,14 @@ fun ChangePreviewBlock(preview: ChangePreview?, modifier: Modifier = Modifier, c
         label = "preview",
     ) { current ->
         Column {
-            PreviewBody(current, cropHeight)
+            PreviewBody(current, cropHeight, stacked)
             PreviewFooter(current)
         }
     }
 }
 
 @Composable
-private fun PreviewBody(current: ChangePreview?, cropHeight: Dp) {
+private fun PreviewBody(current: ChangePreview?, cropHeight: Dp, stacked: Boolean = false) {
     when (current) {
         // Comparing two full-page captures takes a moment; a gentle pulse says it is on its way.
         null -> Box(Modifier.fillMaxWidth().height(cropHeight).clip(MaterialTheme.shapes.large).placeholderPulse())
@@ -190,8 +190,10 @@ private fun PreviewBody(current: ChangePreview?, cropHeight: Dp) {
             DiffText(editText(current.segments, MaterialTheme.marks, current.leadingEllipsis, current.trailingEllipsis), maxLines = 4)
         }
 
-        // While a screenshot change is prepared, the two tiles it will fill pulse in place.
-        is ChangePreview.Crop -> Row(Modifier.fillMaxWidth().height(cropHeight), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Stacked, each side gets the full width, so the page's own text is about twice the size it is side by side.
+        is ChangePreview.Crop -> if (stacked) {
+            StackedCrops(current, cropHeight)
+        } else Row(Modifier.fillMaxWidth().height(cropHeight), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (current.isPreparing) {
                 repeat(2) { Box(Modifier.weight(1f).fillMaxHeight().clip(TileShape).placeholderPulse()) }
             } else {
@@ -230,11 +232,35 @@ private fun PreviewBody(current: ChangePreview?, cropHeight: Dp) {
     }
 }
 
+@Composable
+private fun StackedCrops(current: ChangePreview.Crop, cropHeight: Dp) {
+    // Two tiles fit in about the height the side-by-side pair took, plus one gap.
+    val tile = cropHeight * 0.62f
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        if (current.isPreparing) {
+            repeat(2) { Box(Modifier.fillMaxWidth().height(tile).clip(TileShape).placeholderPulse()) }
+            return@Column
+        }
+        val lead = current.lead
+        val beforeBounds = lead?.let { ChangedBounds(it.left, it.beforeTop, it.right, it.beforeBottom) } ?: current.bounds
+        val afterBounds = lead?.let { ChangedBounds(it.left, it.afterTop, it.right, it.afterBottom) } ?: current.bounds
+        when (lead?.kind) {
+            com.bernaferrari.changedetection.image.VisualRegion.Kind.Added -> CropTile(current.afterSnapId, afterBounds, stringResource(Res.string.visual_added), true, Modifier.height(tile))
+            com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed -> CropTile(current.beforeSnapId, beforeBounds, stringResource(Res.string.visual_removed), false, Modifier.height(tile))
+            else -> {
+                CropTile(current.beforeSnapId, beforeBounds, stringResource(Res.string.preview_before), false, Modifier.height(tile))
+                CropTile(current.afterSnapId, afterBounds, stringResource(Res.string.preview_after), true, Modifier.height(tile))
+            }
+        }
+    }
+}
+
 /** How big the change is ("7 changes", "+2 more changes"), under every preview that has more than it shows. */
 @Composable
 private fun PreviewFooter(current: ChangePreview?) {
     val text = when (current) {
-        is ChangePreview.Crop -> if (current.isPreparing) null else cropSummary(current)
+        // One changed area is what the tiles already show; a count only adds information when there are more.
+        is ChangePreview.Crop -> if (current.isPreparing) null else if (current.regions.size == 1) return else cropSummary(current)
         is ChangePreview.Words -> if (current.otherChanges > 0) com.bernaferrari.changedetection.localization.pluralStringResource(Res.plurals.preview_more_changes, current.otherChanges, current.otherChanges) else return
         else -> return
     }
@@ -244,7 +270,7 @@ private fun PreviewFooter(current: ChangePreview?) {
         val height = with(androidx.compose.ui.platform.LocalDensity.current) { MaterialTheme.typography.bodySmall.lineHeight.toDp() }
         Box(modifier.size(width = 72.dp, height = height).clip(RoundedCornerShape(50)).placeholderPulse())
     } else {
-        Text(text, modifier, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(text, modifier, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
     }
 }
 
@@ -410,14 +436,23 @@ fun CropTile(snapId: String, bounds: ChangedBounds?, label: String, highlighted:
             .border(if (highlighted) 2.dp else 1.dp, if (highlighted) marks.highlightEdge else MaterialTheme.colorScheme.outlineVariant, TileShape),
     ) {
         ChangeSpot(snapId, bounds, Modifier.fillMaxSize())
-        Box(
-            Modifier.align(Alignment.BottomEnd).padding(6.dp).clip(RoundedCornerShape(7.dp))
-                .background(if (highlighted) marks.highlight else MaterialTheme.colorScheme.surfaceContainerHigh)
-                .padding(horizontal = 7.dp, vertical = 2.dp),
-        ) {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = if (highlighted) marks.onHighlight else MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+        ChangeTag(label, highlighted, Modifier.align(Alignment.BottomEnd).padding(6.dp))
     }
+}
+
+/** Before / After (and New, Removed) everywhere: the newer side in the highlighter, the older one quiet. */
+@Composable
+fun ChangeTag(text: String, highlighted: Boolean, modifier: Modifier = Modifier) {
+    val marks = MaterialTheme.marks
+    Text(
+        text,
+        modifier.clip(RoundedCornerShape(8.dp))
+            .background(if (highlighted) marks.highlight else MaterialTheme.colorScheme.surfaceContainerHighest)
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+        style = MaterialTheme.typography.labelMedium,
+        color = if (highlighted) marks.onHighlight else MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+    )
 }
 
 /** A soft pulse for content that is on its way, in place of progress bars. */

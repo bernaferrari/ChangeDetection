@@ -67,6 +67,7 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.MoreVert
@@ -81,6 +82,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingToolbarDefaults
+import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -452,9 +456,21 @@ private fun modeLabel(mode: ComparisonMode): String = stringResource(
 )
 
 @Composable
-private fun NewVersionAction(onLatest: () -> Unit) {
-    TextButton(onClick = onLatest, modifier = Modifier.fillMaxWidth().semantics { liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite }) {
-        Text(stringResource(Res.string.comparison_new_version))
+internal fun NewVersionAction(onLatest: () -> Unit) {
+    // A compact tonal pill above the header: noticeable, one tap, and it does not push the reader around much.
+    Box(Modifier.fillMaxWidth().padding(top = 4.dp), contentAlignment = Alignment.Center) {
+        Surface(
+            onClick = onLatest,
+            shape = androidx.compose.foundation.shape.CircleShape,
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            modifier = Modifier.semantics { liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite },
+        ) {
+            Row(Modifier.heightIn(min = 36.dp).padding(start = 12.dp, end = 16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Rounded.ArrowUpward, null, Modifier.size(18.dp))
+                Text(stringResource(Res.string.comparison_new_version), style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
     }
 }
 
@@ -486,7 +502,8 @@ private fun ReaderHeader(modes: List<ComparisonMode>, mode: ComparisonMode, onMo
         return
     }
     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        versions(Modifier.weight(1f, fill = false))
+        // The dates take every point the modes leave, so the modes always sit at the end of the row.
+        versions(Modifier.weight(1f))
         if (modes.size > 1) ModeSwitcher(modes, mode, onMode)
     }
 }
@@ -499,16 +516,17 @@ internal fun VersionNavigator(snaps: List<Snap>, selectedIndex: Int, onShowAll: 
     val beforeLabel = stringResource(Res.string.preview_before)
     val afterLabel = stringResource(Res.string.preview_after)
     VersionPill(
-        label = range?.label ?: friendlyDateTime(newer.timestamp),
+        label = range?.to ?: friendlyDateTime(newer.timestamp),
         description = range?.let { "$beforeLabel: ${it.before}. $afterLabel: ${it.after}" } ?: formatTimestamp(newer.timestamp),
         onClick = onShowAll,
         modifier = modifier,
+        from = range?.from,
     )
 }
 
 /** The dates on screen as a pill; with [onClick] it opens every saved version. */
 @Composable
-private fun VersionPill(label: String, description: String, onClick: (() -> Unit)?, modifier: Modifier = Modifier) {
+private fun VersionPill(label: String, description: String, onClick: (() -> Unit)?, modifier: Modifier = Modifier, from: String? = null) {
     Surface(
         shape = MaterialTheme.shapes.extraLarge,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -517,15 +535,16 @@ private fun VersionPill(label: String, description: String, onClick: (() -> Unit
         Row(
             Modifier.heightIn(min = 52.dp).clip(MaterialTheme.shapes.extraLarge)
                 .then(if (onClick != null) Modifier.clickable(onClickLabel = stringResource(Res.string.reader_versions_title), onClick = onClick) else Modifier)
-                .padding(start = 16.dp, end = if (onClick != null) 10.dp else 16.dp, top = 12.dp, bottom = 12.dp),
+                .padding(start = 16.dp, end = if (onClick != null) 10.dp else 16.dp, top = 7.dp, bottom = 7.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                label,
-                Modifier.weight(1f, fill = false).clearAndSetSemantics { contentDescription = description },
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            // Two deliberate lines, older then newer, instead of one sentence that wraps wherever it runs out.
+            Column(Modifier.weight(1f).clearAndSetSemantics { contentDescription = description }) {
+                if (from != null) {
+                    Text("\u2068$from\u2069 →", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                Text(label, color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
             if (onClick != null) Icon(Icons.Rounded.KeyboardArrowDown, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
@@ -572,53 +591,68 @@ private fun modeIcon(mode: ComparisonMode): androidx.compose.ui.graphics.vector.
 @Composable
 private fun ReaderBar(reader: ChangeCursor, showNav: Boolean, canMarkRead: Boolean, onMarkRead: () -> Unit) {
     val scope = rememberCoroutineScope()
-    Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 12.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
-        Surface(
-            modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth(),
-            shape = MaterialTheme.shapes.extraLarge,
-            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            shadowElevation = 3.dp,
-        ) {
-            BoxWithConstraints(Modifier.padding(6.dp)) {
-                // Always one row: with large text or a narrow screen the position reads "2 / 9" instead of a sentence.
-                val compact = maxWidth < 360.dp || LocalDensity.current.fontScale > 1.3f
-                val navigation: @Composable (Modifier) -> Unit = { modifier ->
-                    Row(modifier.heightIn(min = 52.dp), verticalAlignment = Alignment.CenterVertically) {
-                        val colors = IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
-                        IconButton(onClick = { scope.launch { reader.go(-1) } }, enabled = reader.current > 0, colors = colors) {
-                            Icon(Icons.Rounded.KeyboardArrowUp, stringResource(Res.string.reader_previous))
-                        }
-                        val position = stringResource(Res.string.reader_position, reader.current + 1, reader.changeCount)
-                        Text(
-                            if (compact) "${reader.current + 1} / ${reader.changeCount}" else position,
-                            Modifier.weight(1f).semantics { contentDescription = position },
-                            maxLines = 1,
-                            style = MaterialTheme.typography.titleSmall,
-                            textAlign = TextAlign.Center,
-                        )
-                        IconButton(onClick = { scope.launch { reader.go(1) } }, enabled = reader.current < reader.changeCount - 1, colors = colors) {
-                            Icon(Icons.Rounded.KeyboardArrowDown, stringResource(Res.string.reader_next))
-                        }
-                    }
-                }
-                val readButton: @Composable (Modifier) -> Unit = { modifier ->
-                    Button(
-                        onClick = onMarkRead,
-                        modifier = modifier.heightIn(min = 48.dp),
-                        shapes = ButtonDefaults.shapes(),
-                    ) {
-                        Icon(Icons.Rounded.Check, null, Modifier.size(18.dp))
-                        Spacer(Modifier.size(6.dp))
-                        Text(stringResource(Res.string.mark_read_short))
-                    }
-                }
-                // The same floating bar in every mode: arrows when there is more than one change, Mark read when unread.
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    if (showNav) navigation(Modifier.weight(1f))
-                    if (canMarkRead) readButton(if (showNav) Modifier else Modifier.weight(1f))
-                }
+    val markRead = stringResource(Res.string.mark_read_short)
+    // The M3 Expressive floating toolbar: stepping through changes in a vibrant pill, Mark read as its FAB.
+    // Mark read alone is a labelled extended FAB, the same colour, so the action reads the same in every mode.
+    Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp), contentAlignment = Alignment.Center) {
+        if (!showNav) {
+            if (canMarkRead) {
+                ExtendedFloatingActionButton(
+                    onClick = onMarkRead,
+                    icon = { Icon(Icons.Rounded.Check, null) },
+                    text = { Text(markRead) },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    elevation = readerFabElevation(),
+                )
             }
+            return@Box
+        }
+        val compact = LocalDensity.current.fontScale > 1.3f
+        // An explicit row: without a FAB the toolbar stacks its content instead of laying it out in a line.
+        val toolbar: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = { Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = { scope.launch { reader.go(-1) } }, enabled = reader.current > 0) {
+                Icon(Icons.Rounded.KeyboardArrowUp, stringResource(Res.string.reader_previous))
+            }
+            val position = stringResource(Res.string.reader_position, reader.current + 1, reader.changeCount)
+            Text(
+                if (compact) "${reader.current + 1} / ${reader.changeCount}" else position,
+                Modifier.padding(horizontal = 4.dp).semantics { contentDescription = position },
+                maxLines = 1,
+                style = MaterialTheme.typography.labelLarge,
+                textAlign = TextAlign.Center,
+            )
+            IconButton(onClick = { scope.launch { reader.go(1) } }, enabled = reader.current < reader.changeCount - 1) {
+                Icon(Icons.Rounded.KeyboardArrowDown, stringResource(Res.string.reader_next))
+            }
+        } }
+        if (canMarkRead) {
+            HorizontalFloatingToolbar(
+                expanded = true,
+                floatingActionButton = {
+                    androidx.compose.material3.FloatingActionButton(
+                        onClick = onMarkRead,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        elevation = readerFabElevation(),
+                    ) { Icon(Icons.Rounded.Check, markRead) }
+                },
+                colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(),
+                // As tall as the FAB beside it (the default 64dp bar towers over the 56dp button).
+                modifier = Modifier.height(56.dp),
+                content = toolbar,
+            )
+        } else {
+            HorizontalFloatingToolbar(expanded = true, colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(), modifier = Modifier.height(56.dp), content = toolbar)
         }
     }
 }
+
+/** The reader's FAB floats at the toolbar's own with-FAB level, so the pair (and Mark read alone) sit at one height. */
+@Composable
+private fun readerFabElevation() = androidx.compose.material3.FloatingActionButtonDefaults.elevation(
+    defaultElevation = FloatingToolbarDefaults.ContainerExpandedElevationWithFab,
+    pressedElevation = FloatingToolbarDefaults.ContainerExpandedElevationWithFab,
+    focusedElevation = FloatingToolbarDefaults.ContainerExpandedElevationWithFab,
+    hoveredElevation = FloatingToolbarDefaults.ContainerExpandedElevationWithFab,
+)

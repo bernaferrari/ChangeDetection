@@ -95,7 +95,7 @@
     <string name="settings_sync_monitoring_in_background">পটভূমিতে নজরদারি</string>
     <string name="settings_background_sync_summary">স্বয়ংক্রিয়ভাবে পৃষ্ঠা পরীক্ষা করুন</string>
     <string name="step_number">ধাপ %1$d</string>
-    <string name="theme_system_title">সিস্টেম</string>
+    <string name="theme_system_title">স্বয়ংক্রিয়</string>
     <string name="theme_system_desc">ডিভাইসের সেটিংস অনুসরণ করুন</string>
     <string name="theme_light_title">হালকা</string>
     <string name="theme_light_desc">সবসময় হালকা থিম ব্যবহার করুন</string>

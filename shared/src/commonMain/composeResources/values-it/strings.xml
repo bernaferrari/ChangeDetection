@@ -83,7 +83,7 @@
     <string name="settings_sync_monitoring_in_background">Monitoraggio in background</string>
     <string name="settings_background_sync_summary">Controlla le pagine automaticamente</string>
     <string name="step_number">Passo %1$d</string>
-    <string name="theme_system_title">Sistema</string>
+    <string name="theme_system_title">Automatico</string>
     <string name="theme_system_desc">Segui le impostazioni del dispositivo</string>
     <string name="theme_light_title">Chiaro</string>
     <string name="theme_light_desc">Usa sempre il tema chiaro</string>

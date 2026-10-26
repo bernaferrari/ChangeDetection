@@ -7,7 +7,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.*
 import kotlinx.datetime.*
 import kotlin.time.Instant
 
-internal data class ComparisonRange(val label: String, val before: String, val after: String)
+internal data class ComparisonRange(val label: String, val before: String, val after: String, val from: String = "", val to: String = "")
 
 /** Calendar comparisons use the chosen zone, not elapsed 24-hour buckets (which break across DST). */
 internal fun comparisonRange(
@@ -32,7 +32,7 @@ internal fun comparisonRange(
     val afterTime = time(newer) + if (offsets) " $afterOffset" else ""
     val before = if (sameDay && today) beforeTime else dayTime(olderDay, beforeTime)
     val after = if (sameDay) afterTime else dayTime(newerDay, afterTime)
-    return ComparisonRange("\u2068$before\u2069 → \u2068$after\u2069", full(older) + " $beforeOffset", full(newer) + " $afterOffset")
+    return ComparisonRange("\u2068$before\u2069 → \u2068$after\u2069", full(older) + " $beforeOffset", full(newer) + " $afterOffset", from = before, to = after)
 }
 
 @Composable

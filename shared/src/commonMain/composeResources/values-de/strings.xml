@@ -95,7 +95,7 @@
     <string name="settings_sync_monitoring_in_background">Überwachung im Hintergrund</string>
     <string name="settings_background_sync_summary">Seiten automatisch prüfen</string>
     <string name="step_number">Schritt %1$d</string>
-    <string name="theme_system_title">System</string>
+    <string name="theme_system_title">Auto</string>
     <string name="theme_system_desc">Geräteeinstellungen übernehmen</string>
     <string name="theme_light_title">Hell</string>
     <string name="theme_light_desc">Immer helles Design verwenden</string>

@@ -94,6 +94,7 @@ import com.bernaferrari.changedetection.ui.kit.SectionHeader
 import com.bernaferrari.changedetection.ui.kit.friendlyDay
 import com.bernaferrari.changedetection.ui.kit.name
 import com.bernaferrari.changedetection.ui.kit.previewLabel
+import com.bernaferrari.changedetection.ui.kit.placeholderPulse
 import com.bernaferrari.changedetection.ui.kit.rememberVersionPreview
 import com.bernaferrari.changedetection.util.BackHandler
 import com.bernaferrari.changedetection.util.formatTime
@@ -308,7 +309,7 @@ private fun DayHeader(date: String, next: LogUiModel?) {
     val timestamp = (next as? LogUiModel.Item)?.snap?.timestamp
     Text(
         if (timestamp != null) friendlyDay(timestamp) else date,
-        Modifier.padding(start = 28.dp, end = 20.dp, top = 24.dp, bottom = 8.dp).semantics { heading() },
+        Modifier.padding(start = 24.dp, end = 20.dp, top = 24.dp, bottom = 8.dp).semantics { heading() },
         style = MaterialTheme.typography.titleMedium,
     )
 }
@@ -342,9 +343,14 @@ internal fun ActivityRow(shape: androidx.compose.ui.graphics.Shape, snap: Snap, 
                     )
                 }
                 val subtitle = if (first) stringResource(Res.string.activity_started_short) else previewLabel(preview)
-                if (subtitle.isNotBlank()) {
+                if (!first && preview == null) {
+                    // Holds the summary's line quietly while it is worked out, like the cards on Home.
+                    val line = with(androidx.compose.ui.platform.LocalDensity.current) { MaterialTheme.typography.bodyMedium.lineHeight.toDp() }
+                    Box(Modifier.height(line), contentAlignment = Alignment.CenterStart) {
+                        Box(Modifier.size(width = 96.dp, height = 12.dp).clip(androidx.compose.foundation.shape.RoundedCornerShape(50)).then(Modifier.placeholderPulse()))
+                    }
+                } else if (subtitle.isNotBlank()) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        if (preview == null) LoadingIndicator(Modifier.size(16.dp))
                         if (preview is ChangePreview.Crop) Icon(Icons.Outlined.Image, null, Modifier.size(15.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
                             subtitle,

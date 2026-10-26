@@ -431,15 +431,23 @@ fun DiffText(
 }
 
 @Composable
-fun NewBadge(modifier: Modifier = Modifier, text: String = "New") {
-    Box(
-        modifier
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.primary)
-            .padding(horizontal = 10.dp, vertical = 3.dp),
-    ) {
-        Text(text, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onPrimary)
-    }
+fun NewBadge(modifier: Modifier = Modifier, text: String = "New") = StatusTag(text, strong = true, modifier = modifier)
+
+/**
+ * A status beside a title ("New", "Latest"): the same shape and type as [ChangeTag], in the accent colours, since
+ * it says something about the page rather than which side of a change this is.
+ */
+@Composable
+fun StatusTag(text: String, strong: Boolean, modifier: Modifier = Modifier) {
+    Text(
+        text,
+        modifier.clip(RoundedCornerShape(8.dp))
+            .background(if (strong) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer)
+            .padding(horizontal = 8.dp, vertical = 2.dp),
+        style = MaterialTheme.typography.labelMedium,
+        color = if (strong) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer,
+        maxLines = 1,
+    )
 }
 
 @Composable
@@ -516,9 +524,10 @@ fun Modifier.groupTile(): Modifier = composed {
 fun GroupLabel(text: String, modifier: Modifier = Modifier) {
     Text(
         text,
-        modifier = modifier.padding(start = 28.dp, end = 28.dp, top = 24.dp, bottom = 8.dp).semantics { heading() },
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
+        modifier = modifier.padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 8.dp).semantics { heading() },
+        // One header style app-wide (Home, Activity, page details): titles, not small accent labels.
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onSurface,
     )
 }
 

@@ -661,9 +661,7 @@ private fun VersionRow(snap: Snap, previous: Snap?, latest: Boolean, showDivider
         onClick = onClick,
     ) {
         if (latest) {
-            Box(Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer).padding(horizontal = 10.dp, vertical = 3.dp)) {
-                Text(stringResource(Res.string.detail_latest), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
-            }
+            com.bernaferrari.changedetection.ui.kit.StatusTag(stringResource(Res.string.detail_latest), strong = false)
         } else {
             Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.outline)
         }

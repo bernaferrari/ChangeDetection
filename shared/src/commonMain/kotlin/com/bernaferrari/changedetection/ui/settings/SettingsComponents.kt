@@ -78,9 +78,8 @@ internal fun SettingsSectionHeader(
     val spacing = MaterialTheme.spacing
     Text(
         text = title,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        fontWeight = FontWeight.Normal,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier.padding(
             start = spacing.xl,
             end = spacing.lg,

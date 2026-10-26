@@ -98,7 +98,8 @@ class DesktopAppJourneyTest {
             assertFalse(runBlocking { requireNotNull(db.siteDao().getSiteById(page.id)).isRead })
             compose.onAllNodesWithText("09:00", substring = true).onFirst().assertExists()
             capture("app-journey-comparison")
-            compose.onAllNodesWithText("Mark read").onLast().performClick()
+            // Labelled with text when it stands alone, or as the toolbar's check FAB when changes can be stepped through.
+            compose.onAllNodes((hasText("Mark read") or hasContentDescription("Mark read")) and hasClickAction()).onLast().performClick()
             compose.waitUntil(10_000) { runBlocking { db.siteDao().getSiteById(page.id)?.isRead == true } }
             assertEquals(2, runBlocking { db.snapsDao().getAllSnapsForSiteId(page.id).size })
             compose.onNodeWithText("Activity").performClick()
