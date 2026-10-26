@@ -837,4 +837,5 @@
     <string name="text_http_capability_note">इस प्लेटफ़ॉर्म पर टेक्स्ट निगरानी HTTP प्रतिक्रिया पढ़ती है। JavaScript की सामग्री और ब्राउज़र की साइन-इन कुकी शामिल नहीं होतीं।</string>
     <string name="check_failure_document_changed">कैप्चर के दौरान पेज बदल गया</string>
     <string name="check_failure_document_changed_detail">जाँच तैयार करते समय पेज बदल गया। सहेजा गया इतिहास सुरक्षित है। फिर कोशिश करें।</string>
+    <string name="preview_region_no_match">इस पेज का कोई हिस्सा चयन से मेल नहीं खाता। वह हिस्सा चुनें जिस पर आप नज़र रखना चाहते हैं, या पूरा पेज चुनें।</string>
 </resources>

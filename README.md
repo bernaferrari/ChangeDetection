@@ -107,3 +107,6 @@ It captures the real shared app UI at phone dimensions with local fixture conten
 Bug reports are most useful with the app version, platform, steps to reproduce, and a public page URL when possible. Describe what you expected and what happened. Remove private page content, cookies, and account details from logs or screenshots.
 
 For a fix, add a regression test that fails first, keep the change focused, and run the relevant checks above. Documentation, translations, accessibility improvements, and reproducible test cases are welcome too.
+
+
+Localized store artwork is maintained in [Screenshot Studio](store-listing/README.md): shared layout in `store-listing/gallery.json`, words in `store-listing/<locale>/copy.json`, and native captures plus UI layout files in `store-listing/<locale>/raw/`. The editor compares languages and saves copy; strict export rejects English fallbacks and unresolved callouts. English remains the README image source.

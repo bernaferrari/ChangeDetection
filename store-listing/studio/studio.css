@@ -1,0 +1,43 @@
+/* Screenshot Studio base layout. Apps restyle everything through ../theme.css. */
+*{box-sizing:border-box}
+html,body{margin:0;width:var(--canvas-width);height:var(--canvas-height);overflow:hidden}
+body{-webkit-font-smoothing:antialiased}
+.campaign{position:relative;width:var(--canvas-width);height:var(--canvas-height);overflow:hidden}
+.art{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+header{position:absolute;z-index:3}
+h1{margin:0}
+h1 .line{display:block;white-space:nowrap}
+h1 em{font-style:normal}
+h1 ins{text-decoration:none}
+
+/* Devices: the capture keeps its native aspect ratio; themes size and place the frame. */
+.device{--bezel:14px;--radius:80px;position:absolute;z-index:2;line-height:0;padding:var(--bezel);border-radius:var(--radius);background:#0b0c10}
+.device .screen{position:relative;overflow:hidden;border-radius:calc(var(--radius) - var(--bezel));background:#000}
+.device img{display:block;width:100%;height:auto;object-fit:contain}
+.device.device-frame-browser{--bezel:0px;--radius:22px;padding:52px 0 0;background:#1d1f27}
+.device.device-frame-browser .screen{border-radius:0 0 20px 20px}
+/* An unframed card: the capture is the whole image (desktop screenshots, for example). */
+.device.device-frame-none{inset:0;width:100%;height:100%;padding:0;border-radius:0;background:none;box-shadow:none}
+.device.device-frame-none .screen{border-radius:0}
+.device .dots{position:absolute;left:24px;top:20px;display:flex;gap:10px}
+.device .dots i{width:13px;height:13px;border-radius:50%;background:#ff5f57}.device .dots i+i{background:#febc2e}.device .dots i+i+i{background:#28c840}
+
+.callout{position:absolute;z-index:4;background-repeat:no-repeat}
+
+.fit-scene,.fit-scene body{width:100%;height:100%;overflow:hidden}.fit-scene .campaign{position:absolute}
+
+/* Scripts the apps' Latin fonts don't cover. Themes end their font stacks with var(--script-font), so
+   Latin text keeps the app's face and other scripts get a matching system face (Noto when installed). */
+:root{--script-font:system-ui}
+:root:lang(ja){--script-font:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP"}
+:root:lang(ko){--script-font:"Apple SD Gothic Neo","Noto Sans KR"}
+:root:lang(zh){--script-font:"PingFang SC","Noto Sans SC"}
+:root:lang(zh-TW),:root:lang(zh-HK),:root:lang(zh-Hant){--script-font:"PingFang TC","Noto Sans TC"}
+:root:lang(hi),:root:lang(mr){--script-font:"Kohinoor Devanagari","Noto Sans Devanagari"}
+:root:lang(bn){--script-font:"Kohinoor Bangla","Noto Sans Bengali"}
+:root:lang(ar){--script-font:"Geeza Pro","Noto Sans Arabic"}
+:root:lang(he){--script-font:"Arial Hebrew","Noto Sans Hebrew"}
+:root:lang(th){--script-font:"Thonburi","Noto Sans Thai"}
+/* Tight Latin tracking hurts CJK and Indic headlines; Korean wraps between words. */
+:root:lang(ja) h1,:root:lang(ko) h1,:root:lang(zh) h1,:root:lang(hi) h1,:root:lang(bn) h1{letter-spacing:0}
+:root:lang(ko) header{word-break:keep-all}

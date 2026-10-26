@@ -1,0 +1,87 @@
+{
+  "phone": [
+    {
+      "feature": "home",
+      "raw": "phone/light/01-home.png",
+      "callouts": []
+    },
+    {
+      "feature": "price",
+      "raw": "phone/light/02-compare-image.png",
+      "callouts": [
+        {
+          "x": 58,
+          "y": 900,
+          "w": 964,
+          "h": 169,
+          "mag": 1.16,
+          "radius": 24
+        }
+      ]
+    },
+    {
+      "feature": "text",
+      "raw": "phone/dark/03-compare-text.png",
+      "callouts": [
+        {
+          "x": 31,
+          "y": 632,
+          "w": 1017,
+          "h": 218,
+          "mag": 1.08,
+          "radius": 36
+        }
+      ]
+    },
+    {
+      "feature": "turbo",
+      "raw": "phone/dark/05-turbo.png",
+      "callouts": []
+    },
+    {
+      "feature": "private",
+      "raw": "phone/light/06-appearance.png",
+      "callouts": []
+    }
+  ],
+  "tablet7": [
+    {
+      "feature": "home",
+      "raw": "tablet7/light/01-home.png"
+    },
+    {
+      "feature": "price",
+      "raw": "tablet7/light/02-compare-image.png"
+    },
+    {
+      "feature": "text",
+      "raw": "tablet7/dark/03-compare-text.png"
+    },
+    {
+      "feature": "turbo",
+      "raw": "tablet7/dark/05-turbo.png"
+    },
+    {
+      "feature": "private",
+      "raw": "tablet7/light/06-appearance.png"
+    }
+  ],
+  "tablet10": [
+    {
+      "feature": "price",
+      "raw": "tablet10/light/02-compare-image.png"
+    },
+    {
+      "feature": "text",
+      "raw": "tablet10/dark/03-compare-text.png"
+    },
+    {
+      "feature": "turbo",
+      "raw": "tablet10/light/05-turbo.png"
+    },
+    {
+      "feature": "private",
+      "raw": "tablet10/dark/06-appearance.png"
+    }
+  ]
+}

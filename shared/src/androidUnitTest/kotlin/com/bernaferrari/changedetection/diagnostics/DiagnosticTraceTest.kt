@@ -13,6 +13,19 @@ import org.junit.Test
 class DiagnosticTraceTest {
     private val previous = DiagnosticLog.sink
 
+    @Test fun regionFailuresRecordTheirNameWithoutSelectorsOrPageContent() = runTest {
+        val span = DiagnosticSpan()
+        span.failed(
+            com.bernaferrari.changedetection.detection.TextRegionException(
+                com.bernaferrari.changedetection.detection.TextRegionFailure.REGION_MISSING,
+                issue = com.bernaferrari.changedetection.detection.TextRegionIssue.NO_MATCH,
+            ),
+        )
+        val failure = requireNotNull(span.snapshot().second)
+        assertEquals(com.bernaferrari.changedetection.detection.TextRegionIssue.NO_MATCH, failure.regionIssue)
+        assertTrue(Json.encodeToString(failure).contains("NO_MATCH"))
+    }
+
     @Test fun networkAndPageIoErrorsNeverContributeMessagesToTheReport() = runTest {
         val sink = Sink()
         DiagnosticLog.sink = sink

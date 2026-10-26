@@ -452,4 +452,5 @@
     <string name="text_http_capability_note">Text monitoring on this platform reads the HTTP response. JavaScript content and browser sign-in cookies are not included.</string>
     <string name="check_failure_document_changed">Page changed during capture</string>
     <string name="check_failure_document_changed_detail">The page navigated while this check was being prepared. Saved history has been kept. Try again.</string>
+    <string name="preview_region_no_match">No part of this page matches the selection. Pick the area you want to watch, or choose Whole page.</string>
 </resources>

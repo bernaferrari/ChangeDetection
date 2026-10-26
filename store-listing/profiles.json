@@ -1,0 +1,29 @@
+{
+  "phone": {
+    "width": 1080,
+    "height": 1920,
+    "captureWidth": 1080,
+    "captureHeight": 2340,
+    "captureDensity": 420,
+    "frame": "phone",
+    "label": "Phone"
+  },
+  "tablet7": {
+    "width": 1200,
+    "height": 1920,
+    "captureWidth": 1200,
+    "captureHeight": 1920,
+    "captureDensity": 320,
+    "frame": "tablet",
+    "label": "7″ tablet"
+  },
+  "tablet10": {
+    "width": 1920,
+    "height": 1200,
+    "captureWidth": 1920,
+    "captureHeight": 1200,
+    "captureDensity": 240,
+    "frame": "tablet",
+    "label": "10″ tablet"
+  }
+}

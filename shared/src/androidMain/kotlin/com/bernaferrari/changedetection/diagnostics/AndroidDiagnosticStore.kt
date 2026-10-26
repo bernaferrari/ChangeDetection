@@ -135,7 +135,7 @@ class AndroidDiagnosticStore internal constructor(
             androidApi = value.runtime.androidApi.coerceIn(1, 100),
             heapLimitMiB = value.runtime.heapLimitMiB.coerceIn(0, 65_536),
         )
-        return StoredDiagnostic(safeRuntime, a.copy(events = a.events.take(64).map { it.copy(elapsedMs = it.elapsedMs.coerceIn(0, 600_000), durationMs = it.durationMs.coerceIn(0, 600_000), code = it.code?.coerceIn(-100, 599), capture = it.capture?.bounded(), tls = it.tls?.let { tls -> tls.copy(primary = tls.primary.coerceIn(0, 5), errors = tls.errors.filter { code -> code in 0..5 }.distinct().sorted().take(6)) }) }, failure = a.failure?.copy(causes = a.failure.causes.take(4), classes = a.failure.classes.filter(::isSafeClassName).take(4), detail = a.failure.detail?.let(::scrubErrorText)?.takeIf { it.isNotBlank() })))
+        return StoredDiagnostic(safeRuntime, a.copy(events = a.events.take(64).map { it.copy(elapsedMs = it.elapsedMs.coerceIn(0, 600_000), durationMs = it.durationMs.coerceIn(0, 600_000), code = it.code?.coerceIn(-100, 599), capture = it.capture?.bounded(), tls = it.tls?.let { tls -> tls.copy(primary = tls.primary.coerceIn(0, 5), errors = tls.errors.filter { code -> code in 0..5 }.distinct().sorted().take(6)) }) }, failure = a.failure?.copy(regionIssue = a.failure.regionIssue ?: a.events.lastOrNull { it.metric == DiagnosticMetric.REGION_RESULT }?.code?.let { com.bernaferrari.changedetection.detection.TextRegionIssue.entries.getOrNull(it) }, causes = a.failure.causes.take(4), classes = a.failure.classes.filter(::isSafeClassName).take(4), detail = a.failure.detail?.let(::scrubErrorText)?.takeIf { it.isNotBlank() })))
     }
 
     private fun retained(): List<File> {
@@ -236,7 +236,9 @@ class AndroidDiagnosticStore internal constructor(
     private fun summary(runtime: DiagnosticRuntime, attempts: List<StoredDiagnostic>, events: List<AppEvent>): List<String> = buildList {
         add("App ${runtime.versionName} · version code ${runtime.versionCode} · revision ${runtime.revision} (${runtime.variant.name.lowercase()}) · Android API ${runtime.androidApi} · WebView ${runtime.providerVersion} (${runtime.provider.name.lowercase()}) · free storage ${runtime.space.name.lowercase().replace('_', ' ')}")
         val failures = attempts.filter { it.attempt.outcome == DiagnosticOutcome.FAILURE }
-        add("${failures.size} of ${attempts.size} recent attempts failed")
+        add("${failures.size} of ${attempts.size} exported attempts failed (failure-prioritized sample, not an overall failure rate)")
+        val current = attempts.filter { it.runtime.versionCode == runtime.versionCode && it.runtime.revision == runtime.revision }
+        add("Current build ${runtime.versionCode}: ${current.size} exported attempts, ${current.count { it.attempt.outcome == DiagnosticOutcome.FAILURE }} failures. Other builds: ${attempts.size - current.size} exported attempts.")
         // Scheduled checks failing is a different problem from previews the user abandoned, so each kind is counted apart.
         add(
             attempts.groupBy { it.attempt.trigger }.entries.sortedBy { it.key.ordinal }.joinToString(" · ") { (trigger, group) ->
@@ -258,11 +260,17 @@ class AndroidDiagnosticStore internal constructor(
                     "Latest failure: ${f?.category?.name ?: "UNKNOWN"} at ${f?.stage?.name ?: "unknown stage"}",
                     f?.classes?.takeIf { it.isNotEmpty() }?.joinToString(" → "),
                     f?.detail,
+                    f?.regionIssue?.let { "Region: ${it.name}" },
                     "${((now() - attempt.startedAt) / 60_000).coerceAtLeast(0)} min ago",
                 ).joinToString(" · "),
             )
         }
-        failures.firstNotNullOfOrNull { stored -> stored.attempt.events.lastOrNull { it.tls?.blocking == true }?.tls }?.let { add("Latest TLS failure: ${describeTls(it)}") }
+        failures.firstOrNull { stored -> stored.attempt.events.any { it.tls?.blocking == true } }?.let { stored ->
+            val tls = stored.attempt.events.last { it.tls?.blocking == true }.tls!!
+            val age = ((now() - stored.attempt.startedAt) / 60_000).coerceAtLeast(0)
+            val historical = stored.runtime.versionCode != runtime.versionCode || stored.runtime.revision != runtime.revision
+            add("${if (historical) "Historical" else "Current-build"} TLS failure: ${describeTls(tls)} · version code ${stored.runtime.versionCode} · revision ${stored.runtime.revision} · $age min ago")
+        }
         // A refused resource need not abort navigation; watched-content validation may still reject capture.
         val refused = attempts.sumOf { stored -> stored.attempt.events.count { it.tls?.blocking == false } }
         if (refused > 0) add("$refused sub-resource certificate errors were refused without aborting navigation; capture validation ran separately")

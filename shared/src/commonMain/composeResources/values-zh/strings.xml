@@ -804,4 +804,5 @@
     <string name="text_http_capability_note">此平台的文本监测读取 HTTP 返回的内容，不包含 JavaScript 内容或浏览器的登录 Cookie。</string>
     <string name="check_failure_document_changed">检查时页面已更改</string>
     <string name="check_failure_document_changed_detail">检查时页面已更改。历史记录已保留。请重试。</string>
+    <string name="preview_region_no_match">此页面没有与所选条件匹配的区域。请选择要监控的区域，或选择整个页面。</string>
 </resources>

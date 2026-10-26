@@ -13,6 +13,48 @@ import java.io.File
 class DiagnosticStoreTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
 
+    @Test fun exportLabelsHistoricalTlsAndDecodesLegacyRegionReasons() = runBlocking {
+        fixture { store, dir, _ ->
+            dir.mkdirs()
+            val now = 1_790_000_000_000L
+            val tls = DiagnosticTlsContext(3, listOf(3), TlsRequestKind.SUBRESOURCE, TlsUrlRelation.DIFFERENT_ORIGIN, true, true, true)
+            val old = DiagnosticAttempt(
+                startedAt = now - 30 * 60_000,
+                mode = CaptureMode.SCREENSHOT,
+                selected = false,
+                excluded = false,
+                trigger = DiagnosticTrigger.CHECK,
+                outcome = DiagnosticOutcome.FAILURE,
+                events = listOf(DiagnosticEvent(DiagnosticStage.NAVIGATE, 0, metric = DiagnosticMetric.TLS_ERROR, tls = tls)),
+                failure = DiagnosticFailure(DiagnosticStage.NAVIGATE, com.bernaferrari.changedetection.error.CheckFailure.TLS),
+            )
+            File(dir, "trace-${old.attemptId}.json").apply {
+                writeText(Json.encodeToString(StoredDiagnostic(runtime().copy(versionCode = 37, revision = "123456abcdef"), old)))
+                setLastModified(old.startedAt)
+            }
+            store.append(
+                DiagnosticAttempt(
+                    startedAt = now,
+                    mode = CaptureMode.TEXT,
+                    selected = true,
+                    excluded = false,
+                    trigger = DiagnosticTrigger.PREVIEW,
+                    outcome = DiagnosticOutcome.FAILURE,
+                    events = listOf(DiagnosticEvent(DiagnosticStage.EXTRACT_TEXT, 0, metric = DiagnosticMetric.REGION_RESULT, code = 0)),
+                    failure = DiagnosticFailure(DiagnosticStage.EXTRACT_TEXT, com.bernaferrari.changedetection.error.CheckFailure.REGION),
+                ),
+            )
+            val report = store.report().json
+            assertTrue(report, report.contains("Historical TLS failure:"))
+            assertTrue(report, report.contains("version code 37"))
+            assertTrue(report, report.contains("30 min ago"))
+            assertTrue(report, report.contains("Current build 38: 1 exported attempts, 1 failures"))
+            assertTrue(report, report.contains("failure-prioritized sample, not an overall failure rate"))
+            assertTrue(report, report.contains("NO_MATCH"))
+            assertFalse(report, report.contains("recent attempts failed"))
+        }
+    }
+
     @Test fun appEventsKeepTheirEventTimeBuildAndLegacyEventsStayUnattributed() = runBlocking {
         val dir = File(context.cacheDir, "event-build-${java.util.UUID.randomUUID()}")
         val at = 1_790_000_000_000L
@@ -100,7 +142,7 @@ class DiagnosticStoreTest {
             val summary = Json.parseToJsonElement(store.report().json).jsonObject.getValue("summary").jsonArray.map { it.jsonPrimitive.content }
             val all = summary.joinToString("\n")
             assertTrue(all, summary.contains("Checks: 1 of 2 failed · Previews: 1 of 2 failed, 1 cancelled · First versions: 0 of 1 failed"))
-            assertTrue(all, all.contains("Latest TLS failure: Untrusted certificate on an unobserved request (different origin, before the page committed)"))
+            assertTrue(all, all.contains("Current-build TLS failure: Untrusted certificate on an unobserved request (different origin, before the page committed)"))
             assertTrue(all, all.contains("1 sub-resource certificate errors were refused"))
         }
     }

@@ -1,0 +1,14 @@
+{
+  "app": "ChangeDetection",
+  "locales": [
+    "en-US",
+    "de-DE",
+    "es-ES",
+    "it-IT",
+    "pt-BR",
+    "hi-IN",
+    "bn-BD",
+    "zh-CN"
+  ],
+  "defaultLocale": "en-US"
+}

@@ -452,4 +452,5 @@
     <string name="text_http_capability_note">En esta plataforma, la vigilancia de texto lee la respuesta HTTP. No incluye el contenido de JavaScript ni las cookies de inicio de sesión del navegador.</string>
     <string name="check_failure_document_changed">La página cambió durante la captura</string>
     <string name="check_failure_document_changed_detail">La página navegó durante la preparación de esta comprobación. El historial se ha conservado. Inténtalo de nuevo.</string>
+    <string name="preview_region_no_match">Ninguna parte de esta página coincide con la selección. Elige el área que quieras vigilar o selecciona Página completa.</string>
 </resources>
