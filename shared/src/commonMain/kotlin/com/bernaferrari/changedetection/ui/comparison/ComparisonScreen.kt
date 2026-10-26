@@ -83,7 +83,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.ModalBottomSheet
@@ -264,7 +263,7 @@ fun ComparisonScreen(
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             when {
-                uiState.isLoading -> LoadingIndicator(Modifier.align(Alignment.Center))
+                uiState.isLoading -> com.bernaferrari.changedetection.ui.components.DelayedLoadingIndicator(Modifier.align(Alignment.Center))
 
                 uiState.site == null -> SharedEmptyState(
                     icon = Icons.Outlined.ErrorOutline,

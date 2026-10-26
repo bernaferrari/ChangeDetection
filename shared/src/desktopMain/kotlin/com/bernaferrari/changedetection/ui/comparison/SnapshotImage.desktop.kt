@@ -13,7 +13,6 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.getValue
 import kotlinx.coroutines.withContext
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -40,11 +39,11 @@ internal actual fun SnapshotImage(
         Image(
             bitmap = image,
             contentDescription = contentDescription,
-            modifier = modifier,
+            modifier = modifier.snapshotFadeIn(image),
             contentScale = contentScale,
         )
     } else if (state == DesktopImageLoadState.Loading) {
-        Box(modifier = modifier, contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        SnapshotImageLoading(modifier)
     } else {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
             Text(

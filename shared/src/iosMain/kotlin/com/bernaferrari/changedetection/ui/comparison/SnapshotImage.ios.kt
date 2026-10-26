@@ -2,8 +2,6 @@ package com.bernaferrari.changedetection.ui.comparison
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,7 +20,6 @@ import kotlinx.coroutines.withContext
 import com.bernaferrari.changedetection.localization.stringResource
 import org.jetbrains.skia.Image as SkiaImage
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal actual fun SnapshotImage(
     bytes: ByteArray,
@@ -39,9 +36,9 @@ internal actual fun SnapshotImage(
         }
     }
     when (val current = state) {
-        is IosImageState.Ready -> Image(current.image, contentDescription, modifier, contentScale = contentScale)
+        is IosImageState.Ready -> Image(current.image, contentDescription, modifier.snapshotFadeIn(current.image), contentScale = contentScale)
 
-        IosImageState.Loading -> Box(modifier, contentAlignment = Alignment.Center) { LoadingIndicator() }
+        IosImageState.Loading -> SnapshotImageLoading(modifier)
 
         IosImageState.Failed -> Box(modifier, contentAlignment = Alignment.Center) {
             Text(
