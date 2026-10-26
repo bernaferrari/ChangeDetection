@@ -98,9 +98,12 @@ class LogsViewModel(
         .distinctUntilChanged()
         .flatMapLatest { query ->
             Pager(
+                // Rows come from one local query each page; larger pages keep a fling from reaching the end and
+                // watching the list grow under the finger.
                 config = PagingConfig(
-                    pageSize = 20,
-                    prefetchDistance = 10,
+                    pageSize = 40,
+                    prefetchDistance = 30,
+                    initialLoadSize = 60,
                     enablePlaceholders = false,
                 ),
                 pagingSourceFactory = { snapsDao.getSnapsPagedSource(query.trim()) },
