@@ -835,4 +835,6 @@
     <string name="check_failure_capture_incomplete">Seitenaufnahme unvollständig</string>
     <string name="check_failure_capture_incomplete_detail">Ein Teil der überwachten Seite konnte nicht geladen werden. Der gespeicherte Verlauf wurde beibehalten. Versuche es erneut oder öffne die Seitenvorschau.</string>
     <string name="text_http_capability_note">Auf dieser Plattform liest die Textüberwachung die HTTP-Antwort. JavaScript-Inhalte und Anmelde-Cookies des Browsers sind nicht enthalten.</string>
+    <string name="check_failure_document_changed">Seite während der Aufnahme geändert</string>
+    <string name="check_failure_document_changed_detail">Die Seite hat während der Prüfung navigiert. Der gespeicherte Verlauf bleibt erhalten. Versuche es erneut.</string>
 </resources>

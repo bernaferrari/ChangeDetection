@@ -835,4 +835,6 @@
     <string name="check_failure_capture_incomplete">পৃষ্ঠার ক্যাপচার অসম্পূর্ণ</string>
     <string name="check_failure_capture_incomplete_detail">পর্যবেক্ষণ করা পৃষ্ঠার কিছু অংশ লোড করা যায়নি। সংরক্ষিত ইতিহাস রাখা হয়েছে। আবার চেষ্টা করুন বা পৃষ্ঠার প্রিভিউ দেখুন।</string>
     <string name="text_http_capability_note">এই প্ল্যাটফর্মে টেক্সট পর্যবেক্ষণ HTTP উত্তর পড়ে। JavaScript বিষয়বস্তু ও ব্রাউজারের সাইন-ইন কুকি এতে থাকে না।</string>
+    <string name="check_failure_document_changed">ক্যাপচারের সময় পৃষ্ঠা বদলেছে</string>
+    <string name="check_failure_document_changed_detail">পরীক্ষা তৈরির সময় পৃষ্ঠা বদলেছে। সংরক্ষিত ইতিহাস রাখা হয়েছে। আবার চেষ্টা করুন।</string>
 </resources>

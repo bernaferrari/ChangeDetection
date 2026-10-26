@@ -24,7 +24,7 @@ class ResourceCaptureFailureTest {
     }
 
     @Test fun `other capture readiness issues retain timeout classification`() {
-        CaptureIssue.entries.filter { it != CaptureIssue.RESOURCE_FAILED }.forEach { issue ->
+        CaptureIssue.entries.filter { it != CaptureIssue.RESOURCE_FAILED && it != CaptureIssue.DOCUMENT_CHANGED }.forEach { issue ->
             val error = CaptureNotReadyException(issue)
             val result = ErrorHandler().handleError(error)
             assertEquals(issue.name, ErrorType.TIMEOUT, result.type)

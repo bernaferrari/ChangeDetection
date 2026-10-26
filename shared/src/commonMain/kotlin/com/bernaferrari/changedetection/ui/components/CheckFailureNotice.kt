@@ -15,6 +15,7 @@ fun checkFailureTitle(code: String?): String = stringResource(
         CheckFailure.BACKGROUND_RESTRICTED -> Res.string.check_failure_background_restricted
         CheckFailure.TLS -> Res.string.check_failure_tls
         CheckFailure.CONNECTION -> Res.string.check_failure_connection
+        CheckFailure.DOCUMENT_CHANGED -> Res.string.check_failure_document_changed
         CheckFailure.TIMEOUT -> Res.string.check_failure_timeout
         CheckFailure.LOGIN -> Res.string.check_failure_login
         CheckFailure.ACCESS_DENIED -> Res.string.check_failure_access_denied
@@ -41,6 +42,7 @@ fun CheckFailureNotice(code: String?, modifier: Modifier = Modifier, actions: @C
             CheckFailure.BACKGROUND_RESTRICTED -> Res.string.check_failure_background_restricted_detail
             CheckFailure.TLS -> Res.string.check_failure_tls_detail
             CheckFailure.CONNECTION -> Res.string.check_failure_connection_detail
+            CheckFailure.DOCUMENT_CHANGED -> Res.string.check_failure_document_changed_detail
             CheckFailure.TIMEOUT -> Res.string.check_failure_timeout_detail
             CheckFailure.LOGIN -> Res.string.check_failure_login_detail
             CheckFailure.ACCESS_DENIED -> Res.string.check_failure_access_denied_detail

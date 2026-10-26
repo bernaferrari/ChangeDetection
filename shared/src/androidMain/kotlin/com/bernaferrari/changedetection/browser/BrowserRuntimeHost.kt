@@ -75,7 +75,7 @@ internal actual fun rememberBrowserPlatformParams(): com.multiplatform.webview.w
 
             override fun onReceivedSslError(view: android.webkit.WebView, handler: android.webkit.SslErrorHandler, error: android.net.http.SslError) {
                 handler.cancel()
-                // Same completeness policy as scheduled checks: every TLS refusal invalidates capture.
+                // Match scheduled checks: reject the main document now, validate captured resources before saving.
                 val tls = WebViewCaptureHealth.of(view).ssl(error.url, error.primaryError, (0..5).filter(error::hasError))
                 if (tls.blocking) fail(error.url, tlsError())
             }
