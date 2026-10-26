@@ -14,11 +14,12 @@ internal fun SavedVersionsRow(state: SettingsUiState, onRetry: () -> Unit, onCle
         title = stringResource(Res.string.settings_saved_versions),
         supporting = when {
             state.storageLoadFailed -> stringResource(Res.string.retry)
-            state.storageBytes == null -> stringResource(Res.string.loading)
+            state.storageBytes == null -> null
             state.storageBytes == 0L -> stringResource(Res.string.settings_storage_empty)
             else -> stringResource(Res.string.settings_storage_value, formatStorage(state.storageBytes))
         },
         icon = Icons.Outlined.Storage,
+        supportingPending = state.storageBytes == null && !state.storageLoadFailed,
         showDivider = showDivider,
         onClick = { expanded = true },
     )
