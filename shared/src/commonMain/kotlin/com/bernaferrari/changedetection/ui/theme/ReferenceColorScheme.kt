@@ -6,7 +6,10 @@ import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import com.materialkolor.hct.Hct
 import com.materialkolor.PaletteStyle
 import com.materialkolor.material3.dynamicColorScheme
 import com.materialkolor.dynamiccolor.ColorSpec
@@ -33,7 +36,8 @@ internal fun referenceColorScheme(dark: Boolean) = brandColorScheme(SeedColor, d
 internal fun AppMaterialTheme(colorScheme: ColorScheme, dark: Boolean, content: @Composable () -> Unit) {
     // Screens sit on the container tone and content cards on the bright tone (the Android 16 look),
     // so grouped content reads as crisp tiles in light and dark.
-    val screen = colorScheme.copy(surface = colorScheme.surfaceContainer, background = colorScheme.surfaceContainer)
+    val calm = remember(colorScheme) { colorScheme.withCalmSurfaces() }
+    val screen = calm.copy(surface = calm.surfaceContainer, background = calm.surfaceContainer)
     MaterialExpressiveTheme(
         colorScheme = screen,
         motionScheme = MotionScheme.expressive(),
@@ -44,4 +48,31 @@ internal fun AppMaterialTheme(colorScheme: ColorScheme, dark: Boolean, content: 
             content()
         }
     }
+}
+
+/**
+ * Any palette (picked, default or wallpaper) tints every surface with its hue, so a whole screen reads as one
+ * colour and nothing stands out. Surfaces keep only a hint of the hue; the accent roles keep all of it, so
+ * buttons, selection and the highlighter are the colour on screen.
+ */
+internal fun ColorScheme.withCalmSurfaces(): ColorScheme {
+    fun Color.calm(maxChroma: Double): Color {
+        val hct = Hct.fromInt(toArgb())
+        return if (hct.chroma <= maxChroma) this else Color(hct.withChroma(maxChroma).toInt()).copy(alpha = alpha)
+    }
+    return copy(
+        background = background.calm(1.2),
+        surface = surface.calm(1.2),
+        surfaceBright = surfaceBright.calm(1.2),
+        surfaceDim = surfaceDim.calm(1.2),
+        surfaceContainerLowest = surfaceContainerLowest.calm(1.2),
+        surfaceContainerLow = surfaceContainerLow.calm(1.2),
+        surfaceContainer = surfaceContainer.calm(1.2),
+        surfaceContainerHigh = surfaceContainerHigh.calm(1.6),
+        surfaceContainerHighest = surfaceContainerHighest.calm(2.0),
+        surfaceVariant = surfaceVariant.calm(4.0),
+        onSurfaceVariant = onSurfaceVariant.calm(6.0),
+        outline = outline.calm(6.0),
+        outlineVariant = outlineVariant.calm(4.0),
+    )
 }

@@ -58,7 +58,8 @@ class DesignReviewTest {
     /** Repeatable README captures of the real shared app UI; all page content is local sample data. */
     @Test fun readmeTour() = withApp(dark = false, seed = true, cleanFixtures = true) {
         waitForText("new changes", substring = true)
-        waitForText("1 change", timeout = 15_000)
+        // The screenshot card's crops are in place once their After tag shows.
+        waitForText("After", timeout = 15_000)
         shot("readme-home")
         onNodeWithTag("home-list").performScrollToKey("card-fellowship")
         onAllNodesWithText("Fellowship guide").onFirst().performClick()

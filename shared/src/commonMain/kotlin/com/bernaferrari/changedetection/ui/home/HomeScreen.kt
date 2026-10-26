@@ -112,6 +112,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -518,21 +520,25 @@ private fun HomeTopBar(
     }
     LargeFlexibleTopAppBar(
         title = {
+            // The bar composes this slot for both its expanded and collapsed titles; each keeps its own layout.
+            var layout by remember { mutableStateOf<androidx.compose.ui.text.TextLayoutResult?>(null) }
             Text(
                 when {
                     // Blank until the pages load, so the hero never reads "Change Detection" and then jumps to a count.
-                    rows == null -> ""
+                    rows == null -> AnnotatedString("")
 
-                    pages.isEmpty() -> stringResource(Res.string.app_name)
+                    pages.isEmpty() -> AnnotatedString(stringResource(Res.string.app_name))
 
-                    unreadCount > 0 -> pluralStringResource(Res.plurals.home_new_changes, unreadCount, unreadCount)
+                    unreadCount > 0 -> highlightedCount(pluralStringResource(Res.plurals.home_new_changes, unreadCount, unreadCount), unreadCount)
 
-                    else -> stringResource(Res.string.home_nothing_new)
+                    else -> AnnotatedString(stringResource(Res.string.home_nothing_new))
                 },
                 // The slot is called with separate expanded/collapsed text styles.
                 // Keep collapsed chrome compact while making the hero readable.
                 maxLines = if (largeText && LocalTextStyle.current.fontSize > MaterialTheme.typography.titleLarge.fontSize) 2 else 1,
                 overflow = TextOverflow.Ellipsis,
+                modifier = if (unreadCount > 0) Modifier.highlighterStroke(layout, com.bernaferrari.changedetection.util.localizedInteger(unreadCount)) else Modifier,
+                onTextLayout = { layout = it },
             )
         },
         subtitle = if (pages.isEmpty()) {
@@ -876,4 +882,38 @@ private fun CaptureThumb(snapId: String, dimmed: Boolean) {
         alpha = if (dimmed) 0.5f else 1f,
         decodeWidth = 160,
     )
+}
+
+/** The count wears the highlighter, the same mark changed text wears in the reader, a little wider than the digits. */
+@Composable
+private fun Modifier.highlighterStroke(layout: androidx.compose.ui.text.TextLayoutResult?, number: String): Modifier {
+    val color = MaterialTheme.marks.highlight
+    return drawBehind {
+        val result = layout ?: return@drawBehind
+        val start = result.layoutInput.text.text.indexOf(number)
+        if (start < 0) return@drawBehind
+        val first = result.getBoundingBox(start)
+        val last = result.getBoundingBox(start + number.length - 1)
+        val left = minOf(first.left, last.left) - 4.dp.toPx()
+        val right = maxOf(first.right, last.right) + 4.dp.toPx()
+        // Over the whole digit, like highlighted text in a change, so its ink always sits on the marker.
+        val line = result.getLineForOffset(start)
+        val baseline = result.getLineBaseline(line)
+        val ascent = baseline - result.getLineTop(line)
+        val top = baseline - ascent * 0.8f
+        val bottom = baseline + ascent * 0.1f
+        drawRoundRect(color, androidx.compose.ui.geometry.Offset(left, top), androidx.compose.ui.geometry.Size(right - left, bottom - top), androidx.compose.ui.geometry.CornerRadius(4.dp.toPx()))
+    }
+}
+
+/** The digits over the marker take the ink that reads on it, in light and dark. */
+@Composable
+private fun highlightedCount(text: String, count: Int): AnnotatedString {
+    val number = com.bernaferrari.changedetection.util.localizedInteger(count)
+    val start = text.indexOf(number)
+    val ink = MaterialTheme.marks.onHighlight
+    return androidx.compose.ui.text.buildAnnotatedString {
+        append(text)
+        if (start >= 0) addStyle(androidx.compose.ui.text.SpanStyle(color = ink), start, start + number.length)
+    }
 }

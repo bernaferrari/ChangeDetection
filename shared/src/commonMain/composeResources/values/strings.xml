@@ -95,7 +95,7 @@
     <string name="settings_sync_monitoring_in_background">Monitoring in background</string>
     <string name="settings_background_sync_summary">Check pages automatically</string>
     <string name="step_number">Step %1$d</string>
-    <string name="theme_system_title">System</string>
+    <string name="theme_system_title">Auto</string>
     <string name="theme_system_desc">Match your device settings</string>
     <string name="theme_light_title">Light</string>
     <string name="theme_light_desc">Always use light theme</string>

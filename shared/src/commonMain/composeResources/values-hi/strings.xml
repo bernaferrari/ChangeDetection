@@ -95,7 +95,7 @@
     <string name="settings_sync_monitoring_in_background">बैकग्राउंड में निगरानी</string>
     <string name="settings_background_sync_summary">पेज अपने आप जाँचें</string>
     <string name="step_number">चरण %1$d</string>
-    <string name="theme_system_title">सिस्टम</string>
+    <string name="theme_system_title">स्वचालित</string>
     <string name="theme_system_desc">डिवाइस की सेटिंग के अनुसार</string>
     <string name="theme_light_title">हल्की</string>
     <string name="theme_light_desc">हमेशा हल्की थीम इस्तेमाल करें</string>

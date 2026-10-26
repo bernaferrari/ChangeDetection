@@ -168,8 +168,7 @@ internal fun VersionSheet(snaps: List<Snap>, selectedIndex: Int, selectedSingleS
                     Text(
                         friendlyDay(snaps[indices.first()].timestamp),
                         Modifier.padding(start = 8.dp, top = 16.dp, bottom = 8.dp),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
                 indices.forEachIndexed { position, index ->
@@ -182,7 +181,7 @@ internal fun VersionSheet(snaps: List<Snap>, selectedIndex: Int, selectedSingleS
                         Surface(
                             onClick = { onSelect(index) },
                             shape = shape,
-                            color = if (isAfter) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceBright,
+                            color = if (isAfter) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceBright,
                             modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp),
                         ) {
                             // One preview per row feeds both the thumbnail and the summary.
@@ -190,11 +189,11 @@ internal fun VersionSheet(snaps: List<Snap>, selectedIndex: Int, selectedSingleS
                             Row(Modifier.padding(horizontal = 12.dp, vertical = 10.dp).heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 if (snap.isImageSnapshot()) ChangeThumb(snap, previous != null, preview, Modifier.size(width = 64.dp, height = 48.dp))
                                 Column(Modifier.weight(1f)) {
-                                    Text(formatTime(snap.timestamp), style = MaterialTheme.typography.titleMedium, color = if (isAfter) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface)
+                                    Text(formatTime(snap.timestamp), style = MaterialTheme.typography.titleMedium, color = if (isAfter) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface)
                                     Text(
                                         if (previous == null) stringResource(Res.string.label_first_version) else previewLabel(preview),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = if (isAfter) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = if (isAfter) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
                                     )
@@ -228,16 +227,9 @@ private fun groupShape(position: Int, count: Int): androidx.compose.ui.graphics.
     )
 }
 
+/** The same tags the change previews wear: After in the highlighter, Before quiet. */
 @Composable
-private fun SelectionTag(text: String, quiet: Boolean = false) {
-    Surface(
-        shape = MaterialTheme.shapes.small,
-        color = if (quiet) MaterialTheme.colorScheme.surfaceContainerHighest else MaterialTheme.colorScheme.primary,
-        contentColor = if (quiet) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary,
-    ) {
-        Text(text, Modifier.padding(horizontal = 10.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium)
-    }
-}
+private fun SelectionTag(text: String, quiet: Boolean = false) = com.bernaferrari.changedetection.ui.kit.ChangeTag(text, highlighted = !quiet)
 
 /**
  * What changed in [snap], as a thumbnail: the changed area of a screenshot (the top of the page when no area is
@@ -267,12 +259,22 @@ private fun ChangeThumb(snap: Snap, hasPrevious: Boolean, preview: ChangePreview
     }
 }
 
-/** A full-width band of a saved capture; only that band is decoded (and cached). */
+/**
+ * The page at full width around a changed band, in the thumbnail's own proportions. A band alone is far wider than
+ * the thumbnail, and cropping it to fit showed a giant slice of one glyph. Only that window is decoded (and cached).
+ */
 @Composable
-private fun SnapCrop(snapId: String, top: Float, bottom: Float, modifier: Modifier = Modifier) {
+private fun SnapCrop(snapId: String, top: Float, bottom: Float, modifier: Modifier = Modifier, thumbAspect: Float = 64f / 48f) {
     val crop by produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, snapId, top, bottom) {
-        val bytes = runCatching { optional<SnapsRepository>()?.getSnapContent(snapId) }.getOrNull()
-        value = bytes?.let { com.bernaferrari.changedetection.image.CropCache.get(it, 0f, top, 1f, bottom, 256) }
+        val bytes = runCatching { optional<SnapsRepository>()?.getSnapContent(snapId) }.getOrNull() ?: return@produceState
+        val pageAspect = imageAspect(bytes)
+        // Height of a full-width window with the thumbnail's proportions, as a share of the page.
+        val window = if (pageAspect > 0f) (pageAspect / thumbAspect).coerceAtMost(1f) else (bottom - top)
+        val center = (top + bottom) / 2f
+        // A change taller than the window shows its top, where it starts.
+        val start = if (bottom - top > window) top else (center - window / 2f)
+        val windowTop = start.coerceIn(0f, (1f - window).coerceAtLeast(0f))
+        value = com.bernaferrari.changedetection.image.CropCache.get(bytes, 0f, windowTop, 1f, (windowTop + window).coerceAtMost(1f), 256)
     }
     crop?.let { androidx.compose.foundation.Image(it, null, modifier, contentScale = androidx.compose.ui.layout.ContentScale.Crop) }
 }

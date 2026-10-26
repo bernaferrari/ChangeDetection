@@ -310,14 +310,15 @@ fun TurboSetupSheet(
                             Modifier.fillMaxWidth().clip(com.bernaferrari.changedetection.ui.kit.segmentShape(index, eligible.size))
                                 .background(if (on) MaterialTheme.colorScheme.secondaryContainer else com.bernaferrari.changedetection.ui.kit.tileColor)
                                 .toggleable(on, role = Role.Checkbox) { selected = if (on) selected - row.site.id else selected + row.site.id }
-                                .heightIn(min = 60.dp).padding(horizontal = 16.dp, vertical = 8.dp),
+                                .heightIn(min = 64.dp).padding(horizontal = 16.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(14.dp),
                         ) {
-                            PageAvatar(row.site.name(), row.site.id, size = 36.dp, icon = row.site.avatarIcon(), iconShape = row.site.iconShape, colors = row.site.colors)
+                            PageAvatar(row.site.name(), row.site.id, size = 40.dp, icon = row.site.avatarIcon(), iconShape = row.site.iconShape, colors = row.site.colors)
                             Column(Modifier.weight(1f)) {
-                                Text(row.site.name(), style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                Text(row.site.domain(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                // The same row type as every other page list.
+                                Text(row.site.name(), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(row.site.domain(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                             Checkbox(checked = on, onCheckedChange = null)
                         }
@@ -363,14 +364,14 @@ fun TurboSetupSheet(
 @Composable
 private fun TileLabel(text: String, trailing: String? = null) {
     Row(Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp), verticalAlignment = Alignment.Bottom) {
-        Text(text, Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
+        Text(text, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
         if (trailing != null) Text(trailing, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
 private fun SheetLabel(text: String) {
-    Text(text, Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 10.dp), style = MaterialTheme.typography.titleSmall)
+    Text(text, Modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 10.dp), style = MaterialTheme.typography.titleMedium)
 }
 
 /** The live session: what is happening, how much time is left, and anything that changed. */

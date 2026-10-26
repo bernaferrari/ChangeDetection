@@ -99,7 +99,8 @@ internal fun VisualChangesView(beforeBytes: ByteArray, afterBytes: ByteArray, di
         val wide = maxWidth >= 600.dp
         Row(Modifier.fillMaxSize()) {
             // A numbered map of the page: where each change is, and a tap away.
-            run {
+            // A map earns its width only when there is more than one place to jump to.
+            if (regions.size > 1) {
                 PageOverview(afterBytes, regions, cursor.current, Modifier.width(if (wide) 72.dp else 48.dp).fillMaxHeight().padding(start = 8.dp, top = 8.dp, bottom = 16.dp)) { index ->
                     scope.launch { cursor.go(index - cursor.current) }
                 }
@@ -107,7 +108,7 @@ internal fun VisualChangesView(beforeBytes: ByteArray, afterBytes: ByteArray, di
             LazyColumn(
                 state = list,
                 modifier = Modifier.weight(1f).fillMaxHeight(),
-                contentPadding = PaddingValues(start = if (wide) 12.dp else 8.dp, end = 8.dp, top = 4.dp, bottom = 24.dp),
+                contentPadding = PaddingValues(start = if (regions.size == 1) 16.dp else if (wide) 12.dp else 8.dp, end = if (regions.size == 1) 16.dp else 8.dp, top = 4.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 item("summary") {
