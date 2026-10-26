@@ -2,6 +2,8 @@
 
 package com.bernaferrari.changedetection.ui.turbo
 
+import androidx.compose.foundation.lazy.itemsIndexed
+
 import com.bernaferrari.changedetection.ui.kit.avatarIcon
 
 import androidx.compose.material3.toShape
@@ -466,8 +468,15 @@ fun TurboLiveScreen(
                             Modifier.padding(top = 16.dp),
                         )
                     }
-                    items(quiet, key = { "q" + it.site.id }) { row ->
-                        QuietRow(row, state, now, onClick = { onOpenPage(row.site.id) }, modifier = Modifier.animateItem())
+                    itemsIndexed(quiet, key = { _, it -> "q" + it.site.id }) { index, row ->
+                        QuietRow(
+                            row, state, now,
+                            onClick = { onOpenPage(row.site.id) },
+                            // The same grouped tiles as the page list on Home.
+                            modifier = Modifier.animateItem().padding(horizontal = 16.dp, vertical = 1.dp)
+                                .clip(com.bernaferrari.changedetection.ui.kit.segmentShape(index, quiet.size))
+                                .background(com.bernaferrari.changedetection.ui.kit.tileColor),
+                        )
                     }
                 }
                 if (state.isActive) {
@@ -499,7 +508,8 @@ private fun endedLabel(reason: TurboEndReason?): String = stringResource(
 @Composable
 private fun TurboChangeCard(row: SiteAndLastSnap, onOpen: () -> Unit, modifier: Modifier = Modifier) {
     val preview = rememberLatestPreview(row.site.id, row.snap?.snapId)
-    Surface(onClick = onOpen, modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceBright) {
+    // The same card as a change on Home.
+    Surface(onClick = onOpen, modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp), shape = MaterialTheme.shapes.extraLarge, color = com.bernaferrari.changedetection.ui.kit.tileColor) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 PageAvatar(row.site.name(), row.site.id, icon = row.site.avatarIcon(), iconShape = row.site.iconShape, colors = row.site.colors)
@@ -519,7 +529,7 @@ private fun QuietRow(row: SiteAndLastSnap, state: TurboState, now: Long, onClick
     val lastCheck = row.site.timestamp.takeIf { it >= state.startTime && state.startTime > 0 }
     val seconds = lastCheck?.let { ((now - it) / 1_000).toInt().coerceAtLeast(0) }
     Row(
-        modifier.fillMaxWidth().clickable(onClick = onClick).heightIn(min = 72.dp).padding(horizontal = 20.dp, vertical = 10.dp),
+        modifier.fillMaxWidth().clickable(onClick = onClick).heightIn(min = 72.dp).padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {

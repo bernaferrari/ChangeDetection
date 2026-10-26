@@ -604,21 +604,3 @@ fun Callout(
 
 val SerifSnippet: TextStyle
     @Composable get() = com.bernaferrari.changedetection.ui.theme.Reading.snippet.copy(color = MaterialTheme.colorScheme.onSurface)
-
-/** The app mark: an ink tile with one marker stroke across a line of "text". */
-@Composable
-fun AppMark(modifier: Modifier = Modifier) {
-    val marks = MaterialTheme.marks
-    androidx.compose.foundation.Canvas(modifier) {
-        val corner = size.minDimension * 0.3f
-        drawRoundRect(Color(0xFF3F4AB8), cornerRadius = androidx.compose.ui.geometry.CornerRadius(corner, corner))
-        val w = size.width
-        val h = size.height
-        val stroke = h * 0.07f
-        drawLine(Color.White.copy(alpha = 0.85f), androidx.compose.ui.geometry.Offset(w * 0.24f, h * 0.34f), androidx.compose.ui.geometry.Offset(w * 0.76f, h * 0.34f), stroke, androidx.compose.ui.graphics.StrokeCap.Round)
-        rotate(-5f) {
-            drawRoundRect(marks.highlight, topLeft = androidx.compose.ui.geometry.Offset(w * 0.18f, h * 0.5f), size = androidx.compose.ui.geometry.Size(w * 0.64f, h * 0.2f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(h * 0.06f, h * 0.06f))
-        }
-        drawLine(Color(0xFF17160F), androidx.compose.ui.geometry.Offset(w * 0.26f, h * 0.6f), androidx.compose.ui.geometry.Offset(w * 0.62f, h * 0.6f), stroke, androidx.compose.ui.graphics.StrokeCap.Round)
-    }
-}

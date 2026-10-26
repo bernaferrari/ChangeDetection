@@ -66,11 +66,11 @@ import com.bernaferrari.changedetection.shared.generated.resources.about_story
 import com.bernaferrari.changedetection.shared.generated.resources.about_view_licenses
 import com.bernaferrari.changedetection.shared.generated.resources.about_view_on_github
 import com.bernaferrari.changedetection.shared.generated.resources.app_name
+import com.bernaferrari.changedetection.shared.generated.resources.brand_mark
 import com.bernaferrari.changedetection.shared.generated.resources.brand_tagline
 import com.bernaferrari.changedetection.shared.generated.resources.settings_about_value
 import com.bernaferrari.changedetection.shared.generated.resources.settings_feedback
 import com.bernaferrari.changedetection.shared.generated.resources.settings_privacy_line
-import com.bernaferrari.changedetection.ui.kit.AppMark
 import com.bernaferrari.changedetection.ui.kit.GroupLabel
 import com.bernaferrari.changedetection.ui.kit.GroupRow
 import com.bernaferrari.changedetection.ui.kit.ListGroup
@@ -78,7 +78,7 @@ import com.bernaferrari.changedetection.ui.kit.SocialLogos
 import com.bernaferrari.changedetection.localization.stringResource
 
 /**
- * About, in the Expressive style: the app mark on a slowly turning shape, the two things people come here
+ * About, in the Expressive style: the app icon on a slowly turning shape, the two things people come here
  * for (the code and a way to reach the author) as bold container cards, a short personal note, and the
  * author's other places as one connected group.
  */
@@ -175,7 +175,13 @@ private fun Hero(appVersion: String) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Box(Modifier.padding(top = 8.dp).size(168.dp), contentAlignment = Alignment.Center) {
             Box(Modifier.fillMaxSize().rotate(spin).clip(shape).background(MaterialTheme.colorScheme.primaryContainer))
-            AppMark(Modifier.size(96.dp))
+            // The launcher icon's monochrome mark (the same one themed icons use), in the app's own palette.
+            Icon(
+                org.jetbrains.compose.resources.painterResource(Res.drawable.brand_mark),
+                contentDescription = null,
+                modifier = Modifier.size(104.dp),
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
         }
         Text(
             stringResource(Res.string.app_name),
