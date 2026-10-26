@@ -138,6 +138,10 @@ fun ChangeDetectionApp(
     val logsViewModel: com.bernaferrari.changedetection.ui.logs.LogsViewModel = koinViewModel(
         viewModelStoreOwner = LocalAppViewModelStoreOwner.current ?: requireNotNull(androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner.current),
     )
+    // Settings is a tab too: kept with the app, it opens with its values in place instead of reading them again.
+    val settingsViewModel: com.bernaferrari.changedetection.ui.settings.SettingsViewModel = koinViewModel(
+        viewModelStoreOwner = LocalAppViewModelStoreOwner.current ?: requireNotNull(androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner.current),
+    )
     var turboSetup by remember { mutableStateOf<Set<String>?>(null) }
 
     fun openAddPage(url: String? = null) {
@@ -297,6 +301,7 @@ fun ChangeDetectionApp(
                 entry<SettingsDestination> { navKey ->
                     CenteredScreen {
                         SettingsScreen(
+                            viewModel = settingsViewModel,
                             onAboutClick = { backStack.add(AboutDestination) },
                             onHowItWorksClick = { backStack.add(HowItWorksDestination) },
                             onContactClick = {
