@@ -450,4 +450,6 @@
     <string name="check_failure_capture_incomplete">Captura da página incompleta</string>
     <string name="check_failure_capture_incomplete_detail">Não foi possível carregar parte da página monitorada. O histórico salvo foi preservado. Tente novamente ou visualize a página.</string>
     <string name="text_http_capability_note">Nesta plataforma, o monitoramento de texto lê a resposta HTTP. O conteúdo JavaScript e os cookies de login do navegador não são incluídos.</string>
+    <string name="check_failure_document_changed">A página mudou durante a captura</string>
+    <string name="check_failure_document_changed_detail">A página navegou durante a preparação desta verificação. O histórico foi preservado. Tente novamente.</string>
 </resources>

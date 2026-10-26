@@ -24,6 +24,7 @@ internal fun errorPresentation(result: ErrorResult, error: Throwable?): ErrorPre
         CheckFailure.BACKGROUND_RESTRICTED -> Res.string.check_failure_background_restricted to Res.string.check_failure_background_restricted_detail
         CheckFailure.TLS -> Res.string.check_failure_tls to Res.string.check_failure_tls_detail
         CheckFailure.CONNECTION -> Res.string.check_failure_connection to Res.string.check_failure_connection_detail
+        CheckFailure.DOCUMENT_CHANGED -> Res.string.check_failure_document_changed to Res.string.check_failure_document_changed_detail
         CheckFailure.TIMEOUT -> Res.string.check_failure_timeout to Res.string.check_failure_timeout_detail
         CheckFailure.LOGIN -> Res.string.check_failure_login to Res.string.advice_login
         CheckFailure.ACCESS_DENIED -> Res.string.check_failure_access_denied to Res.string.check_failure_access_denied_detail

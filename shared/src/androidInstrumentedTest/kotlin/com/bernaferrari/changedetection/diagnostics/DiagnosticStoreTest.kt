@@ -32,7 +32,10 @@ class DiagnosticStoreTest {
             assertEquals("RELEASE", saved.getValue("variant").jsonPrimitive.content)
             assertEquals("WORKER_FOREGROUND", events[1].jsonObject.getValue("stage").jsonPrimitive.content)
             assertTrue(report.getValue("summary").toString().contains("Build not recorded (older event)"))
-        } finally { store.close();dir.deleteRecursively() }
+        } finally {
+            store.close()
+            dir.deleteRecursively()
+        }
     }
 
     @Test fun storedEventBuildMetadataCannotExportRawInput() = runBlocking {
@@ -117,6 +120,66 @@ class DiagnosticStoreTest {
             assertTrue(report.json.contains("disk I/O error"))
         }
     }
+
+    @Test fun recentSuccessesCannotCrowdOutOlderFailureAndOmissionsAreCounted() = runBlocking {
+        fixture { store, dir, _ ->
+            val at = 1_790_000_000_000L
+            val token = store.watchToken("private-watch")
+            store.append(DiagnosticAttempt(startedAt = at, mode = CaptureMode.SCREENSHOT, selected = false, excluded = false, trigger = DiagnosticTrigger.CHECK, watchToken = token, outcome = DiagnosticOutcome.FAILURE, events = emptyList(), failure = DiagnosticFailure(DiagnosticStage.NAVIGATE, causes = listOf(DiagnosticException.TLS))))
+            repeat(14) { i -> store.append(DiagnosticAttempt(startedAt = at + 1000 + i, mode = CaptureMode.SCREENSHOT, selected = false, excluded = false, trigger = DiagnosticTrigger.CHECK, watchToken = token, outcome = DiagnosticOutcome.SUCCESS, events = emptyList())) }
+            store.report() // Flush, then force deterministic disk recency, independent of filesystem clock resolution.
+            dir.listFiles().orEmpty().filter { it.name.startsWith("trace-") && it.extension == "json" }.forEach { file -> file.setLastModified(Json.decodeFromString<StoredDiagnostic>(file.readText()).attempt.startedAt) }
+            val report = Json.parseToJsonElement(store.report().json).jsonObject
+            val rows = report.getValue("attempts").jsonArray
+            assertEquals("FAILURE", rows.first().jsonObject.getValue("attempt").jsonObject.getValue("outcome").jsonPrimitive.content)
+            val selection = report.getValue("export").jsonObject
+            assertEquals(15, selection.getValue("eligibleAttempts").jsonPrimitive.int)
+            assertEquals(10, selection.getValue("exportedAttempts").jsonPrimitive.int)
+            assertEquals(5, selection.getValue("omittedAttempts").jsonPrimitive.int)
+            assertEquals(0, selection.getValue("omittedFailures").jsonPrimitive.int)
+            assertEquals(0, report.getValue("droppedRecords").jsonPrimitive.int)
+            assertTrue(report.getValue("summary").toString().contains("omitted"))
+            assertFalse(report.toString().contains(token))
+        }
+    }
+
+    @Test fun failuresRepresentDifferentWatchesAndPageScopeHasHonestCounts() = runBlocking {
+        fixture { store, _, _ ->
+            val at = 1_790_000_000_000L
+            val tokens = listOf("private-a", "private-b", "private-c").map { store.watchToken(it) }
+            repeat(3) { i -> store.append(DiagnosticAttempt(startedAt = at + i, mode = CaptureMode.SCREENSHOT, selected = false, excluded = false, trigger = DiagnosticTrigger.CHECK, watchToken = tokens[i], outcome = DiagnosticOutcome.FAILURE, events = emptyList())) }
+            repeat(12) { i -> store.append(DiagnosticAttempt(startedAt = at + 1000 + i, mode = CaptureMode.SCREENSHOT, selected = false, excluded = false, trigger = DiagnosticTrigger.CHECK, watchToken = tokens[0], outcome = DiagnosticOutcome.SUCCESS, events = emptyList())) }
+            val global = Json.parseToJsonElement(store.report().json).jsonObject
+            val failures = global.getValue("attempts").jsonArray.filter { it.jsonObject.getValue("attempt").jsonObject.getValue("outcome").jsonPrimitive.content == "FAILURE" }
+            assertEquals(3, failures.map { it.jsonObject.getValue("attempt").jsonObject.getValue("watch").jsonPrimitive.content }.distinct().size)
+            val page = Json.parseToJsonElement(store.report("private-b").json).jsonObject
+            val selection = page.getValue("export").jsonObject
+            assertEquals("WATCH", selection.getValue("scope").jsonPrimitive.content)
+            assertEquals(15, selection.getValue("retainedAttempts").jsonPrimitive.int)
+            assertEquals(1, selection.getValue("eligibleAttempts").jsonPrimitive.int)
+            assertEquals(14, selection.getValue("excludedOtherWatchAttempts").jsonPrimitive.int)
+            assertEquals(0, selection.getValue("omittedAttempts").jsonPrimitive.int)
+            assertEquals(1, page.getValue("attempts").jsonArray.size)
+            for (secret in tokens + listOf("private-a", "private-b", "private-c")) assertFalse(page.toString().contains(secret))
+        }
+    }
+
+    @Test fun byteLimitedExportSkipsLargeRowsAndStillIncludesSmallOlderEvidence() = runBlocking {
+        fixture { store, _, _ ->
+            val at = 1_790_000_000_000L
+            val tokens = (0..2).map { store.watchToken("heavy-$it") }
+            val tls = DiagnosticTlsContext(3, (0..5).toList(), TlsRequestKind.SUBRESOURCE, TlsUrlRelation.DIFFERENT_ORIGIN, true, true, true)
+            repeat(3) { i -> store.append(DiagnosticAttempt(startedAt = at + 1000 + i, mode = CaptureMode.SCREENSHOT, selected = false, excluded = false, trigger = DiagnosticTrigger.CHECK, watchToken = tokens[i], outcome = DiagnosticOutcome.FAILURE, events = List(64) { DiagnosticEvent(DiagnosticStage.NAVIGATE, it.toLong(), metric = DiagnosticMetric.TLS_ERROR, code = 3, tls = tls) })) }
+            store.append(DiagnosticAttempt(startedAt = at, mode = CaptureMode.SCREENSHOT, selected = true, excluded = false, trigger = DiagnosticTrigger.CHECK, watchToken = tokens[0], outcome = DiagnosticOutcome.FAILURE, events = emptyList()))
+            val report = store.report()
+            val root = Json.parseToJsonElement(report.json).jsonObject
+            assertEquals(4, root.getValue("export").jsonObject.getValue("eligibleAttempts").jsonPrimitive.int)
+            assertTrue(root.getValue("attempts").jsonArray.any { it.jsonObject.getValue("attempt").jsonObject.getValue("selected").jsonPrimitive.boolean })
+            assertTrue(root.getValue("export").jsonObject.getValue("omittedByByteLimit").jsonPrimitive.int > 0)
+            assertTrue(report.json.toByteArray().size <= AndroidDiagnosticStore.MAX_REPORT_BYTES)
+        }
+    }
+
     private fun runtime(): DiagnosticRuntime {
         assertNotEquals(android.os.Looper.getMainLooper(), android.os.Looper.myLooper())
         return DiagnosticRuntime(38, "3.0", DiagnosticVariant.DEBUG, "abcdef123456", 36, DiagnosticProvider.GOOGLE, "133.0.6943.137", DiagnosticSpace.AT_LEAST_256_MIB, 256)

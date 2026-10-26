@@ -450,4 +450,6 @@
     <string name="check_failure_capture_incomplete">Cattura della pagina incompleta</string>
     <string name="check_failure_capture_incomplete_detail">Impossibile caricare parte della pagina monitorata. La cronologia salvata è stata conservata. Riprova o visualizza l’anteprima della pagina.</string>
     <string name="text_http_capability_note">Su questa piattaforma il monitoraggio del testo legge la risposta HTTP. Non include contenuti JavaScript né i cookie di accesso del browser.</string>
+    <string name="check_failure_document_changed">La pagina è cambiata durante la cattura</string>
+    <string name="check_failure_document_changed_detail">La pagina ha cambiato indirizzo durante la preparazione del controllo. La cronologia è stata conservata. Riprova.</string>
 </resources>

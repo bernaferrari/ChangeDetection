@@ -34,6 +34,20 @@ class DiagnosticTraceTest {
         for (secret in listOf("private.customer.xyz", "account.private.xyz", "203.0.113.7", "Alice Smith")) assertFalse(secret, report.contains(secret))
     }
 
+    @Test fun internalDeadlineIsAFailureNotAUserCancellation() = runTest {
+        val sink = Sink()
+        DiagnosticLog.sink = sink
+        val error = runCatching {
+            recordDiagnostic(CaptureMode.SCREENSHOT, false, false, DiagnosticTrigger.CHECK) {
+                diagnosticStage(DiagnosticStage.NAVIGATE) { withTimeout(10) { delay(100) } }
+            }
+        }.exceptionOrNull()
+        assertTrue(error is TimeoutCancellationException)
+        val result = sink.records.last()
+        assertEquals(DiagnosticOutcome.FAILURE, result.outcome)
+        assertEquals(CheckFailure.TIMEOUT, result.failure?.category)
+    }
+
     @After fun restore() {
         DiagnosticLog.sink = previous
     }

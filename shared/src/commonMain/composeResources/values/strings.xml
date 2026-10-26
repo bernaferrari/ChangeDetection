@@ -450,4 +450,6 @@
     <string name="check_failure_capture_incomplete">Page capture incomplete</string>
     <string name="check_failure_capture_incomplete_detail">Part of the watched page could not be loaded. Saved history has been kept. Try again or preview the page.</string>
     <string name="text_http_capability_note">Text monitoring on this platform reads the HTTP response. JavaScript content and browser sign-in cookies are not included.</string>
+    <string name="check_failure_document_changed">Page changed during capture</string>
+    <string name="check_failure_document_changed_detail">The page navigated while this check was being prepared. Saved history has been kept. Try again.</string>
 </resources>

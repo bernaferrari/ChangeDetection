@@ -9,9 +9,9 @@ import javax.net.ssl.SSLException
  * One document's TLS health, shared by interactive capture and persistence. No WebView reference.
  * URL observations are bounded, memory-only, and used solely for classification.
  *
- * Certificate errors are always refused. A monitor may promote a capture only when its watched content
- * is complete; without a proven optional-resource policy, every refused request invalidates the document.
- * Request classification remains diagnostic evidence, not permission to omit content silently.
+ * Certificate errors are always refused. A failed main document blocks capture immediately.
+ * Refused subresources use the same watched-content checks as HTTP failures, so an optional
+ * tracker cannot invalidate a healthy page, while missing captured assets still prevent saving.
  */
 internal class PageCaptureHealth {
     private var generation = 0L
@@ -139,15 +139,25 @@ internal class PageCaptureHealth {
                 }
             }
         }
-        val blocking = true
+        val blocking = when (kind) {
+            TlsRequestKind.MAIN_DOCUMENT -> true
+
+            TlsRequestKind.SUBRESOURCE -> false
+
+            // An unseen redirect may be the page itself until a document has committed.
+            TlsRequestKind.UNKNOWN ->
+                relation == TlsUrlRelation.UNKNOWN || relation == TlsUrlRelation.REQUESTED ||
+                    relation == TlsUrlRelation.STARTED || relation == TlsUrlRelation.COMMITTED ||
+                    committed == null || mainPending || (inMain && inSub)
+        }
         val context = DiagnosticTlsContext(primary.coerceIn(0, 5), codes.filter { it in 0..5 }.distinct().sorted().take(6), kind, relation, started != null, committed != null, finished, blocking)
-        blockingSinceFinish = true
-        val resource = kind == TlsRequestKind.SUBRESOURCE || (kind == TlsRequestKind.UNKNOWN && committed != null && !mainPending && relation == TlsUrlRelation.DIFFERENT_ORIGIN)
-        if (resource) {
+        if (blocking) {
+            blockingSinceFinish = true
+            if (blockingFailures.size < MAX_FAILURES) blockingFailures += context
+        } else {
             blocked++
+            url?.let(::resourceError)
             if (refusedResources.size < MAX_FAILURES) refusedResources += context
-        } else if (blockingFailures.size < MAX_FAILURES) {
-            blockingFailures += context
         }
         return context
     }
@@ -157,8 +167,8 @@ internal class PageCaptureHealth {
     /** Blocking failures first: they decide validity and are never crowded out by refused resources. */
     @Synchronized fun observations() = blockingFailures + refusedResources
 
-    /** Every refused request makes completeness unproven, including sub-resources. */
-    @Synchronized fun hasBlockingFailure() = blockingFailures.isNotEmpty() || blocked > 0
+    /** A refused main document is fatal; resource completeness is checked against captured dependencies. */
+    @Synchronized fun hasBlockingFailure() = blockingFailures.isNotEmpty()
 
     /** How many sub-resources were refused for this document (they are missing from the capture). */
     @Synchronized fun blockedResources() = blocked
@@ -167,12 +177,23 @@ internal class PageCaptureHealth {
 
     /** Called again after asynchronous capture and immediately before baseline promotion. */
     suspend fun validate(epoch: Long = epoch()) {
-        if (incompleteResources()) throw CaptureNotReadyException(CaptureIssue.RESOURCE_FAILED)
-        if (!valid(epoch)) {
-            observations().forEach { currentCoroutineContext()[DiagnosticSpan]?.tls(it) }
+        // Snapshot atomically: do not attribute a newer document's TLS/resource errors to an older capture.
+        val state = synchronized(this) {
+            when {
+                epoch != generation -> Validation(CaptureIssue.DOCUMENT_CHANGED, document = DiagnosticDocumentContext(started != null, committed != null, finished, mainPending))
+                incompleteResources() -> Validation(CaptureIssue.RESOURCE_FAILED)
+                hasBlockingFailure() -> Validation(tls = observations())
+                else -> Validation()
+            }
+        }
+        state.document?.let { currentCoroutineContext()[DiagnosticSpan]?.documentChanged(it) }
+        state.issue?.let { throw CaptureNotReadyException(it) }
+        if (state.tls.isNotEmpty()) {
+            state.tls.forEach { currentCoroutineContext()[DiagnosticSpan]?.tls(it) }
             throw SSLException("The page could not be captured with valid TLS")
         }
     }
+    private data class Validation(val issue: CaptureIssue? = null, val tls: List<DiagnosticTlsContext> = emptyList(), val document: DiagnosticDocumentContext? = null)
     private fun bounded(url: String?) = url?.takeIf { it.length <= 4096 }
     private fun origin(url: String?): Triple<String, String, Int>? = runCatching {
         val uri = URI(url ?: return null)

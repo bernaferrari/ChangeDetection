@@ -16,9 +16,9 @@ import kotlin.time.TimeSource
 
 @Serializable enum class DiagnosticOutcome { SUCCESS, FAILURE, CANCELLED, SKIPPED, INCOMPLETE }
 
-@Serializable enum class DiagnosticException { HTTP, DATABASE, REGION, TIMEOUT, CANCELLED, STORAGE, IO, TLS, INVALID_CONTENT, JSON, SQLITE, OTHER }
+@Serializable enum class DiagnosticException { HTTP, DATABASE, REGION, TIMEOUT, CANCELLED, STORAGE, IO, TLS, INVALID_CONTENT, JSON, SQLITE, OTHER, DOCUMENT_CHANGED }
 
-@Serializable enum class DiagnosticMetric { HTTP_STATUS, WEBVIEW_ERROR, TLS_ERROR, RENDERER_CRASH, ATTACHED, DOM_READY, CALLBACK_NULL, BYTES_BUCKET, BASELINE_PRESENT, CAPTURE_CONTEXT, CAPTURE_ISSUE, REGION_RESULT }
+@Serializable enum class DiagnosticMetric { HTTP_STATUS, WEBVIEW_ERROR, TLS_ERROR, RENDERER_CRASH, ATTACHED, DOM_READY, CALLBACK_NULL, BYTES_BUCKET, BASELINE_PRESENT, CAPTURE_CONTEXT, CAPTURE_ISSUE, REGION_RESULT, DOCUMENT_CHANGED }
 
 /** Fixed values only: request URLs are compared in memory and never retained in a report. */
 @Serializable enum class TlsRequestKind { MAIN_DOCUMENT, SUBRESOURCE, UNKNOWN }
@@ -33,12 +33,12 @@ import kotlin.time.TimeSource
     val navigationStarted: Boolean,
     val committed: Boolean,
     val finished: Boolean,
-    /**
-     * False when only a sub-resource (image, script, frame) was refused: like Chrome, the page is kept without it.
-     * True when the page itself could not be loaded securely, so nothing from it may be saved.
-     */
+    /** Whether the refusal immediately blocks navigation. Nonblocking resources can still fail captured-content validation. */
     val blocking: Boolean = true,
 )
+
+/** Current document state when an older capture is rejected; no URLs or document identifiers. */
+@Serializable data class DiagnosticDocumentContext(val navigationStarted: Boolean, val committed: Boolean, val finished: Boolean, val mainPending: Boolean)
 
 /** Geometry/resource state only. Numeric bounds also apply when importing older reports. */
 @Serializable data class CaptureDiagnostic(
@@ -57,7 +57,7 @@ import kotlin.time.TimeSource
     fun bounded() = copy(nativeWidth = nativeWidth.coerceIn(0, 16_384), nativeHeight = nativeHeight.coerceIn(0, 32_768), layoutWidthTenths = layoutWidthTenths.coerceIn(0, 200_000), visualWidthTenths = visualWidthTenths.coerceIn(0, 200_000), nativeScaleMilli = nativeScaleMilli.coerceIn(0, 50_000), densityMilli = densityMilli.coerceIn(0, 16_000), selectedMatches = selectedMatches.coerceIn(0, 1_000), selectedWidthTenths = selectedWidthTenths.coerceIn(0, 1_000_000), selectedHeightTenths = selectedHeightTenths.coerceIn(0, 1_000_000), pendingImages = pendingImages.coerceIn(0, 1_000))
 }
 
-@Serializable data class DiagnosticEvent(val stage: DiagnosticStage, val elapsedMs: Long, val durationMs: Long = 0, val failed: Boolean = false, val metric: DiagnosticMetric? = null, val code: Int? = null, val tls: DiagnosticTlsContext? = null, val capture: CaptureDiagnostic? = null)
+@Serializable data class DiagnosticEvent(val stage: DiagnosticStage, val elapsedMs: Long, val durationMs: Long = 0, val failed: Boolean = false, val metric: DiagnosticMetric? = null, val code: Int? = null, val tls: DiagnosticTlsContext? = null, val capture: CaptureDiagnostic? = null, val document: DiagnosticDocumentContext? = null)
 
 /**
  * [classes] are exception class names along the cause chain (no messages). [detail] is the first
@@ -75,7 +75,9 @@ import kotlin.time.TimeSource
 @Serializable enum class AppEventKind { DATABASE_CREATED, DATABASE_UPGRADED, DATABASE_RESET, CRASH, BACKGROUND_FAILURE }
 
 @Serializable enum class AppBuildVariant { DEBUG, RELEASE, UNKNOWN }
+
 @Serializable data class AppEventBuild(val versionCode: Long, val revision: String, val variant: AppBuildVariant)
+
 @Serializable enum class AppEventStage { WORKER_FOREGROUND, WORKER_CHECK, TURBO_LAUNCH, TURBO_FOREGROUND, TURBO_SERVICE_START }
 
 @Serializable data class AppEvent(
@@ -179,7 +181,7 @@ internal class DiagnosticSpan : AbstractCoroutineContextElement(Key) {
         if (events.size < 64) events += DiagnosticEvent(stage, began.elapsedNow().inWholeMilliseconds.coerceIn(0, 600_000), metric = DiagnosticMetric.CAPTURE_CONTEXT, capture = context.bounded())
     }
     suspend fun failed(error: Throwable, category: CheckFailure? = null, stage: DiagnosticStage? = null) = lock.withLock {
-        if (error is CancellationException) cancelled = true
+        if (error is CancellationException && error !is TimeoutCancellationException) cancelled = true
         val resolvedCategory = category ?: diagnosticCategory(error)
         val causes = generateSequence(error) { it.cause }.take(4).map(::exceptionKind).toList()
         failure = failure?.copy(category = category ?: failure?.category ?: resolvedCategory)
@@ -192,6 +194,9 @@ internal class DiagnosticSpan : AbstractCoroutineContextElement(Key) {
         // A refused certificate can arrive long after navigation (a late image or frame): file it under the step it interrupted.
         callbacks.trySend(DiagnosticEvent(active, began.elapsedNow().inWholeMilliseconds.coerceIn(0, 600_000), metric = DiagnosticMetric.TLS_ERROR, code = context.primary, tls = context))
     }
+    fun documentChanged(context: DiagnosticDocumentContext) {
+        callbacks.trySend(DiagnosticEvent(active, began.elapsedNow().inWholeMilliseconds.coerceIn(0, 600_000), metric = DiagnosticMetric.DOCUMENT_CHANGED, document = context))
+    }
     suspend fun snapshot() = lock.withLock {
         // Draining a callback for a checkpoint must retain it for later checkpoints and the final record.
         while (true) {
@@ -203,18 +208,34 @@ internal class DiagnosticSpan : AbstractCoroutineContextElement(Key) {
 }
 
 internal fun exceptionKind(error: Throwable): DiagnosticException = when {
-    error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> if (error.issue == com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED) DiagnosticException.HTTP else DiagnosticException.TIMEOUT
+    error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> when (error.issue) {
+        com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED -> DiagnosticException.HTTP
+        com.bernaferrari.changedetection.browser.CaptureIssue.DOCUMENT_CHANGED -> DiagnosticException.DOCUMENT_CHANGED
+        else -> DiagnosticException.TIMEOUT
+    }
+
     error is TimeoutCancellationException -> DiagnosticException.TIMEOUT
+
     error is CancellationException -> DiagnosticException.CANCELLED
+
     error is com.bernaferrari.changedetection.error.NetworkError -> DiagnosticException.HTTP
+
     error is com.bernaferrari.changedetection.error.SnapshotStorageError -> DiagnosticException.STORAGE
+
     error is com.bernaferrari.changedetection.error.DatabaseError -> DiagnosticException.DATABASE
+
     error is com.bernaferrari.changedetection.detection.TextRegionException -> DiagnosticException.REGION
+
     com.bernaferrari.changedetection.error.isDirectTlsFailure(error) -> DiagnosticException.TLS
+
     error::class.simpleName in setOf("SQLiteException", "SQLiteFullException", "SQLiteDiskIOException") -> DiagnosticException.SQLITE
+
     error is kotlinx.serialization.SerializationException -> DiagnosticException.JSON
+
     error is IllegalArgumentException -> DiagnosticException.INVALID_CONTENT
+
     error is kotlinx.io.IOException -> DiagnosticException.IO
+
     else -> DiagnosticException.OTHER
 }
 
@@ -283,7 +304,11 @@ suspend fun <T> recordDiagnostic(mode: CaptureMode, selected: Boolean, excluded:
 private fun diagnosticId(): String = kotlin.random.Random.nextBytes(16).joinToString("") { (it.toInt() and 255).toString(16).padStart(2, '0') }
 
 private fun diagnosticCategory(error: Throwable): CheckFailure = when {
-    error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> if (error.issue == com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED) CheckFailure.CAPTURE_INCOMPLETE else CheckFailure.TIMEOUT
+    error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> when (error.issue) {
+        com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED -> CheckFailure.CAPTURE_INCOMPLETE
+        com.bernaferrari.changedetection.browser.CaptureIssue.DOCUMENT_CHANGED -> CheckFailure.DOCUMENT_CHANGED
+        else -> CheckFailure.TIMEOUT
+    }
 
     com.bernaferrari.changedetection.error.isTlsFailure(error) -> CheckFailure.TLS
 

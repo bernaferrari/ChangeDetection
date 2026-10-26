@@ -62,6 +62,7 @@ class AndroidDiagnosticStore internal constructor(
                     }
 
                     is Write.Event -> runCatching { recordEventNow(command.value) }.onFailure { dropped.incrementAndGet() }
+
                     is Write.Flush -> command.ready.complete(Unit)
                 }
             }
@@ -262,9 +263,9 @@ class AndroidDiagnosticStore internal constructor(
             )
         }
         failures.firstNotNullOfOrNull { stored -> stored.attempt.events.lastOrNull { it.tls?.blocking == true }?.tls }?.let { add("Latest TLS failure: ${describeTls(it)}") }
-        // Refused sub-resources do not fail a check, but they explain a capture missing an image or frame.
+        // A refused resource need not abort navigation; watched-content validation may still reject capture.
         val refused = attempts.sumOf { stored -> stored.attempt.events.count { it.tls?.blocking == false } }
-        if (refused > 0) add("$refused sub-resource certificate errors were refused and left out of captures; those checks continued")
+        if (refused > 0) add("$refused sub-resource certificate errors were refused without aborting navigation; capture validation ran separately")
         events.asReversed().forEach { e ->
             val ago = ((now() - e.at) / 3_600_000).let { if (it < 1) "under 1 h ago" else "$it h ago" }
             add(
@@ -292,21 +293,66 @@ class AndroidDiagnosticStore internal constructor(
         mutex.withLock {
             val header = sanitize(StoredDiagnostic(runtime(), DiagnosticAttempt(startedAt = now(), mode = com.bernaferrari.changedetection.repo.CaptureMode.DEFAULT, selected = false, excluded = false, trigger = DiagnosticTrigger.CHECK, outcome = DiagnosticOutcome.INCOMPLETE, events = emptyList())))!!.runtime
             val events = readEvents()
+            val retained = retained().mapNotNull { file -> runCatching { sanitize(compact.decodeFromString<StoredDiagnostic>(file.readText())) }.getOrNull() }
+            val eligible = retained.filter { selected == null || it.attempt.watchToken == selected }.sortedByDescending { it.attempt.startedAt }
+            val failures = eligible.filter { it.attempt.outcome == DiagnosticOutcome.FAILURE }
+            // Give each failing watch a chance before spending the bounded export on repeated failures of one watch.
+            val representatives = failures.distinctBy { it.attempt.watchToken }
+            val ranked = (representatives + failures + eligible.filter { it.attempt.outcome == DiagnosticOutcome.INCOMPLETE } + eligible).distinctBy { it.attempt.attemptId }
             val kept = mutableListOf<StoredDiagnostic>()
-            fun envelope(rows: List<JsonElement>) = buildJsonObject {
-                put("schema", 1)
-                put("summary", JsonArray(summary(header, kept, events).map(::JsonPrimitive)))
-                put("runtime", compact.encodeToJsonElement(header))
-                put("droppedRecords", dropped.get().coerceIn(0, 100_000))
-                put("appEvents", compact.encodeToJsonElement(events))
-                put("attempts", JsonArray(rows))
-            }
             val rows = mutableListOf<JsonElement>()
             val aliases = mutableMapOf<String, String>()
-            for (file in retained()) {
-                val value = runCatching { sanitize(compact.decodeFromString<StoredDiagnostic>(file.readText())) }.getOrNull() ?: continue
-                if (selected != null && value.attempt.watchToken != selected) continue
-                val alias = if (value.attempt.watchToken.isEmpty()) "preview" else aliases.getOrPut(value.attempt.watchToken) { "watch-${aliases.size + 1}" }
+            var byteOmissions = 0
+            var recordOmissions = 0
+            fun envelope(values: List<StoredDiagnostic>, content: List<JsonElement>, byBytes: Int, byCount: Int) = buildJsonObject {
+                val omitted = eligible.size - values.size
+                val omittedFailures = failures.size - values.count { it.attempt.outcome == DiagnosticOutcome.FAILURE }
+                val descriptions = summary(header, values.sortedByDescending { it.attempt.startedAt }, events)
+                put("schema", 1)
+                put(
+                    "summary",
+                    JsonArray(
+                        (
+                            descriptions.take(1) + listOf(
+                                "Failure-first export for ${if (selected == null) "all pages" else "this page"}: ${values.size} of ${eligible.size} retained attempts included; $omitted omitted ($omittedFailures failures).",
+                                "Counts cover locally retained valid attempts. Older expired or rotated records are not counted. App events are app-wide; droppedRecords counts queue/write failures in this process, not export omissions.",
+                            ) + descriptions.drop(1)
+                            ).map(::JsonPrimitive),
+                    ),
+                )
+                put("runtime", compact.encodeToJsonElement(header))
+                put("droppedRecords", dropped.get().coerceIn(0, 100_000))
+                put(
+                    "export",
+                    buildJsonObject {
+                        put("scope", if (selected == null) "ALL" else "WATCH")
+                        put("policy", "FAILURE_FIRST_PER_WATCH")
+                        put("retainedAttempts", retained.size)
+                        put("eligibleAttempts", eligible.size)
+                        put("excludedOtherWatchAttempts", retained.size - eligible.size)
+                        put("exportedAttempts", values.size)
+                        put("omittedAttempts", omitted)
+                        put("omittedFailures", omittedFailures)
+                        put("omittedByByteLimit", byBytes)
+                        put("omittedByRecordLimit", byCount)
+                        put("maxAttempts", MAX_REPORT_RECORDS)
+                        put("maxBytes", MAX_REPORT_BYTES)
+                        put("retentionMaxAttempts", MAX_RECORDS)
+                        put("retentionMaxBytes", MAX_DISK_BYTES)
+                        put("retentionDays", RETENTION_MS / 86_400_000)
+                        put("olderRetentionEvictions", "NOT_COUNTED")
+                        put("appEventsScope", "ALL")
+                    },
+                )
+                put("appEvents", compact.encodeToJsonElement(events))
+                put("attempts", JsonArray(content))
+            }
+            for (value in ranked) {
+                if (rows.size >= MAX_REPORT_RECORDS) {
+                    recordOmissions++
+                    continue
+                }
+                val alias = if (value.attempt.watchToken.isEmpty()) "preview" else aliases[value.attempt.watchToken] ?: "watch-${aliases.size + 1}"
                 val encoded = compact.encodeToJsonElement(value).jsonObject
                 val attempt = encoded.getValue("attempt").jsonObject.toMutableMap().apply {
                     remove("watchToken")
@@ -316,14 +362,20 @@ class AndroidDiagnosticStore internal constructor(
                     put("ageMinutes", JsonPrimitive(((now() - value.attempt.startedAt) / 60_000).coerceIn(0, 10_080)))
                 }
                 val row = JsonObject(encoded.toMutableMap().apply { put("attempt", JsonObject(attempt)) })
-                val candidate = envelope(rows + row)
-                if (json.encodeToString(candidate).toByteArray().size > MAX_REPORT_BYTES) break
+                // Include the candidate in summary/accounting, and reserve the widest possible omission counters.
+                // A large record must not prevent smaller, older evidence from fitting later in the report.
+                val candidate = envelope(kept + value, rows + row, MAX_RECORDS, MAX_RECORDS)
+                if (json.encodeToString(candidate).toByteArray().size > MAX_REPORT_BYTES) {
+                    byteOmissions++
+                    continue
+                }
+                if (value.attempt.watchToken.isNotEmpty()) aliases[value.attempt.watchToken] = alias
                 rows += row
                 kept += value
-                if (rows.size == MAX_REPORT_RECORDS) break
             }
-            val report = envelope(rows)
-            DiagnosticReport(json.encodeToString(report), rows.size, events.size)
+            val report = json.encodeToString(envelope(kept, rows, byteOmissions, recordOmissions))
+            check(report.toByteArray().size <= MAX_REPORT_BYTES)
+            DiagnosticReport(report, rows.size, events.size)
         }
     }
 
@@ -405,9 +457,13 @@ private fun diagnosticRuntime(context: Context): DiagnosticRuntime {
 @Suppress("DEPRECATION")
 private fun diagnosticEventBuild(context: Context): AppEventBuild {
     val info = context.packageManager.getPackageInfo(context.packageName, 0)
-    return AppEventBuild(if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong(), AndroidDiagnostics.revision, when (AndroidDiagnostics.variant) {
-        DiagnosticVariant.DEBUG -> AppBuildVariant.DEBUG
-        DiagnosticVariant.RELEASE -> AppBuildVariant.RELEASE
-        DiagnosticVariant.UNKNOWN -> AppBuildVariant.UNKNOWN
-    })
+    return AppEventBuild(
+        if (Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong(),
+        AndroidDiagnostics.revision,
+        when (AndroidDiagnostics.variant) {
+            DiagnosticVariant.DEBUG -> AppBuildVariant.DEBUG
+            DiagnosticVariant.RELEASE -> AppBuildVariant.RELEASE
+            DiagnosticVariant.UNKNOWN -> AppBuildVariant.UNKNOWN
+        },
+    )
 }

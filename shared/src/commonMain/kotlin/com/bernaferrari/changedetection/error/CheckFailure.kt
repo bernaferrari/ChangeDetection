@@ -23,6 +23,7 @@ enum class CheckFailure {
     REGION,
     MULTIPLE_VISUAL_REGIONS,
     UNKNOWN,
+    DOCUMENT_CHANGED,
     ;
 
     companion object {
@@ -32,7 +33,13 @@ enum class CheckFailure {
             if (error is BaselineIntegrityError) return SAVED_CONTENT_UNAVAILABLE
             if (error is BackgroundExecutionUnavailable) return BACKGROUND_RESTRICTED
             if (error is kotlinx.coroutines.TimeoutCancellationException) return TIMEOUT
-            if (error is com.bernaferrari.changedetection.browser.CaptureNotReadyException) return if (error.issue == com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED) CAPTURE_INCOMPLETE else TIMEOUT
+            if (error is com.bernaferrari.changedetection.browser.CaptureNotReadyException) {
+                return when (error.issue) {
+                    com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED -> CAPTURE_INCOMPLETE
+                    com.bernaferrari.changedetection.browser.CaptureIssue.DOCUMENT_CHANGED -> DOCUMENT_CHANGED
+                    else -> TIMEOUT
+                }
+            }
             if (error is ContentError && error.reason == ContentError.Reason.CAPTURE_UNAVAILABLE) return CAPTURE_UNAVAILABLE
             if (error is com.bernaferrari.changedetection.detection.TextRegionException) return if (error.issue == com.bernaferrari.changedetection.detection.TextRegionIssue.MULTIPLE_MATCHES) MULTIPLE_VISUAL_REGIONS else REGION
             if (isTlsFailure(error)) return TLS

@@ -41,16 +41,14 @@ class TlsCaptureHealthTest {
         untrustedTlsPage().use { tls -> TestPageServer(200, "<html><body>Redirect<script>location.href='${tls.url}'</script></body></html>").use { rejects(it.url) } }
     }
 
-    @Test fun invalidEmbeddedResourceCannotBeWatched() {
-        untrustedTlsPage().use { tls -> TestPageServer(200, "<html><body>Content<iframe src='${tls.url}'></iframe></body></html>").use { rejects(it.url) } }
-    }
-
-    @Test fun lateEmbeddedTlsRevokesReadyPreviewAndHealthyNavigationRecovers() = untrustedTlsPage().use { tls ->
-        TestPageServer(200, "<html><body>Healthy document</body></html>").use { server ->
+    @Test fun optionalTlsScriptDoesNotBlockLivePreviewOrSaving() = untrustedTlsPage().use { tls ->
+        TestPageServer(200, "<html><body>Healthy document<script async src='${tls.url}'></script></body></html>").use { server ->
             val live = AtomicReference<LivePage>()
             compose.setContent { ChangeDetectionTheme(false, false) { WatchBrowser(server.url, "", emptyList(), { _, _ -> }, {}, { live.set(it) }, {}, "Watch page") } }
             compose.waitUntil(40_000) {
-                runCatching {
+                var refused = false
+                compose.runOnUiThread { refused = findWeb(compose.activity.window.decorView)?.let { WebViewCaptureHealth.of(it).blockedResources() > 0 } == true }
+                refused && runCatching {
                     compose.onNodeWithText("Watch page").assertIsEnabled()
                     true
                 }.getOrDefault(false)
@@ -59,44 +57,15 @@ class TlsCaptureHealthTest {
             compose.waitUntil(5_000) { live.get() != null }
             val preview = pump { live.get().capturePreview!!.invoke {} }
             assertNotNull(preview?.firstVersion)
-            // The preview was ready before this frame arrived. Refusing it makes completeness
-            // unproven, so even the previously returned ready capture must fail promotion.
-            compose.runOnUiThread { findWeb(compose.activity.window.decorView)!!.evaluateJavascript("document.body.insertAdjacentHTML('beforeend', '<iframe src=\"${tls.url}\"></iframe>');0", null) }
-            compose.waitUntil(30_000) {
-                var failed = false
-                compose.runOnUiThread { failed = WebViewCaptureHealth.of(findWeb(compose.activity.window.decorView)!!).hasBlockingFailure() }
-                failed
-            }
-            compose.waitUntil(5_000) { runCatching { compose.onNodeWithText("Watch page").assertIsNotEnabled();true }.getOrDefault(false) }
             pump {
-                database(server.url, CaptureMode.SCREENSHOT) { engine, site, db, _, notifications ->
-                    val rejected = engine.establishFirstVersion(site, requireNotNull(preview?.firstVersion))
-                    assertTrue(rejected.toString(), rejected is SyncResult.Failed)
-                    assertTrue((rejected as SyncResult.Failed).exception is javax.net.ssl.SSLException)
-                    assertTrue(db.snapsDao().getAllSnapsForSiteId(site.id).isEmpty())
-                    assertEquals(0, notifications.get())
-                }
-            }
-            compose.runOnUiThread { findWeb(compose.activity.window.decorView)!!.loadUrl(server.url) }
-            compose.waitUntil(30_000) {
-                runCatching {
-                    compose.onNodeWithText("Watch page").assertIsEnabled()
-                    true
-                }.getOrDefault(false)
-            }
-            live.set(null)
-            compose.onNodeWithText("Watch page").performClick()
-            compose.waitUntil(5_000) { live.get() != null }
-            val recovered = pump { live.get().capturePreview!!.invoke {} }
-            assertNotNull(recovered?.firstVersion)
-            pump {
-                database(server.url, CaptureMode.SCREENSHOT) { engine, site, db, _, notifications ->
-                    assertTrue(engine.establishFirstVersion(site, requireNotNull(recovered?.firstVersion)) is SyncResult.Success)
+                database(server.url, CaptureMode.SCREENSHOT) { engine, site, db, files, notifications ->
+                    assertTrue(engine.establishFirstVersion(site, requireNotNull(preview?.firstVersion)) is SyncResult.Success)
                     assertEquals(1, db.snapsDao().getAllSnapsForSiteId(site.id).size)
+                    val checked = runner(engine, db, files).check(site.id)
+                    assertTrue(checked.toString(), checked is SyncResult.Success && !checked.hadChanges)
                     assertEquals(0, notifications.get())
                 }
             }
-
         }
     }
 
@@ -144,13 +113,15 @@ class TlsCaptureHealthTest {
                     val previous = com.bernaferrari.changedetection.diagnostics.DiagnosticLog.sink
                     com.bernaferrari.changedetection.diagnostics.DiagnosticLog.sink = object : com.bernaferrari.changedetection.diagnostics.DiagnosticSink {
                         override suspend fun watchToken(watchId: String?) = "watch"
-                        override suspend fun append(attempt: com.bernaferrari.changedetection.diagnostics.DiagnosticAttempt) { attempts += attempt }
+                        override suspend fun append(attempt: com.bernaferrari.changedetection.diagnostics.DiagnosticAttempt) {
+                            attempts += attempt
+                        }
                     }
                     try {
                         repeat(2) {
                             val result = runner.check(site.id)
                             assertTrue(result.toString(), result is SyncResult.Failed)
-                            assertTrue((result as SyncResult.Failed).exception is javax.net.ssl.SSLException)
+                            assertTrue((result as SyncResult.Failed).exception is com.bernaferrari.changedetection.browser.CaptureNotReadyException)
                             assertEquals(listOf(baseline.snapId), db.snapsDao().getAllSnapsForSiteId(site.id).map { it.snapId })
                             assertArrayEquals(bytes, files.readBytes(baseline.snapId))
                             assertEquals(0, notifications.get())
@@ -158,14 +129,13 @@ class TlsCaptureHealthTest {
                     } finally {
                         com.bernaferrari.changedetection.diagnostics.DiagnosticLog.sink = previous
                     }
-                    // A strict early abort need not reach HTTP-status collection. The retained
-                    // evidence must instead identify a TLS failure and its blocking classification.
+                    // The page loaded; the watched iframe was refused and capture validation rejected its missing content.
                     val completed = attempts.filter { it.outcome != com.bernaferrari.changedetection.diagnostics.DiagnosticOutcome.INCOMPLETE }
                     assertEquals(2, completed.size)
-                    assertTrue(completed.toString(), completed.all { it.outcome == com.bernaferrari.changedetection.diagnostics.DiagnosticOutcome.FAILURE && it.failure?.category == com.bernaferrari.changedetection.error.CheckFailure.TLS })
+                    assertTrue(completed.toString(), completed.all { it.outcome == com.bernaferrari.changedetection.diagnostics.DiagnosticOutcome.FAILURE && it.failure?.category == com.bernaferrari.changedetection.error.CheckFailure.CAPTURE_INCOMPLETE })
                     val tlsEvents = completed.flatMap { it.events }.mapNotNull { it.tls }
                     assertTrue("A refused embedded certificate must be recorded", tlsEvents.isNotEmpty())
-                    assertTrue(tlsEvents.toString(), tlsEvents.all { it.blocking && it.primary in 0..5 && it.errors.all { code -> code in 0..5 } })
+                    assertTrue(tlsEvents.toString(), tlsEvents.all { !it.blocking && it.primary in 0..5 && it.errors.all { code -> code in 0..5 } })
                     assertTrue(tlsEvents.toString(), tlsEvents.any { it.relation == com.bernaferrari.changedetection.diagnostics.TlsUrlRelation.DIFFERENT_ORIGIN && it.requestKind in setOf(com.bernaferrari.changedetection.diagnostics.TlsRequestKind.SUBRESOURCE, com.bernaferrari.changedetection.diagnostics.TlsRequestKind.UNKNOWN) })
                     assertFalse(completed.toString().contains(tls.url))
                     server.html = healthy
@@ -179,7 +149,7 @@ class TlsCaptureHealthTest {
         }
     }
 
-    @Test fun freshEditPreviewsRejectInvalidMainRedirectAndEmbeddedTlsThenRecover() = untrustedTlsPage().use { tls ->
+    @Test fun selectedEditPreviewsRejectInvalidDocumentsButIgnoreUnrelatedFrames() = untrustedTlsPage().use { tls ->
         val healthy = "<html><body style='background:white;color:black'><h1 id='watched'>Healthy content</h1></body></html>"
         TestPageServer(200, healthy).use { server ->
             pump {
@@ -202,11 +172,81 @@ class TlsCaptureHealthTest {
                             val target = if (scenario == "main") tls.url else server.url
                             val outcome = runCatching { previewer.capture(target, mode, region) }
                             val error = outcome.exceptionOrNull()
-                            assertTrue("$mode $scenario: ${error?.javaClass?.simpleName}", error is javax.net.ssl.SSLException)
+                            if (scenario == "subresource") {
+                                assertNotNull("$mode must ignore a frame outside #watched", outcome.getOrThrow().firstVersion)
+                            } else {
+                                assertTrue("$mode $scenario: ${error?.javaClass?.simpleName}", error is javax.net.ssl.SSLException)
+                            }
                             assertTrue(db.snapsDao().getAllSnapsForSiteId(site.id).isEmpty())
                             assertEquals(0, notifications.get())
                             server.html = healthy
                             assertNotNull(previewer.capture(server.url, mode, region).firstVersion)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test fun staleDocumentCannotSaveOrChangeHistoryAndHealthyCaptureRecovers() = pump {
+        val healthy = "<html><body style='background:white;color:black'><h1>Stable watched content</h1></body></html>"
+        TestPageServer(200, healthy).use { server ->
+            for (mode in listOf(CaptureMode.SCREENSHOT, CaptureMode.TEXT)) {
+                database(server.url, mode) { engine, site, db, files, notifications ->
+                    val context = ApplicationProvider.getApplicationContext<Context>()
+                    val views = mutableListOf<WebView>()
+                    data class Captured(val view: WebView, val session: com.bernaferrari.changedetection.browser.AndroidPageCapture, val value: com.bernaferrari.changedetection.browser.WebViewScreenshot)
+                    suspend fun capture(): Captured = withContext(Dispatchers.Main.immediate) {
+                        val view = WebView(android.view.ContextThemeWrapper(context, android.R.style.Theme_DeviceDefault_Light))
+                        views += view
+                        view.layout(0, 0, 390, 844)
+                        view.settings.javaScriptEnabled = true
+                        view.settings.domStorageEnabled = true
+                        val session = com.bernaferrari.changedetection.browser.AndroidPageCapture(view)
+                        val value = if (mode == CaptureMode.TEXT) session.captureText(server.url, 0) else session.capture(server.url, 0, 10_000)
+                        println("STALE_FIXTURE captured mode=$mode")
+                        Captured(view, session, value)
+                    }
+                    suspend fun invalidate(captured: Captured) = withContext(Dispatchers.Main.immediate) {
+                        val health = WebViewCaptureHealth.of(captured.view)
+                        val before = health.epoch()
+                        captured.view.loadUrl(server.url + "next")
+                        withTimeout(5_000) { while (health.epoch() == before) delay(50) }
+                        println("STALE_FIXTURE navigated mode=$mode")
+                    }
+                    fun payload(c: Captured, validation: suspend () -> Unit) = SyncEngine.FetchResult.Success(c.value.contentType, c.value.bytes, capturedWithBrowser = true, validateCapture = validation)
+                    try {
+                        val old = capture()
+                        val oldValidation = old.session.captureValidator()
+                        invalidate(old)
+                        val current = capture()
+                        val currentValidation = current.session.captureValidator()
+                        val rejected = engine.establishFirstVersion(site, payload(old, oldValidation))
+                        assertTrue(rejected.toString(), rejected is SyncResult.Failed && rejected.exception is com.bernaferrari.changedetection.browser.CaptureNotReadyException)
+                        assertEquals(com.bernaferrari.changedetection.browser.CaptureIssue.DOCUMENT_CHANGED, ((rejected as SyncResult.Failed).exception as com.bernaferrari.changedetection.browser.CaptureNotReadyException).issue)
+                        assertTrue(db.snapsDao().getAllSnapsForSiteId(site.id).isEmpty())
+                        assertEquals(0, notifications.get())
+                        assertTrue(engine.establishFirstVersion(site, payload(current, currentValidation)) is SyncResult.Success)
+                        val baseline = db.snapsDao().getAllSnapsForSiteId(site.id).single()
+                        invalidate(current)
+                        val fresh = capture()
+                        val freshValidation = fresh.session.captureValidator()
+                        val failed = engine.processFetchResult(site, payload(current, currentValidation), site.threshold)
+                        assertTrue(failed.toString(), failed is SyncResult.Failed)
+                        assertArrayEquals(current.value.bytes, files.readBytes(baseline.snapId))
+                        assertEquals(listOf(baseline.snapId), db.snapsDao().getAllSnapsForSiteId(site.id).map { it.snapId })
+                        assertEquals(0, notifications.get())
+                        val recovered = engine.processFetchResult(site, payload(fresh, freshValidation), site.threshold)
+                        assertTrue(recovered.toString(), recovered is SyncResult.Success && !recovered.hadChanges)
+                        assertEquals(listOf(baseline.snapId), db.snapsDao().getAllSnapsForSiteId(site.id).map { it.snapId })
+                        assertEquals(0, notifications.get())
+                    } finally {
+                        withContext(Dispatchers.Main.immediate) {
+                            views.forEach { view ->
+                                view.stopLoading()
+                                view.webViewClient = android.webkit.WebViewClient()
+                                view.destroy()
+                            }
                         }
                     }
                 }
@@ -269,7 +309,10 @@ class TlsCaptureHealthTest {
         compose.waitUntil(40_000) {
             var blocked = false
             compose.runOnUiThread { blocked = findWeb(compose.activity.window.decorView)?.let { WebViewCaptureHealth.of(it).hasBlockingFailure() } == true }
-            blocked && runCatching { compose.onNodeWithText("Watch page").assertIsNotEnabled();true }.getOrDefault(false)
+            blocked && runCatching {
+                compose.onNodeWithText("Watch page").assertIsNotEnabled()
+                true
+            }.getOrDefault(false)
         }
         compose.runOnUiThread {
             val observations = WebViewCaptureHealth.of(requireNotNull(findWeb(compose.activity.window.decorView))).observations()

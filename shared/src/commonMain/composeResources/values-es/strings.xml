@@ -450,4 +450,6 @@
     <string name="check_failure_capture_incomplete">Captura de página incompleta</string>
     <string name="check_failure_capture_incomplete_detail">No se pudo cargar parte de la página vigilada. El historial guardado se ha conservado. Inténtalo de nuevo o previsualiza la página.</string>
     <string name="text_http_capability_note">En esta plataforma, la vigilancia de texto lee la respuesta HTTP. No incluye el contenido de JavaScript ni las cookies de inicio de sesión del navegador.</string>
+    <string name="check_failure_document_changed">La página cambió durante la captura</string>
+    <string name="check_failure_document_changed_detail">La página navegó durante la preparación de esta comprobación. El historial se ha conservado. Inténtalo de nuevo.</string>
 </resources>

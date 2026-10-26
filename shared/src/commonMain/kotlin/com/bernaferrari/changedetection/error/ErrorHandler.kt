@@ -103,14 +103,27 @@ class ErrorHandler {
 
         is AuthenticationError -> handleAuthenticationError(error)
 
-        is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> if (error.issue == com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED) ErrorResult(
-            type = ErrorType.NETWORK,
-            userMessage = "Page capture incomplete",
-            description = "Part of the watched page could not be loaded. Saved history has been kept. Try again or preview the page.",
-            severity = ErrorSeverity.WARNING,
-            isRetryable = true,
-            recoveryAction = RecoveryAction.RETRY,
-        ) else handleTimeoutError()
+        is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> if (error.issue == com.bernaferrari.changedetection.browser.CaptureIssue.DOCUMENT_CHANGED) {
+            ErrorResult(
+                type = ErrorType.CONTENT,
+                userMessage = "Page changed during capture",
+                description = "The page navigated while this check was being prepared. Saved history has been kept. Try again.",
+                severity = ErrorSeverity.WARNING,
+                isRetryable = true,
+                recoveryAction = RecoveryAction.RETRY,
+            )
+        } else if (error.issue == com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED) {
+            ErrorResult(
+                type = ErrorType.NETWORK,
+                userMessage = "Page capture incomplete",
+                description = "Part of the watched page could not be loaded. Saved history has been kept. Try again or preview the page.",
+                severity = ErrorSeverity.WARNING,
+                isRetryable = true,
+                recoveryAction = RecoveryAction.RETRY,
+            )
+        } else {
+            handleTimeoutError()
+        }
 
         is ContentError -> handleContentError(error)
 

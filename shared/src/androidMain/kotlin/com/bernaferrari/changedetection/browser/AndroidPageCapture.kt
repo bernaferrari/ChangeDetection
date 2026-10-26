@@ -296,7 +296,7 @@ internal class AndroidPageCapture(private val view: WebView) {
     }
 
     private suspend fun registerResourceDependencies(selector: String) {
-        val raw = evaluate("""(function(){var u=new Set();function add(v){if(v&&/^https?:/i.test(v))u.add(v)}document.querySelectorAll('script[src],link[rel~=stylesheet][href],iframe[src]').forEach(function(e){add(e.src||e.href)});var roots=${if (selector.isBlank()) "[document.body]" else "Array.from(document.querySelectorAll(${PageCleanup.js(selector)}))"};roots.forEach(function(root){if(!root)return;var all=[root].concat(Array.from(root.querySelectorAll('*'))).slice(0,5000);all.forEach(function(e){var r=e.getBoundingClientRect(),s=getComputedStyle(e);if(r.width<2||r.height<2||s.visibility==='hidden'||s.display==='none'||parseFloat(s.opacity)===0)return;if(e.tagName==='IMG')add(e.currentSrc||e.src);var re=/url\((?:"([^"]*)"|'([^']*)'|([^)]*))\)/g,m;while((m=re.exec(s.backgroundImage)))add(m[1]||m[2]||m[3]);});});return JSON.stringify(Array.from(u).slice(0,513))})()""")
+        val raw = evaluate("""(function(){var u=new Set();function add(v){if(v&&/^https?:/i.test(v))u.add(v)}document.querySelectorAll('link[rel~=stylesheet][href]').forEach(function(e){add(e.src||e.href)});var roots=${if (selector.isBlank()) "[document.body]" else "Array.from(document.querySelectorAll(${PageCleanup.js(selector)}))"};roots.forEach(function(root){if(!root)return;var all=[root].concat(Array.from(root.querySelectorAll('*'))).slice(0,5000);all.forEach(function(e){var r=e.getBoundingClientRect(),s=getComputedStyle(e);if(r.width<2||r.height<2||s.visibility==='hidden'||s.display==='none'||parseFloat(s.opacity)===0)return;if(e.tagName==='IMG'||e.tagName==='IFRAME')add(e.currentSrc||e.src);var re=/url\((?:"([^"]*)"|'([^']*)'|([^)]*))\)/g,m;while((m=re.exec(s.backgroundImage)))add(m[1]||m[2]||m[3]);});});return JSON.stringify(Array.from(u).slice(0,513))})()""")
         val values = kotlinx.serialization.json.Json.decodeFromString<List<String>>(kotlinx.serialization.json.Json.decodeFromString<String>(raw))
         health.dependencies(values)
     }
@@ -475,7 +475,7 @@ internal class AndroidPageCapture(private val view: WebView) {
             }
 
             override fun onReceivedSslError(webView: WebView, handler: SslErrorHandler, error: SslError) {
-                // Refuse invalid TLS and reject incomplete monitored content, including sub-resources.
+                // Always refuse invalid TLS. Only a failed main document aborts navigation; captured assets are checked later.
                 handler.cancel()
                 val tls = health.ssl(error.url, error.primaryError, (0..5).filter(error::hasError))
                 // A few refused resources explain a capture; dozens would crowd the check's own stages out of the report.
