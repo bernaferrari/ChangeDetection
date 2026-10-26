@@ -56,8 +56,8 @@ android {
         applicationId = "com.bernaferrari.changedetection"
         minSdk = 26
         targetSdk = 37
-        versionCode = 43
-        versionName = "3.0"
+        versionCode = 44
+        versionName = "3.1"
         val diagnosticRevision = providers.exec {
             workingDir(rootProject.projectDir)
             commandLine("git", "rev-parse", "--short=12", "HEAD")
