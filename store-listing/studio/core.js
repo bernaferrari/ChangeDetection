@@ -121,8 +121,22 @@ context.screen = context.devices[0]?.screen;
 
 // Callouts lift a region of a real capture out of its screen, centred where it lives. Boxes are drawn on
 // the default locale's capture; in other locales they follow the same UI element through the layout sidecars.
+// A callout may also come from another capture of the same scene (`raw`, e.g. a notification shade or a
+// dialog), placed on the card with `place: {left, top, width}` in canvas pixels.
+const sources = new Map();
+const sourceFor = async raw => {
+  if (!sources.has(raw)) {
+    const img = new Image();
+    sources.set(raw, loadCapture(img, raw).then(async capturedIn => {
+      if (!capturedIn) throw new Error(`Missing callout capture ${raw}`);
+      await img.decode();
+      return {img, spec: {raw}, locale: capturedIn};
+    }));
+  }
+  return sources.get(raw);
+};
 for (const [ci, c] of (slide.callouts || []).entries()) {
-  const d = context.devices[c.device || 0];
+  const d = c.raw ? await sourceFor(c.raw) : context.devices[c.device || 0];
   let box = {x: c.x, y: c.y, w: c.w, h: c.h, target: c.target, targetId: c.targetId, targetClass: c.targetClass, targetMode: c.targetMode};
   if (d.locale !== defaultLocale || c.targetMode === 'element') {
     const reference = await json(`../${defaultLocale}/raw/${nodesFile(d.spec.raw)}`, true);
@@ -133,15 +147,24 @@ for (const [ci, c] of (slide.callouts || []).entries()) {
     else if (c.targetMode === 'element' && d.locale === defaultLocale) throw new Error(`The selected accessibility element is missing or incompatible in ${d.spec.raw}. Pick the element again.`);
     else report.fixedCallouts.push(ci);
   }
-  const scale = d.screen.width / d.img.naturalWidth;
-  const k = scale * (c.mag || 1.1), w = box.w * k, h = box.h * k;
+  let k, left, top;
+  if (c.place) {
+    k = c.place.width / box.w;
+    left = c.place.left;
+    top = c.place.top;
+  } else {
+    // Without a placement, a callout sits over the primary screen where its region lives.
+    const screen = d.screen || context.screen;
+    const scale = screen.width / d.img.naturalWidth;
+    k = scale * (c.mag || 1.1);
+    left = screen.left + (box.x + box.w / 2) * scale + (c.dx || 0) - box.w * k / 2;
+    top = screen.top + (box.y + box.h / 2) * scale + (c.dy || 0) - box.h * k / 2;
+  }
   const el = document.createElement('div');
-  el.className = 'callout';
+  el.className = `callout${c.role ? ` ${c.role}` : ''}`;
   el.dataset.checkBounds = '';
   Object.assign(el.style, {
-    width: `${w}px`, height: `${h}px`,
-    left: `${d.screen.left + (box.x + box.w / 2) * scale + (c.dx || 0) - w / 2}px`,
-    top: `${d.screen.top + (box.y + box.h / 2) * scale + (c.dy || 0) - h / 2}px`,
+    width: `${box.w * k}px`, height: `${box.h * k}px`, left: `${left}px`, top: `${top}px`,
     borderRadius: `${(c.radius || 0) * k}px`, backgroundImage: `url("${d.img.src}")`,
     backgroundSize: `${d.img.naturalWidth * k}px auto`, backgroundPosition: `${-box.x * k}px ${-box.y * k}px`
   });

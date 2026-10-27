@@ -10,5 +10,6 @@
     "bn-BD",
     "zh-CN"
   ],
-  "defaultLocale": "en-US"
+  "defaultLocale": "en-US",
+  "supersample": 2
 }

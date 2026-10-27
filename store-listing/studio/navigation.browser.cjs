@@ -189,7 +189,7 @@ test("genuine shadcn sidebar, menus and navigation preserve the document and loa
     .locator(".sidebar")
     .getByRole("link", { name: "Alpha", exact: true })
     .click();
-  await page.locator(".workspace-table").waitFor();
+  await page.getByRole("tablist", { name: "Project sections" }).waitFor();
   await page.getByRole("link", { name: "Open studio", exact: true }).click();
   await active(page).locator("iframe.preview-ready").waitFor();
   const original = await active(page)
@@ -1074,7 +1074,7 @@ test("project filters use connected shadcn tab panels and fit narrow screens", a
     .locator(".sidebar")
     .getByRole("link", { name: "Alpha", exact: true })
     .click();
-  await page.locator(".workspace-table").waitFor();
+  await page.getByRole("tablist", { name: "Project sections" }).waitFor();
   await page.getByRole("link", { name: "Open studio", exact: true }).click();
   await active(page).locator("iframe.preview-ready").waitFor();
   await view(page, "Languages");
@@ -1094,4 +1094,138 @@ test("project filters use connected shadcn tab panels and fit narrow screens", a
       `language tabs overflow at ${width}: ${JSON.stringify(overflow)}`,
     );
   }
+});
+
+test("project sections keep history, expose language actions on phones, and link to the right gallery", async (t) => {
+  const { page, projects, base } = await setup(t);
+  await page.goto(base + projects[0].overviewURL);
+  const sections = page.getByRole("tablist", { name: "Project sections" });
+  await sections.waitFor();
+  await page.evaluate(() => {
+    window.projectDocument = document;
+  });
+  const galleries = sections.getByRole("tab", { name: /Galleries/ });
+  const languages = sections.getByRole("tab", { name: /Languages/ });
+  await galleries.click();
+  await page
+    .getByRole("heading", { name: "Choose a gallery", exact: true })
+    .waitFor();
+  assert.equal(new URL(page.url()).searchParams.get("section"), "galleries");
+  const panel = page.getByRole("tabpanel");
+  const links = panel.getByRole("link", { name: "Open gallery", exact: true });
+  assert.equal(await links.count(), 2);
+  assert((await links.nth(1).getAttribute("href")).includes("kind=tablet7"));
+  await languages.click();
+  await page
+    .getByRole("searchbox", { name: "Search project languages" })
+    .fill("German");
+  assert.equal(await panel.getByRole("row").count(), 2);
+  await choice(page, "Language asset status", "Assets complete");
+  await page.getByText("No matching languages", { exact: true }).waitFor();
+  await page
+    .getByRole("button", { name: "Clear filters", exact: true })
+    .click();
+  assert.equal(await panel.getByRole("row").count(), 3);
+  await page.goBack();
+  await page
+    .getByRole("heading", { name: "Choose a gallery", exact: true })
+    .waitFor();
+  await page.goForward();
+  await page
+    .getByRole("heading", { name: "Language coverage", exact: true })
+    .waitFor();
+  assert(await page.evaluate(() => document === window.projectDocument));
+  await page.reload();
+  await page
+    .getByRole("heading", { name: "Language coverage", exact: true })
+    .waitFor();
+  assert.equal(await languages.getAttribute("aria-selected"), "true");
+  for (const width of [320, 390, 798]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.waitForFunction(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    );
+    const cards = panel.getByRole("article");
+    assert.equal(await cards.count(), 2);
+    assert(await cards.first().isVisible());
+    const action = cards.getByRole("link", { name: "Edit copy", exact: true });
+    const within = await action.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return r.left >= 0 && r.right <= innerWidth;
+    });
+    assert(within, `copy action clipped at ${width}`);
+    const fits = await sections.evaluate(
+      (el) =>
+        el.scrollWidth <= el.clientWidth + 1 &&
+        el.scrollHeight <= el.clientHeight + 1,
+    );
+    assert(fits, `project tabs clipped at ${width}`);
+  }
+  await panel
+    .getByRole("article", { name: "German (Germany) asset set", exact: true })
+    .getByRole("link", { name: "Edit copy", exact: true })
+    .click();
+  await page
+    .getByRole("textbox", { name: "de-DE hello title", exact: true })
+    .waitFor();
+  assert.equal(new URL(page.url()).searchParams.get("locale"), "de-DE");
+  const reference = page
+    .locator(".copy-field:visible")
+    .first()
+    .locator(".copy-reference");
+  const area = page.getByRole("textbox", {
+    name: "de-DE hello title",
+    exact: true,
+  });
+  const a = await reference.boundingBox(),
+    b = await area.boundingBox();
+  assert(
+    b.y >= a.y + a.height,
+    "reference should stack above the translation on a phone",
+  );
+});
+
+test("the narrow gallery select switches devices and reuses the loaded gallery", async (t) => {
+  const { page, projects, base } = await setup(t);
+  await page.setViewportSize({ width: 798, height: 1000 });
+  await page.goto(base + projects[0].editorURL + "?view=cards");
+  await active(page).locator("iframe.preview-ready").waitFor();
+  const original = await active(page)
+    .locator("iframe")
+    .evaluateHandle((el) => el);
+  assert.equal(
+    await page.getByRole("tablist", { name: "Device galleries" }).isVisible(),
+    false,
+  );
+  await choice(page, "Device gallery", "Tablet · 1 cards");
+  await page.waitForFunction(
+    () => new URL(location.href).searchParams.get("kind") === "tablet7",
+  );
+  await active(page).locator("iframe.preview-ready").waitFor();
+  await choice(page, "Device gallery", "Phone · 1 cards");
+  await page.waitForFunction(
+    () =>
+      new URL(location.href).searchParams.get("kind") === "phone" &&
+      new URL(
+        document.querySelector(".editor-view:not([hidden]) iframe")?.src,
+      ).searchParams.get("kind") === "phone",
+  );
+  assert(
+    await active(page)
+      .locator("iframe")
+      .evaluate((el, old) => el === old, original),
+  );
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page
+    .getByRole("tablist", { name: "Device galleries" })
+    .waitFor({ state: "visible" });
+  assert(
+    await page.getByRole("tablist", { name: "Device galleries" }).isVisible(),
+  );
+  assert.equal(
+    await page
+      .getByRole("combobox", { name: "Device gallery", exact: true })
+      .isVisible(),
+    false,
+  );
 });
