@@ -1,28 +1,23 @@
 {
   "home": {
     "title": "~Keep refreshing~\n[See what changed]",
-    "body": "Watch any page. Get told when it actually changes.",
-    "commit": "3 new changes"
+    "body": "Know when prices, deadlines or listings change."
   },
   "price": {
     "title": "~$1,599~ [$1,349]",
-    "body": "Catch the price drop the moment it lands.",
-    "commit": "price −$250"
+    "body": "Catch price drops and restocks first."
   },
   "text": {
     "title": "Deadline\n~31 Oct~ [14 Nov]",
-    "body": "Read exactly which words and numbers moved.",
-    "commit": "deadline moved"
+    "body": "See exactly which words and numbers moved."
   },
   "turbo": {
     "title": "~Every hour~\n[Every 30 s]",
-    "body": "Turbo checks fast when timing matters.",
-    "commit": "turbo on"
+    "body": "Turbo checks fast when every second counts."
   },
   "private": {
     "title": "~Their server~\n[Your phone]",
-    "body": "No account. Your pages and history stay on your device.",
-    "commit": "no account"
+    "body": "No account. Your pages and history stay on your device."
   },
   "tablet7/private": {
     "title": "~Their server~\n[Your tablet]"

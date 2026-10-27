@@ -37,6 +37,13 @@ def adb(*parts, check=True):
     return subprocess.run(['adb', '-s', args.serial, *parts], check=check, capture_output=True, text=True).stdout
 
 
+def quiet_other_notifications():
+    """Snooze other apps' notifications for a week so their icons never reach the status bar or shade."""
+    for key in adb('shell', 'cmd', 'notification', 'list', check=False).split():
+        if '|' in key and f'|{package}|' not in key:
+            adb('shell', f"cmd notification snooze --for 604800000 '{key}'", check=False)
+
+
 def demo(*extra):
     adb('shell', 'am', 'broadcast', '-a', 'com.android.systemui.demo', '--es', 'command', *extra)
 
@@ -47,6 +54,10 @@ try:
     set_app_locale(adb, package, args.locale)
     adb('shell', 'cmd', 'overlay', 'enable-exclusive', '--category', 'com.android.internal.systemui.navbar.gestural')
     adb('shell', 'settings', 'put', 'global', 'sysui_demo_allowed', '1')
+    quiet_other_notifications()
+    # Sample pages use natural-looking but fictional sites; with the network off, nothing can reach a real one.
+    adb('shell', 'svc', 'wifi', 'disable', check=False)
+    adb('shell', 'svc', 'data', 'disable', check=False)
     for name, profile in profiles.items():
         if name == 'desktop' or args.profile not in ('all', name):
             continue
@@ -79,6 +90,8 @@ try:
                 assert (layout['width'], layout['height']) == dimensions and layout['nodes'], image
             print(name, theme, sorted(p.name for p in target.glob('*.png')), flush=True)
 finally:
+    adb('shell', 'svc', 'wifi', 'enable', check=False)
+    adb('shell', 'svc', 'data', 'enable', check=False)
     adb('shell', 'am', 'force-stop', package, check=False)
     set_app_locale(adb, package, None)
     demo('exit')

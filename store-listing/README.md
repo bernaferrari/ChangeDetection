@@ -4,18 +4,7 @@ Real app screens, captured on Android with the real status bar and gesture pill,
 
 ## The look
 
-The set is a track-changes document. Each headline is a diff: the old phrase struck through in red, the new one under the app's own yellow marker (`~old~` and `[new]` in `<locale>/copy.json`). One dark ink canvas with a fine dot grid runs under every card, and a single version timeline crosses the whole gallery with one commit per card (`v2  price −$250`), so the cards read as one strip in the Play carousel. Type is the app's own: Work Sans for words, IBM Plex Mono for the machine's voice. Phone cards may lift one real region of the capture out of the screen (`callouts`, in capture pixels).
-
-The artwork runs on [Screenshot Studio](studio/), the shared template used by all of these apps (master copy in `~/Documents/screenshot-studio`; never edit `studio/` here, sync it from there). Headline markup, callouts, the editor and the exporter come from the studio; this app provides:
-
-| Change | Source |
-| --- | --- |
-| Order, captures, callouts | `gallery.json` |
-| Headlines, body copy, commits | `<locale>/copy.json` |
-| Canvas and capture sizes, device frames | `profiles.json` |
-| Type, colors, device placement per device | `theme.css` |
-| Dot grid, timeline and commits | `theme.js` |
-| Sample pages and the screens captured | `shared/src/androidInstrumentedTest/.../store/StoreCaptureTest.kt` |
+The set lives in the app icon's world. One cobalt field with soft light runs under every card (laid out in panorama coordinates, so the glow continues across seams in the Play carousel). Headlines are diffs set in the website's Google Sans Flex display face: the old words struck through in coral, the new words on the app's yellow marker (`~old~` and `[new]` in `en-US/copy.json`). The first card is a feed of real change cards lifted from Home (a price drop, a moved deadline, a restock), fanned like a stack of results. The other cards show one story each (restock, deadline, Turbo, saved versions) with the changed element lifted out of the screen inside the logo's viewfinder corners. Sample sites are fictional (northwind.shop, summitgear.shop, openfellows.org); the capture script turns the emulator's network off. `studio.json` sets `supersample: 2` so rotated and scaled UI stays crisp.
 
 ## Capture
 
@@ -42,7 +31,7 @@ PLAYWRIGHT_MODULE=/path/to/node_modules/playwright node store-listing/studio/exp
 
 The exporter serves the repository itself and writes `en-US/<kind>/NN-feature.jpg`, a joined `contact-<kind>.jpg` per device, and `en-US/assets.json`. It fails if fonts don't load, copy, callouts or commits leave the canvas, a headline overflows, copy overlaps the app, a capture has the wrong aspect ratio, or any request fails. Device frames deliberately run off the bottom edge.
 
-## Localized screenshots (Studio v4.2)
+## Localized screenshots (Studio v4.3)
 
 `gallery.json` is shared layout; `<locale>/copy.json` contains only words. Add or refresh a language with `node store-listing/studio/locales.cjs --init de-DE` from the repository root (existing words are preserved). `node store-listing/studio/locales.cjs` reports copy, capture and layout coverage. Other supported languages are scaffolded as drafts with empty fields.
 
@@ -64,4 +53,9 @@ Studio v4 uses React and official shadcn/ui components throughout, including the
 
 Screenshot images now open a shared shadcn gallery dialog with thumbnails, wrapping arrows, keyboard/swipe navigation, Fit and 1:1 zoom, panning and explicit original/download actions. Live cards preserve their language and device. Escape returns focus to the clicked image; browsing does not save or change copy.
 
-Studio v4.2 refines the project overview, language screens and shared controls with a neutral shadcn theme, keyboard-accessible filter tabs, compact project cards and responsive headers.
+Studio v4.3 refines the project overview, language screens and shared controls with a neutral shadcn
+theme, keyboard-accessible filter tabs, compact project cards and responsive headers.
+
+The v4.3 project page separates Overview, Galleries and Languages, links to unfinished work, and
+keeps language counts and actions visible on phones. Narrow workbenches use a device-gallery select,
+and translation references stack above inputs when space is limited.

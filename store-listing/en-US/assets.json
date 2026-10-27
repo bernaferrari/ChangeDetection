@@ -7,9 +7,10 @@
         "slide": 0,
         "width": 1080,
         "height": 1920,
-        "bytes": 231091,
-        "sources": [
-          "raw/phone/light/01-home.png"
+        "bytes": 248056,
+        "sources": [],
+        "notes": [
+          "copy shrunk to 96%"
         ]
       },
       {
@@ -18,7 +19,7 @@
         "slide": 1,
         "width": 1080,
         "height": 1920,
-        "bytes": 169659,
+        "bytes": 180883,
         "sources": [
           "raw/phone/light/02-compare-image.png"
         ]
@@ -29,9 +30,9 @@
         "slide": 2,
         "width": 1080,
         "height": 1920,
-        "bytes": 203330,
+        "bytes": 224731,
         "sources": [
-          "raw/phone/dark/03-compare-text.png"
+          "raw/phone/light/03-compare-text.png"
         ]
       },
       {
@@ -40,7 +41,7 @@
         "slide": 3,
         "width": 1080,
         "height": 1920,
-        "bytes": 189921,
+        "bytes": 206109,
         "sources": [
           "raw/phone/dark/05-turbo.png"
         ]
@@ -51,9 +52,9 @@
         "slide": 4,
         "width": 1080,
         "height": 1920,
-        "bytes": 198754,
+        "bytes": 215452,
         "sources": [
-          "raw/phone/light/06-appearance.png"
+          "raw/phone/dark/01-home.png"
         ]
       }
     ],
@@ -64,9 +65,10 @@
         "slide": 0,
         "width": 1200,
         "height": 1920,
-        "bytes": 247354,
-        "sources": [
-          "raw/tablet7/light/01-home.png"
+        "bytes": 262443,
+        "sources": [],
+        "notes": [
+          "copy shrunk to 98%"
         ]
       },
       {
@@ -75,7 +77,7 @@
         "slide": 1,
         "width": 1200,
         "height": 1920,
-        "bytes": 156416,
+        "bytes": 179422,
         "sources": [
           "raw/tablet7/light/02-compare-image.png"
         ]
@@ -86,9 +88,9 @@
         "slide": 2,
         "width": 1200,
         "height": 1920,
-        "bytes": 182679,
+        "bytes": 207600,
         "sources": [
-          "raw/tablet7/dark/03-compare-text.png"
+          "raw/tablet7/light/03-compare-text.png"
         ]
       },
       {
@@ -97,7 +99,7 @@
         "slide": 3,
         "width": 1200,
         "height": 1920,
-        "bytes": 191896,
+        "bytes": 203080,
         "sources": [
           "raw/tablet7/dark/05-turbo.png"
         ]
@@ -108,55 +110,67 @@
         "slide": 4,
         "width": 1200,
         "height": 1920,
-        "bytes": 207457,
+        "bytes": 231809,
         "sources": [
-          "raw/tablet7/light/06-appearance.png"
+          "raw/tablet7/dark/01-home.png"
         ]
       }
     ],
     "tablet10": [
       {
-        "file": "tablet10/01-price.jpg",
-        "feature": "price",
+        "file": "tablet10/01-home.jpg",
+        "feature": "home",
         "slide": 0,
         "width": 1920,
         "height": 1200,
-        "bytes": 184394,
+        "bytes": 214607,
+        "sources": [],
+        "notes": [
+          "copy shrunk to 84%"
+        ]
+      },
+      {
+        "file": "tablet10/02-price.jpg",
+        "feature": "price",
+        "slide": 1,
+        "width": 1920,
+        "height": 1200,
+        "bytes": 202761,
         "sources": [
           "raw/tablet10/light/02-compare-image.png"
         ]
       },
       {
-        "file": "tablet10/02-text.jpg",
+        "file": "tablet10/03-text.jpg",
         "feature": "text",
-        "slide": 1,
-        "width": 1920,
-        "height": 1200,
-        "bytes": 190859,
-        "sources": [
-          "raw/tablet10/dark/03-compare-text.png"
-        ]
-      },
-      {
-        "file": "tablet10/03-turbo.jpg",
-        "feature": "turbo",
         "slide": 2,
         "width": 1920,
         "height": 1200,
-        "bytes": 189493,
+        "bytes": 216360,
         "sources": [
-          "raw/tablet10/light/05-turbo.png"
+          "raw/tablet10/light/03-compare-text.png"
         ]
       },
       {
-        "file": "tablet10/04-private.jpg",
-        "feature": "private",
+        "file": "tablet10/04-turbo.jpg",
+        "feature": "turbo",
         "slide": 3,
         "width": 1920,
         "height": 1200,
-        "bytes": 160419,
+        "bytes": 203303,
         "sources": [
-          "raw/tablet10/dark/06-appearance.png"
+          "raw/tablet10/dark/05-turbo.png"
+        ]
+      },
+      {
+        "file": "tablet10/05-private.jpg",
+        "feature": "private",
+        "slide": 4,
+        "width": 1920,
+        "height": 1200,
+        "bytes": 179903,
+        "sources": [
+          "raw/tablet10/dark/01-home.png"
         ]
       }
     ]

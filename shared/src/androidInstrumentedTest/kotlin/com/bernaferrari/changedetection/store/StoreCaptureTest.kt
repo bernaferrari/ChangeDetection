@@ -21,7 +21,12 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
+import android.Manifest
+import android.accessibilityservice.AccessibilityService
 import com.bernaferrari.changedetection.ChangeDetectionRootApp
+import com.bernaferrari.changedetection.MainActivityProvider
+import com.bernaferrari.changedetection.sync.AndroidChangeNotifier
+import com.bernaferrari.changedetection.sync.NotificationPreferences
 import com.bernaferrari.changedetection.PlatformActions
 import com.bernaferrari.changedetection.background.MonitoringSchedule
 import com.bernaferrari.changedetection.di.initKoin
@@ -47,7 +52,7 @@ import org.koin.android.ext.koin.androidContext
 /**
  * Store screenshots of the real app on a dedicated emulator, driven by store-listing/capture-emulator.py.
  * The emulator's display size, density, night mode, and System UI demo mode are set by the host script;
- * this test seeds local example pages (reserved .example addresses, no network) and saves full-display
+ * this test seeds local example pages (fictional names; the host script turns the network off) and saves full-display
  * captures, status bar and gesture pill included, under the test app's external files directory.
  * It is skipped unless the host passes `-e store_profile`.
  */
@@ -57,6 +62,7 @@ class StoreCaptureTest {
     private val profile = args.getString("store_profile")
     private val dark = args.getString("store_theme") == "dark"
     private val context = ApplicationProvider.getApplicationContext<Context>()
+    private var studioSnap = ""
     private val output by lazy { File(context.getExternalFilesDir(null), "store-capture/$profile/${if (dark) "dark" else "light"}").apply { deleteRecursively(); mkdirs() } }
 
     @Before fun freshData() {
@@ -68,8 +74,13 @@ class StoreCaptureTest {
             koin.get<DataStore<Preferences>>().edit {
                 it[ThemeViewModel.THEME_MODE_KEY] = if (dark) "DARK" else "LIGHT"
                 it[MonitoringSchedule.ENABLED] = true
+                // The alert scene shows the saved page in the notification, as users who opt in see it.
+                it[NotificationPreferences.IMAGE_PREVIEWS] = true
             }
-            seed(koin.getOrNull<Any>(ChangeDatabase::class) as ChangeDatabase, koin.getOrNull<Any>(FileStorage::class) as FileStorage)
+            studioSnap = seed(
+                koin.getOrNull<Any>(ChangeDatabase::class) as ChangeDatabase,
+                koin.getOrNull<Any>(FileStorage::class) as FileStorage
+            )
         }
     }
 
@@ -79,13 +90,41 @@ class StoreCaptureTest {
         if (profile == "tablet10") wideTour() else tour()
     }
 
+    /**
+     * The outcome users install for: the app's real change alert in Android's notification shade, posted by
+     * the production notifier for the seeded display price change, over the app's Home screen.
+     */
+    private fun alert() = with(compose) {
+        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        automation.grantRuntimePermission(
+            context.packageName,
+            Manifest.permission.POST_NOTIFICATIONS
+        )
+        MainActivityProvider.register(ComponentActivity::class.java)
+        val now = System.currentTimeMillis()
+        val site =
+            Site(DISPLAY, "https://northwind.shop/lumen-27", now, "", "studio", 0 to 0).copy(
+                captureMode = CaptureMode.SCREENSHOT
+            )
+        runBlocking { AndroidChangeNotifier(context).notifyChange(site, studioSnap) }
+        Thread.sleep(800)
+        automation.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS)
+        Thread.sleep(2_000)
+        shot("00-alert", settle = false)
+        automation.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
+        Thread.sleep(800)
+        context.getSystemService(android.app.NotificationManager::class.java).cancelAll()
+        waitForTag("home-list")
+    }
+
     private fun tour() = with(compose) {
         waitForTag("home-list")
         waitForText(text(Res.string.preview_before), timeout = 15_000)
         waitForText(text(Res.string.preview_after), timeout = 15_000)
         shot("01-home")
+        alert()
         onNodeWithTag("home-list").performScrollToKey("card-studio")
-        onAllNodesWithText("Studio Display").onFirst().performClick()
+        onAllNodesWithText(DISPLAY).onFirst().performClick()
         waitForText(text(Res.string.preview_before), timeout = 15_000)
         shot("02-compare-image")
         onNodeWithTag("version-navigator").performClick()
@@ -94,6 +133,11 @@ class StoreCaptureTest {
         shot("04-versions")
         onAllNodes(hasClickAction() and hasAnyAncestor(hasTestTag("version-list"))).onFirst().performClick()
         back()
+        onNodeWithTag("home-list").performScrollToKey("card-restock")
+        onAllNodesWithText(SHOES).onFirst().performClick()
+        waitForText(text(Res.string.preview_before), timeout = 15_000)
+        shot("02b-compare-restock")
+        back()
         onNodeWithTag("home-list").performScrollToKey("card-fellowship")
         onAllNodesWithText("Fellowship guide").onFirst().performClick()
         waitForTag("comparison-lines")
@@ -101,12 +145,15 @@ class StoreCaptureTest {
         back()
         onNodeWithContentDescription(text(Res.string.turbo_mode)).performClick()
         waitForText(text(Res.string.turbo_sheet_for))
-        onAllNodesWithText("Studio Display").onLast().performScrollTo().performClick()
+        onAllNodesWithText(DISPLAY).onLast().performScrollTo().performClick()
         onAllNodesWithText("Fellowship guide").onLast().performScrollTo().performClick()
+        // The interval picker is the point of this scene; bring it into view.
+        onNodeWithText(text(Res.string.turbo_sheet_for)).performScrollTo()
         shot("05-turbo")
         onAllNodes(hasClickAction() and (hasContentDescription(text(Res.string.a11y_close)) or hasText(text(Res.string.cancel)))).onFirst().runCatching { performClick() }
         Thread.sleep(400)
-        if (onAllNodesWithText(text(Res.string.turbo_sheet_for)).fetchSemanticsNodes().isNotEmpty()) InstrumentationRegistry.getInstrumentation().uiAutomation.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+        if (onAllNodesWithText(text(Res.string.turbo_sheet_for)).fetchSemanticsNodes().isNotEmpty()) InstrumentationRegistry.getInstrumentation().uiAutomation.performGlobalAction(
+            AccessibilityService.GLOBAL_ACTION_BACK)
         waitForTag("home-list")
         onNodeWithText(text(Res.string.nav_settings)).performClick()
         waitForText(text(Res.string.settings_section_appearance))
@@ -118,10 +165,21 @@ class StoreCaptureTest {
         waitForText(text(Res.string.preview_before), timeout = 15_000)
         waitForText(text(Res.string.preview_after), timeout = 15_000)
         shot("01-home")
+        alert()
         onNodeWithTag("home-list").performScrollToKey("card-studio")
-        onAllNodesWithText("Studio Display").onFirst().performClick()
+        onAllNodesWithText(DISPLAY).onFirst().performClick()
         waitForText(text(Res.string.preview_before), timeout = 15_000)
         shot("02-compare-image")
+        onNodeWithTag("version-navigator").performClick()
+        waitForText(text(Res.string.reader_versions_title))
+        waitUntil(timeoutMillis = 15_000) { onAllNodesWithText(text(Res.string.loading), substring = true).fetchSemanticsNodes().isEmpty() }
+        shot("04-versions")
+        InstrumentationRegistry.getInstrumentation().uiAutomation.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+        Thread.sleep(600)
+        onNodeWithTag("home-list").performScrollToKey("card-restock")
+        onAllNodesWithText(SHOES).onFirst().performClick()
+        waitForText(text(Res.string.preview_before), timeout = 15_000)
+        shot("02b-compare-restock")
         // Wide layouts keep Home beside the detail pane, so the next page opens in place.
         onNodeWithTag("home-list").performScrollToKey("card-fellowship")
         onAllNodesWithText("Fellowship guide").onFirst().performClick()
@@ -129,10 +187,13 @@ class StoreCaptureTest {
         shot("03-compare-text")
         onNodeWithContentDescription(text(Res.string.turbo_mode)).performClick()
         waitForText(text(Res.string.turbo_sheet_for))
-        onAllNodesWithText("Studio Display").onLast().performScrollTo().performClick()
+        onAllNodesWithText(DISPLAY).onLast().performScrollTo().performClick()
         onAllNodesWithText("Fellowship guide").onLast().performScrollTo().performClick()
+        // The interval picker is the point of this scene; bring it into view.
+        onNodeWithText(text(Res.string.turbo_sheet_for)).performScrollTo()
         shot("05-turbo")
-        InstrumentationRegistry.getInstrumentation().uiAutomation.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+        InstrumentationRegistry.getInstrumentation().uiAutomation.performGlobalAction(
+            AccessibilityService.GLOBAL_ACTION_BACK)
         waitForTag("home-list")
         onNodeWithText(text(Res.string.nav_settings)).performClick()
         waitForText(text(Res.string.settings_section_appearance))
@@ -155,10 +216,11 @@ class StoreCaptureTest {
     }
 
     /** The whole display, as the user sees it: system bars come from Android, not from this test. */
-    private fun shot(name: String) {
-        compose.waitForIdle()
+    private fun shot(name: String, settle: Boolean = true) {
+        // The shade is System UI: Compose idling does not describe it, so that scene waits on its own.
+        if (settle) compose.waitForIdle()
         Thread.sleep(900)
-        compose.waitForIdle()
+        if (settle) compose.waitForIdle()
         val bitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
         File(output, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
         // Read the accessibility tree at the same settled screen as the capture. Its paths and screen
@@ -191,7 +253,12 @@ class StoreCaptureTest {
 private const val MINUTE = 60_000L
 private const val HOUR = 60 * MINUTE
 
-private suspend fun seed(db: ChangeDatabase, files: FileStorage) {
+/** Fictional products and sites: natural-looking names that belong to no real brand. */
+private const val DISPLAY = "Lumen 27 Display"
+private const val SHOES = "Trail Runner 5"
+
+/** Seeds the example pages and returns the newest display version, which the alert scene announces. */
+private suspend fun seed(db: ChangeDatabase, files: FileStorage): String {
     val now = System.currentTimeMillis()
     suspend fun page(id: String, title: String, url: String, mode: CaptureMode = CaptureMode.TEXT, unread: Boolean = false, checked: Long = 4 * MINUTE) {
         db.siteDao().insertSite(
@@ -205,25 +272,34 @@ private suspend fun seed(db: ChangeDatabase, files: FileStorage) {
         db.snapsDao().insertSnap(Snap(id, siteId, at, type, "UTF-8", bytes.size))
     }
     val html = "text/html"
-    page("studio", "Studio Display", "https://store.example/display", CaptureMode.SCREENSHOT, unread = true)
-    version("studio", now - 3 * 24 * HOUR, "image/png", storePage("$1,599.00", "Ships in 2–3 weeks"))
-    version("studio", now - 8 * MINUTE, "image/png", storePage("$1,349.00", "In stock · free delivery"))
+    // A real-looking price history, so Versions has a story: 1,699 → 1,649 → 1,599 → 1,349.
+    page("studio", DISPLAY, "https://northwind.shop/lumen-27", CaptureMode.SCREENSHOT, unread = true)
+    version("studio", now - 9 * 24 * HOUR, "image/png", storePage("northwind", DISPLAY, "27-inch 5K · Height-adjustable stand", "$1,699.00", "Ships in 3–4 weeks"))
+    version("studio", now - 6 * 24 * HOUR, "image/png", storePage("northwind", DISPLAY, "27-inch 5K · Height-adjustable stand", "$1,649.00", "Ships in 3–4 weeks"))
+    version("studio", now - 3 * 24 * HOUR, "image/png", storePage("northwind", DISPLAY, "27-inch 5K · Height-adjustable stand", "$1,599.00", "Ships in 2–3 weeks"))
+    version("studio", now - 8 * MINUTE, "image/png", storePage("northwind", DISPLAY, "27-inch 5K · Height-adjustable stand", "$1,349.00", "In stock · free delivery"))
 
-    page("fellowship", "Fellowship guide", "https://opencall.example/fellowship", unread = true)
+    page("restock", SHOES, "https://summitgear.shop/trail-runner-5", CaptureMode.SCREENSHOT, unread = true, checked = 2 * MINUTE)
+    version("restock", now - 2 * 24 * HOUR, "image/png", storePage("summit gear", SHOES, "Size 42 · Glacier blue", "$129.00", "Sold out", button = "Notify me", stockColor = 0xFFC62828.toInt()))
+    version("restock", now - 3 * MINUTE, "image/png", storePage("summit gear", SHOES, "Size 42 · Glacier blue", "$129.00", "In stock · ships today", stockColor = 0xFF1B7F3B.toInt()))
+    val studioNewest = "studio-${now - 8 * MINUTE}"
+
+    page("fellowship", "Fellowship guide", "https://openfellows.org/2027", unread = true)
     version("fellowship", now - 2 * 24 * HOUR, html, fellowship("31 October", "€18,000"))
     version("fellowship", now - 2 * HOUR, html, fellowship("14 November", "€20,000"))
 
-    page("apartments", "Apartment listings", "https://homes.example/rent?city=lisbon", unread = true)
+    page("apartments", "Apartment listings", "https://lisboahomes.com/rent", unread = true)
     version("apartments", now - 5 * HOUR, html, listings(0))
     version("apartments", now - 11 * MINUTE, html, listings(7))
 
-    page("conference", "Conference program", "https://offscript.example/program")
+    page("conference", "Conference program", "https://offscript.events/program")
     version("conference", now - 9 * 24 * HOUR, html, "<html><body><h1>The program</h1><p>Keynote: to be announced</p></body></html>".encodeToByteArray())
     version("conference", now - 26 * HOUR, html, "<html><body><h1>The program</h1><p>Keynote: Ana Ruiz</p></body></html>".encodeToByteArray())
 
-    page("release", "Release notes", "https://fieldnotes.example/changelog")
+    page("release", "Release notes", "https://fieldnotes.app/changelog")
     version("release", now - 12 * 24 * HOUR, html, "<html><body><h2>3.1</h2><p>Bug fixes.</p></body></html>".encodeToByteArray())
     version("release", now - 3 * 24 * HOUR, html, "<html><body><h2>3.2</h2><p>Offline mode.</p><h2>3.1</h2><p>Bug fixes.</p></body></html>".encodeToByteArray())
+    return studioNewest
 }
 
 private fun fellowship(deadline: String, amount: String) = """
@@ -248,8 +324,16 @@ private fun listings(seed: Int): ByteArray {
     return "<html><body><h1>Rentals in Lisbon</h1><ul>$items</ul></body></html>".encodeToByteArray()
 }
 
-/** The same small product page as the desktop design review, drawn with Android's canvas. */
-private fun storePage(price: String, stock: String): ByteArray {
+/** A small fictional product page, drawn with Android's canvas so screenshot pages have real pixels to compare. */
+private fun storePage(
+    store: String,
+    product: String,
+    subtitle: String,
+    price: String,
+    stock: String,
+    button: String = "Add to bag",
+    stockColor: Int = 0xFF444444.toInt(),
+): ByteArray {
     val w = 720
     val h = 1400
     val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
@@ -270,15 +354,17 @@ private fun storePage(price: String, stock: String): ByteArray {
     }
     c.drawColor(Color.WHITE)
     box(0f, 88f, w.toFloat(), 90f, 0f, 0xFFEEEEEE.toInt())
-    text("store", 40f, 58f, 30f, 0xFF1D1D1D.toInt(), bold = true)
+    text(store, 40f, 58f, 30f, 0xFF1D1D1D.toInt(), bold = true)
     box(40f, 130f, w - 40f, 550f, 14f, 0xFFE3E8EE.toInt())
     box(300f, 280f, 420f, 380f, 9f, 0xFFB9C3CD.toInt(), stroke = 6f)
-    text("Studio Display", 40f, 640f, 44f, 0xFF1D1D1D.toInt(), bold = true)
-    text("Standard glass · Tilt-adjustable stand", 40f, 684f, 24f, 0xFF777777.toInt())
+    text(product, 40f, 640f, 44f, 0xFF1D1D1D.toInt(), bold = true)
+    text(subtitle, 40f, 684f, 24f, 0xFF777777.toInt())
     text(price, 40f, 790f, 56f, 0xFF1D1D1D.toInt(), bold = true)
-    text(stock, 40f, 836f, 26f, 0xFF444444.toInt())
+    text(stock, 40f, 836f, 26f, stockColor, bold = stockColor != 0xFF444444.toInt())
     box(40f, 880f, w - 40f, 956f, 38f, 0xFF1D1D1D.toInt())
-    text("Add to bag", w / 2 - 66f, 928f, 26f, Color.WHITE, bold = true)
+    p.textSize = 26f
+    p.typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+    text(button, w / 2 - p.measureText(button) / 2, 928f, 26f, Color.WHITE, bold = true)
     for (i in 0..2) box(40f + i * 220, 1040f, 240f + i * 220, 1240f, 10f, 0xFFEEEEEE.toInt())
     return ByteArrayOutputStream().use {
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
