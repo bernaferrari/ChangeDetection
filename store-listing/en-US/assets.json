@@ -41,7 +41,7 @@
         "slide": 3,
         "width": 1080,
         "height": 1920,
-        "bytes": 206109,
+        "bytes": 216952,
         "sources": [
           "raw/phone/dark/05-turbo.png"
         ]
@@ -52,9 +52,9 @@
         "slide": 4,
         "width": 1080,
         "height": 1920,
-        "bytes": 215452,
+        "bytes": 217077,
         "sources": [
-          "raw/phone/dark/01-home.png"
+          "raw/phone/dark/04-versions.png"
         ]
       }
     ],
@@ -99,7 +99,7 @@
         "slide": 3,
         "width": 1200,
         "height": 1920,
-        "bytes": 203080,
+        "bytes": 214955,
         "sources": [
           "raw/tablet7/dark/05-turbo.png"
         ]
@@ -110,9 +110,9 @@
         "slide": 4,
         "width": 1200,
         "height": 1920,
-        "bytes": 231809,
+        "bytes": 220332,
         "sources": [
-          "raw/tablet7/dark/01-home.png"
+          "raw/tablet7/dark/04-versions.png"
         ]
       }
     ],
@@ -157,7 +157,7 @@
         "slide": 3,
         "width": 1920,
         "height": 1200,
-        "bytes": 203303,
+        "bytes": 213159,
         "sources": [
           "raw/tablet10/dark/05-turbo.png"
         ]
@@ -168,9 +168,9 @@
         "slide": 4,
         "width": 1920,
         "height": 1200,
-        "bytes": 179903,
+        "bytes": 209709,
         "sources": [
-          "raw/tablet10/dark/01-home.png"
+          "raw/tablet10/dark/04-versions.png"
         ]
       }
     ]

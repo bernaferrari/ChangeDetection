@@ -79,12 +79,35 @@
     {
       "feature": "turbo",
       "raw": "phone/dark/05-turbo.png",
-      "callouts": []
+      "callouts": [
+        {
+          "raw": "phone/dark/05-turbo.png",
+          "x": 42,
+          "y": 1650,
+          "w": 996,
+          "h": 222,
+          "radius": 40,
+          "place": {
+            "left": 80,
+            "top": 1712,
+            "width": 920
+          }
+        }
+      ]
     },
     {
       "feature": "private",
-      "raw": "phone/dark/01-home.png",
-      "callouts": []
+      "raw": "phone/dark/04-versions.png",
+      "callouts": [
+        {
+          "x": 42,
+          "y": 1045,
+          "w": 996,
+          "h": 595,
+          "mag": 1.06,
+          "radius": 40
+        }
+      ]
     }
   ],
   "tablet7": [
@@ -166,11 +189,31 @@
     },
     {
       "feature": "turbo",
-      "raw": "tablet7/dark/05-turbo.png"
+      "raw": "tablet7/dark/05-turbo.png",
+      "callouts": [
+        {
+          "x": 32,
+          "y": 1378,
+          "w": 1136,
+          "h": 170,
+          "mag": 1.08,
+          "radius": 36
+        }
+      ]
     },
     {
       "feature": "private",
-      "raw": "tablet7/dark/01-home.png"
+      "raw": "tablet7/dark/04-versions.png",
+      "callouts": [
+        {
+          "x": 32,
+          "y": 915,
+          "w": 1136,
+          "h": 455,
+          "mag": 1.06,
+          "radius": 36
+        }
+      ]
     }
   ],
   "tablet10": [
@@ -252,11 +295,31 @@
     },
     {
       "feature": "turbo",
-      "raw": "tablet10/dark/05-turbo.png"
+      "raw": "tablet10/dark/05-turbo.png",
+      "callouts": [
+        {
+          "x": 504,
+          "y": 792,
+          "w": 912,
+          "h": 130,
+          "mag": 1.12,
+          "radius": 28
+        }
+      ]
     },
     {
       "feature": "private",
-      "raw": "tablet10/dark/01-home.png"
+      "raw": "tablet10/dark/04-versions.png",
+      "callouts": [
+        {
+          "x": 504,
+          "y": 445,
+          "w": 912,
+          "h": 340,
+          "mag": 1.08,
+          "radius": 28
+        }
+      ]
     }
   ]
 }
