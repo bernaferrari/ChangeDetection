@@ -57,10 +57,12 @@ internal fun ColorStylePicker(
     dark: Boolean,
     onSelect: (ColorStyle) -> Unit,
     modifier: Modifier = Modifier,
+    // Match the Auto, Light and Dark buttons above, so the two rows read as one family.
+    height: Dp = 48.dp,
 ) {
     val title = stringResource(Res.string.color_style_title)
     Row(
-        modifier.height(56.dp).selectableGroup().semantics { contentDescription = title },
+        modifier.height(height).selectableGroup().semantics { contentDescription = title },
         horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
     ) {
         ColorStyle.entries.forEachIndexed { index, style ->
@@ -73,6 +75,7 @@ internal fun ColorStylePicker(
                 selected = style == selected,
                 first = index == 0,
                 last = index == ColorStyle.entries.lastIndex,
+                height = height,
                 onClick = { onSelect(style) },
             )
         }
@@ -92,13 +95,14 @@ private fun RowScope.Segment(
     selected: Boolean,
     first: Boolean,
     last: Boolean,
+    height: Dp,
     onClick: () -> Unit,
 ) {
     val width by animateFloatAsState(if (selected) 1.7f else 1f, MaterialTheme.motionScheme.fastSpatialSpec(), label = "styleWidth")
     // Outer ends stay round; inner corners open into a pill when chosen.
     val dpSpec = MaterialTheme.motionScheme.fastSpatialSpec<Dp>()
-    val start by animateDpAsState(if (selected || first) 28.dp else 8.dp, dpSpec, label = "styleStart")
-    val end by animateDpAsState(if (selected || last) 28.dp else 8.dp, dpSpec, label = "styleEnd")
+    val start by animateDpAsState(if (selected || first) height / 2 else 8.dp, dpSpec, label = "styleStart")
+    val end by animateDpAsState(if (selected || last) height / 2 else 8.dp, dpSpec, label = "styleEnd")
     val shape = RoundedCornerShape(topStart = start, bottomStart = start, topEnd = end, bottomEnd = end)
     Box(
         Modifier
@@ -124,12 +128,12 @@ private fun RowScope.Segment(
         val shown by animateFloatAsState(if (selected) 1f else 0f, MaterialTheme.motionScheme.fastSpatialSpec(), label = "styleCheck")
         if (shown > .01f) {
             Box(
-                Modifier.size(28.dp)
+                Modifier.size(height * .58f)
                     .graphicsLayer { alpha = shown.coerceIn(0f, 1f); scaleX = .6f + .4f * shown; scaleY = .6f + .4f * shown }
                     .clip(CircleShape).background(Color.White.copy(alpha = .78f)),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(Icons.Rounded.Check, contentDescription = null, tint = Color(0xFF1B1B1F), modifier = Modifier.size(18.dp))
+                Icon(Icons.Rounded.Check, contentDescription = null, tint = Color(0xFF1B1B1F), modifier = Modifier.size(height * .38f))
             }
         }
     }
