@@ -36,5 +36,9 @@
   },
   "readme-identity": {
     "title": "ChangeDetection"
+  },
+  "readme-big-screen": {
+    "title": "Every change,\n*side by side.*",
+    "body": "Before and after on a tablet,\nlight or dark."
   }
 }

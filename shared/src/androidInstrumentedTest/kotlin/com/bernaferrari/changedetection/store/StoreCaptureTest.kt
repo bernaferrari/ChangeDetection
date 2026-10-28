@@ -73,6 +73,9 @@ class StoreCaptureTest {
         runBlocking {
             koin.get<DataStore<Preferences>>().edit {
                 it[ThemeViewModel.THEME_MODE_KEY] = if (dark) "DARK" else "LIGHT"
+                // The store art can pin a palette and style instead of following the emulator's wallpaper.
+                args.getString("store_palette")?.let { palette -> it[ThemeViewModel.APP_PALETTE_KEY] = palette }
+                args.getString("store_style")?.let { style -> it[ThemeViewModel.COLOR_STYLE_KEY] = style }
                 it[MonitoringSchedule.ENABLED] = true
                 // The alert scene shows the saved page in the notification, as users who opt in see it.
                 it[NotificationPreferences.IMAGE_PREVIEWS] = true

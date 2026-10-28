@@ -17,6 +17,9 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--serial', required=True, help='Dedicated emulator serial; never a personal device')
 parser.add_argument('--profile', choices=['phone', 'tablet7', 'tablet10', 'all'], default='all')
 parser.add_argument('--theme', choices=['light', 'dark', 'all'], default='all')
+parser.add_argument('--palette', help='App palette to capture in, e.g. ORANGE; defaults to the emulator wallpaper')
+parser.add_argument('--style', help='Colour style to capture in, e.g. VIBRANT')
+parser.add_argument('--out', type=Path, help='Save into this folder instead of <locale>/raw')
 parser.add_argument('--locale', default='en-US', help='Per-app language and output folder, e.g. de-DE')
 parser.add_argument('--apk', type=Path, help='Use an instrumentation APK from a separate build directory')
 args = parser.parse_args()
@@ -75,9 +78,11 @@ try:
             demo('notifications', '--es', 'visible', 'false')
             demo('network', '--es', 'wifi', 'show', '--es', 'level', '4', '--es', 'fully', 'true', '--es', 'mobile', 'hide', '--es', 'sims', '0')
             result = adb('shell', 'am', 'instrument', '-w', '-e', 'class', 'com.bernaferrari.changedetection.store.StoreCaptureTest',
-                         '-e', 'store_locale', args.locale, '-e', 'store_profile', name, '-e', 'store_theme', theme, f'{package}/androidx.test.runner.AndroidJUnitRunner')
+                         '-e', 'store_locale', args.locale, '-e', 'store_profile', name, '-e', 'store_theme', theme,
+                         *(['-e', 'store_palette', args.palette] if args.palette else []), *(['-e', 'store_style', args.style] if args.style else []),
+                         f'{package}/androidx.test.runner.AndroidJUnitRunner')
             assert 'OK (1 test)' in result, result
-            target = here / args.locale / 'raw' / name / theme
+            target = (args.out or here / args.locale / 'raw') / name / theme
             target.mkdir(parents=True, exist_ok=True)
             for old in target.glob('*.png'):
                 old.unlink()

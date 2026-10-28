@@ -98,47 +98,39 @@
   "readme": [
     {
       "feature": "readme-identity",
-      "layout": "wide",
+      "layout": "fan",
       "file": "readme/banner.jpg",
       "identity": true,
-      "alt": "ChangeDetection on a tablet: Home with recent changes beside a price drop on a watched product page, and the whole page with the change marked on a phone",
+      "alt": "ChangeDetection: a deadline moved from 31 October to 14 November, Home with a price drop from $1,599 to $1,349, and a before/after slider on a product page",
       "devices": [
         {
-          "raw": "tablet10/light/02-compare-image.png",
-          "role": "slate",
-          "frame": "tablet"
+          "raw": "phone/blue/03-compare-text.png",
+          "role": "left"
         },
         {
-          "raw": "phone/light/02c-compare-page.png",
-          "role": "front"
+          "raw": "phone/blue/01-home.png",
+          "role": "middle"
+        },
+        {
+          "raw": "phone/blue/02d-compare-slider.png",
+          "role": "right"
         }
-      ],
-      "wash": [
-        "#d9e2ff",
-        "#e8ecff",
-        "#f6f1dc"
       ]
     },
     {
       "feature": "readme-hero",
-      "layout": "hero",
+      "layout": "duo",
       "file": "readme/what-changed.jpg",
-      "alt": "See exactly what changed: a fellowship deadline moved from 31 October to 14 November on a tablet, and a restock on a phone",
+      "alt": "See exactly what changed: a product page with its new price marked, and a fellowship deadline moved from 31 October to 14 November",
       "devices": [
         {
-          "raw": "tablet7/light/03-compare-text.png",
-          "role": "slate",
-          "frame": "tablet"
+          "raw": "phone/blue/02c-compare-page.png",
+          "role": "back"
         },
         {
-          "raw": "phone/light/02b-compare-restock.png",
+          "raw": "phone/blue/03-compare-text.png",
           "role": "front"
         }
-      ],
-      "wash": [
-        "#fff3c4",
-        "#f3f0e4",
-        "#dde5ff"
       ]
     },
     {
@@ -148,25 +140,37 @@
       "alt": "Built for the moment it changes: an alert in the notification shade, Turbo checking every 30 seconds, and every saved version",
       "devices": [
         {
-          "raw": "phone/light/00-alert.png",
+          "raw": "phone/blue/00-alert.png",
           "role": "one",
           "label": "*Instant* alerts"
         },
         {
-          "raw": "tablet7/light/05-turbo.png",
+          "raw": "phone/blue/05-turbo.png",
           "role": "two",
           "label": "*Turbo* checks"
         },
         {
-          "raw": "phone/light/04-versions.png",
+          "raw": "phone/blue/04-versions.png",
           "role": "three",
           "label": "Every *version*"
         }
-      ],
-      "wash": [
-        "#dde5ff",
-        "#eef0ff",
-        "#fff0bf"
+      ]
+    },
+    {
+      "feature": "readme-big-screen",
+      "layout": "spread",
+      "file": "readme/big-screen.jpg",
+      "alt": "Every change, side by side: Home beside a price drop from $1,599 to $1,349 on a landscape tablet, and a deadline change on a phone in dark mode",
+      "devices": [
+        {
+          "raw": "tablet10/blue/02-compare-image.png",
+          "role": "slate",
+          "frame": "tablet"
+        },
+        {
+          "raw": "phone/blue-dark/03-compare-text.png",
+          "role": "front"
+        }
       ]
     }
   ]
