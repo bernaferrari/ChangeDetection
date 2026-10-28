@@ -79,7 +79,7 @@
         <item quantity="one">%1$d hora</item>
         <item quantity="other">%1$d horas</item>
     </plurals>
-    <string name="turbo_sheet_body">Comprueba unas pocas páginas cada pocos segundos durante un rato. Tu programación habitual sigue activa.</string>
+    <string name="turbo_sheet_body">Comprueba las páginas que elijas cada pocos segundos, hasta 3 horas. Tus comprobaciones habituales siguen.</string>
     <string name="turbo_sheet_pages">Páginas</string>
     <string name="turbo_sheet_every">Comprobar cada</string>
     <string name="turbo_sheet_for">Detener después de</string>
@@ -282,4 +282,9 @@
     <string name="single_saved_on">Guardada %1$s</string>
     <string name="about_story">Creado por una persona para lo que no quieres perderte. Gratis, de código abierto, sin cuenta ni seguimiento. Las páginas se comprueban desde tu dispositivo y todo se queda en él.</string>
     <string name="about_elsewhere">En otros sitios</string>
+    <string name="color_style_title">Estilo de color</string>
+    <string name="color_style_expressive">Expresivo</string>
+    <string name="color_style_vibrant">Vivo</string>
+    <string name="color_style_tonal">Tonal</string>
+    <string name="color_style_muted">Suave</string>
 </resources>

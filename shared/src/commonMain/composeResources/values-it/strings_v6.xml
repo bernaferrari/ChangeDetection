@@ -79,7 +79,7 @@
         <item quantity="one">%1$d ora</item>
         <item quantity="other">%1$d ore</item>
     </plurals>
-    <string name="turbo_sheet_body">Controlla alcune pagine ogni pochi secondi per un breve periodo. La programmazione abituale resta attiva.</string>
+    <string name="turbo_sheet_body">Controlla le pagine che scegli ogni pochi secondi, fino a 3 ore. I controlli abituali continuano.</string>
     <string name="turbo_sheet_pages">Pagine</string>
     <string name="turbo_sheet_every">Controlla ogni</string>
     <string name="turbo_sheet_for">Interrompi dopo</string>
@@ -282,4 +282,9 @@
     <string name="single_saved_on">Salvata %1$s</string>
     <string name="about_story">Creato da una persona per ciò che non vuoi perderti. Gratuito, open source, senza account né tracciamento. Le pagine vengono controllate dal tuo dispositivo e tutto resta lì.</string>
     <string name="about_elsewhere">Altrove</string>
+    <string name="color_style_title">Stile colore</string>
+    <string name="color_style_expressive">Espressivo</string>
+    <string name="color_style_vibrant">Vivace</string>
+    <string name="color_style_tonal">Tonale</string>
+    <string name="color_style_muted">Tenue</string>
 </resources>

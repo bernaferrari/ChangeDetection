@@ -16,5 +16,6 @@ expect fun ChangeDetectionTheme(
     darkTheme: Boolean,
     dynamicColor: Boolean,
     seedColor: Color = SeedColor,
+    colorStyle: com.bernaferrari.changedetection.model.ColorStyle = com.bernaferrari.changedetection.model.ColorStyle.EXPRESSIVE,
     content: @Composable () -> Unit,
 )

@@ -79,7 +79,7 @@
         <item quantity="one">%1$d hour</item>
         <item quantity="other">%1$d hours</item>
     </plurals>
-    <string name="turbo_sheet_body">Check a few pages every few seconds, for a short time. Your normal schedule keeps running.</string>
+    <string name="turbo_sheet_body">Check the pages you pick every few seconds, for up to 3 hours. Your regular checks carry on.</string>
     <string name="turbo_sheet_pages">Pages</string>
     <string name="turbo_sheet_every">Check every</string>
     <string name="turbo_sheet_for">Stop after</string>
@@ -282,4 +282,9 @@
     <string name="single_saved_on">Saved %1$s</string>
     <string name="about_story">Made by one person for the things you don’t want to miss. Free, open source, no account, no tracking. Pages are checked from your device, and everything stays on it.</string>
     <string name="about_elsewhere">Elsewhere</string>
+    <string name="color_style_title">Color style</string>
+    <string name="color_style_expressive">Expressive</string>
+    <string name="color_style_vibrant">Vibrant</string>
+    <string name="color_style_tonal">Tonal</string>
+    <string name="color_style_muted">Muted</string>
 </resources>

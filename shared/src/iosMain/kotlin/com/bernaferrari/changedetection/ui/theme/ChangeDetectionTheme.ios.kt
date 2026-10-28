@@ -18,10 +18,11 @@ actual fun ChangeDetectionTheme(
     darkTheme: Boolean,
     dynamicColor: Boolean,
     seedColor: Color,
+    colorStyle: com.bernaferrari.changedetection.model.ColorStyle,
     content: @Composable () -> Unit,
 ) {
     // iOS doesn't have native Material You, always use MaterialKolor
-    val colorScheme = brandColorScheme(seedColor, darkTheme)
+    val colorScheme = brandColorScheme(seedColor, darkTheme, colorStyle)
 
     AppMaterialTheme(colorScheme, darkTheme, content)
 }

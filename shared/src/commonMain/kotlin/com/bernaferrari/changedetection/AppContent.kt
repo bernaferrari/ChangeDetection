@@ -85,11 +85,13 @@ fun ChangeDetectionRootApp(
 ) {
     val themeViewModel: ThemeViewModel = koinViewModel()
     val appPalette by themeViewModel.appPalette.collectAsStateWithLifecycle()
+    val colorStyle by themeViewModel.colorStyle.collectAsStateWithLifecycle()
 
     ChangeDetectionTheme(
         darkTheme = themeViewModel.shouldUseDarkTheme(),
         dynamicColor = appPalette.usesSystemColors,
         seedColor = appPalette.seedColor,
+        colorStyle = colorStyle,
     ) {
         Surface(
             modifier = Modifier.fillMaxSize(),

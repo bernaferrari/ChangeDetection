@@ -47,6 +47,7 @@ data class SettingsUiState(
     val requireDeviceIdle: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val appPalette: AppPalette = AppPalette.defaultFor(supportsDynamicColors()),
+    val colorStyle: com.bernaferrari.changedetection.model.ColorStyle = com.bernaferrari.changedetection.model.ColorStyle.EXPRESSIVE,
     val comparisonMethod: ComparisonMethod = ComparisonMethod.SCREENSHOT,
     val browserDelayMs: Long = 5000,
     val notificationImages: Boolean = false,
@@ -68,6 +69,7 @@ class SettingsViewModel(
         val REQUIRE_DEVICE_IDLE_KEY = booleanPreferencesKey("require_device_idle")
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
         val APP_PALETTE_KEY = stringPreferencesKey("app_palette")
+        val COLOR_STYLE_KEY = com.bernaferrari.changedetection.ui.theme.ThemeViewModel.COLOR_STYLE_KEY
         val COMPARISON_METHOD_KEY = stringPreferencesKey("comparison_method")
         val BROWSER_DELAY_KEY = longPreferencesKey("browser_delay_ms")
     }
@@ -137,6 +139,7 @@ class SettingsViewModel(
                         ?.let(ThemeMode::fromStoredName)
                         ?: ThemeMode.SYSTEM,
                     appPalette = AppPalette.fromStoredName(preferences[APP_PALETTE_KEY], supportsDynamicColors()),
+                    colorStyle = com.bernaferrari.changedetection.model.ColorStyle.fromStoredName(preferences[COLOR_STYLE_KEY]),
                     comparisonMethod =
                     runCatching {
                         ComparisonMethod.valueOf(preferences[COMPARISON_METHOD_KEY] ?: ComparisonMethod.SCREENSHOT.name)
@@ -204,6 +207,7 @@ class SettingsViewModel(
 
     fun updateThemeMode(themeMode: ThemeMode) = writePreference { it[THEME_MODE_KEY] = themeMode.name }
     fun updateAppPalette(palette: AppPalette) = writePreference { it[APP_PALETTE_KEY] = palette.name }
+    fun updateColorStyle(style: com.bernaferrari.changedetection.model.ColorStyle) = writePreference { it[COLOR_STYLE_KEY] = style.name }
     fun updateComparisonMethod(method: ComparisonMethod) = writePreference { it[COMPARISON_METHOD_KEY] = method.name }
     fun updateNotificationImages(enabled: Boolean) = writePreference { it[com.bernaferrari.changedetection.sync.NotificationPreferences.IMAGE_PREVIEWS] = enabled }
     fun updateBrowserDelay(delayMs: Long) = writePreference { it[BROWSER_DELAY_KEY] = delayMs }

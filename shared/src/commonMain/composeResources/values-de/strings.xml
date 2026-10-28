@@ -487,7 +487,7 @@
         <item quantity="one">%1$d Stunde</item>
         <item quantity="other">%1$d Stunden</item>
     </plurals>
-    <string name="turbo_sheet_body">Prüfe ausgewählte Seiten für kurze Zeit alle paar Sekunden. Der normale Zeitplan läuft weiter.</string>
+    <string name="turbo_sheet_body">Prüft ausgewählte Seiten alle paar Sekunden, bis zu 3 Stunden lang. Deine normalen Prüfungen laufen weiter.</string>
     <string name="turbo_sheet_pages">Seiten</string>
     <string name="turbo_sheet_every">Prüfen alle</string>
     <string name="turbo_sheet_for">Stoppen nach</string>
@@ -838,4 +838,9 @@
     <string name="check_failure_document_changed">Seite während der Aufnahme geändert</string>
     <string name="check_failure_document_changed_detail">Die Seite hat während der Prüfung navigiert. Der gespeicherte Verlauf bleibt erhalten. Versuche es erneut.</string>
     <string name="preview_region_no_match">Kein Bereich dieser Seite entspricht der Auswahl. Wähle den Bereich aus, den du überwachen möchtest, oder wähle Ganze Seite.</string>
+    <string name="color_style_title">Farbstil</string>
+    <string name="color_style_expressive">Expressiv</string>
+    <string name="color_style_vibrant">Lebendig</string>
+    <string name="color_style_tonal">Tonal</string>
+    <string name="color_style_muted">Gedämpft</string>
 </resources>

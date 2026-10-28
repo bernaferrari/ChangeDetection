@@ -10,7 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.materialkolor.hct.Hct
-import com.materialkolor.PaletteStyle
+import com.bernaferrari.changedetection.model.ColorStyle
 import com.materialkolor.material3.dynamicColorScheme
 import com.materialkolor.dynamiccolor.ColorSpec
 
@@ -21,12 +21,12 @@ internal val BrandSeed = Color(0xFF4F5BD5)
  * A tonal Material 3 scheme. [SeedColor] is the stored "app default" marker and maps to [BrandSeed];
  * every other seed comes from the Appearance picker.
  */
-internal fun brandColorScheme(seed: Color, dark: Boolean): ColorScheme = dynamicColorScheme(
+internal fun brandColorScheme(seed: Color, dark: Boolean, style: ColorStyle = ColorStyle.EXPRESSIVE): ColorScheme = dynamicColorScheme(
     seedColor = if (seed == SeedColor) BrandSeed else seed,
     isDark = dark,
-    style = PaletteStyle.TonalSpot,
+    style = style.palette,
     specVersion = ColorSpec.SpecVersion.SPEC_2025,
-)
+).let { if (style == ColorStyle.TONAL) it.withCalmSurfaces() else it }
 
 internal fun referenceColorScheme(dark: Boolean) = brandColorScheme(SeedColor, dark)
 
@@ -36,8 +36,7 @@ internal fun referenceColorScheme(dark: Boolean) = brandColorScheme(SeedColor, d
 internal fun AppMaterialTheme(colorScheme: ColorScheme, dark: Boolean, content: @Composable () -> Unit) {
     // Screens sit on the container tone and content cards on the bright tone (the Android 16 look),
     // so grouped content reads as crisp tiles in light and dark.
-    val calm = remember(colorScheme) { colorScheme.withCalmSurfaces() }
-    val screen = calm.copy(surface = calm.surfaceContainer, background = calm.surfaceContainer)
+    val screen = remember(colorScheme) { colorScheme.copy(surface = colorScheme.surfaceContainer, background = colorScheme.surfaceContainer) }
     MaterialExpressiveTheme(
         colorScheme = screen,
         motionScheme = MotionScheme.expressive(),
@@ -51,9 +50,8 @@ internal fun AppMaterialTheme(colorScheme: ColorScheme, dark: Boolean, content: 
 }
 
 /**
- * Any palette (picked, default or wallpaper) tints every surface with its hue, so a whole screen reads as one
- * colour and nothing stands out. Surfaces keep only a hint of the hue; the accent roles keep all of it, so
- * buttons, selection and the highlighter are the colour on screen.
+ * The Tonal style's quiet surfaces: they keep only a hint of the hue while the accent roles keep all of it, so
+ * buttons, selection and the highlighter are the colour on screen. The other styles keep their tinted surfaces.
  */
 internal fun ColorScheme.withCalmSurfaces(): ColorScheme {
     fun Color.calm(maxChroma: Double): Color {

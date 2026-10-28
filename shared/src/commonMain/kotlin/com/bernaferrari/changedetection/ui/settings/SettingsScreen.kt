@@ -37,7 +37,10 @@ import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.VerifiedUser
+import androidx.compose.material.icons.rounded.BrightnessAuto
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -155,7 +158,7 @@ fun SettingsScreen(
                 }
                 item(key = "appearance") {
                     GroupLabel(stringResource(Res.string.settings_section_appearance))
-                    AppearanceControls(uiState.themeMode, uiState.appPalette, viewModel::updateThemeMode, viewModel::updateAppPalette)
+                    AppearanceControls(uiState.themeMode, uiState.appPalette, uiState.colorStyle, viewModel::updateThemeMode, viewModel::updateAppPalette, viewModel::updateColorStyle)
                 }
                 item(key = "app") {
                     GroupLabel(stringResource(Res.string.settings_group_app))
@@ -233,12 +236,24 @@ private fun settingsChecksSummary(state: SettingsUiState): String {
 internal fun AppearanceControls(
     theme: ThemeMode,
     palette: AppPalette,
+    style: com.bernaferrari.changedetection.model.ColorStyle,
     onTheme: (ThemeMode) -> Unit,
     onPalette: (AppPalette) -> Unit,
+    onStyle: (com.bernaferrari.changedetection.model.ColorStyle) -> Unit,
 ) {
     ListGroup {
         Column(Modifier.groupTile().padding(vertical = 16.dp).selectableGroup()) {
-            ConnectedChoice(ThemeMode.entries, theme, onTheme) { stringResource(it.titleRes) }
+            ConnectedChoice(
+                ThemeMode.entries, theme, onTheme,
+                // The same marks as Calcula and WiFi Weakspot: auto, sun, moon.
+                icon = {
+                    when (it) {
+                        ThemeMode.SYSTEM -> Icons.Rounded.BrightnessAuto
+                        ThemeMode.LIGHT -> Icons.Rounded.LightMode
+                        ThemeMode.DARK -> Icons.Rounded.DarkMode
+                    }
+                },
+            ) { stringResource(it.titleRes) }
         }
         // The swatches speak for themselves; each still carries its name for accessibility.
         Column(Modifier.groupTile().padding(vertical = 20.dp).selectableGroup()) {
@@ -260,6 +275,13 @@ internal fun AppearanceControls(
                         )
                     }
             }
+        }
+        // Each style previews itself from the chosen colour (or the wallpaper's), in the current light or dark.
+        val wallpaper = com.bernaferrari.changedetection.ui.theme.LocalWallpaperColorScheme.current
+        val seed = if (palette.usesSystemColors && wallpaper != null) wallpaper.primary else palette.seedColor
+        val dark = androidx.compose.material3.MaterialTheme.colorScheme.surface.luminance() < 0.5f
+        Column(Modifier.groupTile().padding(vertical = 16.dp, horizontal = 12.dp)) {
+            ColorStylePicker(style, seed, dark, onStyle, Modifier.fillMaxWidth())
         }
     }
 }

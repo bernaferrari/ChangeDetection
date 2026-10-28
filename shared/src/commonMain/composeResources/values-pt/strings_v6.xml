@@ -79,7 +79,7 @@
         <item quantity="one">%1$d hora</item>
         <item quantity="other">%1$d horas</item>
     </plurals>
-    <string name="turbo_sheet_body">Verifique algumas páginas a cada poucos segundos por um curto período. Sua programação normal continua.</string>
+    <string name="turbo_sheet_body">Verifica as páginas que você escolher a cada poucos segundos, por até 3 horas. Suas verificações normais continuam.</string>
     <string name="turbo_sheet_pages">Páginas</string>
     <string name="turbo_sheet_every">Verificar a cada</string>
     <string name="turbo_sheet_for">Parar após</string>
@@ -282,4 +282,9 @@
     <string name="single_saved_on">Salva %1$s</string>
     <string name="about_story">Feito por uma pessoa para o que você não quer perder. Gratuito, de código aberto, sem conta e sem rastreamento. As páginas são verificadas no seu dispositivo e tudo fica nele.</string>
     <string name="about_elsewhere">Em outros lugares</string>
+    <string name="color_style_title">Estilo de cor</string>
+    <string name="color_style_expressive">Expressivo</string>
+    <string name="color_style_vibrant">Vibrante</string>
+    <string name="color_style_tonal">Tonal</string>
+    <string name="color_style_muted">Suave</string>
 </resources>

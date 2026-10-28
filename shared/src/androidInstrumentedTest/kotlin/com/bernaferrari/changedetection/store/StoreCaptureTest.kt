@@ -127,6 +127,14 @@ class StoreCaptureTest {
         onAllNodesWithText(DISPLAY).onFirst().performClick()
         waitForText(text(Res.string.preview_before), timeout = 15_000)
         shot("02-compare-image")
+        // The whole page with the change marked, then the before/after slider: the clearest picture of what a check finds.
+        onNodeWithContentDescription(text(Res.string.reader_mode_page)).performClick()
+        Thread.sleep(1_200)
+        shot("02c-compare-page")
+        onNodeWithContentDescription(text(Res.string.reader_mode_slider)).performClick()
+        Thread.sleep(1_200)
+        shot("02d-compare-slider")
+        onNodeWithContentDescription(text(Res.string.reader_mode_changes)).performClick()
         onNodeWithTag("version-navigator").performClick()
         waitForText(text(Res.string.reader_versions_title))
         waitUntil(timeoutMillis = 15_000) { onAllNodesWithText(text(Res.string.loading), substring = true).fetchSemanticsNodes().isEmpty() }
@@ -147,8 +155,9 @@ class StoreCaptureTest {
         waitForText(text(Res.string.turbo_sheet_for))
         onAllNodesWithText(DISPLAY).onLast().performScrollTo().performClick()
         onAllNodesWithText("Fellowship guide").onLast().performScrollTo().performClick()
-        // The interval picker is the point of this scene; bring it into view.
-        onNodeWithText(text(Res.string.turbo_sheet_for)).performScrollTo()
+        // The interval and duration pickers are the point of this scene: scroll the sheet to its end.
+        val sheetScroll = onNode(hasScrollAction() and hasAnyAncestor(hasTestTag("turbo-setup")))
+        repeat(4) { sheetScroll.performTouchInput { swipeUp(startY = bottom - 10f, endY = top + 10f) } }
         shot("05-turbo")
         onAllNodes(hasClickAction() and (hasContentDescription(text(Res.string.a11y_close)) or hasText(text(Res.string.cancel)))).onFirst().runCatching { performClick() }
         Thread.sleep(400)
@@ -157,6 +166,10 @@ class StoreCaptureTest {
         waitForTag("home-list")
         onNodeWithText(text(Res.string.nav_settings)).performClick()
         waitForText(text(Res.string.settings_section_appearance))
+        // Bring the colour style picker into view: it is what Appearance looks like now.
+        onNode(hasContentDescription(text(Res.string.color_style_title))).performScrollTo()
+        // Lift it clear of the bottom bar.
+        onRoot().performTouchInput { swipeUp(startY = centerY, endY = centerY - 220f) }
         shot("06-appearance")
     }
 
@@ -170,6 +183,14 @@ class StoreCaptureTest {
         onAllNodesWithText(DISPLAY).onFirst().performClick()
         waitForText(text(Res.string.preview_before), timeout = 15_000)
         shot("02-compare-image")
+        // The whole page with the change marked, then the before/after slider: the clearest picture of what a check finds.
+        onNodeWithContentDescription(text(Res.string.reader_mode_page)).performClick()
+        Thread.sleep(1_200)
+        shot("02c-compare-page")
+        onNodeWithContentDescription(text(Res.string.reader_mode_slider)).performClick()
+        Thread.sleep(1_200)
+        shot("02d-compare-slider")
+        onNodeWithContentDescription(text(Res.string.reader_mode_changes)).performClick()
         onNodeWithTag("version-navigator").performClick()
         waitForText(text(Res.string.reader_versions_title))
         waitUntil(timeoutMillis = 15_000) { onAllNodesWithText(text(Res.string.loading), substring = true).fetchSemanticsNodes().isEmpty() }
@@ -189,14 +210,19 @@ class StoreCaptureTest {
         waitForText(text(Res.string.turbo_sheet_for))
         onAllNodesWithText(DISPLAY).onLast().performScrollTo().performClick()
         onAllNodesWithText("Fellowship guide").onLast().performScrollTo().performClick()
-        // The interval picker is the point of this scene; bring it into view.
-        onNodeWithText(text(Res.string.turbo_sheet_for)).performScrollTo()
+        // The interval and duration pickers are the point of this scene: scroll the sheet to its end.
+        val sheetScroll = onNode(hasScrollAction() and hasAnyAncestor(hasTestTag("turbo-setup")))
+        repeat(4) { sheetScroll.performTouchInput { swipeUp(startY = bottom - 10f, endY = top + 10f) } }
         shot("05-turbo")
         InstrumentationRegistry.getInstrumentation().uiAutomation.performGlobalAction(
             AccessibilityService.GLOBAL_ACTION_BACK)
         waitForTag("home-list")
         onNodeWithText(text(Res.string.nav_settings)).performClick()
         waitForText(text(Res.string.settings_section_appearance))
+        // Bring the colour style picker into view: it is what Appearance looks like now.
+        onNode(hasContentDescription(text(Res.string.color_style_title))).performScrollTo()
+        // Lift it clear of the bottom bar.
+        onRoot().performTouchInput { swipeUp(startY = centerY, endY = centerY - 220f) }
         shot("06-appearance")
     }
 
@@ -273,16 +299,16 @@ private suspend fun seed(db: ChangeDatabase, files: FileStorage): String {
     }
     val html = "text/html"
     // A real-looking price history, so Versions has a story: 1,699 → 1,649 → 1,599 → 1,349.
-    page("studio", DISPLAY, "https://northwind.shop/lumen-27", CaptureMode.SCREENSHOT, unread = true)
+    page("studio", DISPLAY, "https://northwind.shop/lumen-27", CaptureMode.SCREENSHOT, unread = true, checked = 3 * MINUTE)
     version("studio", now - 9 * 24 * HOUR, "image/png", storePage("northwind", DISPLAY, "27-inch 5K · Height-adjustable stand", "$1,699.00", "Ships in 3–4 weeks"))
     version("studio", now - 6 * 24 * HOUR, "image/png", storePage("northwind", DISPLAY, "27-inch 5K · Height-adjustable stand", "$1,649.00", "Ships in 3–4 weeks"))
     version("studio", now - 3 * 24 * HOUR, "image/png", storePage("northwind", DISPLAY, "27-inch 5K · Height-adjustable stand", "$1,599.00", "Ships in 2–3 weeks"))
-    version("studio", now - 8 * MINUTE, "image/png", storePage("northwind", DISPLAY, "27-inch 5K · Height-adjustable stand", "$1,349.00", "In stock · free delivery"))
+    version("studio", now - 3 * MINUTE, "image/png", storePage("northwind", DISPLAY, "27-inch 5K · Height-adjustable stand", "$1,349.00", "In stock · free delivery"))
 
-    page("restock", SHOES, "https://summitgear.shop/trail-runner-5", CaptureMode.SCREENSHOT, unread = true, checked = 2 * MINUTE)
-    version("restock", now - 2 * 24 * HOUR, "image/png", storePage("summit gear", SHOES, "Size 42 · Glacier blue", "$129.00", "Sold out", button = "Notify me", stockColor = 0xFFC62828.toInt()))
-    version("restock", now - 3 * MINUTE, "image/png", storePage("summit gear", SHOES, "Size 42 · Glacier blue", "$129.00", "In stock · ships today", stockColor = 0xFF1B7F3B.toInt()))
-    val studioNewest = "studio-${now - 8 * MINUTE}"
+    page("restock", SHOES, "https://summitgear.shop/trail-runner-5", CaptureMode.SCREENSHOT, unread = true, checked = 14 * MINUTE)
+    version("restock", now - 2 * 24 * HOUR, "image/png", storePage("summit gear", SHOES, "Size 42 · Glacier blue", "$129.00", "Sold out", button = "Notify me", stockColor = 0xFFC62828.toInt(), shoe = true))
+    version("restock", now - 14 * MINUTE, "image/png", storePage("summit gear", SHOES, "Size 42 · Glacier blue", "$129.00", "In stock · ships today", stockColor = 0xFF1B7F3B.toInt(), shoe = true))
+    val studioNewest = "studio-${now - 3 * MINUTE}"
 
     page("fellowship", "Fellowship guide", "https://openfellows.org/2027", unread = true)
     version("fellowship", now - 2 * 24 * HOUR, html, fellowship("31 October", "€18,000"))
@@ -333,6 +359,7 @@ private fun storePage(
     stock: String,
     button: String = "Add to bag",
     stockColor: Int = 0xFF444444.toInt(),
+    shoe: Boolean = false,
 ): ByteArray {
     val w = 720
     val h = 1400
@@ -340,6 +367,7 @@ private fun storePage(
     val c = Canvas(bitmap)
     val p = Paint(Paint.ANTI_ALIAS_FLAG)
     fun text(value: String, x: Float, y: Float, size: Float, color: Int, bold: Boolean = false) {
+        p.shader = null
         p.style = Paint.Style.FILL
         p.color = color
         p.textSize = size
@@ -347,25 +375,64 @@ private fun storePage(
         c.drawText(value, x, y, p)
     }
     fun box(l: Float, t: Float, r: Float, b: Float, radius: Float, color: Int, stroke: Float = 0f) {
+        p.shader = null
         p.color = color
         p.style = if (stroke > 0) Paint.Style.STROKE else Paint.Style.FILL
         p.strokeWidth = stroke
         c.drawRoundRect(RectF(l, t, r, b), radius, radius, p)
     }
+    fun gradient(l: Float, t: Float, r: Float, b: Float, radius: Float, from: Int, to: Int) {
+        p.style = Paint.Style.FILL
+        p.shader = android.graphics.LinearGradient(l, t, r, b, from, to, android.graphics.Shader.TileMode.CLAMP)
+        c.drawRoundRect(RectF(l, t, r, b), radius, radius, p)
+        p.shader = null
+    }
+    val ink = 0xFF1D1D1D.toInt()
+    val grey = 0xFF777777.toInt()
     c.drawColor(Color.WHITE)
-    box(0f, 88f, w.toFloat(), 90f, 0f, 0xFFEEEEEE.toInt())
-    text(store, 40f, 58f, 30f, 0xFF1D1D1D.toInt(), bold = true)
-    box(40f, 130f, w - 40f, 550f, 14f, 0xFFE3E8EE.toInt())
-    box(300f, 280f, 420f, 380f, 9f, 0xFFB9C3CD.toInt(), stroke = 6f)
-    text(product, 40f, 640f, 44f, 0xFF1D1D1D.toInt(), bold = true)
-    text(subtitle, 40f, 684f, 24f, 0xFF777777.toInt())
-    text(price, 40f, 790f, 56f, 0xFF1D1D1D.toInt(), bold = true)
-    text(stock, 40f, 836f, 26f, stockColor, bold = stockColor != 0xFF444444.toInt())
-    box(40f, 880f, w - 40f, 956f, 38f, 0xFF1D1D1D.toInt())
+    // Header: the store's name, a search field, and a bag.
+    text(store, 40f, 60f, 32f, ink, bold = true)
+    box(300f, 26f, 610f, 72f, 23f, 0xFFF1F2F4.toInt())
+    text("Search", 326f, 57f, 22f, 0xFF9A9A9A.toInt())
+    box(636f, 30f, 676f, 70f, 10f, ink, stroke = 4f)
+    box(0f, 96f, w.toFloat(), 98f, 0f, 0xFFEEEEEE.toInt())
+    text(if (shoe) "Running  ›  Trail" else "Displays  ›  27-inch", 40f, 140f, 22f, grey)
+    // The product photo, drawn.
+    if (shoe) {
+        gradient(40f, 164f, w - 40f, 560f, 18f, 0xFFE4F1F6.toInt(), 0xFFCFE3EC.toInt())
+        box(170f, 430f, 560f, 470f, 20f, 0xFF2B3A44.toInt())
+        gradient(190f, 300f, 540f, 440f, 70f, 0xFF4FA3C7.toInt(), 0xFF2E6F95.toInt())
+        box(190f, 300f, 330f, 440f, 60f, 0xFF3D8DB4.toInt())
+        for (i in 0..3) box(300f + i * 40, 330f, 318f + i * 40, 348f, 9f, Color.WHITE)
+    } else {
+        gradient(40f, 164f, w - 40f, 560f, 18f, 0xFFF0F2F6.toInt(), 0xFFDDE2EA.toInt())
+        box(196f, 226f, 524f, 422f, 14f, 0xFF20232B.toInt())
+        gradient(208f, 238f, 512f, 410f, 6f, 0xFF5B8CFF.toInt(), 0xFFB05BFF.toInt())
+        box(346f, 422f, 374f, 482f, 0f, 0xFFB7BCC6.toInt())
+        box(296f, 478f, 424f, 492f, 7f, 0xFFA9AFBA.toInt())
+    }
+    for (i in 0..3) box(332f + i * 18f, 532f, 342f + i * 18f, 542f, 5f, if (i == 0) ink else 0xFFC4C8CF.toInt())
+    text(product, 40f, 636f, 44f, ink, bold = true)
+    text(subtitle, 40f, 678f, 24f, grey)
+    text("★★★★★", 40f, 722f, 24f, 0xFFF2A900.toInt())
+    p.textSize = 24f
+    text(if (shoe) "4.7 · 486 reviews" else "4.8 · 212 reviews", 52f + p.measureText("★★★★★"), 722f, 22f, grey)
+    text(price, 40f, 806f, 56f, ink, bold = true)
+    text(stock, 40f, 850f, 26f, stockColor, bold = stockColor != 0xFF444444.toInt())
+    box(40f, 890f, w - 40f, 966f, 38f, ink)
     p.textSize = 26f
     p.typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
-    text(button, w / 2 - p.measureText(button) / 2, 928f, 26f, Color.WHITE, bold = true)
-    for (i in 0..2) box(40f + i * 220, 1040f, 240f + i * 220, 1240f, 10f, 0xFFEEEEEE.toInt())
+    text(button, w / 2 - p.measureText(button) / 2, 938f, 26f, Color.WHITE, bold = true)
+    // Specs, then delivery details.
+    val specs = if (shoe) listOf("Waterproof", "Grippy sole", "280 g") else listOf("5K Retina", "USB‑C 96 W", "Tilt + height")
+    specs.forEachIndexed { i, spec ->
+        box(40f + i * 220, 1010f, 240f + i * 220, 1100f, 16f, 0xFFF4F5F7.toInt())
+        text(spec, 60f + i * 220, 1064f, 23f, ink, bold = true)
+    }
+    box(40f, 1140f, w - 40f, 1142f, 0f, 0xFFEEEEEE.toInt())
+    text("Free returns within 30 days", 40f, 1194f, 24f, ink)
+    text("Two-year warranty included", 40f, 1240f, 24f, ink)
+    text("Pay in 4 interest-free instalments", 40f, 1286f, 24f, grey)
     return ByteArrayOutputStream().use {
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
         it.toByteArray()

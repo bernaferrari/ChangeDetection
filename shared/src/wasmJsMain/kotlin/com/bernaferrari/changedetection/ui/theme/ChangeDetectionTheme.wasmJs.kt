@@ -13,7 +13,8 @@ actual fun ChangeDetectionTheme(
     darkTheme: Boolean,
     dynamicColor: Boolean,
     seedColor: Color,
+    colorStyle: com.bernaferrari.changedetection.model.ColorStyle,
     content: @Composable () -> Unit,
 ) {
-    AppMaterialTheme(brandColorScheme(seedColor, darkTheme), darkTheme, content)
+    AppMaterialTheme(brandColorScheme(seedColor, darkTheme, colorStyle), darkTheme, content)
 }

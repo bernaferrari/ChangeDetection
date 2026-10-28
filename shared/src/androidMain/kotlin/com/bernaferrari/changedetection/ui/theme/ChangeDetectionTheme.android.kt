@@ -18,14 +18,15 @@ actual fun ChangeDetectionTheme(
     darkTheme: Boolean,
     dynamicColor: Boolean,
     seedColor: Color,
+    colorStyle: com.bernaferrari.changedetection.model.ColorStyle,
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
     // Resource configuration changes (including the system palette) invalidate this composition.
     LocalConfiguration.current
     val wallpaperSeed = if (supportsDynamicColors()) Color(context.getColor(android.R.color.system_accent1_500)) else null
-    val wallpaperScheme = remember(wallpaperSeed, darkTheme) { wallpaperSeed?.let { brandColorScheme(it, darkTheme) } }
-    val colorScheme = if (dynamicColor && wallpaperScheme != null) wallpaperScheme else remember(seedColor, darkTheme) { brandColorScheme(seedColor, darkTheme) }
+    val wallpaperScheme = remember(wallpaperSeed, darkTheme, colorStyle) { wallpaperSeed?.let { brandColorScheme(it, darkTheme, colorStyle) } }
+    val colorScheme = if (dynamicColor && wallpaperScheme != null) wallpaperScheme else remember(seedColor, darkTheme, colorStyle) { brandColorScheme(seedColor, darkTheme, colorStyle) }
 
     CompositionLocalProvider(LocalWallpaperColorScheme provides wallpaperScheme) {
         AppMaterialTheme(colorScheme, darkTheme, content)

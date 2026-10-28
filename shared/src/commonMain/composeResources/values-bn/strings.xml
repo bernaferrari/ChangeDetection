@@ -487,7 +487,7 @@
         <item quantity="one">%1$d ঘণ্টা</item>
         <item quantity="other">%1$d ঘণ্টা</item>
     </plurals>
-    <string name="turbo_sheet_body">অল্প সময়ের জন্য কিছু পৃষ্ঠা কয়েক সেকেন্ড পরপর পরীক্ষা করুন। সাধারণ সময়সূচি চলতে থাকবে।</string>
+    <string name="turbo_sheet_body">আপনার বেছে নেওয়া পৃষ্ঠাগুলো প্রতি কয়েক সেকেন্ডে, ৩ ঘণ্টা পর্যন্ত দেখে। আপনার সাধারণ যাচাই চলতে থাকে।</string>
     <string name="turbo_sheet_pages">পৃষ্ঠা</string>
     <string name="turbo_sheet_every">পরীক্ষার ব্যবধান</string>
     <string name="turbo_sheet_for">থামবে যতক্ষণ পরে</string>
@@ -838,4 +838,9 @@
     <string name="check_failure_document_changed">ক্যাপচারের সময় পৃষ্ঠা বদলেছে</string>
     <string name="check_failure_document_changed_detail">পরীক্ষা তৈরির সময় পৃষ্ঠা বদলেছে। সংরক্ষিত ইতিহাস রাখা হয়েছে। আবার চেষ্টা করুন।</string>
     <string name="preview_region_no_match">এই পৃষ্ঠার কোনো অংশ নির্বাচনের সঙ্গে মেলে না। যে অংশটি নজরে রাখতে চান সেটি বেছে নিন, অথবা পুরো পৃষ্ঠা বেছে নিন।</string>
+    <string name="color_style_title">রঙের ধরন</string>
+    <string name="color_style_expressive">অভিব্যক্তিপূর্ণ</string>
+    <string name="color_style_vibrant">প্রাণবন্ত</string>
+    <string name="color_style_tonal">টোনাল</string>
+    <string name="color_style_muted">মৃদু</string>
 </resources>

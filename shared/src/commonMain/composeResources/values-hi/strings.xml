@@ -487,7 +487,7 @@
         <item quantity="one">%1$d घंटा</item>
         <item quantity="other">%1$d घंटे</item>
     </plurals>
-    <string name="turbo_sheet_body">कुछ पेजों को थोड़े समय के लिए हर कुछ सेकंड में जाँचें। आपका सामान्य शेड्यूल चलता रहेगा।</string>
+    <string name="turbo_sheet_body">आपके चुने पेजों को हर कुछ सेकंड में, 3 घंटे तक जाँचता है। आपकी सामान्य जाँचें चलती रहती हैं।</string>
     <string name="turbo_sheet_pages">पेज</string>
     <string name="turbo_sheet_every">जाँच का अंतराल</string>
     <string name="turbo_sheet_for">बंद होने का समय</string>
@@ -838,4 +838,9 @@
     <string name="check_failure_document_changed">कैप्चर के दौरान पेज बदल गया</string>
     <string name="check_failure_document_changed_detail">जाँच तैयार करते समय पेज बदल गया। सहेजा गया इतिहास सुरक्षित है। फिर कोशिश करें।</string>
     <string name="preview_region_no_match">इस पेज का कोई हिस्सा चयन से मेल नहीं खाता। वह हिस्सा चुनें जिस पर आप नज़र रखना चाहते हैं, या पूरा पेज चुनें।</string>
+    <string name="color_style_title">रंग शैली</string>
+    <string name="color_style_expressive">अभिव्यंजक</string>
+    <string name="color_style_vibrant">जीवंत</string>
+    <string name="color_style_tonal">टोनल</string>
+    <string name="color_style_muted">हल्का</string>
 </resources>

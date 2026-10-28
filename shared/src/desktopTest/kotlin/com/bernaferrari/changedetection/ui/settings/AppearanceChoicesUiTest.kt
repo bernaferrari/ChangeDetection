@@ -32,7 +32,7 @@ class AppearanceChoicesUiTest {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, scale)) {
                 ChangeDetectionTheme(darkTheme = theme == ThemeMode.DARK, dynamicColor = false, seedColor = palette.seedColor) {
-                    androidx.compose.foundation.layout.Column(androidx.compose.ui.Modifier.width(400.dp)) { AppearanceControls(theme, palette, { theme = it }, { palette = it }) }
+                    androidx.compose.foundation.layout.Column(androidx.compose.ui.Modifier.width(400.dp)) { AppearanceControls(theme, palette, com.bernaferrari.changedetection.model.ColorStyle.EXPRESSIVE, { theme = it }, { palette = it }, {}) }
                 }
             }
         }

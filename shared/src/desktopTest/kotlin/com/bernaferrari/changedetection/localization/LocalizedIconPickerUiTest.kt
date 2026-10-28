@@ -107,7 +107,7 @@ class LocalizedIconPickerUiTest(private val language: String, private val scale:
             CompositionLocalProvider(LocalDensity provides Density(density.density, scale)) {
                 ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
                     Column(Modifier.size(400.dp, 760.dp).verticalScroll(rememberScrollState())) {
-                        AppearanceControls(theme, palette, { theme = it }, { palette = it })
+                        AppearanceControls(theme, palette, com.bernaferrari.changedetection.model.ColorStyle.EXPRESSIVE, { theme = it }, { palette = it }, {})
                     }
                 }
             }

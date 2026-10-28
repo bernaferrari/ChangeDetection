@@ -12,6 +12,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.bernaferrari.changedetection.model.ThemeMode
 import com.bernaferrari.changedetection.model.AppPalette
+import com.bernaferrari.changedetection.model.ColorStyle
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -26,6 +27,7 @@ class ThemeViewModel(
     companion object {
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
         val APP_PALETTE_KEY = stringPreferencesKey("app_palette")
+        val COLOR_STYLE_KEY = stringPreferencesKey("color_style")
     }
 
     val themeMode: StateFlow<ThemeMode> =
@@ -45,6 +47,15 @@ class ThemeViewModel(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = AppPalette.defaultFor(supportsDynamicColors()),
+            )
+
+    val colorStyle: StateFlow<ColorStyle> =
+        dataStore.data
+            .map { preferences -> ColorStyle.fromStoredName(preferences[COLOR_STYLE_KEY]) }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = ColorStyle.EXPRESSIVE,
             )
 
     fun updateThemeMode(mode: ThemeMode) {
