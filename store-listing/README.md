@@ -8,11 +8,11 @@ The set lives in the app icon's world. One cobalt field with soft light runs und
 
 ## Capture
 
-Sample pages use reserved `.example` addresses and local content; nothing touches the network. On a dedicated **Resizable (Experimental)** emulator:
+Sample pages use reserved `.example` addresses and local content; nothing touches the network. On the shared `Resizable_Experimental` emulator (`emulator-5578`), the one every app captures on:
 
 ```sh
 ./gradlew :shared:assembleAndroidDeviceTest
-python3 store-listing/capture-emulator.py --serial emulator-5566
+python3 store-listing/capture-emulator.py --serial emulator-5578
 ```
 
 For each device profile and theme the script sets display size and density, Android night mode, gesture navigation and System UI demo mode (9:41, full battery and Wi-Fi), runs `StoreCaptureTest`, and pulls full-display PNGs into `en-US/raw/<profile>/<theme>/`. `--profile` and `--theme` limit a run. Display overrides and demo mode are reset afterwards. `--apk /path/to/shared-androidTest.apk` selects an isolated build output when another build uses the checkout. If the emulator refuses the install for low storage, lower its threshold with `adb shell settings put global sys_storage_threshold_percentage 1`.
@@ -35,7 +35,7 @@ The exporter serves the repository itself and writes `en-US/<kind>/NN-feature.jp
 
 `gallery.json` is shared layout; `<locale>/copy.json` contains only words. Add or refresh a language with `node store-listing/studio/locales.cjs --init de-DE` from the repository root (existing words are preserved). `node store-listing/studio/locales.cjs` reports copy, capture and layout coverage. Other supported languages are scaffolded as drafts with empty fields.
 
-Capture English first, then pass `--locale de-DE` to the capture script. It sets only the isolated capture app's language, verifies Android's language setting, writes images and `*.nodes.json` UI trees under `<locale>/raw/`, and resets the app language afterwards. Use only the dedicated `StudioCapture` emulator (`emulator-5566`); no physical phone or another session's emulator. Sample names and other fictional content remain English.
+Capture English first, then pass `--locale de-DE` to the capture script. It sets only the isolated capture app's language, verifies Android's language setting, writes images and `*.nodes.json` UI trees under `<locale>/raw/`, and resets the app language afterwards. Use only the shared `Resizable_Experimental` emulator (`emulator-5578`); never a physical phone. Sample names and other fictional content remain English.
 
 Open the editor with `node store-listing/studio/server.cjs 8790`. Use **Cards**, **Languages**, and **Copy**; Copy saves directly to the selected language's file (Cmd/Ctrl+Enter also saves). Pick callouts on English captures; matching localized layout nodes move them. Headline copy shrinks to fit down to 72%, with script-specific font fallbacks.
 

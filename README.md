@@ -1,7 +1,7 @@
-<p align="center">
-  <img src="website/public/logo.png" width="88" alt="" />
-</p>
-<h1 align="center">ChangeDetection</h1>
+<h1 align="center">
+  <img src="store-listing/en-US/readme/banner.jpg" width="100%" alt="ChangeDetection" />
+</h1>
+
 <p align="center"><strong>Stop refreshing. See what changed.</strong></p>
 <p align="center">Watch prices, restocks, job listings, application deadlines, or any page you keep coming back to.<br />Get an alert, open the comparison, and see exactly what moved.</p>
 <p align="center">
@@ -10,10 +10,6 @@
   <a href="https://github.com/bernaferrari/ChangeDetection/issues/new">Report a bug</a>
 </p>
 <p align="center">Free and open source · No account · No server to run</p>
-
-<img src="docs/screenshots/overview.png" width="100%" alt="ChangeDetection home showing recent changes, beside a before-and-after price comparison" />
-
-<p align="center"><sub>Current development UI with local example pages. Screens are captured from the app, not mockups.</sub></p>
 
 ## The notification is just the start
 
@@ -24,18 +20,11 @@ A page changed. Was it the price, an application deadline, or just a rotating ba
 - **Keep the history.** Revisit saved versions and compare an earlier change.
 - **Choose the pace.** Check now, schedule regular checks, or run a short Turbo session when timing matters.
 
-<table>
-  <tr>
-    <td width="33%"><img src="docs/screenshots/text-diff.png" alt="Readable text comparison highlighting a changed fellowship deadline and funding amount" /></td>
-    <td width="33%"><img src="docs/screenshots/history.png" alt="Saved versions available for comparison" /></td>
-    <td width="33%"><img src="docs/screenshots/turbo.png" alt="Turbo setup with pages, checking interval, and session duration" /></td>
-  </tr>
-  <tr>
-    <td align="center"><strong>Read the change</strong><br />Find the words and numbers that changed.</td>
-    <td align="center"><strong>Look back</strong><br />Choose the versions you want to compare.</td>
-    <td align="center"><strong>Catch the moment</strong><br />Check frequently for a limited time.</td>
-  </tr>
-</table>
+<img src="store-listing/en-US/readme/what-changed.jpg" width="100%" alt="See exactly what changed: a fellowship deadline moved from 31 October to 14 November on a tablet, and a restock on a phone" />
+
+<img src="store-listing/en-US/readme/tools.jpg" width="100%" alt="Built for the moment it changes: an alert in the notification shade, Turbo checking every 30 seconds, and every saved version" />
+
+<p align="center"><sub>Screens are captured from the app with fictional example pages, not mockups.</sub></p>
 
 ## Your first watch
 

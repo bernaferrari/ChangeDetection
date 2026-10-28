@@ -59,7 +59,7 @@ try:
     adb('shell', 'svc', 'wifi', 'disable', check=False)
     adb('shell', 'svc', 'data', 'disable', check=False)
     for name, profile in profiles.items():
-        if name == 'desktop' or args.profile not in ('all', name):
+        if 'captureWidth' not in profile or args.profile not in ('all', name):
             continue
         for theme in ('light', 'dark'):
             if args.theme not in ('all', theme):

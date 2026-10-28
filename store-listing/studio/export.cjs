@@ -33,6 +33,8 @@ const defaultLocale = config.defaultLocale || 'en-US';
       const tally = {locale, cards: 0, untranslated: 0, borrowedCaptures: 0, movedCallouts: 0, fixedCallouts: 0, shrunk: 0};
       for (const kind of Object.keys(galleries)) {
         if (arg('kind') && arg('kind') !== kind) continue;
+        // README art (a hero, a before/after) is written once, in the default locale.
+        if (profiles[kind].defaultLocaleOnly && locale !== defaultLocale) continue;
         const slides = cardsFor(galleries, kind);
         const {width, height} = profiles[kind];
         manifest.galleries[kind] = [];
@@ -61,19 +63,18 @@ const defaultLocale = config.defaultLocale || 'en-US';
           assert.equal(errors.length, 0, errors.join('\n'));
           const png = file.endsWith('.png');
           const quality = config.jpegQuality || 94;
-          const shot = await page.screenshot({type: png || supersample > 1 ? 'png' : 'jpeg', omitBackground: png && !!slide.transparent, ...(png || supersample > 1 ? {} : {quality})});
-          // Re-encode through a canvas when downsampling, and for transparent-capable art (an app icon): stores want it
-          // as 32-bit PNG even when every pixel is opaque, and a canvas always writes RGBA.
-          const bytes = supersample > 1 || (png && slide.transparent) ? Buffer.from(await page.evaluate(async ({data, width, height, type, quality}) => {
+          // scale: 'css' downsamples a supersampled render to the canvas size, keeping opaque PNGs opaque.
+          const shot = await page.screenshot({type: png ? 'png' : 'jpeg', scale: 'css', omitBackground: png && !!slide.transparent, ...(png ? {} : {quality})});
+          // Stores want transparent-capable art (an app icon) as 32-bit PNG even when every pixel is opaque;
+          // re-encoding through a canvas always writes RGBA.
+          const bytes = png && slide.transparent ? Buffer.from(await page.evaluate(async data => {
             const image = new Image();
             image.src = `data:image/png;base64,${data}`;
             await image.decode();
-            const canvas = Object.assign(document.createElement('canvas'), {width, height});
-            const context = canvas.getContext('2d');
-            context.imageSmoothingQuality = 'high';
-            context.drawImage(image, 0, 0, width, height);
-            return canvas.toDataURL(type, quality / 100).split(',')[1];
-          }, {data: shot.toString('base64'), width, height, type: png ? 'image/png' : 'image/jpeg', quality}), 'base64') : shot;
+            const canvas = Object.assign(document.createElement('canvas'), {width: image.naturalWidth, height: image.naturalHeight});
+            canvas.getContext('2d').drawImage(image, 0, 0);
+            return canvas.toDataURL('image/png').split(',')[1];
+          }, shot.toString('base64')), 'base64') : shot;
           fs.mkdirSync(path.dirname(path.join(dir, file)), {recursive: true});
           fs.writeFileSync(path.join(dir, file), bytes);
           await page.close();
@@ -92,7 +93,7 @@ const defaultLocale = config.defaultLocale || 'en-US';
           console.log(`${label}${notes.length ? `  (${notes.join('; ')})` : ''}`);
         }
         // Contact sheet: the set edge to edge, so seams can be checked at a glance.
-        if (slides.length < 2 || (config.contactSheets || {})[kind] === false) continue;
+        if (slides.length < 2 || profiles[kind].defaultLocaleOnly || (config.contactSheets || {})[kind] === false) continue;
         const h = width > height ? 600 : 960, w = Math.round(h * width / height);
         const sheet = await browser.newPage({viewport: {width: w * slides.length, height: h}});
         await sheet.setContent(`<body style="margin:0;display:flex">${manifest.galleries[kind].map(m => `<img src="${base}/${locale}/${m.file}?t=${Date.now()}" style="height:${h}px;width:${w}px">`).join('')}</body>`);
@@ -101,6 +102,28 @@ const defaultLocale = config.defaultLocale || 'en-US';
         fs.mkdirSync(path.dirname(path.join(dir, sheetName)), {recursive: true});
         await sheet.screenshot({path: path.join(dir, sheetName), type: 'jpeg', quality: 90});
         await sheet.close();
+      }
+      // README strips: a run of real store cards joined edge to edge, as the store carousel shows them.
+      for (const strip of locale === defaultLocale ? config.readmeStrips || [] : []) {
+        if (arg('kind') && arg('kind') !== strip.kind && arg('kind') !== 'strips') continue;
+        const {width, height} = profiles[strip.kind];
+        const shots = [];
+        for (const [n, i] of strip.cards.entries()) {
+          const position = strip.cards.length === 1 ? 'only' : n === 0 ? 'first' : n === strip.cards.length - 1 ? 'last' : 'middle';
+          const page = await browser.newPage({viewport: {width, height}, deviceScaleFactor: config.supersample || 1, locale});
+          await page.goto(`${base}/studio/preview.html?locale=${locale}&kind=${strip.kind}&slide=${i}&strip=${position}`);
+          await page.locator('html[data-ready="true"]').waitFor({timeout: 30_000});
+          shots.push((await page.screenshot({type: 'png', scale: 'css'})).toString('base64'));
+          await page.close();
+        }
+        const h = strip.height || 1200, w = Math.round(h * width / height);
+        const sheet = await browser.newPage({viewport: {width: w * shots.length, height: h}});
+        await sheet.setContent(`<body style="margin:0;display:flex">${shots.map(s => `<img src="data:image/png;base64,${s}" style="height:${h}px;width:${w}px">`).join('')}</body>`);
+        await sheet.waitForLoadState('load');
+        fs.mkdirSync(path.dirname(path.join(dir, strip.file)), {recursive: true});
+        await sheet.screenshot({path: path.join(dir, strip.file), type: 'jpeg', quality: config.jpegQuality || 92});
+        await sheet.close();
+        console.log(`${locale}/${strip.file}  (strip of ${strip.kind} ${strip.cards.map(i => i + 1).join(', ')})`);
       }
       if (config.writeAssets !== false && !arg('kind')) fs.writeFileSync(path.join(dir, 'assets.json'), JSON.stringify(manifest, null, 2) + '\n');
       summary.push(tally);

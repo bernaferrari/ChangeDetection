@@ -1,28 +1,40 @@
 {
   "home": {
-    "title": "~Keep refreshing~\n[See what changed]",
-    "body": "Know when prices, deadlines or listings change."
+    "title": "Know when\na page *changes.*",
+    "body": "Prices, restocks, deadlines. Any website."
   },
-  "price": {
-    "title": "~$1,599~ [$1,349]",
-    "body": "Catch price drops and restocks first."
+  "page": {
+    "title": "See *what*\nchanged.",
+    "body": "The whole page, with the change marked."
+  },
+  "alert": {
+    "title": "Hear about\nit *first.*",
+    "body": "An alert the moment something changes."
+  },
+  "restock": {
+    "title": "Sold out?\n*Back in stock.*",
+    "body": "Watch any product and get told."
   },
   "text": {
-    "title": "Deadline\n~31 Oct~ [14 Nov]",
-    "body": "See exactly which words and numbers moved."
+    "title": "Read the\n*exact words.*",
+    "body": "Deadline moved? Funding changed? See it."
   },
   "turbo": {
-    "title": "~Every hour~\n[Every 30 s]",
-    "body": "Turbo checks fast when every second counts."
+    "title": "Check every\n*30 seconds.*",
+    "body": "Turbo, for drops that sell out fast."
   },
-  "private": {
-    "title": "~Their server~\n[Your phone]",
-    "body": "No account. Your pages and history stay on your device."
+  "versions": {
+    "title": "Every version,\nkept.",
+    "body": "Go back and compare any two."
   },
-  "tablet7/private": {
-    "title": "~Their server~\n[Your tablet]"
+  "readme-hero": {
+    "title": "See exactly\n*what changed.*",
+    "body": "Words, numbers and stock, marked\nthe moment they move."
   },
-  "tablet10/private": {
-    "title": "~Their server~\n[Your tablet]"
+  "readme-tools": {
+    "title": "Built for the *moment it changes.*"
+  },
+  "readme-identity": {
+    "title": "ChangeDetection"
   }
 }

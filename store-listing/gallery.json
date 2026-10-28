@@ -2,323 +2,171 @@
   "phone": [
     {
       "feature": "home",
-      "layout": "feed",
-      "callouts": [
-        {
-          "raw": "tablet7/light/01-home.png",
-          "x": 192,
-          "y": 1614,
-          "w": 976,
-          "h": 301,
-          "radius": 40,
-          "place": {
-            "left": 80,
-            "top": 600,
-            "width": 880
-          },
-          "role": "feed back tilt-left"
-        },
-        {
-          "raw": "phone/light/03-compare-text.png",
-          "x": 31,
-          "y": 632,
-          "w": 1017,
-          "h": 218,
-          "radius": 36,
-          "place": {
-            "left": 50,
-            "top": 1370,
-            "width": 990
-          },
-          "role": "feed back tilt-right"
-        },
-        {
-          "raw": "tablet7/light/01-home.png",
-          "x": 192,
-          "y": 1022,
-          "w": 976,
-          "h": 568,
-          "radius": 40,
-          "place": {
-            "left": 60,
-            "top": 760,
-            "width": 960
-          },
-          "role": "feed front"
-        }
-      ]
+      "layout": "one",
+      "raw": "phone/light/01-home.png",
+      "file": "phone/v2-01-home.jpg"
     },
     {
-      "feature": "price",
-      "raw": "phone/light/02-compare-image.png",
-      "callouts": [
-        {
-          "x": 58,
-          "y": 893,
-          "w": 964,
-          "h": 172,
-          "mag": 1.14,
-          "radius": 24
-        }
-      ]
+      "feature": "page",
+      "layout": "one",
+      "raw": "phone/light/02c-compare-page.png",
+      "file": "phone/v2-02-page.jpg"
+    },
+    {
+      "feature": "alert",
+      "layout": "one",
+      "raw": "phone/light/00-alert.png",
+      "file": "phone/v2-03-alert.jpg"
+    },
+    {
+      "feature": "restock",
+      "layout": "one",
+      "raw": "phone/light/02b-compare-restock.png",
+      "file": "phone/v2-04-restock.jpg"
     },
     {
       "feature": "text",
+      "layout": "one",
       "raw": "phone/light/03-compare-text.png",
-      "callouts": [
-        {
-          "x": 31,
-          "y": 632,
-          "w": 1017,
-          "h": 218,
-          "mag": 1.08,
-          "radius": 36
-        }
-      ]
+      "file": "phone/v2-05-text.jpg"
     },
     {
       "feature": "turbo",
-      "raw": "phone/dark/05-turbo.png",
-      "callouts": [
-        {
-          "raw": "phone/dark/05-turbo.png",
-          "x": 42,
-          "y": 1650,
-          "w": 996,
-          "h": 222,
-          "radius": 40,
-          "place": {
-            "left": 80,
-            "top": 1712,
-            "width": 920
-          }
-        }
-      ]
+      "layout": "one",
+      "raw": "phone/light/05-turbo.png",
+      "file": "phone/v2-06-turbo.jpg"
     },
     {
-      "feature": "private",
-      "raw": "phone/dark/04-versions.png",
-      "callouts": [
-        {
-          "x": 42,
-          "y": 1045,
-          "w": 996,
-          "h": 595,
-          "mag": 1.06,
-          "radius": 40
-        }
-      ]
+      "feature": "versions",
+      "layout": "one",
+      "raw": "phone/light/04-versions.png",
+      "file": "phone/v2-07-versions.jpg"
     }
   ],
   "tablet7": [
     {
       "feature": "home",
-      "layout": "feed",
-      "callouts": [
-        {
-          "raw": "tablet7/light/01-home.png",
-          "x": 192,
-          "y": 1614,
-          "w": 976,
-          "h": 301,
-          "radius": 40,
-          "place": {
-            "left": 110,
-            "top": 760,
-            "width": 960
-          },
-          "role": "feed back tilt-left"
-        },
-        {
-          "raw": "tablet7/light/03-compare-text.png",
-          "x": 24,
-          "y": 456,
-          "w": 1152,
-          "h": 146,
-          "radius": 36,
-          "place": {
-            "left": 60,
-            "top": 1625,
-            "width": 1080
-          },
-          "role": "feed back tilt-right"
-        },
-        {
-          "raw": "tablet7/light/01-home.png",
-          "x": 192,
-          "y": 1022,
-          "w": 976,
-          "h": 568,
-          "radius": 40,
-          "place": {
-            "left": 70,
-            "top": 910,
-            "width": 1060
-          },
-          "role": "feed front"
-        }
-      ]
+      "layout": "one",
+      "raw": "tablet7/light/01-home.png",
+      "file": "tablet7/v2-01-home.jpg"
     },
     {
-      "feature": "price",
-      "raw": "tablet7/light/02-compare-image.png",
-      "callouts": [
-        {
-          "x": 44,
-          "y": 728,
-          "w": 1114,
-          "h": 178,
-          "mag": 1.08,
-          "radius": 22
-        }
-      ]
+      "feature": "restock",
+      "layout": "one",
+      "raw": "tablet7/light/02b-compare-restock.png",
+      "file": "tablet7/v2-02-restock.jpg"
     },
     {
       "feature": "text",
+      "layout": "one",
       "raw": "tablet7/light/03-compare-text.png",
-      "callouts": [
-        {
-          "x": 24,
-          "y": 456,
-          "w": 1152,
-          "h": 146,
-          "mag": 1.06,
-          "radius": 36
-        }
-      ]
+      "file": "tablet7/v2-03-text.jpg"
     },
     {
       "feature": "turbo",
-      "raw": "tablet7/dark/05-turbo.png",
-      "callouts": [
-        {
-          "x": 32,
-          "y": 1378,
-          "w": 1136,
-          "h": 170,
-          "mag": 1.08,
-          "radius": 36
-        }
-      ]
-    },
-    {
-      "feature": "private",
-      "raw": "tablet7/dark/04-versions.png",
-      "callouts": [
-        {
-          "x": 32,
-          "y": 915,
-          "w": 1136,
-          "h": 455,
-          "mag": 1.06,
-          "radius": 36
-        }
-      ]
+      "layout": "one",
+      "raw": "tablet7/light/05-turbo.png",
+      "file": "tablet7/v2-04-turbo.jpg"
     }
   ],
   "tablet10": [
     {
       "feature": "home",
-      "layout": "feed",
-      "callouts": [
-        {
-          "raw": "tablet7/light/01-home.png",
-          "x": 192,
-          "y": 1614,
-          "w": 976,
-          "h": 301,
-          "radius": 40,
-          "place": {
-            "left": 930,
-            "top": 150,
-            "width": 820
-          },
-          "role": "feed back tilt-left"
-        },
-        {
-          "raw": "tablet7/light/03-compare-text.png",
-          "x": 24,
-          "y": 456,
-          "w": 1152,
-          "h": 146,
-          "radius": 36,
-          "place": {
-            "left": 880,
-            "top": 900,
-            "width": 940
-          },
-          "role": "feed back tilt-right"
-        },
-        {
-          "raw": "tablet7/light/01-home.png",
-          "x": 192,
-          "y": 1022,
-          "w": 976,
-          "h": 568,
-          "radius": 40,
-          "place": {
-            "left": 880,
-            "top": 300,
-            "width": 920
-          },
-          "role": "feed front"
-        }
-      ]
+      "layout": "one",
+      "raw": "tablet10/light/02-compare-image.png",
+      "file": "tablet10/v2-01-home.jpg"
     },
     {
-      "feature": "price",
-      "raw": "tablet10/light/02-compare-image.png",
-      "callouts": [
-        {
-          "x": 840,
-          "y": 566,
-          "w": 1016,
-          "h": 156,
-          "mag": 1.1,
-          "radius": 18
-        }
-      ]
+      "feature": "restock",
+      "layout": "one",
+      "raw": "tablet10/light/02b-compare-restock.png",
+      "file": "tablet10/v2-02-restock.jpg"
     },
     {
       "feature": "text",
+      "layout": "one",
       "raw": "tablet10/light/03-compare-text.png",
-      "callouts": [
-        {
-          "x": 825,
-          "y": 342,
-          "w": 1046,
-          "h": 110,
-          "mag": 1.1,
-          "radius": 28
-        }
-      ]
+      "file": "tablet10/v2-03-text.jpg"
     },
     {
       "feature": "turbo",
-      "raw": "tablet10/dark/05-turbo.png",
-      "callouts": [
+      "layout": "one",
+      "raw": "tablet10/light/05-turbo.png",
+      "file": "tablet10/v2-04-turbo.jpg"
+    }
+  ],
+  "readme": [
+    {
+      "feature": "readme-identity",
+      "layout": "wide",
+      "file": "readme/banner.jpg",
+      "identity": true,
+      "alt": "ChangeDetection on a tablet: Home with recent changes beside a price drop on a watched product page, and the whole page with the change marked on a phone",
+      "devices": [
         {
-          "x": 504,
-          "y": 792,
-          "w": 912,
-          "h": 130,
-          "mag": 1.12,
-          "radius": 28
+          "raw": "tablet10/light/02-compare-image.png",
+          "role": "slate",
+          "frame": "tablet"
+        },
+        {
+          "raw": "phone/light/02c-compare-page.png",
+          "role": "front"
         }
+      ],
+      "wash": [
+        "#d9e2ff",
+        "#e8ecff",
+        "#f6f1dc"
       ]
     },
     {
-      "feature": "private",
-      "raw": "tablet10/dark/04-versions.png",
-      "callouts": [
+      "feature": "readme-hero",
+      "layout": "hero",
+      "file": "readme/what-changed.jpg",
+      "alt": "See exactly what changed: a fellowship deadline moved from 31 October to 14 November on a tablet, and a restock on a phone",
+      "devices": [
         {
-          "x": 504,
-          "y": 445,
-          "w": 912,
-          "h": 340,
-          "mag": 1.08,
-          "radius": 28
+          "raw": "tablet7/light/03-compare-text.png",
+          "role": "slate",
+          "frame": "tablet"
+        },
+        {
+          "raw": "phone/light/02b-compare-restock.png",
+          "role": "front"
         }
+      ],
+      "wash": [
+        "#fff3c4",
+        "#f3f0e4",
+        "#dde5ff"
+      ]
+    },
+    {
+      "feature": "readme-tools",
+      "layout": "trio",
+      "file": "readme/tools.jpg",
+      "alt": "Built for the moment it changes: an alert in the notification shade, Turbo checking every 30 seconds, and every saved version",
+      "devices": [
+        {
+          "raw": "phone/light/00-alert.png",
+          "role": "one",
+          "label": "*Instant* alerts"
+        },
+        {
+          "raw": "tablet7/light/05-turbo.png",
+          "role": "two",
+          "label": "*Turbo* checks"
+        },
+        {
+          "raw": "phone/light/04-versions.png",
+          "role": "three",
+          "label": "Every *version*"
+        }
+      ],
+      "wash": [
+        "#dde5ff",
+        "#eef0ff",
+        "#fff0bf"
       ]
     }
   ]
