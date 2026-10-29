@@ -168,7 +168,10 @@ class Device:
 
     def __exit__(self, *exc):
         if self.navigator:
-            self.navigator.save()
+            try:
+                self.navigator.save()
+            except Exception as error:
+                print(f'cleanup: {error}', file=sys.stderr)
         steps = [lambda: self.shell('am', 'force-stop', self.package, check=False)]
         if self.app_locale:
             steps.append(lambda: set_app_locale(self._uitree_adb, self.package, None))

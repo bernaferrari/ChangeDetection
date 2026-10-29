@@ -277,7 +277,7 @@ if (header) {
   const fits = () => {
     if ([...header.querySelectorAll('h1 .line')].some(line => line.scrollWidth > line.parentElement.clientWidth + 1)) return false;
     const t = textBox();
-    if (t.r > W + .5 || t.b > H + .5) return false;
+    if (t.l < -.5 || t.t < -.5 || t.r > W + .5 || t.b > H + .5) return false;
     return blocks.every(d => t.b + 16 <= d.top || t.t >= d.bottom || t.r + 16 <= d.left || t.l >= d.right);
   };
   const sizes = [...header.querySelectorAll('h1, p')].map(el => [el, parseFloat(getComputedStyle(el).fontSize)]);

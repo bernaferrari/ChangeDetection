@@ -251,3 +251,33 @@ test("drafts survive project switches, isolate locales, and detect changed disk 
   a.persist("en-US", changed);
   assert.equal(values.size, 0);
 });
+
+test('copy writes reject stale bases without changing disk', async t => {
+  const f = fixture(t), root = f.app('Conflict');
+  const [project] = await f.store.add([root]);
+  const server = await serve(f.root, 0, {workspace: f.store, editable: true});
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const file = path.join(root, 'store-listing/de-DE/copy.json');
+  const original = JSON.stringify(JSON.parse(fs.readFileSync(file)));
+  const external = {home: {title: 'External change'}};
+  fs.writeFileSync(file, JSON.stringify(external));
+  const response = await fetch(`http://127.0.0.1:${server.address().port}/p/${project.id}/store-listing/de-DE/copy.json`, {
+    method: 'PUT', headers: {'X-Studio-Base': require('node:crypto').createHash('sha256').update(original).digest('hex')}, body: JSON.stringify({home: {title: 'Stale draft'}})
+  });
+  assert.equal(response.status, 409);
+  assert.deepEqual(JSON.parse(fs.readFileSync(file)), external);
+  const fresh = await fetch(`http://127.0.0.1:${server.address().port}/p/${project.id}/store-listing/de-DE/copy.json`, {
+    method: 'PUT', headers: {'X-Studio-Base': require('node:crypto').createHash('sha256').update(JSON.stringify(external)).digest('hex')}, body: JSON.stringify({home: {title: 'Resolved'}})
+  });
+  assert.equal(fresh.status, 204);
+});
+
+test('coverage excludes reference-only galleries and includes separate callout captures', async t => {
+  const f = fixture(t), root = f.app('Coverage'), listing = path.join(root, 'store-listing');
+  f.write(path.join(listing, 'profiles.json'), {phone:{width:400,height:800},tablet7:{width:800,height:1200,defaultLocaleOnly:true}});
+  f.write(path.join(listing, 'gallery.json'), {phone:[{feature:'home',raw:'phone/home.png',callouts:[{raw:'phone/notice.png'}]}],tablet7:{inherits:'phone',cards:[{}]}});
+  await f.store.add([root]);
+  const [project] = await f.store.list(), german = project.locales.find(l => l.locale === 'de-DE');
+  assert.equal(german.expectedExports, 1);
+  assert.equal(german.expectedCaptures, 2);
+});

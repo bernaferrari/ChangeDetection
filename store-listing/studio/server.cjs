@@ -36,6 +36,11 @@ function serve(root, port = 0, {editable = false, workspace = null, activeProjec
           let body = '', bytes = 0;
           for await (const chunk of request) { bytes += chunk.length; if (bytes > 1024 * 1024) { response.writeHead(413).end('Copy file is too large'); return; } body += chunk; }
           const value = JSON.parse(body);
+          const expected = request.headers['x-studio-base'];
+          const current = JSON.stringify(fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {});
+          if (expected !== undefined && expected !== require('node:crypto').createHash('sha256').update(current).digest('hex')) {
+            response.writeHead(409, {'Content-Type': 'application/json'}).end(JSON.stringify({error: 'The saved copy changed. Reload to resolve your draft.'})); return;
+          }
           fs.mkdirSync(path.dirname(file), {recursive: true});
           fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n');
           response.writeHead(204).end(); return;

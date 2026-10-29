@@ -1229,3 +1229,20 @@ test("the narrow gallery select switches devices and reuses the loaded gallery",
     false,
   );
 });
+
+test('saving a callout preserves other callouts', async t => {
+  const {page, base, projects, roots, write} = await setup(t);
+  const file = roots[0] + '/store-listing/gallery.json';
+  const gallery = JSON.parse(fs.readFileSync(file));
+  const sibling = {x:30, y:300, w:100, h:60};
+  gallery.phone[0].callouts = [{x:20,y:100,w:160,h:60}, sibling];
+  write(file, gallery);
+  await page.goto(base + projects[0].editorURL + '?view=cards');
+  await page.getByRole('button', {name:'Pick callout',exact:true}).click();
+  const dialog = page.getByRole('dialog', {name:'Pick a callout',exact:true});
+  await dialog.getByRole('combobox', {name:'Find accessibility element',exact:true}).fill('Suggested');
+  await dialog.getByRole('option').first().click();
+  await dialog.getByRole('button', {name:"Save as this card's callout",exact:true}).click();
+  await dialog.waitFor({state:'hidden'});
+  assert.deepEqual(JSON.parse(fs.readFileSync(file)).phone[0].callouts[1], sibling);
+});

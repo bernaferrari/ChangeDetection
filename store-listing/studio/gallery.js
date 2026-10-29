@@ -40,7 +40,7 @@ export function copyKeys(galleries, defaultCopy = {}) {
 }
 
 /** Devices on a card: `devices` when several, otherwise the single `raw` capture; none for art-only cards. */
-export const devicesFor = card => card.devices || (card.raw ? [{raw: card.raw}] : []);
+export const devicesFor = card => card.devices || (card.raw ? [{raw: card.raw, ...(card.frame ? {frame: card.frame} : {})}] : []);
 
 export const outputFile = (kind, card, i) => card.file || `${kind}/${String(i + 1).padStart(2, '0')}-${card.feature}.jpg`;
 

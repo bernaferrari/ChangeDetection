@@ -126,35 +126,38 @@ function createWorkspaceStore({registryFile = process.env.SCREENSHOT_STUDIO_PROJ
       const copy = read(path.join(listing, reference, 'copy.json'), {});
       const fields = Object.entries(copy).flatMap(([key, values]) => Object.keys(values).map(field => ({key, field})));
       const raws = new Set(), outputs = [], galleries = [];
+      const requiredRaws = card => [...devicesFor(card).map(d => d.raw), ...(card.callouts || []).map(c => c.raw).filter(Boolean)];
       for (const kind of Object.keys(layout)) {
         if (!profiles[kind]) throw Error(`profiles.json is missing ${kind}.`);
         const cards = cardsFor(layout, kind);
         galleries.push({kind, label: profiles[kind].label || kind, cards: cards.length, width: profiles[kind].width, height: profiles[kind].height});
         for (const [index, card] of cards.entries()) {
-          outputs.push({kind, feature: card.feature, file: outputFile(kind, card, index), width: profiles[kind].width, height: profiles[kind].height});
-          devicesFor(card).forEach(device => raws.add(device.raw));
+          outputs.push({kind, feature: card.feature, file: outputFile(kind, card, index), width: profiles[kind].width, height: profiles[kind].height, defaultLocaleOnly: profiles[kind].defaultLocaleOnly, raws: requiredRaws(card)});
+          requiredRaws(card).forEach(raw => raws.add(raw));
         }
       }
       const locales = [], totals = {fields: 0, translated: 0, captures: 0, expectedCaptures: 0, layouts: 0, exports: 0, expectedExports: 0};
       let lastExport = 0;
       const fileIn = (...parts) => { const file = path.resolve(listing, ...parts); return inside(project.root, file) ? file : null; };
       for (const locale of languages) {
+        const requiredOutputs = outputs.filter(o => locale === reference || !o.defaultLocaleOnly);
+        const raws = new Set(requiredOutputs.flatMap(o => o.raws));
         const own = read(path.join(listing, locale, 'copy.json'), {});
         const translated = fields.filter(({key, field}) => typeof own?.[key]?.[field] === 'string' && own[key][field].trim()).length;
         const captures = [...raws].filter(raw => { const file = fileIn(locale, 'raw', raw); return file && exists(file); }).length;
         const layouts = [...raws].filter(raw => { const file = fileIn(locale, 'raw', nodesFile(raw)); return file && exists(file); }).length;
         let exported = 0;
-        for (const output of outputs) {
+        for (const output of requiredOutputs) {
           const file = fileIn(locale, output.file);
           if (!file || !exists(file)) continue;
           exported++; lastExport = Math.max(lastExport, fs.statSync(file).mtimeMs);
           if (locale === reference && base.previews.length < 4 && output.kind !== 'icon' && output.kind !== 'feature') base.previews.push({...output, source: 'export', url: assetURL(project.id, path.relative(project.root, file))});
         }
-        const complete = outputs.length > 0 && translated === fields.length && captures === raws.size && layouts === raws.size && exported === outputs.length;
-        const next = translated < fields.length ? 'copy' : captures < raws.size ? 'capture' : layouts < raws.size ? 'layout' : exported < outputs.length ? 'export' : outputs.length ? 'review' : 'cards';
-        locales.push({locale, translated, fields: fields.length, captures, expectedCaptures: raws.size, layouts, exports: exported, expectedExports: outputs.length, complete, next});
+        const complete = requiredOutputs.length > 0 && translated === fields.length && captures === raws.size && layouts === raws.size && exported === requiredOutputs.length;
+        const next = translated < fields.length ? 'copy' : captures < raws.size ? 'capture' : layouts < raws.size ? 'layout' : exported < requiredOutputs.length ? 'export' : requiredOutputs.length ? 'review' : 'cards';
+        locales.push({locale, translated, fields: fields.length, captures, expectedCaptures: raws.size, layouts, exports: exported, expectedExports: requiredOutputs.length, complete, next});
         totals.fields += fields.length; totals.translated += translated; totals.captures += captures; totals.expectedCaptures += raws.size;
-        totals.layouts += layouts; totals.exports += exported; totals.expectedExports += outputs.length;
+        totals.layouts += layouts; totals.exports += exported; totals.expectedExports += requiredOutputs.length;
       }
       if (!base.previews.length) {
         for (const raw of [...raws].slice(0, 4)) {

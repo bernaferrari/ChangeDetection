@@ -49,3 +49,8 @@ test('element mode requires an explicit target rather than guessing by overlap',
   const {target, ...unpinned} = box;
   assert.equal(followCallout(unpinned, reference, reference), null);
 });
+
+test('single-capture shorthand preserves its frame override', async () => {
+  const {devicesFor} = await import('./gallery.js');
+  assert.deepEqual(devicesFor({raw:'home.png',frame:'none'}), [{raw:'home.png',frame:'none'}]);
+});

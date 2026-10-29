@@ -33,12 +33,18 @@ const defaultCopy = read(path.join(listing, defaultLocale, 'copy.json'), {});
     console.log(`Added ${locale}: fill ${path.relative(process.cwd(), file)} in the editor, and capture into ${locale}/raw/.`);
     return;
   }
-  const raws = new Set();
-  for (const kind of Object.keys(galleries)) for (const card of cardsFor(galleries, kind)) for (const d of devicesFor(card)) raws.add(d.raw);
+  const profiles = read(path.join(listing, 'profiles.json'), {});
+  const rawsFor = locale => new Set(Object.keys(galleries)
+    .filter(kind => locale === defaultLocale || !profiles[kind]?.defaultLocaleOnly)
+    .flatMap(kind => cardsFor(galleries, kind).flatMap(card => [
+      ...devicesFor(card).map(d => d.raw), ...(card.callouts || []).map(c => c.raw).filter(Boolean)
+    ])));
+  const raws = rawsFor(defaultLocale);
   const fields = Object.values(defaultCopy).reduce((n, f) => n + Object.keys(f).length, 0);
   console.log(`${raws.size} captures and ${fields} copy fields per locale (default ${defaultLocale})\n`);
   console.log('locale      words        captures     layout sidecars');
   for (const locale of config.locales || [defaultLocale]) {
+    const raws = rawsFor(locale);
     const copy = read(path.join(listing, locale, 'copy.json'), {});
     let done = 0;
     for (const [key, f] of Object.entries(defaultCopy)) for (const field of Object.keys(f)) if (copy[key]?.[field]?.trim()) done++;

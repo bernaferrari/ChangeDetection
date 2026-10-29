@@ -24,6 +24,7 @@ const galleries = JSON.parse(fs.readFileSync(path.join(listing, 'gallery.json'))
 const defaultLocale = config.defaultLocale || 'en-US';
 // Problems a person would otherwise catch by eye: warnings, errors under --strict.
 const problems = [];
+const staged = [];
 const problem = message => { problems.push(message); console.warn(`warning: ${message}`); };
 const images = /\.(jpe?g|png|webp)$/i;
 
@@ -99,11 +100,9 @@ const seamBreak = ([leftInner, leftOuter], [rightOuter, rightInner]) => {
         const {width, height} = profiles[kind];
         manifest.galleries[kind] = [];
         const edges = [];
-        const shots = laneShots(locale, kind);
-        if (shots) {
-          fs.mkdirSync(shots, {recursive: true});
-          for (const f of fs.readdirSync(shots)) if (images.test(f)) fs.rmSync(path.join(shots, f));
-        }
+        const destination = laneShots(locale, kind);
+        const shots = destination ? fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'studio-fastlane-')) : null;
+        if (shots) staged.push({shots, destination});
         for (const [i, slide] of slides.entries()) {
           const file = outputFile(kind, slide, i);
           // studio.json "supersample": 2 renders at twice the resolution and downsamples, which keeps rotated and
@@ -232,4 +231,10 @@ const seamBreak = ([leftInner, leftOuter], [rightOuter, rightInner]) => {
   if (problems.length) console.log(`\n${problems.length} warning(s):\n${problems.map(p => `  ${p}`).join('\n')}`);
   if (failures) throw new Error(`--strict: ${failures} locale(s) still borrow ${defaultLocale} words, captures or callout positions`);
   if (strict && problems.length) throw new Error(`--strict: ${problems.length} warning(s) above`);
-})().catch(error => { console.error(error.message || error); process.exitCode = 1; });
+  for (const {shots, destination} of staged) {
+    fs.mkdirSync(destination, {recursive: true});
+    for (const f of fs.readdirSync(destination)) if (images.test(f)) fs.rmSync(path.join(destination, f));
+    for (const f of fs.readdirSync(shots)) fs.copyFileSync(path.join(shots, f), path.join(destination, f));
+    fs.rmSync(shots, {recursive: true, force: true});
+  }
+})().catch(error => { for (const {shots} of staged) fs.rmSync(shots, {recursive: true, force: true}); console.error(error.message || error); process.exitCode = 1; });
