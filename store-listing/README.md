@@ -11,11 +11,11 @@ The set lives in the app icon's world. One cobalt field with soft light runs und
 Sample pages use reserved `.example` addresses and local content; nothing touches the network. On the shared `Resizable_Experimental` emulator (`emulator-5578`), the one every app captures on:
 
 ```sh
-./gradlew :shared:assembleAndroidDeviceTest
-python3 store-listing/capture-emulator.py --serial emulator-5578
+node store-listing/studio/recapture.cjs              # build, capture every language and size, export
+node store-listing/studio/recapture.cjs de-DE --profile phone --no-build
 ```
 
-For each device profile and theme the script sets display size and density, Android night mode, gesture navigation and System UI demo mode (9:41, full battery and Wi-Fi), runs `StoreCaptureTest`, and pulls full-display PNGs into `en-US/raw/<profile>/<theme>/`. `--profile` and `--theme` limit a run. Display overrides and demo mode are reset afterwards. `--apk /path/to/shared-androidTest.apk` selects an isolated build output when another build uses the checkout. If the emulator refuses the install for low storage, lower its threshold with `adb shell settings put global sys_storage_threshold_percentage 1`.
+`studio.json` → `capture` lists the build and the capture runs (Blue palette; English also gets the dark phone and both tablets). `capture-emulator.py` runs one language and profile: for each theme the studio's `capture.py` sets display size and density, Android night mode, gesture navigation and System UI demo mode (9:41, full battery and Wi-Fi), runs `StoreCaptureTest`, and pulls full-display PNGs into `en-US/raw/<profile>/<theme>/`. `--profile` and `--theme` limit a run. Display overrides and demo mode are reset afterwards. `--apk /path/to/shared-androidTest.apk` selects an isolated build output when another build uses the checkout. A low-storage install failure is retried after uninstalling the old test APK.
 
 ## Preview and export
 
@@ -39,7 +39,7 @@ Capture English first, then pass `--locale de-DE` to the capture script. It sets
 
 Open the editor with `node store-listing/studio/server.cjs 8790`. Use **Cards**, **Languages**, and **Copy**; Copy saves directly to the selected language's file (Cmd/Ctrl+Enter also saves). Pick callouts on English captures; matching localized layout nodes move them. Headline copy shrinks to fit down to 72%, with script-specific font fallbacks.
 
-Render one completed language with `node store-listing/studio/export.cjs --locale de-DE --strict` (set `PLAYWRIGHT_MODULE` if needed). `--kind phone` limits the gallery. Missing words or images borrow English and are flagged. A callout that cannot follow its UI element is flagged too; `--strict` rejects those three conditions. Draft locales should fail strict checks until translated and captured. README images continue to use English assets. Every capture is in the app's Blue palette; `store-listing/recapture.sh` rebuilds, recaptures every language and size on the emulator, and exports everything. Nothing is uploaded or published by this workflow.
+Render one completed language with `node store-listing/studio/export.cjs --locale de-DE --strict` (set `PLAYWRIGHT_MODULE` if needed). `--kind phone` limits the gallery. Missing words or images borrow English and are flagged. A callout that cannot follow its UI element is flagged too; `--strict` rejects those three conditions. Draft locales should fail strict checks until translated and captured. README images continue to use English assets. Every capture is in the app's Blue palette; `node store-listing/studio/recapture.cjs` rebuilds, recaptures every language and size on the emulator, and exports everything. Nothing is uploaded or published by this workflow.
 
 ### Multiple projects
 

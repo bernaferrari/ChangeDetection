@@ -11,5 +11,46 @@
     "zh-CN"
   ],
   "defaultLocale": "en-US",
-  "supersample": 2
+  "supersample": 2,
+  "capture": {
+    "build": "./gradlew :shared:assembleAndroidDeviceTest -q",
+    "runs": [
+      {
+        "args": [
+          "--palette",
+          "BLUE",
+          "--theme",
+          "light"
+        ],
+        "profiles": [
+          "phone"
+        ]
+      },
+      {
+        "args": [
+          "--palette",
+          "BLUE",
+          "--theme",
+          "dark"
+        ],
+        "profiles": [
+          "phone"
+        ],
+        "locales": "default"
+      },
+      {
+        "args": [
+          "--palette",
+          "BLUE",
+          "--theme",
+          "light"
+        ],
+        "profiles": [
+          "tablet7",
+          "tablet10"
+        ],
+        "locales": "default"
+      }
+    ]
+  }
 }
