@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- The ChangeDetection mark: scan corners around a page with one line highlighted. -->
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:pathData="M2.5,7 V5 A2.5,2.5 0,0 1,5,2.5 H7 M17,2.5 H19 A2.5,2.5 0,0 1,21.5,5 V7 M21.5,17 V19 A2.5,2.5 0,0 1,19,21.5 H17 M7,21.5 H5 A2.5,2.5 0,0 1,2.5,19 V17" android:strokeColor="#FFFFFFFF" android:strokeWidth="1.9" android:strokeLineCap="round" android:strokeLineJoin="round" />
-    <path android:pathData="M7,8.2 H17 M7,16.4 H13.5" android:strokeColor="#FFFFFFFF" android:strokeWidth="1.5" android:strokeLineCap="round" />
-    <path android:fillType="evenOdd" android:fillColor="#FFFFFFFF" android:pathData="M6.2,10.9 L17.9,10.5 L18.1,14 L6,14.4 Z M8,12.15 H14.6 A0.45,0.45 0,0 1,14.6,13.05 H8 A0.45,0.45 0,0 1,8,12.15 Z" />
-</vector>

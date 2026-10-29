@@ -1,0 +1,18 @@
+{
+  "android": {"res": "shared/src/androidMain/res", "legacy": true},
+  "files": [
+    {"path": "shared/src/androidMain/res/drawable-mdpi/splash_icon.png", "size": 96, "shape": "mark"},
+    {"path": "shared/src/androidMain/res/drawable-hdpi/splash_icon.png", "size": 144, "shape": "mark"},
+    {"path": "shared/src/androidMain/res/drawable-xhdpi/splash_icon.png", "size": 192, "shape": "mark"},
+    {"path": "shared/src/androidMain/res/drawable-xxhdpi/splash_icon.png", "size": 288, "shape": "mark"},
+    {"path": "shared/src/androidMain/res/drawable-xxxhdpi/splash_icon.png", "size": 384, "shape": "mark"},
+    {"path": "iosApp/iosApp/AppIcon.icon", "apple": {"Background": "background", "ChangedPage": "page", "ScanCorners": "corners"}},
+    {"path": "shared/src/desktopMain/resources/app_icon.png", "size": 1024, "shape": "rounded"},
+    {"path": "shared/src/desktopMain/icons/AppIcon.icns", "shape": "rounded"},
+    {"path": "shared/src/desktopMain/icons/AppIcon.ico", "shape": "rounded"},
+    {"path": "website/app/icon.png", "size": 512, "shape": "square"},
+    {"path": "website/app/apple-icon.png", "size": 180, "shape": "square"},
+    {"path": "website/public/logo.png", "size": 512, "shape": "square"},
+    {"path": "webDemo/src/wasmJsMain/resources/icon.png", "size": 512, "shape": "square"}
+  ]
+}

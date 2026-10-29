@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
+  <!-- The mark in one colour, for themed icons: the highlight is solid, its line cut out. -->
+  <g transform="translate(54 54) scale(.9) translate(-54 -54)" fill="#ffffff">
+    <g fill="none" stroke="#ffffff" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M30.5 41V36.5a6.5 6.5 0 0 1 6.5-6.5h4.5"/><path d="M66.5 30h4.5a6.5 6.5 0 0 1 6.5 6.5V41"/>
+      <path d="M77.5 67v4.5a6.5 6.5 0 0 1-6.5 6.5h-4.5"/><path d="M41.5 78h-4.5a6.5 6.5 0 0 1-6.5-6.5V67"/>
+    </g>
+    <rect x="39" y="42" width="30" height="4.6" rx="2.3"/>
+    <path fill-rule="evenodd" d="M37.6 51.6 L70.6 50.4 L71.2 61.2 L37 62.4 Z M42.8 54.6 H61.2 A1.8 1.8 0 0 1 61.2 58.2 H42.8 A1.8 1.8 0 0 1 42.8 54.6 Z"/>
+    <rect x="39" y="66.4" width="20" height="4.6" rx="2.3"/>
+  </g>
+</svg>

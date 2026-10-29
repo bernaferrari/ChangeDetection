@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
+  <!-- The page inside: two lines of text and one marked with the app's yellow highlighter. -->
+  <defs><filter id="glow" x="-30%" y="-80%" width="160%" height="260%"><feDropShadow dx="0" dy="0" stdDeviation="1.4" flood-color="#ffd94d" flood-opacity=".5"/></filter></defs>
+  <g transform="translate(54 54) scale(.9) translate(-54 -54)">
+    <rect x="39" y="42" width="30" height="4.6" rx="2.3" fill="#ffffff" opacity=".5"/>
+    <path d="M37.6 51.6 L70.6 50.4 L71.2 61.2 L37 62.4 Z" fill="#ffd94d" filter="url(#glow)"/>
+    <rect x="41" y="54.6" width="22" height="3.6" rx="1.8" fill="#1d48d0"/>
+    <rect x="39" y="66.4" width="20" height="4.6" rx="2.3" fill="#ffffff" opacity=".5"/>
+  </g>
+</svg>

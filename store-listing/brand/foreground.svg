@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
+  <!-- The whole mark: the scan corners around the highlighted page (corners.svg and page.svg together). -->
+  <image href="corners.svg" width="108" height="108"/>
+  <image href="page.svg" width="108" height="108"/>
+</svg>

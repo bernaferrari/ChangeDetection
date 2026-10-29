@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108">
+  <!-- The app's blue, with a soft light at the top left. -->
+  <defs>
+    <linearGradient id="blue" x1="18" y1="18" x2="90" y2="90" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#4f8cff"/><stop offset="1" stop-color="#1d48d0"/></linearGradient>
+    <radialGradient id="shine" cx="40" cy="30" r="60" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffffff" stop-opacity=".18"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="108" height="108" fill="url(#blue)"/>
+  <rect width="108" height="108" fill="url(#shine)"/>
+</svg>
