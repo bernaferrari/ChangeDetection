@@ -25,6 +25,32 @@ h1 ins{text-decoration:none}
 
 .callout{position:absolute;z-index:4;background-repeat:no-repeat}
 
+/* README art (the "readme" gallery, 2400 x 1260): default positions for the shared layouts. Themes restyle them and
+   move anything by repeating a selector. */
+/* Name banner: the app icon beside its name, with an optional tagline under the name, centred at the top. */
+.identity{position:absolute;z-index:5;left:0;right:0;top:80px;display:grid;grid-template-columns:auto auto;justify-content:center;align-items:center;column-gap:40px}
+.identity img{grid-row:span 2;display:block;width:168px;height:168px;border-radius:24%}
+.identity span{font-size:136px;font-weight:700;line-height:1}
+.identity small{font-size:44px;margin-top:12px}
+.identity em{font-style:normal}
+/* Hero (or fan): three phones, the middle one raised and in front; lower under a name banner (.named). */
+.readme :is(.hero,.fan) .left{left:250px;top:330px;width:540px}
+.readme :is(.hero,.fan) :is(.center,.middle){left:890px;top:150px;width:620px;z-index:3}
+.readme :is(.hero,.fan) .right{left:1610px;top:330px;width:540px}
+.readme :is(.hero,.fan).named .left,.readme :is(.hero,.fan).named .right{top:480px}
+.readme :is(.hero,.fan).named :is(.center,.middle){top:360px}
+/* Trio: a centred headline, then three equal phones (roles one, two, three), each under a short caption. */
+.readme .trio header{left:0;right:0;top:118px;text-align:center}
+.readme .trio .device{width:600px;top:420px}
+.readme .trio .one{left:150px}
+.readme .trio .two{left:900px}
+.readme .trio .three{left:1650px}
+.readme .trio .device-label{transform:translateY(calc(-100% - 26px));display:flex;justify-content:center;white-space:nowrap;font-size:52px;line-height:1}
+/* Spread: the headline on the left, a landscape tablet running off the right edge, a phone stepping in front. */
+.readme .spread header{left:150px;right:auto;top:0;bottom:0;width:720px;display:flex;flex-direction:column;justify-content:center}
+.readme .spread .device-landscape{left:1020px;top:150px;width:1600px}
+.readme .spread .device-portrait{left:900px;top:520px;width:420px;z-index:4}
+
 .fit-scene,.fit-scene body{width:100%;height:100%;overflow:hidden}.fit-scene .campaign{position:absolute}
 
 /* Scripts the apps' Latin fonts don't cover. Themes end their font stacks with var(--script-font), so

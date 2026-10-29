@@ -52,5 +52,32 @@
         "locales": "default"
       }
     ]
+  },
+  "identity": {
+    "icon": "../website/public/logo.png"
+  },
+  "frames": {
+    "phone": {
+      "bezel": 0.02,
+      "radius": 0.09
+    },
+    "tablet": {
+      "bezel": 0.02,
+      "radius": 0.09
+    },
+    "landscape": {
+      "bezel": 0.011,
+      "radius": 0.035
+    }
+  },
+  "bounds": {
+    "layouts": {
+      "turbo": {
+        "top": true
+      },
+      "tablet10": {
+        "cut": true
+      }
+    }
   }
 }

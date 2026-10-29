@@ -13,6 +13,9 @@ function field(W, H) {
 const stroke = colour => `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><path d='M1.2 6 L98.6 2 L100 48 L98.8 97 L0.6 99 L0 52 Z' fill='${colour}'/></svg>`)}")`;
 
 export default {
+  // Every card shares the same field, so the strip joins at every seam.
+  continuous: true,
+
   art({W, H}) {
     return field(W, H);
   },
@@ -22,23 +25,5 @@ export default {
     main.style.setProperty('--ink', V.ink);
     main.style.setProperty('--em-ink', V.em);
     main.style.setProperty('--body', V.body);
-    // The README's first image is the app's name card: icon and name, large, over the real app; nothing else.
-    if (slide.identity) {
-      main.querySelector('header')?.remove();
-      const id = document.createElement('div');
-      id.className = 'identity';
-      id.dataset.checkBounds = '';
-      id.innerHTML = '<img src="../../website/public/logo.png" alt="">ChangeDetection';
-      main.append(id);
-    }
-  },
-
-  /** Bezel and corners scale with the device width. */
-  layout({main}) {
-    for (const node of main.querySelectorAll('.device')) {
-      const image = node.querySelector('img'), width = node.clientWidth, landscape = image.naturalWidth > image.naturalHeight;
-      node.style.setProperty('--bezel', `${Math.round(width * (landscape ? .011 : .02))}px`);
-      node.style.setProperty('--radius', `${Math.round(width * (landscape ? .035 : .09))}px`);
-    }
   }
 };

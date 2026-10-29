@@ -94,6 +94,26 @@ const devices = devicesFor(slide).map((spec, i) => {
 });
 const capture = devices[0]?.img;
 
+// A README name banner: `"identity": true` (or {icon, name}) on a card swaps its headline for the app icon, the
+// app's name and an optional tagline (the card's `tagline` copy, with *highlight*). studio.json "identity" sets the
+// defaults: icon (from store-listing/, default brand/icon.png) and name (default "app").
+if (slide.identity) {
+  const spec = {icon: 'brand/icon.png', name: config.app, ...config.identity, ...(typeof slide.identity === 'object' ? slide.identity : {})};
+  main.querySelector('header')?.remove();
+  const id = document.createElement('div');
+  id.className = 'identity';
+  id.dataset.checkBounds = '';
+  const name = Object.assign(document.createElement('span'), {textContent: spec.name});
+  id.append(Object.assign(document.createElement('img'), {src: `../${spec.icon}`, alt: ''}), name);
+  if (slide.tagline) {
+    const small = document.createElement('small');
+    slide.tagline.split(/(\*[^*]+\*)/).filter(Boolean).forEach(part => small.append(
+      part.startsWith('*') ? Object.assign(document.createElement('em'), {textContent: part.slice(1, -1)}) : document.createTextNode(part)));
+    id.append(small);
+  }
+  main.append(id);
+}
+
 const art = main.querySelector('.art');
 art.setAttribute('viewBox', `0 0 ${W} ${H}`);
 const context = {W, H, kind, locale, defaultLocale, index, slide, slides, profile, profiles, config, main, art, capture};
@@ -117,6 +137,24 @@ const relative = element => {
   const canvas = main.getBoundingClientRect(), r = element.getBoundingClientRect();
   return {left: r.left - canvas.left, top: r.top - canvas.top, width: r.width, height: r.height};
 };
+// Layout words, the keys for per-layout settings below: the card's gallery kind, its feature and its `layout`
+// classes (the classes its CSS selects on).
+const layoutWords = [kind, slide.feature, ...(slide.layout || '').split(/\s+/).filter(Boolean)];
+// Frames scale with their width: bezel and corner radius as fractions of the frame width, per frame (phone,
+// tablet, browser) and for landscape captures in a phone or tablet frame. studio.json "frames" overrides any of
+// them; "fixed" lists layouts whose CSS sizes its own frames; "frames": false turns scaling off.
+const FRAMES = {phone: {bezel: .02, radius: .09}, tablet: {bezel: .018, radius: .05}, landscape: {bezel: .012, radius: .035}, fixed: []};
+const frames = config.frames === false ? null : {...FRAMES, ...config.frames};
+for (const d of devices) {
+  const frame = d.spec.frame || profile.frame || 'phone';
+  const landscape = d.img.naturalWidth > d.img.naturalHeight;
+  d.node.classList.add(landscape ? 'device-landscape' : 'device-portrait');
+  const ratio = frames && !layoutWords.some(w => frames.fixed.includes(w)) && frames[['phone', 'tablet'].includes(frame) && landscape ? 'landscape' : frame];
+  if (!ratio || frame === 'none') continue;
+  const width = d.node.clientWidth;
+  d.node.style.setProperty('--bezel', `${Math.round(width * ratio.bezel)}px`);
+  d.node.style.setProperty('--radius', `${Math.round(width * ratio.radius)}px`);
+}
 if (theme.layout) await theme.layout(context);
 context.devices = devices.map(d => ({...d, box: relative(d.node), screen: relative(d.node.querySelector('.screen'))}));
 // A device may carry a label (a before/after pair, say): a caption centred above the frame, styled by the theme.
@@ -131,6 +169,10 @@ for (const {spec, box} of context.devices) {
     part.startsWith('*') ? Object.assign(document.createElement('em'), {textContent: part.slice(1, -1)}) : document.createTextNode(part)));
   label.append(span);
   Object.assign(label.style, {left: `${box.left}px`, width: `${box.width}px`, top: `${box.top}px`});
+  // A theme can set a label under its frame instead: transform: translateY(calc(var(--device-height) + 30px)),
+  // or under the card's tallest frame (--tallest-device), so a row of labels lines up.
+  label.style.setProperty('--device-height', `${box.height}px`);
+  label.style.setProperty('--tallest-device', `${Math.max(...context.devices.map(d => d.box.height))}px`);
   main.append(label);
 }
 context.device = context.devices[0]?.box;
@@ -188,6 +230,34 @@ for (const [ci, c] of (slide.callouts || []).entries()) {
   main.append(el);
 }
 if (theme.decorate) await theme.decorate(context);
+
+// Device bounds. A frame keeps `margin` px from the sides and top, shows at least `visible` of itself, and a
+// landscape screen in a phone or tablet frame is never cut at the top or bottom. studio.json "bounds" sets these and, under "layouts", per
+// layout word, feature or gallery kind: {"sides": true} (may leave either side), {"right": true | 0.22} (may run off the
+// right, by any amount or by a fraction of its width), {"top": true} (may hang from the top), {"cut": true}
+// (landscape may be cut), {"visible": 0.45}, or false to skip the checks. A card's own "bounds" goes last.
+{
+  const {layouts: own, ...base} = {margin: 0, visible: .6, ...config.bounds};
+  // The README spread's tablet runs off the right edge by design.
+  const layouts = {spread: {right: true}, ...own};
+  const rules = [base, ...layoutWords.map(w => layouts[w]).filter(r => r !== undefined), slide.bounds].filter(r => r !== undefined);
+  if (!rules.includes(false)) {
+    const rule = Object.assign({}, ...rules), m = rule.margin;
+    for (const {box, spec} of context.devices) {
+      const frame = spec.frame || profile.frame || 'phone';
+      if (frame === 'none') continue;
+      const overRight = box.left + box.width - (W - m);
+      if (!rule.sides && (box.left < m - .5 || (overRight > .5 && !(rule.right === true || overRight / box.width <= (rule.right || 0)))))
+        throw new Error(`Screen leaves the side of the card: ${spec.raw}`);
+      if (!rule.top && box.top < m - .5) throw new Error(`Screen leaves the top of the card: ${spec.raw}`);
+      if ((Math.min(box.top + box.height, H) - Math.max(box.top, 0)) / box.height < rule.visible) throw new Error(`Too little of ${spec.raw} is visible`);
+      if (!rule.cut && ['phone', 'tablet'].includes(frame) && box.width > box.height && (box.top < -.5 || box.top + box.height > H + 1)) throw new Error(`Landscape tablet is cut: ${spec.raw}`);
+    }
+  }
+}
+// A theme with a background that runs across card seams says so (`continuous: true`, or a list of gallery kinds);
+// the exporter then checks that neighbouring cards' touching edges match.
+report.continuous = Array.isArray(theme.continuous) ? theme.continuous.includes(kind) : !!theme.continuous;
 
 // Auto-fit: longer languages shrink the copy (never below config.minFit, 0.72 by default) until every
 // headline line fits its column and the text clears the app views beside or below it.

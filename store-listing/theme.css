@@ -27,19 +27,17 @@ header p{margin:26px 0 0;font-size:40px;line-height:1.24;font-weight:400;letter-
 .device{z-index:2;--bezel:14px;--radius:70px;background:#ffffff;box-shadow:0 60px 110px -40px #001a66aa,0 18px 40px -20px #001a6666}
 
 /* Phone: every card shows the app at one size, running off the bottom. */
-.phone .device{left:84px;top:540px;width:912px;--radius:84px;--bezel:16px}
+.phone .device{left:84px;top:540px;width:912px}
 
 /* 7-inch portrait. */
 .tablet7 header{left:96px;right:96px}
 .tablet7 h1{font-size:132px}
-.tablet7 .device{--bezel:18px;--radius:52px}
 .tablet7 .one .primary{left:150px;top:580px;width:900px}
 
 /* 10-inch landscape: the headline centred above, then the app large, running off the bottom like the phone cards. */
 .tablet10 header{left:120px;right:120px;top:70px;text-align:center}
 .tablet10 h1{font-size:92px;letter-spacing:-3px}
 .tablet10 header p{margin:18px auto 0;font-size:34px;max-width:none}
-.tablet10 .device{--bezel:16px;--radius:44px}
 .tablet10 .one .primary{left:240px;top:380px;width:1440px}
 
 /* README art: the app in its Blue palette on the icon's blue. White type; the key words get the full-height butter
@@ -48,35 +46,30 @@ header p{margin:26px 0 0;font-size:40px;line-height:1.24;font-weight:400;letter-
 .readme h1 em,.readme .device-label em{padding:.01em .14em .07em;margin:0 .02em}
 .readme header p{font-size:40px;line-height:1.25}
 /* Identity: the app icon and name, centred above three phones in a gentle arc. */
-.readme .identity{position:absolute;z-index:5;left:0;right:0;top:70px;display:flex;align-items:center;justify-content:center;gap:34px;
-  font-size:130px;font-weight:700;letter-spacing:-5px;color:var(--ink)}
-.readme .identity img{width:150px;height:150px;border-radius:40px;display:block;box-shadow:0 0 0 8px #ffffff2e,0 24px 50px -16px #00000055}
-.readme .fan .device{--bezel:12px;--radius:66px;width:540px}
+.readme .identity{top:70px;column-gap:34px;color:var(--ink)}
+.readme .identity span{font-size:130px;letter-spacing:-5px;line-height:normal}
+.readme .identity img{width:150px;height:150px;border-radius:40px;box-shadow:0 0 0 8px #ffffff2e,0 24px 50px -16px #00000055}
+.readme .fan .device{width:540px}
 .readme .fan .left{left:270px;top:430px}
-.readme .fan .middle{left:930px;top:360px;z-index:3}
+.readme .fan .middle{left:930px;top:360px}
 .readme .fan .right{left:1590px;top:430px}
 /* Duo: the headline on the left, two phones stepping down on the right. */
 .readme .duo header{left:140px;right:auto;top:0;bottom:0;width:760px;display:flex;flex-direction:column;justify-content:center}
 .readme .duo h1{font-size:112px;line-height:1.12}
 .readme .duo header p{white-space:pre-line}
-.readme .duo .device{--bezel:12px;--radius:60px;width:540px}
+.readme .duo .device{width:540px}
 .readme .duo .back{left:1060px;top:110px}
 .readme .duo .front{left:1690px;top:300px}
 /* Trio: one headline, then equal phones in an even row, each under a short caption. */
-.readme .trio header{left:0;right:0;top:118px;text-align:center}
 .readme .trio h1{font-size:104px}
-.readme .trio .device{--bezel:12px;--radius:60px;width:600px;top:420px}
-.readme .trio .one{left:150px}
-.readme .trio .two{left:900px}
-.readme .trio .three{left:1650px}
-.readme .trio .device-label{transform:translateY(calc(-100% - 26px));text-align:center;font-size:52px;line-height:1;font-weight:480;letter-spacing:-1px;color:var(--ink)}
+.readme .trio .device-label{font-weight:480;letter-spacing:-1px;color:var(--ink)}
 .readme .trio .device-label em{font-weight:800}
 /* Spread: the headline on the left, a landscape tablet, and a phone in dark mode over its navigation rail. */
-.readme .spread header{left:110px;right:auto;top:0;bottom:0;width:500px;display:flex;flex-direction:column;justify-content:center}
+.readme .spread header{left:110px;width:500px}
 .readme .spread h1{font-size:88px;line-height:1.12}
 .readme .spread header p{white-space:pre-line}
-.readme .spread .slate{--bezel:16px;--radius:46px;left:930px;top:120px;width:1430px}
-.readme .spread .front{--bezel:12px;--radius:58px;left:620px;top:440px;width:390px;z-index:4;background:#1d1f27}
+.readme .spread .slate{left:930px;top:120px;width:1430px}
+.readme .spread .front{left:620px;top:440px;width:390px;background:#1d1f27}
 /* Turbo: the interval picker sits at the foot of its sheet, so this phone hangs from the top and the copy goes below. */
 .phone .turbo .device{top:-600px}
 .phone .turbo header{top:auto;bottom:150px}

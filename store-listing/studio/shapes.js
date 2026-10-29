@@ -16,6 +16,26 @@ export const panoramaGradient = ({index, W, slides}, id, colors) => {
   return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${-index * W}" x2="${(slides.length - index) * W}" y1="0" y2="0">${stops}</linearGradient>`;
 };
 
+/**
+ * Soft radial lights laid out over the whole strip, so every seam continues: each card draws every light, placed in
+ * panorama coordinates, and shows its own window of them. A light is {x, y, r, color, opacity} or, instead of
+ * opacity, `stops: [[offset, opacity], …]`: x in card widths, y as a fraction of the height, r as a fraction of the
+ * longer side. With `each` (the default) the lights describe one card and repeat on every card at k + x; with
+ * `each: false`, x runs along the whole strip. `alone: true` lays them out over this card only (README art, seen on
+ * its own). Returns SVG (gradients and the rects they fill) for a theme's art().
+ */
+export const panoramaLights = (ctx, lights, {id = 'light', each = true, alone = false} = {}) => {
+  const {W, H, slides} = ctx, unit = Math.max(W, H);
+  const cards = alone || !each ? [null] : slides.map((_, k) => k);
+  let defs = '', body = '';
+  cards.forEach(k => lights.forEach(({x, y, r, color, opacity = 1, stops = [[0, opacity], [1, 0]]}, i) => {
+    const cx = alone ? W * x : panoramaX(ctx, (k ?? 0) + x), name = `${id}${k ?? ''}_${i}`;
+    defs += `<radialGradient id="${name}" gradientUnits="userSpaceOnUse" cx="${cx}" cy="${H * y}" r="${unit * r}">${stops.map(([o, a]) => `<stop offset="${o}" stop-color="${color}" stop-opacity="${a}"/>`).join('')}</radialGradient>`;
+    body += `<rect width="${W}" height="${H}" fill="url(#${name})"/>`;
+  }));
+  return `<defs>${defs}</defs>${body}`;
+};
+
 const polar = (fn, cx, cy, radius, rotation = 0) => {
   const points = [];
   for (let i = 0; i < 1080; i++) {
