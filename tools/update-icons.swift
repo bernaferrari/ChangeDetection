@@ -105,20 +105,12 @@ try write("""
 try copy("artwork/app-icon/notification.xml", "\(res)/drawable/ic_notification_change.xml")
 // brand_mark.xml and brand_change.xml are mirrored by hand in ui/theme/BrandArt.kt (Kotlin vectors).
 
-// Split the glass artwork using the rounded page silhouette, not a rectangular cut.
-let page = CGMutablePath()
-page.move(to: CGPoint(x: 290, y: 769)); page.addLine(to: CGPoint(x: 735, y: 769))
-page.addQuadCurve(to: CGPoint(x: 830, y: 674), control: CGPoint(x: 830, y: 769))
-page.addLine(to: CGPoint(x: 830, y: 344))
-page.addQuadCurve(to: CGPoint(x: 735, y: 249), control: CGPoint(x: 830, y: 249))
-page.addLine(to: CGPoint(x: 290, y: 249))
-page.addQuadCurve(to: CGPoint(x: 195, y: 344), control: CGPoint(x: 195, y: 249))
-page.addLine(to: CGPoint(x: 195, y: 674))
-page.addQuadCurve(to: CGPoint(x: 290, y: 769), control: CGPoint(x: 195, y: 769))
-page.closeSubpath()
-let ratio = appleForegroundScale / 0.9
-var transform = CGAffineTransform(a: ratio, b: 0, c: 0, d: ratio, tx: 512 * (1 - ratio), ty: 512 * (1 - ratio))
-let silhouette = page.copy(using: &transform)!
+// Split the glass artwork into the scan corners and the page they frame: the page is everything inside the
+// corners (in foreground.png, 15-85% across and 27-81% down), drawn at the Apple scale in the 1024 layer.
+let markFrame = frame(1024, scale: appleForegroundScale)
+let pageRect = CGRect(x: markFrame.minX + markFrame.width * 0.15, y: markFrame.minY + markFrame.height * (1 - 0.81),
+                      width: markFrame.width * 0.70, height: markFrame.height * 0.54)
+let silhouette = CGPath(roundedRect: pageRect, cornerWidth: 28, cornerHeight: 28, transform: nil)
 let apple = "iosApp/iosApp/AppIcon.icon/Assets"
 try write(png(render(1024) { $0.draw(background, in: frame(1024)) }), "\(apple)/Background.png")
 for (name, corners) in [("ChangedPage", false), ("ScanCorners", true)] {
