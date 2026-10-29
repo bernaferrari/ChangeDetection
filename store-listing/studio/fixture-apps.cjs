@@ -4,7 +4,7 @@
  * icon and (optionally) the INTERNET permission, so firewalls, launchers and app pickers list them
  * through the real PackageManager with no fixture code in the app under test.
  *
- *   node store-listing/studio/fixture-apps.cjs store-listing/fixture-apps.json [--install emulator-5572] [--uninstall emulator-5572]
+ *   node store-listing/studio/fixture-apps.cjs store-listing/fixture-apps.json [--install emulator-5578] [--uninstall emulator-5578]
  *
  * Spec: {"apps": [{"package": "app.fernway.maps", "label": "Fernway Maps", "colors": ["#3fb27f", "#1e8a5c"],
  *         "glyph": "map", "tint": "#ffffff", "internet": true, "category": "maps"}]}
