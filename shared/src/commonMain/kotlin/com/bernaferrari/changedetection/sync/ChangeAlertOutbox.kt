@@ -19,7 +19,7 @@ import kotlin.time.Clock
 /**
  * At-least-once submission with stable platform replacement identities, not an exactly-once OS receipt.
  * A crash after OS submission but before acknowledgement can resubmit the same saved change. Both native
- * notifiers reuse the same site identity; Android's onlyAlertOnce also avoids a repeated audible update.
+ * notifiers reuse the same site identity; Android suppresses sound when that identity already shows this snapshot.
  */
 class ChangeAlertOutbox(
     private val pending: PendingChangeAlertDao,

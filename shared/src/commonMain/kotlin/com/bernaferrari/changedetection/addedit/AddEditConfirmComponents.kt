@@ -313,6 +313,9 @@ fun AddEditConfirmScreen(
         ) { reviewStep() }
     }
 
+    // Confirmation belongs to the entire flow, including the browser review step.
+    if (showUrlChangeDialog) AddressChangeDialog(onCancel, onKeepHistory, onStartFresh)
+
     if (browsing && validUrl) {
         Box(Modifier.fillMaxSize()) {
             WatchBrowser(
@@ -567,7 +570,6 @@ fun AddEditConfirmScreen(
 
         reviewOverlay(reviewing && !browsing)
     }
-    if (showUrlChangeDialog) AddressChangeDialog(onCancel, onKeepHistory, onStartFresh)
 }
 
 /** A quiet line of context under the options, with an icon saying what it is about. */

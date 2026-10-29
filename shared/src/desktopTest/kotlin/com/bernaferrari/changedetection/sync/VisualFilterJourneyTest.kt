@@ -97,17 +97,17 @@ class VisualFilterJourneyTest {
             assertFalse((capture(150) as SyncResult.Success).hadChanges)
             assertTrue((capture(200) as SyncResult.Success).hadChanges)
             assertEquals(2, notices.size)
-            // A resize is meaningful even if the filter would otherwise suppress the area.
-            assertTrue((capture(200, 101) as SyncResult.Success).hadChanges)
-            assertEquals(3, notices.size)
+            // Width changes obey the same percentage threshold.
+            assertFalse((capture(200, 101) as SyncResult.Success).hadChanges)
+            assertEquals(2, notices.size)
             val saved = requireNotNull(db.snapsDao().getLastSnapForSiteId(site.id))
             val healthy = requireNotNull(db.siteDao().getSiteById(site.id))
             val failure = engine.processFetchResult(healthy, SyncEngine.FetchResult.Success("image/png", byteArrayOf(1, 2, 3)))
             assertTrue(failure is SyncResult.Failed)
             assertEquals(saved, db.snapsDao().getLastSnapForSiteId(site.id))
             assertEquals(healthy.lastSuccessfulCheck, db.siteDao().getSiteById(site.id)?.lastSuccessfulCheck)
-            assertArrayEquals(png(101, 200), files.readBytes(saved.snapId))
-            assertEquals(3, notices.size)
+            assertArrayEquals(png(100, 200), files.readBytes(saved.snapId))
+            assertEquals(2, notices.size)
             val updated = requireNotNull(db.siteDao().getSiteById(site.id)).copy(visualChangeThresholdBps = 500)
             db.siteDao().updateSite(updated)
             assertTrue(engine.processFetchResult(healthy, SyncEngine.FetchResult.Success("image/png", png(101, 1000))) is SyncResult.Skipped)
@@ -115,10 +115,10 @@ class VisualFilterJourneyTest {
             db.siteDao().updateSite(updated.copy(visualChangeThresholdBps = 0))
             // With filtering disabled, even a tiny visible icon or digit change is retained.
             assertTrue((capture(201, 101) as SyncResult.Success).hadChanges)
-            assertEquals(4, notices.size)
+            assertEquals(3, notices.size)
             // Detailed regions remain useful for illustrating the saved change.
             assertTrue((engine.processFetchResult(requireNotNull(db.siteDao().getSiteById(site.id)), SyncEngine.FetchResult.Success("image/png", png(101, 201, detail = true))) as SyncResult.Success).hadChanges)
-            assertEquals(5, notices.size)
+            assertEquals(4, notices.size)
         } finally {
             client.close()
             db.close()

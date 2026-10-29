@@ -18,6 +18,20 @@ class VisualRegionsTest {
         return rows.flatMap { it.asList() }.toIntArray() to rows.size
     }
 
+    @Test fun alignedPixelCountsPreserveTheExactOnePercentBoundary() {
+        val width = 100
+        val height = 100
+        val before = IntArray(width * height) { white }
+        for (count in listOf(99, 100, 101)) {
+            val after = before.copyOf()
+            repeat(count) { i -> after[(40 + i / 10) * width + 40 + i % 10] = ink }
+            val change = requireNotNull(VisualRegions.compare(before, height, after, height, width))
+            assertEquals(count.toLong(), change.alignedDifferentPixels)
+            assertEquals(10_000L, change.alignedTotalPixels)
+            assertEquals(count >= 100, change.alignedDifferentPixels * 10_000 >= change.alignedTotalPixels * 100)
+        }
+    }
+
     @Test fun contentPushedDownIsNotAChange() {
         val (before, bh) = page(40, listOf(1, 2, 3, 4, 5))
         val (after, ah) = page(40, listOf(9, 1, 2, 3, 4, 5))

@@ -475,6 +475,46 @@ class AddEditViewModelTest {
         assertTrue(manager.reloaded.isEmpty())
     }
 
+    @Test fun `a fresh live capture replaces a cached preview at the same address`() = runTest {
+        val visible = CapturePreview.Html("Updated page", 12)
+        var kept: CapturePreview? = null
+        val previewer = object : CapturePreviewer {
+            override suspend fun capture(url: String, mode: com.bernaferrari.changedetection.repo.CaptureMode) = CapturePreview.Html("Old page", 8)
+            override suspend fun keepAsFirstVersion(site: Site, preview: CapturePreview): Boolean {
+                kept = preview
+                return true
+            }
+        }
+        val editor = createViewModel(previewer = previewer)
+        editor.setUrl("example.com")
+        editor.requestPreview()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        editor.dismissPreview()
+        editor.requestLivePreview { visible }
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        editor.saveSite()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        org.junit.Assert.assertSame(visible, kept)
+    }
+
+    @Test fun `cached preview freshness expires at ten minutes`() {
+        val preview = CapturePreviewState.Ready(CapturePreview.Html("Page", 4))
+        assertTrue(preview.isFresh(preview.capturedAt + 10 * 60 * 1000L - 1))
+        assertFalse(preview.isFresh(preview.capturedAt + 10 * 60 * 1000L))
+        assertFalse(preview.isFresh(preview.capturedAt - 1))
+    }
+
+    @Test fun `reopening a cached preview preserves its original capture age`() = runTest {
+        val editor = createViewModel()
+        editor.setUrl("example.com")
+        editor.requestPreview()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        val captured = editor.uiState.value.preview
+        editor.dismissPreview()
+        editor.requestPreview()
+        org.junit.Assert.assertSame(captured, editor.uiState.value.preview)
+    }
+
     @Test fun `changing the address or region invalidates the browser capture`() = runTest {
         val editor = createViewModel()
         editor.setUrl("example.com")

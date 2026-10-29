@@ -39,6 +39,9 @@ sealed interface CapturePreviewState {
     data class Ready(val content: CapturePreview) : CapturePreviewState {
         /** When it was taken, to judge if it can still be a new page's first version; not part of equality. */
         val capturedAt: Long = kotlin.time.Clock.System.now().toEpochMilliseconds()
+
+        internal fun isFresh(now: Long = kotlin.time.Clock.System.now().toEpochMilliseconds()): Boolean =
+            now - capturedAt in 0 until FIRST_VERSION_MAX_AGE_MS
     }
     data class Failed(val reason: PreviewFailure) : CapturePreviewState
 }
@@ -102,9 +105,9 @@ class AddEditViewModel(
 
     /** Finished previews for this editor, so switching back to a format shows its preview again instead of reloading the page. */
     private data class PreviewKey(val url: String, val mode: com.bernaferrari.changedetection.repo.CaptureMode, val region: com.bernaferrari.changedetection.detection.TextRegion)
-    private val previewCache = mutableMapOf<PreviewKey, CapturePreview>()
+    private val previewCache = mutableMapOf<PreviewKey, CapturePreviewState.Ready>()
 
-    private fun cachedPreview(state: AddEditUiState): CapturePreview? = state.url.normalizeUrl()?.let { previewCache[PreviewKey(it, state.captureMode, state.textRegion)] }
+    private fun cachedPreview(state: AddEditUiState): CapturePreviewState.Ready? = state.url.normalizeUrl()?.let { previewCache[PreviewKey(it, state.captureMode, state.textRegion)]?.takeIf { preview -> preview.isFresh() } }
 
     fun dismissPreview() {
         previewGeneration++
@@ -127,9 +130,13 @@ class AddEditViewModel(
             return
         }
         dismissPreview()
-        cachedPreview(state)?.let { cached ->
-            _uiState.update { it.copy(preview = CapturePreviewState.Ready(cached)) }
-            return
+        // Returning to a format may reuse its sample; explicitly capturing the open browser
+        // must reflect its current state even when the URL and selectors have not changed.
+        if (liveCapture == null) {
+            cachedPreview(state)?.let { cached ->
+                _uiState.update { it.copy(preview = cached) }
+                return
+            }
         }
         val key = PreviewKey(url, state.captureMode, state.textRegion)
         val generation = previewGeneration
@@ -154,14 +161,15 @@ class AddEditViewModel(
                     }
                 }
                 val content = live ?: previewer.capture(url, state.captureMode, state.textRegion)
-                previewCache[key] = content
+                val ready = CapturePreviewState.Ready(content)
+                previewCache[key] = ready
                 if (generation == previewGeneration) {
                     // A page's own first heading names it better than its host; never override a typed name.
                     val heading = (content as? CapturePreview.Html)?.pageTitle ?: (content as? CapturePreview.Image)?.pageTitle
                     val icon = (content as? CapturePreview.Html)?.pageIcon ?: (content as? CapturePreview.Image)?.pageIcon
                     _uiState.update {
                         it.copy(
-                            preview = CapturePreviewState.Ready(content),
+                            preview = ready,
                             iconUrl = icon ?: it.iconUrl,
                             title = if (!titleEditedByUser && heading != null) heading else it.title,
                         )
@@ -308,7 +316,7 @@ class AddEditViewModel(
         if (mode != _uiState.value.captureMode) dismissPreview()
         _uiState.update { it.copy(captureMode = mode, regionError = false) }
         // A format seen before shows its preview at once; the editor's request for a fresh one then finds it too.
-        cachedPreview(_uiState.value)?.let { cached -> _uiState.update { it.copy(preview = CapturePreviewState.Ready(cached)) } }
+        cachedPreview(_uiState.value)?.let { cached -> _uiState.update { it.copy(preview = cached) } }
     }
 
     fun setVisualChangeThreshold(basisPoints: Int) {
@@ -490,7 +498,7 @@ class AddEditViewModel(
                 sitesRepository.saveSite(baseSite, resetHistory = startFresh && existingSite != null, requireExisting = siteId != null)
                 // Any edit to the address, mode or parts discards the preview, so a ready one shows exactly this page.
                 val firstVersion = ((if (pendingLivePreview != null) _uiState.value.preview else state.preview) as? CapturePreviewState.Ready)
-                    ?.takeIf { siteId == null && kotlin.time.Clock.System.now().toEpochMilliseconds() - it.capturedAt < FIRST_VERSION_MAX_AGE_MS }
+                    ?.takeIf { siteId == null && it.isFresh() }
                     ?.content
 
                 // The page was just captured for the preview; keep that as its first version instead of loading

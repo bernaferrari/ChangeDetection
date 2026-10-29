@@ -109,6 +109,20 @@ internal class AlertFixture : AutoCloseable {
 }
 
 class NotificationPreviewTest {
+    @Test fun newSavedChangesAlertWhileRetriesRemainSilentAcrossNotifierRecreation() = runBlocking {
+        AlertFixture().use { f ->
+            AndroidChangeNotifier(f.context) { _, _ -> null }.notifyChange(f.site, f.oldestId)
+            val first = f.alert()
+            assertEquals(0, first.flags and Notification.FLAG_ONLY_ALERT_ONCE)
+            AndroidChangeNotifier(f.context) { _, _ -> null }.notifyChange(f.site, f.oldestId)
+            f.alert { it.flags and Notification.FLAG_ONLY_ALERT_ONCE != 0 }
+            AndroidChangeNotifier(f.context) { _, _ -> null }.notifyChange(f.site, f.newestId)
+            val next = f.alert { it.contentIntent != first.contentIntent }
+            assertEquals(0, next.flags and Notification.FLAG_ONLY_ALERT_ONCE)
+            assertEquals(1, f.manager.activeNotifications.count { it.tag == f.site.id })
+        }
+    }
+
     @Test fun savedImageIsOffByDefaultAndAppearsOnlyAfterExplicitOptIn() = runBlocking {
         AlertFixture().use { f ->
             assertFalse(f.prefs.value[NotificationPreferences.IMAGE_PREVIEWS] ?: false)

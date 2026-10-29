@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Bundle
 import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -48,6 +49,13 @@ class AndroidChangeNotifier internal constructor(
         }
 
         createChannel()
+        // The OS retains this identity across process recreation. Suppress a retry of the
+        // same snapshot, while a genuinely newer version may alert under the same site tag.
+        val repeatedSnapshot = context.getSystemService(NotificationManager::class.java)
+            .activeNotifications.any {
+                it.tag == site.id && it.id == NOTIFICATION_ID &&
+                    it.notification.extras.getString(ChangeNotificationContract.EXTRA_SNAP_ID) == snapId
+            }
 
         // Full site tags keep alerts independent even when IDs have identical hashes.
         // Each immutable tap token identifies the snapshot displayed by that alert.
@@ -82,7 +90,8 @@ class AndroidChangeNotifier internal constructor(
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification_change)
             .setContentTitle(context.getString(R.string.change_notification_named, siteLabel))
-            .setOnlyAlertOnce(true)
+            .setOnlyAlertOnce(repeatedSnapshot)
+            .addExtras(Bundle().apply { putString(ChangeNotificationContract.EXTRA_SNAP_ID, snapId) })
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
             .setContentIntent(contentIntent)

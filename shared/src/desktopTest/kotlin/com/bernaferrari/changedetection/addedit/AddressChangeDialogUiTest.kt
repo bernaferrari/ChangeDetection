@@ -13,6 +13,33 @@ import org.junit.Test
 class AddressChangeDialogUiTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun addressConfirmationIsVisibleWhileReviewingAPage() {
+        var editing by mutableStateOf(false)
+        var confirm by mutableStateOf(false)
+        var kept = 0
+        compose.setContent {
+            CompositionLocalProvider(LocalBrowserAvailable provides false, com.bernaferrari.changedetection.ui.kit.LocalPageIcons provides false) {
+                ChangeDetectionTheme {
+                    AddEditConfirmScreen(
+                        url = "https://example.test/changed", urlError = null, title = "Page",
+                        captureMode = com.bernaferrari.changedetection.repo.CaptureMode.TEXT,
+                        isEditing = editing, isSaving = false, saveError = null,
+                        onUrlChange = {}, onTitleChange = {}, onNavigateUp = {},
+                        onSave = { confirm = true }, showUrlChangeDialog = confirm,
+                        onKeepHistory = { kept++ },
+                    )
+                }
+            }
+        }
+        compose.onNodeWithText("Open page").performClick()
+        // The same review branch is used after an existing page's browser picker returns.
+        compose.runOnIdle { editing = true }
+        compose.onNodeWithText("Save").performClick()
+        compose.onNodeWithText("Keep history").assertIsDisplayed()
+        compose.onNodeWithText("Continue").performClick()
+        compose.runOnIdle { assertEquals(1, kept) }
+    }
+
     @Test fun defaultConfirmationKeepsHistoryAndSelectionAloneDoesNotResetIt() {
         var kept = 0
         var reset = 0

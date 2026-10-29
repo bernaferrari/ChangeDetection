@@ -38,6 +38,9 @@ data class VisualChange(
     val moved: Boolean = false,
     /** Verified areas, including flat ones too blank to be worth a card in [regions]. Checks use this when [moved]. */
     val visible: Boolean = regions.isNotEmpty(),
+    /** Residual pixel evidence after row alignment; used when movement or resizing invalidates raw coordinates. */
+    val alignedDifferentPixels: Long = 0,
+    val alignedTotalPixels: Long = 0,
 )
 
 /**
@@ -154,12 +157,51 @@ internal object VisualRegions {
         fun hasContent(start: Int, count: Int, blank: BooleanArray) = (start until minOf(start + count, blank.size)).any { !blank[it] }
         val moved = alignment.runs.any { it.sourceStart != it.targetStart && hasContent(it.sourceStart, it.length, beforeBlank) } ||
             alignment.gaps.any { it.sourceCount != it.targetCount && (hasContent(it.sourceStart, it.sourceCount, beforeBlank) || hasContent(it.targetStart, it.targetCount, afterBlank)) }
+        // Count evidence in aligned coordinates, before presentation crops are grown. A moved page must not
+        // contribute its displacement to the percentage of content that actually changed.
+        fun verifiedAt(row: Int, source: Boolean): Boolean = verified.any { region ->
+            val top = if (source) region.beforeTop else region.afterTop
+            val bottom = if (source) region.beforeBottom else region.afterBottom
+            val height = if (source) beforeHeight else afterHeight
+            row >= (top * height).roundToInt() && row < (bottom * height).roundToInt()
+        }
+        var alignedDifferences = 0L
+        alignment.runs.forEach { run ->
+            for (r in 0 until run.length) {
+                checkCancelled()
+                val b = run.sourceStart + r
+                val a = run.targetStart + r
+                if (!verifiedAt(a, false)) continue
+                for (x in 0 until width) {
+                    if (pixels.changed(before[b * width + x], after[a * width + x]) &&
+                        stillDifferent(before, beforeHeight, b, after, afterHeight, a, x, width)
+                    ) alignedDifferences++
+                }
+            }
+        }
+        alignment.gaps.forEach { gap ->
+            for (r in 0 until maxOf(gap.sourceCount, gap.targetCount)) {
+                checkCancelled()
+                val b = gap.sourceStart + r
+                val a = gap.targetStart + r
+                val hasBefore = r < gap.sourceCount && verifiedAt(b, true)
+                val hasAfter = r < gap.targetCount && verifiedAt(a, false)
+                if (!hasBefore && !hasAfter) continue
+                for (x in 0 until width) {
+                    val old = if (hasBefore) before[b * width + x] else 0xffffffff.toInt()
+                    val new = if (hasAfter) after[a * width + x] else 0xffffffff.toInt()
+                    if (pixels.changed(old, new)) alignedDifferences++
+                }
+            }
+        }
         return VisualChange(
             regions = merged.sortedByDescending { it.weight }.take(MAX_REGIONS).sortedBy { if (it.kind == VisualRegion.Kind.Removed) it.beforeTop else it.afterTop },
             changedShare = (changedRows.toFloat() / afterHeight).coerceIn(0f, 1f),
             heightDelta = (afterHeight - beforeHeight).toFloat() / beforeHeight,
             moved = moved,
             visible = verified.isNotEmpty(),
+            alignedDifferentPixels = alignedDifferences,
+            alignedTotalPixels = width.toLong() * maxOf(beforeHeight, afterHeight),
         )
     }
 

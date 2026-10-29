@@ -379,9 +379,13 @@ open class SyncEngine(
                     if (difference.error != null || (difference.totalPixels <= 0 && difference.dimensionMismatch == null)) {
                         throw ContentError(ContentError.Reason.UNKNOWN)
                     }
-                    val enoughPixels = difference.dimensionMismatch != null || difference.differentPixels * 10_000 >= difference.totalPixels * visualThreshold
-                    // Same rule as without a threshold: content that only moved is not a change, however many pixels moved.
-                    enoughPixels && (difference.visualChange ?: com.bernaferrari.changedetection.image.computeVisualChange(baseline, result.data, opaqueWhiteBackdrop = result.capturedWithBrowser))?.let { !it.moved || it.visible } != false
+                    val areas = difference.visualChange ?: com.bernaferrari.changedetection.image.computeVisualChange(baseline, result.data, opaqueWhiteBackdrop = result.capturedWithBrowser)
+                    if (areas != null && (areas.moved || difference.dimensionMismatch != null)) {
+                        areas.alignedTotalPixels > 0 && areas.alignedDifferentPixels * 10_000 >= areas.alignedTotalPixels * visualThreshold
+                    } else {
+                        check(areas != null || difference.dimensionMismatch == null) { "Could not align resized screenshots" }
+                        difference.totalPixels > 0 && difference.differentPixels * 10_000 >= difference.totalPixels * visualThreshold
+                    }
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (error: Exception) {

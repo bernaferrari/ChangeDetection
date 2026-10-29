@@ -114,9 +114,15 @@ internal expect suspend fun decodeArgbAtWidth(bytes: ByteArray, targetWidth: Int
 /** Row-aligned areas of change between two captures; works even when the page height changed. */
 internal suspend fun computeVisualChange(beforeBytes: ByteArray, afterBytes: ByteArray, threshold: Double = DEFAULT_IMAGE_DIFF_THRESHOLD, opaqueWhiteBackdrop: Boolean = false): VisualChange? = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
     val context = kotlinx.coroutines.currentCoroutineContext()
-    val before = decodeArgbAtWidth(beforeBytes, REGION_WORKING_WIDTH) ?: return@withContext null
-    val after = decodeArgbAtWidth(afterBytes, REGION_WORKING_WIDTH) ?: return@withContext null
-    if (before.second != after.second) return@withContext null
+    var before = decodeArgbAtWidth(beforeBytes, REGION_WORKING_WIDTH) ?: return@withContext null
+    var after = decodeArgbAtWidth(afterBytes, REGION_WORKING_WIDTH) ?: return@withContext null
+    if (before.second != after.second) {
+        // Small source images may not be upscaled by decoders. Normalize both to the smaller width
+        // so a resize has pixel evidence rather than automatically satisfying every threshold.
+        val width = minOf(before.second, after.second)
+        if (before.second != width) before = decodeArgbAtWidth(beforeBytes, width) ?: return@withContext null
+        if (after.second != width) after = decodeArgbAtWidth(afterBytes, width) ?: return@withContext null
+    }
     if (opaqueWhiteBackdrop) {
         before.first.flattenOnWhite { context.ensureActive() }
         after.first.flattenOnWhite { context.ensureActive() }
