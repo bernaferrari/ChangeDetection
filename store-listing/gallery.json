@@ -104,15 +104,15 @@
       "alt": "ChangeDetection: a deadline moved from 31 October to 14 November, Home with a price drop from $1,599 to $1,349, and a before/after slider on a product page",
       "devices": [
         {
-          "raw": "phone/blue/03-compare-text.png",
+          "raw": "phone/light/03-compare-text.png",
           "role": "left"
         },
         {
-          "raw": "phone/blue/01-home.png",
+          "raw": "phone/light/01-home.png",
           "role": "middle"
         },
         {
-          "raw": "phone/blue/02d-compare-slider.png",
+          "raw": "phone/light/02d-compare-slider.png",
           "role": "right"
         }
       ]
@@ -124,11 +124,11 @@
       "alt": "See exactly what changed: a product page with its new price marked, and a fellowship deadline moved from 31 October to 14 November",
       "devices": [
         {
-          "raw": "phone/blue/02c-compare-page.png",
+          "raw": "phone/light/02c-compare-page.png",
           "role": "back"
         },
         {
-          "raw": "phone/blue/03-compare-text.png",
+          "raw": "phone/light/03-compare-text.png",
           "role": "front"
         }
       ]
@@ -140,17 +140,17 @@
       "alt": "Built for the moment it changes: an alert in the notification shade, Turbo checking every 30 seconds, and every saved version",
       "devices": [
         {
-          "raw": "phone/blue/00-alert.png",
+          "raw": "phone/light/00-alert.png",
           "role": "one",
           "label": "*Instant* alerts"
         },
         {
-          "raw": "phone/blue/05-turbo.png",
+          "raw": "phone/light/05-turbo.png",
           "role": "two",
           "label": "*Turbo* checks"
         },
         {
-          "raw": "phone/blue/04-versions.png",
+          "raw": "phone/light/04-versions.png",
           "role": "three",
           "label": "Every *version*"
         }
@@ -163,12 +163,12 @@
       "alt": "Every change, side by side: Home beside a price drop from $1,599 to $1,349 on a landscape tablet, and a deadline change on a phone in dark mode",
       "devices": [
         {
-          "raw": "tablet10/blue/02-compare-image.png",
+          "raw": "tablet10/light/02-compare-image.png",
           "role": "slate",
           "frame": "tablet"
         },
         {
-          "raw": "phone/blue-dark/03-compare-text.png",
+          "raw": "phone/dark/03-compare-text.png",
           "role": "front"
         }
       ]

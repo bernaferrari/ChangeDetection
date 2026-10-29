@@ -1,6 +1,5 @@
-/* ChangeDetection: the set reads like a page being watched. One light field runs under every card, from the
-   app icon's blue into the yellow the app marks changes with and back. One deep cobalt ink for all type, the real
-   app large in a clean white frame, and the key words marked with the app's own yellow highlighter. */
+/* ChangeDetection: the app in its Blue palette on the app icon's blue, Play cards and README alike. White type, the
+   real app large in a clean white frame, and the key words marked with the app's yellow highlighter, knocked out in blue. */
 @font-face{font-family:Google Sans Flex;src:url(fonts/GoogleSansFlex-Latin.woff2) format('woff2');font-weight:100 1000;font-style:normal;font-display:block}
 /* The app ships its own faces for Chinese, Hindi and Bengali; use them before the system's. */
 @font-face{font-family:LocaleZh;src:url(../shared/src/commonMain/composeResources/font/locale_zh_semibold.ttf);font-weight:500 1000}
@@ -13,19 +12,19 @@
 :root:lang(hi){--script-font:LocaleHi,"Kohinoor Devanagari"}
 :root:lang(bn){--script-font:LocaleBn,"Kohinoor Bangla"}
 
-:root{--ink:#0d1b6b}
+:root{--ink:#ffffff}
 body{font-family:Google Sans Flex,var(--script-font),sans-serif;color:var(--ink)}
 .campaign{color:var(--ink)}
 
 header{left:84px;right:84px;top:150px;z-index:5}
-h1{font-size:128px;line-height:1;font-weight:640;letter-spacing:-4px;word-spacing:6px}
-/* What changed gets marked, as the app marks it: a flat stroke of yellow highlighter behind the words. */
-h1 em,.device-label em{font-style:normal;font-weight:800;color:var(--em-ink);padding:0 .08em;margin:0 -.04em;
+h1{font-size:128px;line-height:1.1;font-weight:640;letter-spacing:-4px;word-spacing:6px}
+/* What changed gets marked, as the app marks it: a stroke of yellow highlighter over the words, which show through in blue. */
+h1 em,.device-label em{font-style:normal;font-weight:800;color:var(--em-ink);padding:.01em .14em .07em;margin:0 .02em;
   -webkit-box-decoration-break:clone;box-decoration-break:clone;
   background:var(--marker) no-repeat 0 0/100% 100%}
 header p{margin:26px 0 0;font-size:40px;line-height:1.24;font-weight:400;letter-spacing:-.4px;max-width:820px;color:var(--body)}
 
-.device{z-index:2;--bezel:14px;--radius:70px;background:#ffffff;box-shadow:0 60px 110px -50px #0d1b6b66,0 18px 40px -24px #0d1b6b40}
+.device{z-index:2;--bezel:14px;--radius:70px;background:#ffffff;box-shadow:0 60px 110px -40px #001a66aa,0 18px 40px -20px #001a6666}
 
 /* Phone: every card shows the app at one size, running off the bottom. */
 .phone .device{left:84px;top:540px;width:912px;--radius:84px;--bezel:16px}
@@ -34,14 +33,14 @@ header p{margin:26px 0 0;font-size:40px;line-height:1.24;font-weight:400;letter-
 .tablet7 header{left:96px;right:96px}
 .tablet7 h1{font-size:132px}
 .tablet7 .device{--bezel:18px;--radius:52px}
-.tablet7 .one .primary{left:220px;top:600px;width:760px}
+.tablet7 .one .primary{left:150px;top:580px;width:900px}
 
-/* 10-inch landscape: copy on the left, the app large on the right. */
-.tablet10 header{left:100px;right:auto;top:0;bottom:0;width:560px;display:flex;flex-direction:column;justify-content:center}
-.tablet10 h1{font-size:104px;letter-spacing:-4px}
-.tablet10 header p{margin-top:24px;font-size:36px}
+/* 10-inch landscape: the headline centred above, then the app large, running off the bottom like the phone cards. */
+.tablet10 header{left:120px;right:120px;top:70px;text-align:center}
+.tablet10 h1{font-size:92px;letter-spacing:-3px}
+.tablet10 header p{margin:18px auto 0;font-size:34px;max-width:none}
 .tablet10 .device{--bezel:16px;--radius:44px}
-.tablet10 .one .primary{left:700px;top:240px;width:1140px}
+.tablet10 .one .primary{left:240px;top:380px;width:1440px}
 
 /* README art: the app in its Blue palette on the icon's blue. White type; the key words get the full-height butter
    highlighter and are knocked out in blue. */

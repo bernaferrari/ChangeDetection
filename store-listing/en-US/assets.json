@@ -7,12 +7,12 @@
         "slide": 0,
         "width": 1080,
         "height": 1920,
-        "bytes": 223011,
+        "bytes": 236740,
         "sources": [
           "raw/phone/light/01-home.png"
         ],
         "notes": [
-          "copy shrunk to 98%"
+          "copy shrunk to 96%"
         ]
       },
       {
@@ -21,7 +21,7 @@
         "slide": 1,
         "width": 1080,
         "height": 1920,
-        "bytes": 181037,
+        "bytes": 191277,
         "sources": [
           "raw/phone/light/02c-compare-page.png"
         ]
@@ -32,7 +32,7 @@
         "slide": 2,
         "width": 1080,
         "height": 1920,
-        "bytes": 171922,
+        "bytes": 178075,
         "sources": [
           "raw/phone/light/00-alert.png"
         ]
@@ -43,7 +43,7 @@
         "slide": 3,
         "width": 1080,
         "height": 1920,
-        "bytes": 198868,
+        "bytes": 207943,
         "sources": [
           "raw/phone/light/02b-compare-restock.png"
         ]
@@ -54,7 +54,7 @@
         "slide": 4,
         "width": 1080,
         "height": 1920,
-        "bytes": 226084,
+        "bytes": 235302,
         "sources": [
           "raw/phone/light/03-compare-text.png"
         ]
@@ -65,7 +65,7 @@
         "slide": 5,
         "width": 1080,
         "height": 1920,
-        "bytes": 212775,
+        "bytes": 224212,
         "sources": [
           "raw/phone/light/05-turbo.png"
         ]
@@ -76,7 +76,7 @@
         "slide": 6,
         "width": 1080,
         "height": 1920,
-        "bytes": 184029,
+        "bytes": 193336,
         "sources": [
           "raw/phone/light/04-versions.png"
         ]
@@ -89,7 +89,7 @@
         "slide": 0,
         "width": 1200,
         "height": 1920,
-        "bytes": 229058,
+        "bytes": 246707,
         "sources": [
           "raw/tablet7/light/01-home.png"
         ]
@@ -100,7 +100,7 @@
         "slide": 1,
         "width": 1200,
         "height": 1920,
-        "bytes": 179634,
+        "bytes": 194839,
         "sources": [
           "raw/tablet7/light/02b-compare-restock.png"
         ]
@@ -111,7 +111,7 @@
         "slide": 2,
         "width": 1200,
         "height": 1920,
-        "bytes": 187447,
+        "bytes": 202802,
         "sources": [
           "raw/tablet7/light/03-compare-text.png"
         ]
@@ -122,7 +122,7 @@
         "slide": 3,
         "width": 1200,
         "height": 1920,
-        "bytes": 206720,
+        "bytes": 227686,
         "sources": [
           "raw/tablet7/light/05-turbo.png"
         ]
@@ -135,12 +135,9 @@
         "slide": 0,
         "width": 1920,
         "height": 1200,
-        "bytes": 186051,
+        "bytes": 211131,
         "sources": [
           "raw/tablet10/light/02-compare-image.png"
-        ],
-        "notes": [
-          "copy shrunk to 74%"
         ]
       },
       {
@@ -149,12 +146,9 @@
         "slide": 1,
         "width": 1920,
         "height": 1200,
-        "bytes": 189553,
+        "bytes": 209198,
         "sources": [
           "raw/tablet10/light/02b-compare-restock.png"
-        ],
-        "notes": [
-          "copy shrunk to 86%"
         ]
       },
       {
@@ -163,12 +157,9 @@
         "slide": 2,
         "width": 1920,
         "height": 1200,
-        "bytes": 191201,
+        "bytes": 203918,
         "sources": [
           "raw/tablet10/light/03-compare-text.png"
-        ],
-        "notes": [
-          "copy shrunk to 92%"
         ]
       },
       {
@@ -177,7 +168,7 @@
         "slide": 3,
         "width": 1920,
         "height": 1200,
-        "bytes": 198593,
+        "bytes": 205378,
         "sources": [
           "raw/tablet10/light/05-turbo.png"
         ]
@@ -190,10 +181,11 @@
         "slide": 0,
         "width": 2400,
         "height": 1260,
-        "bytes": 273982,
+        "bytes": 296039,
         "sources": [
-          "raw/tablet10/light/02-compare-image.png",
-          "raw/phone/light/02c-compare-page.png"
+          "raw/phone/light/03-compare-text.png",
+          "raw/phone/light/01-home.png",
+          "raw/phone/light/02d-compare-slider.png"
         ]
       },
       {
@@ -202,13 +194,13 @@
         "slide": 1,
         "width": 2400,
         "height": 1260,
-        "bytes": 241467,
+        "bytes": 271275,
         "sources": [
-          "raw/tablet7/light/03-compare-text.png",
-          "raw/phone/light/02b-compare-restock.png"
+          "raw/phone/light/02c-compare-page.png",
+          "raw/phone/light/03-compare-text.png"
         ],
         "notes": [
-          "copy shrunk to 86%"
+          "copy shrunk to 98%"
         ]
       },
       {
@@ -217,11 +209,26 @@
         "slide": 2,
         "width": 2400,
         "height": 1260,
-        "bytes": 311635,
+        "bytes": 337012,
         "sources": [
           "raw/phone/light/00-alert.png",
-          "raw/tablet7/light/05-turbo.png",
+          "raw/phone/light/05-turbo.png",
           "raw/phone/light/04-versions.png"
+        ]
+      },
+      {
+        "file": "readme/big-screen.jpg",
+        "feature": "readme-big-screen",
+        "slide": 3,
+        "width": 2400,
+        "height": 1260,
+        "bytes": 287995,
+        "sources": [
+          "raw/tablet10/light/02-compare-image.png",
+          "raw/phone/dark/03-compare-text.png"
+        ],
+        "notes": [
+          "copy shrunk to 94%"
         ]
       }
     ]

@@ -1,33 +1,30 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "commit": ""
+    "title": "Sappi quando\nun sito *cambia.*",
+    "body": "Prezzi, disponibilità, scadenze. Qualsiasi sito."
   },
-  "price": {
-    "title": "",
-    "body": "",
-    "commit": ""
+  "page": {
+    "title": "Guarda *cosa*\nè cambiato.",
+    "body": "Tutta la pagina, con la modifica evidenziata."
+  },
+  "alert": {
+    "title": "Sappilo\n*per primo.*",
+    "body": "Un avviso appena qualcosa cambia."
+  },
+  "restock": {
+    "title": "Esaurito?\n*Torna disponibile.*",
+    "body": "Segui qualsiasi prodotto e ti avvisiamo."
   },
   "text": {
-    "title": "",
-    "body": "",
-    "commit": ""
+    "title": "Leggi le\n*parole esatte.*",
+    "body": "Scadenza spostata? Fondi cambiati? Vedilo."
   },
   "turbo": {
-    "title": "",
-    "body": "",
-    "commit": ""
+    "title": "Controlla ogni\n*30 secondi.*",
+    "body": "Turbo, per i drop che finiscono subito."
   },
-  "private": {
-    "title": "",
-    "body": "",
-    "commit": ""
-  },
-  "tablet7/private": {
-    "title": ""
-  },
-  "tablet10/private": {
-    "title": ""
+  "versions": {
+    "title": "Ogni versione,\nconservata.",
+    "body": "Torna indietro e confrontane due qualsiasi."
   }
 }

@@ -1,33 +1,30 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "commit": ""
+    "title": "网页*一有变化*\n就知道。",
+    "body": "价格、库存、截止日期。任何网站。"
   },
-  "price": {
-    "title": "",
-    "body": "",
-    "commit": ""
+  "page": {
+    "title": "看清*哪里*\n变了。",
+    "body": "整页内容，变化处已标出。"
+  },
+  "alert": {
+    "title": "*第一时间*\n知道。",
+    "body": "一有变化，立即提醒。"
+  },
+  "restock": {
+    "title": "售罄了？\n*已补货。*",
+    "body": "关注任何商品，到货就告诉你。"
   },
   "text": {
-    "title": "",
-    "body": "",
-    "commit": ""
+    "title": "读懂\n*每一个字。*",
+    "body": "截止日期改了？资助变了？一看便知。"
   },
   "turbo": {
-    "title": "",
-    "body": "",
-    "commit": ""
+    "title": "每 *30 秒*\n检查一次。",
+    "body": "Turbo，专为秒光的抢购。"
   },
-  "private": {
-    "title": "",
-    "body": "",
-    "commit": ""
-  },
-  "tablet7/private": {
-    "title": ""
-  },
-  "tablet10/private": {
-    "title": ""
+  "versions": {
+    "title": "每个版本，\n都留着。",
+    "body": "随时回看，任选两版对比。"
   }
 }

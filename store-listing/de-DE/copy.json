@@ -1,33 +1,30 @@
 {
   "home": {
-    "title": "",
-    "body": "",
-    "commit": ""
+    "title": "Wissen, wann sich\neine Seite *ändert.*",
+    "body": "Preise, Lagerbestand, Fristen. Jede Website."
   },
-  "price": {
-    "title": "",
-    "body": "",
-    "commit": ""
+  "page": {
+    "title": "Sehen, *was* sich\ngeändert hat.",
+    "body": "Die ganze Seite, die Änderung markiert."
+  },
+  "alert": {
+    "title": "Als Erster\n*Bescheid wissen.*",
+    "body": "Ein Hinweis, sobald sich etwas ändert."
+  },
+  "restock": {
+    "title": "Ausverkauft?\n*Wieder da.*",
+    "body": "Beobachte jedes Produkt und erfahre es sofort."
   },
   "text": {
-    "title": "",
-    "body": "",
-    "commit": ""
+    "title": "Lies es\n*Wort für Wort.*",
+    "body": "Frist verschoben? Förderung geändert? Sieh es."
   },
   "turbo": {
-    "title": "",
-    "body": "",
-    "commit": ""
+    "title": "Prüfen alle\n*30 Sekunden.*",
+    "body": "Turbo, für Drops, die schnell weg sind."
   },
-  "private": {
-    "title": "",
-    "body": "",
-    "commit": ""
-  },
-  "tablet7/private": {
-    "title": ""
-  },
-  "tablet10/private": {
-    "title": ""
+  "versions": {
+    "title": "Jede Version,\nbehalten.",
+    "body": "Geh zurück und vergleiche zwei beliebige."
   }
 }
