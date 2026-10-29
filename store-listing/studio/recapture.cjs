@@ -91,9 +91,13 @@ if (!flag('no-capture')) {
   }
 }
 if (!flag('no-export')) {
-  for (const locale of locales) {
-    if (capture.export) run(capture.export.replaceAll('{locale}', locale), [], {shell: true});
-    else run('node', [path.relative(repo, path.join(__dirname, 'export.cjs')), '--locale', locale]);
+  // One language's export failing (copy that no longer fits, say) does not stop the others.
+  const failed = locales.filter(locale => !(capture.export
+    ? run(capture.export.replaceAll('{locale}', locale), [], {shell: true, check: false})
+    : run('node', [path.relative(repo, path.join(__dirname, 'export.cjs')), '--locale', locale], {check: false})));
+  if (failed.length) {
+    console.error(`\nExport failed for ${failed.join(', ')}; captures are in place. Fix those and export again.`);
+    process.exit(1);
   }
   for (const command of capture.after || []) run(command, [], {shell: true});
 }
