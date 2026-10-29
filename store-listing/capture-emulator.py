@@ -25,7 +25,8 @@ package = 'com.bernaferrari.changedetection.library.test'
 apk = args.apk or here.parent / 'shared/build/outputs/apk/androidTest/shared-androidTest.apk'
 
 # Sample pages use natural-looking but fictional sites; with the network off, nothing can reach a real one.
-with Device(args, package, apk=apk, tap_map=None) as d:
+# The test APK is a launchable app; uninstall it afterwards so it never shows up in another app's app list.
+with Device(args, package, apk=apk, tap_map=None, uninstall=True) as d:
     for profile in d.profiles():
         for theme in ('light', 'dark'):
             if args.theme not in ('all', theme):

@@ -71,12 +71,13 @@ def parser(description=None, profiles=True):
 
 class Device:
     def __init__(self, args, package, activity=None, *, foreground=None, tap_map='tap-map.json', battery=100,
-                 offline=True, animations=True, locale=True, apk=None, listing=LISTING):
+                 offline=True, animations=True, locale=True, apk=None, uninstall=False, listing=LISTING):
         """args: parsed `parser()` arguments. package: the capture build's application ID; activity its launch
         activity ('.Main' is relative to the package). foreground: the package whose UI must be on screen
         before a dump counts (default `package`). tap_map: file name under <default>/raw (None: plain label
         taps). offline: Wi-Fi and data off while capturing. animations: False turns them off. locale: set the
-        app language (False leaves it to the system). apk: install this first."""
+        app language (False leaves it to the system). apk: install this first; uninstall=True removes the package
+        on exit (a test APK that would otherwise show up in other apps' app lists)."""
         self.serial = getattr(args, 'serial', None) or SERIAL
         if not self.serial.startswith('emulator-'):
             raise SystemExit('Use a dedicated emulator, not a personal device.')
@@ -97,6 +98,7 @@ class Device:
         self.navigator = Navigator(self.listing / self.reference / 'raw' / tap_map,
                                    recording=self.locale == self.reference) if tap_map else None
         self.battery, self.offline, self.keep_animations, self.app_locale, self.apk = battery, offline, animations, locale, apk
+        self.uninstall = uninstall
         self.profile = self.theme = None
         self.width = self.height = self.density = 0
         self.scope = None
@@ -183,6 +185,8 @@ class Device:
         if self.offline:
             steps += [lambda: self.shell('svc', 'wifi', 'enable', check=False),
                       lambda: self.shell('svc', 'data', 'enable', check=False)]
+        if self.uninstall:
+            steps.append(lambda: self.adb('uninstall', self.package, check=False, retries=0))
         for step in steps:
             try:
                 step()
