@@ -4,13 +4,16 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 
 /**
  * ChangeDetection Android theme with Material You dynamic colors where available.
- * - Android 12+: Uses the system wallpaper accent as a MaterialKolor seed when dynamicColor=true
+ * - Android 12+ with wallpaper colors: Android's own scheme, exactly, so the app matches the rest of the phone
+ *   (Android has its own style setting for it); the color style shapes only the app's own colors
  * - All other cases: Uses MaterialKolor to generate schemes from SeedColor
  */
 @Composable
@@ -24,8 +27,12 @@ actual fun ChangeDetectionTheme(
     val context = LocalContext.current
     // Resource configuration changes (including the system palette) invalidate this composition.
     LocalConfiguration.current
-    val wallpaperSeed = if (supportsDynamicColors()) Color(context.getColor(android.R.color.system_accent1_500)) else null
-    val wallpaperScheme = remember(wallpaperSeed, darkTheme, colorStyle) { wallpaperSeed?.let { brandColorScheme(it, darkTheme, colorStyle) } }
+    val wallpaperScheme =
+        if (supportsDynamicColors()) {
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        } else {
+            null
+        }
     val colorScheme = if (dynamicColor && wallpaperScheme != null) wallpaperScheme else remember(seedColor, darkTheme, colorStyle) { brandColorScheme(seedColor, darkTheme, colorStyle) }
 
     CompositionLocalProvider(LocalWallpaperColorScheme provides wallpaperScheme) {

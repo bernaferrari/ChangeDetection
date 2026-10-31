@@ -276,12 +276,14 @@ internal fun AppearanceControls(
                     }
             }
         }
-        // Each style previews itself from the chosen colour (or the wallpaper's), in the current light or dark.
+        // Each style previews itself from the chosen colour, in the current light or dark. Wallpaper colours
+        // come as Android gives them, so the style row slides away while they are in use.
         val wallpaper = com.bernaferrari.changedetection.ui.theme.LocalWallpaperColorScheme.current
-        val seed = if (palette.usesSystemColors && wallpaper != null) wallpaper.primary else palette.seedColor
         val dark = androidx.compose.material3.MaterialTheme.colorScheme.surface.luminance() < 0.5f
-        Column(Modifier.groupTile().padding(vertical = 16.dp, horizontal = 12.dp)) {
-            ColorStylePicker(style, seed, dark, onStyle, Modifier.fillMaxWidth())
+        androidx.compose.animation.AnimatedVisibility(visible = !(palette.usesSystemColors && wallpaper != null)) {
+            Column(Modifier.groupTile().padding(vertical = 16.dp, horizontal = 12.dp)) {
+                ColorStylePicker(style, palette.seedColor, dark, onStyle, Modifier.fillMaxWidth())
+            }
         }
     }
 }
