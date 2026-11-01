@@ -1,6 +1,6 @@
-<h1 align="center">
+<p align="center">
   <img src="store-listing/en-US/readme/banner.jpg" width="100%" alt="ChangeDetection">
-</h1>
+</p>
 
 <p align="center"><strong>Stop refreshing. See what changed.</strong></p>
 
@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.bernaferrari.changedetection"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80" alt="Get it on Google Play"></a>
-  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.bernaferrari.changedetection%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fbernaferrari%2FChangeDetection%22%2C%22author%22%3A%22bernaferrari%22%2C%22name%22%3A%22ChangeDetection%22%7D"><img src="docs/obtainium-badge.png" height="48" alt="Get it on Obtainium"></a>
+  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.bernaferrari.changedetection%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fbernaferrari%2FChangeDetection%22%2C%22author%22%3A%22bernaferrari%22%2C%22name%22%3A%22ChangeDetection%22%7D"><img src="docs/obtainium-badge.png" height="80" alt="Get it on Obtainium"></a>
 </p>
 
 ## The alert is just the start
@@ -40,6 +40,8 @@ For a ticket release, a restock or a deadline, **Turbo** checks the pages you pi
 Watched pages, settings and history stay on your device. There is no account, no hosted service and no analytics. Websites still see the requests your device makes to check them. [Privacy policy](PRIVACY.md).
 
 Pages that need a sign-in work while their session lasts. A check that lands on a sign-in form stops and keeps your history.
+
+On Android and iOS, page screenshots are captured with [KMPwright](https://github.com/bernaferrari/kmpwright).
 
 ## Where it runs
 

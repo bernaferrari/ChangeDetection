@@ -1,0 +1,97 @@
+require 'json'
+require 'tmpdir'
+require 'fileutils'
+
+PACKAGE = 'com.bernaferrari.changedetection'
+ROOT = File.expand_path('..', __dir__)
+SCREENSHOTS = { 'phone' => 'phoneScreenshots', 'tablet7' => 'sevenInchScreenshots', 'tablet10' => 'tenInchScreenshots' }.freeze
+
+# Stage only declared locales and manifest-ordered assets. Never modify source artwork.
+def with_store_stage(include_text:)
+  source = File.join(ROOT, 'store-listing')
+  config = JSON.parse(File.read(File.join(source, 'studio.json')))
+  locales = config.fetch('locales')
+  UI.user_error!('No store locales configured') if locales.empty? || locales.uniq.length != locales.length
+  Dir.mktmpdir('play-store-') do |stage|
+    locales.each do |locale|
+      UI.user_error!("Invalid locale: #{locale}") unless locale.match?(/\A[a-z]{2,3}(?:-[A-Z]{2})?\z/)
+      dir = File.join(source, locale)
+      manifest_path = File.join(dir, 'assets.json')
+      UI.user_error!("Missing #{manifest_path}; export this language in Screenshot Studio first") unless File.file?(manifest_path)
+      galleries = JSON.parse(File.read(manifest_path)).fetch('galleries')
+      SCREENSHOTS.each do |gallery, destination|
+        items = galleries.fetch(gallery)
+        UI.user_error!("#{locale}: #{gallery} needs 2–8 screenshots") unless (2..8).cover?(items.length)
+        output = File.join(stage, locale, 'images', destination)
+        FileUtils.mkdir_p(output)
+        items.each_with_index do |item, index|
+          relative = item.fetch('file')
+          file = File.expand_path(relative, dir)
+          UI.user_error!("#{locale}: invalid screenshot path #{relative}") unless file.start_with?(File.expand_path(dir) + File::SEPARATOR) && File.file?(file)
+          ext = File.extname(file).downcase
+          UI.user_error!("#{locale}: invalid screenshot #{relative}") unless %w[.png .jpg .jpeg].include?(ext) && File.size(file).between?(1, 8 * 1024 * 1024)
+          FileUtils.cp(file, File.join(output, format('%02d%s', index + 1, ext)))
+        end
+      end
+      next unless include_text
+      listing_path = File.join(dir, 'listing.json')
+      UI.user_error!("Missing #{listing_path}; use the screenshots lane until listing text is prepared") unless File.file?(listing_path)
+      listing = JSON.parse(File.read(listing_path))
+      { 'title' => ['title.txt', 30], 'shortDescription' => ['short_description.txt', 80], 'fullDescription' => ['full_description.txt', 4000] }.each do |key, (name, limit)|
+        value = listing.fetch(key).strip
+        UI.user_error!("#{locale}: #{key} must be 1–#{limit} characters") unless value.length.between?(1, limit)
+        File.write(File.join(stage, locale, name), value + "\n")
+      end
+    end
+    UI.message("Staged #{locales.length} locales from #{source}")
+    yield stage
+  end
+end
+
+def play_options(stage, include_text:, validate_only:)
+  key = ENV['PLAY_JSON_KEY']
+  UI.user_error!('PLAY_JSON_KEY does not point to a file') if !key.to_s.empty? && !File.file?(key)
+  options = {
+    package_name: PACKAGE, metadata_path: stage,
+    skip_upload_apk: true, skip_upload_aab: true, skip_upload_changelogs: true,
+    skip_upload_images: true, skip_upload_screenshots: false, skip_upload_metadata: !include_text,
+    sync_image_upload: true, changes_not_sent_for_review: true,
+    rescue_changes_not_sent_for_review: false, validate_only: validate_only
+  }
+  options[:json_key] = key unless key.to_s.empty?
+  options
+end
+
+def run_store(include_text:, validate_only:)
+  with_store_stage(include_text: include_text) do |stage|
+    upload_to_play_store(**play_options(stage, include_text: include_text, validate_only: validate_only))
+  end
+end
+
+default_platform(:android)
+platform :android do
+  desc 'Check local screenshots without contacting Google Play'
+  lane :check_screenshots do
+    with_store_stage(include_text: false) { |_stage| UI.success('Screenshot assets are ready') }
+  end
+  desc 'Validate all screenshots with Google Play without committing changes'
+  lane :validate_screenshots do
+    run_store(include_text: false, validate_only: true)
+  end
+  desc 'Upload all localized screenshots, leaving changes for review'
+  lane :upload_screenshots do
+    run_store(include_text: false, validate_only: false)
+  end
+  desc 'Check local translated listing text and screenshots without contacting Google Play'
+  lane :check_store do
+    with_store_stage(include_text: true) { |_stage| UI.success('Listing assets are ready') }
+  end
+  desc 'Validate translated listing text and screenshots with Google Play'
+  lane :validate_store do
+    run_store(include_text: true, validate_only: true)
+  end
+  desc 'Upload translated listing text and screenshots, leaving changes for review'
+  lane :upload_store do
+    run_store(include_text: true, validate_only: false)
+  end
+end
