@@ -1,4 +1,5 @@
 {
+  "$schema": "https://unpkg.com/screenshot-studio/studio/schemas/profiles.schema.json",
   "phone": {
     "width": 1080,
     "height": 1920,

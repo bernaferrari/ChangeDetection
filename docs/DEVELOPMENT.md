@@ -63,19 +63,19 @@ The README screenshots come from the real shared UI on the desktop test host. Re
 
 ## Store screenshots and icon
 
-Screenshot Studio lives in `store-listing/studio/`. It is synced from `~/Documents/screenshot-studio`, so never edit it here.
+Screenshot Studio comes from the `screenshot-studio` package (`npx screenshot-studio …`, run in the repository); `store-listing/` keeps only this app's words, look and captures.
 
 - Captures come from the instrumented `StoreCaptureTest` (`./gradlew :shared:assembleAndroidDeviceTest`). It seeds fictional sample sites only and turns the emulator's network off. Runs use the Blue palette: light for every language, plus dark phone and light tablets for English. `store-listing/capture-emulator.py` is the scene tour.
 - Build, install, capture and export every language and size:
 
   ```bash
-  node store-listing/studio/recapture.cjs
-  node store-listing/studio/recapture.cjs en-US --profile phone --no-build
+  npx screenshot-studio recapture
+  npx screenshot-studio recapture en-US --profile phone --no-build
   ```
 
   It captures only on the dedicated emulator `CAPTURE_SERIAL` (default `emulator-5578`), never a personal phone. `--no-capture` skips straight to export.
-- Export only: `PLAYWRIGHT_MODULE=… node store-listing/studio/export.cjs --locale en-US`. Live editor: `node store-listing/studio/server.cjs 8790`.
-- Icon: layers in `store-listing/brand/*.svg`, targets in `store-listing/brand/icon.json` (Android, iOS `AppIcon.icon`, desktop `.icns`/`.ico`/`.png`, website and web demo). Regenerate them all with `PLAYWRIGHT_MODULE=… node store-listing/studio/icon.cjs`.
+- Export only: `npx screenshot-studio export --locale en-US`. Live editor: `npx screenshot-studio studio`.
+- Icon: layers in `store-listing/brand/*.svg`, targets in `store-listing/brand/icon.json` (Android, iOS `AppIcon.icon`, desktop `.icns`/`.ico`/`.png`, website and web demo). Regenerate them all with `npx screenshot-studio icons`.
 
 ## Good to know
 

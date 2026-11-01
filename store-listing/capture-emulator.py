@@ -1,18 +1,17 @@
 """Capture ChangeDetection store screens on the capture emulator.
 
-`node store-listing/studio/recapture.cjs` builds the instrumentation APK (`./gradlew
+`npx screenshot-studio recapture` builds the instrumentation APK (`./gradlew
 :shared:assembleAndroidDeviceTest`) and runs this per language and device. For each profile and theme
 the studio's capture.py sets display size and density, night mode, gesture navigation and System UI demo
 mode (9:41, full battery and Wi-Fi); StoreCaptureTest drives the app on the device and writes full-display
 PNGs and layout sidecars, which are pulled into <locale>/raw/<profile>/<theme>/. Everything is reset afterwards.
 """
 import json
-import sys
 from pathlib import Path
 
+from capture import Device, parser  # the studio's, on PYTHONPATH when recapture runs this tour
+
 here = Path(__file__).resolve().parent
-sys.path.insert(0, str(here / 'studio'))
-from capture import Device, parser  # noqa: E402
 
 parser = parser(__doc__)
 parser.add_argument('--theme', choices=['light', 'dark', 'all'], default='all')
@@ -26,7 +25,7 @@ apk = args.apk or here.parent / 'shared/build/outputs/apk/androidTest/shared-and
 
 # Sample pages use natural-looking but fictional sites; with the network off, nothing can reach a real one.
 # The test APK is a launchable app; uninstall it afterwards so it never shows up in another app's app list.
-with Device(args, package, apk=apk, tap_map=None, uninstall=True) as d:
+with Device(args, package, apk=apk, tap_map=None, uninstall=True, listing=here) as d:
     for profile in d.profiles():
         for theme in ('light', 'dark'):
             if args.theme not in ('all', theme):

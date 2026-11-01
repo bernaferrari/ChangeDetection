@@ -1,4 +1,5 @@
 {
+  "$schema": "https://unpkg.com/screenshot-studio/studio/schemas/gallery.schema.json",
   "phone": [
     {
       "feature": "home",
