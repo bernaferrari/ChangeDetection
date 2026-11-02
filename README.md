@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.bernaferrari.changedetection"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80" alt="Get it on Google Play"></a>
-  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.bernaferrari.changedetection%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fbernaferrari%2FChangeDetection%22%2C%22author%22%3A%22bernaferrari%22%2C%22name%22%3A%22ChangeDetection%22%7D"><img src="docs/obtainium-badge.png" height="80" alt="Get it on Obtainium"></a>
+  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.bernaferrari.changedetection%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fbernaferrari%2FChangeDetection%22%2C%22author%22%3A%22bernaferrari%22%2C%22name%22%3A%22ChangeDetection%22%7D"><img src="assets/obtainium-badge.png" height="80" alt="Get it on Obtainium"></a>
 </p>
 
 ## The alert is just the start
