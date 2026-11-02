@@ -65,7 +65,7 @@ The README screenshots come from the real shared UI on the desktop test host. Re
 
 Screenshot Studio comes from the `screenshot-studio` package (`npx screenshot-studio …`, run in the repository); `store-listing/` keeps only this app's words, look and captures.
 
-- Captures come from the instrumented `StoreCaptureTest` (`./gradlew :shared:assembleAndroidDeviceTest`). It seeds fictional sample sites only and turns the emulator's network off. Runs use the Blue palette: light for every language, plus dark phone and light tablets for English. `store-listing/capture-emulator.py` is the scene tour.
+- Captures come from the instrumented `StoreCaptureTest` (`./gradlew :shared:assembleAndroidDeviceTest`). It seeds fictional sample sites only and turns the emulator's network off. Runs use the Blue palette: light for every language, plus dark phone and light tablets for English. `store-listing/capture.tour.mjs` is the scene tour.
 - Build, install, capture and export every language and size:
 
   ```bash
