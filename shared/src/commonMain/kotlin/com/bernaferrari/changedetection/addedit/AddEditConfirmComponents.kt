@@ -10,12 +10,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import com.bernaferrari.changedetection.ui.components.rememberPageIconMotion
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.animation.animateContentSize
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -55,6 +56,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.error
@@ -124,16 +126,7 @@ fun AddEditConfirmScreen(
     onStartFresh: () -> Unit = {},
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
-    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
-    // iOS habit: scrolling or tapping away puts the keyboard down.
-    val dismissKeyboardOnScroll = remember {
-        object : androidx.compose.ui.input.nestedscroll.NestedScrollConnection {
-            override fun onPreScroll(available: androidx.compose.ui.geometry.Offset, source: androidx.compose.ui.input.nestedscroll.NestedScrollSource): androidx.compose.ui.geometry.Offset {
-                if (source == androidx.compose.ui.input.nestedscroll.NestedScrollSource.UserInput && kotlin.math.abs(available.y) > 2f) focusManager.clearFocus()
-                return androidx.compose.ui.geometry.Offset.Zero
-            }
-        }
-    }
+    val focusManager = LocalFocusManager.current
     val urlFocus = remember { FocusRequester() }
     val clipboard = LocalClipboard.current
     var copiedLink by remember { mutableStateOf<String?>(null) }
@@ -220,9 +213,9 @@ fun AddEditConfirmScreen(
                 }
             },
         ) { padding ->
-            Box(Modifier.fillMaxSize().padding(padding).nestedScroll(dismissKeyboardOnScroll), contentAlignment = Alignment.TopCenter) {
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
                 Column(
-                    Modifier.widthIn(max = 600.dp).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).padding(bottom = 16.dp),
+                    Modifier.widthIn(max = 600.dp).fillMaxWidth().verticalScroll(rememberKeyboardDismissScrollState()).padding(horizontal = 16.dp).padding(bottom = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     PagePreviewCard(
@@ -404,12 +397,11 @@ fun AddEditConfirmScreen(
         ) { padding ->
             Box(
                 Modifier.fillMaxSize().padding(padding)
-                    .nestedScroll(dismissKeyboardOnScroll)
                     .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
                 contentAlignment = Alignment.TopCenter,
             ) {
                 Column(
-                    Modifier.widthIn(max = 600.dp).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+                    Modifier.widthIn(max = 600.dp).fillMaxWidth().verticalScroll(rememberKeyboardDismissScrollState()).padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     if (!isEditing) {
@@ -600,6 +592,19 @@ private fun PartsSummary(only: String, ignored: Int, onEdit: () -> Unit) {
             Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.outline)
         }
     }
+}
+
+@Composable
+private fun rememberKeyboardDismissScrollState(): ScrollState {
+    val scrollState = rememberScrollState()
+    val focusManager = LocalFocusManager.current
+    // Opening the keyboard can scroll the focused field into view. Only dismiss on a drag.
+    LaunchedEffect(scrollState, focusManager) {
+        scrollState.interactionSource.interactions.collect { interaction ->
+            if (interaction is DragInteraction.Start) focusManager.clearFocus()
+        }
+    }
+    return scrollState
 }
 
 @Composable

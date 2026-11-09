@@ -47,7 +47,7 @@ On Android and iOS, page screenshots are captured with [KMPwright](https://githu
 
 | Platform | Status |
 | --- | --- |
-| **Android 8+** | On [Google Play](https://play.google.com/store/apps/details?id=com.bernaferrari.changedetection). |
+| **Android 8+** | Available on [Google Play](https://play.google.com/store/apps/details?id=com.bernaferrari.changedetection), via [Obtainium](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.bernaferrari.changedetection%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fbernaferrari%2FChangeDetection%22%2C%22author%22%3A%22bernaferrari%22%2C%22name%22%3A%22ChangeDetection%22%7D), or as an [APK from GitHub Releases](https://github.com/bernaferrari/ChangeDetection/releases). |
 | **Desktop** | Development build. |
 | **iOS** | Development build. |
 | **Browser demo** | The interface with sample data; it does not watch live pages. |
