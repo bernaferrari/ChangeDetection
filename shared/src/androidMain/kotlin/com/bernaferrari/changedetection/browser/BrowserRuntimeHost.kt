@@ -67,7 +67,7 @@ internal actual fun rememberBrowserPlatformParams(): com.multiplatform.webview.w
 
             override fun onReceivedHttpError(view: android.webkit.WebView, request: android.webkit.WebResourceRequest, response: android.webkit.WebResourceResponse) {
                 super.onReceivedHttpError(view, request, response)
-                if (!request.isForMainFrame) WebViewCaptureHealth.of(view).resourceError(request.url.toString())
+                if (!request.isForMainFrame) WebViewCaptureHealth.of(view).resourceError(request.url.toString(), httpStatus = response.statusCode)
                 if (request.isForMainFrame) {
                     fail(request.url.toString(), com.multiplatform.webview.web.WebViewError(response.statusCode, response.reasonPhrase, true))
                 }

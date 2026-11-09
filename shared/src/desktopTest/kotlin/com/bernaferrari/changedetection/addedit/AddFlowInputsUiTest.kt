@@ -7,6 +7,10 @@ import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import com.bernaferrari.changedetection.browser.CaptureResourceFailure
+import com.bernaferrari.changedetection.browser.CaptureResourceKind
+import com.bernaferrari.changedetection.browser.CaptureExtent
+import com.bernaferrari.changedetection.repo.CaptureMode
 import com.bernaferrari.changedetection.ui.theme.ChangeDetectionTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -15,6 +19,39 @@ import org.junit.Test
 /** The page name field and the part-size slider own their state while used, and still follow outside updates. */
 class AddFlowInputsUiTest {
     @get:Rule val compose = createComposeRule()
+
+    @Test fun incompleteScreenshotShowsTheFailedResourceAndCapturedSize() {
+        var screenshotRetries = 0
+        compose.setContent {
+            ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
+                AddEditConfirmScreen(
+                    url = "https://example.com",
+                    urlError = null,
+                    title = "Example",
+                    captureMode = CaptureMode.SCREENSHOT,
+                    preview = CapturePreviewState.Failed(
+                        PreviewFailure.CAPTURE_INCOMPLETE,
+                        listOf(CaptureResourceFailure(CaptureResourceKind.IMAGE, httpStatus = 404)),
+                        CaptureExtent(420, 900),
+                    ),
+                    onPreview = { screenshotRetries++ },
+                    isEditing = true,
+                    isSaving = false,
+                    saveError = null,
+                    onUrlChange = {},
+                    onTitleChange = {},
+                    onNavigateUp = {},
+                    onSave = {},
+                )
+            }
+        }
+        compose.onNodeWithText("Image · HTTP 404").assertExists()
+        compose.onNodeWithText("Captured 420 × 900 px. No new version was saved.").assertExists()
+        compose.onNodeWithText("Retry").performScrollTo().performClick()
+        compose.runOnIdle {
+            assertEquals(1, screenshotRetries)
+        }
+    }
 
     @Test fun pageNameSendsTypingAndAcceptsATitleFromThePage() {
         var title by mutableStateOf("Example")

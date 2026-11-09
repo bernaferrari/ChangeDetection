@@ -1,6 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="icon_color_title">Farbe</string>
     <string name="editor_icon_shape_title">Seitensymbol</string>
     <string name="icon_shape_automatic">Automatisch</string>
     <string name="icon_original">Original</string>
@@ -40,23 +39,6 @@
     <string name="home_section_attention">Benötigt Aufmerksamkeit</string>
     <string name="home_search_clear">Suche leeren</string>
     <string name="home_search_close">Suche schließen</string>
-    <string name="monitor_review_changes">Änderungen ansehen</string>
-    <string name="monitor_summary_checking">Wartet auf Änderungen</string>
-    <string name="monitor_summary_checking_supporting">Ergebnisse erscheinen, sobald die Prüfung einer Seite fertig ist.</string>
-    <plurals name="monitor_summary_error">
-        <item quantity="one">%1$d Prüfung fehlgeschlagen</item>
-        <item quantity="other">%1$d Prüfungen fehlgeschlagen</item>
-    </plurals>
-    <plurals name="monitor_summary_updated">
-        <item quantity="one">%1$d Seite geändert</item>
-        <item quantity="other">%1$d Seiten geändert</item>
-    </plurals>
-    <string name="monitor_summary_updated_supporting">Sieh dir die Änderungen an, wenn es dir passt.</string>
-    <string name="monitor_summary_quiet">Alles ruhig</string>
-    <plurals name="monitor_summary_quiet_supporting">
-        <item quantity="one">Auf deiner %1$d Seite hat sich nichts geändert.</item>
-        <item quantity="other">Auf deinen %1$d Seiten hat sich nichts geändert.</item>
-    </plurals>
     <string name="turbo_ended">Turbo beendet</string>
     <string name="settings_title">Einstellungen</string>
     <string name="settings_theme_label">Design</string>
@@ -113,12 +95,9 @@
         <item quantity="one">Alle %1$d Tag abgleichen</item>
         <item quantity="other">Alle %1$d Tage abgleichen</item>
     </plurals>
-    <string name="comparison_section_snapshots">Versionsverlauf</string>
     <string name="comparison_selected">Ausgewählt</string>
     <string name="comparison_empty_title">Noch keine Versionen</string>
     <string name="comparison_empty_subtitle">Speichere die erste Version, um Änderungen zu vergleichen.</string>
-    <string name="comparison_pair_title">Version %1$d → %2$d</string>
-    <string name="comparison_pair_time_diff">%1$s Abstand</string>
     <string name="comparison_single_snapshot_hint">Zum Vergleichen sind mindestens zwei gespeicherte Versionen nötig.</string>
     <string name="comparison_single_snapshot_title">1 Version gespeichert</string>
     <string name="site_not_found">Seite nicht gefunden</string>
@@ -133,10 +112,6 @@
     <string name="comparison_mode_before">Vorher</string>
     <string name="comparison_mode_after">Nachher</string>
     <string name="comparison_version_switcher">Vorherige oder neue Version wählen</string>
-    <string name="type_label">Typ: %1$s</string>
-    <string name="size_label">Größe: %1$s</string>
-    <string name="older_label">Älter • %1$s</string>
-    <string name="newer_label">Neuer • %1$s</string>
     <string name="failed_to_load_content">Inhalt konnte nicht geladen werden</string>
     <string name="comparison_capture_changed_title">Aufnahmemethode geändert</string>
     <string name="comparison_capture_changed_supporting">Diese Versionen wurden unterschiedlich erfasst (Text oder Screenshot) und können nicht direkt verglichen werden.</string>
@@ -151,9 +126,7 @@
     <string name="settings_browser_delay_title">Browser-Verzögerung</string>
     <string name="settings_browser_delay_subtitle">Wartezeit vor der Aufnahme des Seiteninhalts</string>
     <string name="settings_browser_delay_summary">Vor Aufnahme warten</string>
-    <string name="settings_interval_minutes">Intervall (Minuten)</string>
     <string name="settings_interval_minimum">Wähle ein Intervall zwischen 15 Minuten und 7 Tagen.</string>
-    <string name="settings_quick_presets">Voreinstellungen</string>
     <string name="settings_24_hours">24 Std.</string>
     <string name="about_title">Über</string>
     <string name="about_developer_name">Bernardo Ferrari</string>
@@ -245,10 +218,6 @@
     <string name="comparison_check_now_hint">Diese Seite wurde einmal geprüft. Prüfe erneut, um Änderungen zu sehen.</string>
     <string name="schedule_save_failed">Zeitplan konnte nicht angewendet werden. Versuche es erneut.</string>
     <string name="turbo_stop_session">Turbo stoppen</string>
-    <string name="schedule_paused_title">Geplante Prüfungen pausiert</string>
-    <string name="schedule_paused_description">Setze die Überwachung fort, um Seiten automatisch zu prüfen.</string>
-    <string name="schedule_waiting_title">Wartet auf erste Prüfungen</string>
-    <string name="schedule_waiting_description">Neue Seiten müssen einmal erfolgreich geprüft werden, bevor Änderungen erkannt werden können.</string>
     <string name="storage_history_title">Gespeicherter Verlauf</string>
     <string name="storage_history_usage">%1$s MB gespeicherte Versionen</string>
     <string name="storage_history_policy">Bis zu 100 Versionen pro Seite. Ältere Versionen werden ab 250 MB entfernt. Die neuesten zwei Versionen jeder Seite bleiben immer erhalten, auch wenn sie das Limit überschreiten.</string>
@@ -256,9 +225,7 @@
     <string name="storage_clear_older_title">Ältere Versionen löschen?</string>
     <string name="storage_clear_older_body">Jede Seite behält ihre zwei neuesten Versionen. %1$s an älteren Versionen werden von diesem Gerät gelöscht. Das lässt sich nicht rückgängig machen.</string>
     <string name="storage_clear_older_confirm">Löschen</string>
-    <string name="capture_mode_default">App-Standard</string>
     <string name="capture_mode_html">Seiten-HTML</string>
-    <string name="capture_mode_screenshot">Screenshot</string>
     <string name="capture_mode_baseline">Bei einem Methodenwechsel wird ein neuer Ausgangspunkt gespeichert. Der Verlauf bleibt erhalten.</string>
     <string name="capture_preview_action">Aufnahme testen</string>
     <string name="capture_preview_title">Aufnahmevorschau</string>
@@ -268,12 +235,6 @@
     <string name="capture_preview_html">Seitentext-Vorschau</string>
     <string name="capture_preview_empty">Kein lesbarer Text gefunden. Für diese Seite sind möglicherweise Screenshots nötig.</string>
     <string name="capture_preview_expand">Vollständigen Screenshot ansehen</string>
-    <string name="schedule_running">Geplante Prüfung läuft</string>
-    <string name="schedule_unconfirmed">Zeitplan noch nicht bestätigt</string>
-    <string name="schedule_eligible_waiting">Jetzt möglich · wartet auf Gerät und Bedingungen</string>
-    <string name="schedule_next_eligible">Frühestens: %1$s · Zeitpunkt kann variieren</string>
-    <string name="watchlist_review_errors">Fehlgeschlagene Seiten ansehen</string>
-    <string name="watchlist_failed_description">Einige Seiten konnten nicht geprüft werden. Aktualisiere, um es erneut zu versuchen.</string>
     <string name="requested_comparison_unavailable">Dieser Vergleich ist nicht mehr verfügbar</string>
     <string name="requested_comparison_unavailable_description">Eine oder beide Versionen wurden möglicherweise entfernt. Du kannst stattdessen die neueste verfügbare öffnen.</string>
     <string name="view_latest_saved_version">Neueste gespeicherte Version ansehen</string>
@@ -304,7 +265,6 @@
     <string name="check_failure_content_detail">Diese Antwort konnte nicht erfasst werden. Versuche eine andere Aufnahmemethode.</string>
     <string name="check_failure_unknown">Prüfung fehlgeschlagen</string>
     <string name="check_failure_unknown_detail">Prüfe Seitenadresse und Verbindung und versuche es erneut.</string>
-    <string name="capture_mode_text">Lesbarer Text</string>
     <string name="capture_mode_source">Jede Quelltextänderung</string>
     <string name="legacy_threshold_title">Alter Bytefilter: %1$d Bytes</string>
     <string name="legacy_threshold_description">Dieser alte Filter ignoriert Änderungen unter einem Byte-Grenzwert. Er vergleicht gespeicherte Daten, keine sichtbaren Pixel. Entferne ihn, um nur die gewählte Regel anzuwenden.</string>
@@ -313,20 +273,13 @@
     <string name="check_failure_region_detail">Bearbeite die Seite und prüfe die Bereichsregeln in der Vorschau. Der Selektor passt vielleicht nicht mehr oder die Antwort ist kein HTML. Der Verlauf bleibt erhalten.</string>
     <string name="text_region_title">Teil der Seite</string>
     <string name="text_region_whole">Ganze Seite</string>
-    <string name="text_region_main">Hauptinhalt</string>
     <string name="text_region_description">Nur passendes HTML wird gespeichert. Änderungen außerhalb des Bereichs oder in ignorierten Elementen lösen keine Meldung aus. Prüfe die Vorschau vor dem Speichern. Ein leerer Einschlussselektor beobachtet die ganze Seite.</string>
     <string name="text_region_include">CSS-Einschlussselektor (optional)</string>
     <string name="text_region_exclude">CSS-Ausschlussselektor (optional)</string>
     <string name="text_region_invalid">Verwende gültige CSS-Selektoren mit höchstens je %1$d Zeichen, ohne reguläre Ausdrücke.</string>
-    <string name="detail_last_saved">Zuletzt gespeichert</string>
-    <string name="detail_compare">Vergleichen</string>
-    <string name="detail_empty_text">Kein lesbarer Text in dieser Version. Öffne sie, um den Quelltext anzusehen.</string>
-    <string name="detail_preview_unavailable">Vorschau nicht verfügbar · gespeicherte Version öffnen</string>
-    <string name="detail_saved_document">Gespeichertes Dokument</string>
     <string name="detail_missing">Diese Seite ist nicht mehr in deiner Beobachtungsliste.</string>
     <string name="detail_no_version">Noch keine gespeicherte Version</string>
     <string name="detail_first_check">Prüfe diese Seite, um einen Ausgangspunkt zu speichern.</string>
-    <string name="detail_open_saved">Version öffnen</string>
     <string name="comparison_marked_read">Als gelesen markiert</string>
     <string name="comparison_read_failed">Lesestatus konnte nicht geändert werden. Versuche es erneut.</string>
     <string name="comparison_read_changed">Es gibt eine neuere Änderung. Öffne sie, um sie als gelesen zu markieren.</string>
@@ -378,24 +331,7 @@
     <string name="check_failure_capture_unavailable">Screenshot-Prüfungen nicht verfügbar</string>
     <string name="check_failure_capture_unavailable_detail">Nutze Android oder iOS für Screenshot-Prüfungen oder wähle Text- oder Quelltextüberwachung. Deine gespeicherten Versionen bleiben erhalten.</string>
     <string name="settings_theme_and_color">Design und Farbe</string>
-    <string name="history_today">Heute</string>
     <string name="history_yesterday">Gestern</string>
-    <string name="history_calendar_day">%2$d. %1$s</string>
-    <string name="history_calendar_day_year">%2$d. %1$s %3$d</string>
-    <string-array name="history_months">
-        <item>Januar</item>
-        <item>Februar</item>
-        <item>März</item>
-        <item>April</item>
-        <item>Mai</item>
-        <item>Juni</item>
-        <item>Juli</item>
-        <item>August</item>
-        <item>September</item>
-        <item>Oktober</item>
-        <item>November</item>
-        <item>Dezember</item>
-    </string-array>
     <string name="comparison_show_previous">Vorherigen Text zeigen</string>
     <string name="comparison_hide_previous">Vorherigen Text ausblenden</string>
     <plurals name="comparison_changed_passages">
@@ -546,7 +482,6 @@
         <item>Dez.</item>
     </string-array>
     <string name="today">Heute</string>
-    <string name="day_month">%1$d. %2$s</string>
     <string name="day_time">%1$s, %2$s</string>
     <string name="label_text_changed">Text geändert</string>
     <string name="label_percent">%1$s der Seite</string>
@@ -575,8 +510,6 @@
     <string name="detail_what_part">Ein ausgewählter Teil</string>
     <string name="detail_what_page">Der Seitentext</string>
     <string name="mode_screenshot">Screenshot</string>
-    <string name="mode_source">Jede Quelltextänderung</string>
-    <string name="mode_html">Seiten-HTML</string>
     <string name="mode_default">App-Standard</string>
     <string name="mode_text">Text</string>
     <string name="mode_code">Code</string>
@@ -648,11 +581,6 @@
     <string name="checks_daily">Täglich</string>
     <string name="checks_hours_short">%1$d Std.</string>
     <string name="checks_minutes_short">%1$d Min.</string>
-    <string name="checks_sentence_off">Automatische Prüfungen sind aus. Seiten werden nur beim Aktualisieren geprüft.</string>
-    <string name="checks_sentence">Prüfungen ungefähr %1$s</string>
-    <string name="checks_cond_wifi">mit WLAN</string>
-    <string name="checks_cond_charging">beim Laden</string>
-    <string name="checks_cond_battery">bei ausreichendem Akku</string>
     <string name="settings_group_checking">Prüfungen</string>
     <string name="settings_group_app">App</string>
     <string name="settings_default_detection">Standard-Aufnahmemethode</string>
@@ -772,15 +700,12 @@
     <string name="picker_selected_area">Bereich ohne Text</string>
     <string name="preview_nothing_visible">Keine visuelle Änderung erkannt</string>
     <string name="preview_nothing_visible_body">Die gespeicherten Daten haben sich ohne wesentliche visuelle Unterschiede geändert.</string>
-    <string name="version_compared_with">seit %1$s</string>
     <string name="home_status_checked">Geprüft %1$s</string>
     <string name="home_status_first_check">Wartet auf die erste Prüfung</string>
     <string name="ignore_small_title">Kleine Änderungen ignorieren</string>
     <string name="ignore_small_off">Aus</string>
     <string name="ignore_small_body">Nur dann einen neuen Screenshot speichern, wenn sich mindestens so viel sichtbar ändert.</string>
     <string name="ignore_small_off_body">Kein Größenfilter. Geringfügige Farbunterschiede werden weiterhin ignoriert.</string>
-    <string name="editor_formats">Andere Formate</string>
-    <string name="editor_formats_body">Für Entwickler: den Quellcode der Seite vergleichen. Erkennt meist mehr unwichtige Änderungen als der Textvergleich.</string>
     <string name="editor_part_picked">Ausgewählt</string>
     <string name="settings_capture_body">So werden neue Seiten verglichen. Jede Seite kann eine eigene Methode wählen.</string>
     <string name="settings_wait_body">Seiten warten bereits auf Bilder und das Ende des Ladens. Für langsame Websites kannst du zusätzliche Zeit einstellen.</string>
@@ -833,7 +758,7 @@
     <string name="check_failure_saved_content_unavailable">Gespeicherte Version nicht verfügbar</string>
     <string name="check_failure_saved_content_unavailable_detail">Die gespeicherte Version fehlt oder ist beschädigt. Der vorhandene Verlauf wurde beibehalten. Prüfe den verfügbaren Gerätespeicher und sende einen Bericht, wenn das Problem weiter besteht.</string>
     <string name="check_failure_capture_incomplete">Seitenaufnahme unvollständig</string>
-    <string name="check_failure_capture_incomplete_detail">Ein Teil der überwachten Seite konnte nicht geladen werden. Der gespeicherte Verlauf wurde beibehalten. Versuche es erneut oder öffne die Seitenvorschau.</string>
+    <string name="check_failure_capture_incomplete_detail">Ein Teil der überwachten Seite konnte nicht geladen werden. Dein Verlauf bleibt erhalten. Versuche es erneut oder öffne die Seite im Browser. Wenn der Fehler erneut auftritt, versuche den Textmodus oder wähle einen Teil der Seite, der geladen wird.</string>
     <string name="text_http_capability_note">Auf dieser Plattform liest die Textüberwachung die HTTP-Antwort. JavaScript-Inhalte und Anmelde-Cookies des Browsers sind nicht enthalten.</string>
     <string name="check_failure_document_changed">Seite während der Aufnahme geändert</string>
     <string name="check_failure_document_changed_detail">Die Seite hat während der Prüfung navigiert. Der gespeicherte Verlauf bleibt erhalten. Versuche es erneut.</string>
@@ -843,4 +768,24 @@
     <string name="color_style_vibrant">Lebendig</string>
     <string name="color_style_tonal">Tonal</string>
     <string name="color_style_muted">Gedämpft</string>
+    <string name="capture_details">Aufnahmedetails</string>
+    <string name="capture_resource_details_unavailable">Zu der Ressource wurden keine Details aufgezeichnet. Ein neuer Versuch kann mehr Informationen liefern.</string>
+    <string name="capture_resource_image">Bild</string>
+    <string name="capture_resource_font">Schriftart</string>
+    <string name="capture_resource_stylesheet">Stylesheet</string>
+    <string name="capture_resource_frame">Eingebetteter Frame</string>
+    <string name="capture_resource_other">Seitenressource</string>
+    <string name="capture_resource_load">%1$s · Laden fehlgeschlagen</string>
+    <string name="capture_resource_certificate">%1$s · Zertifikat abgelehnt</string>
+    <string name="capture_resource_http">%1$s · HTTP %2$d</string>
+    <string name="capture_size_unavailable">Aufnahmegröße nicht verfügbar. Es wurde keine neue Version gespeichert.</string>
+    <string name="capture_size_zero">Es wurde kein Bild erstellt und keine neue Version gespeichert.</string>
+    <string name="capture_size_pixels">Aufnahme mit %1$d × %2$d px. Es wurde keine neue Version gespeichert.</string>
+    <string name="capture_browser_attached">Die Browseransicht war mit einem Fenster verbunden.</string>
+    <string name="capture_browser_detached">Die Browseransicht war nicht mit einem Fenster verbunden.</string>
+    <string name="capture_try_text">Text ausprobieren</string>
+    <string name="capture_trying_text">Text wird geprüft…</string>
+    <string name="capture_text_switched">Die Überwachung wurde auf Text umgestellt.</string>
+    <string name="capture_text_switch_failed">Wechsel zu Text fehlgeschlagen.</string>
+    <string name="capture_try_text_hint">Wenn der Text lädt, verwenden künftige Prüfungen Text statt Screenshots.</string>
 </resources>

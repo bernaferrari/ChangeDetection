@@ -27,11 +27,14 @@ internal class AndroidPageCapture(private val view: WebView) {
     private val health = WebViewCaptureHealth.of(view)
     fun captureValidator(): suspend () -> Unit {
         val epoch = health.epoch()
-        return { health.validate(epoch) }
+        val extent = captureExtent
+        val textOnly = contentStage == DiagnosticStage.EXTRACT_TEXT
+        return { health.validate(epoch, extent, textOnly) }
     }
     private var rendererFailure: IOException? = null
     private var navigationFailure: Exception? = null
     private var contentStage = DiagnosticStage.CAPTURE_PIXELS
+    private var captureExtent: CaptureExtent? = null
 
     /**
      * @param hide CSS selectors of parts to ignore; made invisible (layout kept) before capture.
@@ -50,6 +53,7 @@ internal class AndroidPageCapture(private val view: WebView) {
      */
     suspend fun captureText(url: String, settleDelayMs: Long, only: String = ""): WebViewScreenshot = withContext(Dispatchers.Main.immediate) {
         contentStage = DiagnosticStage.EXTRACT_TEXT
+        captureExtent = null
         diagnosticMetric(DiagnosticStage.CREATE_BROWSER, DiagnosticMetric.ATTACHED, if (view.isAttachedToWindow) 1 else 0)
         diagnosticStage(DiagnosticStage.NAVIGATE) { navigate(url) }
         diagnosticStage(DiagnosticStage.SETTLE) { delay(settleDelayMs.coerceIn(0, 30_000)) }
@@ -71,7 +75,7 @@ internal class AndroidPageCapture(private val view: WebView) {
         rendererFailure?.let { throw it }
         val epoch = health.epoch()
         registerResourceDependencies(only)
-        health.validate(epoch)
+        health.validate(epoch, textOnly = true)
         diagnosticCapture(captureContext(only), contentStage)
         val raw = diagnosticStage(DiagnosticStage.EXTRACT_TEXT) { evaluate("document.documentElement.outerHTML") }
         require(raw.length <= 12_000_000) { "The page is too large to preview" }
@@ -79,15 +83,16 @@ internal class AndroidPageCapture(private val view: WebView) {
         withContext(Dispatchers.Default) {
             require(com.bernaferrari.changedetection.util.readableSnapshotText(html, true).isNotBlank()) { "The page returned no readable text" }
         }
-        health.validate(epoch)
+        health.validate(epoch, textOnly = true)
         WebViewScreenshot("text/html", html.encodeToByteArray(), 0, 0)
     }
 
     /** Uses the already-loaded document, with the same cleanup and tiling as scheduled checks. */
     suspend fun captureLoaded(maxHeight: Int, hide: String = "", only: String = "", preservePage: Boolean = false): WebViewScreenshot = withContext(Dispatchers.Main.immediate) {
         contentStage = DiagnosticStage.CAPTURE_PIXELS
+        captureExtent = CaptureExtent.Empty
         val epoch = health.epoch()
-        health.validate(epoch)
+        health.validate(epoch, captureExtent)
         suspend fun clean(script: String) {
             evaluate(if (preservePage) PageCleanup.reversible(script) else script)
         }
@@ -136,11 +141,11 @@ internal class AndroidPageCapture(private val view: WebView) {
             evaluate("window.scrollTo({left:0,top:0,behavior:'instant'});0")
             if (only.isNotBlank()) evaluate("(function(){var e=document.querySelector(${PageCleanup.js(only)});if(e)e.scrollIntoView();return 0;})()")
             val captureBounds = captureRange()
-            awaitResources(captureBounds.first, captureBounds.second, only)
+            awaitResources(captureBounds.first, captureBounds.second, only, epoch)
             // A late font or responsive style can alter the initial overview scale.
             normalizeCaptureZoom()
             val settledBounds = captureRange()
-            if (settledBounds != captureBounds) awaitResources(settledBounds.first, settledBounds.second, only)
+            if (settledBounds != captureBounds) awaitResources(settledBounds.first, settledBounds.second, only, epoch)
             awaitNetworkQuiet()
             evaluate("window.scrollTo({left:0,top:0,behavior:'instant'});0")
             clean(PageCleanup.MASK_RELATIVE_TIMES)
@@ -160,7 +165,7 @@ internal class AndroidPageCapture(private val view: WebView) {
                 require(pageHeight <= 100_000) { "This page is too tall for a screenshot. Use page text monitoring." }
             }
             registerResourceDependencies(only)
-            health.validate(epoch)
+            health.validate(epoch, captureExtent)
             val before = captureContext(only)
             diagnosticCapture(before)
             val region = clip?.let { Rectangle(it[0], it[1], it[2] - it[0], it[3] - it[1]) }
@@ -175,6 +180,7 @@ internal class AndroidPageCapture(private val view: WebView) {
 
                 afterFirstTile = { clean(PageCleanup.HIDE_PINNED) },
             )
+            captureExtent = CaptureExtent(shot.width, shot.height)
             val after = captureContext(only)
             diagnosticCapture(after)
             if (before.nativeWidth != after.nativeWidth || before.nativeHeight != after.nativeHeight ||
@@ -186,7 +192,7 @@ internal class AndroidPageCapture(private val view: WebView) {
                 notReady(CaptureIssue.LAYOUT_CHANGED)
             }
             registerResourceDependencies(only)
-            health.validate(epoch)
+            health.validate(epoch, captureExtent)
             WebViewScreenshot("image/png", shot.bytes, shot.width, shot.height, title, icon)
         } finally {
             if (preservePage) {
@@ -211,9 +217,9 @@ internal class AndroidPageCapture(private val view: WebView) {
         rendererFailure?.let { throw it }
     }
 
-    private suspend fun notReady(issue: CaptureIssue): Nothing {
+    private suspend fun notReady(issue: CaptureIssue, resources: List<CaptureResourceFailure> = emptyList()): Nothing {
         diagnosticMetric(contentStage, DiagnosticMetric.CAPTURE_ISSUE, issue.ordinal)
-        throw CaptureNotReadyException(issue)
+        throw CaptureNotReadyException(issue, resources, captureExtent)
     }
 
     private suspend fun awaitPaint() {
@@ -290,14 +296,14 @@ internal class AndroidPageCapture(private val view: WebView) {
     }
 
     /** URLs stay bounded and in memory; exported diagnostics contain only fixed capture failure reasons. */
-    internal suspend fun validateCurrentResources(selector: String = "") = withContext(Dispatchers.Main.immediate) {
-        registerResourceDependencies(selector)
-        health.validate()
+    internal suspend fun validateCurrentResources(textOnly: Boolean) = withContext(Dispatchers.Main.immediate) {
+        registerResourceDependencies("")
+        health.validate(textOnly = textOnly)
     }
 
     private suspend fun registerResourceDependencies(selector: String) {
-        val raw = evaluate("""(function(){var u=new Set();function add(v){if(v&&/^https?:/i.test(v))u.add(v)}document.querySelectorAll('link[rel~=stylesheet][href]').forEach(function(e){add(e.src||e.href)});var roots=${if (selector.isBlank()) "[document.body]" else "Array.from(document.querySelectorAll(${PageCleanup.js(selector)}))"};roots.forEach(function(root){if(!root)return;var all=[root].concat(Array.from(root.querySelectorAll('*'))).slice(0,5000);all.forEach(function(e){var r=e.getBoundingClientRect(),s=getComputedStyle(e);if(r.width<2||r.height<2||s.visibility==='hidden'||s.display==='none'||parseFloat(s.opacity)===0)return;if(e.tagName==='IMG'||e.tagName==='IFRAME')add(e.currentSrc||e.src);var re=/url\((?:"([^"]*)"|'([^']*)'|([^)]*))\)/g,m;while((m=re.exec(s.backgroundImage)))add(m[1]||m[2]||m[3]);});});return JSON.stringify(Array.from(u).slice(0,513))})()""")
-        val values = kotlinx.serialization.json.Json.decodeFromString<List<String>>(kotlinx.serialization.json.Json.decodeFromString<String>(raw))
+        val raw = evaluate("""(function(){var u=new Map();function add(v,k){if(v&&/^https?:/i.test(v)&&!u.has(v))u.set(v,k)}document.querySelectorAll('link[rel~=stylesheet][href]').forEach(function(e){add(e.href,'STYLESHEET')});var roots=${if (selector.isBlank()) "[document.body]" else "Array.from(document.querySelectorAll(${PageCleanup.js(selector)}))"};roots.forEach(function(root){if(!root)return;var all=[root].concat(Array.from(root.querySelectorAll('*'))).slice(0,5000);all.forEach(function(e){var r=e.getBoundingClientRect(),s=getComputedStyle(e);if(r.width<2||r.height<2||s.visibility==='hidden'||s.display==='none'||parseFloat(s.opacity)===0)return;if(e.tagName==='IMG')add(e.currentSrc||e.src,'IMAGE');if(e.tagName==='IFRAME')add(e.src,'FRAME');var re=/url\((?:"([^"]*)"|'([^']*)'|([^)]*))\)/g,m;while((m=re.exec(s.backgroundImage)))add(m[1]||m[2]||m[3],'IMAGE');});});var result={};Array.from(u).slice(0,513).forEach(function(entry){result[entry[0]]=entry[1]});return JSON.stringify(result)})()""")
+        val values = kotlinx.serialization.json.Json.decodeFromString<Map<String, CaptureResourceKind>>(kotlinx.serialization.json.Json.decodeFromString<String>(raw))
         health.dependencies(values)
     }
 
@@ -313,7 +319,7 @@ internal class AndroidPageCapture(private val view: WebView) {
         return [p,badFont?-1:fonts,document.documentElement.clientWidth,Math.min(Math.max(document.documentElement.scrollHeight,document.body.scrollHeight),$bottom)].join(',')
     })()"""
 
-    private suspend fun awaitResources(top: Double, bottom: Double, selector: String) {
+    private suspend fun awaitResources(top: Double, bottom: Double, selector: String, epoch: Long) {
         val started = android.os.SystemClock.elapsedRealtime()
         var quiet = 0
         var previous = ""
@@ -321,13 +327,15 @@ internal class AndroidPageCapture(private val view: WebView) {
             checkNavigation()
             val state = evaluate(resourceScript(top, bottom, selector)).trim('"').split(',').mapNotNull(String::toDoubleOrNull)
             if (state.size != 4) notReady(CaptureIssue.VIEWPORT_NOT_READY)
-            if (state[1] < 0) notReady(CaptureIssue.RESOURCE_FAILED)
+            if (state[1] < 0) notReady(CaptureIssue.RESOURCE_FAILED, listOf(CaptureResourceFailure(CaptureResourceKind.FONT)))
             val signature = state.drop(2).joinToString(",") + if (selector.isBlank()) "" else readClip(selector).joinToString(",")
             quiet = if (state[0] == 0.0 && state[1] == 0.0 && signature == previous) quiet + 1 else 0
             previous = signature
             if (quiet >= 2) return
             if (android.os.SystemClock.elapsedRealtime() - started >= READY_TIMEOUT_MS) {
                 diagnosticCapture(captureContext(selector).copy(pendingImages = state[0].toInt(), fontsLoading = state[1] > 0).bounded())
+                registerResourceDependencies(selector)
+                health.validate(epoch, captureExtent)
                 notReady(
                     if (state[1] > 0) {
                         CaptureIssue.FONTS_LOADING
@@ -467,7 +475,7 @@ internal class AndroidPageCapture(private val view: WebView) {
             }
 
             override fun onReceivedHttpError(webView: WebView, request: WebResourceRequest, response: WebResourceResponse) {
-                if (!request.isForMainFrame) health.resourceError(request.url.toString())
+                if (!request.isForMainFrame) health.resourceError(request.url.toString(), httpStatus = response.statusCode)
                 if (request.isForMainFrame) {
                     trace?.callback(DiagnosticStage.NAVIGATE, DiagnosticMetric.HTTP_STATUS, response.statusCode)
                     fail(com.bernaferrari.changedetection.error.NetworkError(response.statusCode, "HTTP ${response.statusCode}"))

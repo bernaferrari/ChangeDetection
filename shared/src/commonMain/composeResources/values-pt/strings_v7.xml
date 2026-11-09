@@ -82,15 +82,12 @@
     <string name="picker_selected_area">Uma área sem texto</string>
     <string name="preview_nothing_visible">Nenhuma mudança visual detectada</string>
     <string name="preview_nothing_visible_body">Os dados salvos mudaram, mas não houve diferença visual significativa.</string>
-    <string name="version_compared_with">desde %1$s</string>
     <string name="home_status_checked">Verificado %1$s</string>
     <string name="home_status_first_check">Aguardando a primeira verificação</string>
     <string name="ignore_small_title">Ignorar mudanças pequenas</string>
     <string name="ignore_small_off">Desativado</string>
     <string name="ignore_small_body">Só salva uma nova captura quando pelo menos esta parte da página parece diferente.</string>
     <string name="ignore_small_off_body">Sem filtro por tamanho. Pequenas diferenças de cor ainda são ignoradas.</string>
-    <string name="editor_formats">Outros formatos</string>
-    <string name="editor_formats_body">Para desenvolvedores: compara o código da página. Costuma detectar mais mudanças irrelevantes que o texto.</string>
     <string name="editor_part_picked">Escolhida</string>
     <string name="settings_capture_body">Como as novas páginas são comparadas. Cada página pode usar um método diferente.</string>
     <string name="settings_wait_body">As páginas já esperam as imagens e o carregamento terminarem. Adicione mais tempo para sites lentos.</string>

@@ -138,7 +138,6 @@
         <item>Dec</item>
     </string-array>
     <string name="today">Today</string>
-    <string name="day_month">%1$d %2$s</string>
     <string name="day_time">%1$s, %2$s</string>
     <string name="label_text_changed">Text changed</string>
     <string name="label_percent">%1$s of the page</string>
@@ -167,8 +166,6 @@
     <string name="detail_what_part">A part you picked</string>
     <string name="detail_what_page">The page’s text</string>
     <string name="mode_screenshot">Screenshot</string>
-    <string name="mode_source">Any source change</string>
-    <string name="mode_html">Page HTML</string>
     <string name="mode_default">App default</string>
     <string name="mode_text">Text</string>
     <string name="mode_code">Code</string>
@@ -240,11 +237,6 @@
     <string name="checks_daily">Daily</string>
     <string name="checks_hours_short">%1$d h</string>
     <string name="checks_minutes_short">%1$d min</string>
-    <string name="checks_sentence_off">Automatic checks are off. Pages are checked only when you refresh.</string>
-    <string name="checks_sentence">Checks run about %1$s</string>
-    <string name="checks_cond_wifi">on Wi‑Fi</string>
-    <string name="checks_cond_charging">while charging</string>
-    <string name="checks_cond_battery">when battery isn’t low</string>
     <string name="settings_group_checking">Checking</string>
     <string name="settings_group_app">App</string>
     <string name="settings_default_detection">Default capture method</string>

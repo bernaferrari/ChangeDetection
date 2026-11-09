@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Change Detection</string>
+    <string name="status_checking_pages">Memeriksa halaman</string>
+    <string name="status_checking_page">Memeriksa halaman</string>
+    <string name="status_checking_page_progress">Memeriksa halaman %1$d dari %2$d</string>
+    <string name="status_preparing_page_checks">Menyiapkan pemeriksaan halaman…</string>
+    <string name="sync_notification_channel_name">Pemeriksaan halaman</string>
+    <string name="change_notification_channel_name">Perubahan terdeteksi</string>
+    <string name="change_notification_channel_description">Notifikasi saat situs yang dipantau berubah</string>
+    <string name="quick_monitor_banner_live_badge">AKTIF</string>
+    <string name="quick_monitor_title">Turbo</string>
+    <string name="quick_monitor_channel_description">Menampilkan sesi pemantauan cepat yang sedang berlangsung.</string>
+    <string name="quick_monitor_notification_title">⚡ Turbo aktif</string>
+    <plurals name="quick_monitor_notification_subtitle">
+        <item quantity="other">Memeriksa %1$d halaman setiap %2$d detik</item>
+    </plurals>
+    <string name="action_stop_monitoring">Hentikan pemantauan</string>
+    <string name="empty_add_site_hint">Tambahkan halaman untuk memulai Turbo</string>
+    <string name="start">Mulai</string>
+    <string name="change_notification_named">%1$s berubah</string>
+    <string name="change_notification_generic">Ketuk untuk melihat perubahannya.</string>
+    <string name="diagnostics_export">Kirim laporan ke pengembang</string>
+    <string name="diagnostics_title">Laporan diagnostik</string>
+    <string name="diagnostics_explanation">Tinjau laporan lokal ini sebelum membagikannya. Laporan berisi tahapan dan durasi pemeriksaan, jenis dan pesan galat yang telah dibersihkan dari alamat, jalur, dan kutipan, peningkatan basis data dan crash terkini, serta versi aplikasi dan WebView. Laporan tidak menyertakan alamat, judul, atau isi halaman, tangkapan layar, cookie, header, dan token. Laporan tidak dikirim secara otomatis.</string>
+    <string name="diagnostics_scope">Hingga 10 upaya terbaru dari 7 hari terakhir. Laporan terbatas pada 64 KiB. Entri yang tidak lengkap dapat mencerminkan perekaman yang terputus atau terputus.</string>
+    <string name="diagnostics_loading">Menyiapkan laporan lokal…</string>
+    <string name="diagnostics_empty">Tidak ada upaya terbaru yang tercatat. Coba pratinjau atau periksa lagi, lalu buka kembali laporan ini.</string>
+    <string name="diagnostics_unavailable">Tidak dapat menyiapkan diagnostik. Pemantauan dan riwayat yang disimpan tidak berubah. Coba lagi.</string>
+    <string name="diagnostics_share">Kirim laporan</string>
+    <string name="diagnostics_close">Tutup</string>
+    <string name="diagnostics_retry">Coba lagi</string>
+    <string name="diagnostics_content">Isi laporan</string>
+    <string name="diagnostics_page_scope">Upaya terbaru untuk halaman ini</string>
+    <string name="external_open_failed">Tidak dapat membuka aplikasi lain. Pasang aplikasi yang kompatibel atau coba lagi.</string>
+    <string name="change_notification_open_browser">Buka di browser</string>
+    <string name="change_notification_before">Sebelumnya</string>
+    <string name="change_notification_now">Sekarang</string>
+    <string name="change_notification_enabled">Notifikasi perubahan aktif</string>
+    <string name="change_notification_permission">Perlu izin untuk mengirim notifikasi</string>
+    <string name="change_notification_app_disabled">Notifikasi aplikasi dinonaktifkan</string>
+    <string name="change_notification_channel_disabled">Saluran notifikasi perubahan dinonaktifkan</string>
+</resources>

@@ -1,6 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="icon_color_title">রং</string>
     <string name="editor_icon_shape_title">পৃষ্ঠার আইকন</string>
     <string name="icon_shape_automatic">স্বয়ংক্রিয়</string>
     <string name="icon_original">মূল</string>
@@ -40,23 +39,6 @@
     <string name="home_section_attention">নজর দেওয়া দরকার</string>
     <string name="home_search_clear">অনুসন্ধান সাফ করুন</string>
     <string name="home_search_close">অনুসন্ধান বন্ধ করুন</string>
-    <string name="monitor_review_changes">পরিবর্তন দেখুন</string>
-    <string name="monitor_summary_checking">পরিবর্তনের জন্য নজর রাখা হচ্ছে</string>
-    <string name="monitor_summary_checking_supporting">প্রতিটি পৃষ্ঠার পরীক্ষা শেষ হলে নতুন ফল দেখা যাবে।</string>
-    <plurals name="monitor_summary_error">
-        <item quantity="one">%1$dটি পরীক্ষা ব্যর্থ হয়েছে</item>
-        <item quantity="other">%1$dটি পরীক্ষা ব্যর্থ হয়েছে</item>
-    </plurals>
-    <plurals name="monitor_summary_updated">
-        <item quantity="one">%1$dটি পৃষ্ঠা বদলেছে</item>
-        <item quantity="other">%1$dটি পৃষ্ঠা বদলেছে</item>
-    </plurals>
-    <string name="monitor_summary_updated_supporting">আপনার সুবিধামতো পরিবর্তন দেখুন।</string>
-    <string name="monitor_summary_quiet">সব শান্ত</string>
-    <plurals name="monitor_summary_quiet_supporting">
-        <item quantity="one">আপনার %1$dটি পৃষ্ঠায় কিছু বদলায়নি।</item>
-        <item quantity="other">আপনার %1$dটি পৃষ্ঠায় কিছু বদলায়নি।</item>
-    </plurals>
     <string name="turbo_ended">টার্বো শেষ হয়েছে</string>
     <string name="settings_title">সেটিংস</string>
     <string name="settings_theme_label">থিম</string>
@@ -113,12 +95,9 @@
         <item quantity="one">প্রতি %1$d দিনে সিঙ্ক করুন</item>
         <item quantity="other">প্রতি %1$d দিনে সিঙ্ক করুন</item>
     </plurals>
-    <string name="comparison_section_snapshots">সংস্করণের ইতিহাস</string>
     <string name="comparison_selected">বাছাই করা</string>
     <string name="comparison_empty_title">এখনও কোনো সংস্করণ নেই</string>
     <string name="comparison_empty_subtitle">তুলনা শুরু করতে প্রথম সংস্করণটি সংরক্ষণ করুন।</string>
-    <string name="comparison_pair_title">সংস্করণ %1$d থেকে %2$d</string>
-    <string name="comparison_pair_time_diff">%1$s ব্যবধান</string>
     <string name="comparison_single_snapshot_hint">পরিবর্তন তুলনা করতে অন্তত দুটি সংরক্ষিত সংস্করণ দরকার।</string>
     <string name="comparison_single_snapshot_title">১টি সংস্করণ সংরক্ষিত</string>
     <string name="site_not_found">পৃষ্ঠা পাওয়া যায়নি</string>
@@ -133,10 +112,6 @@
     <string name="comparison_mode_before">আগে</string>
     <string name="comparison_mode_after">পরে</string>
     <string name="comparison_version_switcher">আগের বা পরের সংস্করণ বেছে নিন</string>
-    <string name="type_label">ধরন: %1$s</string>
-    <string name="size_label">আকার: %1$s</string>
-    <string name="older_label">পুরোনো • %1$s</string>
-    <string name="newer_label">নতুন • %1$s</string>
     <string name="failed_to_load_content">বিষয়বস্তু লোড করা যায়নি</string>
     <string name="comparison_capture_changed_title">ক্যাপচারের পদ্ধতি বদলেছে</string>
     <string name="comparison_capture_changed_supporting">এই দুটি সংস্করণ আলাদা পদ্ধতিতে নেওয়া হয়েছে (লেখা ও স্ক্রিনশট), তাই সরাসরি তুলনা করা যায় না।</string>
@@ -151,9 +126,7 @@
     <string name="settings_browser_delay_title">ব্রাউজারের অপেক্ষার সময়</string>
     <string name="settings_browser_delay_subtitle">পৃষ্ঠার বিষয়বস্তু ক্যাপচারের আগে অপেক্ষার সময়</string>
     <string name="settings_browser_delay_summary">ক্যাপচারের আগে অপেক্ষা</string>
-    <string name="settings_interval_minutes">ব্যবধান (মিনিট)</string>
     <string name="settings_interval_minimum">১৫ মিনিট থেকে ৭ দিনের মধ্যে ব্যবধান বেছে নিন।</string>
-    <string name="settings_quick_presets">দ্রুত বিকল্প</string>
     <string name="settings_24_hours">২৪ ঘণ্টা</string>
     <string name="about_title">অ্যাপ সম্পর্কে</string>
     <string name="about_developer_name">Bernardo Ferrari</string>
@@ -245,10 +218,6 @@
     <string name="comparison_check_now_hint">এই পৃষ্ঠা একবার পরীক্ষা হয়েছে — পরিবর্তন দেখতে আবার পরীক্ষা করুন।</string>
     <string name="schedule_save_failed">সময়সূচি প্রয়োগ করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="turbo_stop_session">টার্বো থামান</string>
-    <string name="schedule_paused_title">নির্ধারিত পরীক্ষা বিরতিতে আছে</string>
-    <string name="schedule_paused_description">স্বয়ংক্রিয়ভাবে পৃষ্ঠা পরীক্ষার জন্য নজরদারি আবার চালু করুন।</string>
-    <string name="schedule_waiting_title">প্রথম পরীক্ষার অপেক্ষায়</string>
-    <string name="schedule_waiting_description">পরিবর্তন শনাক্তের আগে নতুন পৃষ্ঠার প্রথম পরীক্ষা সফল হতে হবে।</string>
     <string name="storage_history_title">সংরক্ষিত ইতিহাস</string>
     <string name="storage_history_usage">%1$s MB সংরক্ষিত সংস্করণ</string>
     <string name="storage_history_policy">প্রতি পৃষ্ঠায় সর্বোচ্চ ১০০টি সংস্করণ থাকে। ২৫০ MB ছাড়ালে পুরোনো সংস্করণ সরানো হয়। প্রতিটি পৃষ্ঠার সর্বশেষ দুটি সংস্করণ সীমা ছাড়ালেও রাখা হয়।</string>
@@ -256,9 +225,7 @@
     <string name="storage_clear_older_title">পুরোনো সংস্করণ মুছবেন?</string>
     <string name="storage_clear_older_body">প্রতিটি পৃষ্ঠার সর্বশেষ দুটি সংস্করণ রাখা হবে। পুরোনো সংস্করণের %1$s এই ডিভাইস থেকে মুছে ফেলা হবে। এটি আর ফেরানো যাবে না।</string>
     <string name="storage_clear_older_confirm">মুছুন</string>
-    <string name="capture_mode_default">অ্যাপের ডিফল্ট</string>
     <string name="capture_mode_html">পৃষ্ঠার HTML</string>
-    <string name="capture_mode_screenshot">স্ক্রিনশট</string>
     <string name="capture_mode_baseline">পদ্ধতি বদলালে নতুন শুরুর সংস্করণ হবে। আগের ইতিহাস থাকবে।</string>
     <string name="capture_preview_action">ক্যাপচারের প্রিভিউ দেখুন</string>
     <string name="capture_preview_title">ক্যাপচারের প্রিভিউ</string>
@@ -268,12 +235,6 @@
     <string name="capture_preview_html">পৃষ্ঠার লেখার প্রিভিউ</string>
     <string name="capture_preview_empty">পড়ার মতো লেখা পাওয়া যায়নি। এই পৃষ্ঠার জন্য স্ক্রিনশট নজরদারি লাগতে পারে।</string>
     <string name="capture_preview_expand">পুরো স্ক্রিনশট দেখুন</string>
-    <string name="schedule_running">নির্ধারিত পরীক্ষা চলছে</string>
-    <string name="schedule_unconfirmed">সময়সূচি এখনও নিশ্চিত নয়</string>
-    <string name="schedule_eligible_waiting">এখন পরীক্ষা সম্ভব · ডিভাইস ও আপনার শর্তের অপেক্ষায়</string>
-    <string name="schedule_next_eligible">পরের পরীক্ষা সম্ভব: %1$s · সময় বদলাতে পারে</string>
-    <string name="watchlist_review_errors">ব্যর্থ পৃষ্ঠা দেখুন</string>
-    <string name="watchlist_failed_description">কিছু পৃষ্ঠা পরীক্ষা করা যায়নি। আবার চেষ্টা করতে রিফ্রেশ করুন।</string>
     <string name="requested_comparison_unavailable">এই তুলনা আর নেই</string>
     <string name="requested_comparison_unavailable_description">একটি বা দুটি সংরক্ষিত সংস্করণ সরানো হয়ে থাকতে পারে। বদলে সর্বশেষ উপলভ্য সংস্করণ খুলতে পারেন।</string>
     <string name="view_latest_saved_version">সর্বশেষ সংরক্ষিত সংস্করণ দেখুন</string>
@@ -304,7 +265,6 @@
     <string name="check_failure_content_detail">এই প্রতিক্রিয়া ক্যাপচার করা যায়নি। অন্য পদ্ধতি চেষ্টা করুন।</string>
     <string name="check_failure_unknown">পরীক্ষা ব্যর্থ</string>
     <string name="check_failure_unknown_detail">পৃষ্ঠার ঠিকানা ও সংযোগ দেখে আবার চেষ্টা করুন।</string>
-    <string name="capture_mode_text">পড়ার মতো লেখা</string>
     <string name="capture_mode_source">সোর্সের যেকোনো পরিবর্তন</string>
     <string name="legacy_threshold_title">পুরোনো বাইট ফিল্টার: %1$d বাইট</string>
     <string name="legacy_threshold_description">এই পুরোনো ফিল্টার বাইটসীমার নিচের পরিবর্তন উপেক্ষা করে। এটি দৃশ্যমান পিক্সেলের বদলে সংরক্ষিত তথ্য তুলনা করে। শুধু বাছাই করা নিয়ম ব্যবহার করতে এটি সরান।</string>
@@ -313,20 +273,13 @@
     <string name="check_failure_region_detail">পৃষ্ঠা সম্পাদনা করে অঞ্চলের নিয়মের প্রিভিউ দেখুন। সিলেক্টর হয়তো আর মিলছে না বা প্রতিক্রিয়া HTML নয়। সংরক্ষিত ইতিহাস থাকবে।</string>
     <string name="text_region_title">পৃষ্ঠার অংশ</string>
     <string name="text_region_whole">পুরো পৃষ্ঠা</string>
-    <string name="text_region_main">মূল বিষয়বস্তু</string>
     <string name="text_region_description">শুধু মিলে যাওয়া HTML সংরক্ষিত হয়। অঞ্চলের বাইরে বা উপেক্ষিত অংশের পরিবর্তনে বিজ্ঞপ্তি আসে না। সংরক্ষণের আগে প্রিভিউ দেখুন। পুরো পৃষ্ঠায় নজর রাখতে অন্তর্ভুক্তির সিলেক্টর খালি রাখুন।</string>
     <string name="text_region_include">অন্তর্ভুক্তির CSS সিলেক্টর (ঐচ্ছিক)</string>
     <string name="text_region_exclude">উপেক্ষার CSS সিলেক্টর (ঐচ্ছিক)</string>
     <string name="text_region_invalid">প্রতিটি বৈধ CSS সিলেক্টর সর্বোচ্চ %1$d অক্ষরের হতে হবে, রেগুলার এক্সপ্রেশন ছাড়া।</string>
-    <string name="detail_last_saved">সর্বশেষ সংরক্ষিত</string>
-    <string name="detail_compare">তুলনা করুন</string>
-    <string name="detail_empty_text">এই সংরক্ষিত সংস্করণে পড়ার মতো লেখা নেই। সোর্স দেখতে খুলুন।</string>
-    <string name="detail_preview_unavailable">প্রিভিউ নেই · সংরক্ষিত সংস্করণ খুলুন</string>
-    <string name="detail_saved_document">সংরক্ষিত নথি</string>
     <string name="detail_missing">এই পৃষ্ঠা আর আপনার নজরদারির তালিকায় নেই।</string>
     <string name="detail_no_version">এখনও সংরক্ষিত সংস্করণ নেই</string>
     <string name="detail_first_check">শুরুর সংস্করণ সংরক্ষণ করতে এই পৃষ্ঠা পরীক্ষা করুন।</string>
-    <string name="detail_open_saved">সংস্করণ খুলুন</string>
     <string name="comparison_marked_read">পড়া হয়েছে বলে চিহ্নিত</string>
     <string name="comparison_read_failed">পড়ার অবস্থা বদলানো যায়নি। আবার চেষ্টা করুন।</string>
     <string name="comparison_read_changed">সর্বশেষ আপডেট বদলেছে। পড়া হয়েছে বলে চিহ্নিত করতে এটি খুলুন।</string>
@@ -378,24 +331,7 @@
     <string name="check_failure_capture_unavailable">স্ক্রিনশট পরীক্ষা নেই</string>
     <string name="check_failure_capture_unavailable_detail">স্ক্রিনশট পরীক্ষার জন্য Android বা iOS ব্যবহার করুন, অথবা টেক্সট বা সোর্স পর্যবেক্ষণ বেছে নিন। সংরক্ষিত সংস্করণগুলো থাকবে।</string>
     <string name="settings_theme_and_color">থিম ও রং</string>
-    <string name="history_today">আজ</string>
     <string name="history_yesterday">গতকাল</string>
-    <string name="history_calendar_day">%2$d %1$s</string>
-    <string name="history_calendar_day_year">%2$d %1$s %3$d</string>
-    <string-array name="history_months">
-        <item>জানুয়ারি</item>
-        <item>ফেব্রুয়ারি</item>
-        <item>মার্চ</item>
-        <item>এপ্রিল</item>
-        <item>মে</item>
-        <item>জুন</item>
-        <item>জুলাই</item>
-        <item>আগস্ট</item>
-        <item>সেপ্টেম্বর</item>
-        <item>অক্টোবর</item>
-        <item>নভেম্বর</item>
-        <item>ডিসেম্বর</item>
-    </string-array>
     <string name="comparison_show_previous">আগের লেখা দেখান</string>
     <string name="comparison_hide_previous">আগের লেখা লুকান</string>
     <plurals name="comparison_changed_passages">
@@ -546,7 +482,6 @@
         <item>ডিসেম্বর</item>
     </string-array>
     <string name="today">আজ</string>
-    <string name="day_month">%1$d %2$s</string>
     <string name="day_time">%1$s, %2$s</string>
     <string name="label_text_changed">লেখা বদলেছে</string>
     <string name="label_percent">পৃষ্ঠার %1$s</string>
@@ -575,8 +510,6 @@
     <string name="detail_what_part">আপনার বাছাই করা অংশ</string>
     <string name="detail_what_page">পৃষ্ঠার লেখা</string>
     <string name="mode_screenshot">স্ক্রিনশট</string>
-    <string name="mode_source">সোর্সের যেকোনো পরিবর্তন</string>
-    <string name="mode_html">পৃষ্ঠার HTML</string>
     <string name="mode_default">অ্যাপের ডিফল্ট</string>
     <string name="mode_text">লেখা</string>
     <string name="mode_code">কোড</string>
@@ -648,11 +581,6 @@
     <string name="checks_daily">প্রতিদিন</string>
     <string name="checks_hours_short">%1$d ঘণ্টা</string>
     <string name="checks_minutes_short">%1$d মিনিট</string>
-    <string name="checks_sentence_off">স্বয়ংক্রিয় পরীক্ষা বন্ধ। আপনি রিফ্রেশ করলেই পৃষ্ঠা পরীক্ষা হবে।</string>
-    <string name="checks_sentence">প্রায় %1$s পরীক্ষা হবে</string>
-    <string name="checks_cond_wifi">ওয়াই-ফাইয়ে</string>
-    <string name="checks_cond_charging">চার্জ দেওয়ার সময়</string>
-    <string name="checks_cond_battery">ব্যাটারি কম না থাকলে</string>
     <string name="settings_group_checking">পরীক্ষা</string>
     <string name="settings_group_app">অ্যাপ</string>
     <string name="settings_default_detection">ডিফল্ট ক্যাপচার পদ্ধতি</string>
@@ -772,15 +700,12 @@
     <string name="picker_selected_area">লেখা ছাড়া অঞ্চল</string>
     <string name="preview_nothing_visible">কোনো দৃশ্যমান পরিবর্তন শনাক্ত হয়নি</string>
     <string name="preview_nothing_visible_body">সংরক্ষিত তথ্য বদলেছে, তবে উল্লেখযোগ্য দৃশ্যমান পার্থক্য পাওয়া যায়নি।</string>
-    <string name="version_compared_with">%1$s থেকে</string>
     <string name="home_status_checked">%1$s পরীক্ষা করা হয়েছে</string>
     <string name="home_status_first_check">প্রথম পরীক্ষার অপেক্ষায়</string>
     <string name="ignore_small_title">ছোট পরিবর্তন উপেক্ষা করুন</string>
     <string name="ignore_small_off">বন্ধ</string>
     <string name="ignore_small_body">পৃষ্ঠার অন্তত এতটুকু আলাদা দেখালেই নতুন স্ক্রিনশট রাখুন।</string>
     <string name="ignore_small_off_body">আকারের কোনো ফিল্টার নেই। রঙের সামান্য পার্থক্য এখনো উপেক্ষা করা হয়।</string>
-    <string name="editor_formats">অন্য বিন্যাস</string>
-    <string name="editor_formats_body">ডেভেলপারের জন্য: পৃষ্ঠার কোড তুলনা করুন। লেখার চেয়ে সাধারণত বেশি অপ্রয়োজনীয় বদল ধরা পড়ে।</string>
     <string name="editor_part_picked">বাছাই করা</string>
     <string name="settings_capture_body">নতুন পৃষ্ঠা যেভাবে তুলনা হবে। প্রতিটি পৃষ্ঠা নিজের পদ্ধতি বেছে নিতে পারে।</string>
     <string name="settings_wait_body">পৃষ্ঠা আগেই ছবি ও লোড শেষ হওয়ার জন্য অপেক্ষা করে। ধীর সাইটের জন্য আরও সময় যোগ করুন।</string>
@@ -833,7 +758,7 @@
     <string name="check_failure_saved_content_unavailable">সংরক্ষিত সংস্করণ পাওয়া যাচ্ছে না</string>
     <string name="check_failure_saved_content_unavailable_detail">সংরক্ষিত সংস্করণটি নেই বা নষ্ট হয়েছে। আগের ইতিহাস রাখা হয়েছে। ডিভাইসে খালি স্টোরেজ দেখুন এবং সমস্যা চলতে থাকলে রিপোর্ট পাঠান।</string>
     <string name="check_failure_capture_incomplete">পৃষ্ঠার ক্যাপচার অসম্পূর্ণ</string>
-    <string name="check_failure_capture_incomplete_detail">পর্যবেক্ষণ করা পৃষ্ঠার কিছু অংশ লোড করা যায়নি। সংরক্ষিত ইতিহাস রাখা হয়েছে। আবার চেষ্টা করুন বা পৃষ্ঠার প্রিভিউ দেখুন।</string>
+    <string name="check_failure_capture_incomplete_detail">পর্যবেক্ষণ করা পৃষ্ঠার কিছু অংশ লোড হয়নি। আপনার ইতিহাস সুরক্ষিত আছে। আবার চেষ্টা করুন বা ব্রাউজারে পৃষ্ঠাটি খুলুন। সমস্যা থাকলে টেক্সট মোড ব্যবহার করুন বা পৃষ্ঠার এমন অংশ বেছে নিন যা লোড হয়।</string>
     <string name="text_http_capability_note">এই প্ল্যাটফর্মে টেক্সট পর্যবেক্ষণ HTTP উত্তর পড়ে। JavaScript বিষয়বস্তু ও ব্রাউজারের সাইন-ইন কুকি এতে থাকে না।</string>
     <string name="check_failure_document_changed">ক্যাপচারের সময় পৃষ্ঠা বদলেছে</string>
     <string name="check_failure_document_changed_detail">পরীক্ষা তৈরির সময় পৃষ্ঠা বদলেছে। সংরক্ষিত ইতিহাস রাখা হয়েছে। আবার চেষ্টা করুন।</string>
@@ -843,4 +768,24 @@
     <string name="color_style_vibrant">প্রাণবন্ত</string>
     <string name="color_style_tonal">টোনাল</string>
     <string name="color_style_muted">মৃদু</string>
+    <string name="capture_details">ক্যাপচারের বিবরণ</string>
+    <string name="capture_resource_details_unavailable">রিসোর্সের বিবরণ রেকর্ড করা হয়নি। আবার চেষ্টা করলে আরও তথ্য পাওয়া যেতে পারে।</string>
+    <string name="capture_resource_image">ছবি</string>
+    <string name="capture_resource_font">ফন্ট</string>
+    <string name="capture_resource_stylesheet">স্টাইল শিট</string>
+    <string name="capture_resource_frame">এম্বেড করা ফ্রেম</string>
+    <string name="capture_resource_other">পৃষ্ঠার রিসোর্স</string>
+    <string name="capture_resource_load">%1$s · লোড হয়নি</string>
+    <string name="capture_resource_certificate">%1$s · সার্টিফিকেট প্রত্যাখ্যাত</string>
+    <string name="capture_resource_http">%1$s · HTTP %2$d</string>
+    <string name="capture_size_unavailable">ক্যাপচারের আকার জানা যায়নি। নতুন সংস্করণ সেভ করা হয়নি।</string>
+    <string name="capture_size_zero">ক্যাপচারের ছবি তৈরি হয়নি। নতুন সংস্করণ সেভ করা হয়নি।</string>
+    <string name="capture_size_pixels">%1$d × %2$d পিক্সেল ক্যাপচার হয়েছে। নতুন সংস্করণ সেভ করা হয়নি।</string>
+    <string name="capture_browser_attached">ব্রাউজার ভিউ একটি উইন্ডোর সঙ্গে যুক্ত ছিল।</string>
+    <string name="capture_browser_detached">ব্রাউজার ভিউ কোনো উইন্ডোর সঙ্গে যুক্ত ছিল না।</string>
+    <string name="capture_try_text">টেক্সট ব্যবহার করে দেখুন</string>
+    <string name="capture_trying_text">টেক্সট পরীক্ষা করা হচ্ছে…</string>
+    <string name="capture_text_switched">পর্যবেক্ষণ টেক্সটে বদলেছে।</string>
+    <string name="capture_text_switch_failed">টেক্সটে বদলানো যায়নি।</string>
+    <string name="capture_try_text_hint">টেক্সট লোড হলে পরের পরীক্ষাগুলোতে স্ক্রিনশটের বদলে টেক্সট ব্যবহার করা হবে।</string>
 </resources>

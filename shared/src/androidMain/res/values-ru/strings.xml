@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Change Detection</string>
+    <string name="status_checking_pages">Проверка страниц</string>
+    <string name="status_checking_page">Проверка страницы</string>
+    <string name="status_checking_page_progress">Проверка страницы %1$d из %2$d</string>
+    <string name="status_preparing_page_checks">Подготовка к проверке страниц…</string>
+    <string name="sync_notification_channel_name">Проверки страниц</string>
+    <string name="change_notification_channel_name">Обнаруженные изменения</string>
+    <string name="change_notification_channel_description">Уведомления об изменениях на отслеживаемых сайтах</string>
+    <string name="quick_monitor_banner_live_badge">АКТИВНО</string>
+    <string name="quick_monitor_title">Turbo</string>
+    <string name="quick_monitor_channel_description">Показывает активный сеанс частых проверок.</string>
+    <string name="quick_monitor_notification_title">⚡ Turbo включён</string>
+    <plurals name="quick_monitor_notification_subtitle">
+        <item quantity="one">Проверка %1$d страницы с интервалом %2$d с</item>
+        <item quantity="few">Проверка %1$d страниц с интервалом %2$d с</item>
+        <item quantity="many">Проверка %1$d страниц с интервалом %2$d с</item>
+        <item quantity="other">Проверка %1$d страниц с интервалом %2$d с</item>
+    </plurals>
+    <string name="action_stop_monitoring">Остановить мониторинг</string>
+    <string name="empty_add_site_hint">Добавьте страницу, чтобы запустить Turbo</string>
+    <string name="start">Запустить</string>
+    <string name="change_notification_named">Изменения на странице «%1$s»</string>
+    <string name="change_notification_generic">Нажмите, чтобы посмотреть изменения.</string>
+    <string name="diagnostics_export">Отправить отчёт разработчику</string>
+    <string name="diagnostics_title">Диагностический отчёт</string>
+    <string name="diagnostics_explanation">Просмотрите этот локальный отчёт перед отправкой. В нём указаны этапы и длительность проверок, типы и сообщения об ошибках без адресов, путей и цитат, недавние обновления базы данных и сбои, а также версии приложения и WebView. Отчёт не содержит адресов, заголовков и содержимого страниц, снимков экрана, файлов cookie, заголовков запросов и токенов. Отчёт не отправляется автоматически.</string>
+    <string name="diagnostics_scope">До 10 последних попыток за последние 7 дней. Отчеты ограничены размером до 64 КБ. Неполные записи могут отражать прерыванное или прерванное запись.</string>
+    <string name="diagnostics_loading">Подготовка локального отчета…</string>
+    <string name="diagnostics_empty">Не зафиксировано недавних попыток. Попробуйте предварительный просмотр или проверьте снова, затем откройте этот отчет заново.</string>
+    <string name="diagnostics_unavailable">Не удалось подготовить диагностику. Мониторинг и сохраненная история не изменились. Повторите попытку.</string>
+    <string name="diagnostics_share">Отправить отчёт</string>
+    <string name="diagnostics_close">Закрыть</string>
+    <string name="diagnostics_retry">Повторить</string>
+    <string name="diagnostics_content">Содержание отчета</string>
+    <string name="diagnostics_page_scope">Недавние попытки для этой страницы</string>
+    <string name="external_open_failed">Не удалось открыть другое приложение. Установите совместимое приложение или повторите попытку.</string>
+    <string name="change_notification_open_browser">Открыть в браузере</string>
+    <string name="change_notification_before">Раньше</string>
+    <string name="change_notification_now">Сейчас</string>
+    <string name="change_notification_enabled">Уведомления об изменениях включены</string>
+    <string name="change_notification_permission">Требуется разрешение на отправку уведомлений</string>
+    <string name="change_notification_app_disabled">Уведомления приложения отключены</string>
+    <string name="change_notification_channel_disabled">Канал уведомлений об изменениях отключён</string>
+</resources>

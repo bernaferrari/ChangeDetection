@@ -138,7 +138,6 @@
         <item>dic</item>
     </string-array>
     <string name="today">Hoy</string>
-    <string name="day_month">%1$d %2$s</string>
     <string name="day_time">%1$s, %2$s</string>
     <string name="label_text_changed">Texto modificado</string>
     <string name="label_percent">%1$s de la página</string>
@@ -167,8 +166,6 @@
     <string name="detail_what_part">Una parte que elegiste</string>
     <string name="detail_what_page">El texto de la página</string>
     <string name="mode_screenshot">Captura de pantalla</string>
-    <string name="mode_source">Cualquier cambio en el código fuente</string>
-    <string name="mode_html">HTML de la página</string>
     <string name="mode_default">Predeterminado de la app</string>
     <string name="mode_text">Texto</string>
     <string name="mode_code">Código</string>
@@ -240,11 +237,6 @@
     <string name="checks_daily">Diario</string>
     <string name="checks_hours_short">%1$d h</string>
     <string name="checks_minutes_short">%1$d min</string>
-    <string name="checks_sentence_off">Las comprobaciones automáticas están desactivadas. Las páginas solo se comprueban cuando actualizas.</string>
-    <string name="checks_sentence">Las comprobaciones se realizan aproximadamente %1$s</string>
-    <string name="checks_cond_wifi">con Wi‑Fi</string>
-    <string name="checks_cond_charging">mientras carga</string>
-    <string name="checks_cond_battery">cuando la batería no está baja</string>
     <string name="settings_group_checking">Comprobaciones</string>
     <string name="settings_group_app">App</string>
     <string name="settings_default_detection">Método de captura predeterminado</string>

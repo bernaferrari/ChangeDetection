@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Change Detection</string>
+    <string name="status_checking_pages">جارٍ فحص الصفحات</string>
+    <string name="status_checking_page">جارٍ فحص الصفحة</string>
+    <string name="status_checking_page_progress">جارٍ فحص الصفحة %1$d من %2$d</string>
+    <string name="status_preparing_page_checks">جارٍ التحضير لفحص الصفحات…</string>
+    <string name="sync_notification_channel_name">فحص الصفحات</string>
+    <string name="change_notification_channel_name">التغييرات المكتشفة</string>
+    <string name="change_notification_channel_description">تنبيهات عند تغيّر موقع تراقبه</string>
+    <string name="quick_monitor_banner_live_badge">مباشر</string>
+    <string name="quick_monitor_title">Turbo</string>
+    <string name="quick_monitor_channel_description">يعرض جلسة المراقبة السريعة الجارية.</string>
+    <string name="quick_monitor_notification_title">⚡ Turbo قيد التشغيل</string>
+    <plurals name="quick_monitor_notification_subtitle">
+        <item quantity="zero">الصفحات قيد الفحص (%1$d) · الفاصل بالثواني (%2$d)</item>
+        <item quantity="one">الصفحات قيد الفحص (%1$d) · الفاصل بالثواني (%2$d)</item>
+        <item quantity="two">الصفحات قيد الفحص (%1$d) · الفاصل بالثواني (%2$d)</item>
+        <item quantity="few">الصفحات قيد الفحص (%1$d) · الفاصل بالثواني (%2$d)</item>
+        <item quantity="many">الصفحات قيد الفحص (%1$d) · الفاصل بالثواني (%2$d)</item>
+        <item quantity="other">الصفحات قيد الفحص (%1$d) · الفاصل بالثواني (%2$d)</item>
+    </plurals>
+    <string name="action_stop_monitoring">أوقف المراقبة</string>
+    <string name="empty_add_site_hint">أضف صفحة لتشغيل Turbo</string>
+    <string name="start">ابدأ</string>
+    <string name="change_notification_named">تغيّرت صفحة %1$s</string>
+    <string name="change_notification_generic">انقر لمعرفة ما تغيّر.</string>
+    <string name="diagnostics_export">أرسل التقرير إلى المطوّر</string>
+    <string name="diagnostics_title">تقرير التشخيص</string>
+    <string name="diagnostics_explanation">راجع هذا التقرير المحلي قبل مشاركته. يتضمّن مراحل الفحص ومدده وأنواع الأخطاء ورسائلها بعد إزالة العناوين والمسارات والنصوص المقتبسة، وترقيات قاعدة البيانات والأعطال الأخيرة، وإصدارات التطبيق وWebView. ويستبعد عناوين الصفحات وأسماءها ومحتواها ولقطات الشاشة وملفات تعريف الارتباط والترويسات والرموز المميزة. لا يُرسل التقرير تلقائيًا.</string>
+    <string name="diagnostics_scope">حتى 10 محاولات حديثة من الأيام السبعة الماضية. تقتصر التقارير على 64 كيلوبايت. قد تعكس المدخلات غير المكتملة التسجيل المقطع أو المنسى.</string>
+    <string name="diagnostics_loading">تحضير التقرير المحلي…</string>
+    <string name="diagnostics_empty">لم يتم تسجيل أي محاولات حديثة. جرب معاينة أو تحقق مرة أخرى، ثم أعد فتح هذا التقرير.</string>
+    <string name="diagnostics_unavailable">تعذر إعداد التشخيص. لا تتغير المراقبة والسجل المحفوظ. حاول مرة أخرى.</string>
+    <string name="diagnostics_share">أرسل التقرير</string>
+    <string name="diagnostics_close">أغلق</string>
+    <string name="diagnostics_retry">حاول مجددًا</string>
+    <string name="diagnostics_content">محتوى التقرير</string>
+    <string name="diagnostics_page_scope">المحاولات الأخيرة لهذه الصفحة</string>
+    <string name="external_open_failed">تعذّر فتح تطبيق آخر. ثبّت تطبيقًا متوافقًا أو حاول مجددًا.</string>
+    <string name="change_notification_open_browser">افتح في المتصفح</string>
+    <string name="change_notification_before">قبل</string>
+    <string name="change_notification_now">الآن</string>
+    <string name="change_notification_enabled">تنبيهات التغييرات مفعّلة</string>
+    <string name="change_notification_permission">يلزم إذن إرسال الإشعارات</string>
+    <string name="change_notification_app_disabled">إشعارات التطبيق متوقفة</string>
+    <string name="change_notification_channel_disabled">قناة تنبيهات التغييرات متوقفة</string>
+</resources>

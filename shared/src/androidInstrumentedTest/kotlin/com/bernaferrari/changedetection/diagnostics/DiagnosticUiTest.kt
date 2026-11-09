@@ -27,6 +27,41 @@ class DiagnosticUiTest {
     @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private val watch = "private-watch-${java.util.UUID.randomUUID()}?token=SECRET"
+
+    @Test fun incompleteCaptureShowsTheFailedResourceBeforeTheReport() {
+        val store = AndroidDiagnostics.install(context, "debug", "abcdef123456")
+        runBlocking {
+            store.append(
+                DiagnosticAttempt(
+                    startedAt = System.currentTimeMillis(),
+                    mode = CaptureMode.SCREENSHOT,
+                    selected = false,
+                    excluded = false,
+                    trigger = DiagnosticTrigger.CHECK,
+                    watchToken = store.watchToken(watch),
+                    outcome = DiagnosticOutcome.FAILURE,
+                    events = listOf(DiagnosticEvent(DiagnosticStage.CREATE_BROWSER, 0, metric = DiagnosticMetric.ATTACHED, code = 1)),
+                    failure = DiagnosticFailure(
+                        DiagnosticStage.CAPTURE_PIXELS,
+                        com.bernaferrari.changedetection.error.CheckFailure.CAPTURE_INCOMPLETE,
+                        captureResources = listOf(com.bernaferrari.changedetection.browser.CaptureResourceFailure(com.bernaferrari.changedetection.browser.CaptureResourceKind.IMAGE, httpStatus = 404)),
+                        captureExtent = com.bernaferrari.changedetection.browser.CaptureExtent.Empty,
+                    ),
+                ),
+            )
+        }
+        compose.setContent { ChangeDetectionTheme(false, false) { DiagnosticsEntry(watch, captureDetails = true, onTryText = { true }) } }
+        compose.onNodeWithText("Capture details").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithText("Image · HTTP 404").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithText("Image · HTTP 404").assertIsDisplayed()
+        compose.onNodeWithText("No capture image was assembled. No new version was saved.").assertExists()
+        compose.onNodeWithText("The browser view was attached to a window.").assertExists()
+        compose.onNodeWithTag("diagnostic-report-content").performScrollToNode(hasText("Try text"))
+        compose.onNodeWithText("Try text").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithText("Switched to text monitoring.").fetchSemanticsNodes().isNotEmpty() }
+        assertFalse(runBlocking { store.report(watch).json }.contains("SECRET"))
+    }
+
     private fun seed(): AndroidDiagnosticStore = AndroidDiagnostics.install(context, "debug", "abcdef123456").also {
         runBlocking {
             try {

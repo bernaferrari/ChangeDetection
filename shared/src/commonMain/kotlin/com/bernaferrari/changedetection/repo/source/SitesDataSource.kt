@@ -28,6 +28,8 @@ interface SitesDataSource {
     /** Edits require a live row inside the write transaction; creation may insert a new page. */
     suspend fun saveSite(site: Site, resetHistory: Boolean = false, requireExisting: Boolean = false)
 
+    suspend fun switchToTextIfCurrent(site: Site): Site?
+
     suspend fun updateIconShape(siteId: String, shape: PageIconShape)
 
     suspend fun updateIconColor(siteId: String, colors: com.bernaferrari.changedetection.repo.ColorGroup)

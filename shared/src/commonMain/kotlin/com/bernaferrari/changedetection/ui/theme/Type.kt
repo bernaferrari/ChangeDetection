@@ -3,6 +3,7 @@ package com.bernaferrari.changedetection.ui.theme
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -15,15 +16,18 @@ import com.bernaferrari.changedetection.shared.generated.resources.gsf_medium
 import com.bernaferrari.changedetection.shared.generated.resources.gsf_regular
 import com.bernaferrari.changedetection.shared.generated.resources.gsf_semibold
 import org.jetbrains.compose.resources.Font
-import androidx.compose.ui.text.intl.Locale
 import com.bernaferrari.changedetection.shared.generated.resources.*
 
 /** Google Sans Flex for text, and its rounded display cut for headlines (the M3 Expressive voice). */
 @Composable
 fun appTypography(): Typography {
-    // The bundled Latin font lacks Indic/CJK glyphs. Use compact script fonts rather than
-    // relying on device fallback, which is incomplete on some desktop and web systems.
-    val scriptFonts = when (Locale.current.language) {
+    val language = LocalLocale.current.language
+    if (language == "ar" || language == "ru") {
+        // Use the platform's sans-serif family for Arabic and Cyrillic.
+        return remember(language) { typographyOf(FontFamily.SansSerif, FontFamily.SansSerif, naturalSpacing = language == "ar") }
+    }
+    // Use bundled script fonts where desktop and web fallback may be incomplete.
+    val scriptFonts = when (language) {
         "hi" -> listOf(Res.font.locale_hi_regular, Res.font.locale_hi_semibold, Res.font.locale_hi_bold)
         "bn" -> listOf(Res.font.locale_bn_regular, Res.font.locale_bn_semibold, Res.font.locale_bn_bold)
         "zh" -> listOf(Res.font.locale_zh_regular, Res.font.locale_zh_semibold, Res.font.locale_zh_bold)

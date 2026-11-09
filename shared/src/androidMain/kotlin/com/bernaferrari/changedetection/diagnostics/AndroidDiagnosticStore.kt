@@ -4,6 +4,9 @@ import android.content.Context
 import android.os.Build
 import android.os.StatFs
 import android.webkit.WebView
+import com.bernaferrari.changedetection.browser.CaptureResourceFailure
+import com.bernaferrari.changedetection.browser.CaptureExtent
+import com.bernaferrari.changedetection.error.CheckFailure
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -24,7 +27,14 @@ import javax.crypto.spec.SecretKeySpec
 @Serializable data class DiagnosticRuntime(val versionCode: Long, val versionName: String, val variant: DiagnosticVariant, val revision: String, val androidApi: Int, val provider: DiagnosticProvider, val providerVersion: String, val space: DiagnosticSpace, val heapLimitMiB: Int)
 
 @Serializable internal data class StoredDiagnostic(val runtime: DiagnosticRuntime, val attempt: DiagnosticAttempt)
-class DiagnosticReport internal constructor(val json: String, val attemptCount: Int, val eventCount: Int = 0) {
+internal data class CaptureAttemptDetails(val resources: List<CaptureResourceFailure>, val extent: CaptureExtent?, val attached: Boolean?)
+
+class DiagnosticReport internal constructor(
+    val json: String,
+    val attemptCount: Int,
+    val eventCount: Int = 0,
+    internal val captureDetails: CaptureAttemptDetails? = null,
+) {
     val lines: List<String> = json.lines()
     val isEmpty: Boolean get() = attemptCount == 0 && eventCount == 0
 }
@@ -135,7 +145,21 @@ class AndroidDiagnosticStore internal constructor(
             androidApi = value.runtime.androidApi.coerceIn(1, 100),
             heapLimitMiB = value.runtime.heapLimitMiB.coerceIn(0, 65_536),
         )
-        return StoredDiagnostic(safeRuntime, a.copy(events = a.events.take(64).map { it.copy(elapsedMs = it.elapsedMs.coerceIn(0, 600_000), durationMs = it.durationMs.coerceIn(0, 600_000), code = it.code?.coerceIn(-100, 599), capture = it.capture?.bounded(), tls = it.tls?.let { tls -> tls.copy(primary = tls.primary.coerceIn(0, 5), errors = tls.errors.filter { code -> code in 0..5 }.distinct().sorted().take(6)) }) }, failure = a.failure?.copy(regionIssue = a.failure.regionIssue ?: a.events.lastOrNull { it.metric == DiagnosticMetric.REGION_RESULT }?.code?.let { com.bernaferrari.changedetection.detection.TextRegionIssue.entries.getOrNull(it) }, causes = a.failure.causes.take(4), classes = a.failure.classes.filter(::isSafeClassName).take(4), detail = a.failure.detail?.let(::scrubErrorText)?.takeIf { it.isNotBlank() })))
+        val failure = a.failure?.let {
+            it.copy(
+                regionIssue = it.regionIssue ?: a.events.lastOrNull { event -> event.metric == DiagnosticMetric.REGION_RESULT }?.code?.let(com.bernaferrari.changedetection.detection.TextRegionIssue.entries::getOrNull),
+                causes = it.causes.take(4),
+                classes = it.classes.filter(::isSafeClassName).take(4),
+                detail = it.detail?.let(::scrubErrorText)?.takeIf(String::isNotBlank),
+                captureResources = it.captureResources.take(4).map { resource ->
+                    resource.copy(httpStatus = resource.httpStatus?.takeIf { status -> !resource.certificateRejected && status in 400..599 })
+                },
+                captureExtent = it.captureExtent?.takeIf { size ->
+                    size == CaptureExtent.Empty || (size.width in 1..32_768 && size.height in 1..32_768)
+                },
+            )
+        }
+        return StoredDiagnostic(safeRuntime, a.copy(events = a.events.take(64).map { it.copy(elapsedMs = it.elapsedMs.coerceIn(0, 600_000), durationMs = it.durationMs.coerceIn(0, 600_000), code = it.code?.coerceIn(-100, 599), capture = it.capture?.bounded(), tls = it.tls?.let { tls -> tls.copy(primary = tls.primary.coerceIn(0, 5), errors = tls.errors.filter { code -> code in 0..5 }.distinct().sorted().take(6)) }) }, failure = failure))
     }
 
     private fun retained(): List<File> {
@@ -383,7 +407,14 @@ class AndroidDiagnosticStore internal constructor(
             }
             val report = json.encodeToString(envelope(kept, rows, byteOmissions, recordOmissions))
             check(report.toByteArray().size <= MAX_REPORT_BYTES)
-            DiagnosticReport(report, rows.size, events.size)
+            val latestCheck = eligible.firstOrNull {
+                it.attempt.trigger == DiagnosticTrigger.CHECK && it.attempt.outcome in setOf(DiagnosticOutcome.FAILURE, DiagnosticOutcome.SUCCESS)
+            }?.attempt
+            val captureDetails = latestCheck?.failure?.takeIf { it.category == CheckFailure.CAPTURE_INCOMPLETE }?.let { failure ->
+                val attached = latestCheck.events.lastOrNull { it.metric == DiagnosticMetric.ATTACHED }?.code
+                CaptureAttemptDetails(failure.captureResources, failure.captureExtent, attached?.takeIf { it in 0..1 }?.let { it == 1 })
+            }
+            DiagnosticReport(report, rows.size, events.size, captureDetails)
         }
     }
 

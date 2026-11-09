@@ -211,7 +211,13 @@ object IosPageCapture {
             val raw = evaluate(web, resources) as? String ?: ""
             val state = raw.split(',').mapNotNull(String::toDoubleOrNull)
             if (state.size != 6) throw CaptureNotReadyException(CaptureIssue.VIEWPORT_NOT_READY)
-            if (state[1] > 0 || state[2] < 0) throw CaptureNotReadyException(CaptureIssue.RESOURCE_FAILED)
+            if (state[1] > 0 || state[2] < 0) {
+                val failures = buildList {
+                    if (state[1] > 0) add(CaptureResourceFailure(CaptureResourceKind.IMAGE))
+                    if (state[2] < 0) add(CaptureResourceFailure(CaptureResourceKind.FONT))
+                }
+                throw CaptureNotReadyException(CaptureIssue.RESOURCE_FAILED, failures, CaptureExtent.Empty)
+            }
             quiet = if (state.take(4).all { it == 0.0 } && raw == previous) quiet + 1 else 0
             if (quiet >= 2) return
             previous = raw

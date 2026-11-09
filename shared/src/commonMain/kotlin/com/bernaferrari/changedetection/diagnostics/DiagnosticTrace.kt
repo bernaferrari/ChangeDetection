@@ -1,5 +1,8 @@
 package com.bernaferrari.changedetection.diagnostics
 
+import com.bernaferrari.changedetection.browser.CaptureNotReadyException
+import com.bernaferrari.changedetection.browser.CaptureResourceFailure
+import com.bernaferrari.changedetection.browser.CaptureExtent
 import com.bernaferrari.changedetection.error.CheckFailure
 import com.bernaferrari.changedetection.repo.CaptureMode
 import kotlinx.coroutines.*
@@ -70,6 +73,8 @@ import kotlin.time.TimeSource
     val classes: List<String> = emptyList(),
     val detail: String? = null,
     val regionIssue: com.bernaferrari.changedetection.detection.TextRegionIssue? = null,
+    val captureResources: List<CaptureResourceFailure> = emptyList(),
+    val captureExtent: CaptureExtent? = null,
 )
 
 /** Things that happen outside a page check but explain why checks fail. */
@@ -185,8 +190,24 @@ internal class DiagnosticSpan : AbstractCoroutineContextElement(Key) {
         if (error is CancellationException && error !is TimeoutCancellationException) cancelled = true
         val resolvedCategory = category ?: diagnosticCategory(error)
         val causes = generateSequence(error) { it.cause }.take(4).map(::exceptionKind).toList()
-        failure = failure?.copy(category = category ?: failure?.category ?: resolvedCategory)
-            ?: DiagnosticFailure(stage ?: active, resolvedCategory, causes, errorClasses(error), errorDetail(error), (error as? com.bernaferrari.changedetection.detection.TextRegionException)?.issue)
+        val capture = error as? CaptureNotReadyException
+        val resources = capture?.resources.orEmpty()
+        failure = failure?.let {
+            it.copy(
+                category = category ?: it.category ?: resolvedCategory,
+                captureResources = resources.ifEmpty { it.captureResources },
+                captureExtent = capture?.extent ?: it.captureExtent,
+            )
+        } ?: DiagnosticFailure(
+            stage ?: active,
+            resolvedCategory,
+            causes,
+            errorClasses(error),
+            errorDetail(error),
+            (error as? com.bernaferrari.changedetection.detection.TextRegionException)?.issue,
+            resources,
+            capture?.extent,
+        )
     }
     fun callback(stage: DiagnosticStage, metric: DiagnosticMetric, code: Int) {
         callbacks.trySend(DiagnosticEvent(stage, began.elapsedNow().inWholeMilliseconds.coerceIn(0, 600_000), metric = metric, code = code.coerceIn(-100, 599)))

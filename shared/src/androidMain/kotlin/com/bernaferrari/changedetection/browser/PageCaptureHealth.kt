@@ -28,8 +28,8 @@ internal class PageCaptureHealth {
     private val blockingFailures = mutableListOf<DiagnosticTlsContext>()
     private val refusedResources = mutableListOf<DiagnosticTlsContext>()
     private var blocked = 0
-    private val resourceErrors = LinkedHashSet<String>()
-    private val watchedDependencies = LinkedHashSet<String>()
+    private val resourceErrors = LinkedHashMap<String, CaptureResourceFailure>()
+    private val watchedDependencies = LinkedHashMap<String, CaptureResourceKind>()
     private var dependencyOverflow = false
     private var resourceErrorOverflow = false
 
@@ -37,31 +37,32 @@ internal class PageCaptureHealth {
     // Keep queries and encoded '#' characters: those can identify different server resources.
     private fun resourceKey(url: String) = url.substringBefore('#')
 
-    @Synchronized fun resourceError(url: String) {
+    @Synchronized fun resourceError(url: String, httpStatus: Int? = null, certificateRejected: Boolean = false) {
         val key = resourceKey(url)
-        if (key in resourceErrors) return
-        if (key.length <= 4096 && resourceErrors.size < 512) {
-            resourceErrors += key
+        val failure = CaptureResourceFailure(CaptureResourceKind.OTHER, httpStatus?.takeIf { it in 400..599 }, certificateRejected)
+        val previous = resourceErrors[key]
+        if (previous != null) {
+            // Keep a known certificate or HTTP error if the generic WebView callback also fires.
+            if (certificateRejected || (previous.httpStatus == null && !previous.certificateRejected)) resourceErrors[key] = failure
+        } else if (key.length <= 4096 && resourceErrors.size < 512) {
+            resourceErrors[key] = failure
         } else {
             resourceErrorOverflow = true
         }
     }
 
-    @Synchronized fun dependencies(urls: List<String>) {
+    @Synchronized fun dependencies(urls: Map<String, CaptureResourceKind>) {
         // Retain this document's dependency union so another preview cannot revoke an older preview's checks.
-        for (url in urls) {
+        for ((url, kind) in urls) {
             val key = resourceKey(url)
             if (key in watchedDependencies) continue
             if (key.length <= 4096 && watchedDependencies.size < 512) {
-                watchedDependencies += key
+                watchedDependencies[key] = kind
             } else {
                 dependencyOverflow = true
             }
         }
     }
-
-    @Synchronized private fun incompleteResources() = resourceErrorOverflow || resourceErrors.any { it in watchedDependencies } ||
-        (dependencyOverflow && resourceErrors.isNotEmpty())
 
     @Synchronized fun begin(url: String?) {
         generation++
@@ -156,7 +157,7 @@ internal class PageCaptureHealth {
             if (blockingFailures.size < MAX_FAILURES) blockingFailures += context
         } else {
             blocked++
-            url?.let(::resourceError)
+            url?.let { resourceError(it, certificateRejected = true) }
             if (refusedResources.size < MAX_FAILURES) refusedResources += context
         }
         return context
@@ -176,24 +177,37 @@ internal class PageCaptureHealth {
     @Synchronized fun valid(epoch: Long) = epoch == generation && !hasBlockingFailure()
 
     /** Called again after asynchronous capture and immediately before baseline promotion. */
-    suspend fun validate(epoch: Long = epoch()) {
+    suspend fun validate(epoch: Long = epoch(), extent: CaptureExtent? = null, textOnly: Boolean = false) {
         // Snapshot atomically: do not attribute a newer document's TLS/resource errors to an older capture.
         val state = synchronized(this) {
             when {
                 epoch != generation -> Validation(CaptureIssue.DOCUMENT_CHANGED, document = DiagnosticDocumentContext(started != null, committed != null, finished, mainPending))
-                incompleteResources() -> Validation(CaptureIssue.RESOURCE_FAILED)
-                hasBlockingFailure() -> Validation(tls = observations())
-                else -> Validation()
+                else -> {
+                    val failed = resourceErrors.asSequence().mapNotNull { (url, failure) ->
+                        watchedDependencies[url]?.let { failure.copy(kind = it) }
+                    }.filterNot { textOnly && it.canCaptureText }.distinct().take(4).toList()
+                    when {
+                        failed.isNotEmpty() || resourceErrorOverflow || (dependencyOverflow && resourceErrors.isNotEmpty()) ->
+                            Validation(CaptureIssue.RESOURCE_FAILED, resources = failed)
+                        hasBlockingFailure() -> Validation(tls = observations())
+                        else -> Validation()
+                    }
+                }
             }
         }
         state.document?.let { currentCoroutineContext()[DiagnosticSpan]?.documentChanged(it) }
-        state.issue?.let { throw CaptureNotReadyException(it) }
+        state.issue?.let { throw CaptureNotReadyException(it, state.resources, extent) }
         if (state.tls.isNotEmpty()) {
             state.tls.forEach { currentCoroutineContext()[DiagnosticSpan]?.tls(it) }
             throw SSLException("The page could not be captured with valid TLS")
         }
     }
-    private data class Validation(val issue: CaptureIssue? = null, val tls: List<DiagnosticTlsContext> = emptyList(), val document: DiagnosticDocumentContext? = null)
+    private data class Validation(
+        val issue: CaptureIssue? = null,
+        val tls: List<DiagnosticTlsContext> = emptyList(),
+        val document: DiagnosticDocumentContext? = null,
+        val resources: List<CaptureResourceFailure> = emptyList(),
+    )
     private fun bounded(url: String?) = url?.takeIf { it.length <= 4096 }
     private fun origin(url: String?): Triple<String, String, Int>? = runCatching {
         val uri = URI(url ?: return null)

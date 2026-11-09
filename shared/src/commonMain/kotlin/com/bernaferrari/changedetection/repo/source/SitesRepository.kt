@@ -41,6 +41,8 @@ class SitesRepository(
         mSitesLocalDataSource.saveSite(site, resetHistory, requireExisting)
     }
 
+    override suspend fun switchToTextIfCurrent(site: Site): Site? = mSitesLocalDataSource.switchToTextIfCurrent(site)
+
     override suspend fun updateIconShape(siteId: String, shape: PageIconShape) = mSitesLocalDataSource.updateIconShape(siteId, shape)
 
     override suspend fun updateIconColor(siteId: String, colors: com.bernaferrari.changedetection.repo.ColorGroup) = mSitesLocalDataSource.updateIconColor(siteId, colors)

@@ -14,7 +14,20 @@ import javax.xml.parsers.DocumentBuilderFactory
 /** Checks shipped translations, not a mock resource provider. */
 @OptIn(ExperimentalResourceApi::class)
 class LocalizationTest {
-    private val languages = listOf("en", "es", "it", "pt", "de", "hi", "bn", "zh")
+    private val watchLabels = mapOf(
+        "en" to "Watch this page",
+        "es" to "Vigilar esta página",
+        "it" to "Monitora questa pagina",
+        "pt" to "Monitorar esta página",
+        "de" to "Diese Seite beobachten",
+        "hi" to "इस पेज की निगरानी करें",
+        "bn" to "এই পৃষ্ঠায় নজর রাখুন",
+        "zh" to "关注此页面",
+        "fr" to "Surveiller cette page",
+        "id" to "Pantau halaman ini",
+        "ar" to "راقب هذه الصفحة",
+        "ru" to "Следить за этой страницей",
+    )
     private val sharedRoot = File("src/commonMain/composeResources")
     private val nativeRoot = File("src/androidMain/res")
     private val placeholders = Regex("%[1-9]\\$[dsf]")
@@ -23,8 +36,10 @@ class LocalizationTest {
         for (root in listOf(sharedRoot, nativeRoot)) {
             val source = resources(File(root, "values"))
             assertTrue("Resource source exists: $root", source.isNotEmpty())
-            for (language in languages.drop(1)) {
-                val localized = resources(File(root, "values-$language"))
+            for (language in watchLabels.keys - "en") {
+                // Android's resource table still uses "in" for Indonesian.
+                val qualifier = if (root == nativeRoot && language == "id") "in" else language
+                val localized = resources(File(root, "values-$qualifier"))
                 assertEquals("$root/$language keys", source.keys, localized.keys)
                 for ((name, original) in source) {
                     val translated = localized.getValue(name)
@@ -35,7 +50,12 @@ class LocalizationTest {
                     if (original.tagName == "plurals") assertTrue("$language/$name needs other", translatedItems.any { it.getAttribute("quantity") == "other" })
                     translatedItems.forEachIndexed { index, item ->
                         assertTrue("$language/$name is not empty", item.textContent.isNotBlank())
-                        val reference = if (original.tagName == "plurals") originalItems.first { it.getAttribute("quantity") == item.getAttribute("quantity") } else originalItems[index]
+                        val reference = if (original.tagName == "plurals") {
+                            originalItems.firstOrNull { it.getAttribute("quantity") == item.getAttribute("quantity") }
+                                ?: originalItems.first { it.getAttribute("quantity") == "other" }
+                        } else {
+                            originalItems[index]
+                        }
                         assertEquals("$language/$name arguments", arguments(reference.textContent), arguments(item.textContent))
                     }
                 }
@@ -45,11 +65,10 @@ class LocalizationTest {
 
     @Test fun `switching locales resolves every compiled string, plural and array without English fallback`() = runTest {
         val previous = Locale.getDefault()
-        val watchLabels = listOf("Watch this page", "Vigilar esta página", "Monitora questa pagina", "Monitorar esta página", "Diese Seite beobachten", "इस पेज की निगरानी करें", "এই পৃষ্ঠায় নজর রাখুন", "关注此页面")
         try {
-            for ((index, language) in languages.withIndex()) {
+            for ((language, watchLabel) in watchLabels) {
                 Locale.setDefault(Locale.forLanguageTag(language))
-                assertEquals("$language is selected", watchLabels[index], getString(Res.string.watch_this_page))
+                assertEquals("$language is selected", watchLabel, getString(Res.string.watch_this_page))
                 for ((name, resource) in Res.allStringResources) {
                     val text = getString(resource, 41, 42, 43, 44)
                     assertTrue("$language/$name loaded", text.isNotBlank())
@@ -96,7 +115,7 @@ class LocalizationTest {
     @Test fun `numeric resource arguments use local digits while names and URLs stay intact`() = runTest {
         val previous = Locale.getDefault()
         try {
-            for (language in languages) {
+            for (language in watchLabels.keys) {
                 Locale.setDefault(Locale.forLanguageTag(language))
                 val number = localizedInteger(12)
                 assertTrue(getString(Res.string.comparison_passage_position, 12, 45).contains(number))
@@ -171,6 +190,13 @@ class LocalizationTest {
                     ),
                 )
             }
+            Locale.setDefault(Locale.forLanguageTag("ru"))
+            assertEquals("1 новое изменение", getPluralString(Res.plurals.home_new_changes, 1, 1))
+            assertEquals("2 новых изменения", getPluralString(Res.plurals.home_new_changes, 2, 2))
+            assertEquals("5 новых изменений", getPluralString(Res.plurals.home_new_changes, 5, 5))
+            Locale.setDefault(Locale.forLanguageTag("ar"))
+            assertEquals("قبل ${localizedInteger(3)} أيام", getPluralString(Res.plurals.logs_days_ago, 3, 3))
+            assertEquals("قبل ${localizedInteger(12)} يومًا", getPluralString(Res.plurals.logs_days_ago, 12, 12))
         } finally {
             Locale.setDefault(previous)
         }

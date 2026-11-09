@@ -14,7 +14,7 @@ internal actual suspend fun captureLoadedPageScreenshot(state: WebViewState, reg
 
 internal actual fun createWatchWebView(param: com.multiplatform.webview.web.WebViewFactoryParam): com.multiplatform.webview.web.NativeWebView = com.multiplatform.webview.web.defaultWebViewFactory(param).apply { setFrame(platform.CoreGraphics.CGRectMake(0.0, 0.0, 390.0, 844.0)) }
 
-internal actual suspend fun loadedPageCaptureValidator(state: WebViewState): suspend () -> Unit {
+internal actual suspend fun loadedPageCaptureValidator(state: WebViewState, textOnly: Boolean): suspend () -> Unit {
     val url = state.nativeWebView.URL?.absoluteString
     return {
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {

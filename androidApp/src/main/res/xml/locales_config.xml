@@ -8,4 +8,8 @@
     <locale android:name="hi" />
     <locale android:name="bn" />
     <locale android:name="zh-Hans" />
+    <locale android:name="fr" />
+    <locale android:name="id" />
+    <locale android:name="ar" />
+    <locale android:name="ru" />
 </locale-config>

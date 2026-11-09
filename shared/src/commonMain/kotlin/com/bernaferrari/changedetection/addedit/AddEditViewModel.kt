@@ -1,5 +1,9 @@
 package com.bernaferrari.changedetection.addedit
 
+import com.bernaferrari.changedetection.browser.CaptureNotReadyException
+import com.bernaferrari.changedetection.browser.CaptureResourceFailure
+import com.bernaferrari.changedetection.browser.CaptureExtent
+
 import com.bernaferrari.changedetection.repo.PageIconShape
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -43,7 +47,11 @@ sealed interface CapturePreviewState {
         internal fun isFresh(now: Long = kotlin.time.Clock.System.now().toEpochMilliseconds()): Boolean =
             now - capturedAt in 0 until FIRST_VERSION_MAX_AGE_MS
     }
-    data class Failed(val reason: PreviewFailure) : CapturePreviewState
+    data class Failed(
+        val reason: PreviewFailure,
+        val resources: List<CaptureResourceFailure> = emptyList(),
+        val extent: CaptureExtent? = null,
+    ) : CapturePreviewState
 }
 
 data class AddEditUiState(
@@ -186,7 +194,7 @@ class AddEditViewModel(
                         it.copy(
                             preview = CapturePreviewState.Failed(
                                 when {
-                                    error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> if (error.issue == com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED) PreviewFailure.CAPTURE_INCOMPLETE else PreviewFailure.TIMEOUT
+                                    error is CaptureNotReadyException -> if (error.issue == com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED) PreviewFailure.CAPTURE_INCOMPLETE else PreviewFailure.TIMEOUT
 
                                     error is com.bernaferrari.changedetection.detection.TextRegionException -> when (error.issue) {
                                         com.bernaferrari.changedetection.detection.TextRegionIssue.MULTIPLE_MATCHES -> PreviewFailure.MULTIPLE_REGIONS
@@ -200,6 +208,8 @@ class AddEditViewModel(
 
                                     else -> PreviewFailure.UNAVAILABLE
                                 },
+                                resources = (error as? CaptureNotReadyException)?.resources.orEmpty(),
+                                extent = (error as? CaptureNotReadyException)?.extent,
                             ),
                         )
                     }

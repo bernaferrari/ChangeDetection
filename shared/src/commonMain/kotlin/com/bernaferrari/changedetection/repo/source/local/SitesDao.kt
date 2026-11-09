@@ -4,6 +4,8 @@ import com.bernaferrari.changedetection.repo.PageIconShape
 
 import androidx.room3.*
 import com.bernaferrari.changedetection.repo.Site
+import com.bernaferrari.changedetection.repo.CaptureMode
+import com.bernaferrari.changedetection.repo.capturePolicy
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -77,6 +79,15 @@ interface SitesDao {
      */
     @Update
     suspend fun updateSite(site: Site)
+
+    /** Commit only if the capture settings that were probed still describe this watch. */
+    @Transaction
+    suspend fun switchToTextIfCurrent(expected: Site): Site? {
+        val current = getSiteById(expected.id) ?: return null
+        if (current.url != expected.url || current.capturePolicy() != expected.capturePolicy()) return null
+        if (current.captureMode != CaptureMode.SCREENSHOT && current.captureMode != CaptureMode.DEFAULT) return null
+        return current.copy(captureMode = CaptureMode.TEXT, threshold = 0).also { updateSite(it) }
+    }
 
     @Query("UPDATE sites SET colors = :colors WHERE siteId = :siteId")
     @ColumnTypeConverters(Site.PairConverter::class)

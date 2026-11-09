@@ -2,6 +2,7 @@
 
 package com.bernaferrari.changedetection.ui.detail
 
+import com.bernaferrari.changedetection.addedit.CapturePreviewer
 import com.bernaferrari.changedetection.ui.kit.avatarIcon
 
 import androidx.compose.foundation.background
@@ -145,6 +146,7 @@ internal fun PageDetailScreen(
     onHistory: (String) -> Unit,
     onEnableNotifications: () -> Unit = {},
     repository: SnapsRepository = koinInject(),
+    previewer: CapturePreviewer = koinInject(),
 ) {
     val rows by viewModel.sitesFlow.collectAsStateWithLifecycle()
     val schedule by viewModel.monitoringSchedule.collectAsStateWithLifecycle()
@@ -174,6 +176,7 @@ internal fun PageDetailScreen(
             item?.site?.let { viewModel.setNotificationsEnabled(it.id, on) }
         },
         onDelete = { confirmDelete = true },
+        onTryText = { item?.site?.let { viewModel.trySwitchToText(it, previewer) } ?: false },
         onIconShapeChange = { shape -> item?.site?.let { viewModel.updateIconShape(it.id, shape) } },
         onIconColorChange = { colors -> item?.site?.let { viewModel.updateIconColor(it.id, colors) } },
         errorContent = { error?.let { ErrorBanner(error = it, onDismiss = viewModel::dismissError, onRetry = viewModel::retryLastAction) } },
@@ -219,6 +222,7 @@ internal fun PageDetailContent(
     onSetPaused: (Boolean) -> Unit,
     onSetNotify: (Boolean) -> Unit,
     onDelete: () -> Unit,
+    onTryText: (suspend () -> Boolean)? = null,
     onHistory: (String) -> Unit = onCompare,
     onIconShapeChange: (PageIconShape) -> Unit = {},
     onIconColorChange: (com.bernaferrari.changedetection.repo.ColorGroup) -> Unit = {},
@@ -254,7 +258,7 @@ internal fun PageDetailContent(
                     TextButton(onClick = onBack) { Text(stringResource(Res.string.nav_home)) }
                 }
 
-                else -> DetailList(item, versions, schedule, turbo, onCompare, onEdit, onTurbo, onSchedule, onOpenUrl, onCheck, onMarkRead, onSetPaused, onSetNotify, onHistory, notificationsAvailable, errorContent, onChooseShape = { choosingShape = true }, listState = listState, onNameMeasured = { nameBottom = it })
+                else -> DetailList(item, versions, schedule, turbo, onCompare, onEdit, onTurbo, onSchedule, onOpenUrl, onCheck, onMarkRead, onSetPaused, onSetNotify, onHistory, notificationsAvailable, errorContent, onChooseShape = { choosingShape = true }, listState = listState, onNameMeasured = { nameBottom = it }, onTryText = onTryText)
             }
         }
     }
@@ -303,6 +307,7 @@ private fun DetailList(
     onChooseShape: () -> Unit,
     listState: LazyListState,
     onNameMeasured: (Int) -> Unit,
+    onTryText: (suspend () -> Boolean)?,
 ) {
     val site = item.site
     val paused = !site.isSyncEnabled
@@ -377,7 +382,11 @@ private fun DetailList(
             item(key = "failure") {
                 Column {
                     FailureCallout(site.lastFailureCode, site.lastSuccessfulCheck, item.isSyncing, onCheck, onOpenUrl, onEdit, onSchedule)
-                    com.bernaferrari.changedetection.diagnostics.DiagnosticsEntry(site.id)
+                    com.bernaferrari.changedetection.diagnostics.DiagnosticsEntry(
+                        site.id,
+                        captureDetails = CheckFailure.fromCode(site.lastFailureCode) == CheckFailure.CAPTURE_INCOMPLETE,
+                        onTryText = onTryText.takeIf { site.captureMode == CaptureMode.SCREENSHOT || site.captureMode == CaptureMode.DEFAULT },
+                    )
                 }
             }
         }

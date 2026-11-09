@@ -28,23 +28,6 @@
     <string name="home_section_attention">Necesitan atención</string>
     <string name="home_search_clear">Limpiar búsqueda</string>
     <string name="home_search_close">Cerrar búsqueda</string>
-    <string name="monitor_review_changes">Revisar cambios</string>
-    <string name="monitor_summary_checking">Detectando cambios</string>
-    <string name="monitor_summary_checking_supporting">Las señales nuevas aparecen al terminar cada página.</string>
-    <plurals name="monitor_summary_error">
-        <item quantity="one">%1$d comprobación perdida</item>
-        <item quantity="other">%1$d comprobaciones perdidas</item>
-    </plurals>
-    <plurals name="monitor_summary_updated">
-        <item quantity="one">%1$d página con cambios</item>
-        <item quantity="other">%1$d páginas con cambios</item>
-    </plurals>
-    <string name="monitor_summary_updated_supporting">Mira qué cambió cuando quieras.</string>
-    <string name="monitor_summary_quiet">Todo tranquilo</string>
-    <plurals name="monitor_summary_quiet_supporting">
-        <item quantity="one">Nada cambió en tu %1$d página.</item>
-        <item quantity="other">Nada cambió en tus %1$d páginas.</item>
-    </plurals>
     <string name="turbo_ended">Turbo finalizado</string>
     <string name="settings_title">Ajustes</string>
     <string name="settings_theme_label">Tema</string>
@@ -101,12 +84,9 @@
         <item quantity="one">Sincronizar cada %1$d día</item>
         <item quantity="other">Sincronizar cada %1$d días</item>
     </plurals>
-    <string name="comparison_section_snapshots">Historial de versiones</string>
     <string name="comparison_selected">Seleccionada</string>
     <string name="comparison_empty_title">Aún no hay versiones</string>
     <string name="comparison_empty_subtitle">Guarda la primera versión para empezar a comparar.</string>
-    <string name="comparison_pair_title">Versión %1$d → %2$d</string>
-    <string name="comparison_pair_time_diff">%1$s de diferencia</string>
     <string name="comparison_single_snapshot_hint">Necesitamos al menos dos versiones guardadas para comparar cambios.</string>
     <string name="comparison_single_snapshot_title">1 versión guardada</string>
     <string name="site_not_found">Página no encontrada</string>
@@ -121,10 +101,6 @@
     <string name="comparison_mode_before">Antes</string>
     <string name="comparison_mode_after">Después</string>
     <string name="comparison_version_switcher">Elige la versión anterior o posterior</string>
-    <string name="type_label">Tipo: %1$s</string>
-    <string name="size_label">Tamaño: %1$s</string>
-    <string name="older_label">Anterior • %1$s</string>
-    <string name="newer_label">Posterior • %1$s</string>
     <string name="failed_to_load_content">No se pudo cargar el contenido</string>
     <string name="comparison_capture_changed_title">Método de captura cambiado</string>
     <string name="comparison_capture_changed_supporting">Estas dos versiones se capturaron con métodos distintos (texto vs. captura de pantalla), así que no se pueden comparar directamente.</string>
@@ -139,9 +115,7 @@
     <string name="settings_browser_delay_title">Retraso del navegador</string>
     <string name="settings_browser_delay_subtitle">Tiempo de espera antes de capturar el contenido de la página</string>
     <string name="settings_browser_delay_summary">Esperar antes de capturar</string>
-    <string name="settings_interval_minutes">Intervalo (minutos)</string>
     <string name="settings_interval_minimum">Elige un intervalo de 15 minutos a 7 días.</string>
-    <string name="settings_quick_presets">Preajustes rápidos</string>
     <string name="settings_24_hours">24 h</string>
     <string name="about_title">Acerca de</string>
     <string name="about_developer_name">Bernardo Ferrari</string>
@@ -233,10 +207,6 @@
     <string name="comparison_check_now_hint">Esta página solo se ha comprobado una vez hasta ahora; vuelve a comprobarla para ver qué cambió.</string>
     <string name="schedule_save_failed">No se pudo aplicar el horario. Inténtalo de nuevo.</string>
     <string name="turbo_stop_session">Detener Turbo</string>
-    <string name="schedule_paused_title">Comprobaciones programadas en pausa</string>
-    <string name="schedule_paused_description">Reanuda el seguimiento para comprobar páginas automáticamente.</string>
-    <string name="schedule_waiting_title">Esperando las primeras comprobaciones</string>
-    <string name="schedule_waiting_description">Las páginas nuevas necesitan una primera comprobación correcta para detectar cambios.</string>
     <string name="storage_history_title">Historial guardado</string>
     <string name="storage_history_usage">%1$s MB de versiones guardadas</string>
     <string name="storage_history_policy">Conserva hasta 100 versiones por página. Las versiones antiguas se eliminan al superar 250 MB. Siempre se conservan las dos últimas versiones de cada página, aunque superen este límite.</string>
@@ -244,9 +214,7 @@
     <string name="storage_clear_older_title">¿Borrar versiones antiguas?</string>
     <string name="storage_clear_older_body">Cada página conserva sus dos versiones más recientes. Se eliminarán %1$s de versiones antiguas de este dispositivo. No se puede deshacer.</string>
     <string name="storage_clear_older_confirm">Borrar</string>
-    <string name="capture_mode_default">Predeterminado de la app</string>
     <string name="capture_mode_html">HTML de la página</string>
-    <string name="capture_mode_screenshot">Captura de pantalla</string>
     <string name="capture_mode_baseline">Cambiar de método crea una nueva referencia. Se conserva el historial existente.</string>
     <string name="capture_preview_action">Vista previa de la captura</string>
     <string name="capture_preview_title">Vista previa de la captura</string>
@@ -256,12 +224,6 @@
     <string name="capture_preview_html">Vista previa del texto de la página</string>
     <string name="capture_preview_empty">No se encontró texto legible. Esta página puede necesitar capturas de pantalla.</string>
     <string name="capture_preview_expand">Ver captura completa</string>
-    <string name="schedule_running">Comprobación programada en curso</string>
-    <string name="schedule_unconfirmed">Programación aún sin confirmar</string>
-    <string name="schedule_eligible_waiting">Ya puede comprobar · esperando al dispositivo y tus condiciones</string>
-    <string name="schedule_next_eligible">Próxima comprobación posible: %1$s · el horario puede variar</string>
-    <string name="watchlist_review_errors">Revisar páginas con errores</string>
-    <string name="watchlist_failed_description">No se pudieron comprobar algunas páginas. Actualiza para volver a intentarlo.</string>
     <string name="requested_comparison_unavailable">Esta comparación ya no está disponible</string>
     <string name="requested_comparison_unavailable_description">Es posible que se hayan eliminado una o ambas versiones guardadas. Puedes abrir la última versión disponible.</string>
     <string name="view_latest_saved_version">Ver última versión guardada</string>
@@ -292,7 +254,6 @@
     <string name="check_failure_content_detail">No se pudo capturar la respuesta. Prueba otro método de captura.</string>
     <string name="check_failure_unknown">Error al comprobar</string>
     <string name="check_failure_unknown_detail">Comprueba la dirección y la conexión e inténtalo de nuevo.</string>
-    <string name="capture_mode_text">Texto legible</string>
     <string name="capture_mode_source">Cualquier cambio en el código</string>
     <string name="legacy_threshold_title">Filtro anterior: %1$d bytes</string>
     <string name="legacy_threshold_description">Este filtro anterior ignora cambios por debajo de un umbral de bytes. Compara datos almacenados, no píxeles visibles. Elimínalo para usar la regla seleccionada sin este filtro adicional.</string>
@@ -301,20 +262,13 @@
     <string name="check_failure_region_detail">Edita esta página y revisa sus reglas de región. El selector puede no coincidir o la respuesta puede no ser HTML. Se conserva el historial.</string>
     <string name="text_region_title">Vigilar una región</string>
     <string name="text_region_whole">Página completa</string>
-    <string name="text_region_main">Contenido principal</string>
     <string name="text_region_description">Solo se guarda el HTML seleccionado. Los cambios fuera de la región o en elementos ignorados no generan alertas. Revisa la vista previa antes de guardar. Deja vacío el selector de inclusión para vigilar toda la página.</string>
     <string name="text_region_include">Selector CSS para incluir (opcional)</string>
     <string name="text_region_exclude">Selector CSS para ignorar (opcional)</string>
     <string name="text_region_invalid">Usa selectores CSS válidos de hasta %1$d caracteres cada uno, sin selectores de expresiones regulares.</string>
-    <string name="detail_last_saved">Última versión guardada</string>
-    <string name="detail_compare">Comparar</string>
-    <string name="detail_empty_text">No hay texto legible en esta versión. Ábrela para ver el código fuente.</string>
-    <string name="detail_preview_unavailable">Vista previa no disponible · abrir versión guardada</string>
-    <string name="detail_saved_document">Documento guardado</string>
     <string name="detail_missing">Esta página ya no está en tu lista.</string>
     <string name="detail_no_version">Todavía no hay versiones guardadas</string>
     <string name="detail_first_check">Comprueba esta página para guardar una versión inicial.</string>
-    <string name="detail_open_saved">Abrir versión</string>
     <string name="comparison_marked_read">Marcada como leída</string>
     <string name="comparison_read_failed">No se pudo actualizar el estado de lectura. Inténtalo de nuevo.</string>
     <string name="comparison_read_changed">La última actualización ha cambiado. Ábrela para marcarla como leída.</string>
@@ -366,24 +320,7 @@
     <string name="check_failure_capture_unavailable">Comprobaciones por captura no disponibles</string>
     <string name="check_failure_capture_unavailable_detail">Usa Android o iOS para comprobar mediante capturas de pantalla, o elige texto o código fuente. Tus versiones guardadas se conservan.</string>
     <string name="settings_theme_and_color">Tema y color</string>
-    <string name="history_today">Hoy</string>
     <string name="history_yesterday">Ayer</string>
-    <string name="history_calendar_day">%2$d de %1$s</string>
-    <string name="history_calendar_day_year">%2$d de %1$s de %3$d</string>
-    <string-array name="history_months">
-        <item>enero</item>
-        <item>febrero</item>
-        <item>marzo</item>
-        <item>abril</item>
-        <item>mayo</item>
-        <item>junio</item>
-        <item>julio</item>
-        <item>agosto</item>
-        <item>septiembre</item>
-        <item>octubre</item>
-        <item>noviembre</item>
-        <item>diciembre</item>
-    </string-array>
     <string name="comparison_show_previous">Mostrar texto anterior</string>
     <string name="comparison_hide_previous">Ocultar texto anterior</string>
     <plurals name="comparison_changed_passages">
@@ -396,7 +333,6 @@
     <string name="settings_on_this_device">En este dispositivo</string>
     <string name="settings_help_section">Ayuda</string>
     <string name="how_it_works_schedule_range">Las comprobaciones normales se pueden programar entre cada 15 minutos y cada 7 días.</string>
-    <string name="icon_color_title">Color</string>
     <string name="editor_icon_shape_title">Icono de página</string>
     <string name="icon_shape_automatic">Automático</string>
     <string name="icon_original">Original</string>
@@ -448,9 +384,29 @@
     <string name="check_failure_saved_content_unavailable">Versión guardada no disponible</string>
     <string name="check_failure_saved_content_unavailable_detail">La versión guardada falta o está dañada. El historial existente se ha conservado. Comprueba el espacio disponible del dispositivo y envía un informe si el problema continúa.</string>
     <string name="check_failure_capture_incomplete">Captura de página incompleta</string>
-    <string name="check_failure_capture_incomplete_detail">No se pudo cargar parte de la página vigilada. El historial guardado se ha conservado. Inténtalo de nuevo o previsualiza la página.</string>
+    <string name="check_failure_capture_incomplete_detail">No se pudo cargar una parte de la página vigilada. Tu historial está a salvo. Inténtalo de nuevo o abre la página en un navegador. Si el problema persiste, prueba el modo Texto o selecciona una parte de la página que sí cargue.</string>
     <string name="text_http_capability_note">En esta plataforma, la vigilancia de texto lee la respuesta HTTP. No incluye el contenido de JavaScript ni las cookies de inicio de sesión del navegador.</string>
     <string name="check_failure_document_changed">La página cambió durante la captura</string>
     <string name="check_failure_document_changed_detail">La página navegó durante la preparación de esta comprobación. El historial se ha conservado. Inténtalo de nuevo.</string>
     <string name="preview_region_no_match">Ninguna parte de esta página coincide con la selección. Elige el área que quieras vigilar o selecciona Página completa.</string>
+    <string name="capture_details">Detalles de la captura</string>
+    <string name="capture_resource_details_unavailable">No se registraron detalles del recurso. Volver a intentarlo puede dar más información.</string>
+    <string name="capture_resource_image">Imagen</string>
+    <string name="capture_resource_font">Fuente</string>
+    <string name="capture_resource_stylesheet">Hoja de estilos</string>
+    <string name="capture_resource_frame">Marco incrustado</string>
+    <string name="capture_resource_other">Recurso de la página</string>
+    <string name="capture_resource_load">%1$s · no se pudo cargar</string>
+    <string name="capture_resource_certificate">%1$s · certificado rechazado</string>
+    <string name="capture_resource_http">%1$s · HTTP %2$d</string>
+    <string name="capture_size_unavailable">Tamaño de captura no disponible. No se guardó una versión nueva.</string>
+    <string name="capture_size_zero">No se generó ninguna imagen. No se guardó una versión nueva.</string>
+    <string name="capture_size_pixels">Captura de %1$d × %2$d px. No se guardó una versión nueva.</string>
+    <string name="capture_browser_attached">La vista del navegador estaba asociada a una ventana.</string>
+    <string name="capture_browser_detached">La vista del navegador no estaba asociada a una ventana.</string>
+    <string name="capture_try_text">Probar texto</string>
+    <string name="capture_trying_text">Probando texto…</string>
+    <string name="capture_text_switched">La vigilancia pasó al modo de texto.</string>
+    <string name="capture_text_switch_failed">No se pudo cambiar al modo de texto.</string>
+    <string name="capture_try_text_hint">Si el texto carga, las próximas comprobaciones usarán texto en lugar de capturas.</string>
 </resources>

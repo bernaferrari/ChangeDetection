@@ -138,7 +138,6 @@
         <item>dic</item>
     </string-array>
     <string name="today">Oggi</string>
-    <string name="day_month">%1$d %2$s</string>
     <string name="day_time">%1$s, %2$s</string>
     <string name="label_text_changed">Testo modificato</string>
     <string name="label_percent">%1$s della pagina</string>
@@ -167,8 +166,6 @@
     <string name="detail_what_part">Una parte che hai scelto</string>
     <string name="detail_what_page">Il testo della pagina</string>
     <string name="mode_screenshot">Schermata</string>
-    <string name="mode_source">Qualsiasi modifica al codice sorgente</string>
-    <string name="mode_html">HTML della pagina</string>
     <string name="mode_default">Predefinito dell’app</string>
     <string name="mode_text">Testo</string>
     <string name="mode_code">Codice</string>
@@ -240,11 +237,6 @@
     <string name="checks_daily">Giornaliero</string>
     <string name="checks_hours_short">%1$d h</string>
     <string name="checks_minutes_short">%1$d min</string>
-    <string name="checks_sentence_off">I controlli automatici sono disattivati. Le pagine vengono controllate solo quando aggiorni.</string>
-    <string name="checks_sentence">I controlli vengono eseguiti circa %1$s</string>
-    <string name="checks_cond_wifi">con Wi‑Fi</string>
-    <string name="checks_cond_charging">durante la ricarica</string>
-    <string name="checks_cond_battery">quando la batteria non è scarica</string>
     <string name="settings_group_checking">Controlli</string>
     <string name="settings_group_app">App</string>
     <string name="settings_default_detection">Metodo di acquisizione predefinito</string>

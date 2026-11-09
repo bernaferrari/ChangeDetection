@@ -12,6 +12,10 @@ import androidx.datastore.preferences.core.preferencesOf
 import androidx.room3.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.test.core.app.ApplicationProvider
+import com.bernaferrari.changedetection.browser.CaptureNotReadyException
+import com.bernaferrari.changedetection.browser.CaptureExtent
+import com.bernaferrari.changedetection.browser.CaptureResourceFailure
+import com.bernaferrari.changedetection.browser.CaptureResourceKind
 import com.bernaferrari.changedetection.browser.TestPageServer
 import com.bernaferrari.changedetection.error.ErrorHandler
 import com.bernaferrari.changedetection.repo.*
@@ -75,6 +79,9 @@ class KnownBackgroundResourceFailureTest {
                     println("REVIEW_HTTP_BACKGROUND result=$failed versions=$versions alerts=${alerts.get()} baselineIntact=${bytes.contentEquals(files.readBytes(baseline.snapId))}")
                     assertTrue("A visible CSS resource must be requested even when unavailable", image.notFoundResponses.get() > 0)
                     assertTrue("HTTP 404 background must fail rather than become a page change: $failed", failed is SyncResult.Failed)
+                    val captureError = (failed as SyncResult.Failed).exception as CaptureNotReadyException
+                    assertEquals(listOf(CaptureResourceFailure(CaptureResourceKind.IMAGE, httpStatus = 404)), captureError.resources)
+                    assertEquals(CaptureExtent.Empty, captureError.extent)
                     assertEquals(1, versions)
                     assertEquals(0, alerts.get())
                     assertArrayEquals(bytes, files.readBytes(baseline.snapId))
@@ -98,6 +105,15 @@ class KnownBackgroundResourceFailureTest {
                     assertTrue(unchangedReturn.toString(), unchangedReturn is SyncResult.Success && !unchangedReturn.hadChanges)
                     assertEquals(2, alerts.get())
                     assertEquals(3, db.snapsDao().getAllSnapsForSiteId(site.id).size)
+                    assertArrayEquals(bytes, files.readBytes(baseline.snapId))
+
+                    image.status = 404
+                    val textPreview = previewer.capture(server.url, CaptureMode.TEXT) as CapturePreview.Html
+                    assertTrue(textPreview.text.contains("Unchanged page inventory"))
+                    assertEquals(CaptureMode.TEXT, repository.switchToTextIfCurrent(site)?.captureMode)
+                    assertNull(repository.switchToTextIfCurrent(site))
+                    assertTrue(runner.check(site.id) is SyncResult.Success)
+                    assertEquals(2, alerts.get())
                     assertArrayEquals(bytes, files.readBytes(baseline.snapId))
                 } finally {
                     db.snapsDao().getAllSnapsForSiteId(site.id).forEach { files.deleteFile(it.snapId) }

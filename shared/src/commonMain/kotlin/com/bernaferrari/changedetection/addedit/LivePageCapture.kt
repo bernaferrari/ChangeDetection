@@ -26,7 +26,7 @@ internal suspend fun captureLivePagePreview(
     withTimeout(90_000) {
         // Source monitoring needs the original HTTP response, rather than the browser's modified DOM.
         if (!reusesLivePageCapture(mode)) return@withTimeout null
-        val validate = loadedPageCaptureValidator(state)
+        val validate = loadedPageCaptureValidator(state, textOnly = mode != CaptureMode.SCREENSHOT)
         validate()
         com.bernaferrari.changedetection.browser.validateBrowserSessionState(url, navigator.readScript(com.bernaferrari.changedetection.browser.RenderedCaptureScripts.SESSION))
         if (mode != CaptureMode.SCREENSHOT) {
@@ -80,7 +80,7 @@ private suspend fun WebViewNavigator.readScript(script: String): String = suspen
     evaluateJavaScript(script) { value -> if (continuation.isActive) continuation.resume(value) }
 }
 
-internal expect suspend fun loadedPageCaptureValidator(state: WebViewState): suspend () -> Unit
+internal expect suspend fun loadedPageCaptureValidator(state: WebViewState, textOnly: Boolean = false): suspend () -> Unit
 
 internal expect suspend fun captureLoadedPageScreenshot(state: WebViewState, region: TextRegion, onPreview: (CapturePreview) -> Unit): SyncEngine.FetchResult.Success?
 

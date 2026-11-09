@@ -144,7 +144,7 @@ class PageCaptureHealthTest {
         h.begin("https://page.test")
         h.request("https://tracker.test/pixel", false)
         assertFalse(h.ssl("https://tracker.test/pixel", 3, listOf(3)).blocking)
-        h.dependencies(listOf("https://page.test/hero.png"))
+        h.dependencies(mapOf("https://page.test/hero.png" to CaptureResourceKind.IMAGE))
         h.validate()
     }
 
@@ -153,7 +153,7 @@ class PageCaptureHealthTest {
         h.begin("https://page.test")
         h.request("https://cdn.test/hero.png", false)
         h.ssl("https://cdn.test/hero.png", 3, listOf(3))
-        h.dependencies(listOf("https://cdn.test/hero.png"))
+        h.dependencies(mapOf("https://cdn.test/hero.png" to CaptureResourceKind.IMAGE))
         val error = runCatching { h.validate() }.exceptionOrNull()
         assertTrue(error is CaptureNotReadyException)
         assertEquals(CaptureIssue.RESOURCE_FAILED, (error as CaptureNotReadyException).issue)

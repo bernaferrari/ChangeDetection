@@ -1,6 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="icon_color_title">Color</string>
     <string name="editor_icon_shape_title">Page icon</string>
     <string name="icon_shape_automatic">Automatic</string>
     <string name="icon_original">Original</string>
@@ -40,23 +39,6 @@
     <string name="home_section_attention">Needs attention</string>
     <string name="home_search_clear">Clear search</string>
     <string name="home_search_close">Close search</string>
-    <string name="monitor_review_changes">Review changes</string>
-    <string name="monitor_summary_checking">Listening for changes</string>
-    <string name="monitor_summary_checking_supporting">Fresh signals appear as each page finishes.</string>
-    <plurals name="monitor_summary_error">
-        <item quantity="one">%1$d check missed</item>
-        <item quantity="other">%1$d checks missed</item>
-    </plurals>
-    <plurals name="monitor_summary_updated">
-        <item quantity="one">%1$d page changed</item>
-        <item quantity="other">%1$d pages changed</item>
-    </plurals>
-    <string name="monitor_summary_updated_supporting">See what changed when you’re ready.</string>
-    <string name="monitor_summary_quiet">All quiet</string>
-    <plurals name="monitor_summary_quiet_supporting">
-        <item quantity="one">Nothing changed on your %1$d page.</item>
-        <item quantity="other">Nothing changed across your %1$d pages.</item>
-    </plurals>
     <string name="turbo_ended">Turbo ended</string>
     <string name="settings_title">Settings</string>
     <string name="settings_theme_label">Theme</string>
@@ -113,12 +95,9 @@
         <item quantity="one">Sync every %1$d day</item>
         <item quantity="other">Sync every %1$d days</item>
     </plurals>
-    <string name="comparison_section_snapshots">Version history</string>
     <string name="comparison_selected">Selected</string>
     <string name="comparison_empty_title">No versions yet</string>
     <string name="comparison_empty_subtitle">Save the first version to start comparing.</string>
-    <string name="comparison_pair_title">Version %1$d → %2$d</string>
-    <string name="comparison_pair_time_diff">%1$s apart</string>
     <string name="comparison_single_snapshot_hint">We need at least two saved versions to compare changes.</string>
     <string name="comparison_single_snapshot_title">1 version saved</string>
     <string name="site_not_found">Page not found</string>
@@ -133,10 +112,6 @@
     <string name="comparison_mode_before">Before</string>
     <string name="comparison_mode_after">After</string>
     <string name="comparison_version_switcher">Choose before or after version</string>
-    <string name="type_label">Type: %1$s</string>
-    <string name="size_label">Size: %1$s</string>
-    <string name="older_label">Older • %1$s</string>
-    <string name="newer_label">Newer • %1$s</string>
     <string name="failed_to_load_content">Failed to load content</string>
     <string name="comparison_capture_changed_title">Capture method changed</string>
     <string name="comparison_capture_changed_supporting">These two versions were captured with different methods (text vs screenshot), so they can’t be compared directly.</string>
@@ -151,9 +126,7 @@
     <string name="settings_browser_delay_title">Browser delay</string>
     <string name="settings_browser_delay_subtitle">Wait time before capturing page content</string>
     <string name="settings_browser_delay_summary">Wait before capture</string>
-    <string name="settings_interval_minutes">Interval (minutes)</string>
     <string name="settings_interval_minimum">Choose an interval from 15 minutes to 7 days.</string>
-    <string name="settings_quick_presets">Quick presets</string>
     <string name="settings_24_hours">24 hrs</string>
     <string name="about_title">About</string>
     <string name="about_developer_name">Bernardo Ferrari</string>
@@ -245,10 +218,6 @@
     <string name="comparison_check_now_hint">This page was checked once so far — check again to see what changed.</string>
     <string name="schedule_save_failed">Could not apply the schedule. Please try again.</string>
     <string name="turbo_stop_session">Stop Turbo</string>
-    <string name="schedule_paused_title">Scheduled checks paused</string>
-    <string name="schedule_paused_description">Resume monitoring to check pages automatically.</string>
-    <string name="schedule_waiting_title">Waiting for first checks</string>
-    <string name="schedule_waiting_description">New pages need a first successful check before changes can be detected.</string>
     <string name="storage_history_title">Saved history</string>
     <string name="storage_history_usage">%1$s MB of saved versions</string>
     <string name="storage_history_policy">Keeps up to 100 versions per page. Older versions are removed above 250 MB. Each page’s latest two versions are always kept, even if they exceed this budget.</string>
@@ -256,9 +225,7 @@
     <string name="storage_clear_older_title">Clear older versions?</string>
     <string name="storage_clear_older_body">Each page keeps its latest two versions. %1$s of older versions will be deleted from this device. This can’t be undone.</string>
     <string name="storage_clear_older_confirm">Clear</string>
-    <string name="capture_mode_default">App default</string>
     <string name="capture_mode_html">Page HTML</string>
-    <string name="capture_mode_screenshot">Screenshot</string>
     <string name="capture_mode_baseline">Switching methods starts a new baseline. Existing history is kept.</string>
     <string name="capture_preview_action">Preview capture</string>
     <string name="capture_preview_title">Capture preview</string>
@@ -268,12 +235,6 @@
     <string name="capture_preview_html">Page text preview</string>
     <string name="capture_preview_empty">No readable text was found. This page may need screenshot monitoring.</string>
     <string name="capture_preview_expand">View full screenshot</string>
-    <string name="schedule_running">Scheduled check in progress</string>
-    <string name="schedule_unconfirmed">Schedule not yet confirmed</string>
-    <string name="schedule_eligible_waiting">Eligible now · waiting for the device and your conditions</string>
-    <string name="schedule_next_eligible">Next eligible: %1$s · timing may vary</string>
-    <string name="watchlist_review_errors">Review failed pages</string>
-    <string name="watchlist_failed_description">Some pages could not be checked. Refresh to try again.</string>
     <string name="requested_comparison_unavailable">This comparison is no longer available</string>
     <string name="requested_comparison_unavailable_description">One or both saved versions may have been removed. You can open the latest available version instead.</string>
     <string name="view_latest_saved_version">View latest saved version</string>
@@ -304,7 +265,6 @@
     <string name="check_failure_content_detail">This response could not be captured. Try another capture method.</string>
     <string name="check_failure_unknown">Check failed</string>
     <string name="check_failure_unknown_detail">Check the page address and connection, then try again.</string>
-    <string name="capture_mode_text">Readable text</string>
     <string name="capture_mode_source">Any source change</string>
     <string name="legacy_threshold_title">Legacy byte filter: %1$d bytes</string>
     <string name="legacy_threshold_description">This older filter ignores changes below a byte threshold. It compares stored data, not visible pixels. Remove it to use the selected rule without this extra filter.</string>
@@ -313,20 +273,13 @@
     <string name="check_failure_region_detail">Edit this page and preview its region rules. The selector may no longer match, or the response may not be HTML. Saved history is kept.</string>
     <string name="text_region_title">Part of the page</string>
     <string name="text_region_whole">Whole page</string>
-    <string name="text_region_main">Main content</string>
     <string name="text_region_description">Only matching HTML is saved. Changes outside the region or in ignored elements do not trigger alerts. Preview before saving. Leave the include selector empty to watch the whole page.</string>
     <string name="text_region_include">Include CSS selector (optional)</string>
     <string name="text_region_exclude">Ignore CSS selector (optional)</string>
     <string name="text_region_invalid">Use valid CSS selectors of at most %1$d characters each, without regular-expression selectors.</string>
-    <string name="detail_last_saved">Last saved</string>
-    <string name="detail_compare">Compare</string>
-    <string name="detail_empty_text">No readable text in this saved version. Open it to inspect the source.</string>
-    <string name="detail_preview_unavailable">Preview unavailable · open saved version</string>
-    <string name="detail_saved_document">Saved document</string>
     <string name="detail_missing">This page is no longer in your watchlist.</string>
     <string name="detail_no_version">No saved version yet</string>
     <string name="detail_first_check">Check this page to save a starting point.</string>
-    <string name="detail_open_saved">Open version</string>
     <string name="comparison_marked_read">Marked as read</string>
     <string name="comparison_read_failed">Could not update read status. Try again.</string>
     <string name="comparison_read_changed">The latest update has changed. Open it to mark it as read.</string>
@@ -378,24 +331,7 @@
     <string name="check_failure_capture_unavailable">Screenshot checks unavailable</string>
     <string name="check_failure_capture_unavailable_detail">Use Android or iOS for screenshot checks, or choose text or source monitoring. Your saved versions are kept.</string>
     <string name="settings_theme_and_color">Theme and color</string>
-    <string name="history_today">Today</string>
     <string name="history_yesterday">Yesterday</string>
-    <string name="history_calendar_day">%1$s %2$d</string>
-    <string name="history_calendar_day_year">%1$s %2$d, %3$d</string>
-    <string-array name="history_months">
-        <item>January</item>
-        <item>February</item>
-        <item>March</item>
-        <item>April</item>
-        <item>May</item>
-        <item>June</item>
-        <item>July</item>
-        <item>August</item>
-        <item>September</item>
-        <item>October</item>
-        <item>November</item>
-        <item>December</item>
-    </string-array>
     <string name="comparison_show_previous">Show previous text</string>
     <string name="comparison_hide_previous">Hide previous text</string>
     <plurals name="comparison_changed_passages">
@@ -448,9 +384,29 @@
     <string name="check_failure_saved_content_unavailable">Saved version unavailable</string>
     <string name="check_failure_saved_content_unavailable_detail">The saved version is missing or damaged. Existing history has been kept. Check available device storage and send a report if the problem continues.</string>
     <string name="check_failure_capture_incomplete">Page capture incomplete</string>
-    <string name="check_failure_capture_incomplete_detail">Part of the watched page could not be loaded. Saved history has been kept. Try again or preview the page.</string>
+    <string name="check_failure_capture_incomplete_detail">Part of the watched page couldn’t load. Your history is safe. Retry or open the page in a browser. If it keeps failing, try Text or select a part of the page that loads.</string>
     <string name="text_http_capability_note">Text monitoring on this platform reads the HTTP response. JavaScript content and browser sign-in cookies are not included.</string>
     <string name="check_failure_document_changed">Page changed during capture</string>
     <string name="check_failure_document_changed_detail">The page navigated while this check was being prepared. Saved history has been kept. Try again.</string>
     <string name="preview_region_no_match">No part of this page matches the selection. Pick the area you want to watch, or choose Whole page.</string>
+    <string name="capture_details">Capture details</string>
+    <string name="capture_resource_details_unavailable">No resource details were recorded. Retrying may provide more information.</string>
+    <string name="capture_resource_image">Image</string>
+    <string name="capture_resource_font">Font</string>
+    <string name="capture_resource_stylesheet">Style sheet</string>
+    <string name="capture_resource_frame">Embedded frame</string>
+    <string name="capture_resource_other">Page resource</string>
+    <string name="capture_resource_load">%1$s · couldn’t load</string>
+    <string name="capture_resource_certificate">%1$s · certificate rejected</string>
+    <string name="capture_resource_http">%1$s · HTTP %2$d</string>
+    <string name="capture_size_unavailable">Capture size unavailable. No new version was saved.</string>
+    <string name="capture_size_zero">No capture image was assembled. No new version was saved.</string>
+    <string name="capture_size_pixels">Captured %1$d × %2$d px. No new version was saved.</string>
+    <string name="capture_browser_attached">The browser view was attached to a window.</string>
+    <string name="capture_browser_detached">The browser view was detached.</string>
+    <string name="capture_try_text">Try text</string>
+    <string name="capture_trying_text">Trying text…</string>
+    <string name="capture_text_switched">Switched to text monitoring.</string>
+    <string name="capture_text_switch_failed">Couldn’t switch to text.</string>
+    <string name="capture_try_text_hint">If the text loads, future checks will use it instead of screenshots.</string>
 </resources>

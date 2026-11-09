@@ -48,6 +48,10 @@ class SitesLocalDataSource(
         mSitesDao.updateIconShape(siteId, shape)
     }
 
+    override suspend fun switchToTextIfCurrent(site: Site): Site? = withContext(mAppExecutors.ioContext) {
+        mSitesDao.switchToTextIfCurrent(site)
+    }
+
     override suspend fun updateIconColor(siteId: String, colors: com.bernaferrari.changedetection.repo.ColorGroup) = withContext(mAppExecutors.ioContext) {
         mSitesDao.updateIconColor(siteId, colors)
     }

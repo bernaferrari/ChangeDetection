@@ -52,6 +52,6 @@ On Android and iOS, page screenshots are captured with [KMPwright](https://githu
 | **iOS** | Development build. |
 | **Browser demo** | The interface with sample data; it does not watch live pages. |
 
-In English, Spanish, Italian, Portuguese, German, Hindi, Bengali and Simplified Chinese.
+Available on Android in English, Spanish, Italian, Portuguese, German, Hindi, Bengali, Simplified Chinese, French, Indonesian, Arabic and Russian.
 
 <sub>Building from source? See [DEVELOPMENT.md](docs/DEVELOPMENT.md).</sub>

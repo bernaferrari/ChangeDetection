@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Change Detection</string>
+    <string name="status_checking_pages">Vérification des pages</string>
+    <string name="status_checking_page">Vérification de la page</string>
+    <string name="status_checking_page_progress">Vérification de la page %1$d sur %2$d</string>
+    <string name="status_preparing_page_checks">Préparation de la vérification des pages…</string>
+    <string name="sync_notification_channel_name">Vérifications des pages</string>
+    <string name="change_notification_channel_name">Changements détectés</string>
+    <string name="change_notification_channel_description">Alertes lorsqu’un site surveillé change</string>
+    <string name="quick_monitor_banner_live_badge">EN COURS</string>
+    <string name="quick_monitor_title">Turbo</string>
+    <string name="quick_monitor_channel_description">Indique qu’une session de surveillance rapide est en cours.</string>
+    <string name="quick_monitor_notification_title">⚡ Turbo actif</string>
+    <plurals name="quick_monitor_notification_subtitle">
+        <item quantity="one">Vérification de %1$d page toutes les %2$d secondes</item>
+        <item quantity="many">Vérification de %1$d pages toutes les %2$d secondes</item>
+        <item quantity="other">Vérification de %1$d pages toutes les %2$d secondes</item>
+    </plurals>
+    <string name="action_stop_monitoring">Arrêter la surveillance</string>
+    <string name="empty_add_site_hint">Ajoutez une page pour lancer Turbo</string>
+    <string name="start">Démarrer</string>
+    <string name="change_notification_named">%1$s a changé</string>
+    <string name="change_notification_generic">Appuyez pour voir ce qui a changé.</string>
+    <string name="diagnostics_export">Envoyer un rapport au développeur</string>
+    <string name="diagnostics_title">Rapport de diagnostic</string>
+    <string name="diagnostics_explanation">Vérifiez ce rapport local avant de le partager. Il indique les étapes et la durée des vérifications, les types et messages d’erreur expurgés des adresses, chemins et textes cités, les mises à niveau récentes de la base de données, les plantages et les versions de l’application et de WebView. Il exclut les adresses, titres et contenus des pages, les captures d’écran, les cookies, les en-têtes et les jetons. Aucun envoi automatique.</string>
+    <string name="diagnostics_scope">Jusqu’à 10 tentatives récentes des 7 derniers jours. Les rapports sont limités à 64 KiB. Les entrées incomplètes peuvent refléter une enregistrement interrompu ou interrompu.</string>
+    <string name="diagnostics_loading">Préparation du rapport local…</string>
+    <string name="diagnostics_empty">Aucune tentative récente enregistrée. Essayez la vue d’aperçu ou vérifiez à nouveau, puis rouvrez ce rapport.</string>
+    <string name="diagnostics_unavailable">Impossible de préparer le diagnostic. La surveillance et l’historique enregistré restent inchangés. Veuillez réessayer.</string>
+    <string name="diagnostics_share">Envoyer le rapport</string>
+    <string name="diagnostics_close">Fermer</string>
+    <string name="diagnostics_retry">Réessayer</string>
+    <string name="diagnostics_content">Contenu du rapport</string>
+    <string name="diagnostics_page_scope">Tentatives récentes pour cette page</string>
+    <string name="external_open_failed">Impossible d’ouvrir une autre application. Installez une application compatible ou réessayez.</string>
+    <string name="change_notification_open_browser">Ouvrir dans le navigateur</string>
+    <string name="change_notification_before">Avant</string>
+    <string name="change_notification_now">Maintenant</string>
+    <string name="change_notification_enabled">Alertes de changement activées</string>
+    <string name="change_notification_permission">Autorisation d’envoyer des notifications requise</string>
+    <string name="change_notification_app_disabled">Les notifications de l’application sont désactivées</string>
+    <string name="change_notification_channel_disabled">Le canal des alertes de changement est désactivé</string>
+</resources>

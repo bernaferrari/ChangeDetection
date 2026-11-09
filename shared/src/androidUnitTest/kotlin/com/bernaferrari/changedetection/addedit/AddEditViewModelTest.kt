@@ -688,6 +688,7 @@ class AddEditViewModelTest {
     }
 
     private class FakeSitesDataSource : SitesDataSource {
+        override suspend fun switchToTextIfCurrent(site: Site): Site? = error("Unused in editor tests")
         var savedSite: Site? = null
 
         override suspend fun getSites(): List<Site> = listOfNotNull(savedSite)

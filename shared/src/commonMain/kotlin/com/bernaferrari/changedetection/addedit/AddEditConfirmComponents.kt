@@ -13,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import com.bernaferrari.changedetection.ui.components.CaptureFailureDetails
 import com.bernaferrari.changedetection.ui.components.rememberPageIconMotion
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -764,6 +765,9 @@ private fun PagePreviewCard(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
+                            if (state.reason == PreviewFailure.CAPTURE_INCOMPLETE) {
+                                CaptureFailureDetails(state.resources, state.extent)
+                            }
                             FlowRow(Modifier.padding(top = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 if (state.reason in setOf(PreviewFailure.REGION, PreviewFailure.NO_MATCH, PreviewFailure.MULTIPLE_REGIONS) && onPickRegion != null) {
                                     Button(onClick = onPickRegion, enabled = enabled) { Text(stringResource(Res.string.picker_title)) }

@@ -138,7 +138,6 @@
         <item>dez</item>
     </string-array>
     <string name="today">Hoje</string>
-    <string name="day_month">%1$d %2$s</string>
     <string name="day_time">%1$s, %2$s</string>
     <string name="label_text_changed">Texto alterado</string>
     <string name="label_percent">%1$s da página</string>
@@ -167,8 +166,6 @@
     <string name="detail_what_part">Uma parte que você escolheu</string>
     <string name="detail_what_page">O texto da página</string>
     <string name="mode_screenshot">Captura de tela</string>
-    <string name="mode_source">Qualquer alteração no código-fonte</string>
-    <string name="mode_html">HTML da página</string>
     <string name="mode_default">Padrão do app</string>
     <string name="mode_text">Texto</string>
     <string name="mode_code">Código</string>
@@ -240,11 +237,6 @@
     <string name="checks_daily">Diário</string>
     <string name="checks_hours_short">%1$d h</string>
     <string name="checks_minutes_short">%1$d min</string>
-    <string name="checks_sentence_off">Verificações automáticas desativadas. As páginas só são verificadas quando você atualiza.</string>
-    <string name="checks_sentence">As verificações ocorrem aproximadamente %1$s</string>
-    <string name="checks_cond_wifi">no Wi‑Fi</string>
-    <string name="checks_cond_charging">durante o carregamento</string>
-    <string name="checks_cond_battery">quando a bateria não está baixa</string>
     <string name="settings_group_checking">Verificações</string>
     <string name="settings_group_app">App</string>
     <string name="settings_default_detection">Método de captura padrão</string>

@@ -1,6 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="icon_color_title">颜色</string>
     <string name="editor_icon_shape_title">页面图标</string>
     <string name="icon_shape_automatic">自动</string>
     <string name="icon_original">原始图标</string>
@@ -39,20 +38,6 @@
     <string name="home_section_attention">需要处理</string>
     <string name="home_search_clear">清除搜索</string>
     <string name="home_search_close">关闭搜索</string>
-    <string name="monitor_review_changes">查看变化</string>
-    <string name="monitor_summary_checking">正在关注变化</string>
-    <string name="monitor_summary_checking_supporting">每个页面检查完毕后，即会显示最新结果。</string>
-    <plurals name="monitor_summary_error">
-        <item quantity="other">%1$d 次检查失败</item>
-    </plurals>
-    <plurals name="monitor_summary_updated">
-        <item quantity="other">%1$d 个页面有变化</item>
-    </plurals>
-    <string name="monitor_summary_updated_supporting">有空时再查看变化。</string>
-    <string name="monitor_summary_quiet">暂无变化</string>
-    <plurals name="monitor_summary_quiet_supporting">
-        <item quantity="other">你关注的 %1$d 个页面没有变化。</item>
-    </plurals>
     <string name="turbo_ended">Turbo 已结束</string>
     <string name="settings_title">设置</string>
     <string name="settings_theme_label">主题</string>
@@ -106,12 +91,9 @@
     <plurals name="settings_sync_every_days">
         <item quantity="other">每 %1$d 天同步</item>
     </plurals>
-    <string name="comparison_section_snapshots">版本历史</string>
     <string name="comparison_selected">已选择</string>
     <string name="comparison_empty_title">暂无版本</string>
     <string name="comparison_empty_subtitle">保存第一个版本后即可开始比较。</string>
-    <string name="comparison_pair_title">版本 %1$d → %2$d</string>
-    <string name="comparison_pair_time_diff">相隔 %1$s</string>
     <string name="comparison_single_snapshot_hint">至少需要两个已保存的版本才能比较变化。</string>
     <string name="comparison_single_snapshot_title">已保存 1 个版本</string>
     <string name="site_not_found">未找到页面</string>
@@ -126,10 +108,6 @@
     <string name="comparison_mode_before">之前</string>
     <string name="comparison_mode_after">之后</string>
     <string name="comparison_version_switcher">选择之前或之后的版本</string>
-    <string name="type_label">类型：%1$s</string>
-    <string name="size_label">大小：%1$s</string>
-    <string name="older_label">较旧 • %1$s</string>
-    <string name="newer_label">较新 • %1$s</string>
     <string name="failed_to_load_content">无法加载内容</string>
     <string name="comparison_capture_changed_title">抓取方式已更改</string>
     <string name="comparison_capture_changed_supporting">这两个版本的抓取方式不同（文本与截图），无法直接比较。</string>
@@ -144,9 +122,7 @@
     <string name="settings_browser_delay_title">浏览器等待时间</string>
     <string name="settings_browser_delay_subtitle">抓取页面内容前的等待时间</string>
     <string name="settings_browser_delay_summary">抓取前等待</string>
-    <string name="settings_interval_minutes">间隔（分钟）</string>
     <string name="settings_interval_minimum">请选择 15 分钟到 7 天之间的间隔。</string>
-    <string name="settings_quick_presets">快捷预设</string>
     <string name="settings_24_hours">24 小时</string>
     <string name="about_title">关于</string>
     <string name="about_developer_name">Bernardo Ferrari</string>
@@ -237,10 +213,6 @@
     <string name="comparison_check_now_hint">此页面目前只检查过一次，再次检查才能看到变化。</string>
     <string name="schedule_save_failed">无法应用计划，请重试。</string>
     <string name="turbo_stop_session">停止 Turbo</string>
-    <string name="schedule_paused_title">定时检查已暂停</string>
-    <string name="schedule_paused_description">恢复监测以自动检查页面。</string>
-    <string name="schedule_waiting_title">等待首次检查</string>
-    <string name="schedule_waiting_description">新页面需要先完成一次成功检查，才能检测之后的变化。</string>
     <string name="storage_history_title">已保存的历史</string>
     <string name="storage_history_usage">已保存版本占用 %1$s MB</string>
     <string name="storage_history_policy">每页最多保留 100 个版本。超过 250 MB 后会删除较旧的版本。每页最新的两个版本始终保留，即使超出此限制。</string>
@@ -248,9 +220,7 @@
     <string name="storage_clear_older_title">清除旧版本？</string>
     <string name="storage_clear_older_body">每个页面都会保留最新的两个版本。将从此设备删除 %1$s 的旧版本。此操作无法撤销。</string>
     <string name="storage_clear_older_confirm">清除</string>
-    <string name="capture_mode_default">应用默认</string>
     <string name="capture_mode_html">页面 HTML</string>
-    <string name="capture_mode_screenshot">截图</string>
     <string name="capture_mode_baseline">切换方式会建立新的初始版本，已有历史会保留。</string>
     <string name="capture_preview_action">预览抓取</string>
     <string name="capture_preview_title">抓取预览</string>
@@ -260,12 +230,6 @@
     <string name="capture_preview_html">页面文本预览</string>
     <string name="capture_preview_empty">未找到可读文本，此页面可能需要使用截图监测。</string>
     <string name="capture_preview_expand">查看完整截图</string>
-    <string name="schedule_running">正在进行定时检查</string>
-    <string name="schedule_unconfirmed">计划尚未确认</string>
-    <string name="schedule_eligible_waiting">已可检查 · 等待设备及所设条件</string>
-    <string name="schedule_next_eligible">下次最早可检查：%1$s · 实际时间可能不同</string>
-    <string name="watchlist_review_errors">查看检查失败的页面</string>
-    <string name="watchlist_failed_description">部分页面无法检查，刷新后重试。</string>
     <string name="requested_comparison_unavailable">此比较已不可用</string>
     <string name="requested_comparison_unavailable_description">一个或两个已保存版本可能已删除。你可以改为打开最新的可用版本。</string>
     <string name="view_latest_saved_version">查看最新保存的版本</string>
@@ -296,7 +260,6 @@
     <string name="check_failure_content_detail">无法抓取此响应，请尝试其他抓取方式。</string>
     <string name="check_failure_unknown">检查失败</string>
     <string name="check_failure_unknown_detail">请检查页面地址和网络连接后重试。</string>
-    <string name="capture_mode_text">可读文本</string>
     <string name="capture_mode_source">任何源代码变化</string>
     <string name="legacy_threshold_title">旧版字节过滤：%1$d 字节</string>
     <string name="legacy_threshold_description">此旧版过滤器会忽略低于字节阈值的变化。它比较的是保存的数据，而非可见像素。删除它即可仅使用所选规则。</string>
@@ -305,20 +268,13 @@
     <string name="check_failure_region_detail">请编辑页面并预览区域规则。选择器可能已不再匹配，或响应并非 HTML。已保存的历史会保留。</string>
     <string name="text_region_title">页面部分区域</string>
     <string name="text_region_whole">整个页面</string>
-    <string name="text_region_main">主要内容</string>
     <string name="text_region_description">只保存匹配的 HTML。区域外或忽略元素中的变化不会触发提醒。保存前请先预览。将包含选择器留空即可关注整个页面。</string>
     <string name="text_region_include">包含 CSS 选择器（可选）</string>
     <string name="text_region_exclude">忽略 CSS 选择器（可选）</string>
     <string name="text_region_invalid">请使用有效的 CSS 选择器，每个最多 %1$d 个字符，不支持正则表达式选择器。</string>
-    <string name="detail_last_saved">最后保存</string>
-    <string name="detail_compare">比较</string>
-    <string name="detail_empty_text">此保存版本没有可读文本，打开后可查看源代码。</string>
-    <string name="detail_preview_unavailable">预览不可用 · 打开已保存的版本</string>
-    <string name="detail_saved_document">已保存的文档</string>
     <string name="detail_missing">此页面已不在你的关注列表中。</string>
     <string name="detail_no_version">尚无保存的版本</string>
     <string name="detail_first_check">检查此页面以保存初始版本。</string>
-    <string name="detail_open_saved">打开版本</string>
     <string name="comparison_marked_read">已标为已读</string>
     <string name="comparison_read_failed">无法更新已读状态，请重试。</string>
     <string name="comparison_read_changed">最新更新已变化，请打开后标为已读。</string>
@@ -369,24 +325,7 @@
     <string name="check_failure_capture_unavailable">截图检查不可用</string>
     <string name="check_failure_capture_unavailable_detail">请使用 Android 或 iOS 进行截图检查，或改用文本或源代码监测。已保存的版本会保留。</string>
     <string name="settings_theme_and_color">主题与颜色</string>
-    <string name="history_today">今天</string>
     <string name="history_yesterday">昨天</string>
-    <string name="history_calendar_day">%1$s%2$d日</string>
-    <string name="history_calendar_day_year">%3$d年%1$s%2$d日</string>
-    <string-array name="history_months">
-        <item>1月</item>
-        <item>2月</item>
-        <item>3月</item>
-        <item>4月</item>
-        <item>5月</item>
-        <item>6月</item>
-        <item>7月</item>
-        <item>8月</item>
-        <item>9月</item>
-        <item>10月</item>
-        <item>11月</item>
-        <item>12月</item>
-    </string-array>
     <string name="comparison_show_previous">显示之前的文本</string>
     <string name="comparison_hide_previous">隐藏之前的文本</string>
     <plurals name="comparison_changed_passages">
@@ -526,7 +465,6 @@
         <item>12月</item>
     </string-array>
     <string name="today">今天</string>
-    <string name="day_month">%2$s%1$d日</string>
     <string name="day_time">%1$s，%2$s</string>
     <string name="label_text_changed">文本变化</string>
     <string name="label_percent">页面的 %1$s</string>
@@ -553,8 +491,6 @@
     <string name="detail_what_part">你选择的部分</string>
     <string name="detail_what_page">页面文本</string>
     <string name="mode_screenshot">截图</string>
-    <string name="mode_source">任何源代码变化</string>
-    <string name="mode_html">页面 HTML</string>
     <string name="mode_default">应用默认</string>
     <string name="mode_text">文本</string>
     <string name="mode_code">代码</string>
@@ -624,11 +560,6 @@
     <string name="checks_daily">每天</string>
     <string name="checks_hours_short">%1$d 小时</string>
     <string name="checks_minutes_short">%1$d 分钟</string>
-    <string name="checks_sentence_off">自动检查已关闭，仅在你刷新时检查页面。</string>
-    <string name="checks_sentence">大约%1$s检查</string>
-    <string name="checks_cond_wifi">连接 Wi-Fi 时</string>
-    <string name="checks_cond_charging">充电时</string>
-    <string name="checks_cond_battery">电量不低时</string>
     <string name="settings_group_checking">检查</string>
     <string name="settings_group_app">应用</string>
     <string name="settings_default_detection">默认抓取方式</string>
@@ -741,15 +672,12 @@
     <string name="picker_selected_area">无文本区域</string>
     <string name="preview_nothing_visible">未检测到视觉变化</string>
     <string name="preview_nothing_visible_body">保存的数据发生了变化，但未发现明显的视觉差异。</string>
-    <string name="version_compared_with">自 %1$s 起</string>
     <string name="home_status_checked">%1$s检查过</string>
     <string name="home_status_first_check">等待首次检查</string>
     <string name="ignore_small_title">忽略微小变化</string>
     <string name="ignore_small_off">关闭</string>
     <string name="ignore_small_body">只有页面外观至少发生此程度的变化时，才保存新截图。</string>
     <string name="ignore_small_off_body">不按变化大小过滤。仍会忽略细微的颜色差异。</string>
-    <string name="editor_formats">其他格式</string>
-    <string name="editor_formats_body">适合开发者：比较网页源代码，通常会检测到更多无关变化。</string>
     <string name="editor_part_picked">已选择</string>
     <string name="settings_capture_body">新页面的默认比较方式，每个页面仍可自行选择。</string>
     <string name="settings_wait_body">页面会等待图片加载完毕、内容稳定后再检查。较慢的网站可以增加等待时间。</string>
@@ -800,7 +728,7 @@
     <string name="check_failure_saved_content_unavailable">已保存的版本不可用</string>
     <string name="check_failure_saved_content_unavailable_detail">已保存的版本不存在或无效。现有历史记录已保留。请检查设备可用存储空间，如果问题继续出现，请发送问题信息。</string>
     <string name="check_failure_capture_incomplete">页面内容不完整</string>
-    <string name="check_failure_capture_incomplete_detail">无法加载监测页面的部分内容。已保存的历史记录已保留。请重试或预览页面。</string>
+    <string name="check_failure_capture_incomplete_detail">监测页面的一部分未能加载。历史记录已保留。请重试或在浏览器中打开页面。如果问题持续，请尝试文本方式，或选择能正常加载的页面区域。</string>
     <string name="text_http_capability_note">此平台的文本监测读取 HTTP 返回的内容，不包含 JavaScript 内容或浏览器的登录 Cookie。</string>
     <string name="check_failure_document_changed">检查时页面已更改</string>
     <string name="check_failure_document_changed_detail">检查时页面已更改。历史记录已保留。请重试。</string>
@@ -810,4 +738,24 @@
     <string name="color_style_vibrant">鲜艳</string>
     <string name="color_style_tonal">色调</string>
     <string name="color_style_muted">柔和</string>
+    <string name="capture_details">检查详情</string>
+    <string name="capture_resource_details_unavailable">未记录加载失败的页面内容。重试可能会提供更多信息。</string>
+    <string name="capture_resource_image">图片</string>
+    <string name="capture_resource_font">字体</string>
+    <string name="capture_resource_stylesheet">样式表</string>
+    <string name="capture_resource_frame">嵌入式框架</string>
+    <string name="capture_resource_other">页面内容</string>
+    <string name="capture_resource_load">%1$s · 加载失败</string>
+    <string name="capture_resource_certificate">%1$s · 安全连接被拒绝</string>
+    <string name="capture_resource_http">%1$s · HTTP %2$d</string>
+    <string name="capture_size_unavailable">无法显示截图大小。未保存新版本。</string>
+    <string name="capture_size_zero">未生成截图，也未保存新版本。</string>
+    <string name="capture_size_pixels">已生成 %1$d × %2$d 像素的截图。未保存新版本。</string>
+    <string name="capture_browser_attached">浏览器视图已连接。</string>
+    <string name="capture_browser_detached">浏览器视图未连接。</string>
+    <string name="capture_try_text">尝试文本</string>
+    <string name="capture_trying_text">正在尝试文本…</string>
+    <string name="capture_text_switched">已切换为文本监测。</string>
+    <string name="capture_text_switch_failed">无法切换到文本监测。</string>
+    <string name="capture_try_text_hint">如果文本可以加载，之后的检查将使用文本，而不是截图。</string>
 </resources>

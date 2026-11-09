@@ -1,5 +1,9 @@
 package com.bernaferrari.changedetection.ui.main
 
+import com.bernaferrari.changedetection.addedit.CapturePreview
+import com.bernaferrari.changedetection.addedit.CapturePreviewer
+import com.bernaferrari.changedetection.repo.CaptureMode
+import com.bernaferrari.changedetection.repo.capturePolicy
 import com.bernaferrari.changedetection.repo.PageIconShape
 
 import androidx.datastore.core.DataStore
@@ -257,6 +261,15 @@ class MainViewModel(
         viewModelScope.launch {
             scheduleSiteReload(site)
         }
+    }
+
+    internal suspend fun trySwitchToText(site: Site, previewer: CapturePreviewer): Boolean {
+        val preview = previewer.capture(site.url, CaptureMode.TEXT, site.capturePolicy().region) as? CapturePreview.Html ?: return false
+        if (preview.text.isBlank()) return false
+        preview.firstVersion?.validateCapture?.invoke()
+        val updated = mSitesRepository.switchToTextIfCurrent(site) ?: return false
+        reloadSite(updated)
+        return true
     }
 
     fun refreshAllSites() {
