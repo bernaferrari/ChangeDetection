@@ -252,31 +252,38 @@ open class SyncEngine(
 
     /** Verify immutable bytes, rather than treating a metadata hash as proof that its file is healthy. */
     private suspend fun verifiedBaseline(snap: Snap): ByteArray {
-        val bytes = try { readBaseline(snap.snapId) } catch (cancelled: CancellationException) {
+        val bytes = try {
+            readBaseline(snap.snapId)
+        } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Exception) {
             if (snapsDao.getLastSnapForSiteId(snap.siteId)?.snapId != snap.snapId) throw BaselineChangedDuringCheck()
             throw error
         }
         val digest = snap.contentHash.substringAfterLast(':')
-        val legacyExpected = try { if (snap.payloadHash.isEmpty() && digest.matches(Regex("[0-9a-fA-F]{64}"))) {
-            when {
-                snap.contentHash.startsWith("image-v2:") || snap.contentHash.startsWith("image-v3:") || snap.contentHash.startsWith("screenshot-v1:") || snap.contentHash.startsWith("source-v1:") -> ContentHasher.hashContent(bytes)
-                snap.contentHash.startsWith("text-v1:") || snap.contentHash.startsWith("text-region-v2:") -> ContentHasher.detectionHash(bytes, snap.contentType, com.bernaferrari.changedetection.repo.CaptureMode.TEXT).substringAfterLast(':')
-                ':' !in snap.contentHash -> if (snap.contentType.contains("html", true)) ContentHasher.hashHtmlContent(bytes) else ContentHasher.hashContent(bytes)
-                else -> null // Unknown old policy has no trustworthy original byte checksum.
+        val legacyExpected = try {
+            if (snap.payloadHash.isEmpty() && digest.matches(Regex("[0-9a-fA-F]{64}"))) {
+                when {
+                    snap.contentHash.startsWith("image-v2:") || snap.contentHash.startsWith("image-v3:") || snap.contentHash.startsWith("screenshot-v1:") || snap.contentHash.startsWith("source-v1:") -> ContentHasher.hashContent(bytes)
+                    snap.contentHash.startsWith("text-v1:") || snap.contentHash.startsWith("text-region-v2:") -> ContentHasher.detectionHash(bytes, snap.contentType, com.bernaferrari.changedetection.repo.CaptureMode.TEXT).substringAfterLast(':')
+                    ':' !in snap.contentHash -> if (snap.contentType.contains("html", true)) ContentHasher.hashHtmlContent(bytes) else ContentHasher.hashContent(bytes)
+                    else -> null // Unknown old policy has no trustworthy original byte checksum.
+                }
+            } else {
+                null
             }
-        } else null } catch (cancelled: CancellationException) {
+        } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Exception) {
             if (snapsDao.getLastSnapForSiteId(snap.siteId)?.snapId != snap.snapId) throw BaselineChangedDuringCheck()
             throw BaselineIntegrityError(error)
         }
         if (bytes.isEmpty() || bytes.size != snap.contentSize ||
-                (snap.payloadHash.isNotEmpty() && ContentHasher.hashContent(bytes) != snap.payloadHash) ||
-                (snap.payloadHash.isEmpty() && legacyExpected != null && !legacyExpected.equals(digest, ignoreCase = true))) {
-                if (snapsDao.getLastSnapForSiteId(snap.siteId)?.snapId != snap.snapId) throw BaselineChangedDuringCheck()
-                throw BaselineIntegrityError()
+            (snap.payloadHash.isNotEmpty() && ContentHasher.hashContent(bytes) != snap.payloadHash) ||
+            (snap.payloadHash.isEmpty() && legacyExpected != null && !legacyExpected.equals(digest, ignoreCase = true))
+        ) {
+            if (snapsDao.getLastSnapForSiteId(snap.siteId)?.snapId != snap.snapId) throw BaselineChangedDuringCheck()
+            throw BaselineIntegrityError()
         }
         return bytes
     }

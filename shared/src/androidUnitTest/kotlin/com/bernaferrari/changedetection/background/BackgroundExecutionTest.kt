@@ -10,7 +10,13 @@ class BackgroundExecutionTest {
     @Test fun `denied promotion skips capture and records actionable failure`() = runTest {
         var captures = 0
         var reported: BackgroundExecutionUnavailable? = null
-        val answer = checkAfterForeground(prepare = { throw IllegalStateException("promotion denied") }, check = { captures++; "captured" }, denied = { reported = it; "failure" })
+        val answer = checkAfterForeground(prepare = { throw IllegalStateException("promotion denied") }, check = {
+            captures++
+            "captured"
+        }, denied = {
+            reported = it
+            "failure"
+        })
         assertEquals("failure", answer)
         assertEquals(0, captures)
         val error = ErrorHandler().handleError(reported!!)
@@ -21,9 +27,11 @@ class BackgroundExecutionTest {
 
     @Test fun `parent cancellation while preparing is never converted into platform denial`() = runTest {
         var reported = false
-        assertTrue(runCatching {
-            checkAfterForeground(prepare = { throw CancellationException("stopped") }, check = { Unit }, denied = { reported = true })
-        }.exceptionOrNull() is CancellationException)
+        assertTrue(
+            runCatching {
+                checkAfterForeground(prepare = { throw CancellationException("stopped") }, check = { Unit }, denied = { reported = true })
+            }.exceptionOrNull() is CancellationException,
+        )
         assertFalse(reported)
     }
 

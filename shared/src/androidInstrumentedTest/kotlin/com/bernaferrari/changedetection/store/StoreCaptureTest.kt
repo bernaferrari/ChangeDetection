@@ -63,7 +63,12 @@ class StoreCaptureTest {
     private val dark = args.getString("store_theme") == "dark"
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private var studioSnap = ""
-    private val output by lazy { File(context.getExternalFilesDir(null), "store-capture/$profile/${if (dark) "dark" else "light"}").apply { deleteRecursively(); mkdirs() } }
+    private val output by lazy {
+        File(context.getExternalFilesDir(null), "store-capture/$profile/${if (dark) "dark" else "light"}").apply {
+            deleteRecursively()
+            mkdirs()
+        }
+    }
 
     @Before fun freshData() {
         org.junit.Assume.assumeTrue(profile != null)
@@ -82,7 +87,7 @@ class StoreCaptureTest {
             }
             studioSnap = seed(
                 koin.getOrNull<Any>(ChangeDatabase::class) as ChangeDatabase,
-                koin.getOrNull<Any>(FileStorage::class) as FileStorage
+                koin.getOrNull<Any>(FileStorage::class) as FileStorage,
             )
         }
     }
@@ -101,13 +106,13 @@ class StoreCaptureTest {
         val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
         automation.grantRuntimePermission(
             context.packageName,
-            Manifest.permission.POST_NOTIFICATIONS
+            Manifest.permission.POST_NOTIFICATIONS,
         )
         MainActivityProvider.register(ComponentActivity::class.java)
         val now = System.currentTimeMillis()
         val site =
             Site(DISPLAY, "https://northwind.shop/lumen-27", now, "", "studio", 0 to 0).copy(
-                captureMode = CaptureMode.SCREENSHOT
+                captureMode = CaptureMode.SCREENSHOT,
             )
         runBlocking { AndroidChangeNotifier(context).notifyChange(site, studioSnap) }
         Thread.sleep(800)
@@ -164,8 +169,9 @@ class StoreCaptureTest {
         shot("05-turbo")
         onAllNodes(hasClickAction() and (hasContentDescription(text(Res.string.a11y_close)) or hasText(text(Res.string.cancel)))).onFirst().runCatching { performClick() }
         Thread.sleep(400)
-        if (onAllNodesWithText(text(Res.string.turbo_sheet_for)).fetchSemanticsNodes().isNotEmpty()) InstrumentationRegistry.getInstrumentation().uiAutomation.performGlobalAction(
-            AccessibilityService.GLOBAL_ACTION_BACK)
+        if (onAllNodesWithText(text(Res.string.turbo_sheet_for)).fetchSemanticsNodes().isNotEmpty()) {
+            InstrumentationRegistry.getInstrumentation().uiAutomation.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
+        }
         waitForTag("home-list")
         onNodeWithText(text(Res.string.nav_settings)).performClick()
         waitForText(text(Res.string.settings_section_appearance))
@@ -217,8 +223,7 @@ class StoreCaptureTest {
         val sheetScroll = onNode(hasScrollAction() and hasAnyAncestor(hasTestTag("turbo-setup")))
         repeat(4) { sheetScroll.performTouchInput { swipeUp(startY = bottom - 10f, endY = top + 10f) } }
         shot("05-turbo")
-        InstrumentationRegistry.getInstrumentation().uiAutomation.performGlobalAction(
-            AccessibilityService.GLOBAL_ACTION_BACK)
+        InstrumentationRegistry.getInstrumentation().uiAutomation.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
         waitForTag("home-list")
         onNodeWithText(text(Res.string.nav_settings)).performClick()
         waitForText(text(Res.string.settings_section_appearance))
@@ -236,8 +241,7 @@ class StoreCaptureTest {
         compose.waitForTag("home-list")
     }
 
-    private fun ComposeTestRule.waitForText(text: String, substring: Boolean = false, timeout: Long = 10_000) =
-        waitUntil(timeoutMillis = timeout) { onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty() }
+    private fun ComposeTestRule.waitForText(text: String, substring: Boolean = false, timeout: Long = 10_000) = waitUntil(timeoutMillis = timeout) { onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty() }
 
     private fun ComposeTestRule.waitForTag(tag: String) {
         waitUntil(timeoutMillis = 8_000) { onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty() }
@@ -257,25 +261,29 @@ class StoreCaptureTest {
         val nodes = JSONArray()
         fun visit(node: AccessibilityNodeInfo, path: String) {
             val bounds = Rect().also(node::getBoundsInScreen)
-            nodes.put(JSONObject().apply {
-                put("path", path)
-                put("b", JSONArray(listOf(bounds.left, bounds.top, bounds.right, bounds.bottom)))
-                node.viewIdResourceName?.let { put("id", it) }
-                node.text?.let { put("text", it.toString()) }
-                node.contentDescription?.let { put("desc", it.toString()) }
-                node.className?.let { put("cls", it.toString()) }
-                node.packageName?.let { put("pkg", it.toString()) }
-            })
+            nodes.put(
+                JSONObject().apply {
+                    put("path", path)
+                    put("b", JSONArray(listOf(bounds.left, bounds.top, bounds.right, bounds.bottom)))
+                    node.viewIdResourceName?.let { put("id", it) }
+                    node.text?.let { put("text", it.toString()) }
+                    node.contentDescription?.let { put("desc", it.toString()) }
+                    node.className?.let { put("cls", it.toString()) }
+                    node.packageName?.let { put("pkg", it.toString()) }
+                },
+            )
             for (index in 0 until node.childCount) node.getChild(index)?.let { visit(it, "$path.$index") }
         }
         val root = checkNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow)
         visit(root, "0")
-        File(output, "$name.nodes.json").writeText(JSONObject().apply {
-            put("source", "android-accessibility")
-            put("width", bitmap.width)
-            put("height", bitmap.height)
-            put("nodes", nodes)
-        }.toString())
+        File(output, "$name.nodes.json").writeText(
+            JSONObject().apply {
+                put("source", "android-accessibility")
+                put("width", bitmap.width)
+                put("height", bitmap.height)
+                put("nodes", nodes)
+            }.toString(),
+        )
     }
 }
 

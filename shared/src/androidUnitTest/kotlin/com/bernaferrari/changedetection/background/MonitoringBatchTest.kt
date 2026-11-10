@@ -39,7 +39,12 @@ class MonitoringBatchTest {
         assertTrue(error is CancellationException)
         assertEquals(setOf("a", "b", "c"), state.remaining)
         val order = mutableListOf<String>()
-        assertFalse(runMonitoringBatch(pages, state, { state = it }, { 0L }) { page, _, _ -> order += page.id; SyncResult.Success(page.id, false) })
+        assertFalse(
+            runMonitoringBatch(pages, state, { state = it }, { 0L }) { page, _, _ ->
+                order += page.id
+                SyncResult.Success(page.id, false)
+            },
+        )
         assertEquals(listOf("b", "c", "a"), order)
     }
 
@@ -47,7 +52,12 @@ class MonitoringBatchTest {
         val pages = listOf(site("new"))
         var state = BatchCheckpoint(setOf("deleted"))
         val seen = mutableListOf<String>()
-        assertFalse(runMonitoringBatch(pages, state, { state = it }, { 0L }) { page, _, _ -> seen += page.id; SyncResult.Success(page.id, false) })
+        assertFalse(
+            runMonitoringBatch(pages, state, { state = it }, { 0L }) { page, _, _ ->
+                seen += page.id
+                SyncResult.Success(page.id, false)
+            },
+        )
         assertEquals(listOf("new"), seen)
         assertEquals(emptySet<String>(), state.remaining)
     }

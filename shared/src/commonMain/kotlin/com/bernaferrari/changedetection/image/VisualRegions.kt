@@ -157,6 +157,7 @@ internal object VisualRegions {
         fun hasContent(start: Int, count: Int, blank: BooleanArray) = (start until minOf(start + count, blank.size)).any { !blank[it] }
         val moved = alignment.runs.any { it.sourceStart != it.targetStart && hasContent(it.sourceStart, it.length, beforeBlank) } ||
             alignment.gaps.any { it.sourceCount != it.targetCount && (hasContent(it.sourceStart, it.sourceCount, beforeBlank) || hasContent(it.targetStart, it.targetCount, afterBlank)) }
+
         // Count evidence in aligned coordinates, before presentation crops are grown. A moved page must not
         // contribute its displacement to the percentage of content that actually changed.
         fun verifiedAt(row: Int, source: Boolean): Boolean = verified.any { region ->
@@ -175,7 +176,9 @@ internal object VisualRegions {
                 for (x in 0 until width) {
                     if (pixels.changed(before[b * width + x], after[a * width + x]) &&
                         stillDifferent(before, beforeHeight, b, after, afterHeight, a, x, width)
-                    ) alignedDifferences++
+                    ) {
+                        alignedDifferences++
+                    }
                 }
             }
         }

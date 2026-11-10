@@ -44,8 +44,7 @@ sealed interface CapturePreviewState {
         /** When it was taken, to judge if it can still be a new page's first version; not part of equality. */
         val capturedAt: Long = kotlin.time.Clock.System.now().toEpochMilliseconds()
 
-        internal fun isFresh(now: Long = kotlin.time.Clock.System.now().toEpochMilliseconds()): Boolean =
-            now - capturedAt in 0 until FIRST_VERSION_MAX_AGE_MS
+        internal fun isFresh(now: Long = kotlin.time.Clock.System.now().toEpochMilliseconds()): Boolean = now - capturedAt in 0 until FIRST_VERSION_MAX_AGE_MS
     }
     data class Failed(
         val reason: PreviewFailure,

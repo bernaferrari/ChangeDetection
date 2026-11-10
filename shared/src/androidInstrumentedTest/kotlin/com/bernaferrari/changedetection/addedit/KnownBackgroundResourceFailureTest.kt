@@ -51,7 +51,18 @@ class KnownBackgroundResourceFailureTest {
                 val files = AndroidFileStorage(context)
                 val client = HttpClient()
                 val alerts = AtomicInteger()
-                val engine = SyncEngine(client, db, db.siteDao(), db.snapsDao(), files, ErrorHandler(), ChangeNotifier { _, _ -> alerts.incrementAndGet();Unit })
+                val engine = SyncEngine(
+                    client,
+                    db,
+                    db.siteDao(),
+                    db.snapsDao(),
+                    files,
+                    ErrorHandler(),
+                    ChangeNotifier { _, _ ->
+                        alerts.incrementAndGet()
+                        Unit
+                    },
+                )
                 val site = Site("HTTP background", server.url, 0L, "background-resource", ColorGroup(0, 0), true, false)
                     .copy(captureMode = CaptureMode.SCREENSHOT, isNotificationEnabled = true, visualChangeThresholdBps = 100)
                 val preferences = preferencesOf(SettingsViewModel.BROWSER_DELAY_KEY to 1_000L)
@@ -139,6 +150,7 @@ class KnownBackgroundResourceFailureTest {
     private class BackgroundImageServer : AutoCloseable {
         private val socket = ServerSocket(0)
         private val pool = Executors.newCachedThreadPool()
+
         @Volatile var status = 200
         val successfulResponses = AtomicInteger()
         val notFoundResponses = AtomicInteger()
@@ -146,8 +158,13 @@ class KnownBackgroundResourceFailureTest {
         private val bytes = Bitmap.createBitmap(280, 240, Bitmap.Config.ARGB_8888).let { bitmap ->
             try {
                 bitmap.eraseColor(Color.BLUE)
-                ByteArrayOutputStream().use { output -> check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, output));output.toByteArray() }
-            } finally { bitmap.recycle() }
+                ByteArrayOutputStream().use { output ->
+                    check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, output))
+                    output.toByteArray()
+                }
+            } finally {
+                bitmap.recycle()
+            }
         }
         init {
             pool.submit {
@@ -161,14 +178,25 @@ class KnownBackgroundResourceFailureTest {
                             while (!reader.readLine().isNullOrEmpty()) { }
                             val response = status
                             val body = if (response == 200) bytes else byteArrayOf()
-                            if (response == 200) successfulResponses.incrementAndGet() else if (response == 404) notFoundResponses.incrementAndGet()
+                            if (response == 200) {
+                                successfulResponses.incrementAndGet()
+                            } else if (response == 404) {
+                                notFoundResponses.incrementAndGet()
+                            }
                             val header = "HTTP/1.1 $response ${if (response == 200) "OK" else "Not Found"}\r\nContent-Type: image/png\r\nCache-Control: no-store\r\nContent-Length: ${body.size}\r\nConnection: close\r\n\r\n"
-                            client.getOutputStream().apply { write(header.toByteArray());write(body);flush() }
+                            client.getOutputStream().apply {
+                                write(header.toByteArray())
+                                write(body)
+                                flush()
+                            }
                         }
                     }
                 }
             }
         }
-        override fun close() { socket.close();pool.shutdownNow() }
+        override fun close() {
+            socket.close()
+            pool.shutdownNow()
+        }
     }
 }

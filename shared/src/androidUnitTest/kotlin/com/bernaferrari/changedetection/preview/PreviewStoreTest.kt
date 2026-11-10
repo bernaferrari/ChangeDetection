@@ -21,7 +21,9 @@ import org.mockito.kotlin.whenever
 class PreviewStoreTest {
     private class MemoryFiles : FileStorage {
         val files = mutableMapOf<String, ByteArray>()
-        override fun writeBytes(fileName: String, bytes: ByteArray) { files[fileName] = bytes }
+        override fun writeBytes(fileName: String, bytes: ByteArray) {
+            files[fileName] = bytes
+        }
         override fun readBytes(fileName: String): ByteArray = files.getValue(fileName)
         override fun deleteFile(fileName: String): Boolean = files.remove(fileName) != null
         override fun fileExists(fileName: String): Boolean = fileName in files

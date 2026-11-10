@@ -61,7 +61,9 @@ fun main() {
 }
 
 private fun openExternal(message: String, action: () -> Unit) {
-    try { action() } catch (_: Exception) {
+    try {
+        action()
+    } catch (_: Exception) {
         javax.swing.JOptionPane.showMessageDialog(null, message, "Change Detection", javax.swing.JOptionPane.ERROR_MESSAGE)
     }
 }

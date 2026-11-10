@@ -11,9 +11,12 @@ class SnapshotReadLimitTest {
     @Test fun oversizedSparseFileIsRejectedWithoutTrustingItsMetadata() {
         val dir = Files.createTempDirectory("snapshot-limit").toFile()
         try {
-            val file = dir.resolve("damaged");RandomAccessFile(file, "rw").use { it.setLength(MAX_SNAPSHOT_BYTES.toLong() + 1) }
+            val file = dir.resolve("damaged")
+            RandomAccessFile(file, "rw").use { it.setLength(MAX_SNAPSHOT_BYTES.toLong() + 1) }
             assertTrue(runCatching { DesktopFileStorage(dir).readBytes("damaged") }.exceptionOrNull() is java.io.IOException)
             assertEquals(MAX_SNAPSHOT_BYTES.toLong() + 1, file.length())
-        } finally { dir.deleteRecursively() }
+        } finally {
+            dir.deleteRecursively()
+        }
     }
 }

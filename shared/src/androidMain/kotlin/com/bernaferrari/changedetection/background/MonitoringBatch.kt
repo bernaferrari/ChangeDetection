@@ -22,7 +22,10 @@ internal suspend fun runMonitoringBatch(
     val started = elapsedMillis()
     val active = sites.filter { it.isSyncEnabled }.associateBy { it.id }
     val pending = checkpoint.remaining.intersect(active.keys).ifEmpty { active.keys }
-    if (pending.isEmpty()) { save(BatchCheckpoint());return false }
+    if (pending.isEmpty()) {
+        save(BatchCheckpoint())
+        return false
+    }
     val sorted = pending.mapNotNull(active::get).sortedWith(compareBy<Site> { it.timestamp }.thenBy { it.id })
     // A worker stopped mid-capture keeps that page pending, but tries the other pending pages first.
     val pivot = sorted.indexOfFirst { it.id == checkpoint.cursor }
@@ -34,7 +37,7 @@ internal suspend fun runMonitoringBatch(
         state = state.copy(cursor = site.id)
         save(state) // Durable before capture: cancellation must not lose its place.
         val result = check(site, index, ordered.size)
-        state = state.copy(remaining = state.remaining - site.id, retryNeeded = state.retryNeeded || result is SyncResult.Failed && result.error.isRetryable)
+        state = state.copy(remaining = state.remaining - site.id, retryNeeded = state.retryNeeded || (result is SyncResult.Failed && result.error.isRetryable))
         save(state)
     }
     val retry = state.retryNeeded

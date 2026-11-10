@@ -19,7 +19,11 @@ class ReviewThresholdProbeTest {
     private fun png(width: Int, height: Int, pixels: IntArray): ByteArray {
         val image = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
         image.setRGB(0, 0, width, height, pixels, 0, width)
-        return ByteArrayOutputStream().use { ImageIO.write(image, "png", it); image.flush(); it.toByteArray() }
+        return ByteArrayOutputStream().use {
+            ImageIO.write(image, "png", it)
+            image.flush()
+            it.toByteArray()
+        }
     }
     private fun checkPair(before: ByteArray, after: ByteArray, expectedChange: Boolean = false) = runBlocking {
         val dir = Files.createTempDirectory("review-threshold").toFile()
@@ -33,22 +37,32 @@ class ReviewThresholdProbeTest {
             engine.processFetchResult(site, SyncEngine.FetchResult.Success("image/png", before, capturedWithBrowser = true))
             val result = engine.processFetchResult(requireNotNull(db.siteDao().getSiteById(site.id)), SyncEngine.FetchResult.Success("image/png", after, capturedWithBrowser = true)) as SyncResult.Success
             assertEquals("1% filter decision", expectedChange, result.hadChanges)
-        } finally { client.close(); db.close(); dir.deleteRecursively() }
+        } finally {
+            client.close()
+            db.close()
+            dir.deleteRecursively()
+        }
     }
+
     @Test fun blankPageWithOneExtraRowShouldNotAlert() {
         checkPair(png(100, 100, IntArray(10000) { 0xffffff }), png(100, 101, IntArray(10100) { 0xffffff }))
     }
+
     @Test fun blankWidthChangeObeysThreshold() {
         checkPair(png(100, 100, IntArray(10000) { 0xffffff }), png(101, 100, IntArray(10100) { 0xffffff }))
     }
+
     @Test fun resizedPageWithSubstantialContentChangeAlerts() {
         checkPair(png(100, 100, IntArray(10000) { 0xffffff }), png(101, 101, IntArray(10201) { 0x202020 }), expectedChange = true)
     }
+
     @Test fun shiftedPageWithLessThanOnePercentContentEditShouldNotAlert() {
         val width = 120
         val height = 800
         val before = IntArray(width * height) { i ->
-            val y = i / width; val x = i % width; val id = y / 10 + 1
+            val y = i / width
+            val x = i % width
+            val id = y / 10 + 1
             if (y % 10 < 6 && (x + id * 7 + y % 10) % (id % 5 + 3) == 0) 0x202020 else 0xffffff
         }
         val after = IntArray(width * 3) { 0xffffff } + before.copyOf(width * (height - 3))

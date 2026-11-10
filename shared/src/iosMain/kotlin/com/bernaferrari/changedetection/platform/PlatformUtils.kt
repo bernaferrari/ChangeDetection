@@ -20,7 +20,9 @@ fun openUrl(url: String) {
     val nsUrl = NSURL.URLWithString(url)
     if (nsUrl != null) {
         if (!UIApplication.sharedApplication.openURL(nsUrl)) showOpenFailure()
-    } else showOpenFailure()
+    } else {
+        showOpenFailure()
+    }
 }
 
 /**
@@ -34,7 +36,9 @@ fun openEmail(
     val nsUrl = NSURL.URLWithString(urlString)
     if (nsUrl != null) {
         if (!UIApplication.sharedApplication.openURL(nsUrl)) showOpenFailure()
-    } else showOpenFailure()
+    } else {
+        showOpenFailure()
+    }
 }
 
 /** Process-owned UI feedback; completed actions release their controller references. */

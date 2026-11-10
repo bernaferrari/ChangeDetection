@@ -56,10 +56,26 @@ data class TextRegion(val include: String = "", val exclude: String = "") {
             var escaped = false
             for (c in selector) {
                 when {
-                    escaped -> { append(' '); escaped = false }
-                    c == '\\' -> { append(' '); escaped = true }
-                    quote != null -> { if (c == quote) quote = null; append(' ') }
-                    c == '\'' || c == '"' -> { quote = c; append(' ') }
+                    escaped -> {
+                        append(' ')
+                        escaped = false
+                    }
+
+                    c == '\\' -> {
+                        append(' ')
+                        escaped = true
+                    }
+
+                    quote != null -> {
+                        if (c == quote) quote = null
+                        append(' ')
+                    }
+
+                    c == '\'' || c == '"' -> {
+                        quote = c
+                        append(' ')
+                    }
+
                     else -> append(c)
                 }
             }
@@ -82,10 +98,14 @@ enum class TextRegionFailure { INVALID_SELECTOR, REGION_MISSING, HTML_REQUIRED }
 
 class TextRegionException(val failure: TextRegionFailure, cause: Throwable? = null, val issue: TextRegionIssue? = null) :
     IllegalArgumentException(
-        if (issue == TextRegionIssue.MULTIPLE_MATCHES) "Screenshot monitoring supports one selected area. Choose one element or switch to Text." else when (failure) {
-            TextRegionFailure.INVALID_SELECTOR -> "Use a valid CSS selector without regular-expression selectors."
-            TextRegionFailure.REGION_MISSING -> "The selected region was not found. Check the selection or preview the page again."
-            TextRegionFailure.HTML_REQUIRED -> "Region selection requires an HTML response."
+        if (issue == TextRegionIssue.MULTIPLE_MATCHES) {
+            "Screenshot monitoring supports one selected area. Choose one element or switch to Text."
+        } else {
+            when (failure) {
+                TextRegionFailure.INVALID_SELECTOR -> "Use a valid CSS selector without regular-expression selectors."
+                TextRegionFailure.REGION_MISSING -> "The selected region was not found. Check the selection or preview the page again."
+                TextRegionFailure.HTML_REQUIRED -> "Region selection requires an HTML response."
+            }
         },
         cause,
     )

@@ -154,7 +154,9 @@ class SyncWorker(
         val retry = runMonitoringBatch(sites, checkpoint, save = { state ->
             dataStore.edit {
                 if (state.remaining.isEmpty()) {
-                    it.remove(PENDING_BATCH);it.remove(BATCH_RETRY);it.remove(BATCH_CURSOR)
+                    it.remove(PENDING_BATCH)
+                    it.remove(BATCH_RETRY)
+                    it.remove(BATCH_CURSOR)
                 } else {
                     it[PENDING_BATCH] = state.remaining
                     it[BATCH_RETRY] = state.retryNeeded

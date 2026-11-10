@@ -195,22 +195,24 @@ private fun PreviewBody(current: ChangePreview?, cropHeight: Dp, stacked: Boolea
         // Stacked, each side gets the full width, so the page's own text is about twice the size it is side by side.
         is ChangePreview.Crop -> if (stacked) {
             StackedCrops(current, cropHeight)
-        } else Row(Modifier.fillMaxWidth().height(cropHeight), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (current.isPreparing) {
-                repeat(2) { Box(Modifier.weight(1f).fillMaxHeight().clip(TileShape).placeholderPulse()) }
-            } else {
-                val lead = current.lead
-                val beforeBounds = lead?.let { ChangedBounds(it.left, it.beforeTop, it.right, it.beforeBottom) } ?: current.bounds
-                val afterBounds = lead?.let { ChangedBounds(it.left, it.afterTop, it.right, it.afterBottom) } ?: current.bounds
-                // Like the reader's change cards: something new or gone has one side worth showing, not two.
-                when (lead?.kind) {
-                    com.bernaferrari.changedetection.image.VisualRegion.Kind.Added -> CropTile(current.afterSnapId, afterBounds, stringResource(Res.string.visual_added), true, Modifier.weight(1f))
+        } else {
+            Row(Modifier.fillMaxWidth().height(cropHeight), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (current.isPreparing) {
+                    repeat(2) { Box(Modifier.weight(1f).fillMaxHeight().clip(TileShape).placeholderPulse()) }
+                } else {
+                    val lead = current.lead
+                    val beforeBounds = lead?.let { ChangedBounds(it.left, it.beforeTop, it.right, it.beforeBottom) } ?: current.bounds
+                    val afterBounds = lead?.let { ChangedBounds(it.left, it.afterTop, it.right, it.afterBottom) } ?: current.bounds
+                    // Like the reader's change cards: something new or gone has one side worth showing, not two.
+                    when (lead?.kind) {
+                        com.bernaferrari.changedetection.image.VisualRegion.Kind.Added -> CropTile(current.afterSnapId, afterBounds, stringResource(Res.string.visual_added), true, Modifier.weight(1f))
 
-                    com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed -> CropTile(current.beforeSnapId, beforeBounds, stringResource(Res.string.visual_removed), false, Modifier.weight(1f))
+                        com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed -> CropTile(current.beforeSnapId, beforeBounds, stringResource(Res.string.visual_removed), false, Modifier.weight(1f))
 
-                    else -> {
-                        CropTile(current.beforeSnapId, beforeBounds, stringResource(Res.string.preview_before), false, Modifier.weight(1f))
-                        CropTile(current.afterSnapId, afterBounds, stringResource(Res.string.preview_after), true, Modifier.weight(1f))
+                        else -> {
+                            CropTile(current.beforeSnapId, beforeBounds, stringResource(Res.string.preview_before), false, Modifier.weight(1f))
+                            CropTile(current.afterSnapId, afterBounds, stringResource(Res.string.preview_after), true, Modifier.weight(1f))
+                        }
                     }
                 }
             }
@@ -248,7 +250,9 @@ private fun StackedCrops(current: ChangePreview.Crop, cropHeight: Dp) {
         val afterBounds = lead?.let { ChangedBounds(it.left, it.afterTop, it.right, it.afterBottom) } ?: current.bounds
         when (lead?.kind) {
             com.bernaferrari.changedetection.image.VisualRegion.Kind.Added -> CropTile(current.afterSnapId, afterBounds, stringResource(Res.string.visual_added), true, Modifier.height(tile))
+
             com.bernaferrari.changedetection.image.VisualRegion.Kind.Removed -> CropTile(current.beforeSnapId, beforeBounds, stringResource(Res.string.visual_removed), false, Modifier.height(tile))
+
             else -> {
                 CropTile(current.beforeSnapId, beforeBounds, stringResource(Res.string.preview_before), false, Modifier.height(tile))
                 CropTile(current.afterSnapId, afterBounds, stringResource(Res.string.preview_after), true, Modifier.height(tile))
@@ -262,8 +266,16 @@ private fun StackedCrops(current: ChangePreview.Crop, cropHeight: Dp) {
 private fun PreviewFooter(current: ChangePreview?) {
     val text = when (current) {
         // One changed area is what the tiles already show; a count only adds information when there are more.
-        is ChangePreview.Crop -> if (current.isPreparing) null else if (current.regions.size == 1) return else cropSummary(current)
+        is ChangePreview.Crop -> if (current.isPreparing) {
+            null
+        } else if (current.regions.size == 1) {
+            return
+        } else {
+            cropSummary(current)
+        }
+
         is ChangePreview.Words -> if (current.otherChanges > 0) com.bernaferrari.changedetection.localization.pluralStringResource(Res.plurals.preview_more_changes, current.otherChanges, current.otherChanges) else return
+
         else -> return
     }
     val modifier = Modifier.padding(start = 4.dp, top = 10.dp)

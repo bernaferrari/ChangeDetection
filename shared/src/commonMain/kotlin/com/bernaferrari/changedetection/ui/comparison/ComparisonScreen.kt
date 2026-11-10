@@ -610,22 +610,24 @@ private fun ReaderBar(reader: ChangeCursor, showNav: Boolean, canMarkRead: Boole
         }
         val compact = LocalDensity.current.fontScale > 1.3f
         // An explicit row: without a FAB the toolbar stacks its content instead of laying it out in a line.
-        val toolbar: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = { Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = { scope.launch { reader.go(-1) } }, enabled = reader.current > 0) {
-                Icon(Icons.Rounded.KeyboardArrowUp, stringResource(Res.string.reader_previous))
+        val toolbar: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { scope.launch { reader.go(-1) } }, enabled = reader.current > 0) {
+                    Icon(Icons.Rounded.KeyboardArrowUp, stringResource(Res.string.reader_previous))
+                }
+                val position = stringResource(Res.string.reader_position, reader.current + 1, reader.changeCount)
+                Text(
+                    if (compact) "${reader.current + 1} / ${reader.changeCount}" else position,
+                    Modifier.padding(horizontal = 4.dp).semantics { contentDescription = position },
+                    maxLines = 1,
+                    style = MaterialTheme.typography.labelLarge,
+                    textAlign = TextAlign.Center,
+                )
+                IconButton(onClick = { scope.launch { reader.go(1) } }, enabled = reader.current < reader.changeCount - 1) {
+                    Icon(Icons.Rounded.KeyboardArrowDown, stringResource(Res.string.reader_next))
+                }
             }
-            val position = stringResource(Res.string.reader_position, reader.current + 1, reader.changeCount)
-            Text(
-                if (compact) "${reader.current + 1} / ${reader.changeCount}" else position,
-                Modifier.padding(horizontal = 4.dp).semantics { contentDescription = position },
-                maxLines = 1,
-                style = MaterialTheme.typography.labelLarge,
-                textAlign = TextAlign.Center,
-            )
-            IconButton(onClick = { scope.launch { reader.go(1) } }, enabled = reader.current < reader.changeCount - 1) {
-                Icon(Icons.Rounded.KeyboardArrowDown, stringResource(Res.string.reader_next))
-            }
-        } }
+        }
         if (canMarkRead) {
             HorizontalFloatingToolbar(
                 expanded = true,

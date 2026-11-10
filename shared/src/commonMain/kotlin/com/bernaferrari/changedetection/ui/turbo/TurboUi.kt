@@ -470,7 +470,9 @@ fun TurboLiveScreen(
                     }
                     itemsIndexed(quiet, key = { _, it -> "q" + it.site.id }) { index, row ->
                         QuietRow(
-                            row, state, now,
+                            row,
+                            state,
+                            now,
                             onClick = { onOpenPage(row.site.id) },
                             // The same grouped tiles as the page list on Home.
                             modifier = Modifier.animateItem().padding(horizontal = 16.dp, vertical = 1.dp)

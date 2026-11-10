@@ -83,10 +83,9 @@ internal fun ColorStylePicker(
 }
 
 /** The three accents at one bright tone (a deeper one in dark mode), so every style is compared fairly. */
-private fun mood(accents: List<Color>, dark: Boolean): List<Color> =
-    accents.zip(if (dark) listOf(62.0, 68.0, 64.0) else listOf(72.0, 78.0, 74.0)) { color, tone ->
-        Color(Hct.fromInt(color.toArgb()).withTone(tone).toInt())
-    }
+private fun mood(accents: List<Color>, dark: Boolean): List<Color> = accents.zip(if (dark) listOf(62.0, 68.0, 64.0) else listOf(72.0, 78.0, 74.0)) { color, tone ->
+    Color(Hct.fromInt(color.toArgb()).withTone(tone).toInt())
+}
 
 @Composable
 private fun RowScope.Segment(
@@ -129,7 +128,11 @@ private fun RowScope.Segment(
         if (shown > .01f) {
             Box(
                 Modifier.size(height * .58f)
-                    .graphicsLayer { alpha = shown.coerceIn(0f, 1f); scaleX = .6f + .4f * shown; scaleY = .6f + .4f * shown }
+                    .graphicsLayer {
+                        alpha = shown.coerceIn(0f, 1f)
+                        scaleX = .6f + .4f * shown
+                        scaleY = .6f + .4f * shown
+                    }
                     .clip(CircleShape).background(Color.White.copy(alpha = .78f)),
                 contentAlignment = Alignment.Center,
             ) {

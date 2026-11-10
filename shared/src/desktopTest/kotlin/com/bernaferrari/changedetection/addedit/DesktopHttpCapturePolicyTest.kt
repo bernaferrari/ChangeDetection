@@ -18,6 +18,7 @@ class DesktopHttpCapturePolicyTest {
         assertNull(captureLivePagePreview(state, navigator, "https://example.test/page", CaptureMode.TEXT, TextRegion()))
         verifyNoInteractions(state, navigator)
     }
+
     @Test fun scriptOnlyRegionIsRejectedDuringDesktopSetupBeforeSavingAnInconsistentBaseline() = runTest {
         val engine = mock<SyncEngine>()
         val raw = "<html><body><p>Static page</p><script>document.body.insertAdjacentHTML('beforeend', '<p id=watched>Dynamic price</p>')</script></body></html>"

@@ -108,7 +108,18 @@ internal fun VisualChangesView(beforeBytes: ByteArray, afterBytes: ByteArray, di
             LazyColumn(
                 state = list,
                 modifier = Modifier.weight(1f).fillMaxHeight(),
-                contentPadding = PaddingValues(start = if (regions.size == 1) 16.dp else if (wide) 12.dp else 8.dp, end = if (regions.size == 1) 16.dp else 8.dp, top = 4.dp, bottom = 24.dp),
+                contentPadding = PaddingValues(
+                    start = if (regions.size == 1) {
+                        16.dp
+                    } else if (wide) {
+                        12.dp
+                    } else {
+                        8.dp
+                    },
+                    end = if (regions.size == 1) 16.dp else 8.dp,
+                    top = 4.dp,
+                    bottom = 24.dp,
+                ),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 item("summary") {

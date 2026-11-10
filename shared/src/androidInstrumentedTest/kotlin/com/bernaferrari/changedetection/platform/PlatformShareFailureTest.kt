@@ -11,7 +11,7 @@ import org.junit.Test
 class PlatformShareFailureTest {
     @Test fun unavailableChooserIsReportedToTheCaller() {
         val context = object : ContextWrapper(ApplicationProvider.getApplicationContext<Context>()) {
-            override fun startActivity(intent: Intent) { throw ActivityNotFoundException("No handler in fixture") }
+            override fun startActivity(intent: Intent): Unit = throw ActivityNotFoundException("No handler in fixture")
         }
         val failure = runCatching { AndroidShareManager(context).shareText("fixture", "fixture") }.exceptionOrNull()
         assertTrue(failure is ShareUnavailableException)

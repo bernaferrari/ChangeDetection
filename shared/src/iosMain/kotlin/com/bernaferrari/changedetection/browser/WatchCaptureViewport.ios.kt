@@ -21,7 +21,9 @@ internal actual fun watchCaptureViewportModifier(): Modifier {
         val scale = minOf(width.toFloat() / nativeWidth, height.toFloat() / nativeHeight).coerceAtLeast(.01f)
         layout(width, height) {
             child.placeWithLayer(((width - nativeWidth * scale) / 2).roundToInt(), 0) {
-                scaleX = scale;scaleY = scale;transformOrigin = TransformOrigin(0f, 0f)
+                scaleX = scale
+                scaleY = scale
+                transformOrigin = TransformOrigin(0f, 0f)
             }
         }
     }

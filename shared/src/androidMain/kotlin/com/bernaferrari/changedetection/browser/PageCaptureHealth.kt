@@ -182,6 +182,7 @@ internal class PageCaptureHealth {
         val state = synchronized(this) {
             when {
                 epoch != generation -> Validation(CaptureIssue.DOCUMENT_CHANGED, document = DiagnosticDocumentContext(started != null, committed != null, finished, mainPending))
+
                 else -> {
                     val failed = resourceErrors.asSequence().mapNotNull { (url, failure) ->
                         watchedDependencies[url]?.let { failure.copy(kind = it) }
@@ -189,7 +190,9 @@ internal class PageCaptureHealth {
                     when {
                         failed.isNotEmpty() || resourceErrorOverflow || (dependencyOverflow && resourceErrors.isNotEmpty()) ->
                             Validation(CaptureIssue.RESOURCE_FAILED, resources = failed)
+
                         hasBlockingFailure() -> Validation(tls = observations())
+
                         else -> Validation()
                     }
                 }
