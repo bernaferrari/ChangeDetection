@@ -58,6 +58,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.Color
@@ -128,7 +129,7 @@ fun SettingsScreen(
                 }
                 return@Box
             }
-            LazyColumn(Modifier.widthIn(max = 720.dp).fillMaxSize(), contentPadding = PaddingValues(bottom = 40.dp)) {
+            LazyColumn(Modifier.widthIn(max = 720.dp).fillMaxSize().testTag("settings-list"), contentPadding = PaddingValues(bottom = 40.dp)) {
                 if (writeFailed) item(key = "write-error") { SettingsWriteError(viewModel::retryPreferenceWrite) }
                 item(key = "checking") {
                     GroupLabel(stringResource(Res.string.settings_group_checking), Modifier.padding(top = 0.dp))
@@ -244,7 +245,9 @@ internal fun AppearanceControls(
     ListGroup {
         Column(Modifier.groupTile().padding(vertical = 16.dp).selectableGroup()) {
             ConnectedChoice(
-                ThemeMode.entries, theme, onTheme,
+                ThemeMode.entries,
+                theme,
+                onTheme,
                 // The same marks as Calcula and WiFi Weakspot: auto, sun, moon.
                 icon = {
                     when (it) {

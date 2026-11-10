@@ -301,6 +301,9 @@ class DesignReviewTest {
         onNodeWithContentDescription("Navigate back").performClick()
         onNodeWithContentDescription("Navigate back").performClick()
         onNodeWithText("Settings").performClick()
+        waitForTag("settings-list")
+        // At large text sizes the Help group may be below the composed rows.
+        onNodeWithTag("settings-list").performScrollToKey("help")
         waitForText("About")
         onNodeWithText("About").performScrollTo().performClick()
         waitForIdle()
