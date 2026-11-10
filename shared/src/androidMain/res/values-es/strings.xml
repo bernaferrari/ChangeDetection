@@ -22,4 +22,10 @@
     <string name="change_notification_named">%1$s cambió</string>
     <string name="change_notification_generic">Toca para ver qué cambió.</string>
     <string name="external_open_failed">No se pudo abrir otra app. Instala una app compatible o inténtalo de nuevo.</string>
+    <string name="failure_notification_channel_name">Páginas que dejaron de funcionar</string>
+    <string name="failure_notification_channel_description">Avisa cuando una página lleva un tiempo sin poder comprobarse</string>
+    <string name="failure_notification_named">%1$s no se está comprobando</string>
+    <string name="failure_notification_needs_you">Necesita tu atención. Toca para ver qué hacer.</string>
+    <string name="failure_notification_keeps_failing">Las comprobaciones siguen fallando. Toca para ver por qué.</string>
+    <string name="failure_notification_generic">Una página no se está comprobando.</string>
 </resources>

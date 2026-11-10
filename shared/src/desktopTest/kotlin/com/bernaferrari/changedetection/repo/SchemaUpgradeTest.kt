@@ -5,6 +5,7 @@ import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.bernaferrari.changedetection.repo.source.local.ChangeDatabase
 import com.bernaferrari.changedetection.repo.source.local.getRoomDatabase
+import java.io.File
 import java.nio.file.Files
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
@@ -23,7 +24,7 @@ class SchemaUpgradeTest {
     @Test fun releases2019To2024DatabaseUpgrades() = runBlocking { upgradeVersionOne(withBrowserColumns = true) }
 
     @Test fun retiredDevelopmentSchemasStartFresh() = runBlocking {
-        for (version in listOf(2, 3, 6, 10)) {
+        for (version in listOf(2, 3, 10)) {
             withDatabaseFile { path, driver ->
                 getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = path), driver).apply {
                     siteDao().getSitesList()
@@ -44,8 +45,46 @@ class SchemaUpgradeTest {
                 } finally {
                     reset.close()
                 }
-                driver.open(path).use { assertEquals("5", it.queryAll("PRAGMA user_version").trim()) }
+                driver.open(path).use { assertEquals("6", it.queryAll("PRAGMA user_version").trim()) }
             }
+        }
+    }
+
+    /** Version 5 is on people's phones: a page that was already failing keeps its history and starts its streak at zero. */
+    @Test fun versionFiveUpgradeKeepsPagesAndStartsFailureStreaksEmpty() = runBlocking {
+        withDatabaseFile { path, driver ->
+            val schema = sequenceOf("schemas", "shared/schemas").map { File("$it/com.bernaferrari.changedetection.repo.source.local.ChangeDatabase/5.json") }.first { it.exists() }
+            val database = Json.parseToJsonElement(schema.readText()).jsonObject.getValue("database").jsonObject
+            driver.open(path).use { connection ->
+                for (entity in database.getValue("entities").jsonArray) {
+                    val table = entity.jsonObject
+                    val name = table.getValue("tableName").jsonPrimitive.content
+                    connection.exec(table.getValue("createSql").jsonPrimitive.content.replace("\${TABLE_NAME}", name))
+                    for (index in table["indices"]?.jsonArray.orEmpty()) connection.exec(index.jsonObject.getValue("createSql").jsonPrimitive.content.replace("\${TABLE_NAME}", name))
+                }
+                for (query in database.getValue("setupQueries").jsonArray) connection.exec(query.jsonPrimitive.content)
+                connection.exec("INSERT INTO sites (title,url,timestamp,siteId,isSuccessful,isBrowser,threshold,isRead,isSyncEnabled,isNotificationEnabled,notes,colors,constraints,lastFailureCode) VALUES ('Page','https://example.test',123,'page',0,0,0,1,1,1,'notes','0,0','false, false, false, false','LOGIN')")
+                connection.exec("INSERT INTO snaps (snapId,siteId,timestamp,contentType,contentCharset,contentSize,contentHash,processedContentHash) VALUES ('saved','page',100,'text/plain','UTF-8',5,'hash','processed')")
+                connection.exec("PRAGMA user_version = 5")
+            }
+            val db = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = path), driver)
+            try {
+                val site = requireNotNull(db.siteDao().getSiteById("page")) { "the page was lost" }
+                assertEquals("notes", site.notes)
+                assertEquals("LOGIN", site.lastFailureCode)
+                assertEquals(0, site.failureCount)
+                assertNull(site.failingSince)
+                assertFalse(site.failureAlerted)
+                assertEquals("saved", db.snapsDao().getLastSnapForSiteId("page")?.snapId)
+                // The streak begins with the first check after the upgrade.
+                db.siteDao().updateSyncMetadata("page", 500, successful = false, isBrowser = false, isRead = null, failureCode = "LOGIN")
+                val failed = requireNotNull(db.siteDao().getSiteById("page"))
+                assertEquals(1, failed.failureCount)
+                assertEquals(500L, failed.failingSince)
+            } finally {
+                db.close()
+            }
+            driver.open(path).use { assertEquals("6", it.queryAll("PRAGMA user_version").trim()) }
         }
     }
 
@@ -135,7 +174,7 @@ class SchemaUpgradeTest {
             reopened.close()
         }
         driver.open(path).use { connection ->
-            assertEquals("5", connection.queryAll("PRAGMA user_version").trim())
+            assertEquals("6", connection.queryAll("PRAGMA user_version").trim())
             val indexes = connection.queryAll("SELECT name FROM sqlite_master WHERE type = 'index' AND name LIKE 'index_%'")
             assertFalse(indexes, "index_sites_siteId" in indexes)
             assertTrue(indexes, "index_snaps_siteId_timestamp_snapId" in indexes)

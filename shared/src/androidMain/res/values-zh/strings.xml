@@ -21,4 +21,10 @@
     <string name="change_notification_named">%1$s 有变化</string>
     <string name="change_notification_generic">点按查看变化。</string>
     <string name="external_open_failed">无法打开其他应用。请下载支持此内容的应用，或重试。</string>
+    <string name="failure_notification_channel_name">停止工作的页面</string>
+    <string name="failure_notification_channel_description">页面一段时间无法检查时提醒</string>
+    <string name="failure_notification_named">%1$s 未在检查</string>
+    <string name="failure_notification_needs_you">需要你处理。点按查看该怎么做。</string>
+    <string name="failure_notification_keeps_failing">检查持续失败。点按查看原因。</string>
+    <string name="failure_notification_generic">有页面未在检查。</string>
 </resources>

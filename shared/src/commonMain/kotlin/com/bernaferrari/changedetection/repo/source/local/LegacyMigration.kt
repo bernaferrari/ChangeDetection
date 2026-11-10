@@ -82,3 +82,12 @@ val MIGRATION_4_5: Migration = object : Migration(4, 5) {
         connection.exec("CREATE INDEX IF NOT EXISTS index_pendingChangeAlerts_siteId ON pendingChangeAlerts(siteId)")
     }
 }
+
+/** Remember each page's run of failed checks, so a page that stopped being watched can say so once. */
+val MIGRATION_5_6: Migration = object : Migration(5, 6) {
+    override suspend fun migrate(connection: SQLiteConnection) {
+        connection.exec("ALTER TABLE sites ADD COLUMN failureCount INTEGER NOT NULL DEFAULT 0")
+        connection.exec("ALTER TABLE sites ADD COLUMN failingSince INTEGER DEFAULT NULL")
+        connection.exec("ALTER TABLE sites ADD COLUMN failureAlerted INTEGER NOT NULL DEFAULT 0")
+    }
+}

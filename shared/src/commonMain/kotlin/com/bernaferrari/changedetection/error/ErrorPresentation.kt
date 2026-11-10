@@ -41,6 +41,7 @@ internal fun errorPresentation(result: ErrorResult, error: Throwable?): ErrorPre
         CheckFailure.MULTIPLE_VISUAL_REGIONS -> Res.string.check_failure_region to Res.string.preview_single_visual_region
         CheckFailure.REGION -> Res.string.check_failure_region to Res.string.check_failure_region_detail
         CheckFailure.UNKNOWN -> Res.string.check_failure_unknown to Res.string.check_failure_unknown_detail
+        CheckFailure.PAGE_UNSETTLED -> Res.string.check_failure_unsettled to Res.string.check_failure_unsettled_detail
     }
     return ErrorPresentation(pair.first, pair.second)
 }

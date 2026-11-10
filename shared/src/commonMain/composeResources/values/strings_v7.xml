@@ -100,4 +100,12 @@
     <string name="error_invalid_input_detail">Review the page address and settings, then try again.</string>
     <string name="comparison_new_version">New version available</string>
     <string name="comparison_finding_changes">Finding changes…</string>
+    <string name="check_failure_unsettled">Page didn’t finish loading</string>
+    <string name="check_failure_unsettled_detail">The page kept loading or moving, so a steady screenshot couldn’t be taken. Your history is safe. Pages with animations or endless loading often work better with Text.</string>
+    <string name="advice_access_denied">The site refused this check. Some sites block automated visits, and others want a sign-in first.</string>
+    <string name="detail_failed_in_a_row">Failed checks in a row: %1$d</string>
+    <string name="recovery_looking">Looking for another way to check this page…</string>
+    <string name="recovery_text_title">Text works for this page</string>
+    <string name="recovery_text_body">The page’s text loaded without problems. Switch, and future checks compare the text. Your saved versions are kept.</string>
+    <string name="recovery_text_switch">Switch to Text</string>
 </resources>

@@ -17,7 +17,7 @@ fun getRoomDatabase(
 ): ChangeDatabase = builder
     .setDriver(driver)
     // Preserve the original public release. Retired development schemas may start fresh.
-    .addMigrations(MIGRATION_1_4, MIGRATION_4_5, *migrations)
+    .addMigrations(MIGRATION_1_4, MIGRATION_4_5, MIGRATION_5_6, *migrations)
     .fallbackToDestructiveMigration(true)
     .addCallback(snapshotCleanupCallback)
     .addCallback(databaseDiagnosticsCallback)

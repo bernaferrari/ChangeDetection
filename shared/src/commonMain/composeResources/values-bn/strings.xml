@@ -522,7 +522,7 @@
     <string name="detail_check_less">কম ঘনঘন পরীক্ষা করুন</string>
     <string name="advice_temporary">ওয়েবসাইট ব্যস্ত বা বন্ধ। সাধারণত এটি সাময়িক; আমরা চেষ্টা চালিয়ে যাব।</string>
     <string name="advice_connection">এই পৃষ্ঠার সঙ্গে সংযোগ স্থাপন করা যায়নি। পৃষ্ঠার ঠিকানা ও আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</string>
-    <string name="advice_login">এই পৃষ্ঠায় সাইন ইন করতে হবে। স্ক্রিনশট পরীক্ষা এই ডিভাইসে অ্যাপের ব্রাউজারের সাইন ইন ব্যবহার করতে পারে। টেক্সট ও সোর্স পরীক্ষা তা পারে না।</string>
+    <string name="advice_login">এই পৃষ্ঠায় সাইন ইন করতে হবে। স্ক্রিনশট ও টেক্সট পরীক্ষা এই ডিভাইসে অ্যাপের ব্রাউজারের সাইন ইন ব্যবহার করে। সোর্স পরীক্ষা তা পারে না।</string>
     <string name="advice_not_found">পৃষ্ঠা আর নেই। লিংক এখনও ঠিক আছে কি না দেখুন।</string>
     <string name="advice_rate">ওয়েবসাইট কম অনুরোধ করতে বলছে। কম ঘনঘন পরীক্ষা করলে সাধারণত ঠিক হয়।</string>
     <string name="advice_region">বাছাই করা অংশ আর পৃষ্ঠায় নেই। আবার বেছে নিন।</string>
@@ -788,4 +788,12 @@
     <string name="capture_text_switched">পর্যবেক্ষণ টেক্সটে বদলেছে।</string>
     <string name="capture_text_switch_failed">টেক্সটে বদলানো যায়নি।</string>
     <string name="capture_try_text_hint">টেক্সট লোড হলে পরের পরীক্ষাগুলোতে স্ক্রিনশটের বদলে টেক্সট ব্যবহার করা হবে।</string>
+    <string name="check_failure_unsettled">পৃষ্ঠাটি পুরো লোড হয়নি</string>
+    <string name="check_failure_unsettled_detail">পৃষ্ঠাটি লোড হতে বা নড়তে থাকায় স্থির স্ক্রিনশট নেওয়া যায়নি। আপনার ইতিহাস নিরাপদ। অ্যানিমেশন বা অবিরাম লোড হওয়া পৃষ্ঠা প্রায়ই টেক্সটে ভালো কাজ করে।</string>
+    <string name="advice_access_denied">সাইটটি এই পরীক্ষা প্রত্যাখ্যান করেছে। কিছু সাইট স্বয়ংক্রিয় ভিজিট আটকায়, আবার কিছু সাইট আগে সাইন ইন চায়।</string>
+    <string name="detail_failed_in_a_row">পরপর ব্যর্থ পরীক্ষা: %1$d</string>
+    <string name="recovery_looking">এই পৃষ্ঠা পরীক্ষা করার অন্য উপায় খোঁজা হচ্ছে…</string>
+    <string name="recovery_text_title">এই পৃষ্ঠায় টেক্সট কাজ করে</string>
+    <string name="recovery_text_body">পৃষ্ঠার টেক্সট কোনো সমস্যা ছাড়াই লোড হয়েছে। বদলে নিন, পরের পরীক্ষাগুলো টেক্সট তুলনা করবে। আপনার সেভ করা সংস্করণগুলো থাকবে।</string>
+    <string name="recovery_text_switch">টেক্সটে বদলান</string>
 </resources>

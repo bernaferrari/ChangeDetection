@@ -329,7 +329,7 @@ private fun diagnosticCategory(error: Throwable): CheckFailure = when {
     error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> when (error.issue) {
         com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED -> CheckFailure.CAPTURE_INCOMPLETE
         com.bernaferrari.changedetection.browser.CaptureIssue.DOCUMENT_CHANGED -> CheckFailure.DOCUMENT_CHANGED
-        else -> CheckFailure.TIMEOUT
+        else -> CheckFailure.PAGE_UNSETTLED
     }
 
     com.bernaferrari.changedetection.error.isTlsFailure(error) -> CheckFailure.TLS
@@ -342,6 +342,7 @@ private fun diagnosticCategory(error: Throwable): CheckFailure = when {
         404, 410 -> CheckFailure.NOT_FOUND
         429 -> CheckFailure.RATE_LIMITED
         in 500..599 -> CheckFailure.SERVER
+        in 400..499 -> CheckFailure.ACCESS_DENIED
         else -> CheckFailure.CONNECTION
     }
 

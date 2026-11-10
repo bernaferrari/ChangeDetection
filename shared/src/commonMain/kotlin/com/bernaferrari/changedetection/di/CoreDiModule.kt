@@ -12,6 +12,7 @@ import com.bernaferrari.changedetection.repo.source.local.SitesLocalDataSource
 import com.bernaferrari.changedetection.repo.source.local.SnapsDao
 import com.bernaferrari.changedetection.repo.source.local.SnapsLocalDataSource
 import com.bernaferrari.changedetection.sync.ChangeNotifier
+import com.bernaferrari.changedetection.sync.FailureNotifier
 import com.bernaferrari.changedetection.sync.SyncEngine
 import com.bernaferrari.changedetection.sync.SyncProgressTracker
 import com.bernaferrari.changedetection.util.ApplicationScope
@@ -88,8 +89,7 @@ class CoreDiModule {
     fun snapshotFileCleanup(database: ChangeDatabase, fileStorage: FileStorage): com.bernaferrari.changedetection.storage.SnapshotFileCleanup = com.bernaferrari.changedetection.storage.SnapshotFileCleanup(database.pendingFileDeletionDao(), database.snapsDao(), fileStorage)
 
     @Single
-    fun changeAlertOutbox(database: ChangeDatabase, notifier: ChangeNotifier): com.bernaferrari.changedetection.sync.ChangeAlertOutbox =
-        com.bernaferrari.changedetection.sync.ChangeAlertOutbox(database.pendingChangeAlertDao(), database.siteDao(), database.snapsDao(), notifier)
+    fun changeAlertOutbox(database: ChangeDatabase, notifier: ChangeNotifier): com.bernaferrari.changedetection.sync.ChangeAlertOutbox = com.bernaferrari.changedetection.sync.ChangeAlertOutbox(database.pendingChangeAlertDao(), database.siteDao(), database.snapsDao(), notifier)
 
     @Single
     fun syncEngine(
@@ -103,6 +103,7 @@ class CoreDiModule {
         progressTracker: SyncProgressTracker,
         alertOutbox: com.bernaferrari.changedetection.sync.ChangeAlertOutbox,
         cleanup: com.bernaferrari.changedetection.storage.SnapshotFileCleanup,
+        failureNotifier: FailureNotifier,
     ): SyncEngine = SyncEngine(
         httpClient,
         database,
@@ -114,6 +115,7 @@ class CoreDiModule {
         progressTracker,
         com.bernaferrari.changedetection.storage.SnapshotMaintenance(database, snapsDao, fileStorage, cleanup = cleanup),
         alertOutbox,
+        failureNotifier,
     )
 
     @Single

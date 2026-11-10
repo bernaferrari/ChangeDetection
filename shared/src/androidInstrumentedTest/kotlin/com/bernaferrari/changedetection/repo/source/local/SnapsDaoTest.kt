@@ -128,7 +128,7 @@ class SnapsDaoTest {
     @Test
     fun retiredDevelopmentSchemasStartFresh() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        for (version in listOf(2, 3, 5, 6, 10)) {
+        for (version in listOf(2, 3, 10)) {
             val name = "retired-schema-$version-${java.util.UUID.randomUUID()}.db"
             val path = context.getDatabasePath(name).absolutePath
             fun open() = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(context, path), BundledSQLiteDriver())

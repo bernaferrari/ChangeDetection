@@ -522,7 +522,7 @@
     <string name="detail_check_less">कम बार जाँचें</string>
     <string name="advice_temporary">वेबसाइट व्यस्त या बंद है। यह अक्सर अस्थायी होता है; हम कोशिश करते रहेंगे।</string>
     <string name="advice_connection">इस पेज से कनेक्ट नहीं हो सका। पेज का पता और अपना कनेक्शन जाँचें, फिर दोबारा कोशिश करें।</string>
-    <string name="advice_login">इस पेज पर लॉग इन ज़रूरी है। स्क्रीनशॉट जाँचें इस डिवाइस पर ऐप के ब्राउज़र का लॉग इन इस्तेमाल कर सकती हैं। टेक्स्ट और सोर्स की जाँचें ऐसा नहीं कर सकतीं।</string>
+    <string name="advice_login">इस पेज पर लॉग इन ज़रूरी है। स्क्रीनशॉट और टेक्स्ट जाँचें इस डिवाइस पर ऐप के ब्राउज़र का लॉग इन इस्तेमाल करती हैं। सोर्स की जाँचें ऐसा नहीं कर सकतीं।</string>
     <string name="advice_not_found">पेज अब मौजूद नहीं है। जाँचें कि लिंक अब भी सही है।</string>
     <string name="advice_rate">वेबसाइट कम अनुरोध करने को कह रही है। कम बार जाँचने से अक्सर समस्या ठीक हो जाती है।</string>
     <string name="advice_region">आपका चुना हुआ हिस्सा अब पेज पर नहीं है। उसे फिर चुनें।</string>
@@ -788,4 +788,12 @@
     <string name="capture_text_switched">निगरानी अब टेक्स्ट पर है।</string>
     <string name="capture_text_switch_failed">टेक्स्ट पर स्विच नहीं हो सका।</string>
     <string name="capture_try_text_hint">टेक्स्ट लोड होने पर अगली जाँचों में स्क्रीनशॉट की जगह टेक्स्ट इस्तेमाल होगा।</string>
+    <string name="check_failure_unsettled">पेज पूरा लोड नहीं हुआ</string>
+    <string name="check_failure_unsettled_detail">पेज लोड होता या हिलता रहा, इसलिए स्थिर स्क्रीनशॉट नहीं लिया जा सका। आपका इतिहास सुरक्षित है। ऐनिमेशन या लगातार लोड होने वाले पेज अक्सर टेक्स्ट के साथ बेहतर काम करते हैं।</string>
+    <string name="advice_access_denied">साइट ने यह जाँच अस्वीकार कर दी। कुछ साइटें स्वचालित विज़िट रोकती हैं और कुछ पहले लॉग इन माँगती हैं।</string>
+    <string name="detail_failed_in_a_row">लगातार असफल जाँचें: %1$d</string>
+    <string name="recovery_looking">इस पेज को जाँचने का दूसरा तरीका खोजा जा रहा है…</string>
+    <string name="recovery_text_title">इस पेज के लिए टेक्स्ट काम करता है</string>
+    <string name="recovery_text_body">पेज का टेक्स्ट बिना किसी समस्या के लोड हुआ। बदलें, और आगे की जाँचें टेक्स्ट की तुलना करेंगी। आपके सेव किए गए वर्शन बने रहेंगे।</string>
+    <string name="recovery_text_switch">टेक्स्ट पर स्विच करें</string>
 </resources>

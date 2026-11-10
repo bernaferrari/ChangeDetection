@@ -592,7 +592,7 @@
     <string name="detail_check_less">Vérifier moins souvent</string>
     <string name="advice_temporary">Le site est occupé ou descendu.C’est généralement temporaire; nous continuerons à essayer.</string>
     <string name="advice_connection">Vous ne pouvez pas vous connecter à cette page. Vérifiez l’adresse de la page et votre connexion, puis essayez à nouveau.</string>
-    <string name="advice_login">Cette page a besoin d’une inscription. les vérifications de capture d’écran peuvent réutiliser l’inscription du navigateur de l’application sur ce appareil. les vérifications de texte et de source ne peuvent pas.</string>
+    <string name="advice_login">Cette page demande une connexion. Les vérifications par capture d’écran et par texte réutilisent la connexion du navigateur de l’application sur cet appareil. Les vérifications du code source ne le peuvent pas.</string>
     <string name="advice_not_found">La page n’existe plus. vérifiez que le lien est toujours correct.</string>
     <string name="advice_rate">Le site nous demande de ralentir. le vérifier moins souvent corrige généralement cela.</string>
     <string name="advice_region">La partie que vous avez sélectionnée n’est plus sur la page.</string>
@@ -822,4 +822,12 @@
     <string name="capture_text_switched">La surveillance utilise désormais le texte.</string>
     <string name="capture_text_switch_failed">Impossible de passer au texte.</string>
     <string name="capture_try_text_hint">Si le texte se charge, il remplacera les captures d’écran lors des prochaines vérifications.</string>
+    <string name="check_failure_unsettled">La page n’a pas fini de se charger</string>
+    <string name="check_failure_unsettled_detail">La page a continué de se charger ou de bouger, et aucune capture stable n’a pu être prise. Votre historique est intact. Les pages avec des animations ou un chargement sans fin fonctionnent souvent mieux avec Texte.</string>
+    <string name="advice_access_denied">Le site a refusé cette vérification. Certains sites bloquent les visites automatiques, d’autres demandent d’abord une connexion.</string>
+    <string name="detail_failed_in_a_row">Vérifications échouées à la suite : %1$d</string>
+    <string name="recovery_looking">Recherche d’une autre façon de vérifier cette page…</string>
+    <string name="recovery_text_title">Le texte fonctionne pour cette page</string>
+    <string name="recovery_text_body">Le texte de la page s’est chargé sans problème. Changez, et les prochaines vérifications compareront le texte. Vos versions enregistrées sont conservées.</string>
+    <string name="recovery_text_switch">Passer à Texte</string>
 </resources>

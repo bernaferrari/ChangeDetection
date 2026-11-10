@@ -22,4 +22,10 @@
     <string name="change_notification_named">%1$s mudou</string>
     <string name="change_notification_generic">Toque para ver o que mudou.</string>
     <string name="external_open_failed">Não foi possível abrir outro app. Instale um app compatível ou tente novamente.</string>
+    <string name="failure_notification_channel_name">Páginas que pararam de funcionar</string>
+    <string name="failure_notification_channel_description">Avisa quando uma página fica um tempo sem poder ser verificada</string>
+    <string name="failure_notification_named">%1$s não está sendo verificada</string>
+    <string name="failure_notification_needs_you">Precisa da sua atenção. Toque para ver o que fazer.</string>
+    <string name="failure_notification_keeps_failing">As verificações continuam falhando. Toque para ver o motivo.</string>
+    <string name="failure_notification_generic">Uma página não está sendo verificada.</string>
 </resources>

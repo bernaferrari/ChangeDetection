@@ -661,7 +661,7 @@
     <string name="detail_check_less">انظر أقل في كثير من الأحيان</string>
     <string name="advice_temporary">الموقع مشغول أو أسفل.هذا عادة مؤقت؛ سنستمر في محاولة.</string>
     <string name="advice_connection">لا يمكنك الاتصال بهذه الصفحة.تحقق من عنوان الصفحة والاتصال الخاص بك، ثم حاول مرة أخرى.</string>
-    <string name="advice_login">هذه الصفحة تحتاج إلى تسجيل الدخول.يمكن إعادة استخدام فحوصات الشاشة تسجيل الدخول المتصفح التطبيق على هذا الجهاز.لا يمكن إعادة استخدام فحوصات النص والمصدر.</string>
+    <string name="advice_login">هذه الصفحة تتطلب تسجيل الدخول. فحوصات لقطة الشاشة والنص تستخدم تسجيل الدخول في متصفح التطبيق على هذا الجهاز. فحوصات المصدر لا تستطيع ذلك.</string>
     <string name="advice_not_found">الصفحة لم تعد موجودة.تحقق من أن الرابط لا يزال صحيحا.</string>
     <string name="advice_rate">الموقع يطلب منا أن نبطئ.التحقق أقل في كثير من الأحيان عادة ما يصلح هذا.</string>
     <string name="advice_region">الجزء الذي اخترته لم يعد على الصفحة.</string>
@@ -918,4 +918,12 @@
     <string name="capture_text_switched">تم التبديل إلى مراقبة النص.</string>
     <string name="capture_text_switch_failed">تعذّر التبديل إلى النص.</string>
     <string name="capture_try_text_hint">إذا تم تحميل النص، ستستخدمه عمليات الفحص التالية بدلًا من لقطات الشاشة.</string>
+    <string name="check_failure_unsettled">لم يكتمل تحميل الصفحة</string>
+    <string name="check_failure_unsettled_detail">استمرت الصفحة في التحميل أو الحركة، فتعذّر التقاط لقطة شاشة ثابتة. سجلّك محفوظ. الصفحات التي تحتوي على حركات أو تحميل لا ينتهي تعمل غالبًا بشكل أفضل مع النص.</string>
+    <string name="advice_access_denied">رفض الموقع هذا الفحص. بعض المواقع تحظر الزيارات الآلية، وبعضها يطلب تسجيل الدخول أولًا.</string>
+    <string name="detail_failed_in_a_row">عدد الفحوصات الفاشلة المتتالية: %1$d</string>
+    <string name="recovery_looking">جارٍ البحث عن طريقة أخرى لفحص هذه الصفحة…</string>
+    <string name="recovery_text_title">النص يعمل مع هذه الصفحة</string>
+    <string name="recovery_text_body">تم تحميل نص الصفحة دون مشاكل. بدّل، وستقارن الفحوصات القادمة النص. تبقى نسخك المحفوظة كما هي.</string>
+    <string name="recovery_text_switch">التبديل إلى النص</string>
 </resources>

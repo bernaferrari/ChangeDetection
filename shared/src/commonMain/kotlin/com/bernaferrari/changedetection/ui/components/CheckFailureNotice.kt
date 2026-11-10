@@ -32,6 +32,7 @@ fun checkFailureTitle(code: String?): String = stringResource(
         CheckFailure.MULTIPLE_VISUAL_REGIONS -> Res.string.check_failure_region
         CheckFailure.REGION -> Res.string.check_failure_region
         CheckFailure.UNKNOWN -> Res.string.check_failure_unknown
+        CheckFailure.PAGE_UNSETTLED -> Res.string.check_failure_unsettled
     },
 )
 
@@ -59,6 +60,7 @@ fun CheckFailureNotice(code: String?, modifier: Modifier = Modifier, actions: @C
             CheckFailure.MULTIPLE_VISUAL_REGIONS -> Res.string.preview_single_visual_region
             CheckFailure.REGION -> Res.string.check_failure_region_detail
             CheckFailure.UNKNOWN -> Res.string.check_failure_unknown_detail
+            CheckFailure.PAGE_UNSETTLED -> Res.string.check_failure_unsettled_detail
         },
     )
     Surface(modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp), shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainerLow) {

@@ -522,7 +522,7 @@
     <string name="detail_check_less">Seltener prüfen</string>
     <string name="advice_temporary">Die Website ist ausgelastet oder nicht erreichbar. Das ist meist vorübergehend. Wir versuchen es weiter.</string>
     <string name="advice_connection">Die Verbindung zu dieser Seite konnte nicht hergestellt werden. Prüfe die Adresse und deine Verbindung und versuche es erneut.</string>
-    <string name="advice_login">Diese Seite erfordert eine Anmeldung. Screenshot-Prüfungen können die Anmeldung im App-Browser auf diesem Gerät verwenden. Text- und Quelltextprüfungen können das nicht.</string>
+    <string name="advice_login">Diese Seite erfordert eine Anmeldung. Screenshot- und Textprüfungen verwenden die Anmeldung im App-Browser auf diesem Gerät. Quelltextprüfungen können das nicht.</string>
     <string name="advice_not_found">Die Seite existiert nicht mehr. Prüfe, ob der Link noch stimmt.</string>
     <string name="advice_rate">Die Website verlangt weniger Anfragen. Ein längeres Prüfintervall hilft meist.</string>
     <string name="advice_region">Der gewählte Teil ist nicht mehr auf der Seite. Wähle ihn erneut.</string>
@@ -788,4 +788,12 @@
     <string name="capture_text_switched">Die Überwachung wurde auf Text umgestellt.</string>
     <string name="capture_text_switch_failed">Wechsel zu Text fehlgeschlagen.</string>
     <string name="capture_try_text_hint">Wenn der Text lädt, verwenden künftige Prüfungen Text statt Screenshots.</string>
+    <string name="check_failure_unsettled">Seite wurde nicht fertig geladen</string>
+    <string name="check_failure_unsettled_detail">Die Seite hat weiter geladen oder sich bewegt, daher konnte kein ruhiger Screenshot aufgenommen werden. Dein Verlauf ist sicher. Seiten mit Animationen oder endlosem Laden funktionieren oft besser mit Text.</string>
+    <string name="advice_access_denied">Die Website hat diese Prüfung abgelehnt. Manche Websites blockieren automatische Besuche, andere verlangen zuerst eine Anmeldung.</string>
+    <string name="detail_failed_in_a_row">Fehlgeschlagene Prüfungen in Folge: %1$d</string>
+    <string name="recovery_looking">Suche nach einem anderen Weg, diese Seite zu prüfen…</string>
+    <string name="recovery_text_title">Text funktioniert für diese Seite</string>
+    <string name="recovery_text_body">Der Text der Seite wurde ohne Probleme geladen. Wechsle, und künftige Prüfungen vergleichen den Text. Deine gespeicherten Versionen bleiben erhalten.</string>
+    <string name="recovery_text_switch">Zu Text wechseln</string>
 </resources>

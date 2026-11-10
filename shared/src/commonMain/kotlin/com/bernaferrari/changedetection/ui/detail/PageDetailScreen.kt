@@ -48,6 +48,7 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -67,7 +68,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.derivedStateOf
@@ -91,6 +95,7 @@ import com.bernaferrari.changedetection.background.MonitoringSchedule
 import com.bernaferrari.changedetection.background.TurboState
 import com.bernaferrari.changedetection.background.monitoringCapabilities
 import com.bernaferrari.changedetection.error.CheckFailure
+import com.bernaferrari.changedetection.error.textMayWork
 import com.bernaferrari.changedetection.repo.CaptureMode
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.changedetection.repo.Snap
@@ -122,6 +127,7 @@ import com.bernaferrari.changedetection.ui.theme.marks
 import com.bernaferrari.changedetection.util.displayPageAddress
 import com.bernaferrari.changedetection.util.getCurrentTimeMillis
 import com.bernaferrari.changedetection.util.getRelativeTimeLabel
+import kotlinx.coroutines.launch
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.minus
 import com.bernaferrari.changedetection.localization.pluralStringResource
@@ -176,7 +182,15 @@ internal fun PageDetailScreen(
             item?.site?.let { viewModel.setNotificationsEnabled(it.id, on) }
         },
         onDelete = { confirmDelete = true },
-        onTryText = { item?.site?.let { viewModel.trySwitchToText(it, previewer) } ?: false },
+        // Where Text is fetched the same way as everything else, it is not another route and would only repeat the failure.
+        textRecovery = if (monitoringCapabilities.browserText) {
+            TextRecovery(
+                works = { item?.site?.let { viewModel.textWorks(it, previewer) } ?: false },
+                switch = { item?.site?.let { viewModel.switchToText(it) } ?: false },
+            )
+        } else {
+            null
+        },
         onIconShapeChange = { shape -> item?.site?.let { viewModel.updateIconShape(it.id, shape) } },
         onIconColorChange = { colors -> item?.site?.let { viewModel.updateIconColor(it.id, colors) } },
         errorContent = { error?.let { ErrorBanner(error = it, onDismiss = viewModel::dismissError, onRetry = viewModel::retryLastAction) } },
@@ -203,6 +217,9 @@ internal fun PageDetailScreen(
     }
 }
 
+/** A second route for a failing page: tried quietly first, taken only when the person chooses it. */
+internal class TextRecovery(val works: suspend () -> Boolean, val switch: suspend () -> Boolean)
+
 /** Latest change first, then the page's rhythm, its versions, and finally how it is watched. */
 @Composable
 internal fun PageDetailContent(
@@ -222,7 +239,7 @@ internal fun PageDetailContent(
     onSetPaused: (Boolean) -> Unit,
     onSetNotify: (Boolean) -> Unit,
     onDelete: () -> Unit,
-    onTryText: (suspend () -> Boolean)? = null,
+    textRecovery: TextRecovery? = null,
     onHistory: (String) -> Unit = onCompare,
     onIconShapeChange: (PageIconShape) -> Unit = {},
     onIconColorChange: (com.bernaferrari.changedetection.repo.ColorGroup) -> Unit = {},
@@ -258,7 +275,7 @@ internal fun PageDetailContent(
                     TextButton(onClick = onBack) { Text(stringResource(Res.string.nav_home)) }
                 }
 
-                else -> DetailList(item, versions, schedule, turbo, onCompare, onEdit, onTurbo, onSchedule, onOpenUrl, onCheck, onMarkRead, onSetPaused, onSetNotify, onHistory, notificationsAvailable, errorContent, onChooseShape = { choosingShape = true }, listState = listState, onNameMeasured = { nameBottom = it }, onTryText = onTryText)
+                else -> DetailList(item, versions, schedule, turbo, onCompare, onEdit, onTurbo, onSchedule, onOpenUrl, onCheck, onMarkRead, onSetPaused, onSetNotify, onHistory, notificationsAvailable, errorContent, onChooseShape = { choosingShape = true }, listState = listState, onNameMeasured = { nameBottom = it }, textRecovery = textRecovery)
             }
         }
     }
@@ -307,7 +324,7 @@ private fun DetailList(
     onChooseShape: () -> Unit,
     listState: LazyListState,
     onNameMeasured: (Int) -> Unit,
-    onTryText: (suspend () -> Boolean)?,
+    textRecovery: TextRecovery?,
 ) {
     val site = item.site
     val paused = !site.isSyncEnabled
@@ -380,12 +397,14 @@ private fun DetailList(
         }
         if (failing) {
             item(key = "failure") {
+                val failure = CheckFailure.fromCode(site.lastFailureCode)
                 Column {
-                    FailureCallout(site.lastFailureCode, site.lastSuccessfulCheck, item.isSyncing, onCheck, onOpenUrl, onEdit, onSchedule)
+                    FailureCallout(failure, site.lastSuccessfulCheck, site.failureCount, item.isSyncing, onCheck, onOpenUrl, onEdit, onSchedule)
+                    if (textRecovery != null && textMayWork(site.captureMode, failure, repeated = site.failureCount > 1)) TextRecoveryOffer(site.id, site.captureMode, failure, item.isSyncing, textRecovery)
                     com.bernaferrari.changedetection.diagnostics.DiagnosticsEntry(
                         site.id,
-                        captureDetails = CheckFailure.fromCode(site.lastFailureCode) == CheckFailure.CAPTURE_INCOMPLETE,
-                        onTryText = onTryText.takeIf { site.captureMode == CaptureMode.SCREENSHOT || site.captureMode == CaptureMode.DEFAULT },
+                        captureDetails = failure == CheckFailure.CAPTURE_INCOMPLETE,
+                        onTryText = textRecovery?.takeIf { site.captureMode == CaptureMode.SCREENSHOT || site.captureMode == CaptureMode.DEFAULT }?.let { recovery -> { recovery.works() && recovery.switch() } },
                     )
                 }
             }
@@ -469,12 +488,15 @@ private fun DetailList(
     }
 }
 
+/** What went wrong, how long it has been going on, and the one thing most likely to fix it. */
 @Composable
-private fun FailureCallout(code: String?, lastSuccess: Long?, checking: Boolean, onCheck: () -> Unit, onOpenUrl: () -> Unit, onEdit: () -> Unit, onSchedule: () -> Unit) {
-    val failure = CheckFailure.fromCode(code)
+internal fun FailureCallout(failure: CheckFailure, lastSuccess: Long?, failedInARow: Int, checking: Boolean, onCheck: () -> Unit, onOpenUrl: () -> Unit, onEdit: () -> Unit, onSchedule: () -> Unit) {
     Callout(
-        title = checkFailureTitle(code),
-        body = stringResource(failureAdvice(failure)) + (lastSuccess?.let { "\n" + stringResource(Res.string.detail_last_success, friendlyDateTime(it)) } ?: ""),
+        title = checkFailureTitle(failure.name),
+        body = stringResource(failureAdvice(failure)) +
+            (lastSuccess?.let { "\n" + stringResource(Res.string.detail_last_success, friendlyDateTime(it)) } ?: "") +
+            // One failed check is an event; a run of them is a page that is no longer being watched.
+            (if (failedInARow > 1) "\n" + stringResource(Res.string.detail_failed_in_a_row, failedInARow) else ""),
         icon = Icons.Outlined.ErrorOutline,
         iconTint = MaterialTheme.colorScheme.error,
         container = tileColor,
@@ -486,13 +508,65 @@ private fun FailureCallout(code: String?, lastSuccess: Long?, checking: Boolean,
 
                 CheckFailure.RATE_LIMITED -> Button(onClick = onSchedule) { Text(stringResource(Res.string.detail_check_less)) }
 
-                CheckFailure.LOGIN, CheckFailure.ACCESS_DENIED -> Button(onClick = onEdit) { Text(stringResource(Res.string.detail_sign_in)) }
+                CheckFailure.LOGIN -> Button(onClick = onEdit) { Text(stringResource(Res.string.detail_sign_in)) }
 
                 else -> Button(onClick = onCheck, enabled = !checking) { Text(stringResource(if (checking) Res.string.home_row_checking else Res.string.retry)) }
             }
+            // A refusal is often a wall for automated visits, not a missing sign-in, so signing in is offered, not urged.
+            if (failure == CheckFailure.ACCESS_DENIED) OutlinedButton(onClick = onEdit) { Text(stringResource(Res.string.detail_sign_in)) }
             OutlinedButton(onClick = onOpenUrl) { Text(stringResource(Res.string.open_in_browser)) }
         },
     )
+}
+
+private enum class RecoveryTrial { LOOKING, WORKS, NONE }
+
+/** Tries the other route without being asked, and offers it only once it is known to work. Switching stays the person's decision. */
+@Composable
+private fun TextRecoveryOffer(siteId: String, mode: CaptureMode, failure: CheckFailure, checking: Boolean, recovery: TextRecovery) {
+    var trial by remember(siteId, mode, failure) { mutableStateOf(RecoveryTrial.LOOKING) }
+    var switching by remember(siteId) { mutableStateOf(false) }
+    val current by rememberUpdatedState(recovery)
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(siteId, mode, failure, checking) {
+        // A running check holds the page; a trial beside it would compete for the same browser.
+        if (checking || trial != RecoveryTrial.LOOKING) return@LaunchedEffect
+        trial = if (current.works()) RecoveryTrial.WORKS else RecoveryTrial.NONE
+    }
+    when (trial) {
+        RecoveryTrial.LOOKING -> if (!checking) {
+            Row(Modifier.padding(start = 36.dp, end = 24.dp, bottom = 12.dp).testTag("recovery-looking"), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                Text(stringResource(Res.string.recovery_looking), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+
+        RecoveryTrial.WORKS -> Callout(
+            title = stringResource(Res.string.recovery_text_title),
+            body = stringResource(Res.string.recovery_text_body),
+            icon = Icons.Outlined.TextSnippet,
+            iconTint = MaterialTheme.colorScheme.primary,
+            container = tileColor,
+            modifier = Modifier.padding(bottom = 12.dp).testTag("recovery-text"),
+            actions = {
+                Button(
+                    enabled = !switching,
+                    onClick = {
+                        switching = true
+                        scope.launch {
+                            try {
+                                current.switch()
+                            } finally {
+                                switching = false
+                            }
+                        }
+                    },
+                ) { Text(stringResource(Res.string.recovery_text_switch)) }
+            },
+        )
+
+        RecoveryTrial.NONE -> Unit
+    }
 }
 
 private fun failureAdvice(failure: CheckFailure) = when (failure) {
@@ -504,7 +578,12 @@ private fun failureAdvice(failure: CheckFailure) = when (failure) {
 
     CheckFailure.CONNECTION -> Res.string.advice_connection
 
-    CheckFailure.LOGIN, CheckFailure.ACCESS_DENIED -> Res.string.advice_login
+    CheckFailure.LOGIN -> Res.string.advice_login
+
+    CheckFailure.ACCESS_DENIED -> Res.string.advice_access_denied
+
+    // "Usually temporary" would be false comfort: a page that never holds still fails the same way next time.
+    CheckFailure.PAGE_UNSETTLED -> Res.string.check_failure_unsettled_detail
 
     CheckFailure.NOT_FOUND -> Res.string.advice_not_found
 

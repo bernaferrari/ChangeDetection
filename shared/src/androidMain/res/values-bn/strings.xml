@@ -22,4 +22,10 @@
     <string name="change_notification_named">%1$s বদলেছে</string>
     <string name="change_notification_generic">পরিবর্তন দেখতে ট্যাপ করুন।</string>
     <string name="external_open_failed">অন্য অ্যাপ খোলা যায়নি। উপযুক্ত অ্যাপ ইনস্টল করুন বা আবার চেষ্টা করুন।</string>
+    <string name="failure_notification_channel_name">যে পৃষ্ঠাগুলো কাজ করা বন্ধ করেছে</string>
+    <string name="failure_notification_channel_description">কোনো পৃষ্ঠা কিছু সময় ধরে পরীক্ষা করা না গেলে জানায়</string>
+    <string name="failure_notification_named">%1$s পরীক্ষা করা হচ্ছে না</string>
+    <string name="failure_notification_needs_you">এতে আপনার মনোযোগ দরকার। কী করতে হবে দেখতে ট্যাপ করুন।</string>
+    <string name="failure_notification_keeps_failing">পরীক্ষা বারবার ব্যর্থ হচ্ছে। কারণ দেখতে ট্যাপ করুন।</string>
+    <string name="failure_notification_generic">একটি পৃষ্ঠা পরীক্ষা করা হচ্ছে না।</string>
 </resources>

@@ -22,4 +22,10 @@
     <string name="change_notification_named">%1$s बदला</string>
     <string name="change_notification_generic">बदलाव देखने के लिए टैप करें।</string>
     <string name="external_open_failed">दूसरा ऐप नहीं खोला जा सका। कोई संगत ऐप इंस्टॉल करें या फिर कोशिश करें।</string>
+    <string name="failure_notification_channel_name">काम करना बंद कर चुके पेज</string>
+    <string name="failure_notification_channel_description">जब कोई पेज कुछ समय तक जाँचा न जा सके तब सूचना देता है</string>
+    <string name="failure_notification_named">%1$s की जाँच नहीं हो रही है</string>
+    <string name="failure_notification_needs_you">इस पर आपका ध्यान चाहिए। क्या करना है देखने के लिए टैप करें।</string>
+    <string name="failure_notification_keeps_failing">जाँचें लगातार असफल हो रही हैं। कारण देखने के लिए टैप करें।</string>
+    <string name="failure_notification_generic">एक पेज की जाँच नहीं हो रही है।</string>
 </resources>

@@ -1,24 +1,24 @@
 package com.bernaferrari.changedetection.sync
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
 import com.bernaferrari.changedetection.MainActivityProvider
 import com.bernaferrari.changedetection.library.R
 import com.bernaferrari.changedetection.repo.Site
 
-/** Intent contract shared by change alerts and the Android app entry point. */
+/**
+ * Intent contract shared by alerts and the Android app entry point. With [EXTRA_SNAP_ID] the app opens that
+ * change; without it (a page that stopped being checked) the app opens the page itself.
+ */
 object ChangeNotificationContract {
     const val EXTRA_OPEN_COMPARISON = "openComparison"
     const val EXTRA_SITE_ID = "siteId"
@@ -43,7 +43,7 @@ class AndroidChangeNotifier internal constructor(
     @SuppressLint("MissingPermission")
     private fun post(site: Site, snapId: String, prepared: PreparedAndroidAlert?) {
         val notificationManager = NotificationManagerCompat.from(context)
-        if (!notificationManager.areNotificationsEnabled() || !hasNotificationPermission()) {
+        if (!notificationManager.areNotificationsEnabled() || !context.canPostNotifications()) {
             appLog.d("Change alert skipped because notifications are unavailable")
             return
         }
@@ -123,10 +123,6 @@ class AndroidChangeNotifier internal constructor(
             PendingIntent.getActivity(context, browserRequests.incrementAndGet(), intent, PendingIntent.FLAG_IMMUTABLE)
         }.getOrNull()
     }
-
-    private fun hasNotificationPermission(): Boolean = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-        ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
-        PackageManager.PERMISSION_GRANTED
 
     private fun createChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return

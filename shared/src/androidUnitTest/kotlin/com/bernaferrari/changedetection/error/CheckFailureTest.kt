@@ -23,6 +23,9 @@ class CheckFailureTest {
             404 to CheckFailure.NOT_FOUND,
             410 to CheckFailure.NOT_FOUND,
             429 to CheckFailure.RATE_LIMITED,
+            // The site answered and refused; calling that a connection problem sends people to check their Wi-Fi.
+            400 to CheckFailure.ACCESS_DENIED,
+            451 to CheckFailure.ACCESS_DENIED,
             503 to CheckFailure.SERVER,
         ).forEach { (status, expected) ->
             assertEquals(expected, classify(NetworkError(status, "response contains private data")))

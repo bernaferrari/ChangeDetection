@@ -42,4 +42,10 @@
     <string name="change_notification_permission">Autorisation d’envoyer des notifications requise</string>
     <string name="change_notification_app_disabled">Les notifications de l’application sont désactivées</string>
     <string name="change_notification_channel_disabled">Le canal des alertes de changement est désactivé</string>
+    <string name="failure_notification_channel_name">Pages qui ne fonctionnent plus</string>
+    <string name="failure_notification_channel_description">Prévient quand une page n’a pas pu être vérifiée depuis un moment</string>
+    <string name="failure_notification_named">%1$s n’est plus vérifiée</string>
+    <string name="failure_notification_needs_you">Elle a besoin de votre attention. Appuyez pour voir quoi faire.</string>
+    <string name="failure_notification_keeps_failing">Les vérifications échouent toujours. Appuyez pour voir pourquoi.</string>
+    <string name="failure_notification_generic">Une page n’est plus vérifiée.</string>
 </resources>

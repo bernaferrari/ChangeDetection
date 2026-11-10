@@ -10,7 +10,9 @@ import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.source.local.ChangeDatabase
 import com.bernaferrari.changedetection.repo.source.local.createWasmDatabase
 import com.bernaferrari.changedetection.sync.ChangeNotifier
+import com.bernaferrari.changedetection.sync.FailureNotifier
 import com.bernaferrari.changedetection.sync.NoOpChangeNotifier
+import com.bernaferrari.changedetection.sync.NoOpFailureNotifier
 import com.bernaferrari.changedetection.util.FileStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,6 +44,9 @@ actual class PlatformDiModule {
 
     @Single
     fun changeNotifier(): ChangeNotifier = NoOpChangeNotifier
+
+    @Single
+    fun failureNotifier(): FailureNotifier = NoOpFailureNotifier
 }
 
 /** The browser demo has no platform preference file; state lives for the lifetime of the tab. */

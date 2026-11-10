@@ -615,7 +615,7 @@
     <string name="detail_check_less">Проверьте реже</string>
     <string name="advice_temporary">Сайт занят или упал. это обычно временное; мы будем продолжать стараться.</string>
     <string name="advice_connection">Проверьте адрес страницы и связь, а затем попробуйте еще раз.</string>
-    <string name="advice_login">Эта страница нуждается в входе. screenshot checks может повторно использовать вход браузера приложения на этом устройстве. текст и исходные проверки не могут.</string>
+    <string name="advice_login">Эта страница требует входа. Проверки по скриншотам и по тексту используют вход из браузера приложения на этом устройстве. Проверки исходного кода этого не могут.</string>
     <string name="advice_not_found">Страница больше не существует. проверите, что ссылка все еще верна.</string>
     <string name="advice_rate">Сайт просит нас замедлить. проверка менее часто обычно устраняет это.</string>
     <string name="advice_region">Часть, которую вы выбрали, больше не находится на странице.</string>
@@ -854,4 +854,12 @@
     <string name="capture_text_switched">Мониторинг переключён на текст.</string>
     <string name="capture_text_switch_failed">Не удалось переключиться на текст.</string>
     <string name="capture_try_text_hint">Если текст загрузится, следующие проверки будут использовать текст вместо снимков экрана.</string>
+    <string name="check_failure_unsettled">Страница не загрузилась до конца</string>
+    <string name="check_failure_unsettled_detail">Страница продолжала загружаться или двигаться, поэтому не удалось сделать устойчивый снимок. История сохранена. Страницы с анимацией или бесконечной загрузкой часто лучше проверять в режиме «Текст».</string>
+    <string name="advice_access_denied">Сайт отклонил эту проверку. Некоторые сайты блокируют автоматические посещения, другие сначала требуют входа.</string>
+    <string name="detail_failed_in_a_row">Неудачных проверок подряд: %1$d</string>
+    <string name="recovery_looking">Ищем другой способ проверить эту страницу…</string>
+    <string name="recovery_text_title">Для этой страницы работает текст</string>
+    <string name="recovery_text_body">Текст страницы загрузился без проблем. Переключитесь, и следующие проверки будут сравнивать текст. Сохранённые версии останутся.</string>
+    <string name="recovery_text_switch">Переключить на «Текст»</string>
 </resources>

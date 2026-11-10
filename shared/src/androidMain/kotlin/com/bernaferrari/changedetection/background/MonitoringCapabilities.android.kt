@@ -1,3 +1,3 @@
 package com.bernaferrari.changedetection.background
 
-internal actual val monitoringCapabilities = MonitoringCapabilities(MonitoringExecution.Background, constraints = true, notifications = true)
+internal actual val monitoringCapabilities = MonitoringCapabilities(MonitoringExecution.Background, constraints = true, notifications = true, browserText = true)

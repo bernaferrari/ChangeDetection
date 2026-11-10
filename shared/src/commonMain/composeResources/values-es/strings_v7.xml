@@ -100,4 +100,12 @@
     <string name="error_invalid_input_detail">Revisa la dirección de la página y los ajustes, y vuelve a intentarlo.</string>
     <string name="comparison_new_version">Nueva versión disponible</string>
     <string name="comparison_finding_changes">Buscando cambios…</string>
+    <string name="check_failure_unsettled">La página no terminó de cargarse</string>
+    <string name="check_failure_unsettled_detail">La página siguió cargándose o moviéndose, así que no se pudo tomar una captura estable. Tu historial está a salvo. Las páginas con animaciones o carga continua suelen funcionar mejor con Texto.</string>
+    <string name="advice_access_denied">El sitio rechazó esta comprobación. Algunos sitios bloquean las visitas automáticas y otros piden iniciar sesión primero.</string>
+    <string name="detail_failed_in_a_row">Comprobaciones fallidas seguidas: %1$d</string>
+    <string name="recovery_looking">Buscando otra forma de comprobar esta página…</string>
+    <string name="recovery_text_title">El texto funciona en esta página</string>
+    <string name="recovery_text_body">El texto de la página se cargó sin problemas. Cambia, y las próximas comprobaciones compararán el texto. Tus versiones guardadas se conservan.</string>
+    <string name="recovery_text_switch">Cambiar a Texto</string>
 </resources>

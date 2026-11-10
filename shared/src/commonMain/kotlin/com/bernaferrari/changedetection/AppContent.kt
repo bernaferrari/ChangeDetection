@@ -154,7 +154,8 @@ fun ChangeDetectionApp(
     // Handle deep link from notification
     androidx.compose.runtime.LaunchedEffect(initialSiteId, initialSnapId) {
         if (!initialSiteId.isNullOrBlank()) {
-            backStack.openComparison(initialSiteId, initialSnapId)
+            // A change alert names the version to show; an alert for a page that stopped being checked names only the page.
+            if (initialSnapId.isNullOrBlank()) backStack.openPage(initialSiteId) else backStack.openComparison(initialSiteId, initialSnapId)
             onInitialSiteIdHandled()
             onInitialSnapIdHandled()
         }

@@ -21,4 +21,10 @@
     <string name="start">Start</string>
     <string name="change_notification_named">%1$s changed</string>
     <string name="change_notification_generic">Tap to see what changed.</string>
+    <string name="failure_notification_channel_name">Pages that stopped working</string>
+    <string name="failure_notification_channel_description">Alerts when a page could not be checked for a while</string>
+    <string name="failure_notification_named">%1$s is not being checked</string>
+    <string name="failure_notification_needs_you">It needs your attention. Tap to see what to do.</string>
+    <string name="failure_notification_keeps_failing">Checks keep failing. Tap to see why.</string>
+    <string name="failure_notification_generic">A page is not being checked.</string>
 </resources>

@@ -2,28 +2,43 @@ package com.bernaferrari.changedetection.error
 
 import io.ktor.client.plugins.ResponseException
 
+/** Who can end a run of failed checks, which decides how soon the person is told about it. */
+enum class FailureUrgency {
+    /** Only the person can fix it (sign in, pick the part again, correct the address); waiting changes nothing. */
+    NEEDS_YOU,
+
+    /** The site or the network is misbehaving and often recovers by itself. */
+    MAY_PASS,
+
+    /** The device, not the page, is the cause; every page fails together, so no page is singled out. */
+    DEVICE,
+}
+
 /** Stable persisted categories; never store raw exception text or response bodies as UI copy. */
-enum class CheckFailure {
+enum class CheckFailure(val urgency: FailureUrgency = FailureUrgency.MAY_PASS) {
     CONNECTION,
-    BACKGROUND_RESTRICTED,
+    BACKGROUND_RESTRICTED(FailureUrgency.DEVICE),
     TLS,
     TIMEOUT,
-    LOGIN,
+    LOGIN(FailureUrgency.NEEDS_YOU),
     ACCESS_DENIED,
-    NOT_FOUND,
+    NOT_FOUND(FailureUrgency.NEEDS_YOU),
     RATE_LIMITED,
     SERVER,
-    STORAGE_FULL,
-    SAVE_FAILED,
+    STORAGE_FULL(FailureUrgency.DEVICE),
+    SAVE_FAILED(FailureUrgency.DEVICE),
     SAVED_CONTENT_UNAVAILABLE,
-    CONTENT_TOO_LARGE,
-    CONTENT,
-    CAPTURE_UNAVAILABLE,
+    CONTENT_TOO_LARGE(FailureUrgency.NEEDS_YOU),
+    CONTENT(FailureUrgency.NEEDS_YOU),
+    CAPTURE_UNAVAILABLE(FailureUrgency.NEEDS_YOU),
     CAPTURE_INCOMPLETE,
-    REGION,
-    MULTIPLE_VISUAL_REGIONS,
+    REGION(FailureUrgency.NEEDS_YOU),
+    MULTIPLE_VISUAL_REGIONS(FailureUrgency.NEEDS_YOU),
     UNKNOWN,
     DOCUMENT_CHANGED,
+
+    /** The page answered but never held still (images, fonts or layout kept arriving); a slow site is [TIMEOUT]. */
+    PAGE_UNSETTLED,
     ;
 
     companion object {
@@ -36,8 +51,14 @@ enum class CheckFailure {
             if (error is com.bernaferrari.changedetection.browser.CaptureNotReadyException) {
                 return when (error.issue) {
                     com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED -> CAPTURE_INCOMPLETE
+
                     com.bernaferrari.changedetection.browser.CaptureIssue.DOCUMENT_CHANGED -> DOCUMENT_CHANGED
-                    else -> TIMEOUT
+
+                    com.bernaferrari.changedetection.browser.CaptureIssue.PENDING_IMAGES,
+                    com.bernaferrari.changedetection.browser.CaptureIssue.FONTS_LOADING,
+                    com.bernaferrari.changedetection.browser.CaptureIssue.LAYOUT_CHANGED,
+                    com.bernaferrari.changedetection.browser.CaptureIssue.VIEWPORT_NOT_READY,
+                    -> PAGE_UNSETTLED
                 }
             }
             if (error is ContentError && error.reason == ContentError.Reason.CAPTURE_UNAVAILABLE) return CAPTURE_UNAVAILABLE
@@ -51,10 +72,18 @@ enum class CheckFailure {
             if (responseCode != null) {
                 return when (responseCode) {
                     401 -> LOGIN
+
                     403 -> ACCESS_DENIED
+
                     404, 410 -> NOT_FOUND
+
                     429 -> RATE_LIMITED
+
                     in 500..599 -> SERVER
+
+                    // The site answered and said no (bad request, gone for legal reasons, method refused): not a connection problem.
+                    in 400..499 -> ACCESS_DENIED
+
                     else -> CONNECTION
                 }
             }

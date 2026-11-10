@@ -45,4 +45,10 @@
     <string name="change_notification_permission">يلزم إذن إرسال الإشعارات</string>
     <string name="change_notification_app_disabled">إشعارات التطبيق متوقفة</string>
     <string name="change_notification_channel_disabled">قناة تنبيهات التغييرات متوقفة</string>
+    <string name="failure_notification_channel_name">صفحات توقفت عن العمل</string>
+    <string name="failure_notification_channel_description">ينبّهك عندما يتعذّر فحص صفحة لفترة</string>
+    <string name="failure_notification_named">صفحة %1$s لا يتم فحصها</string>
+    <string name="failure_notification_needs_you">تحتاج إلى انتباهك. انقر لمعرفة ما يجب فعله.</string>
+    <string name="failure_notification_keeps_failing">الفحوصات تفشل باستمرار. انقر لمعرفة السبب.</string>
+    <string name="failure_notification_generic">هناك صفحة لا يتم فحصها.</string>
 </resources>

@@ -23,12 +23,12 @@ class ResourceCaptureFailureTest {
         assertEquals(CheckFailure.CAPTURE_INCOMPLETE, span.snapshot().second?.category)
     }
 
-    @Test fun `other capture readiness issues retain timeout classification`() {
+    @Test fun `a page that never holds still is not reported as a slow site`() {
         CaptureIssue.entries.filter { it != CaptureIssue.RESOURCE_FAILED && it != CaptureIssue.DOCUMENT_CHANGED }.forEach { issue ->
             val error = CaptureNotReadyException(issue)
             val result = ErrorHandler().handleError(error)
             assertEquals(issue.name, ErrorType.TIMEOUT, result.type)
-            assertEquals(issue.name, CheckFailure.TIMEOUT, CheckFailure.from(result, error))
+            assertEquals(issue.name, CheckFailure.PAGE_UNSETTLED, CheckFailure.from(result, error))
             assertEquals(issue.name, DiagnosticException.TIMEOUT, exceptionKind(error))
         }
     }

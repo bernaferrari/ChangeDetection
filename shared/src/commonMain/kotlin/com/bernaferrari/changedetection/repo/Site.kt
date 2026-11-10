@@ -47,6 +47,15 @@ data class Site(
     val iconUrl: String = "",
     @ColumnInfo(defaultValue = "'AUTOMATIC'")
     val iconShape: PageIconShape = PageIconShape.AUTOMATIC,
+    /** Failed checks in a row; zero again after any successful check. */
+    @ColumnInfo(defaultValue = "0")
+    val failureCount: Int = 0,
+    /** When the current run of failed checks began; null while checks succeed. */
+    @ColumnInfo(defaultValue = "NULL")
+    val failingSince: Long? = null,
+    /** The person has been told about the current run of failed checks; one alert per run. */
+    @ColumnInfo(defaultValue = "0")
+    val failureAlerted: Boolean = false,
 ) {
     /** Zero disables filtering; one basis point is 0.01% of sampled pixels. */
     fun visualFilterBasisPoints(): Int = if (captureMode == CaptureMode.SCREENSHOT || captureMode == CaptureMode.DEFAULT) {

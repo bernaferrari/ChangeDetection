@@ -85,7 +85,7 @@ interface SitesDao {
     suspend fun switchToTextIfCurrent(expected: Site): Site? {
         val current = getSiteById(expected.id) ?: return null
         if (current.url != expected.url || current.capturePolicy() != expected.capturePolicy()) return null
-        if (current.captureMode != CaptureMode.SCREENSHOT && current.captureMode != CaptureMode.DEFAULT) return null
+        if (current.captureMode == CaptureMode.TEXT) return null
         return current.copy(captureMode = CaptureMode.TEXT, threshold = 0).also { updateSite(it) }
     }
 
@@ -124,6 +124,9 @@ interface SitesDao {
                     isNotificationEnabled = current.isNotificationEnabled,
                     lastSuccessfulCheck = current.lastSuccessfulCheck,
                     lastFailureCode = current.lastFailureCode,
+                    failureCount = current.failureCount,
+                    failingSince = current.failingSince,
+                    failureAlerted = current.failureAlerted,
                     isSuccessful = current.isSuccessful,
                     isBrowser = current.isBrowser,
                     isRead = current.isRead,
@@ -146,6 +149,9 @@ interface SitesDao {
                 timestamp = 0L,
                 lastSuccessfulCheck = null,
                 lastFailureCode = null,
+                failureCount = 0,
+                failingSince = null,
+                failureAlerted = false,
                 isSuccessful = true,
                 isRead = true,
                 isSyncEnabled = current?.isSyncEnabled ?: site.isSyncEnabled,
@@ -187,6 +193,10 @@ interface SitesDao {
         "UPDATE sites SET timestamp = :timestamp, isSuccessful = :successful, " +
             "lastSuccessfulCheck = CASE WHEN :successful THEN :timestamp ELSE lastSuccessfulCheck END, " +
             "lastFailureCode = CASE WHEN :successful THEN NULL ELSE :failureCode END, " +
+            // A run of failures is counted from its first failed check and ends with the first success.
+            "failureCount = CASE WHEN :successful THEN 0 ELSE failureCount + 1 END, " +
+            "failingSince = CASE WHEN :successful THEN NULL ELSE COALESCE(failingSince, :timestamp) END, " +
+            "failureAlerted = CASE WHEN :successful THEN 0 ELSE failureAlerted END, " +
             "isBrowser = :isBrowser, isRead = COALESCE(:isRead, isRead) WHERE siteId = :siteId",
     )
     suspend fun updateSyncMetadata(
@@ -197,6 +207,10 @@ interface SitesDao {
         isRead: Boolean?,
         failureCode: String? = null,
     )
+
+    /** Claims the single alert of a run of failed checks; zero when it was already sent or the page has recovered. */
+    @Query("UPDATE sites SET failureAlerted = 1 WHERE siteId = :siteId AND failureAlerted = 0 AND isSuccessful = 0")
+    suspend fun claimFailureAlert(siteId: String): Int
 
     /**
      * Delete a site by url.

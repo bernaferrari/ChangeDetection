@@ -263,14 +263,31 @@ class MainViewModel(
         }
     }
 
-    internal suspend fun trySwitchToText(site: Site, previewer: CapturePreviewer): Boolean {
+    /** Loads the page's text the way a Text check would, saving nothing. */
+    private suspend fun textLoads(site: Site, previewer: CapturePreviewer): Boolean {
         val preview = previewer.capture(site.url, CaptureMode.TEXT, site.capturePolicy().region) as? CapturePreview.Html ?: return false
         if (preview.text.isBlank()) return false
         preview.firstVersion?.validateCapture?.invoke()
+        return true
+    }
+
+    /** A quiet trial of the other route for a failing page; any problem simply means "no". */
+    internal suspend fun textWorks(site: Site, previewer: CapturePreviewer): Boolean = try {
+        textLoads(site, previewer)
+    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+        throw cancelled
+    } catch (_: Exception) {
+        false
+    }
+
+    /** The person's choice, never the app's: later checks compare this page's text. */
+    internal suspend fun switchToText(site: Site): Boolean {
         val updated = mSitesRepository.switchToTextIfCurrent(site) ?: return false
         reloadSite(updated)
         return true
     }
+
+    internal suspend fun trySwitchToText(site: Site, previewer: CapturePreviewer): Boolean = textLoads(site, previewer) && switchToText(site)
 
     fun refreshAllSites() {
         viewModelScope.launch {

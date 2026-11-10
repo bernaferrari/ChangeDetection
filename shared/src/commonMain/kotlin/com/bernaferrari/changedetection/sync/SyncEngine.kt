@@ -75,6 +75,7 @@ open class SyncEngine(
     private val progressTracker: SyncProgressTracker = SyncProgressTracker(),
     private val maintenance: com.bernaferrari.changedetection.storage.SnapshotMaintenance? = null,
     private val alertOutbox: ChangeAlertOutbox? = null,
+    private val failureNotifier: FailureNotifier = NoOpFailureNotifier,
 ) {
     private val pageLocks = PageCheckLocks()
 
@@ -406,6 +407,7 @@ open class SyncEngine(
             result.validateCapture()
             val updated = updateStatusIfCurrent(site, successful = true, isBrowser = result.contentType.contains("image", ignoreCase = true), expectedSnapshot = lastSnap)
             if (!updated) return SyncResult.Skipped(site.id, "Page changed or paused during check")
+            withdrawFailureAlert(site)
             retryPendingAlerts(site.id)
             appLog.d("No changes for ${site.url}")
             return SyncResult.Success(site.id, hadChanges = false)
@@ -512,6 +514,7 @@ open class SyncEngine(
         }
 
         // Side effects after the commit can never remove durable history.
+        withdrawFailureAlert(site)
         if (alertOutbox != null) {
             retryPendingAlerts(site.id)
         } else if (!isFirstSnap && notificationSite.isNotificationEnabled) {
@@ -560,8 +563,36 @@ open class SyncEngine(
             return SyncResult.Skipped(site.id, "Page changed or paused during check")
         }
         appLog.e("✗ Sync failed for ${site.url}: ${result.message}", result.throwable)
+        alertIfWatchingStopped(site.id)
 
         return SyncResult.Failed(site.id, errorResult, result.throwable)
+    }
+
+    /** A page that keeps failing is no longer being watched; say so once, after the failure is on record. */
+    private suspend fun alertIfWatchingStopped(siteId: String) {
+        try {
+            val current = sitesDao.getSiteById(siteId) ?: return
+            if (!shouldAlertFailure(current, currentTimeMillis())) return
+            // Claimed before it is posted: a repeated alert is worse than a missed one, and the page shows the failure either way.
+            if (sitesDao.claimFailureAlert(siteId) == 0) return
+            failureNotifier.notifyStoppedWatching(current, CheckFailure.fromCode(current.lastFailureCode))
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            appLog.w("Failure recorded, but its alert could not be delivered for $siteId", error)
+        }
+    }
+
+    /** [site] is the row as it was when this check began; an alert sent for its failures is now out of date. */
+    private suspend fun withdrawFailureAlert(site: Site) {
+        if (!site.failureAlerted) return
+        try {
+            failureNotifier.clear(site.id)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            appLog.w("Could not withdraw the failure alert for ${site.id}", error)
+        }
     }
 
     /**

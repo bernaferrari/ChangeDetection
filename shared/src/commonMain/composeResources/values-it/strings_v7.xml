@@ -100,4 +100,12 @@
     <string name="error_invalid_input_detail">Controlla l’indirizzo della pagina e le impostazioni, poi riprova.</string>
     <string name="comparison_new_version">Nuova versione disponibile</string>
     <string name="comparison_finding_changes">Ricerca delle modifiche…</string>
+    <string name="check_failure_unsettled">La pagina non ha finito di caricarsi</string>
+    <string name="check_failure_unsettled_detail">La pagina ha continuato a caricarsi o a muoversi, quindi non è stato possibile acquisire una schermata stabile. La cronologia è al sicuro. Le pagine con animazioni o caricamento continuo funzionano spesso meglio con Testo.</string>
+    <string name="advice_access_denied">Il sito ha rifiutato questo controllo. Alcuni siti bloccano le visite automatiche, altri richiedono prima l’accesso.</string>
+    <string name="detail_failed_in_a_row">Controlli falliti di seguito: %1$d</string>
+    <string name="recovery_looking">Cerco un altro modo per controllare questa pagina…</string>
+    <string name="recovery_text_title">Il testo funziona per questa pagina</string>
+    <string name="recovery_text_body">Il testo della pagina è stato caricato senza problemi. Passa a Testo e i prossimi controlli confronteranno il testo. Le versioni salvate restano.</string>
+    <string name="recovery_text_switch">Passa a Testo</string>
 </resources>

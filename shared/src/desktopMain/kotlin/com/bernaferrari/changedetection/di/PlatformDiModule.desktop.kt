@@ -13,7 +13,9 @@ import com.bernaferrari.changedetection.platform.ShareManager
 import com.bernaferrari.changedetection.repo.source.local.ChangeDatabase
 import com.bernaferrari.changedetection.repo.source.local.getRoomDatabase
 import com.bernaferrari.changedetection.sync.ChangeNotifier
+import com.bernaferrari.changedetection.sync.FailureNotifier
 import com.bernaferrari.changedetection.sync.NoOpChangeNotifier
+import com.bernaferrari.changedetection.sync.NoOpFailureNotifier
 import com.bernaferrari.changedetection.sync.SyncEngine
 import com.bernaferrari.changedetection.util.*
 import java.awt.Desktop
@@ -42,6 +44,8 @@ actual class PlatformDiModule {
     @Single fun fileStorage(): FileStorage = DesktopFileStorage()
 
     @Single fun changeNotifier(): ChangeNotifier = NoOpChangeNotifier
+
+    @Single fun failureNotifier(): FailureNotifier = NoOpFailureNotifier
 
     @Single fun shareManager(): ShareManager = object : ShareManager {
         override fun shareText(text: String, title: String) {

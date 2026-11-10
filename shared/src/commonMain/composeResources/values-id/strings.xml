@@ -546,7 +546,7 @@
     <string name="detail_check_less">Periksa lebih sering</string>
     <string name="advice_temporary">Situs ini sibuk atau turun. ini biasanya sementara; kami akan terus mencoba.</string>
     <string name="advice_connection">Anda tidak bisa terhubung ke halaman ini. periksa alamat halaman dan koneksi Anda, kemudian coba lagi.</string>
-    <string name="advice_login">Halaman ini membutuhkan pendaftaran. screenshot checks dapat menggunakan ulang pendaftaran browser aplikasi pada perangkat ini. teks dan sumber checks tidak dapat.</string>
+    <string name="advice_login">Halaman ini memerlukan login. Pemeriksaan tangkapan layar dan teks memakai login browser aplikasi di perangkat ini. Pemeriksaan kode sumber tidak bisa.</string>
     <string name="advice_not_found">Halaman ini tidak ada lagi. periksa apakah link masih benar.</string>
     <string name="advice_rate">Situs meminta kami untuk melambatkan. pemeriksaan kurang sering biasanya memperbaiki ini.</string>
     <string name="advice_region">Bahagian yang Anda pilih tidak lagi berada di halaman. pilih lagi.</string>
@@ -758,4 +758,12 @@
     <string name="capture_text_switched">Pemantauan beralih ke teks.</string>
     <string name="capture_text_switch_failed">Tidak dapat beralih ke teks.</string>
     <string name="capture_try_text_hint">Jika teks berhasil dimuat, pemeriksaan berikutnya akan menggunakan teks.</string>
+    <string name="check_failure_unsettled">Halaman tidak selesai dimuat</string>
+    <string name="check_failure_unsettled_detail">Halaman terus memuat atau bergerak, sehingga tangkapan layar yang stabil tidak dapat diambil. Riwayat Anda aman. Halaman dengan animasi atau pemuatan tanpa henti sering kali lebih cocok dengan Teks.</string>
+    <string name="advice_access_denied">Situs menolak pemeriksaan ini. Sebagian situs memblokir kunjungan otomatis, dan sebagian lainnya meminta login terlebih dahulu.</string>
+    <string name="detail_failed_in_a_row">Pemeriksaan gagal berturut-turut: %1$d</string>
+    <string name="recovery_looking">Mencari cara lain untuk memeriksa halaman ini…</string>
+    <string name="recovery_text_title">Teks berfungsi untuk halaman ini</string>
+    <string name="recovery_text_body">Teks halaman dimuat tanpa masalah. Beralihlah, dan pemeriksaan berikutnya akan membandingkan teks. Versi tersimpan Anda tetap ada.</string>
+    <string name="recovery_text_switch">Beralih ke Teks</string>
 </resources>

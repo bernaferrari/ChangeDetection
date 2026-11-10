@@ -43,4 +43,10 @@
     <string name="change_notification_permission">Требуется разрешение на отправку уведомлений</string>
     <string name="change_notification_app_disabled">Уведомления приложения отключены</string>
     <string name="change_notification_channel_disabled">Канал уведомлений об изменениях отключён</string>
+    <string name="failure_notification_channel_name">Страницы, которые перестали работать</string>
+    <string name="failure_notification_channel_description">Сообщает, когда страницу долго не удаётся проверить</string>
+    <string name="failure_notification_named">Страница «%1$s» не проверяется</string>
+    <string name="failure_notification_needs_you">Требуется ваше внимание. Нажмите, чтобы узнать, что делать.</string>
+    <string name="failure_notification_keeps_failing">Проверки продолжают завершаться ошибкой. Нажмите, чтобы узнать причину.</string>
+    <string name="failure_notification_generic">Одна из страниц не проверяется.</string>
 </resources>

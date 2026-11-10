@@ -397,6 +397,8 @@ class LogsViewModelDeleteUndoTest {
             failureCode: String?,
         ) = Unit
 
+        override suspend fun claimFailureAlert(siteId: String) = 0
+
         override suspend fun deleteSiteById(siteId: String) {
             sites.remove(siteId)
         }

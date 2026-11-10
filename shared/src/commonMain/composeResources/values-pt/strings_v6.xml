@@ -178,7 +178,7 @@
     <string name="detail_check_less">Verificar com menos frequência</string>
     <string name="advice_temporary">O site está ocupado ou fora do ar. Isso costuma ser temporário; continuaremos tentando.</string>
     <string name="advice_connection">Não foi possível conectar a esta página. Confira o endereço e a conexão e tente novamente.</string>
-    <string name="advice_login">Esta página exige login. Verificações por captura de tela podem reutilizar o login do navegador do app neste dispositivo. Verificações de texto e código-fonte não podem.</string>
+    <string name="advice_login">Esta página exige login. Verificações por captura de tela e por texto reutilizam o login do navegador do app neste dispositivo. Verificações de código-fonte não podem.</string>
     <string name="advice_not_found">A página não existe mais. Confira se o link ainda está correto.</string>
     <string name="advice_rate">O site está pedindo menos verificações. Verificar com menos frequência costuma resolver.</string>
     <string name="advice_region">A parte escolhida não está mais na página. Selecione-a novamente.</string>

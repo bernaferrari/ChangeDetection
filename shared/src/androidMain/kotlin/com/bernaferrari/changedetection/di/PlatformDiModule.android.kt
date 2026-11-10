@@ -14,10 +14,12 @@ import com.bernaferrari.changedetection.platform.ShareManager
 import com.bernaferrari.changedetection.repo.source.local.ChangeDatabase
 import com.bernaferrari.changedetection.repo.source.local.getRoomDatabase
 import com.bernaferrari.changedetection.sync.AndroidChangeNotifier
+import com.bernaferrari.changedetection.sync.AndroidFailureNotifier
 import com.bernaferrari.changedetection.sync.AndroidScreenshotBrowserFactory
 import com.bernaferrari.changedetection.sync.AndroidScreenshotSyncer
 import com.bernaferrari.changedetection.sync.SyncProgressTracker
 import com.bernaferrari.changedetection.sync.ChangeNotifier
+import com.bernaferrari.changedetection.sync.FailureNotifier
 import com.bernaferrari.changedetection.sync.SyncEngine
 import com.bernaferrari.changedetection.util.AndroidFileStorage
 import com.bernaferrari.changedetection.util.FileStorage
@@ -87,6 +89,9 @@ actual class PlatformDiModule {
 
     @Single
     fun changeNotifier(@Provided context: Context): ChangeNotifier = AndroidChangeNotifier(context.applicationContext)
+
+    @Single
+    fun failureNotifier(@Provided context: Context): FailureNotifier = AndroidFailureNotifier(context.applicationContext)
 
     @Single
     fun screenshotSyncer(

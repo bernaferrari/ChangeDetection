@@ -40,4 +40,10 @@
     <string name="change_notification_permission">Perlu izin untuk mengirim notifikasi</string>
     <string name="change_notification_app_disabled">Notifikasi aplikasi dinonaktifkan</string>
     <string name="change_notification_channel_disabled">Saluran notifikasi perubahan dinonaktifkan</string>
+    <string name="failure_notification_channel_name">Halaman yang berhenti berfungsi</string>
+    <string name="failure_notification_channel_description">Memberi tahu saat halaman tidak dapat diperiksa selama beberapa waktu</string>
+    <string name="failure_notification_named">%1$s tidak sedang diperiksa</string>
+    <string name="failure_notification_needs_you">Perlu perhatian Anda. Ketuk untuk melihat apa yang harus dilakukan.</string>
+    <string name="failure_notification_keeps_failing">Pemeriksaan terus gagal. Ketuk untuk melihat alasannya.</string>
+    <string name="failure_notification_generic">Sebuah halaman tidak sedang diperiksa.</string>
 </resources>
