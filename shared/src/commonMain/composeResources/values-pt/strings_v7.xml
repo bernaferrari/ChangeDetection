@@ -108,4 +108,26 @@
     <string name="recovery_text_title">O texto funciona nesta página</string>
     <string name="recovery_text_body">O texto da página carregou sem problemas. Troque, e as próximas verificações vão comparar o texto. Suas versões salvas são mantidas.</string>
     <string name="recovery_text_switch">Trocar para Texto</string>
+    <string name="site_sessions_title">Logins salvos</string>
+    <string name="site_sessions_body">Cookies e dados de sites guardados pelo navegador do app</string>
+    <string name="site_sessions_clear_title">Sair de todos os sites?</string>
+    <string name="site_sessions_clear_body">Os cookies e os dados de sites salvos pelo navegador do app serão apagados deste dispositivo. As páginas que exigem login deixarão de carregar corretamente até você entrar de novo.</string>
+    <string name="site_sessions_clear_confirm">Sair</string>
+    <string name="site_sessions_cleared">Você saiu de todos os sites</string>
+    <string name="backup_title">Backup</string>
+    <string name="backup_supporting">Salve suas páginas em um arquivo ou restaure-as</string>
+    <string name="backup_save_pages">Salvar páginas e ajustes</string>
+    <string name="backup_save_pages_body">Um arquivo pequeno. As versões salvas não são incluídas.</string>
+    <string name="backup_save_everything">Salvar tudo</string>
+    <string name="backup_save_everything_body">Inclui todas as versões salvas. O arquivo pode ser grande.</string>
+    <string name="backup_restore">Restaurar de um arquivo</string>
+    <string name="backup_restore_body">Adiciona as páginas que ainda não estão aqui. Nada neste aparelho é alterado.</string>
+    <string name="backup_restore_settings">Restaurar também os ajustes do app</string>
+    <string name="backup_privacy_note">O arquivo não é criptografado e lista as páginas que você acompanha. Logins nunca são incluídos.</string>
+    <string name="backup_working">Trabalhando…</string>
+    <string name="backup_saved">Backup salvo. Páginas: %1$d · Versões: %2$d</string>
+    <string name="backup_restored">Páginas adicionadas: %1$d · Já existiam: %2$d · Versões: %3$d</string>
+    <string name="backup_failed">Não foi possível salvar o backup. Verifique o espaço livre e tente de novo.</string>
+    <string name="backup_invalid">Este arquivo não é um backup do Change Detection.</string>
+    <string name="backup_too_new">Este backup foi feito por uma versão mais nova. Atualize o app e tente de novo.</string>
 </resources>

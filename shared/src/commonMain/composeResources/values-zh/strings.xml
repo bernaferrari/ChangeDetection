@@ -766,4 +766,26 @@
     <string name="recovery_text_title">此页面可以使用文本检查</string>
     <string name="recovery_text_body">页面文本加载正常。切换后，之后的检查将比较文本。已保存的版本会保留。</string>
     <string name="recovery_text_switch">切换到文本</string>
+    <string name="site_sessions_title">已保存的登录状态</string>
+    <string name="site_sessions_body">应用内浏览器保存的 Cookie 和网站数据</string>
+    <string name="site_sessions_clear_title">清除所有网站的登录状态？</string>
+    <string name="site_sessions_clear_body">应用内浏览器保存的 Cookie 和网站数据将从此设备中删除。需要登录的页面在你重新登录前将无法正常加载。</string>
+    <string name="site_sessions_clear_confirm">清除登录状态</string>
+    <string name="site_sessions_cleared">已清除所有网站的登录状态</string>
+    <string name="backup_title">保存与恢复</string>
+    <string name="backup_supporting">将页面保存到文件，或从文件恢复</string>
+    <string name="backup_save_pages">保存页面和设置</string>
+    <string name="backup_save_pages_body">文件较小，不包含已保存的版本。</string>
+    <string name="backup_save_everything">保存全部</string>
+    <string name="backup_save_everything_body">包含所有已保存的版本，文件可能较大。</string>
+    <string name="backup_restore">从文件恢复</string>
+    <string name="backup_restore_body">添加此设备上还没有的页面，不会更改已有内容。</string>
+    <string name="backup_restore_settings">同时恢复应用设置</string>
+    <string name="backup_privacy_note">文件未加密，其中包含你关注的页面。登录信息绝不会包含在内。</string>
+    <string name="backup_working">正在处理…</string>
+    <string name="backup_saved">文件已保存。页面：%1$d · 版本：%2$d</string>
+    <string name="backup_restored">已添加页面：%1$d · 已存在：%2$d · 版本：%3$d</string>
+    <string name="backup_failed">无法保存文件。请检查可用空间后重试。</string>
+    <string name="backup_invalid">此文件不是由 Change Detection 保存的。</string>
+    <string name="backup_too_new">此文件来自更新版本的应用。请更新应用后重试。</string>
 </resources>

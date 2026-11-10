@@ -26,9 +26,15 @@ internal fun SecureSnapshotWebView(
     state.applySecureSnapshotSettings()
 
     BrowserRuntimeHost(modifier) {
-        PlatformBrowserView(state = state, modifier = modifier)
+        PlatformBrowserView(state = state, modifier = modifier, onNavigationRequest = ::isInertSnapshotNavigation)
     }
 }
+
+/**
+ * The viewer may only load its own in-memory document: Android and iOS report that load as "about:blank",
+ * desktop as a data URL. Everything else (links, redirects, meta refresh, intents) is refused.
+ */
+internal fun isInertSnapshotNavigation(url: String): Boolean = url == "about:blank" || url.startsWith("data:text/html,") || url.startsWith("data:text/html;")
 
 private fun WebViewState.applySecureSnapshotSettings() {
     webSettings.apply {
@@ -59,12 +65,12 @@ private fun WebViewState.applySecureSnapshotSettings() {
 
 internal fun secureSnapshotDocument(html: String): String = runCatching {
     val document = Ksoup.parse(html)
-    // Keep self-contained typography/layout. Network-dependent or escaped CSS is
-    // omitted conservatively; the deny-by-default CSP remains the security boundary.
+    // Keep self-contained layout CSS. Style text is written back unescaped, so omit tag openers.
+    // The deny-by-default CSP remains the security boundary.
     var styleBudget = MAX_SNAPSHOT_STYLE_CHARS
     val styles = document.select("style").take(MAX_SNAPSHOT_STYLES).mapNotNull { style ->
         val css = style.data()
-        if (style.attr("type").let { it.isNotBlank() && !it.equals("text/css", ignoreCase = true) } || css.length > styleBudget || UNSAFE_CSS.containsMatchIn(css) || '\\' in css) {
+        if (style.attr("type").let { it.isNotBlank() && !it.equals("text/css", ignoreCase = true) } || css.length > styleBudget || UNSAFE_CSS.containsMatchIn(css) || '\\' in css || '<' in css) {
             null
         } else {
             styleBudget -= css.length

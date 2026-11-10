@@ -10,10 +10,8 @@ import com.bernaferrari.changedetection.repo.source.local.SitesDao
 import com.bernaferrari.changedetection.repo.source.local.SnapsDao
 import com.bernaferrari.changedetection.util.ContentHasher
 import com.bernaferrari.changedetection.util.FileStorage
-import com.bernaferrari.changedetection.extensions.findCharset
 import com.bernaferrari.changedetection.util.decodeByteArray
 import com.bernaferrari.changedetection.util.isTextContentType
-import com.fleeksoft.ksoup.Ksoup
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -60,7 +58,6 @@ sealed class SyncResult {
  *
  * This class contains the core sync logic using:
  * - Ktor for networking (multiplatform)
- * - Ksoup for HTML parsing (multiplatform)
  * - FileStorage for content persistence (platform-specific)
  */
 @OptIn(ExperimentalUuidApi::class)
@@ -87,8 +84,7 @@ open class SyncEngine(
         sitesDao.getSitesList().filter { it.iconUrl.isBlank() }.forEach { site ->
             val result = fetchFromServer(site) as? FetchResult.Success ?: return@forEach
             if (!result.contentType.contains("html", true)) return@forEach
-            runCatching { com.bernaferrari.changedetection.addedit.htmlIcon(result.data.decodeToString(), site.url) }
-                .getOrNull()?.let { runCatching { sitesDao.updateIcon(site.id, it) } }
+            saveIconFromHtml(site, result.data)
         }
     }
 
@@ -182,6 +178,24 @@ open class SyncEngine(
         }
     }
 
+    /**
+     * Records a check that ran out of time. The limit can fire after the same check already committed its
+     * result (the commit cannot be cancelled; the alert and maintenance steps after it can), so a status row
+     * that moved since [site] was read means a newer result exists and this failure is stale.
+     *
+     * @param site the page exactly as it was read when the timed-out check began.
+     */
+    suspend fun recordTimeout(site: Site, timeout: Throwable): SyncResult = withSiteLock(site.id) {
+        withContext(Dispatchers.Default) {
+            val current = sitesDao.getSiteById(site.id)
+                ?: return@withContext SyncResult.Skipped(site.id, "Page deleted during check")
+            if (current.timestamp != site.timestamp) {
+                return@withContext SyncResult.Skipped(site.id, "A newer result was recorded before the timeout")
+            }
+            processFetchResultUnlocked(site, FetchResult.Error("Page check timed out", timeout), site.threshold)
+        }
+    }
+
     /** Reuses an editor preview only while history is empty; a newer check always wins. */
     suspend fun establishFirstVersion(site: Site, result: FetchResult.Success): SyncResult = recordDiagnostic(site.captureMode, site.textIncludeSelector.isNotBlank(), site.textExcludeSelector.isNotBlank(), DiagnosticTrigger.BASELINE, site.id) {
         withSiteLock(site.id) {
@@ -201,7 +215,7 @@ open class SyncEngine(
     ): SyncResult = withContext(Dispatchers.Default) {
         val currentSite = sitesDao.getSiteById(site.id)
             ?: return@withContext SyncResult.Skipped(site.id, "Page deleted during check")
-        if (currentSite.url != site.url || currentSite.captureMode != site.captureMode || currentSite.threshold != site.threshold || currentSite.visualChangeThresholdBps != site.visualChangeThresholdBps || currentSite.capturePolicy() != site.capturePolicy() || !currentSite.isSyncEnabled) {
+        if (!captureStillApplies(currentSite, site)) {
             return@withContext SyncResult.Skipped(site.id, "Page changed or paused during check")
         }
         try {
@@ -335,8 +349,7 @@ open class SyncEngine(
         // When reusing a preview, the commit below must still see this empty history.
         // Pages added before icons were captured get their real (high-resolution) icon from the HTML they already served.
         if (site.iconUrl.isBlank() && incoming.contentType.contains("html", true)) {
-            runCatching { com.bernaferrari.changedetection.addedit.htmlIcon(incoming.data.decodeToString(), site.url) }
-                .getOrNull()?.let { runCatching { sitesDao.updateIcon(site.id, it) } }
+            saveIconFromHtml(site, incoming.data)
         }
         val prepared = try {
             if (site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT) {
@@ -412,7 +425,7 @@ open class SyncEngine(
             return saveNewSnap(site, result, contentHash, lastSnap, isFirstSnap)
         } else {
             result.validateCapture()
-            val updated = updateStatusIfCurrent(site, successful = true, isBrowser = result.contentType.contains("image", ignoreCase = true), expectedSnapshot = lastSnap)
+            val updated = updateStatusIfCurrent(site, successful = true, isBrowser = result.isImage(), expectedSnapshot = lastSnap)
             if (!updated) return SyncResult.Skipped(site.id, "Page changed or paused during check")
             withdrawFailureAlert(site)
             retryPendingAlerts(site.id)
@@ -472,7 +485,7 @@ open class SyncEngine(
                             siteId = site.id,
                             timestamp = checkedAt,
                             successful = true,
-                            isBrowser = result.contentType.contains("image", ignoreCase = true),
+                            isBrowser = result.isImage(),
                             isRead = if (!isFirstSnap) {
                                 false
                             } else if (previousSnapId == null) {
@@ -543,10 +556,27 @@ open class SyncEngine(
         return SyncResult.Success(site.id, hadChanges = !isFirstSnap, snapId = snapId, contentSize = result.data.size)
     }
 
-    /** Must be read under the same write transaction as the status or snapshot commit. */
-    private suspend fun currentCaptureSite(site: Site): Site? = sitesDao.getSiteById(site.id)?.takeIf {
-        it.url == site.url && it.isSyncEnabled && it.threshold == site.threshold && it.visualChangeThresholdBps == site.visualChangeThresholdBps && it.captureMode == site.captureMode && it.capturePolicy() == site.capturePolicy()
+    /**
+     * True while [stored] is still the page this check captured: same address, same capture settings, still active.
+     * Every place that decides whether a finished check may be recorded must use this one rule.
+     */
+    private fun captureStillApplies(stored: Site, captured: Site): Boolean = stored.url == captured.url && stored.isSyncEnabled && stored.threshold == captured.threshold && stored.visualChangeThresholdBps == captured.visualChangeThresholdBps && stored.captureMode == captured.captureMode && stored.capturePolicy() == captured.capturePolicy()
+
+    private fun FetchResult.Success.isImage(): Boolean = contentType.startsWith("image/", ignoreCase = true)
+
+    /** Best effort: a page's icon is cosmetic, so a failure is ignored, but cancellation still propagates. */
+    private suspend fun saveIconFromHtml(site: Site, html: ByteArray) {
+        val icon = runCatching { com.bernaferrari.changedetection.addedit.htmlIcon(html.decodeToString(), site.url) }.getOrNull() ?: return
+        try {
+            sitesDao.updateIcon(site.id, icon)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+        }
     }
+
+    /** Must be read under the same write transaction as the status or snapshot commit. */
+    private suspend fun currentCaptureSite(site: Site): Site? = sitesDao.getSiteById(site.id)?.takeIf { captureStillApplies(it, site) }
 
     private suspend fun updateStatusIfCurrent(site: Site, successful: Boolean, isBrowser: Boolean, expectedSnapshot: Snap? = null, failureCode: String? = null): Boolean = diagnosticStage(DiagnosticStage.UPDATE_STATUS) {
         inWriteTransaction {
@@ -628,14 +658,6 @@ open class SyncEngine(
         successCount to results
     }
 
-    /** Checks only the active pages whose last check is older than [intervalMinutes]; used when the app comes back. */
-    suspend fun syncDueSites(intervalMinutes: Long): Int = withContext(Dispatchers.Default) {
-        val now = currentTimeMillis()
-        val due = sitesDao.getSitesList().filter { it.isSyncEnabled && (now < it.timestamp || now - it.timestamp >= intervalMinutes * 60_000L) }
-        due.forEach { trySyncSite(it.id) }
-        due.size
-    }
-
     /**
      * Fetch content from a website URL using Ktor.
      */
@@ -667,7 +689,7 @@ open class SyncEngine(
                         )
                     }
 
-                    val contentType = response.contentType()?.toString() ?: "text/html"
+                    val declaredType = response.contentType()?.toString()
 
                     // Check content size before loading
                     val contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull() ?: 0
@@ -687,16 +709,13 @@ open class SyncEngine(
                     // Stream the body so the size cap is enforced even without a
                     // Content-Length header, and keep binary payloads intact
                     // (decoding everything as text corrupted images and other binaries).
-                    // Extract the charset label from the Content-Type header text
-                    // (multiplatform-safe; response.charset() is JVM-only).
-                    val charsetName = contentType.findCharset()?.takeIf { it.isNotBlank() } ?: "UTF-8"
-                    val isText = contentType.isTextContentType()
-
                     val bodyBytes = readCappedBody(response.bodyAsChannel())
-                    val data = if (isText) {
+                    // A response without a Content-Type is identified by its first bytes before it is assumed to be a page.
+                    val contentType = declaredType ?: sniffContentType(bodyBytes)
+                    val data = if (contentType.isTextContentType()) {
                         // Normalize text payloads to UTF-8 bytes (decodeByteArray falls
                         // back to UTF-8 when the label is unknown).
-                        decodeByteArray(bodyBytes, charsetName).encodeToByteArray()
+                        decodeByteArray(bodyBytes, responseCharset(contentType, bodyBytes)).encodeToByteArray()
                     } else {
                         bodyBytes
                     }
@@ -718,43 +737,6 @@ open class SyncEngine(
                 )
             }
         }
-    }
-
-    /**
-     * Parse HTML content and extract text using Ksoup.
-     */
-    fun parseHtml(content: String): String = try {
-        Ksoup.parse(content).text()
-    } catch (e: Exception) {
-        content
-    }
-
-    /**
-     * Generate a meaningful description of what changed.
-     */
-    fun generateChangeDescription(newContent: ByteArray, contentType: String): String = try {
-        if (contentType.contains("html", ignoreCase = true)) {
-            val doc = Ksoup.parse(newContent.decodeToString())
-            val textLength = doc.text().length
-
-            when {
-                textLength > 10000 -> "Major content update"
-                textLength > 5000 -> "Significant changes"
-                textLength > 1000 -> "Content updated"
-                else -> "Minor update"
-            }
-        } else if (contentType.contains("image", ignoreCase = true)) {
-            "Visual change"
-        } else {
-            val sizeKb = newContent.size / 1024
-            when {
-                sizeKb > 500 -> "Large update (${sizeKb}KB)"
-                sizeKb > 100 -> "Update (${sizeKb}KB)"
-                else -> "Content changed"
-            }
-        }
-    } catch (e: Exception) {
-        "Content changed"
     }
 
     /**

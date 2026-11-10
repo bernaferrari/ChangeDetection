@@ -185,6 +185,8 @@ fun SettingsScreen(
                             }
                         }
                         SavedVersionsRow(uiState, viewModel::retryStorageLoading, viewModel::clearOlderVersions, showDivider = onNotificationSettings != null)
+                        SiteSessionsRow()
+                        com.bernaferrari.changedetection.backup.BackupRow()
                     }
                 }
                 item(key = "help") {

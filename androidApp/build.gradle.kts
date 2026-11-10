@@ -130,11 +130,8 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
 
     // Compose
-    implementation(libs.androidx.compose.material3.window.size)
 
     // Glance AppWidget
-    implementation(libs.androidx.glance)
-    implementation(libs.androidx.glance.appwidget)
 
     // Logging
     // Logging is configured through shared AppLog.

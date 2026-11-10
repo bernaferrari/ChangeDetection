@@ -796,4 +796,26 @@
     <string name="recovery_text_title">এই পৃষ্ঠায় টেক্সট কাজ করে</string>
     <string name="recovery_text_body">পৃষ্ঠার টেক্সট কোনো সমস্যা ছাড়াই লোড হয়েছে। বদলে নিন, পরের পরীক্ষাগুলো টেক্সট তুলনা করবে। আপনার সেভ করা সংস্করণগুলো থাকবে।</string>
     <string name="recovery_text_switch">টেক্সটে বদলান</string>
+    <string name="site_sessions_title">সংরক্ষিত সাইন-ইন</string>
+    <string name="site_sessions_body">ইন-অ্যাপ ব্রাউজারে রাখা কুকি ও সাইটের ডেটা</string>
+    <string name="site_sessions_clear_title">সব সাইট থেকে সাইন আউট করবেন?</string>
+    <string name="site_sessions_clear_body">ইন-অ্যাপ ব্রাউজারে সংরক্ষিত কুকি ও সাইটের ডেটা এই ডিভাইস থেকে মুছে ফেলা হবে। যেসব পেজে সাইন-ইন লাগে, আবার সাইন ইন না করা পর্যন্ত সেগুলো ঠিকমতো লোড হবে না।</string>
+    <string name="site_sessions_clear_confirm">সাইন আউট করুন</string>
+    <string name="site_sessions_cleared">সব সাইট থেকে সাইন আউট করা হয়েছে</string>
+    <string name="backup_title">ব্যাকআপ</string>
+    <string name="backup_supporting">আপনার পেজগুলো একটি ফাইলে সেভ করুন বা ফিরিয়ে আনুন</string>
+    <string name="backup_save_pages">পেজ ও সেটিংস সেভ করুন</string>
+    <string name="backup_save_pages_body">ছোট একটি ফাইল। সেভ করা সংস্করণ এতে থাকে না।</string>
+    <string name="backup_save_everything">সবকিছু সেভ করুন</string>
+    <string name="backup_save_everything_body">সেভ করা সব সংস্করণ থাকে। ফাইলটি বড় হতে পারে।</string>
+    <string name="backup_restore">ফাইল থেকে ফিরিয়ে আনুন</string>
+    <string name="backup_restore_body">যে পেজগুলো এখানে নেই সেগুলো যোগ করে। এই ডিভাইসের কিছুই বদলায় না।</string>
+    <string name="backup_restore_settings">অ্যাপের সেটিংসও ফিরিয়ে আনুন</string>
+    <string name="backup_privacy_note">ফাইলটি এনক্রিপ্ট করা নয় এবং এতে আপনার নজরে রাখা পেজগুলো থাকে। সাইন-ইন কখনো এতে থাকে না।</string>
+    <string name="backup_working">কাজ চলছে…</string>
+    <string name="backup_saved">ব্যাকআপ সেভ হয়েছে। পেজ: %1$d · সংস্করণ: %2$d</string>
+    <string name="backup_restored">যোগ হওয়া পেজ: %1$d · আগে থেকেই ছিল: %2$d · সংস্করণ: %3$d</string>
+    <string name="backup_failed">ব্যাকআপ সেভ করা যায়নি। খালি জায়গা দেখে আবার চেষ্টা করুন।</string>
+    <string name="backup_invalid">এই ফাইলটি Change Detection-এর ব্যাকআপ নয়।</string>
+    <string name="backup_too_new">এই ব্যাকআপটি অ্যাপের নতুন সংস্করণে তৈরি। অ্যাপ আপডেট করে আবার চেষ্টা করুন।</string>
 </resources>

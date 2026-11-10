@@ -108,4 +108,26 @@
     <string name="recovery_text_title">Il testo funziona per questa pagina</string>
     <string name="recovery_text_body">Il testo della pagina è stato caricato senza problemi. Passa a Testo e i prossimi controlli confronteranno il testo. Le versioni salvate restano.</string>
     <string name="recovery_text_switch">Passa a Testo</string>
+    <string name="site_sessions_title">Accessi salvati</string>
+    <string name="site_sessions_body">Cookie e dati dei siti conservati dal browser dell’app</string>
+    <string name="site_sessions_clear_title">Uscire da tutti i siti?</string>
+    <string name="site_sessions_clear_body">I cookie e i dati dei siti salvati dal browser dell’app verranno eliminati da questo dispositivo. Le pagine che richiedono l’accesso non verranno caricate correttamente finché non accedi di nuovo.</string>
+    <string name="site_sessions_clear_confirm">Esci</string>
+    <string name="site_sessions_cleared">Uscita effettuata da tutti i siti</string>
+    <string name="backup_title">Backup</string>
+    <string name="backup_supporting">Salva le tue pagine in un file o ripristinale</string>
+    <string name="backup_save_pages">Salva pagine e impostazioni</string>
+    <string name="backup_save_pages_body">Un file piccolo. Le versioni salvate non sono incluse.</string>
+    <string name="backup_save_everything">Salva tutto</string>
+    <string name="backup_save_everything_body">Include tutte le versioni salvate. Il file può essere grande.</string>
+    <string name="backup_restore">Ripristina da un file</string>
+    <string name="backup_restore_body">Aggiunge le pagine che non sono ancora qui. Su questo dispositivo non cambia nulla.</string>
+    <string name="backup_restore_settings">Ripristina anche le impostazioni dell’app</string>
+    <string name="backup_privacy_note">Il file non è cifrato ed elenca le pagine che segui. Gli accessi non sono mai inclusi.</string>
+    <string name="backup_working">Operazione in corso…</string>
+    <string name="backup_saved">Backup salvato. Pagine: %1$d · Versioni: %2$d</string>
+    <string name="backup_restored">Pagine aggiunte: %1$d · Già presenti: %2$d · Versioni: %3$d</string>
+    <string name="backup_failed">Impossibile salvare il backup. Controlla lo spazio libero e riprova.</string>
+    <string name="backup_invalid">Questo file non è un backup di Change Detection.</string>
+    <string name="backup_too_new">Questo backup è stato creato con una versione più recente. Aggiorna l’app e riprova.</string>
 </resources>

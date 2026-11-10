@@ -108,6 +108,51 @@ class SyncEngineTest {
         }
     }
 
+    @Test fun `a page that declares its charset only in a meta tag is decoded with it`() = runTest {
+        val page = "<!doctype html><html><head><meta charset=\"windows-1252\"><title>Café</title></head><body>Preço: 10 €</body></html>"
+        mockHttpClient = HttpClient(
+            MockEngine {
+                respond(ByteReadChannel(page.toByteArray(java.nio.charset.Charset.forName("windows-1252"))), headers = headersOf(HttpHeaders.ContentType, "text/html"))
+            },
+        )
+        syncEngine = makeSyncEngine()
+        try {
+            val fetched = syncEngine.fetchFromServer(createTestSite()) as SyncEngine.FetchResult.Success
+            assertEquals(page, fetched.data.decodeToString())
+        } finally {
+            mockHttpClient.close()
+        }
+    }
+
+    @Test fun `a charset header is honoured whatever its capitalisation`() = runTest {
+        val page = "<p>Olá, café</p>"
+        mockHttpClient = HttpClient(
+            MockEngine {
+                respond(ByteReadChannel(page.toByteArray(java.nio.charset.Charset.forName("ISO-8859-1"))), headers = headersOf(HttpHeaders.ContentType, "text/html; Charset=ISO-8859-1"))
+            },
+        )
+        syncEngine = makeSyncEngine()
+        try {
+            val fetched = syncEngine.fetchFromServer(createTestSite()) as SyncEngine.FetchResult.Success
+            assertEquals(page, fetched.data.decodeToString())
+        } finally {
+            mockHttpClient.close()
+        }
+    }
+
+    @Test fun `an image sent without a content type is kept byte for byte`() = runTest {
+        val png = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0, 1, 127, 128.toByte(), 195.toByte(), 255.toByte())
+        mockHttpClient = HttpClient(MockEngine { respond(ByteReadChannel(png)) })
+        syncEngine = makeSyncEngine()
+        try {
+            val fetched = syncEngine.fetchFromServer(createTestSite()) as SyncEngine.FetchResult.Success
+            assertEquals("image/png", fetched.contentType)
+            assertArrayEquals(png, fetched.data)
+        } finally {
+            mockHttpClient.close()
+        }
+    }
+
     @Test
     fun `oversized stream is rejected before the server closes its response`() = runTest {
         val channel = ByteChannel(autoFlush = true)

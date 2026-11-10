@@ -796,4 +796,26 @@
     <string name="recovery_text_title">इस पेज के लिए टेक्स्ट काम करता है</string>
     <string name="recovery_text_body">पेज का टेक्स्ट बिना किसी समस्या के लोड हुआ। बदलें, और आगे की जाँचें टेक्स्ट की तुलना करेंगी। आपके सेव किए गए वर्शन बने रहेंगे।</string>
     <string name="recovery_text_switch">टेक्स्ट पर स्विच करें</string>
+    <string name="site_sessions_title">सहेजे गए साइन-इन</string>
+    <string name="site_sessions_body">इन-ऐप ब्राउज़र में सहेजी गई कुकी और साइट डेटा</string>
+    <string name="site_sessions_clear_title">सभी साइटों से साइन आउट करें?</string>
+    <string name="site_sessions_clear_body">इन-ऐप ब्राउज़र में सहेजी गई कुकी और साइट डेटा इस डिवाइस से हटा दिए जाएँगे। जिन पेजों के लिए साइन-इन ज़रूरी है, वे दोबारा साइन इन करने तक ठीक से लोड नहीं होंगे।</string>
+    <string name="site_sessions_clear_confirm">साइन आउट करें</string>
+    <string name="site_sessions_cleared">सभी साइटों से साइन आउट हो गया</string>
+    <string name="backup_title">बैकअप</string>
+    <string name="backup_supporting">अपने पेज किसी फ़ाइल में सेव करें या उन्हें वापस लाएँ</string>
+    <string name="backup_save_pages">पेज और सेटिंग सेव करें</string>
+    <string name="backup_save_pages_body">छोटी फ़ाइल। सेव किए गए वर्शन शामिल नहीं हैं।</string>
+    <string name="backup_save_everything">सब कुछ सेव करें</string>
+    <string name="backup_save_everything_body">सेव किए गए सभी वर्शन शामिल हैं। फ़ाइल बड़ी हो सकती है।</string>
+    <string name="backup_restore">फ़ाइल से वापस लाएँ</string>
+    <string name="backup_restore_body">वे पेज जोड़ता है जो यहाँ अभी नहीं हैं। इस डिवाइस पर कुछ भी नहीं बदलता।</string>
+    <string name="backup_restore_settings">ऐप की सेटिंग भी वापस लाएँ</string>
+    <string name="backup_privacy_note">फ़ाइल एन्क्रिप्ट नहीं है और इसमें वे पेज हैं जिन पर आप नज़र रखते हैं। साइन-इन कभी शामिल नहीं होते।</string>
+    <string name="backup_working">काम जारी है…</string>
+    <string name="backup_saved">बैकअप सेव हो गया। पेज: %1$d · वर्शन: %2$d</string>
+    <string name="backup_restored">जोड़े गए पेज: %1$d · पहले से मौजूद: %2$d · वर्शन: %3$d</string>
+    <string name="backup_failed">बैकअप सेव नहीं हो सका। खाली जगह जाँचें और फिर कोशिश करें।</string>
+    <string name="backup_invalid">यह फ़ाइल Change Detection का बैकअप नहीं है।</string>
+    <string name="backup_too_new">यह बैकअप ऐप के नए वर्शन से बना है। ऐप अपडेट करें और फिर कोशिश करें।</string>
 </resources>

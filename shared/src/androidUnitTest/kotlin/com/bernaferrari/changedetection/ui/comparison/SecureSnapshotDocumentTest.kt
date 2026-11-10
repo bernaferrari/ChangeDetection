@@ -75,4 +75,20 @@ class SecureSnapshotDocumentTest {
         assertTrue(result.contains("alt=\"Chart\""))
         assertTrue(result.contains("src=\"data:image/png;base64,aGVsbG8=\""))
     }
+
+    @Test
+    fun `style text with a tag opener is discarded`() {
+        val result = secureSnapshotDocument("""<style>.label::before { content: "<"; }</style><p>Still readable</p>""")
+        assertFalse(result.contains(".label"))
+        assertTrue(result.contains("Still readable"))
+    }
+
+    @Test
+    fun `saved viewer permits only its in-memory document schemes`() {
+        assertTrue(isInertSnapshotNavigation("about:blank"))
+        assertTrue(isInertSnapshotNavigation("data:text/html;charset=utf-8;base64,SGVsbG8="))
+        assertFalse(isInertSnapshotNavigation("https://example.test/"))
+        assertFalse(isInertSnapshotNavigation("file:///example.html"))
+        assertFalse(isInertSnapshotNavigation("data:text/html-example,hello"))
+    }
 }

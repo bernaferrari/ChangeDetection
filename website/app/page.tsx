@@ -13,7 +13,7 @@ const faqs = [
   { q: "Do I need an account?", a: "No. Install the app and watch a page. There is no sign-up, and nothing to log in to." },
   { q: "Where are my pages and screenshots stored?", a: "On your phone. Pages are opened and compared on your device; nothing is uploaded to our servers, because there are none." },
   { q: "Does it work with pages that need a login?", a: "Yes. Pages open in a built-in browser, so you can sign in once. Later checks reuse that session from your phone." },
-  { q: "How often are pages checked?", a: "On a schedule you choose, in the background. On iPhone, the system decides exactly when background checks run. Turbo checks every 30 seconds while the app is open." },
+  { q: "How often are pages checked?", a: "On a schedule you choose, in the background. On iPhone, the system decides exactly when background checks run. Turbo checks the pages you pick every 5 to 60 seconds for up to three hours." },
   { q: "Screenshots or text: which should I use?", a: "Screenshots compare how the page looks and catch images, layout and anything drawn by JavaScript. Text compares the words and is lighter on battery, great for prices, dates and lists. You can switch any time." },
   { q: "Won't a long news page always look \"changed\"?", a: "Content that only moved, like stories pushed down by a new banner, is recognised as moved, not changed. You can also mark noisy parts, like carousels or ad slots, to be ignored." },
   { q: "Is it open source?", a: "Yes. The app is open source under the Apache 2.0 license; the code is on GitHub." },

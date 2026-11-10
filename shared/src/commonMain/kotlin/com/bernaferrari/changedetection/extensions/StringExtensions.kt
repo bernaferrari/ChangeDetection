@@ -57,10 +57,3 @@ fun String.isValidUrl(): Boolean {
         isWebScheme && host.isNotBlank() && (isLocalAddress || hasQualifiedHost)
     }.getOrDefault(false)
 }
-
-fun String.findCharset(): String = "charset=([^()<>@,;:\"/\\[\\]?.=\\s]*)"
-    .toRegex()
-    .find(this)
-    ?.value
-    ?.replace("charset=", "")
-    ?: ""

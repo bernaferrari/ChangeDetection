@@ -108,4 +108,26 @@
     <string name="recovery_text_title">Text works for this page</string>
     <string name="recovery_text_body">The page’s text loaded without problems. Switch, and future checks compare the text. Your saved versions are kept.</string>
     <string name="recovery_text_switch">Switch to Text</string>
+    <string name="site_sessions_title">Saved sign-ins</string>
+    <string name="site_sessions_body">Cookies and site data kept by the in-app browser</string>
+    <string name="site_sessions_clear_title">Sign out of all sites?</string>
+    <string name="site_sessions_clear_body">Cookies and site data saved by the in-app browser will be deleted from this device. Pages that need a sign-in will stop loading correctly until you sign in again.</string>
+    <string name="site_sessions_clear_confirm">Sign out</string>
+    <string name="site_sessions_cleared">Signed out of all sites</string>
+    <string name="backup_title">Backup</string>
+    <string name="backup_supporting">Save your pages to a file, or restore them</string>
+    <string name="backup_save_pages">Save pages and settings</string>
+    <string name="backup_save_pages_body">A small file. Saved versions are not included.</string>
+    <string name="backup_save_everything">Save everything</string>
+    <string name="backup_save_everything_body">Includes every saved version. The file can be large.</string>
+    <string name="backup_restore">Restore from a file</string>
+    <string name="backup_restore_body">Adds the pages that are not here yet. Nothing on this device is changed.</string>
+    <string name="backup_restore_settings">Also restore app settings</string>
+    <string name="backup_privacy_note">The file is not encrypted and lists the pages you watch. Sign-ins are never included.</string>
+    <string name="backup_working">Working…</string>
+    <string name="backup_saved">Backup saved. Pages: %1$d · Versions: %2$d</string>
+    <string name="backup_restored">Pages added: %1$d · Already here: %2$d · Versions: %3$d</string>
+    <string name="backup_failed">The backup could not be saved. Check the free space and try again.</string>
+    <string name="backup_invalid">This file is not a Change Detection backup.</string>
+    <string name="backup_too_new">This backup was made by a newer version. Update the app and try again.</string>
 </resources>

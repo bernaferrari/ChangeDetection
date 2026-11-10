@@ -24,7 +24,7 @@
     <string name="how_it_works">Cara kerja</string>
     <string name="select_site_canvas_label">Perubahan desk Anda</string>
     <string name="select_site_canvas_title">Setiap update, di tempat yang tenang.</string>
-    <string name="select_site_canvas_supporting">Pilih halaman dari daftar penonton. versi terbaru dibuka di sini tanpa mengambil Anda jauh dari yang lain.</string>
+    <string name="select_site_canvas_supporting">Pilih halaman dari daftar. Versi terbarunya terbuka di sini tanpa meninggalkan daftar.</string>
     <string name="edit">Edit</string>
     <string name="open_in_browser">Buka di browser</string>
     <string name="cancel">Batal</string>
@@ -592,7 +592,7 @@
     <string name="checks_title">Pemeriksaan otomatis</string>
     <string name="checks_every">Setiap</string>
     <string name="checks_custom">Custom…</string>
-    <string name="checks_own_schedule_note">Jadual ini berlaku untuk semua halaman aktif. Turbo sesi berjalan sendiri dan tidak mengubahnya.</string>
+    <string name="checks_own_schedule_note">Jadwal ini berlaku untuk semua halaman aktif. Sesi Turbo berjalan terpisah dan tidak mengubahnya.</string>
     <string name="checks_only_when">Hanya ketika</string>
     <string name="checks_wifi">Untuk Wi-Fi</string>
     <string name="checks_wifi_body">Menyimpan data mobile</string>
@@ -611,7 +611,7 @@
     <string name="settings_notifications_body">Peringatan, suara dan banner dalam pengaturan sistem</string>
     <string name="settings_saved_versions">Versi yang disimpan</string>
     <string name="settings_storage_value">%1$s pada perangkat ini</string>
-    <string name="settings_storage_empty">Belum ada yang diselamatkan</string>
+    <string name="settings_storage_empty">Belum ada yang disimpan</string>
     <string name="settings_about_value">Versi %1$s · sumber terbuka</string>
     <string name="settings_feedback">Mengirim Feedback</string>
     <string name="settings_privacy_line">Semuanya tetap di perangkat ini.</string>
@@ -766,4 +766,26 @@
     <string name="recovery_text_title">Teks berfungsi untuk halaman ini</string>
     <string name="recovery_text_body">Teks halaman dimuat tanpa masalah. Beralihlah, dan pemeriksaan berikutnya akan membandingkan teks. Versi tersimpan Anda tetap ada.</string>
     <string name="recovery_text_switch">Beralih ke Teks</string>
+    <string name="site_sessions_title">Info masuk tersimpan</string>
+    <string name="site_sessions_body">Cookie dan data situs yang disimpan browser dalam aplikasi</string>
+    <string name="site_sessions_clear_title">Keluar dari semua situs?</string>
+    <string name="site_sessions_clear_body">Cookie dan data situs yang disimpan browser dalam aplikasi akan dihapus dari perangkat ini. Halaman yang memerlukan login tidak akan dimuat dengan benar sampai Anda masuk lagi.</string>
+    <string name="site_sessions_clear_confirm">Keluar</string>
+    <string name="site_sessions_cleared">Sudah keluar dari semua situs</string>
+    <string name="backup_title">Cadangan</string>
+    <string name="backup_supporting">Simpan halaman Anda ke file, atau pulihkan</string>
+    <string name="backup_save_pages">Simpan halaman dan setelan</string>
+    <string name="backup_save_pages_body">File kecil. Versi tersimpan tidak disertakan.</string>
+    <string name="backup_save_everything">Simpan semuanya</string>
+    <string name="backup_save_everything_body">Menyertakan semua versi tersimpan. File bisa berukuran besar.</string>
+    <string name="backup_restore">Pulihkan dari file</string>
+    <string name="backup_restore_body">Menambahkan halaman yang belum ada di sini. Tidak ada yang diubah di perangkat ini.</string>
+    <string name="backup_restore_settings">Pulihkan juga setelan aplikasi</string>
+    <string name="backup_privacy_note">File tidak dienkripsi dan memuat halaman yang Anda pantau. Data login tidak pernah disertakan.</string>
+    <string name="backup_working">Sedang memproses…</string>
+    <string name="backup_saved">Cadangan disimpan. Halaman: %1$d · Versi: %2$d</string>
+    <string name="backup_restored">Halaman ditambahkan: %1$d · Sudah ada: %2$d · Versi: %3$d</string>
+    <string name="backup_failed">Cadangan tidak dapat disimpan. Periksa ruang kosong lalu coba lagi.</string>
+    <string name="backup_invalid">File ini bukan cadangan Change Detection.</string>
+    <string name="backup_too_new">Cadangan ini dibuat oleh versi yang lebih baru. Perbarui aplikasi lalu coba lagi.</string>
 </resources>

@@ -57,13 +57,27 @@ private val licenses = listOf(
     License("Material 3", "Google", "Apache License 2.0", "Android"),
     License("Koin", "Kotzilla", "Apache License 2.0", "Core"),
     License("Kotlin", "JetBrains", "Apache License 2.0", "Core"),
+    License("kotlinx.coroutines, serialization and datetime", "JetBrains", "Apache License 2.0", "Core"),
     License("Ktor", "JetBrains", "Apache License 2.0", "Core"),
+    License("Kermit", "Touchlab", "Apache License 2.0", "Core"),
+    License("Okio", "Square", "Apache License 2.0", "Core"),
     License("Room 3", "Android Open Source Project", "Apache License 2.0", "Data"),
     License("AndroidX SQLite", "Android Open Source Project", "Apache License 2.0", "Data"),
     License("Ksoup", "Fleek Soft", "Apache License 2.0", "Networking"),
+    License("Coil", "Coil Contributors", "Apache License 2.0", "UI"),
+    License("Compose WebView Multiplatform", "Kevin Zou", "Apache License 2.0", "UI"),
+    License("KMPwright", "Bernardo Ferrari", "MIT License", "UI"),
     License("MaterialKolor", "Jordond", "Apache License 2.0", "UI"),
+    License("Google Sans Flex", "The Google Sans Flex Authors", "SIL Open Font License 1.1", "UI"),
     License("Noto Sans (Devanagari, Bengali, Simplified Chinese)", "The Noto Project", "SIL Open Font License 1.1", "UI"),
 )
+
+private fun licenseUrl(licenseType: String): String = when (licenseType) {
+    "Apache License 2.0" -> "https://www.apache.org/licenses/LICENSE-2.0"
+    "MIT License" -> "https://opensource.org/license/mit"
+    "SIL Open Font License 1.1" -> "https://openfontlicense.org/open-font-license-official-text/"
+    else -> "https://opensource.org/licenses"
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -136,13 +150,7 @@ fun AboutLicensesDialog(
                                 LicenseRow(
                                     license = license,
                                     onClick = {
-                                        onUrlClick(
-                                            if (license.licenseType == "Apache License 2.0") {
-                                                "https://www.apache.org/licenses/LICENSE-2.0"
-                                            } else {
-                                                "https://opensource.org/licenses"
-                                            },
-                                        )
+                                        onUrlClick(licenseUrl(license.licenseType))
                                     },
                                 )
                             }

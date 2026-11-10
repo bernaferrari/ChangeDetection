@@ -1,7 +1,15 @@
 package com.bernaferrari.changedetection.browser
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.bernaferrari.changedetection.shared.generated.resources.browser_load_error_body
+import com.bernaferrari.changedetection.shared.generated.resources.local_browser_error_title
+import com.bernaferrari.changedetection.shared.generated.resources.retry
 import androidx.compose.ui.Modifier
+import androidx.core.view.doOnDetach
 
 @Composable
 internal actual fun BrowserRuntimeHost(modifier: Modifier, content: @Composable () -> Unit) = content()
@@ -10,7 +18,25 @@ internal actual fun BrowserRuntimeHost(modifier: Modifier, content: @Composable 
 internal actual fun PlatformBrowserView(state: com.multiplatform.webview.web.WebViewState, modifier: Modifier, onNavigationRequest: ((String) -> Boolean)?, highlightUpdate: com.bernaferrari.changedetection.detection.RegionHighlightUpdate?) {
     val interceptor = rememberNavigationInterceptor(onNavigationRequest)
     val navigator = com.multiplatform.webview.web.rememberWebViewNavigator(requestInterceptor = interceptor)
-    com.multiplatform.webview.web.WebView(state = state, modifier = modifier, navigator = navigator, platformWebViewParams = rememberBrowserPlatformParams())
+    var generation by androidx.compose.runtime.remember { androidx.compose.runtime.mutableIntStateOf(0) }
+    if (state.errorsForCurrentRequest.any { it.code == BROWSER_RENDERER_GONE }) {
+        // The renderer process died. Its view must leave the hierarchy; Retry builds a new one, which reloads the content.
+        com.bernaferrari.changedetection.ui.components.SharedEmptyState(
+            icon = Icons.Rounded.Refresh,
+            title = com.bernaferrari.changedetection.localization.stringResource(com.bernaferrari.changedetection.shared.generated.resources.Res.string.local_browser_error_title),
+            description = com.bernaferrari.changedetection.localization.stringResource(com.bernaferrari.changedetection.shared.generated.resources.Res.string.browser_load_error_body),
+            modifier = modifier,
+            primaryActionLabel = com.bernaferrari.changedetection.localization.stringResource(com.bernaferrari.changedetection.shared.generated.resources.Res.string.retry),
+            onPrimaryAction = {
+                state.errorsForCurrentRequest.removeAll { it.code == BROWSER_RENDERER_GONE }
+                generation++
+            },
+        )
+        return
+    }
+    androidx.compose.runtime.key(generation) {
+        com.multiplatform.webview.web.WebView(state = state, modifier = modifier, navigator = navigator, platformWebViewParams = rememberBrowserPlatformParams())
+    }
     androidx.compose.runtime.LaunchedEffect(state.loadingState, highlightUpdate) {
         if (state.loadingState is com.multiplatform.webview.web.LoadingState.Finished) {
             highlightUpdate?.let { navigator.evaluateJavaScript(it.script()) }
@@ -78,6 +104,20 @@ internal actual fun rememberBrowserPlatformParams(): com.multiplatform.webview.w
                 // Match scheduled checks: reject the main document now, validate captured resources before saving.
                 val tls = WebViewCaptureHealth.of(view).ssl(error.url, error.primaryError, (0..5).filter(error::hasError))
                 if (tls.blocking) fail(error.url, tlsError())
+            }
+
+            override fun onRenderProcessGone(view: android.webkit.WebView, detail: android.webkit.RenderProcessGoneDetail): Boolean {
+                // Returning true keeps the app alive. This view is now unusable; the composable replaces it on Retry.
+                pendingErrors.clear()
+                view.doOnDetach {
+                    // The Compose holder detaches first. Destroy the native view once it is out of its parent.
+                    android.os.Handler(android.os.Looper.getMainLooper()).post {
+                        (view.parent as? android.view.ViewGroup)?.removeView(view)
+                        view.destroy()
+                    }
+                }
+                state.errorsForCurrentRequest.add(com.multiplatform.webview.web.WebViewError(BROWSER_RENDERER_GONE, "The browser renderer stopped", true))
+                return true
             }
         },
     )

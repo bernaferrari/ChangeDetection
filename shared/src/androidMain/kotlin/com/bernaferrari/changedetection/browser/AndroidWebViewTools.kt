@@ -1,6 +1,8 @@
 package com.bernaferrari.changedetection.browser
 
 import android.content.Context
+import android.webkit.WebStorage
+import android.webkit.WebViewDatabase
 import android.webkit.CookieManager
 import android.webkit.WebChromeClient
 import android.webkit.WebView
@@ -89,3 +91,17 @@ private const val NAVIGATION_TIMEOUT_MS = 30_000L
 private const val LOAD_STATE_TIMEOUT_MS = 10_000L
 
 private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("AndroidWebViewTools")
+
+/**
+ * Forgets every sign-in the in-app browser holds: cookies, site storage and saved HTTP passwords.
+ * Call on the main thread. [onCleared] runs on the main thread once cookies are gone and written to disk.
+ */
+internal fun clearSiteSessions(context: android.content.Context, onCleared: () -> Unit = {}) {
+    WebStorage.getInstance().deleteAllData()
+    WebViewDatabase.getInstance(context).clearHttpAuthUsernamePassword()
+    val cookies = CookieManager.getInstance()
+    cookies.removeAllCookies {
+        cookies.flush()
+        onCleared()
+    }
+}

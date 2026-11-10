@@ -174,10 +174,14 @@ internal class DiagnosticSpan : AbstractCoroutineContextElement(Key) {
     private var failure: DiagnosticFailure? = null
     private var cancelled = false
     var checkpoint: (suspend () -> Unit)? = null
+
     suspend fun persistCheckpoint() {
         try {
             checkpoint?.invoke()
-        } catch (_: Exception) { }
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+        }
     }
     suspend fun event(stage: DiagnosticStage, duration: Long = 0, failed: Boolean = false, metric: DiagnosticMetric? = null, code: Int? = null) = lock.withLock {
         active = stage
@@ -289,6 +293,8 @@ suspend fun <T> recordDiagnostic(mode: CaptureMode, selected: Boolean, excluded:
     val sink = DiagnosticLog.sink ?: return block()
     val token = try {
         withContext(Dispatchers.Default) { withTimeoutOrNull(200) { sink.watchToken(watchId) } ?: "" }
+    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+        throw cancelled
     } catch (_: Exception) {
         ""
     }

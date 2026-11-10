@@ -24,7 +24,7 @@
     <string name="how_it_works">كيف يعمل التطبيق</string>
     <string name="select_site_canvas_label">مكتب التغيير</string>
     <string name="select_site_canvas_title">كل تحديث في مكان هادئ.</string>
-    <string name="select_site_canvas_supporting">اختر صفحة من قائمة المشاهدين.تفتح أحدث نسختها هنا دون أن تأخذك بعيدا عن الباقي.</string>
+    <string name="select_site_canvas_supporting">اختر صفحة من القائمة. يُفتح أحدث إصدار منها هنا دون مغادرة القائمة.</string>
     <string name="edit">عدّل</string>
     <string name="open_in_browser">افتح في المتصفح</string>
     <string name="cancel">إلغاء</string>
@@ -199,7 +199,7 @@
     <string name="a11y_saved_screenshot_capture">صورة شاشة موقع الويب المحفوظة %1$s</string>
     <string name="a11y_saved_screenshot_source">تم حفظ صورة شاشة من %1$s ، تم التقاط %2$s</string>
     <string name="a11y_saved_screenshot_source_only">صورة شاشة تم حفظها من %1$s</string>
-    <string name="local_browser_error_title">لا أستطيع فتح هذه الصفحة</string>
+    <string name="local_browser_error_title">تعذّر فتح هذه الصفحة</string>
     <string name="local_browser_error_body">قد لا تكون النسخة المحفوظة متاحة بعد الآن.</string>
     <string name="browser_load_error_body">تحقق من عنوان الصفحة والاتصال الخاص بك ، ثم حاول مرة أخرى.</string>
     <string name="local_browser_empty_snapshot">هذه النسخة لا تحتوي على محتوى قابل للإظهار.</string>
@@ -717,7 +717,7 @@
     <string name="checks_title">التحقق التلقائي</string>
     <string name="checks_every">كل واحد</string>
     <string name="checks_custom">مخصص …</string>
-    <string name="checks_own_schedule_note">هذا الجدول الزمني ينطبق على جميع الصفحات النشطة. Turbo جلسة تعمل من تلقاء نفسها ولا تغيرها.</string>
+    <string name="checks_own_schedule_note">ينطبق هذا الجدول على جميع الصفحات النشطة. جلسات Turbo تعمل بشكل مستقل ولا تغيّره.</string>
     <string name="checks_only_when">فقط عندما</string>
     <string name="checks_wifi">على الواي فاي</string>
     <string name="checks_wifi_body">حفظ البيانات المتنقلة</string>
@@ -736,7 +736,7 @@
     <string name="settings_notifications_body">التحذيرات والأصوات والعلامات في إعدادات النظام</string>
     <string name="settings_saved_versions">النسخة المحفوظة</string>
     <string name="settings_storage_value">%1$s على هذا الجهاز</string>
-    <string name="settings_storage_empty">لا شيء تم إنقاذه حتى الآن</string>
+    <string name="settings_storage_empty">لم يُحفظ شيء بعد</string>
     <string name="settings_about_value">النسخة %1$s · مفتوحة المصدر</string>
     <string name="settings_feedback">إرسال feedback</string>
     <string name="settings_privacy_line">يبقى كل شيء على هذا الجهاز.</string>
@@ -926,4 +926,26 @@
     <string name="recovery_text_title">النص يعمل مع هذه الصفحة</string>
     <string name="recovery_text_body">تم تحميل نص الصفحة دون مشاكل. بدّل، وستقارن الفحوصات القادمة النص. تبقى نسخك المحفوظة كما هي.</string>
     <string name="recovery_text_switch">التبديل إلى النص</string>
+    <string name="site_sessions_title">عمليات تسجيل الدخول المحفوظة</string>
+    <string name="site_sessions_body">ملفات تعريف الارتباط وبيانات المواقع التي يحتفظ بها المتصفح داخل التطبيق</string>
+    <string name="site_sessions_clear_title">هل تريد تسجيل الخروج من جميع المواقع؟</string>
+    <string name="site_sessions_clear_body">ستُحذف من هذا الجهاز ملفات تعريف الارتباط وبيانات المواقع التي حفظها المتصفح داخل التطبيق. الصفحات التي تتطلب تسجيل الدخول لن تُحمَّل بشكل صحيح حتى تسجّل الدخول مجددًا.</string>
+    <string name="site_sessions_clear_confirm">تسجيل الخروج</string>
+    <string name="site_sessions_cleared">تم تسجيل الخروج من جميع المواقع</string>
+    <string name="backup_title">النسخ الاحتياطي</string>
+    <string name="backup_supporting">احفظ صفحاتك في ملف أو استعدها</string>
+    <string name="backup_save_pages">حفظ الصفحات والإعدادات</string>
+    <string name="backup_save_pages_body">ملف صغير. لا يتضمن النسخ المحفوظة.</string>
+    <string name="backup_save_everything">حفظ كل شيء</string>
+    <string name="backup_save_everything_body">يتضمن كل النسخ المحفوظة. قد يكون الملف كبيرًا.</string>
+    <string name="backup_restore">الاستعادة من ملف</string>
+    <string name="backup_restore_body">يضيف الصفحات غير الموجودة هنا. لا يتغير أي شيء على هذا الجهاز.</string>
+    <string name="backup_restore_settings">استعادة إعدادات التطبيق أيضًا</string>
+    <string name="backup_privacy_note">الملف غير مشفّر ويحتوي على الصفحات التي تتابعها. لا تُضمَّن بيانات تسجيل الدخول أبدًا.</string>
+    <string name="backup_working">جارٍ التنفيذ…</string>
+    <string name="backup_saved">تم حفظ النسخة الاحتياطية. الصفحات: %1$d · النسخ: %2$d</string>
+    <string name="backup_restored">الصفحات المضافة: %1$d · الموجودة مسبقًا: %2$d · النسخ: %3$d</string>
+    <string name="backup_failed">تعذّر حفظ النسخة الاحتياطية. تحقق من المساحة المتاحة ثم حاول مرة أخرى.</string>
+    <string name="backup_invalid">هذا الملف ليس نسخة احتياطية من Change Detection.</string>
+    <string name="backup_too_new">أُنشئت هذه النسخة بإصدار أحدث. حدّث التطبيق ثم حاول مرة أخرى.</string>
 </resources>

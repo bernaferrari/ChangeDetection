@@ -125,14 +125,9 @@ kotlin {
             implementation(libs.androidx.startup)
 
             implementation(libs.androidx.compose.ui.tooling.preview)
-            implementation(libs.androidx.compose.material3.window.size)
 
             implementation(libs.androidx.datastore.preferences)
             implementation(libs.sqlite.bundled)
-
-            implementation(libs.androidx.palette.ktx)
-
-            implementation(libs.androidx.browser)
 
             implementation(libs.androidx.glance)
             implementation(libs.androidx.glance.appwidget)

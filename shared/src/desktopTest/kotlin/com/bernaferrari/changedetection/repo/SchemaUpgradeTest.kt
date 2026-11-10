@@ -3,6 +3,7 @@ package com.bernaferrari.changedetection.repo
 import androidx.room3.Room
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import com.bernaferrari.changedetection.repo.source.local.MIGRATION_1_4
 import com.bernaferrari.changedetection.repo.source.local.ChangeDatabase
 import com.bernaferrari.changedetection.repo.source.local.getRoomDatabase
 import java.io.File
@@ -51,6 +52,34 @@ class SchemaUpgradeTest {
     }
 
     /** Version 5 is on people's phones: a page that was already failing keeps its history and starts its streak at zero. */
+    @Test fun aPublicSchemaWithoutAMigrationPathIsNeverErased() = runBlocking {
+        withDatabaseFile { path, driver ->
+            getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = path), driver).apply {
+                siteDao().getSitesList()
+                close()
+            }
+            driver.open(path).use { connection ->
+                connection.exec("INSERT INTO sites (title,url,timestamp,siteId,isSuccessful,isBrowser,threshold,isRead,isSyncEnabled,isNotificationEnabled,notes,colors,constraints) VALUES ('Page','https://example.test',123,'page',1,0,0,0,1,1,'notes','0,0','false,false,false,false')")
+                // Pretend this file is the public version 4, then open it with no migration from version 4 registered.
+                connection.exec("PRAGMA user_version = 4")
+            }
+            val failure = runCatching {
+                getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = path), driver, migrations = arrayOf(MIGRATION_1_4)).apply {
+                    try {
+                        siteDao().getSitesList()
+                    } finally {
+                        close()
+                    }
+                }
+            }.exceptionOrNull()
+            assertNotNull("a public schema with no migration path must refuse to open, not start fresh", failure)
+            driver.open(path).use { connection ->
+                assertEquals("the page must still be on disk", "1", connection.queryAll("SELECT count(*) FROM sites").trim())
+                assertEquals("4", connection.queryAll("PRAGMA user_version").trim())
+            }
+        }
+    }
+
     @Test fun versionFiveUpgradeKeepsPagesAndStartsFailureStreaksEmpty() = runBlocking {
         withDatabaseFile { path, driver ->
             val schema = sequenceOf("schemas", "shared/schemas").map { File("$it/com.bernaferrari.changedetection.repo.source.local.ChangeDatabase/5.json") }.first { it.exists() }

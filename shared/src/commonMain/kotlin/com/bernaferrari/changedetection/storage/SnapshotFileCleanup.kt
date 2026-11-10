@@ -54,6 +54,11 @@ class SnapshotFileCleanup(
         }
     }
 
+    /** Import holds this lock before opening its write transaction, in the same order as deletion. */
+    internal suspend fun <T> withRestoreLock(block: suspend () -> T): T = withContext(ioDispatcher) {
+        mutex.withLock { block() }
+    }
+
     /** Orphan discovery must use the same ownership boundary as durable deletion and Undo. */
     suspend fun removeOrphan(id: String): Boolean = withContext(ioDispatcher) {
         mutex.withLock { snaps.getSnapById(id) != null || removeFile(id) }

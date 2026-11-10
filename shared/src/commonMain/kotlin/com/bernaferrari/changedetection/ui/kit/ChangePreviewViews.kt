@@ -492,22 +492,23 @@ internal inline fun <reified T : Any> optional(): T? = KoinPlatformTools.default
  */
 @Composable
 fun CaptureTop(snapId: String, modifier: Modifier, alpha: Float = 1f, decodeWidth: Int = 720) {
-    val bytes by produceState<ByteArray?>(null, snapId) {
-        value = runCatching { optional<com.bernaferrari.changedetection.repo.source.SnapsRepository>()?.getSnapContent(snapId) }.getOrNull()
-    }
     val context = coil3.compose.LocalPlatformContext.current
     Box(modifier.background(androidx.compose.ui.graphics.Color.White)) {
-        bytes?.let { data ->
-            coil3.compose.AsyncImage(
-                model = remember(snapId, decodeWidth) {
-                    coil3.request.ImageRequest.Builder(context).data(data).memoryCacheKey("top-$snapId-$decodeWidth").size(coil3.size.Size(coil3.size.Dimension(decodeWidth), coil3.size.Dimension.Undefined)).build()
-                },
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                alignment = Alignment.TopCenter,
-                alpha = alpha,
-                modifier = Modifier.matchParentSize(),
-            )
-        }
+        coil3.compose.AsyncImage(
+            model = remember(snapId, decodeWidth) {
+                coil3.request.ImageRequest.Builder(context)
+                    .data(SnapshotThumbnail(snapId))
+                    // The loader asks for the file only on a memory-cache miss; a cached thumbnail costs no read.
+                    .fetcherFactory(SnapshotThumbnailFetcher.Factory { id -> optional<SnapsRepository>()?.getSnapContent(id) })
+                    .memoryCacheKey("top-$snapId-$decodeWidth")
+                    .size(coil3.size.Size(coil3.size.Dimension(decodeWidth), coil3.size.Dimension.Undefined))
+                    .build()
+            },
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            alignment = Alignment.TopCenter,
+            alpha = alpha,
+            modifier = Modifier.matchParentSize(),
+        )
     }
 }

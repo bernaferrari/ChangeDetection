@@ -2,17 +2,21 @@
 <!--
   Local-only privacy posture: monitored URLs and snapshot history never leave the
   device via cloud backup. Device transfer is also excluded so the full browsing
-  corpus is not exported over a cable without explicit in-app export.
+  corpus is not exported over a cable without explicit in-app export (Settings, Backup).
+  app_webview holds the in-app browser's cookies and site storage (sign-ins), which
+  live under the data root and are not covered by the database/file/sharedpref domains.
 -->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="database" />
         <exclude domain="file" />
         <exclude domain="sharedpref" />
+        <exclude domain="root" path="app_webview" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="database" />
         <exclude domain="file" />
         <exclude domain="sharedpref" />
+        <exclude domain="root" path="app_webview" />
     </device-transfer>
 </data-extraction-rules>

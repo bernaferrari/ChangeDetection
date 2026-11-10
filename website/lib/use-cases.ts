@@ -28,7 +28,7 @@ export const useCases: UseCase[] = [
     steps: [
       { title: "Open the product page", body: "Type the address or share it from your browser. The page opens in the built-in browser, so cookie banners, regions and logins work like they do in Safari or Chrome." },
       { title: "Pick the price", body: "Tap Parts, tap the price, and widen the selection with the slider if you want the stock line too. Only that part is compared, so a rotating banner never wakes you up." },
-      { title: "Choose how often", body: "Hourly is plenty for most sales. For drops and flash deals, Turbo checks every 30 seconds while the app is open." },
+      { title: "Choose how often", body: "Hourly is plenty for most sales. For drops and flash deals, Turbo checks the pages you pick every 5 to 60 seconds for up to three hours." },
     ],
     tips: [
       "Watching only the price (and maybe the stock line) keeps alerts quiet when recommendations or reviews change.",
@@ -46,21 +46,21 @@ export const useCases: UseCase[] = [
     title: "Restock alerts: know when it's back in stock",
     h1: "Back in stock? You'll know first",
     description:
-      "Watch a sold-out product page and get notified when \"Sold out\" turns into \"Add to bag\". Works on any store, checks as often as every 30 seconds with Turbo.",
+      "Watch a sold-out product page and get notified when \"Sold out\" turns into \"Add to bag\". Works on any store, and checks as often as every 5 seconds with Turbo.",
     intro:
       "Sold-out pages change in small ways when stock returns: a button label, a delivery estimate, a size that is no longer greyed out. Change Detection compares the part you pick and tells you exactly which words or pixels changed.",
     example: { label: "Availability", before: "Sold out · notify me", after: "In stock · free delivery", context: "Size M · shop.example" },
     steps: [
       { title: "Open the sold-out page", body: "Choose the exact size or colour first, so the page you watch is the one you want to buy." },
       { title: "Pick the buy button or the availability line", body: "That keeps the alert focused on stock, not on price tweaks or new photos." },
-      { title: "Turn on Turbo for drops", body: "For limited releases, Turbo checks every 30 seconds while the app is open and shows a countdown to the next check." },
+      { title: "Turn on Turbo for drops", body: "For limited releases, Turbo checks every 5 to 60 seconds for up to three hours and shows a countdown to the next check. On Android it keeps going after you leave the app." },
     ],
     tips: [
       "Screenshot mode is the safest choice for buttons that change colour or icon rather than text.",
       "If the store needs you to be signed in to see stock, sign in once in the built-in browser; checks reuse that session.",
     ],
     faqs: [
-      { q: "How fast are restock alerts?", a: "Background checks follow the schedule you choose (hourly by default). With Turbo, pages are checked every 30 seconds while the app is open." },
+      { q: "How fast are restock alerts?", a: "Background checks follow the schedule you choose (hourly by default). With Turbo, the pages you pick are checked every 5 to 60 seconds for up to three hours." },
       { q: "Can I watch pages that require a login?", a: "Yes. Sign in once in the app's browser; later checks reuse that session from your device." },
     ],
     screen: screens.turbo,
@@ -100,7 +100,7 @@ export const useCases: UseCase[] = [
     steps: [
       { title: "Open the status page", body: "If it needs a login, sign in in the app's browser; checks reuse the session." },
       { title: "Pick the status message", body: "Ignore the clock, the news ticker and anything else that changes every minute." },
-      { title: "Use Turbo on the day", body: "Turbo keeps checking every 30 seconds while the app is open, with a countdown to the next check." },
+      { title: "Use Turbo on the day", body: "Turbo keeps checking every 5 to 60 seconds for up to three hours, with a countdown to the next check." },
     ],
     tips: ["If the site is overloaded and fails, the page shows a clear \"can't be checked\" state instead of a false alarm."],
     faqs: [

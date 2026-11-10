@@ -108,8 +108,8 @@ Thumbs.db
 # Kotlin
 .kotlin/
 
-# Gradle properties (may contain secrets)
-gradle.properties
+# gradle.properties is tracked on purpose: build settings only. Secrets live outside the repo
+# (see "Good to know" in docs/DEVELOPMENT.md) or in local.properties, which is ignored.
 
 # Backup files
 *~
@@ -134,3 +134,6 @@ kotlin-js-store/wasm/*
 
 # Disposable untrusted TLS fixture for Android device tests; never a signing key.
 !/shared/src/androidDeviceTest/assets/tls-fixture.p12
+
+# Per-user Xcode state. Schemes that everyone needs live in xcshareddata/.
+xcuserdata/

@@ -47,6 +47,8 @@ cd ChangeDetection
 
 ## Before you push
 
+`tools/verify.sh full` runs everything below except the device tests; `tools/verify.sh` runs the first line only.
+
 ```bash
 ./gradlew :shared:spotlessCheck :shared:testAndroidHostTest :shared:desktopTest
 ./gradlew :shared:compileKotlinIosSimulatorArm64 :androidApp:lintDebug :androidApp:assembleRelease
@@ -83,3 +85,4 @@ Screenshot Studio comes from the `screenshot-studio` package (`npx screenshot-st
 - Play publishing is off unless `-PplayPublishing=true` and `CHANGEDETECTION_PLAY_CREDENTIALS` points at a service-account JSON outside the repo. It uploads to the internal track as a draft.
 - Device tests and captures change emulator settings and install a test app. Use a disposable emulator.
 - `shared/src/androidDeviceTest/assets/tls-fixture.p12` is a throwaway TLS fixture for tests, not a signing key.
+- Working rules for contributors and coding agents (tests, strings, privacy, commit style) are in [AGENTS.md](../AGENTS.md).

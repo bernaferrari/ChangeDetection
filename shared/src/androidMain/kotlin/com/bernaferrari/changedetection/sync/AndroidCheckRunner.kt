@@ -44,7 +44,7 @@ class AndroidCheckRunner(
                     }
                 } catch (timeout: TimeoutCancellationException) {
                     currentCoroutineContext().ensureActive()
-                    engine.processFetchResult(site, SyncEngine.FetchResult.Error("Page check timed out", timeout), site.threshold)
+                    engine.recordTimeout(site, timeout)
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (error: Exception) {

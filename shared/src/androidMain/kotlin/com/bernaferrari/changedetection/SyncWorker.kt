@@ -170,18 +170,22 @@ class SyncWorker(
     }
 
     /** Includes time queued behind manual/Turbo checks, not only time inside a browser. */
-    private suspend fun boundedCheck(site: com.bernaferrari.changedetection.repo.Site, foreground: Boolean, completed: Int, total: Int): SyncResult = try {
-        withTimeout(90_000) {
-            checkAfterForeground(prepare = {
-                if (foreground) setForeground(createForegroundInfo(pageName = site.title?.takeIf { it.isNotBlank() } ?: site.url, completed = completed, total = total))
-            }, check = { checkRunner.check(site.id) }, denied = { error ->
-                com.bernaferrari.changedetection.diagnostics.DiagnosticLog.appEvent(com.bernaferrari.changedetection.diagnostics.AppEventKind.BACKGROUND_FAILURE, error, stage = com.bernaferrari.changedetection.diagnostics.AppEventStage.WORKER_FOREGROUND)
-                syncEngine.processFetchResult(site, SyncEngine.FetchResult.Error("Background check could not start", error), site.threshold)
-            })
+    private suspend fun boundedCheck(site: com.bernaferrari.changedetection.repo.Site, foreground: Boolean, completed: Int, total: Int): SyncResult {
+        // The batch list can be minutes old. A timeout is only real if the status has not moved since this attempt began.
+        val startedFrom = sitesRepository.getSiteById(site.id) ?: return SyncResult.Skipped(site.id, "Page deleted")
+        return try {
+            withTimeout(90_000) {
+                checkAfterForeground(prepare = {
+                    if (foreground) setForeground(createForegroundInfo(pageName = site.title?.takeIf { it.isNotBlank() } ?: site.url, completed = completed, total = total))
+                }, check = { checkRunner.check(site.id) }, denied = { error ->
+                    com.bernaferrari.changedetection.diagnostics.DiagnosticLog.appEvent(com.bernaferrari.changedetection.diagnostics.AppEventKind.BACKGROUND_FAILURE, error, stage = com.bernaferrari.changedetection.diagnostics.AppEventStage.WORKER_FOREGROUND)
+                    syncEngine.processFetchResult(site, SyncEngine.FetchResult.Error("Background check could not start", error), site.threshold)
+                })
+            }
+        } catch (timeout: TimeoutCancellationException) {
+            currentCoroutineContext().ensureActive()
+            syncEngine.recordTimeout(startedFrom, timeout)
         }
-    } catch (timeout: TimeoutCancellationException) {
-        currentCoroutineContext().ensureActive()
-        syncEngine.processFetchResult(site, SyncEngine.FetchResult.Error("Page check timed out", timeout), site.threshold)
     }
 
     private fun SyncResult.toWorkResult(): Result = when (this) {

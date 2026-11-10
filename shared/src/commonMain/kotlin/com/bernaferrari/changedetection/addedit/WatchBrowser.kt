@@ -30,6 +30,8 @@ import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.*
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,6 +52,7 @@ import com.multiplatform.webview.jsbridge.rememberWebViewJsBridge
 import com.multiplatform.webview.web.LoadingState
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.WebViewNavigator
+import com.multiplatform.webview.web.WebContent
 import com.multiplatform.webview.web.rememberWebViewNavigator
 import com.multiplatform.webview.web.rememberWebViewState
 import kotlinx.serialization.Serializable
@@ -116,8 +119,11 @@ internal fun WatchBrowser(
         // Match fresh browser captures; transparent page CSS uses the normal white browser canvas.
         webSettings.backgroundColor = androidx.compose.ui.graphics.Color.White
     }
-    val navigator = rememberWebViewNavigator()
-    val bridge = rememberWebViewJsBridge(navigator)
+    var browserGeneration by remember { mutableIntStateOf(0) }
+    val rendererGone = state.errorsForCurrentRequest.any { it.code == com.bernaferrari.changedetection.browser.BROWSER_RENDERER_GONE }
+    val navigator = key(browserGeneration) { rememberWebViewNavigator() }
+    // Removing a WebView clears its bridge handlers. Give the replacement its own bridge.
+    val bridge = key(browserGeneration) { rememberWebViewJsBridge(navigator) }
     var picking by remember { mutableStateOf(false) }
     var current by remember { mutableStateOf<PickedPart?>(null) }
     var editingAddress by remember { mutableStateOf(false) }
@@ -128,6 +134,12 @@ internal fun WatchBrowser(
     var liveUrl by remember(startUrl) { mutableStateOf(startUrl) }
     var resolvingWatch by remember { mutableStateOf(false) }
     var watchFailed by remember { mutableStateOf(false) }
+
+    fun restartBrowser(url: String) {
+        state.content = WebContent.Url(url)
+        state.errorsForCurrentRequest.removeAll { it.code == com.bernaferrari.changedetection.browser.BROWSER_RENDERER_GONE }
+        browserGeneration++
+    }
 
     fun watchLivePage() {
         if (resolvingWatch || state.loadingState !is LoadingState.Finished || state.errorsForCurrentRequest.any { it.isFromMainFrame }) return
@@ -177,7 +189,7 @@ internal fun WatchBrowser(
     com.bernaferrari.changedetection.util.BackHandler {
         when {
             picking -> picking = false
-            navigator.canGoBack -> navigator.navigateBack()
+            !rendererGone && navigator.canGoBack -> navigator.navigateBack()
             else -> onClose()
         }
     }
@@ -211,10 +223,10 @@ internal fun WatchBrowser(
                         // A tight pair, like a browser's: each button is half of one 72×48 target, so the arrows sit together.
                         Row(Modifier.padding(horizontal = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                             CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
-                                IconButton(onClick = { navigator.navigateBack() }, enabled = navigator.canGoBack, modifier = Modifier.size(width = 36.dp, height = 48.dp)) {
+                                IconButton(onClick = { navigator.navigateBack() }, enabled = !rendererGone && navigator.canGoBack, modifier = Modifier.size(width = 36.dp, height = 48.dp)) {
                                     Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(Res.string.a11y_navigate_back), Modifier.size(20.dp))
                                 }
-                                IconButton(onClick = { navigator.navigateForward() }, enabled = navigator.canGoForward, modifier = Modifier.size(width = 36.dp, height = 48.dp)) {
+                                IconButton(onClick = { navigator.navigateForward() }, enabled = !rendererGone && navigator.canGoForward, modifier = Modifier.size(width = 36.dp, height = 48.dp)) {
                                     Icon(Icons.AutoMirrored.Rounded.ArrowForward, stringResource(Res.string.browser_forward), Modifier.size(20.dp))
                                 }
                             }
@@ -226,9 +238,9 @@ internal fun WatchBrowser(
                         onEdit = { editingAddress = it },
                         onGo = { typed ->
                             editingAddress = false
-                            typed.normalizeUrl()?.let { navigator.loadUrl(it) }
+                            typed.normalizeUrl()?.let { if (rendererGone) restartBrowser(it) else navigator.loadUrl(it) }
                         },
-                        onReload = { navigator.reload() },
+                        onReload = { if (rendererGone) restartBrowser(liveUrl) else navigator.reload() },
                         modifier = Modifier.weight(1f).padding(start = 8.dp, end = 8.dp),
                     )
                 }
@@ -249,7 +261,11 @@ internal fun WatchBrowser(
         ) { padding ->
             Box(Modifier.fillMaxSize().padding(padding)) {
                 BrowserRuntimeHost(Modifier.fillMaxSize()) {
-                    WebView(state = state, modifier = Modifier.fillMaxSize().testTag("watch-browser-content").then(com.bernaferrari.changedetection.browser.watchCaptureViewportModifier()), navigator = navigator, webViewJsBridge = bridge, onCreated = { _ -> }, factory = ::createWatchWebView, platformWebViewParams = com.bernaferrari.changedetection.browser.rememberBrowserPlatformParams())
+                    if (!rendererGone) {
+                        key(browserGeneration) {
+                            WebView(state = state, modifier = Modifier.fillMaxSize().testTag("watch-browser-content").then(com.bernaferrari.changedetection.browser.watchCaptureViewportModifier()), navigator = navigator, webViewJsBridge = bridge, onCreated = { _ -> }, factory = ::createWatchWebView, platformWebViewParams = com.bernaferrari.changedetection.browser.rememberBrowserPlatformParams())
+                        }
+                    }
                 }
                 if (loadFailed) {
                     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
@@ -258,7 +274,7 @@ internal fun WatchBrowser(
                             title = stringResource(Res.string.local_browser_error_title),
                             description = stringResource(Res.string.browser_load_error_body),
                             primaryActionLabel = stringResource(Res.string.retry),
-                            onPrimaryAction = { navigator.reload() },
+                            onPrimaryAction = { if (rendererGone) restartBrowser(liveUrl) else navigator.reload() },
                         )
                     }
                 }

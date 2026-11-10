@@ -796,4 +796,26 @@
     <string name="recovery_text_title">Text funktioniert für diese Seite</string>
     <string name="recovery_text_body">Der Text der Seite wurde ohne Probleme geladen. Wechsle, und künftige Prüfungen vergleichen den Text. Deine gespeicherten Versionen bleiben erhalten.</string>
     <string name="recovery_text_switch">Zu Text wechseln</string>
+    <string name="site_sessions_title">Gespeicherte Anmeldungen</string>
+    <string name="site_sessions_body">Cookies und Websitedaten des In-App-Browsers</string>
+    <string name="site_sessions_clear_title">Von allen Websites abmelden?</string>
+    <string name="site_sessions_clear_body">Cookies und Websitedaten, die der In-App-Browser gespeichert hat, werden von diesem Gerät gelöscht. Seiten, die eine Anmeldung erfordern, laden erst wieder richtig, wenn du dich erneut anmeldest.</string>
+    <string name="site_sessions_clear_confirm">Abmelden</string>
+    <string name="site_sessions_cleared">Von allen Websites abgemeldet</string>
+    <string name="backup_title">Sicherung</string>
+    <string name="backup_supporting">Speichere deine Seiten in einer Datei oder stelle sie wieder her</string>
+    <string name="backup_save_pages">Seiten und Einstellungen speichern</string>
+    <string name="backup_save_pages_body">Eine kleine Datei. Gespeicherte Versionen sind nicht enthalten.</string>
+    <string name="backup_save_everything">Alles speichern</string>
+    <string name="backup_save_everything_body">Enthält alle gespeicherten Versionen. Die Datei kann groß werden.</string>
+    <string name="backup_restore">Aus einer Datei wiederherstellen</string>
+    <string name="backup_restore_body">Fügt die Seiten hinzu, die hier noch fehlen. Auf diesem Gerät wird nichts geändert.</string>
+    <string name="backup_restore_settings">Auch die App-Einstellungen wiederherstellen</string>
+    <string name="backup_privacy_note">Die Datei ist nicht verschlüsselt und enthält die Seiten, die du beobachtest. Anmeldungen sind nie enthalten.</string>
+    <string name="backup_working">Wird ausgeführt…</string>
+    <string name="backup_saved">Sicherung gespeichert. Seiten: %1$d · Versionen: %2$d</string>
+    <string name="backup_restored">Hinzugefügte Seiten: %1$d · Bereits vorhanden: %2$d · Versionen: %3$d</string>
+    <string name="backup_failed">Die Sicherung konnte nicht gespeichert werden. Prüfe den freien Speicher und versuche es erneut.</string>
+    <string name="backup_invalid">Diese Datei ist keine Sicherung von Change Detection.</string>
+    <string name="backup_too_new">Diese Sicherung stammt von einer neueren Version. Aktualisiere die App und versuche es erneut.</string>
 </resources>
