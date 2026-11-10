@@ -33,7 +33,7 @@ Status is one of `TODO`, `IN PROGRESS`, `DONE`, `BLOCKED`, `REJECTED`.
 | 013 | [Make the privacy policy and the licence list match what the app ships](013-privacy-policy-and-licence-notices.md) | P3, compliance | S | reads better after 004, 007, 016 | DONE |
 | 014 | [Fix two git-ignore traps and add a root guide for contributors and coding agents](014-repo-hygiene-and-agent-guide.md) | P3, hygiene | S | | DONE |
 | 015 | [Build the backup engine: pages, settings and (optionally) saved versions](015-backup-core.md) | Direction | M to L | | DONE |
-| 016 | [Add "Backup" to Settings on Android](016-backup-ui.md) | Direction | M | 015 | IN PROGRESS |
+| 016 | [Add "Backup" to Settings on Android](016-backup-ui.md) | Direction | M | 015 | DONE |
 | 017 | [Spike: can the app read "the number" on a page well enough to alert on a condition?](017-numeric-conditions-spike.md) | Direction | S, time-boxed | | DONE |
 
 ### Ordering rules
@@ -49,6 +49,8 @@ Plan 017 found that explicit number selection is viable for a narrow watched reg
 Plan 012's counts and sample matches are in [Translation checks](../docs/research/translation-checks.md).
 
 The optional unused DAO query cleanup in Plan 009 was skipped. Plan 004 verified the backup rules and observed the WebView data directory on an emulator. Actual device-to-device transfer was outside the verification run.
+
+Plan 016 was exercised through the Android 16 system file picker with two fixture pages and three saved versions. Both exports were inspected. The walkthrough covered repeat ZIP restore, restoring a deleted page and its two versions, rejecting an unrelated JSON file, restoring pages and settings after clearing app data, and rotation before and after an action.
 
 ## Backup, in one paragraph
 
