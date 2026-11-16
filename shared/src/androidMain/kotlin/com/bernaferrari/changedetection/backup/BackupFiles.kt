@@ -59,6 +59,16 @@ internal class BackupFiles(
         BackupProgress.Saved(output.use { write(it) })
     }
 
+    suspend fun preview(from: Uri): RestorePreview = withContext(Dispatchers.IO) {
+        val input = context.contentResolver.openInputStream(from) ?: throw IOException("Cannot open the chosen file")
+        input.use {
+            when (val source = openBackup(it)) {
+                is ZipBackupSource -> source.use { service.preview(it) }
+                else -> service.preview(source)
+            }
+        }
+    }
+
     fun restore(from: Uri, restoreSettings: Boolean) = run(failure = BackupProgress.NotABackup) {
         val input = context.contentResolver.openInputStream(from) ?: throw IOException("Cannot open the chosen file")
         val summary = input.use {

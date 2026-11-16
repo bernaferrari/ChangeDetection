@@ -818,4 +818,13 @@
     <string name="backup_failed">बैकअप सेव नहीं हो सका। खाली जगह जाँचें और फिर कोशिश करें।</string>
     <string name="backup_invalid">यह फ़ाइल Change Detection का बैकअप नहीं है।</string>
     <string name="backup_too_new">यह बैकअप ऐप के नए वर्शन से बना है। ऐप अपडेट करें और फिर कोशिश करें।</string>
+    <string name="backup_create">बैकअप बनाएं</string>
+    <string name="backup_include_versions">सहेजे गए संस्करण शामिल करें</string>
+    <string name="backup_saved_confirmation">बैकअप सहेजा गया</string>
+    <string name="backup_pages_to_add">जोड़े जाने वाले पेज</string>
+    <string name="backup_pages_here">इस डिवाइस पर मौजूद</string>
+    <string name="backup_versions_to_add">जोड़े जाने वाले संस्करण</string>
+    <string name="backup_pages_added">जोड़े गए पेज</string>
+    <string name="backup_already_here">पहले से मौजूद</string>
+    <string name="backup_restore_complete">रीस्टोर पूरा हुआ</string>
 </resources>

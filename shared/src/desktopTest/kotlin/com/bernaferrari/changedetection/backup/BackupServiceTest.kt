@@ -135,6 +135,27 @@ class BackupServiceTest {
         }
     }
 
+    @Test fun previewShowsNewAndExistingPagesAndOnlyAvailableVersionsWithoutChangingData() = runBlocking {
+        Device("old").use { old ->
+            Device("new").use { new ->
+                old.watch("existing", "https://example.test/existing", "Old")
+                old.watch("new", "https://example.test/new", "First", "Second")
+                new.watch("existing", "https://example.test/existing", "Local")
+                val missing = old.versions("new").first()
+                old.files.deleteFile(missing.snapId)
+                val archive = MemoryArchive().also { old.service.exportEverything(it, "3.2") }
+
+                val preview = new.service.preview(archive.source())
+
+                assertEquals(listOf("new"), preview.pagesToAdd.map { it.id })
+                assertEquals(listOf("existing"), preview.pagesAlreadyHere.map { it.id })
+                assertEquals(1, preview.versionsToAdd)
+                assertNull(new.db.siteDao().getSiteById("new"))
+                assertEquals(1, new.versions("existing").size)
+            }
+        }
+    }
+
     @Test fun aPagesBackupAddsPagesThatStartFresh() = runBlocking {
         Device("old").use { old ->
             Device("new").use { new ->

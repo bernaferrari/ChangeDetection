@@ -818,4 +818,13 @@
     <string name="backup_failed">Die Sicherung konnte nicht gespeichert werden. Prüfe den freien Speicher und versuche es erneut.</string>
     <string name="backup_invalid">Diese Datei ist keine Sicherung von Change Detection.</string>
     <string name="backup_too_new">Diese Sicherung stammt von einer neueren Version. Aktualisiere die App und versuche es erneut.</string>
+    <string name="backup_create">Sicherung erstellen</string>
+    <string name="backup_include_versions">Gespeicherte Versionen einschließen</string>
+    <string name="backup_saved_confirmation">Sicherung gespeichert</string>
+    <string name="backup_pages_to_add">Hinzuzufügende Seiten</string>
+    <string name="backup_pages_here">Bereits auf diesem Gerät</string>
+    <string name="backup_versions_to_add">Hinzuzufügende Versionen</string>
+    <string name="backup_pages_added">Seiten hinzugefügt</string>
+    <string name="backup_already_here">Bereits vorhanden</string>
+    <string name="backup_restore_complete">Wiederherstellung abgeschlossen</string>
 </resources>

@@ -788,4 +788,13 @@
     <string name="backup_failed">Cadangan tidak dapat disimpan. Periksa ruang kosong lalu coba lagi.</string>
     <string name="backup_invalid">File ini bukan cadangan Change Detection.</string>
     <string name="backup_too_new">Cadangan ini dibuat oleh versi yang lebih baru. Perbarui aplikasi lalu coba lagi.</string>
+    <string name="backup_create">Buat cadangan</string>
+    <string name="backup_include_versions">Sertakan versi tersimpan</string>
+    <string name="backup_saved_confirmation">Cadangan disimpan</string>
+    <string name="backup_pages_to_add">Halaman untuk ditambahkan</string>
+    <string name="backup_pages_here">Sudah ada di perangkat ini</string>
+    <string name="backup_versions_to_add">Versi untuk ditambahkan</string>
+    <string name="backup_pages_added">Halaman ditambahkan</string>
+    <string name="backup_already_here">Sudah ada</string>
+    <string name="backup_restore_complete">Pemulihan selesai</string>
 </resources>

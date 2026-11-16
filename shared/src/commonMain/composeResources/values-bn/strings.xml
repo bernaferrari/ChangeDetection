@@ -818,4 +818,13 @@
     <string name="backup_failed">ব্যাকআপ সেভ করা যায়নি। খালি জায়গা দেখে আবার চেষ্টা করুন।</string>
     <string name="backup_invalid">এই ফাইলটি Change Detection-এর ব্যাকআপ নয়।</string>
     <string name="backup_too_new">এই ব্যাকআপটি অ্যাপের নতুন সংস্করণে তৈরি। অ্যাপ আপডেট করে আবার চেষ্টা করুন।</string>
+    <string name="backup_create">ব্যাকআপ তৈরি করুন</string>
+    <string name="backup_include_versions">সংরক্ষিত সংস্করণ অন্তর্ভুক্ত করুন</string>
+    <string name="backup_saved_confirmation">ব্যাকআপ সংরক্ষিত</string>
+    <string name="backup_pages_to_add">যোগ করার পৃষ্ঠা</string>
+    <string name="backup_pages_here">এই ডিভাইসে আছে</string>
+    <string name="backup_versions_to_add">যোগ করার সংস্করণ</string>
+    <string name="backup_pages_added">যোগ করা পৃষ্ঠা</string>
+    <string name="backup_already_here">আগে থেকেই আছে</string>
+    <string name="backup_restore_complete">ফিরিয়ে আনা সম্পূর্ণ</string>
 </resources>

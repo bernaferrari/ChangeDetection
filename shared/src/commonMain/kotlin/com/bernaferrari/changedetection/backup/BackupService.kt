@@ -61,6 +61,34 @@ class BackupService(
         check(it.size <= MAX_MANIFEST_BYTES) { "Backup manifest is too large" }
     }
 
+    /** Inspect the file and current database without changing either; import checks everything again. */
+    suspend fun preview(source: BackupSource): RestorePreview = withContext(fileIoDispatcher) {
+        val manifest = readManifest(source)
+        val usable = manifest.sites.distinctBy { it.id }.filter { it.id.isNotBlank() && it.id.length <= MAX_ID_LENGTH && it.url.isValidUrl() }
+        val added = mutableListOf<Site>()
+        val existing = mutableListOf<Site>()
+        for (site in usable) {
+            if (sitesDao.getSiteById(site.id) == null) added += site else existing += site
+        }
+        val addedIds = added.map { it.id }.toSet()
+        val versions = manifest.snaps.filter { SNAP_ID.matches(it.snapId) && it.contentSize in 1..MAX_SNAPSHOT_BYTES }.associateBy { it.snapId }
+        val seen = HashSet<String>()
+        var count = 0
+        while (true) {
+            currentCoroutineContext().ensureActive()
+            val name = source.nextName() ?: break
+            val snap = name.takeIf { it.startsWith(SNAPSHOT_PREFIX) }?.let { versions[it.removePrefix(SNAPSHOT_PREFIX)] }
+                ?: throw InvalidBackupException("Unexpected entry")
+            if (!seen.add(name)) throw InvalidBackupException("Duplicate entry")
+            val bytes = source.readCurrent(snap.contentSize) ?: throw InvalidBackupException("Entry larger than declared")
+            if (snap.siteId !in addedIds || bytes.size != snap.contentSize) continue
+            if (snap.payloadHash.isNotEmpty() && ContentHasher.hashContent(bytes) != snap.payloadHash) continue
+            if (snapsDao.getSnapById(snap.snapId) != null) continue
+            count++
+        }
+        RestorePreview(added, existing, count)
+    }
+
     /**
      * Adds the pages of a backup that are not on this device yet, with their versions when the backup has them.
      * Nothing already here is changed. A file that is not a well-formed backup is refused and leaves no trace.

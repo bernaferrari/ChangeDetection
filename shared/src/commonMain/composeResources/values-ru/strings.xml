@@ -884,4 +884,13 @@
     <string name="backup_failed">Не удалось сохранить копию. Проверьте свободное место и повторите попытку.</string>
     <string name="backup_invalid">Этот файл не является резервной копией Change Detection.</string>
     <string name="backup_too_new">Эта копия создана в более новой версии. Обновите приложение и повторите попытку.</string>
+    <string name="backup_create">Создать резервную копию</string>
+    <string name="backup_include_versions">Включить сохранённые версии</string>
+    <string name="backup_saved_confirmation">Резервная копия сохранена</string>
+    <string name="backup_pages_to_add">Страницы для добавления</string>
+    <string name="backup_pages_here">Уже на этом устройстве</string>
+    <string name="backup_versions_to_add">Версии для добавления</string>
+    <string name="backup_pages_added">Добавлено страниц</string>
+    <string name="backup_already_here">Уже есть</string>
+    <string name="backup_restore_complete">Восстановление завершено</string>
 </resources>

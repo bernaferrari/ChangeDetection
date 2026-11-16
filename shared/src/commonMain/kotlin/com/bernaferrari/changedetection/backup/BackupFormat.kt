@@ -65,4 +65,6 @@ class BackupTooNewException : Exception("Backup made by a newer app version")
 
 data class BackupSummary(val pages: Int, val versions: Int)
 
+data class RestorePreview(val pagesToAdd: List<Site>, val pagesAlreadyHere: List<Site>, val versionsToAdd: Int)
+
 data class ImportSummary(val pagesAdded: Int, val pagesAlreadyHere: Int, val pagesRejected: Int, val versionsAdded: Int, val settingsRestored: Boolean)

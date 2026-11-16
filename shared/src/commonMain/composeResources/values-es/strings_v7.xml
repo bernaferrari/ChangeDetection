@@ -130,4 +130,13 @@
     <string name="backup_failed">No se pudo guardar la copia. Comprueba el espacio libre e inténtalo de nuevo.</string>
     <string name="backup_invalid">Este archivo no es una copia de seguridad de Change Detection.</string>
     <string name="backup_too_new">Esta copia se creó con una versión más reciente. Actualiza la app e inténtalo de nuevo.</string>
+    <string name="backup_create">Crear copia de seguridad</string>
+    <string name="backup_include_versions">Incluir versiones guardadas</string>
+    <string name="backup_saved_confirmation">Copia de seguridad guardada</string>
+    <string name="backup_pages_to_add">Páginas para añadir</string>
+    <string name="backup_pages_here">Ya están en este dispositivo</string>
+    <string name="backup_versions_to_add">Versiones para añadir</string>
+    <string name="backup_pages_added">Páginas añadidas</string>
+    <string name="backup_already_here">Ya estaban aquí</string>
+    <string name="backup_restore_complete">Restauración completada</string>
 </resources>

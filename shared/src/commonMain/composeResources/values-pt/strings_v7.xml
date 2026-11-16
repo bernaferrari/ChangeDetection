@@ -130,4 +130,13 @@
     <string name="backup_failed">Não foi possível salvar o backup. Verifique o espaço livre e tente de novo.</string>
     <string name="backup_invalid">Este arquivo não é um backup do Change Detection.</string>
     <string name="backup_too_new">Este backup foi feito por uma versão mais nova. Atualize o app e tente de novo.</string>
+    <string name="backup_create">Criar backup</string>
+    <string name="backup_include_versions">Incluir versões salvas</string>
+    <string name="backup_saved_confirmation">Backup salvo</string>
+    <string name="backup_pages_to_add">Páginas para adicionar</string>
+    <string name="backup_pages_here">Já estão neste dispositivo</string>
+    <string name="backup_versions_to_add">Versões para adicionar</string>
+    <string name="backup_pages_added">Páginas adicionadas</string>
+    <string name="backup_already_here">Já estavam aqui</string>
+    <string name="backup_restore_complete">Restauração concluída</string>
 </resources>

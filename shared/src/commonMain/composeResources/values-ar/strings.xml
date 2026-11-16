@@ -948,4 +948,13 @@
     <string name="backup_failed">تعذّر حفظ النسخة الاحتياطية. تحقق من المساحة المتاحة ثم حاول مرة أخرى.</string>
     <string name="backup_invalid">هذا الملف ليس نسخة احتياطية من Change Detection.</string>
     <string name="backup_too_new">أُنشئت هذه النسخة بإصدار أحدث. حدّث التطبيق ثم حاول مرة أخرى.</string>
+    <string name="backup_create">إنشاء نسخة احتياطية</string>
+    <string name="backup_include_versions">تضمين النسخ المحفوظة</string>
+    <string name="backup_saved_confirmation">تم حفظ النسخة الاحتياطية</string>
+    <string name="backup_pages_to_add">الصفحات المراد إضافتها</string>
+    <string name="backup_pages_here">موجودة على هذا الجهاز</string>
+    <string name="backup_versions_to_add">النسخ المراد إضافتها</string>
+    <string name="backup_pages_added">الصفحات المضافة</string>
+    <string name="backup_already_here">موجودة بالفعل</string>
+    <string name="backup_restore_complete">اكتملت الاستعادة</string>
 </resources>

@@ -788,4 +788,13 @@
     <string name="backup_failed">无法保存文件。请检查可用空间后重试。</string>
     <string name="backup_invalid">此文件不是由 Change Detection 保存的。</string>
     <string name="backup_too_new">此文件来自更新版本的应用。请更新应用后重试。</string>
+    <string name="backup_create">保存文件</string>
+    <string name="backup_include_versions">包含保存的版本</string>
+    <string name="backup_saved_confirmation">文件已保存</string>
+    <string name="backup_pages_to_add">要添加的页面</string>
+    <string name="backup_pages_here">已在此设备上</string>
+    <string name="backup_versions_to_add">要添加的版本</string>
+    <string name="backup_pages_added">已添加页面</string>
+    <string name="backup_already_here">已有页面</string>
+    <string name="backup_restore_complete">恢复完成</string>
 </resources>

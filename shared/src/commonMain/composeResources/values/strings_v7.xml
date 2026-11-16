@@ -130,4 +130,13 @@
     <string name="backup_failed">The backup could not be saved. Check the free space and try again.</string>
     <string name="backup_invalid">This file is not a Change Detection backup.</string>
     <string name="backup_too_new">This backup was made by a newer version. Update the app and try again.</string>
+    <string name="backup_create">Create backup</string>
+    <string name="backup_include_versions">Include saved versions</string>
+    <string name="backup_saved_confirmation">Backup saved</string>
+    <string name="backup_pages_to_add">Pages to add</string>
+    <string name="backup_pages_here">Already on this device</string>
+    <string name="backup_versions_to_add">Versions to add</string>
+    <string name="backup_pages_added">Pages added</string>
+    <string name="backup_already_here">Already here</string>
+    <string name="backup_restore_complete">Restore complete</string>
 </resources>
