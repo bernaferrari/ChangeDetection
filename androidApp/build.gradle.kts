@@ -57,7 +57,7 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = 48
-        versionName = "3.2"
+        versionName = "3.3"
         val diagnosticRevision = providers.exec {
             workingDir(rootProject.projectDir)
             commandLine("git", "rev-parse", "--short=12", "HEAD")
