@@ -4,7 +4,6 @@ androidGradlePlugin = "9.4.1"
 androidx-test = "1.7.0"
 browser = "1.10.0"
 coil = "3.6.3"
-composeBom = "2026.09.00"
 coroutines = "1.11.0"
 datastore = "1.3.0"
 glance = "1.2.0"
@@ -14,9 +13,9 @@ jetbrainsAndroidxLifecycle = "2.11.0"
 jetbrainsAndroidxNavigation3Ui = "1.2.0"
 jetbrainsAndroidxSavedState = "1.4.0"
 jetbrainsAndroidxWindow = "1.5.1"
-jetbrainsCompose = "1.13.0-beta01"
-jetbrainsMaterial3 = "1.13.0-beta01"
-jetbrainsComposeAdaptive = "1.3.0"
+jetbrainsCompose = "1.13.0-rc01"
+jetbrainsMaterial3 = "1.13.0-rc01"
+jetbrainsComposeAdaptive = "1.4.0-alpha01"
 junit = "4.13.2"
 koin = "4.2.2"
 koinCompiler = "1.2.1"
@@ -38,7 +37,7 @@ paging = "3.5.3"
 paletteKtx = "1.1.0"
 playPublisher = "4.1.1"
 room = "3.0.3"
-skiko = "0.156.0"
+skiko = "0.156.1"
 spotless = "8.10.4"
 sqlite = "2.7.1"
 startup = "1.2.0"
@@ -49,10 +48,6 @@ work = "2.12.0"
 kmpwright-core = "io.github.bernaferrari:kmpwright-core:0.0.2"
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
-androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
-androidx-compose-material3-window-size = { module = "androidx.compose.material3:material3-window-size-class" }
-androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
-androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "ktx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 androidx-datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore" }
@@ -91,6 +86,7 @@ jetbrains-compose-material3-adaptive-navigation-suite = { module = "org.jetbrain
 jetbrains-compose-material3-adaptive-navigation3 = { module = "org.jetbrains.compose.material3.adaptive:adaptive-navigation3", version.ref = "jetbrainsComposeAdaptive" }
 jetbrains-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "jetbrainsCompose" }
 jetbrains-compose-ui-test-junit4 = { module = "org.jetbrains.compose.ui:ui-test-junit4", version.ref = "jetbrainsCompose" }
+jetbrains-compose-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "jetbrainsCompose" }
 jetbrains-compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "jetbrainsCompose" }
 # Additional migrated dependencies
 junit = { module = "junit:junit", version.ref = "junit" }

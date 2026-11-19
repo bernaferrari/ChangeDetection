@@ -116,7 +116,6 @@ android {
 dependencies {
     implementation(platform(libs.koin.bom))
     implementation(project(":shared"))
-    implementation(platform(libs.androidx.compose.bom))
 
     // Koin for dependency injection
     implementation(libs.koin.android)

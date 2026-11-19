@@ -111,7 +111,6 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(libs.kmpwright.core)
-            implementation(project.dependencies.platform(libs.androidx.compose.bom))
             implementation(libs.koin.android)
             implementation(libs.koin.compose)
             implementation(libs.koin.workmanager)
@@ -124,7 +123,7 @@ kotlin {
             implementation(libs.androidx.core.ktx)
             implementation(libs.androidx.startup)
 
-            implementation(libs.androidx.compose.ui.tooling.preview)
+            implementation(libs.jetbrains.compose.ui.tooling.preview)
 
             implementation(libs.androidx.datastore.preferences)
             implementation(libs.sqlite.bundled)
@@ -176,7 +175,7 @@ kotlin {
             kotlin.srcDir("src/androidInstrumentedTest/kotlin")
             dependencies {
                 implementation(libs.androidx.test.core)
-                implementation(libs.androidx.compose.ui.test.junit4)
+                implementation(libs.jetbrains.compose.ui.test.junit4)
                 implementation(libs.kotlinx.coroutines.test)
             }
         }
