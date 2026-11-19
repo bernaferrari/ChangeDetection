@@ -82,7 +82,6 @@ kotlin {
             implementation(libs.jetbrains.compose.ui)
             implementation(libs.jetbrains.compose.components.resources)
             implementation(libs.jetbrains.compose.material.icons.extended)
-            implementation(libs.androidx.graphics.shapes)
 
             implementation(libs.kermit)
 

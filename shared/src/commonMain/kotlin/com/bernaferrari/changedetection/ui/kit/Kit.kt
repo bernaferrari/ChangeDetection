@@ -10,6 +10,8 @@ import androidx.compose.material3.toPath
 import androidx.compose.runtime.LaunchedEffect
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
@@ -57,7 +59,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.material3.toShape
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Matrix
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
@@ -71,7 +79,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bernaferrari.changedetection.preview.EditSegment
@@ -228,45 +238,43 @@ private val TilePolygon: RoundedPolygon by lazy {
  */
 @OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun rememberMorphingShape(target: RoundedPolygon): androidx.compose.ui.graphics.Shape {
+internal fun rememberMorphingShape(target: RoundedPolygon): Shape {
     var from by remember { mutableStateOf(target) }
     var to by remember { mutableStateOf(target) }
-    val progress = remember { androidx.compose.animation.core.Animatable(1f) }
+    val progress = remember { Animatable(1f) }
     LaunchedEffect(target) {
         if (target == to) return@LaunchedEffect
         from = if (progress.value < 0.5f) from else to
         to = target
         progress.snapTo(0f)
-        progress.animateTo(1f, androidx.compose.animation.core.spring(dampingRatio = 0.55f, stiffness = 260f))
+        progress.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = 260f))
     }
-    val morph = remember(from, to) { Morph(from, to) }
-    val p = progress.value
-    return remember(morph, p) { MorphShape(morph, p) }
+    return remember(from, to, progress) { MorphShape(Morph(from, to)) { progress.value } }
 }
 
-private class MorphShape(private val morph: Morph, private val progress: Float) : androidx.compose.ui.graphics.Shape {
-    @OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
-    override fun createOutline(size: androidx.compose.ui.geometry.Size, layoutDirection: androidx.compose.ui.unit.LayoutDirection, density: androidx.compose.ui.unit.Density): androidx.compose.ui.graphics.Outline {
+@OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+private class MorphShape(private val morph: Morph, private val progress: () -> Float) : Shape {
+    private val path = Path()
+    private val matrix = Matrix()
+
+    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+        val fraction = progress()
         // The spring overshoots; the outline holds its final form while the twist carries the bounce.
-        val path = morph.toPath(progress.coerceIn(0f, 1f))
-        val twist = (1f - progress) * 36f
-        path.transform(
-            androidx.compose.ui.graphics.Matrix().apply {
-                scale(size.width, size.height)
-            },
-        )
-        val bounds = path.getBounds()
-        path.translate(androidx.compose.ui.geometry.Offset(size.width / 2, size.height / 2) - bounds.center)
+        morph.toPath(fraction.coerceIn(0f, 1f), path)
+        val twist = (1f - fraction) * 36f
+        matrix.reset()
+        matrix.scale(size.width, size.height)
+        path.transform(matrix)
+        val center = size.center
+        path.translate(center - path.getBounds().center)
         if (twist != 0f) {
-            path.transform(
-                androidx.compose.ui.graphics.Matrix().apply {
-                    translate(size.width / 2, size.height / 2)
-                    rotateZ(twist)
-                    translate(-size.width / 2, -size.height / 2)
-                },
-            )
+            matrix.reset()
+            matrix.translate(center.x, center.y)
+            matrix.rotateZ(twist)
+            matrix.translate(-center.x, -center.y)
+            path.transform(matrix)
         }
-        return androidx.compose.ui.graphics.Outline.Generic(path)
+        return Outline.Generic(path)
     }
 }
 
