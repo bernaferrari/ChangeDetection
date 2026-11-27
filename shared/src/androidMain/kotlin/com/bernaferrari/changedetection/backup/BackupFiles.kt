@@ -41,9 +41,7 @@ internal class BackupFiles(
     }
 
     fun savePages(target: Uri) = save(target) { output ->
-        val bytes = service.exportPages(appVersion)
-        output.write(bytes)
-        BackupSummary(pages = backupJson.decodeFromString<BackupManifest>(bytes.decodeToString()).sites.size, versions = 0)
+        service.exportPages(output, appVersion)
     }
 
     fun saveEverything(target: Uri) = save(target) { output ->
@@ -78,7 +76,13 @@ internal class BackupFiles(
             }
         }
         // New pages and restored schedule settings both change what the background checks must do.
-        monitoring?.updateSchedule()
+        try {
+            monitoring?.updateSchedule()
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            appLog.w("Backup restored, but the monitoring schedule could not be updated", error)
+        }
         BackupProgress.Restored(summary)
     }
 
@@ -112,3 +116,5 @@ internal class BackupFiles(
         }
     }
 }
+
+private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("BackupFiles")

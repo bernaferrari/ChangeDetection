@@ -6,6 +6,7 @@ import com.bernaferrari.changedetection.repo.CaptureMode
 import com.bernaferrari.changedetection.repo.ColorGroup
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.sync.SyncEngine
+import com.bernaferrari.changedetection.util.isTextContentType
 
 sealed interface CapturePreview {
     /** Exactly what a check would have fetched, so a new page can keep this capture as its first version. */
@@ -112,7 +113,8 @@ internal suspend fun previewFromCapture(
     // DOM parsing, region extraction and selectable-document construction can be large.
     // Keep all of it off the UI thread, including when called by the live browser.
     check(result.data.isNotEmpty()) { "The page returned no content" }
-    check(mode != CaptureMode.TEXT || !result.contentType.startsWith("image/", true)) { "This address returns an image. Choose screenshots or source monitoring." }
+    check(!mode.isText || !result.contentType.startsWith("image/", true)) { "This address returns an image. Choose screenshots or source monitoring." }
+    check(mode != CaptureMode.DIRECT_TEXT || result.contentType.isTextContentType()) { "This address did not return text" }
     if (result.contentType.startsWith("image/", true)) {
         CapturePreview.Image(result.data, firstVersion = result)
     } else {
@@ -120,7 +122,7 @@ internal suspend fun previewFromCapture(
         val isHtml = result.contentType.contains("html", true)
         CapturePreview.Html(
             (
-                if (mode == CaptureMode.TEXT) {
+                if (mode.isText) {
                     com.bernaferrari.changedetection.util.readableSnapshotText(
                         if (region.isEmpty) source else region.extractHtml(source, isHtml),
                         isHtml,
@@ -132,7 +134,7 @@ internal suspend fun previewFromCapture(
                 }
                 ).take(12_000),
             result.data.size,
-            if (mode == CaptureMode.TEXT && isHtml) {
+            if (mode.isText && isHtml) {
                 com.bernaferrari.changedetection.detection.selectableTextDocument(source)
             } else {
                 null

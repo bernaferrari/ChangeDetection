@@ -3,6 +3,7 @@ package com.bernaferrari.changedetection
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalUriHandler
 import com.bernaferrari.changedetection.repo.ConstraintsRequired
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
@@ -21,6 +22,7 @@ fun initChangeDetectionDemo() {
 /** Wasm supplies demo data; every screen and component still comes from the shared application. */
 @Composable
 fun ChangeDetectionDemoHost() {
+    val uriHandler = LocalUriHandler.current
     val koin = remember { KoinPlatformTools.defaultContext().get() }
     val sitesDao = remember(koin) { koin.get<SitesDao>() }
     val snapsDao = remember(koin) { koin.get<SnapsDao>() }
@@ -34,7 +36,7 @@ fun ChangeDetectionDemoHost() {
         }
     }
 
-    ChangeDetectionRootApp(platformActions = PlatformActions(appVersion = "Web demo"))
+    ChangeDetectionRootApp(platformActions = PlatformActions(openUrl = uriHandler::openUri, appVersion = "Web demo"))
 }
 
 /** The browser demo keeps both Room data and snapshot payloads in memory. */

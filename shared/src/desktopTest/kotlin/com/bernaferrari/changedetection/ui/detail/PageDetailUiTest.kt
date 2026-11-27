@@ -66,18 +66,18 @@ class PageDetailUiTest {
     @Test fun statusIsInformationalAndTurboOnlyLooksActiveForItsOwnPage() {
         show(SiteAndLastSnap(site.copy(isSuccessful = true, lastFailureCode = null), latest, 2))
         compose.onNodeWithTag("page-check-status").assertHasNoClickAction()
-        compose.onNodeWithText("Turbo").performClick()
+        compose.onNodeWithText("Quick Monitor").performClick()
         compose.onNodeWithText("Open").performClick()
         compose.runOnIdle {
             assertEquals(1, turboOpened)
             assertEquals(1, browserOpened)
             turbo = TurboState(isActive = true, siteIds = setOf("another-page"))
         }
-        compose.onNodeWithText("Turbo").assertIsDisplayed()
-        compose.onNodeWithText("Turbo is on").assertDoesNotExist()
+        compose.onNodeWithText("Quick Monitor").assertIsDisplayed()
+        compose.onNodeWithText("Quick Monitor is on").assertDoesNotExist()
         capture("detail-actions-idle")
         compose.runOnIdle { turbo = turbo.copy(siteIds = setOf(site.id)) }
-        compose.onNodeWithText("Turbo is on").assertIsDisplayed().performClick()
+        compose.onNodeWithText("Quick Monitor is on").assertIsDisplayed().performClick()
         compose.runOnIdle { assertEquals(2, turboOpened) }
         capture("detail-actions-active")
     }
@@ -258,7 +258,7 @@ class PageDetailUiTest {
     @Test fun deletedPageDoesNotOfferStaleControls() {
         show(null)
         compose.onNodeWithText("This page is no longer in your watchlist.").assertIsDisplayed()
-        compose.onNodeWithText("Turbo").assertDoesNotExist()
+        compose.onNodeWithText("Quick Monitor").assertDoesNotExist()
         compose.onNodeWithText("Compare").assertDoesNotExist()
     }
 }

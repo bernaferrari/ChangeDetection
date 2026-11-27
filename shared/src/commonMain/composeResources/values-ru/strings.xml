@@ -20,7 +20,7 @@
     <string name="more_options">Дополнительные параметры</string>
     <string name="loading">Загрузка…</string>
     <string name="saving">Сохранение…</string>
-    <string name="turbo_mode">Turbo</string>
+    <string name="turbo_mode">Быстрая проверка</string>
     <string name="how_it_works">Как это работает</string>
     <string name="select_site_canvas_label">Ваш сменный стол</string>
     <string name="select_site_canvas_title">Все обновления в одном спокойном месте.</string>
@@ -35,13 +35,13 @@
         <item quantity="other">Выбрано %1$d страниц</item>
     </plurals>
     <string name="nav_home">Главная</string>
-    <string name="nav_turbo">Turbo</string>
+    <string name="nav_turbo">Быстрая проверка</string>
     <string name="nav_settings">Настройки</string>
     <string name="home_action_check_now">Проверить сейчас</string>
     <string name="home_section_attention">Требует внимания</string>
     <string name="home_search_clear">Очистить поиск</string>
     <string name="home_search_close">Закрыть поиск</string>
-    <string name="turbo_ended">Режим Turbo завершён</string>
+    <string name="turbo_ended">Быстрая проверка завершена</string>
     <string name="settings_title">Настройки</string>
     <string name="settings_theme_label">Тема</string>
     <string name="settings_palette_label">Цвет</string>
@@ -151,9 +151,9 @@
     <string name="how_it_works_step_monitor_title">Выберите, как часто проверять</string>
     <string name="how_it_works_step_monitor_description">Используйте аккумуляторно-приятные фоновые проверки для повседневного отслеживания.</string>
     <string name="how_it_works_step_monitor_highlight">Вы контролируете интервал и сетевые или энергетические требования.</string>
-    <string name="how_it_works_step_focus_title">Используйте Turbo при расписании вопросов</string>
+    <string name="how_it_works_step_focus_title">Включайте быструю проверку, когда важно время</string>
     <string name="how_it_works_step_focus_description">Проверьте выбранные страницы каждые %1$d - %2$d секунд в течение до 3 часов.</string>
-    <string name="how_it_works_step_focus_highlight">Turbo останавливается, когда истекает его час. Вы можете остановить его раньше в любое время.</string>
+    <string name="how_it_works_step_focus_highlight">Быстрая проверка останавливается, когда истекает его час. Вы можете остановить его раньше в любое время.</string>
     <string name="how_it_works_step_alerts_title">Обзор того, что изменилось</string>
     <string name="how_it_works_step_alerts_description">Откройте страницу для сравнения сохранившихся версий, таких как текст, переданные страницы или экранные снимки.</string>
     <string name="how_it_works_step_alerts_highlight">Ваши сохранившиеся версии и изменение истории остаются на вашем устройстве.</string>
@@ -227,7 +227,7 @@
     <string name="snapshot_deleted">Версия удалена</string>
     <string name="comparison_check_now_hint">Эта страница была проверена один раз до сих пор — проверьте еще раз, чтобы увидеть, что изменилось.</string>
     <string name="schedule_save_failed">Вы не можете применить график, пожалуйста, попробуйте снова.</string>
-    <string name="turbo_stop_session">Задержка Turbo</string>
+    <string name="turbo_stop_session">Остановить быструю проверку</string>
     <string name="storage_history_title">Спасенная история</string>
     <string name="storage_history_usage">%1$s Мб сохранившихся версий</string>
     <string name="storage_history_policy">Пожилые версии удаляются выше 250 Мб. Последние две версии каждой страницы всегда сохраняются, даже если они превышают этот бюджет.</string>
@@ -337,7 +337,7 @@
     <string name="settings_load_failed">Не удалось загрузить настройки. Повторите попытку.</string>
     <string name="settings_write_failed">Вы не можете спасти свой выбор, попробуйте еще раз.</string>
     <string name="storage_history_load_failed">Не удалось определить объём занятого места.</string>
-    <string name="turbo_unavailable_title">Turbo не доступен в этом пересмотре</string>
+    <string name="turbo_unavailable_title">Быстрая проверка не доступен в этом пересмотре</string>
     <string name="turbo_unavailable_description">Используйте приложение для Android, iOS или настольного компьютера для начала сеанса мониторинга.</string>
     <string name="image_diff_sampled_pixels_different">%1$s образцов пикселей различаются. статистика использует сокращенный размер предварительного просмотра.</string>
     <string name="check_failure_capture_unavailable">Проверка экрана недоступна</string>
@@ -420,9 +420,9 @@
     <string name="home_select_pages">Выберите страницы</string>
     <string name="detail_status_failed">Последний чек провалился %1$s</string>
     <string name="detail_calendar_summary">%1$s из %2$s за последние 30 дней</string>
-    <string name="turbo_sheet_no_pages">До сих пор нет активных страниц. перезагрузите страницу до начала Turbo.</string>
+    <string name="turbo_sheet_no_pages">До сих пор нет активных страниц. перезагрузите страницу до начала Быстрая проверка.</string>
     <string name="turbo_sheet_paused_note">Отложенные страницы не включены.</string>
-    <string name="turbo_live_note_while_open">Turbo продолжает проверять, пока приложение открыто. Вы можете покинуть этот экран и вернуться, чтобы увидеть любые изменения.</string>
+    <string name="turbo_live_note_while_open">Быстрая проверка продолжает проверять, пока приложение открыто. Вы можете покинуть этот экран и вернуться, чтобы увидеть любые изменения.</string>
     <string name="image_diff_highlight_unavailable_body">Попробуйте снова или используйте до и после, чтобы проверить сохранившиеся экраны.</string>
     <string name="image_diff_dimensions_supporting">Сравнивайте записи ниже; их различные размеры предотвращают прямое сравнение пикселей.</string>
     <string name="turbo_card_cadence">Каждый %1$s · %2$s</string>
@@ -510,10 +510,10 @@
     <string name="turbo_sheet_for">Оставайтесь после</string>
     <string name="turbo_sheet_pick">Выбирайте хотя бы одну страницу</string>
     <plurals name="turbo_sheet_start">
-        <item quantity="one">Запустить Turbo для %1$d страницы</item>
-        <item quantity="few">Запустить Turbo для %1$d страниц</item>
-        <item quantity="many">Запустить Turbo для %1$d страниц</item>
-        <item quantity="other">Запустить Turbo для %1$d страниц</item>
+        <item quantity="one">Запустить быструю проверку для %1$d страницы</item>
+        <item quantity="few">Запустить быструю проверку для %1$d страниц</item>
+        <item quantity="many">Запустить быструю проверку для %1$d страниц</item>
+        <item quantity="other">Запустить быструю проверку для %1$d страниц</item>
     </plurals>
     <string name="turbo_sheet_caption">Завершается на %1$s · использует больше батареи во время работы</string>
     <string name="turbo_run_again">Вновь бегать</string>
@@ -527,17 +527,17 @@
     <string name="turbo_ends_at">Окончание %1$s</string>
     <string name="turbo_changed">Изменился</string>
     <string name="turbo_checking">Проверка</string>
-    <string name="turbo_ended_planned">Turbo заканчивается как запланировано</string>
-    <string name="turbo_ended_stopped">Turbo Вы остановили</string>
-    <string name="turbo_ended_interrupted">Turbo был отложен.</string>
-    <string name="turbo_ended_failed">Turbo не может начаться</string>
+    <string name="turbo_ended_planned">Быстрая проверка заканчивается как запланировано</string>
+    <string name="turbo_ended_stopped">Быстрая проверка Вы остановили</string>
+    <string name="turbo_ended_interrupted">Быстрая проверка был отложен.</string>
+    <string name="turbo_ended_failed">Быстрая проверка не может начаться</string>
     <string name="turbo_row_quiet">Нет изменений · Просмотрено %1$d с. назад</string>
     <string name="nav_activity">Активность</string>
     <plurals name="turbo_card_title_n">
-        <item quantity="one">Turbo · %1$d страница</item>
-        <item quantity="few">Turbo · %1$d страницы</item>
-        <item quantity="many">Turbo · %1$d страниц</item>
-        <item quantity="other">Turbo · %1$d страниц</item>
+        <item quantity="one">Быстрая проверка · %1$d страница</item>
+        <item quantity="few">Быстрая проверка · %1$d страницы</item>
+        <item quantity="many">Быстрая проверка · %1$d страниц</item>
+        <item quantity="other">Быстрая проверка · %1$d страниц</item>
     </plurals>
     <string name="turbo_found_none">Никаких изменений не найдено</string>
     <plurals name="turbo_summary_checks">
@@ -546,7 +546,7 @@
         <item quantity="many">%1$d проверок</item>
         <item quantity="other">%1$d проверок</item>
     </plurals>
-    <string name="turbo_live_note">Turbo продолжает работать, если вы покинете этот экран. Вы получите уведомление в момент изменения страницы.</string>
+    <string name="turbo_live_note">Быстрая проверка продолжает работать, если вы покинете этот экран. Вы получите уведомление в момент изменения страницы.</string>
     <string-array name="weekday_names">
         <item>понедельник</item>
         <item>вторник</item>
@@ -584,7 +584,7 @@
         <item quantity="many">С устройства будет удалено %1$d сохранённых версий.</item>
         <item quantity="other">С устройства будет удалено %1$d сохранённых версий.</item>
     </plurals>
-    <string name="detail_turbo_on">В Turbo году</string>
+    <string name="detail_turbo_on">Быстрая проверка включена</string>
     <string name="detail_status_paused">Перерыв · История сохранилась</string>
     <string name="detail_status_checked">Просмотрено %1$s · %2$s</string>
     <string name="detail_status_checked_manual">Проверено %1$s · автоматические проверки отключены</string>
@@ -667,7 +667,7 @@
     <string name="checks_title">Автоматическая проверка</string>
     <string name="checks_every">Каждый</string>
     <string name="checks_custom">Кстати…</string>
-    <string name="checks_own_schedule_note">Это расписание действует для всех активных страниц. Сеансы Turbo работают отдельно и не меняют его.</string>
+    <string name="checks_own_schedule_note">Это расписание действует для всех активных страниц. Сеансы Быстрая проверка работают отдельно и не меняют его.</string>
     <string name="checks_only_when">Только когда</string>
     <string name="checks_wifi">В Wi-Fi</string>
     <string name="checks_wifi_body">Сохранить мобильные данные</string>
@@ -693,7 +693,7 @@
     <string name="editor_edit_title">Редактировать страницу</string>
     <string name="editor_start">Начните смотреть</string>
     <string name="editor_paste_title">За какой страницей следить?</string>
-    <string name="editor_paste_body">Введите адрес или вставьте ссылку. Страница откроется в браузере, где можно войти в аккаунт, найти нужную страницу и выбрать интересующие фрагменты.</string>
+    <string name="editor_paste_body">Введите адрес или вставьте ссылку, чтобы увидеть, что будет отслеживаться.</string>
     <string name="editor_compare">Сравнить</string>
     <string name="editor_preview">Что мы будем сравнивать</string>
     <string name="editor_little_text_title">На этой странице практически нет текста.</string>
@@ -809,7 +809,7 @@
         <item quantity="other">Удалено: %1$d</item>
     </plurals>
     <string name="detail_sign_in">Подпишите в</string>
-    <string name="browser_session_note">Текст и экранные изображения используют профиль браузера в приложении.Подпис или переключение учетных записей на сайте влияет на часы для этого сайта.Сеансы могут истекать.Кодные проверки не используют браузерные cookie-файлы.</string>
+    <string name="browser_session_note">Проверки в браузере используют сеансы, сохранённые на этом устройстве. Вход или смена аккаунта могут повлиять на другие отслеживания этого сайта. Сеансы могут истечь.</string>
     <string name="turbo_next_check">Следующая запись: %1$d с</string>
     <string name="picker_selected_image">Изображение</string>
     <string name="picker_selected_frame">Встроенная рамка (часто реклама)</string>
@@ -877,7 +877,7 @@
     <string name="backup_restore">Восстановить из файла</string>
     <string name="backup_restore_body">Добавляет страницы, которых здесь ещё нет. На этом устройстве ничего не меняется.</string>
     <string name="backup_restore_settings">Также восстановить настройки приложения</string>
-    <string name="backup_privacy_note">Файл не зашифрован и содержит страницы, за которыми вы следите. Данные входа никогда не включаются.</string>
+    <string name="backup_privacy_note">Файл не зашифрован. Полная копия может содержать личные данные в HTML и снимках страниц, на которых вы вошли в аккаунт. Файлы cookie браузера не включены.</string>
     <string name="backup_working">Выполняется…</string>
     <string name="backup_saved">Копия сохранена. Страницы: %1$d · Версии: %2$d</string>
     <string name="backup_restored">Добавлено страниц: %1$d · Уже были: %2$d · Версии: %3$d</string>
@@ -893,4 +893,15 @@
     <string name="backup_pages_added">Добавлено страниц</string>
     <string name="backup_already_here">Уже есть</string>
     <string name="backup_restore_complete">Восстановление завершено</string>
+    <string name="home_unread_changes">Непрочитанные изменения</string>
+    <string name="settings_android_tools">Резервные копии, сохранённые сеансы и отчёты диагностики доступны на Android.</string>
+    <string name="turbo_sheet_body_while_open">Проверяйте выбранные страницы каждые несколько секунд, пока приложение открыто.</string>
+    <string name="feedback_email_subject">Отзыв о Change Detection</string>
+    <string name="backup_skipped_pages">Пропущенные страницы</string>
+    <string name="backup_duplicate_versions">Пропущенные дубликаты версий</string>
+    <string name="android_browser_start_failed">Не удалось запустить браузер. Если ошибка повторится, перезапустите приложение.</string>
+    <string name="editor_direct_text_body">Отслеживайте цены, даты и другой текст. В предпросмотре видно, что можно проверить напрямую.</string>
+    <string name="editor_direct_browser_hint">Не хватает текста или нужно войти?</string>
+    <string name="editor_use_direct_preview">Использовать прямой предпросмотр</string>
+    <string name="editor_direct_empty">В прямом предпросмотре нет читаемого текста.</string>
 </resources>

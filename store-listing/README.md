@@ -15,7 +15,7 @@ npx screenshot-studio recapture                      # build, capture every lang
 npx screenshot-studio recapture de-DE --profile phone --no-build
 ```
 
-`studio.json` → `capture` lists the build and the capture runs (Blue palette; English also gets the dark phone and both tablets). `capture.tour.mjs` runs one language: for each profile and theme the studio sets display size and density, Android night mode, gesture navigation and System UI demo mode (9:41, full battery and Wi-Fi), the tour runs `StoreCaptureTest`, and pulls full-display PNGs into `<locale>/raw/<profile>/<theme>/`. `npx screenshot-studio tour --profile phone` runs it alone. Display overrides and demo mode are reset afterwards, and the test APK is uninstalled.
+`studio.json` → `capture` lists the build and the capture runs (Blue palette; English also gets the dark phone and both tablets). `capture.tour.ts` runs one language: for each profile and theme the studio sets display size and density, Android night mode, gesture navigation and System UI demo mode (9:41, full battery and Wi-Fi), the tour runs `StoreCaptureTest`, and pulls full-display PNGs into `<locale>/raw/<profile>/<theme>/`. `npx screenshot-studio tour --profile phone` runs it alone. Display overrides and demo mode are reset afterwards, and the test APK is uninstalled.
 
 ## Preview and export
 

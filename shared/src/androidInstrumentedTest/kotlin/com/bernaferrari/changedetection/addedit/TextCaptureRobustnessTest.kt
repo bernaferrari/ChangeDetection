@@ -18,6 +18,12 @@ import com.bernaferrari.changedetection.util.AndroidFileStorage
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.*
 import org.junit.Test
 import java.net.ServerSocket
@@ -72,14 +78,20 @@ class TextCaptureRobustnessTest {
             )
             val context = ApplicationProvider.getApplicationContext<Context>()
             val report = com.bernaferrari.changedetection.diagnostics.AndroidDiagnostics.install(context).report(site.id)
-            val attempts = kotlinx.serialization.json.Json.parseToJsonElement(report.json)
-                .let { it as kotlinx.serialization.json.JsonObject }.getValue("attempts") as kotlinx.serialization.json.JsonArray
+            val attempts = Json.parseToJsonElement(report.json).jsonObject.getValue("attempts").jsonArray
+                .map { it.jsonObject.getValue("attempt").jsonObject }
             assertTrue(
-                "Actual rendered check must retain its HTTP callback and failure stage",
-                attempts.any { row ->
-                    val encoded = row.toString()
-                    encoded.contains("\"category\":\"${expected.name}\"") &&
-                        encoded.contains("\"stage\":\"NAVIGATE\"") && encoded.contains("\"metric\":\"HTTP_STATUS\",\"code\":$status")
+                "Missing navigation evidence for HTTP $status in this fixture's report: $attempts",
+                attempts.any { attempt ->
+                    val failure = attempt["failure"] as? JsonObject ?: return@any false
+                    failure["category"]?.jsonPrimitive?.content == expected.name &&
+                        failure["stage"]?.jsonPrimitive?.content == "NAVIGATE" &&
+                        attempt.getValue("events").jsonArray.any { value ->
+                            val event = value.jsonObject
+                            event["stage"]?.jsonPrimitive?.content == "NAVIGATE" &&
+                                event["metric"]?.jsonPrimitive?.content == "HTTP_STATUS" &&
+                                event["code"]?.jsonPrimitive?.intOrNull == status
+                        }
                 },
             )
             assertFalse(report.json.contains(server.url))
@@ -120,9 +132,13 @@ class TextCaptureRobustnessTest {
         unchanged(runner.check(site.id))
     }
 
-    @Test fun samePageConcurrentChecksDoNotCreateDuplicateVersions() = watch("#target") {
+    @Test fun samePageConcurrentChecksDoNotCreateDuplicateVersions() = watch("#target", delayMs = 500) {
         coroutineScope {
-            listOf(async { runner.check(site.id) }, async { runner.check(site.id) }).awaitAll().forEach { unchanged(it) }
+            val running = async { runner.check(site.id) }
+            // Wait until the first check has acquired the page lock and opened its browser.
+            withTimeout(5_000) { while (openBrowsers.get() == 0) delay(20) }
+            assertEquals(SyncResult.Skipped(site.id, "Already checking"), runner.check(site.id))
+            unchanged(running.await())
         }
         assertEquals(0, openBrowsers.get())
     }
@@ -170,7 +186,7 @@ class TextCaptureRobustnessTest {
         private val sites = SitesRepository(SitesLocalDataSource(AppExecutors(), db.siteDao(), SnapshotFileCleanup(db.pendingFileDeletionDao(), db.snapsDao(), files)))
         private val client = HttpClient()
         val server = Server()
-        val site = Site("Edge fixture", server.url, 0L, "edge", ColorGroup(0, 0), true, true).copy(captureMode = CaptureMode.TEXT, textIncludeSelector = selector)
+        val site = Site("Edge fixture", server.url, 0L, name, ColorGroup(0, 0), true, true).copy(captureMode = CaptureMode.TEXT, textIncludeSelector = selector)
         private val alerts = AtomicInteger()
         private val engine = SyncEngine(client, db, db.siteDao(), db.snapsDao(), files, ErrorHandler(), ChangeNotifier { _, _ -> alerts.incrementAndGet() })
         private val settings = preferencesOf(SettingsViewModel.BROWSER_DELAY_KEY to delayMs)

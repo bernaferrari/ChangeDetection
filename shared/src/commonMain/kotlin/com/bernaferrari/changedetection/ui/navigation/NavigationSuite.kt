@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.*
@@ -26,17 +27,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.unit.Dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import com.bernaferrari.changedetection.navigation.LogsDestination
 import com.bernaferrari.changedetection.navigation.MainDestination
 import com.bernaferrari.changedetection.navigation.SettingsDestination
-import com.bernaferrari.changedetection.navigation.TurboDestination
 import com.bernaferrari.changedetection.shared.generated.resources.Res
 import com.bernaferrari.changedetection.shared.generated.resources.nav_home
 import com.bernaferrari.changedetection.shared.generated.resources.nav_activity
 import com.bernaferrari.changedetection.shared.generated.resources.nav_settings
-import com.bernaferrari.changedetection.shared.generated.resources.nav_turbo
 import com.bernaferrari.changedetection.localization.stringResource
 
 private data class AppNavItem(
@@ -140,18 +142,22 @@ private fun NavIcon(icon: ImageVector, badge: Int) {
 /** Compose Web can briefly issue an unbounded probe before the real viewport measurement. */
 @OptIn(ExperimentalMaterial3AdaptiveNavigationSuiteApi::class)
 @Composable
-private fun BoundedNavigationSuiteScaffold(
+internal fun BoundedNavigationSuiteScaffold(
     navigationSuiteItems: NavigationSuiteScope.() -> Unit,
     content: @Composable () -> Unit,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        if (
-            constraints.hasBoundedWidth &&
-            constraints.hasBoundedHeight &&
-            constraints.maxWidth > 0 &&
-            constraints.maxHeight > 0
-        ) {
-            NavigationSuiteScaffold(
+        when {
+            !constraints.hasBoundedWidth || !constraints.hasBoundedHeight -> {
+                val window = LocalWindowInfo.current.containerSize
+                val density = LocalDensity.current
+                // Scrollable screens still require a finite viewport during the probe.
+                val width = if (constraints.hasBoundedWidth) Dp.Unspecified else with(density) { window.width.toDp().coerceAtLeast(1.dp) }
+                val height = if (constraints.hasBoundedHeight) Dp.Unspecified else with(density) { window.height.toDp().coerceAtLeast(1.dp) }
+                Box(Modifier.sizeIn(maxWidth = width, maxHeight = height)) { content() }
+            }
+
+            constraints.maxWidth > 0 && constraints.maxHeight > 0 -> NavigationSuiteScaffold(
                 navigationSuiteItems = navigationSuiteItems,
                 modifier = Modifier.fillMaxSize(),
                 content = content,
@@ -163,7 +169,6 @@ private fun BoundedNavigationSuiteScaffold(
 private fun NavKey.matches(other: NavKey?): Boolean = when (this) {
     is MainDestination -> other is MainDestination
     is LogsDestination -> other is LogsDestination
-    is TurboDestination -> other is TurboDestination
     is SettingsDestination -> other is SettingsDestination
     else -> false
 }

@@ -111,7 +111,7 @@ class NativeNavigationPerformanceTest {
             }
             scenario = ActivityScenario.launch(Intent(context, PerfNavigationActivity::class.java))
             scenario.onActivity { activity ->
-                main = MainViewModel(snaps, sites, monitoring, preferences, errors, scope, SyncProgressTracker(), engine)
+                main = MainViewModel(snaps, sites, monitoring, preferences, errors, scope, SyncProgressTracker())
                 logs = LogsViewModel(db.siteDao(), db.snapsDao(), snaps, files, cleanup)
                 startKoin {
                     modules(

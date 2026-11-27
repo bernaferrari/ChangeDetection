@@ -14,9 +14,9 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(libs.androidx.sqlite.web)
-            npm("sqlite-wasm-worker", layout.projectDirectory.dir("worker").asFile)
         }
         wasmJsMain.dependencies {
+            implementation(npm("sqlite-wasm-worker", layout.projectDirectory.dir("worker").asFile))
             implementation(libs.kotlinx.browser)
         }
     }

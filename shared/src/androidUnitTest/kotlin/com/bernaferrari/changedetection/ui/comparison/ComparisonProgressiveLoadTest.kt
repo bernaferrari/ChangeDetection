@@ -14,6 +14,23 @@ import org.mockito.kotlin.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ComparisonProgressiveLoadTest {
+    @Test fun cancellationClearsThePageLoadingState() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        val sites = mock<SitesRepository>()
+        val model = ComparisonViewModel(sites, mock(), mock(), mock(), mock())
+        try {
+            whenever(sites.getSiteById("cancelled")).thenThrow(CancellationException("Site read cancelled"))
+            model.loadSiteAndSnaps("cancelled")
+            advanceUntilIdle()
+
+            assertFalse(model.uiState.value.isLoading)
+            assertNull(model.uiState.value.error)
+        } finally {
+            model.viewModelScope.cancel()
+            Dispatchers.resetMain()
+        }
+    }
+
     @Test fun imagePairIsPublishedBeforeTheDiffFinishes() = runTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
@@ -27,13 +44,13 @@ class ComparisonProgressiveLoadTest {
         whenever(snaps.getAllSnapsForSite("page")).thenReturn(listOf(newer, older))
         whenever(snaps.getSnaps("page")).thenReturn(emptyFlow())
         whenever(snaps.getSnapContent(any())).thenReturn(byteArrayOf(1, 2, 3))
-        val model = ComparisonViewModel(sites, snaps, mock(), mock(), mock(), mock())
+        val model = ComparisonViewModel(sites, snaps, mock(), mock(), mock())
         val states = mutableListOf<ComparisonUiState>()
         val collector = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { model.uiState.toList(states) }
         try {
             model.openComparison("page", "new")
-            withContext(Dispatchers.Default) { withTimeout(5_000) { model.uiState.first { !it.isLoading && !it.isLoadingDiff && (it.snapBytes1 != null || it.error != null) } } }
-            assertTrue("Keep the two images visible while comparing", states.any { it.isLoadingDiff && it.snapBytes1 != null && it.snapBytes2 != null })
+            withContext(Dispatchers.Default) { withTimeout(5_000) { model.uiState.first { !it.isLoading && !it.isLoadingDiff && (it.snapImage1 != null || it.error != null) } } }
+            assertTrue("Keep the two images visible while comparing", states.any { it.isLoadingDiff && it.snapImage1 != null && it.snapImage2 != null })
         } finally {
             collector.cancel()
             model.viewModelScope.cancel()

@@ -5,7 +5,6 @@
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.bernaferrari.changedetection.periodicSync</string>
-		<string>com.bernaferrari.changedetection.quickMonitor</string>
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>

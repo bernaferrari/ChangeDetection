@@ -32,7 +32,7 @@ class ComparisonReadStateTest {
 
     @Before fun setup() {
         Dispatchers.setMain(dispatcher)
-        model = ComparisonViewModel(sites, snaps, mock(), share, mock(), mock())
+        model = ComparisonViewModel(sites, snaps, share, mock(), mock())
     }
 
     @After fun teardown() {

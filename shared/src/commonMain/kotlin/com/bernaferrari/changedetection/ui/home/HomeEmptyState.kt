@@ -68,7 +68,13 @@ fun HomeEmptyState(onAddPage: (String?) -> Unit, onHowItWorks: () -> Unit, modif
     val clipboard = LocalClipboard.current
     var copied by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) {
-        copied = runCatching { clipboard.readText() }.getOrNull()?.trim()
+        copied = try {
+            clipboard.readText()
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            null
+        }?.trim()
             ?.takeIf { it.length < 2_000 && (it.startsWith("http://") || it.startsWith("https://")) && ' ' !in it }
     }
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {

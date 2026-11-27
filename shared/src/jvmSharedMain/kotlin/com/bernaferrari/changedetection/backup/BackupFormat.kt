@@ -2,6 +2,10 @@ package com.bernaferrari.changedetection.backup
 
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
+import java.io.ByteArrayInputStream
+import java.io.FileInputStream
+import java.io.InputStream
+import java.io.OutputStream
 import kotlinx.serialization.Required
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -36,25 +40,42 @@ internal val backupJson = Json {
     prettyPrint = true
 }
 
+/** Snapshot files can be copied without retaining the encoded payload in memory. */
+interface BackupSnapshotStorage : com.bernaferrari.changedetection.util.FileStorage {
+    /** A read-only handle to an immutable snapshot, which export can rewind after validation. */
+    fun openSnapshot(fileName: String): FileInputStream
+
+    /** Publishes the temporary file only when [write] validates its contents. */
+    fun writeSnapshot(fileName: String, size: Int, write: (OutputStream) -> Boolean): Boolean
+}
+
 /** Where a full backup is written, one entry after another. */
 interface BackupSink {
-    fun write(name: String, bytes: ByteArray)
+    fun writeEntry(name: String, write: (OutputStream) -> Unit)
+
+    fun write(name: String, bytes: ByteArray) = writeEntry(name) { it.write(bytes) }
 }
 
 /** A backup being read, one entry after another, in the order it was written. */
 interface BackupSource {
-    /** Moves to the next entry and returns its name, or null at the end. */
     fun nextName(): String?
 
-    /** The current entry's bytes, or null when it holds more than [maxBytes] (the caller must then give up). */
-    fun readCurrent(maxBytes: Int): ByteArray?
+    /** Reads the current entry. The source owns this stream and advances it at [nextName]. */
+    fun currentStream(): InputStream
+
+    fun readCurrent(maxBytes: Int): ByteArray? = try {
+        LimitedBackupInput(currentStream(), maxBytes).readBytes()
+    } catch (_: InvalidBackupException) {
+        null
+    }
 }
 
-/** A pages-and-settings file is a backup with exactly one entry. */
-class ManifestOnlySource(private val manifest: ByteArray) : BackupSource {
+class ManifestOnlySource(private val input: InputStream) : BackupSource {
+    constructor(manifest: ByteArray) : this(ByteArrayInputStream(manifest))
+
     private var served = false
     override fun nextName(): String? = if (served) null else MANIFEST_ENTRY.also { served = true }
-    override fun readCurrent(maxBytes: Int): ByteArray? = manifest.takeIf { it.size <= maxBytes }
+    override fun currentStream(): InputStream = input
 }
 
 /** The file is not a backup this app can read: wrong shape, damaged, or built to mislead. */
@@ -67,4 +88,4 @@ data class BackupSummary(val pages: Int, val versions: Int)
 
 data class RestorePreview(val pagesToAdd: List<Site>, val pagesAlreadyHere: List<Site>, val versionsToAdd: Int)
 
-data class ImportSummary(val pagesAdded: Int, val pagesAlreadyHere: Int, val pagesRejected: Int, val versionsAdded: Int, val settingsRestored: Boolean)
+data class ImportSummary(val pagesAdded: Int, val pagesAlreadyHere: Int, val pagesRejected: Int, val versionsAdded: Int, val settingsRestored: Boolean, val duplicateVersions: Int = 0)

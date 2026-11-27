@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
@@ -25,12 +26,24 @@ class MainActivity : ComponentActivity() {
     private var incomingUrl by mutableStateOf<String?>(null)
     private var incomingComparisonSiteId by mutableStateOf<String?>(null)
     private var incomingComparisonSnapId by mutableStateOf<String?>(null)
+    private var notificationRequestInProgress = false
+    private val pendingNotificationChanges = mutableListOf<() -> Unit>()
+
     private val requestPermissionLauncher =
         registerForActivityResult(
             ActivityResultContracts.RequestPermission(),
         ) { isGranted: Boolean ->
-            // Permission granted or denied - notifications will work if granted
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                !isGranted && shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)
+            ) {
+                permissionHistory.edit().putBoolean("notifications_denied", true).apply()
+            }
+            finishNotificationRequest()
         }
+    private val notificationSettingsLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { finishNotificationRequest() }
+
+    private val permissionHistory get() = getSharedPreferences("permission_history", MODE_PRIVATE)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,18 +76,15 @@ class MainActivity : ComponentActivity() {
                     openUrl = { url -> if (!openUrl(context, url)) showExternalOpenFailure(context) },
                     openEmail = { email, subject -> if (!openEmail(context, email, subject)) showExternalOpenFailure(context) },
                     startTurbo = { siteIds, intervalSeconds, durationMinutes ->
-                        requestNotificationPermissionIfNeeded()
+                        requestNotificationsAutomatically()
                         mainViewModel.startQuickMonitor(siteIds, intervalSeconds, durationMinutes)
                     },
                     stopTurbo = {
                         mainViewModel.stopQuickMonitor()
                     },
-                    requestNotifications = ::requestNotificationPermissionIfNeeded,
-                    openNotificationSettings = {
-                        try {
-                            startActivity(Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName))
-                        } catch (_: Exception) { showExternalOpenFailure(context) }
-                    },
+                    requestNotificationsAutomatically = ::requestNotificationsAutomatically,
+                    requestNotificationsExplicitly = ::requestNotificationsExplicitly,
+                    openNotificationSettings = ::openNotificationSettings,
                     supportsNotificationImages = true,
                     appVersion = BuildConfig.VERSION_NAME,
                 ),
@@ -98,36 +108,100 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun requestNotificationPermissionIfNeeded() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+    private fun requestNotificationsAutomatically() {
+        if (notificationRequestInProgress || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || hasNotificationPermission()) return
+        if (permissionHistory.getBoolean("notifications_requested", false) ||
+            shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)
         ) {
-            val permissionHistory = getSharedPreferences("permission_history", MODE_PRIVATE)
-            if (permissionHistory.getBoolean("notifications_requested", false) ||
-                shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)
-            ) {
-                return
-            }
-            // Both first-monitor creation and Turbo can reach here. Ask automatically only once.
-            permissionHistory.edit().putBoolean("notifications_requested", true).apply()
+            return
+        }
+        launchNotificationPermission()
+    }
+
+    private fun requestNotificationsExplicitly(onGranted: () -> Unit) {
+        if (!notificationRequestInProgress && NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+            onGranted()
+            return
+        }
+        pendingNotificationChanges += onGranted
+        if (notificationRequestInProgress) return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || hasNotificationPermission()) {
+            openNotificationSettingsForPermission()
+            return
+        }
+        val canRetry = shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)
+        // A dismissed automatic prompt can leave shouldShowRequestPermissionRationale false.
+        // Give an explicit request a chance before relying on the fallback.
+        val firstExplicitRequest = !permissionHistory.getBoolean("notifications_explicitly_requested", false) &&
+            !permissionHistory.getBoolean("notifications_denied", false)
+        if (canRetry || firstExplicitRequest) {
+            permissionHistory.edit().putBoolean("notifications_explicitly_requested", true).apply()
+            launchNotificationPermission()
+        } else {
+            openNotificationSettingsForPermission()
+        }
+    }
+
+    private fun finishNotificationRequest() {
+        notificationRequestInProgress = false
+        val changes = pendingNotificationChanges.toList()
+        pendingNotificationChanges.clear()
+        if (NotificationManagerCompat.from(this).areNotificationsEnabled()) changes.forEach { it() }
+    }
+
+    private fun openNotificationSettingsForPermission() {
+        notificationRequestInProgress = true
+        try {
+            notificationSettingsLauncher.launch(notificationSettingsIntent())
+        } catch (_: Exception) {
+            finishNotificationRequest()
+            showExternalOpenFailure(this)
+        }
+    }
+
+    private fun hasNotificationPermission() = ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+
+    private fun launchNotificationPermission() {
+        permissionHistory.edit().putBoolean("notifications_requested", true).apply()
+        notificationRequestInProgress = true
+        try {
             requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } catch (_: IllegalStateException) {
+            finishNotificationRequest()
+            showExternalOpenFailure(this)
+        }
+    }
+
+    private fun notificationSettingsIntent() = Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName)
+
+    private fun openNotificationSettings() {
+        try {
+            startActivity(notificationSettingsIntent())
+        } catch (_: Exception) {
+            showExternalOpenFailure(this)
         }
     }
 }
 
-private fun Intent.extractComparisonSiteAndSnapIds(): Pair<String, String?>? = runCatching { if (getBooleanExtra(ChangeNotificationContract.EXTRA_OPEN_COMPARISON, false)) {
-    getStringExtra(ChangeNotificationContract.EXTRA_SITE_ID)
-        ?.takeIf(String::isNotBlank)
-        ?.let { siteId -> siteId to getStringExtra(ChangeNotificationContract.EXTRA_SNAP_ID)?.takeIf(String::isNotBlank) }
-} else {
-    null
-} }.getOrNull()
+private fun Intent.extractComparisonSiteAndSnapIds(): Pair<String, String?>? = runCatching {
+    if (getBooleanExtra(ChangeNotificationContract.EXTRA_OPEN_COMPARISON, false)) {
+        getStringExtra(ChangeNotificationContract.EXTRA_SITE_ID)
+            ?.takeIf(String::isNotBlank)
+            ?.let { siteId -> siteId to getStringExtra(ChangeNotificationContract.EXTRA_SNAP_ID)?.takeIf(String::isNotBlank) }
+    } else {
+        null
+    }
+}.getOrNull()
 
 private fun Intent.extractSharedUrl(): String? = runCatching {
-    if (extractComparisonSiteAndSnapIds() != null) null else when (action) {
-        Intent.ACTION_VIEW -> dataString?.takeIf { it.length <= 8_192 && (it.startsWith("http://") || it.startsWith("https://")) }
-        Intent.ACTION_SEND -> getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()?.let { com.bernaferrari.changedetection.platform.extractSharedWebUrl(it) }
-        else -> null
+    if (extractComparisonSiteAndSnapIds() != null) {
+        null
+    } else {
+        when (action) {
+            Intent.ACTION_VIEW -> dataString?.takeIf { it.length <= 8_192 && (it.startsWith("http://") || it.startsWith("https://")) }
+            Intent.ACTION_SEND -> getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()?.let { com.bernaferrari.changedetection.platform.extractSharedWebUrl(it) }
+            else -> null
+        }
     }
 }.getOrNull()
 
@@ -139,20 +213,24 @@ private fun openUrl(
     context: android.content.Context,
     url: String,
 ): Boolean = try {
-        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, url.toUri())
-        context.startActivity(intent)
-        true
-    } catch (_: Exception) { false }
+    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, url.toUri())
+    context.startActivity(intent)
+    true
+} catch (_: Exception) {
+    false
+}
 
 private fun openEmail(
     context: android.content.Context,
     email: String,
     subject: String,
 ): Boolean = try {
-        val intent =
-            android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
-                data = "mailto:$email?subject=${android.net.Uri.encode(subject)}".toUri()
-            }
-        context.startActivity(intent)
-        true
-    } catch (_: Exception) { false }
+    val intent =
+        android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
+            data = "mailto:$email?subject=${android.net.Uri.encode(subject)}".toUri()
+        }
+    context.startActivity(intent)
+    true
+} catch (_: Exception) {
+    false
+}

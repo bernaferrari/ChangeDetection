@@ -7,8 +7,23 @@ import android.webkit.CookieManager
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.annotation.MainThread
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+
+internal object AndroidWebViewStartup {
+    private var started = false
+
+    @MainThread
+    fun create(context: Context): WebView = WebView(context).also { started = true }
+
+    @MainThread
+    fun ensureStarted(context: Context) {
+        // The first real constructor acquires Chromium's process-wide profile lock.
+        // Once it succeeds, later views can share the same profile without a probe.
+        if (!started) create(context.applicationContext).destroy()
+    }
+}
 
 data class WebViewScreenshot(
     val contentType: String,

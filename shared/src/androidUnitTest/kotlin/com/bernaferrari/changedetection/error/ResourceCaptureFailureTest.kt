@@ -2,9 +2,14 @@ package com.bernaferrari.changedetection.error
 
 import com.bernaferrari.changedetection.browser.CaptureIssue
 import com.bernaferrari.changedetection.browser.CaptureNotReadyException
+import com.bernaferrari.changedetection.browser.CaptureResourceFailure
+import com.bernaferrari.changedetection.browser.CaptureResourceKind
+import com.bernaferrari.changedetection.browser.FontProbeFailure
+import com.bernaferrari.changedetection.browser.FontProbeFailureReason
 import com.bernaferrari.changedetection.diagnostics.*
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -21,6 +26,21 @@ class ResourceCaptureFailureTest {
         val span = DiagnosticSpan()
         span.failed(error)
         assertEquals(CheckFailure.CAPTURE_INCOMPLETE, span.snapshot().second?.category)
+    }
+
+    @Test fun `a rejected font probe remains a capture failure but is not labeled HTTP`() = runTest {
+        val probe = FontProbeFailure(FontProbeFailureReason.INVALID_QUERY, rebuiltShorthand = true)
+        val error = CaptureNotReadyException(CaptureIssue.RESOURCE_FAILED, listOf(CaptureResourceFailure(CaptureResourceKind.FONT, fontProbe = probe)))
+        val span = DiagnosticSpan()
+        span.failed(error)
+        val failure = span.snapshot().second!!
+        assertEquals(CheckFailure.CAPTURE_INCOMPLETE, failure.category)
+        assertEquals(listOf(DiagnosticException.FONT), failure.causes)
+        assertEquals(probe, failure.captureResources.single().fontProbe)
+        val json = Json.encodeToString(failure)
+        assertTrue(json.contains("INVALID_QUERY"))
+        assertTrue(json.contains("\"rebuiltShorthand\":true"))
+        assertEquals(failure, Json.decodeFromString<DiagnosticFailure>(json))
     }
 
     @Test fun `a page that never holds still is not reported as a slow site`() {

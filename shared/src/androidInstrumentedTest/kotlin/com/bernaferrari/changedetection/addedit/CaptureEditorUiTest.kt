@@ -63,23 +63,54 @@ class CaptureEditorUiTest {
     }
 
     @Test fun readableAndSourceRulesRemainSelectableAtLargeText() {
-        var chosen by mutableStateOf(CaptureMode.TEXT)
+        var chosen by mutableStateOf(CaptureMode.DIRECT_TEXT)
         compose.setContent {
             val density = androidx.compose.ui.platform.LocalDensity.current
             CompositionLocalProvider(androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(density.density, 2f)) {
                 ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
-                    CompareChoice(chosen, { chosen = it }, enabled = true, screenshotAvailable = true, isEditing = false)
+                    Column(Modifier.verticalScroll(rememberScrollState())) {
+                        CompareChoice(chosen, { chosen = it }, enabled = true, screenshotAvailable = true, isEditing = false)
+                        CodeCompareChoices(chosen, { chosen = it }, enabled = true)
+                    }
                 }
             }
         }
-        compose.onNodeWithText("Code").performClick()
+        compose.onNodeWithText("Page HTML").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(CaptureMode.HTML, chosen) }
-        compose.onNodeWithText("Any source change").performClick()
+        compose.onNodeWithText("Any source change").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(CaptureMode.SOURCE, chosen) }
-        compose.onNodeWithText("Any source change").performClick()
+        compose.onNodeWithText("Any source change").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(CaptureMode.SOURCE, chosen) }
-        compose.onNodeWithText("Page HTML").performClick()
+        compose.onNodeWithText("Page HTML").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(CaptureMode.HTML, chosen) }
+    }
+
+    @Test fun noDirectTextMakesBrowserThePrimaryActionAndClosingReturnsToPreview() {
+        com.bernaferrari.changedetection.browser.TestPageServer(200, "<title>Public page</title>").use { server ->
+            var mode by mutableStateOf(CaptureMode.DIRECT_TEXT)
+            var saves = 0
+            compose.setContent {
+                ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
+                    AddEditConfirmScreen(
+                        url = server.url, urlError = null, title = "Public page", isSaving = false, saveError = null,
+                        captureMode = mode, onCaptureModeChange = { mode = it },
+                        preview = CapturePreviewState.Ready(CapturePreview.Html("", 24)),
+                        onUrlChange = {}, onTitleChange = {}, onNavigateUp = {}, onSave = { saves++ },
+                    )
+                }
+            }
+
+            compose.onNodeWithText("Open page").performClick()
+            compose.onNodeWithText("No readable text in the direct preview.").assertExists()
+            compose.onNodeWithText("Start watching").assertDoesNotExist()
+            compose.onNodeWithText("Open in browser").assertIsDisplayed().performClick()
+            compose.onNodeWithContentDescription("Close").assertIsDisplayed().performClick()
+            compose.onNodeWithText("Open in browser").assertIsDisplayed()
+            compose.runOnIdle {
+                assertEquals(0, saves)
+                assertEquals(CaptureMode.DIRECT_TEXT, mode)
+            }
+        }
     }
 
     @Test fun realScreenshotCanExpandAndReturnToTheUnsavedEditor() {
@@ -192,7 +223,9 @@ class CaptureEditorUiTest {
                 )
             }
         }
-        compose.onNodeWithText("Code").performScrollTo().performClick()
+        compose.onNodeWithText("Page HTML").assertDoesNotExist()
+        compose.onNodeWithText("More options").performScrollTo().performClick()
+        compose.onNodeWithText("Page HTML").performScrollTo().performClick()
         compose.onNodeWithText("Changing what’s watched starts fresh from the next check. Your history stays, and the switch itself won’t send an alert.").assertExists()
         compose.onNodeWithText("Camera restock: available today").performScrollTo().assertIsDisplayed()
         compose.waitForIdle()

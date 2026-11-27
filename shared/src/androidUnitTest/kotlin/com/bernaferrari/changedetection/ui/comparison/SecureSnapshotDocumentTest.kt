@@ -77,6 +77,15 @@ class SecureSnapshotDocumentTest {
     }
 
     @Test
+    fun oversizedInlineImagesAreRemovedWhileOtherContentSurvives() {
+        val data = "A".repeat(1_048_576)
+        val result = secureSnapshotDocument("""<img alt="Chart" src="data:image/png;base64,$data"><p>Table</p>""")
+        assertFalse(result.contains("src="))
+        assertTrue(result.contains("Chart"))
+        assertTrue(result.contains("Table"))
+    }
+
+    @Test
     fun `style text with a tag opener is discarded`() {
         val result = secureSnapshotDocument("""<style>.label::before { content: "<"; }</style><p>Still readable</p>""")
         assertFalse(result.contains(".label"))

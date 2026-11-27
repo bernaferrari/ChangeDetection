@@ -20,7 +20,7 @@
     <string name="more_options">Weitere Optionen</string>
     <string name="loading">Wird geladen…</string>
     <string name="saving">Wird gespeichert…</string>
-    <string name="turbo_mode">Turbo</string>
+    <string name="turbo_mode">Schnellüberwachung</string>
     <string name="how_it_works">So funktioniert es</string>
     <string name="select_site_canvas_label">Dein Änderungsüberblick</string>
     <string name="select_site_canvas_title">Alle Neuigkeiten an einem ruhigen Ort.</string>
@@ -33,13 +33,13 @@
         <item quantity="other">%1$d Seiten ausgewählt</item>
     </plurals>
     <string name="nav_home">Start</string>
-    <string name="nav_turbo">Turbo</string>
+    <string name="nav_turbo">Schnellüberwachung</string>
     <string name="nav_settings">Einstellungen</string>
     <string name="home_action_check_now">Jetzt prüfen</string>
     <string name="home_section_attention">Benötigt Aufmerksamkeit</string>
     <string name="home_search_clear">Suche leeren</string>
     <string name="home_search_close">Suche schließen</string>
-    <string name="turbo_ended">Turbo beendet</string>
+    <string name="turbo_ended">Schnellüberwachung beendet</string>
     <string name="settings_title">Einstellungen</string>
     <string name="settings_theme_label">Design</string>
     <string name="settings_palette_label">Farbe</string>
@@ -143,9 +143,9 @@
     <string name="how_it_works_step_monitor_title">Prüfintervall wählen</string>
     <string name="how_it_works_step_monitor_description">Nutze akkuschonende Hintergrundprüfungen für die tägliche Beobachtung.</string>
     <string name="how_it_works_step_monitor_highlight">Du bestimmst Intervall, Netzwerk- und Ladebedingungen.</string>
-    <string name="how_it_works_step_focus_title">Turbo nutzen, wenn jede Sekunde zählt</string>
+    <string name="how_it_works_step_focus_title">Schnellüberwachung nutzen, wenn jede Sekunde zählt</string>
     <string name="how_it_works_step_focus_description">Prüfe ausgewählte Seiten alle %1$d bis %2$d Sekunden, bis zu 3 Stunden lang.</string>
-    <string name="how_it_works_step_focus_highlight">Turbo endet mit dem Timer. Du kannst es jederzeit früher stoppen.</string>
+    <string name="how_it_works_step_focus_highlight">Schnellüberwachung endet mit dem Timer. Du kannst es jederzeit früher stoppen.</string>
     <string name="how_it_works_step_alerts_title">Genau sehen, was sich geändert hat</string>
     <string name="how_it_works_step_alerts_description">Öffne eine Seite und vergleiche gespeicherte Versionen als Text, gerenderte Seiten oder Screenshots.</string>
     <string name="how_it_works_step_alerts_highlight">Gespeicherte Versionen und Verlauf bleiben auf deinem Gerät.</string>
@@ -217,7 +217,7 @@
     <string name="snapshot_deleted">Version gelöscht</string>
     <string name="comparison_check_now_hint">Diese Seite wurde einmal geprüft. Prüfe erneut, um Änderungen zu sehen.</string>
     <string name="schedule_save_failed">Zeitplan konnte nicht angewendet werden. Versuche es erneut.</string>
-    <string name="turbo_stop_session">Turbo stoppen</string>
+    <string name="turbo_stop_session">Schnellüberwachung stoppen</string>
     <string name="storage_history_title">Gespeicherter Verlauf</string>
     <string name="storage_history_usage">%1$s MB gespeicherte Versionen</string>
     <string name="storage_history_policy">Bis zu 100 Versionen pro Seite. Ältere Versionen werden ab 250 MB entfernt. Die neuesten zwei Versionen jeder Seite bleiben immer erhalten, auch wenn sie das Limit überschreiten.</string>
@@ -325,7 +325,7 @@
     <string name="settings_load_failed">Einstellungen konnten nicht geladen werden. Versuche es erneut.</string>
     <string name="settings_write_failed">Auswahl konnte nicht gespeichert werden. Versuche es erneut.</string>
     <string name="storage_history_load_failed">Speicherverbrauch konnte nicht geladen werden.</string>
-    <string name="turbo_unavailable_title">Turbo ist in dieser Vorschau nicht verfügbar</string>
+    <string name="turbo_unavailable_title">Schnellüberwachung ist in dieser Vorschau nicht verfügbar</string>
     <string name="turbo_unavailable_description">Nutze die Android-, iOS- oder Desktop-App für eine Überwachungssitzung.</string>
     <string name="image_diff_sampled_pixels_different">%1$s geprüfte Pixel unterscheiden sich. Die Statistik nutzt eine verkleinerte Vorschau.</string>
     <string name="check_failure_capture_unavailable">Screenshot-Prüfungen nicht verfügbar</string>
@@ -351,9 +351,9 @@
     <string name="home_select_pages">Seiten auswählen</string>
     <string name="detail_status_failed">Letzte Prüfung fehlgeschlagen %1$s</string>
     <string name="detail_calendar_summary">%1$s an %2$s in den letzten 30 Tagen</string>
-    <string name="turbo_sheet_no_pages">Noch keine aktiven Seiten. Setze eine Seite fort, bevor du Turbo startest.</string>
+    <string name="turbo_sheet_no_pages">Noch keine aktiven Seiten. Setze eine Seite fort, bevor du Schnellüberwachung startest.</string>
     <string name="turbo_sheet_paused_note">Pausierte Seiten werden nicht einbezogen.</string>
-    <string name="turbo_live_note_while_open">Turbo prüft weiter, solange die App geöffnet ist. Du kannst diesen Bildschirm verlassen und später nach Änderungen sehen.</string>
+    <string name="turbo_live_note_while_open">Schnellüberwachung prüft weiter, solange die App geöffnet ist. Du kannst diesen Bildschirm verlassen und später nach Änderungen sehen.</string>
     <string name="image_diff_highlight_unavailable_body">Hervorhebung konnte nicht erstellt werden. Versuche es erneut oder prüfe die gespeicherten Screenshots mit „Vorher“ und „Nachher“.</string>
     <string name="image_diff_dimensions_supporting">Vergleiche die Aufnahmen unten. Ihre unterschiedlichen Größen verhindern einen direkten Pixelvergleich.</string>
     <string name="turbo_card_cadence">Alle %1$s · %2$s</string>
@@ -429,8 +429,8 @@
     <string name="turbo_sheet_for">Stoppen nach</string>
     <string name="turbo_sheet_pick">Mindestens eine Seite wählen</string>
     <plurals name="turbo_sheet_start">
-        <item quantity="one">Turbo für %1$d Seite starten</item>
-        <item quantity="other">Turbo für %1$d Seiten starten</item>
+        <item quantity="one">Schnellüberwachung für %1$d Seite starten</item>
+        <item quantity="other">Schnellüberwachung für %1$d Seiten starten</item>
     </plurals>
     <string name="turbo_sheet_caption">Endet um %1$s · verbraucht währenddessen mehr Akku</string>
     <string name="turbo_run_again">Erneut starten</string>
@@ -442,22 +442,22 @@
     <string name="turbo_ends_at">Endet %1$s</string>
     <string name="turbo_changed">Geändert</string>
     <string name="turbo_checking">Wird geprüft</string>
-    <string name="turbo_ended_planned">Turbo planmäßig beendet</string>
-    <string name="turbo_ended_stopped">Turbo von dir gestoppt</string>
-    <string name="turbo_ended_interrupted">Turbo unterbrochen</string>
-    <string name="turbo_ended_failed">Turbo konnte nicht starten</string>
+    <string name="turbo_ended_planned">Schnellüberwachung planmäßig beendet</string>
+    <string name="turbo_ended_stopped">Schnellüberwachung von dir gestoppt</string>
+    <string name="turbo_ended_interrupted">Schnellüberwachung unterbrochen</string>
+    <string name="turbo_ended_failed">Schnellüberwachung konnte nicht starten</string>
     <string name="turbo_row_quiet">Keine Änderung · vor %1$d Sek. geprüft</string>
     <string name="nav_activity">Aktivität</string>
     <plurals name="turbo_card_title_n">
-        <item quantity="one">Turbo · %1$d Seite</item>
-        <item quantity="other">Turbo · %1$d Seiten</item>
+        <item quantity="one">Schnellüberwachung · %1$d Seite</item>
+        <item quantity="other">Schnellüberwachung · %1$d Seiten</item>
     </plurals>
     <string name="turbo_found_none">Keine Änderungen gefunden</string>
     <plurals name="turbo_summary_checks">
         <item quantity="one">%1$d Prüfung</item>
         <item quantity="other">%1$d Prüfungen</item>
     </plurals>
-    <string name="turbo_live_note">Turbo läuft weiter, wenn du diesen Bildschirm verlässt. Sobald sich eine Seite ändert, erhältst du eine Benachrichtigung.</string>
+    <string name="turbo_live_note">Schnellüberwachung läuft weiter, wenn du diesen Bildschirm verlässt. Sobald sich eine Seite ändert, erhältst du eine Benachrichtigung.</string>
     <string-array name="weekday_names">
         <item>Montag</item>
         <item>Dienstag</item>
@@ -493,7 +493,7 @@
         <item quantity="one">Die %1$d gespeicherte Version wird von diesem Gerät entfernt.</item>
         <item quantity="other">Alle %1$d gespeicherten Versionen werden von diesem Gerät entfernt.</item>
     </plurals>
-    <string name="detail_turbo_on">Turbo ist an</string>
+    <string name="detail_turbo_on">Schnellüberwachung ist an</string>
     <string name="detail_status_paused">Pausiert · Verlauf bleibt erhalten</string>
     <string name="detail_status_checked">Geprüft %1$s · %2$s</string>
     <string name="detail_status_checked_manual">Geprüft %1$s · automatische Prüfungen aus</string>
@@ -570,13 +570,13 @@
     <string name="checks_title">Automatische Prüfungen</string>
     <string name="checks_every">Alle</string>
     <string name="checks_custom">Benutzerdefiniert…</string>
-    <string name="checks_own_schedule_note">Dieser Zeitplan gilt für alle aktiven Seiten. Turbo läuft unabhängig davon und ändert ihn nicht.</string>
+    <string name="checks_own_schedule_note">Dieser Zeitplan gilt für alle aktiven Seiten. Schnellüberwachung läuft unabhängig davon und ändert ihn nicht.</string>
     <string name="checks_only_when">Nur wenn</string>
     <string name="checks_wifi">Mit WLAN</string>
     <string name="checks_wifi_body">Spart mobile Daten</string>
     <string name="checks_charging">Beim Laden</string>
     <string name="checks_battery">Akku nicht schwach</string>
-    <string name="checks_android_note">Android bestimmt den genauen Zeitpunkt, um Akku zu sparen. Prüfungen können sich etwas verspäten. Für zeitkritische Seiten nutze Turbo.</string>
+    <string name="checks_android_note">Android bestimmt den genauen Zeitpunkt, um Akku zu sparen. Prüfungen können sich etwas verspäten. Für zeitkritische Seiten nutze Schnellüberwachung.</string>
     <string name="checks_weekly">Wöchentlich</string>
     <string name="checks_daily">Täglich</string>
     <string name="checks_hours_short">%1$d Std.</string>
@@ -596,7 +596,7 @@
     <string name="editor_edit_title">Seite bearbeiten</string>
     <string name="editor_start">Beobachtung starten</string>
     <string name="editor_paste_title">Was möchtest du beobachten?</string>
-    <string name="editor_paste_body">Gib eine Adresse ein oder füge einen Link ein. Die Seite öffnet sich im Browser, damit du dich anmelden, die richtige Seite finden und wichtige Bereiche auswählen kannst.</string>
+    <string name="editor_paste_body">Gib eine Adresse ein oder füge einen Link ein, um zu sehen, was du beobachten wirst.</string>
     <string name="editor_compare">Vergleichen</string>
     <string name="editor_preview">Das vergleichen wir</string>
     <string name="editor_little_text_title">Diese Seite enthält kaum Text</string>
@@ -693,7 +693,7 @@
         <item quantity="other">%1$d entfernt</item>
     </plurals>
     <string name="detail_sign_in">Anmelden</string>
-    <string name="browser_session_note">Text und Screenshot verwenden das Browserprofil der App. Anmelden oder Kontowechsel auf einer Website beeinflusst deren überwachte Seiten. Sitzungen können ablaufen. Code verwendet keine Anmelde-Cookies des Browsers.</string>
+    <string name="browser_session_note">Browserprüfungen nutzen die auf diesem Gerät gespeicherten Anmeldungen. Eine Anmeldung oder ein Kontowechsel kann andere Überwachungen für diese Website beeinflussen. Sitzungen können ablaufen.</string>
     <string name="turbo_next_check">Nächste Prüfung in %1$d Sek.</string>
     <string name="picker_selected_image">Ein Bild</string>
     <string name="picker_selected_frame">Eingebetteter Frame (oft eine Anzeige)</string>
@@ -811,7 +811,7 @@
     <string name="backup_restore">Aus einer Datei wiederherstellen</string>
     <string name="backup_restore_body">Fügt die Seiten hinzu, die hier noch fehlen. Auf diesem Gerät wird nichts geändert.</string>
     <string name="backup_restore_settings">Auch die App-Einstellungen wiederherstellen</string>
-    <string name="backup_privacy_note">Die Datei ist nicht verschlüsselt und enthält die Seiten, die du beobachtest. Anmeldungen sind nie enthalten.</string>
+    <string name="backup_privacy_note">Die Datei ist unverschlüsselt. Eine vollständige Sicherung kann private HTML-Inhalte und Screenshots von angemeldeten Seiten enthalten. Browser-Cookies sind ausgeschlossen.</string>
     <string name="backup_working">Wird ausgeführt…</string>
     <string name="backup_saved">Sicherung gespeichert. Seiten: %1$d · Versionen: %2$d</string>
     <string name="backup_restored">Hinzugefügte Seiten: %1$d · Bereits vorhanden: %2$d · Versionen: %3$d</string>
@@ -827,4 +827,18 @@
     <string name="backup_pages_added">Seiten hinzugefügt</string>
     <string name="backup_already_here">Bereits vorhanden</string>
     <string name="backup_restore_complete">Wiederherstellung abgeschlossen</string>
+    <string name="home_unread_changes">Ungelesene Änderungen</string>
+    <string name="settings_android_tools">Sicherungen, gespeicherte Anmeldungen und Diagnoseberichte sind auf Android verfügbar.</string>
+    <string name="turbo_sheet_body_while_open">Prüfe ausgewählte Seiten alle paar Sekunden, solange die App geöffnet ist.</string>
+    <string name="feedback_email_subject">Feedback zu Change Detection</string>
+    <string name="backup_skipped_pages">Übersprungene Seiten</string>
+    <string name="backup_duplicate_versions">Übersprungene doppelte Versionen</string>
+
+    <string name="notification_images_title">Bilder in Änderungsmeldungen</string>
+    <string name="notification_images_body">Zeigt gespeicherte, möglicherweise private Seiteninhalte. Android steuert die Sichtbarkeit auf dem Sperrbildschirm.</string>
+    <string name="android_browser_start_failed">Der Browser konnte nicht gestartet werden. Starte die App neu, wenn es weiterhin nicht klappt.</string>
+    <string name="editor_direct_text_body">Beobachte Preise, Termine und andere Texte. Die Vorschau zeigt, was sich direkt prüfen lässt.</string>
+    <string name="editor_direct_browser_hint">Fehlt Text oder musst du dich anmelden?</string>
+    <string name="editor_use_direct_preview">Direkte Vorschau verwenden</string>
+    <string name="editor_direct_empty">Die direkte Vorschau enthält keinen lesbaren Text.</string>
 </resources>

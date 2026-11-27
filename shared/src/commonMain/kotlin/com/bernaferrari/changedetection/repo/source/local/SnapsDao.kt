@@ -219,13 +219,12 @@ interface SnapsDao {
     @Query(
         """
         SELECT s1.* FROM snaps s1
-        INNER JOIN (
-            SELECT siteId, MAX(timestamp) as max_timestamp 
-            FROM snaps 
-            GROUP BY siteId 
-            HAVING COUNT(*) > 1
-        ) s2 ON s1.siteId = s2.siteId AND s1.timestamp = s2.max_timestamp
-        ORDER BY s1.timestamp DESC
+        WHERE s1.siteId IN (SELECT siteId FROM snaps GROUP BY siteId HAVING COUNT(*) > 1)
+          AND s1.snapId = (
+            SELECT s2.snapId FROM snaps s2 WHERE s2.siteId = s1.siteId
+            ORDER BY s2.timestamp DESC, s2.snapId DESC LIMIT 1
+        )
+        ORDER BY s1.timestamp DESC, s1.snapId DESC
     """,
     )
     suspend fun getLatestSnapsFromSitesWithChangesList(): List<Snap>
@@ -304,11 +303,11 @@ interface SnapsDao {
     @Query(
         """
         SELECT s1.* FROM snaps s1
-        WHERE s1.timestamp = (
-            SELECT MAX(timestamp) FROM snaps s2
-            WHERE s2.siteId = s1.siteId
+        WHERE s1.snapId = (
+            SELECT s2.snapId FROM snaps s2 WHERE s2.siteId = s1.siteId
+            ORDER BY s2.timestamp DESC, s2.snapId DESC LIMIT 1
         )
-        ORDER BY s1.timestamp DESC
+        ORDER BY s1.timestamp DESC, s1.snapId DESC
     """,
     )
     suspend fun getAllMostRecentSnaps(): List<Snap>

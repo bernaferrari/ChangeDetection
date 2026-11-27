@@ -75,7 +75,7 @@
         <item quantity="other">%1$d gone</item>
     </plurals>
     <string name="detail_sign_in">Sign in</string>
-    <string name="browser_session_note">Text and Screenshot use the in-app browser profile. Signing in or switching accounts on a site affects watches for that site. Sessions may expire. Code checks do not use browser sign-in cookies.</string>
+    <string name="browser_session_note">Browser checks share sign-ins saved on this device. Signing in or switching accounts can affect other watches for this site. Sessions may expire.</string>
     <string name="turbo_next_check">Next check in %1$d s</string>
     <string name="picker_selected_image">An image</string>
     <string name="picker_selected_frame">An embedded frame (often an ad)</string>
@@ -123,7 +123,7 @@
     <string name="backup_restore">Restore from a file</string>
     <string name="backup_restore_body">Adds the pages that are not here yet. Nothing on this device is changed.</string>
     <string name="backup_restore_settings">Also restore app settings</string>
-    <string name="backup_privacy_note">The file is not encrypted and lists the pages you watch. Sign-ins are never included.</string>
+    <string name="backup_privacy_note">The file is unencrypted. A full backup can contain private HTML and screenshots from pages you signed in to. Browser cookies are excluded.</string>
     <string name="backup_working">Working…</string>
     <string name="backup_saved">Backup saved. Pages: %1$d · Versions: %2$d</string>
     <string name="backup_restored">Pages added: %1$d · Already here: %2$d · Versions: %3$d</string>
@@ -139,4 +139,15 @@
     <string name="backup_pages_added">Pages added</string>
     <string name="backup_already_here">Already here</string>
     <string name="backup_restore_complete">Restore complete</string>
+    <string name="home_unread_changes">Unread changes</string>
+    <string name="settings_android_tools">Backups, saved sign-ins and diagnostic reports are available on Android.</string>
+    <string name="turbo_sheet_body_while_open">Check selected pages every few seconds while the app is open.</string>
+    <string name="feedback_email_subject">Change Detection feedback</string>
+    <string name="backup_skipped_pages">Pages skipped</string>
+    <string name="backup_duplicate_versions">Duplicate versions skipped</string>
+    <string name="android_browser_start_failed">The browser couldn’t start. If retrying doesn’t work, restart the app.</string>
+    <string name="editor_direct_text_body">Watch prices, dates, and other text. The preview shows what we can check directly.</string>
+    <string name="editor_direct_browser_hint">Missing text or need to sign in?</string>
+    <string name="editor_use_direct_preview">Use direct preview</string>
+    <string name="editor_direct_empty">No readable text in the direct preview.</string>
 </resources>

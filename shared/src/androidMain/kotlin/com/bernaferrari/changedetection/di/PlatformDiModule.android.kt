@@ -3,6 +3,10 @@ package com.bernaferrari.changedetection.di
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import kotlinx.coroutines.flow.first
+import com.bernaferrari.changedetection.repo.source.local.SitesDao
+import com.bernaferrari.changedetection.repo.source.local.SnapsDao
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room3.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
@@ -84,8 +88,26 @@ actual class PlatformDiModule {
     @Single
     fun shareManager(@Provided context: Context): ShareManager = AndroidShareManager(context)
 
+    @Single(binds = [FileStorage::class])
+    fun fileStorage(@Provided context: Context): AndroidFileStorage = AndroidFileStorage(context)
+
     @Single
-    fun fileStorage(@Provided context: Context): FileStorage = AndroidFileStorage(context)
+    fun backupService(
+        database: ChangeDatabase,
+        sitesDao: SitesDao,
+        snapsDao: SnapsDao,
+        fileStorage: AndroidFileStorage,
+        cleanup: com.bernaferrari.changedetection.storage.SnapshotFileCleanup,
+        preferences: DataStore<Preferences>,
+    ): com.bernaferrari.changedetection.backup.BackupService = com.bernaferrari.changedetection.backup.BackupService(
+        database,
+        sitesDao,
+        snapsDao,
+        fileStorage,
+        cleanup,
+        readSettings = { com.bernaferrari.changedetection.backup.BackupSettings.read(preferences.data.first()) },
+        writeSettings = { values -> preferences.edit { com.bernaferrari.changedetection.backup.BackupSettings.apply(values, it) } },
+    )
 
     @Single
     fun changeNotifier(@Provided context: Context): ChangeNotifier = AndroidChangeNotifier(context.applicationContext)

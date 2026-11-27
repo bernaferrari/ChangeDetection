@@ -9,15 +9,14 @@
     <string name="change_notification_channel_name">Erkannte Änderungen</string>
     <string name="change_notification_channel_description">Meldungen bei Änderungen beobachteter Websites</string>
     <string name="quick_monitor_banner_live_badge">LIVE</string>
-    <string name="quick_monitor_title">Turbo</string>
-    <string name="quick_monitor_channel_description">Zeigt die aktive Turbo-Sitzung.</string>
-    <string name="quick_monitor_notification_title">⚡ Turbo aktiv</string>
+    <string name="quick_monitor_title">Schnellüberwachung</string>
+    <string name="quick_monitor_channel_description">Zeigt die aktive Schnellüberwachung-Sitzung.</string>
+    <string name="quick_monitor_notification_title">⚡ Schnellüberwachung aktiv</string>
     <plurals name="quick_monitor_notification_subtitle">
         <item quantity="one">Prüft %1$d Seite alle %2$d Sekunden</item>
         <item quantity="other">Prüft %1$d Seiten alle %2$d Sekunden</item>
     </plurals>
     <string name="action_stop_monitoring">Überwachung stoppen</string>
-    <string name="empty_add_site_hint">Seite hinzufügen, um Turbo zu starten</string>
     <string name="start">Starten</string>
     <string name="change_notification_named">%1$s hat sich geändert</string>
     <string name="change_notification_generic">Tippe, um die Änderungen anzusehen.</string>
@@ -28,4 +27,8 @@
     <string name="failure_notification_needs_you">Die Seite braucht deine Aufmerksamkeit. Tippe, um zu sehen, was zu tun ist.</string>
     <string name="failure_notification_keeps_failing">Die Prüfungen schlagen weiter fehl. Tippe, um den Grund zu sehen.</string>
     <string name="failure_notification_generic">Eine Seite wird nicht geprüft.</string>
+
+    <string name="quick_monitor_widget_inactive">Schnellüberwachung ist aus</string>
+    <string name="diagnostics_public_example">Wenn die Seite öffentlich ist, kannst du den Link nach dem Öffnen des Teilen-Menüs deiner Supportnachricht hinzufügen. Füge keine privaten Links oder Links mit persönlichen Daten hinzu.</string>
+    <string name="diagnostics_email_subject">Change Detection Diagnosebericht</string>
 </resources>

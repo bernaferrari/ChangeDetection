@@ -90,9 +90,8 @@ object HtmlSanitizer {
 
         // Return cleaned HTML body
         doc.body().html()
-    } catch (e: Exception) {
-        // Return original on error (or empty string if safer)
-        html
+    } catch (_: Exception) {
+        ""
     }
 
     /** Attributes carrying per-request tokens that must not affect hashing or rendering. */

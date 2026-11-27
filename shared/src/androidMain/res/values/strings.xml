@@ -9,15 +9,14 @@
     <string name="change_notification_channel_name">Detected changes</string>
     <string name="change_notification_channel_description">Alerts when a monitored website changes</string>
     <string name="quick_monitor_banner_live_badge">LIVE</string>
-    <string name="quick_monitor_title">Turbo</string>
+    <string name="quick_monitor_title">Quick Monitor</string>
     <string name="quick_monitor_channel_description">Shows the active high-frequency monitoring session.</string>
-    <string name="quick_monitor_notification_title">⚡ Turbo active</string>
+    <string name="quick_monitor_notification_title">⚡ Quick Monitor active</string>
     <plurals name="quick_monitor_notification_subtitle">
         <item quantity="one">Checking %1$d page every %2$d seconds</item>
         <item quantity="other">Checking %1$d pages every %2$d seconds</item>
     </plurals>
     <string name="action_stop_monitoring">Stop monitoring</string>
-    <string name="empty_add_site_hint">Add a page to start Turbo</string>
     <string name="start">Start</string>
     <string name="change_notification_named">%1$s changed</string>
     <string name="change_notification_generic">Tap to see what changed.</string>
@@ -27,4 +26,8 @@
     <string name="failure_notification_needs_you">It needs your attention. Tap to see what to do.</string>
     <string name="failure_notification_keeps_failing">Checks keep failing. Tap to see why.</string>
     <string name="failure_notification_generic">A page is not being checked.</string>
+
+    <string name="quick_monitor_widget_inactive">Quick Monitor is off</string>
+    <string name="diagnostics_public_example">If the page is public, you can add its link to your support message after opening the share menu. Never include a private link or one that contains personal information.</string>
+    <string name="diagnostics_email_subject">Change Detection diagnostics</string>
 </resources>

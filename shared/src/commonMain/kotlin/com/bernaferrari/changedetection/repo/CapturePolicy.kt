@@ -12,7 +12,7 @@ internal data class CapturePolicy(val mode: CaptureMode, val region: TextRegion)
 internal fun Site.capturePolicy(): CapturePolicy = CapturePolicy(
     captureMode,
     when (captureMode) {
-        CaptureMode.TEXT, CaptureMode.SCREENSHOT, CaptureMode.DEFAULT -> TextRegion(textIncludeSelector.trim(), textExcludeSelector.trim())
+        CaptureMode.TEXT, CaptureMode.DIRECT_TEXT, CaptureMode.SCREENSHOT, CaptureMode.DEFAULT -> TextRegion(textIncludeSelector.trim(), textExcludeSelector.trim())
         else -> TextRegion()
     },
 )

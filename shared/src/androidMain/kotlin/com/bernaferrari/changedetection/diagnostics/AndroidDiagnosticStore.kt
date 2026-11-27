@@ -5,6 +5,8 @@ import android.os.Build
 import android.os.StatFs
 import android.webkit.WebView
 import com.bernaferrari.changedetection.browser.CaptureResourceFailure
+import com.bernaferrari.changedetection.browser.CaptureResourceKind
+import com.bernaferrari.changedetection.browser.FontProbeFailureReason
 import com.bernaferrari.changedetection.browser.CaptureExtent
 import com.bernaferrari.changedetection.error.CheckFailure
 import kotlinx.coroutines.*
@@ -34,6 +36,7 @@ class DiagnosticReport internal constructor(
     val attemptCount: Int,
     val eventCount: Int = 0,
     internal val captureDetails: CaptureAttemptDetails? = null,
+    internal val failureExplanation: String? = null,
 ) {
     val lines: List<String> = json.lines()
     val isEmpty: Boolean get() = attemptCount == 0 && eventCount == 0
@@ -83,7 +86,8 @@ class AndroidDiagnosticStore internal constructor(
         writerScope.cancel()
     }
     private suspend fun flush() {
-        withTimeout(2_000) {
+        // Export can still use retained records if the writer has a backlog.
+        withTimeoutOrNull(2_000) {
             val ready = CompletableDeferred<Unit>()
             queue.send(Write.Flush(ready))
             ready.await()
@@ -126,11 +130,14 @@ class AndroidDiagnosticStore internal constructor(
             val temporary = File(directory, file.name + ".partial")
             try {
                 temporary.writeBytes(bytes)
+                temporary.setLastModified(stored.attempt.startedAt)
                 check(temporary.renameTo(file))
             } finally {
                 temporary.delete()
             }
-            retained()
+            // Quotas can be enforced from file metadata on each checkpoint. Only an export
+            // needs to parse and sanitize each retained record.
+            collectRetained { Unit }
         }
     }
 
@@ -162,22 +169,25 @@ class AndroidDiagnosticStore internal constructor(
         return StoredDiagnostic(safeRuntime, a.copy(events = a.events.take(64).map { it.copy(elapsedMs = it.elapsedMs.coerceIn(0, 600_000), durationMs = it.durationMs.coerceIn(0, 600_000), code = it.code?.coerceIn(-100, 599), capture = it.capture?.bounded(), tls = it.tls?.let { tls -> tls.copy(primary = tls.primary.coerceIn(0, 5), errors = tls.errors.filter { code -> code in 0..5 }.distinct().sorted().take(6)) }) }, failure = failure))
     }
 
-    private fun retained(): List<File> {
-        val candidates = directory.listFiles().orEmpty().filter { it.name.startsWith("trace-") }.sortedByDescending { it.lastModified() }
+    private fun <T : Any> collectRetained(read: (File) -> T?): List<T> {
+        val candidates = directory.listFiles().orEmpty().filter { it.name.startsWith("trace-") }
+            .map { it to it.lastModified() }.sortedByDescending { it.second }
+        val oldest = now() - RETENTION_MS
         var bytes = 0L
-        val keep = mutableListOf<File>()
-        for (f in candidates) {
-            if (!f.name.endsWith(".json") || f.length() > MAX_RECORD_BYTES || keep.size >= MAX_RECORDS || bytes + f.length() > MAX_DISK_BYTES) {
-                f.delete()
+        val keep = mutableListOf<T>()
+        for ((file, recordedAt) in candidates) {
+            val length = file.length()
+            if (!file.name.endsWith(".json") || recordedAt < oldest || length > MAX_RECORD_BYTES || keep.size >= MAX_RECORDS || bytes + length > MAX_DISK_BYTES) {
+                file.delete()
                 continue
             }
-            val valid = runCatching { sanitize(compact.decodeFromString<StoredDiagnostic>(f.readText())) }.getOrNull()
-            if (valid == null) {
-                f.delete()
+            val record = read(file)
+            if (record == null) {
+                file.delete()
                 continue
             }
-            keep += f
-            bytes += f.length()
+            keep += record
+            bytes += length
         }
         return keep
     }
@@ -256,6 +266,25 @@ class AndroidDiagnosticStore internal constructor(
         return "${tlsErrorName(tls.primary)} certificate on $what ($where, ${if (tls.committed) "after" else "before"} the page committed)"
     }
 
+    private fun explainLatestFailure(attempts: List<StoredDiagnostic>): String? {
+        val attempt = attempts.filter { it.attempt.outcome == DiagnosticOutcome.FAILURE }.maxByOrNull { it.attempt.startedAt }?.attempt ?: return null
+        val failure = attempt.failure ?: return null
+        val status = attempt.events.lastOrNull { it.stage == DiagnosticStage.NAVIGATE && it.metric == DiagnosticMetric.HTTP_STATUS }?.code
+        if (failure.stage == DiagnosticStage.NAVIGATE) {
+            return if (status != null && status in 400..599) "The page returned HTTP $status. Capture did not start." else "Page navigation failed. Capture did not start."
+        }
+        if (failure.stage != DiagnosticStage.CAPTURE_PIXELS || failure.category != CheckFailure.CAPTURE_INCOMPLETE) return null
+        val font = failure.captureResources.firstOrNull { it.kind == CaptureResourceKind.FONT }
+        val explanation = when (font?.fontProbe?.reason) {
+            FontProbeFailureReason.MATCH_NOT_READY -> "The font check did not find a ready match for the visible text."
+            FontProbeFailureReason.INVALID_QUERY -> "The browser rejected the app's font query."
+            FontProbeFailureReason.CHECK_ERROR -> "The browser returned an error during the font check."
+            null -> if (font != null) "Font validation failed." else "Page resource validation failed."
+        }
+        val navigation = if (status != null && status in 200..299) "Page loaded (HTTP $status). " else ""
+        return navigation + "Screenshot blocked. " + explanation
+    }
+
     /** Plain sentences at the top of the report, so it can be read without decoding the JSON below. */
     private fun summary(runtime: DiagnosticRuntime, attempts: List<StoredDiagnostic>, events: List<AppEvent>): List<String> = buildList {
         add("App ${runtime.versionName} · version code ${runtime.versionCode} · revision ${runtime.revision} (${runtime.variant.name.lowercase()}) · Android API ${runtime.androidApi} · WebView ${runtime.providerVersion} (${runtime.provider.name.lowercase()}) · free storage ${runtime.space.name.lowercase().replace('_', ' ')}")
@@ -325,7 +354,7 @@ class AndroidDiagnosticStore internal constructor(
         mutex.withLock {
             val header = sanitize(StoredDiagnostic(runtime(), DiagnosticAttempt(startedAt = now(), mode = com.bernaferrari.changedetection.repo.CaptureMode.DEFAULT, selected = false, excluded = false, trigger = DiagnosticTrigger.CHECK, outcome = DiagnosticOutcome.INCOMPLETE, events = emptyList())))!!.runtime
             val events = readEvents()
-            val retained = retained().mapNotNull { file -> runCatching { sanitize(compact.decodeFromString<StoredDiagnostic>(file.readText())) }.getOrNull() }
+            val retained = collectRetained { file -> runCatching { sanitize(compact.decodeFromString<StoredDiagnostic>(file.readText())) }.getOrNull() }
             val eligible = retained.filter { selected == null || it.attempt.watchToken == selected }.sortedByDescending { it.attempt.startedAt }
             val failures = eligible.filter { it.attempt.outcome == DiagnosticOutcome.FAILURE }
             // Give each failing watch a chance before spending the bounded export on repeated failures of one watch.
@@ -345,7 +374,7 @@ class AndroidDiagnosticStore internal constructor(
                     "summary",
                     JsonArray(
                         (
-                            descriptions.take(1) + listOf(
+                            descriptions.take(1) + listOfNotNull(explainLatestFailure(values)) + listOf(
                                 "Failure-first export for ${if (selected == null) "all pages" else "this page"}: ${values.size} of ${eligible.size} retained attempts included; $omitted omitted ($omittedFailures failures).",
                                 "Counts cover locally retained valid attempts. Older expired or rotated records are not counted. App events are app-wide; droppedRecords counts queue/write failures in this process, not export omissions.",
                             ) + descriptions.drop(1)
@@ -414,7 +443,7 @@ class AndroidDiagnosticStore internal constructor(
                 val attached = latestCheck.events.lastOrNull { it.metric == DiagnosticMetric.ATTACHED }?.code
                 CaptureAttemptDetails(failure.captureResources, failure.captureExtent, attached?.takeIf { it in 0..1 }?.let { it == 1 })
             }
-            DiagnosticReport(report, rows.size, events.size, captureDetails)
+            DiagnosticReport(report, rows.size, events.size, captureDetails, explainLatestFailure(kept))
         }
     }
 

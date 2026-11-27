@@ -82,7 +82,7 @@ class DesignReviewTest {
         onAllNodes(hasClickAction() and hasAnyAncestor(hasTestTag("version-list"))).onFirst().performClick()
         onNodeWithContentDescription("Navigate back").performClick()
         waitForTag("home-list")
-        onNodeWithContentDescription("Turbo").performClick()
+        onNodeWithContentDescription("Quick Monitor").performClick()
         waitForText("Stop after")
         onAllNodesWithText("Studio Display").onLast().performScrollTo().performClick()
         shot("readme-turbo")
@@ -157,7 +157,7 @@ class DesignReviewTest {
                 runCatching { onNodeWithContentDescription("Close").performClick() }
                 home()
                 step("05-turbo-setup") {
-                    onNodeWithContentDescription("Turbo").performClick()
+                    onNodeWithContentDescription("Quick Monitor").performClick()
                     waitForText("Stop after")
                 }
             }
@@ -235,15 +235,15 @@ class DesignReviewTest {
         shot("${p}16-compare-highlight")
         onNodeWithContentDescription("Navigate back").performClick()
         waitForTag("home-list")
-        onNodeWithContentDescription("Turbo").performClick()
+        onNodeWithContentDescription("Quick Monitor").performClick()
         waitForText("Stop after")
         onAllNodesWithText("Exam results").onLast().performScrollTo().performClick()
         onAllNodesWithText("Studio Display").onLast().performScrollTo().performClick()
         shot("${p}05-turbo-setup")
-        onNodeWithText("Start Turbo", substring = true).performClick()
+        onNodeWithText("Start Quick Monitor", substring = true).performClick()
         waitForText("Every 30 seconds", timeout = 10_000)
         shot("${p}06-turbo-live")
-        onNodeWithText("Stop Turbo").performClick()
+        onNodeWithText("Stop Quick Monitor").performClick()
         waitForText("Done")
         shot("${p}07-turbo-ended")
         onNodeWithText("Done").performClick()

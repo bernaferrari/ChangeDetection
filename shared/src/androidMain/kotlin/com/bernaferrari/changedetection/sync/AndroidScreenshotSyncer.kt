@@ -7,6 +7,7 @@ import android.webkit.WebView
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.bernaferrari.changedetection.browser.AndroidPageCapture
+import com.bernaferrari.changedetection.browser.AndroidWebViewStartup
 import com.bernaferrari.changedetection.browser.configureChangeDetectionWebView
 import com.bernaferrari.changedetection.browser.destroySafely
 import com.bernaferrari.changedetection.repo.Site
@@ -58,7 +59,12 @@ class AndroidScreenshotSyncer(
     private val onIcon: suspend (siteId: String, iconUrl: String) -> Unit = { _, _ -> },
     private val browserFactory: ScreenshotBrowserFactory,
 ) {
-    suspend fun syncSites(sites: List<Site>): List<SyncResult> {
+    suspend fun syncSites(sites: List<Site>): List<SyncResult> = syncSites(sites, save = { site, result -> syncEngine.processFetchResult(site, result, site.threshold) })
+
+    internal suspend fun syncSites(
+        sites: List<Site>,
+        save: suspend (Site, SyncEngine.FetchResult) -> SyncResult,
+    ): List<SyncResult> {
         if (sites.isEmpty()) return emptyList()
 
         return withContext(Dispatchers.Main.immediate) {
@@ -70,61 +76,55 @@ class AndroidScreenshotSyncer(
                 throw cancellation
             } catch (error: Exception) {
                 return@withContext sites.map { site ->
-                    if (!site.isSyncEnabled) SyncResult.Skipped(site.id, "Sync disabled") else recordFailure(site, error)
+                    if (!site.isSyncEnabled) SyncResult.Skipped(site.id, "Sync disabled") else save(site, captureError(error))
                 }
             }
             sites.map { site ->
-                progressTracker.track(site.id) { captureSite(site, delayMs) }
+                progressTracker.track(site.id) { captureSite(site, delayMs, save) }
             }
         }
     }
 
     /** Each page owns its browser, so a dead renderer cannot poison the rest of the batch. */
-    private suspend fun captureSite(site: Site, delayMs: Long): SyncResult {
+    private suspend fun captureSite(site: Site, delayMs: Long, save: suspend (Site, SyncEngine.FetchResult) -> SyncResult): SyncResult {
         if (!site.isSyncEnabled) return SyncResult.Skipped(site.id, "Sync disabled")
         var browser: ScreenshotBrowser? = null
         return try {
             browser = diagnosticStage(DiagnosticStage.CREATE_BROWSER) { browserFactory.create() }
             when (val capture = browser.capture(site, delayMs)) {
                 is ScreenshotCaptureOutcome.Success -> {
-                    capture.icon?.let { runCatching { onIcon(site.id, it) } }
-                    syncEngine.processFetchResult(
-                        site,
-                        SyncEngine.FetchResult.Success(capture.contentType, capture.bytes, capturedWithBrowser = true, validateCapture = capture.validateCapture),
-                        site.threshold,
-                    )
+                    capture.icon?.let { icon ->
+                        try {
+                            onIcon(site.id, icon)
+                        } catch (cancelled: CancellationException) {
+                            throw cancelled
+                        } catch (error: Exception) {
+                            appLog.w("Could not save the page icon", error)
+                        }
+                    }
+                    save(site, SyncEngine.FetchResult.Success(capture.contentType, capture.bytes, capturedWithBrowser = true, validateCapture = capture.validateCapture))
                 }
 
-                is ScreenshotCaptureOutcome.Failure -> recordFailure(site, capture.message, capture.error)
+                is ScreenshotCaptureOutcome.Failure -> save(site, SyncEngine.FetchResult.Error(capture.message, capture.error))
             }
         } catch (timeout: kotlinx.coroutines.TimeoutCancellationException) {
             kotlinx.coroutines.currentCoroutineContext().ensureActive()
-            recordFailure(site, timeout)
+            save(site, captureError(timeout))
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (error: Exception) {
             appLog.e("Screenshot check failed for ${site.id}", error)
-            recordFailure(site, error)
+            save(site, captureError(error))
         } catch (error: OutOfMemoryError) {
             appLog.e("Screenshot check ran out of memory for ${site.id}", error)
-            recordFailure(site, error)
+            save(site, captureError(error))
         } finally {
             runCatching { diagnosticStage(DiagnosticStage.CLOSE_BROWSER) { browser?.close() } }
                 .onFailure { appLog.w("Failed to close screenshot browser", it) }
         }
     }
 
-    private suspend fun recordFailure(site: Site, error: Throwable): SyncResult = recordFailure(site, error.message ?: "Screenshot check failed", error)
-
-    private suspend fun recordFailure(
-        site: Site,
-        message: String,
-        error: Throwable? = null,
-    ): SyncResult = syncEngine.processFetchResult(
-        site,
-        SyncEngine.FetchResult.Error(message = message, throwable = error),
-        site.threshold,
-    )
+    private fun captureError(error: Throwable) = SyncEngine.FetchResult.Error(error.message ?: "Screenshot check failed", error)
 
     private companion object {
         const val DEFAULT_BROWSER_DELAY_MS = 5_000L
@@ -136,10 +136,10 @@ class AndroidScreenshotBrowserFactory(context: Context) : ScreenshotBrowserFacto
 
     override fun create(): ScreenshotBrowser {
         val themedContext = ContextThemeWrapper(appContext, android.R.style.Theme_DeviceDefault_Light)
-        val webView = WebView(themedContext)
+        val webView = AndroidWebViewStartup.create(themedContext)
         try {
             webView.layout(0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT)
-            webView.configureChangeDetectionWebView(overviewMode = true, acceptThirdPartyCookies = true)
+            webView.configureChangeDetectionWebView()
             return AndroidScreenshotBrowser(webView, AndroidPageCapture(webView))
         } catch (error: Throwable) {
             webView.destroySafely(clearCache = false)

@@ -76,6 +76,7 @@ import com.bernaferrari.changedetection.shared.generated.resources.a11y_drag_scr
 import com.bernaferrari.changedetection.shared.generated.resources.preview_after
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_finding_changes
 import com.bernaferrari.changedetection.shared.generated.resources.preview_before
+import com.bernaferrari.changedetection.shared.generated.resources.reader_mode_changes
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_pixel_diff
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_rendered
 import com.bernaferrari.changedetection.shared.generated.resources.comparison_mode_swipe
@@ -107,8 +108,6 @@ internal enum class ComparisonMode {
     Html,
     ImageDiff,
     ImageSwipe,
-    ImageBefore,
-    ImageAfter,
 
     /** One saved version read as text: there is nothing to compare, so it is not "Changes". */
     SavedText,
@@ -116,12 +115,11 @@ internal enum class ComparisonMode {
 
 internal fun ComparisonMode.labelResource(): StringResource = when (this) {
     ComparisonMode.Source -> Res.string.comparison_mode_source
-    ComparisonMode.Text, ComparisonMode.ImageChanges, ComparisonMode.SavedText -> Res.string.comparison_mode_text
+    ComparisonMode.Text, ComparisonMode.SavedText -> Res.string.comparison_mode_text
     ComparisonMode.Html -> Res.string.comparison_mode_rendered
     ComparisonMode.ImageDiff -> Res.string.comparison_mode_pixel_diff
     ComparisonMode.ImageSwipe -> Res.string.comparison_mode_swipe
-    ComparisonMode.ImageBefore -> Res.string.preview_before
-    ComparisonMode.ImageAfter -> Res.string.preview_after
+    ComparisonMode.ImageChanges -> Res.string.reader_mode_changes
 }
 
 private val LocalScreenshotCanvasColor = androidx.compose.runtime.staticCompositionLocalOf<androidx.compose.ui.graphics.Color?> { null }
@@ -155,15 +153,6 @@ private fun ImageComparisonBody(
     isPreparing: Boolean = false,
 ) {
     Box(modifier = modifier) {
-        val singleImage = when (mode) {
-            ComparisonMode.ImageBefore -> beforeBytes
-            ComparisonMode.ImageAfter -> afterBytes
-            else -> null
-        }
-        if (singleImage != null) {
-            ImageViewport(singleImage, stringResource(mode.labelResource()), modifier = Modifier.fillMaxSize())
-            return@Box
-        }
         if (beforeBytes == null || afterBytes == null) {
             ImageComparisonNotice(
                 icon = Icons.Default.Warning,
@@ -230,22 +219,6 @@ private fun ImageComparisonBody(
                 ImageSwipeComparison(
                     beforeBytes = beforeBytes,
                     afterBytes = afterBytes,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
-
-            ComparisonMode.ImageBefore -> {
-                ImageViewport(
-                    bytes = beforeBytes,
-                    label = stringResource(Res.string.preview_before),
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
-
-            ComparisonMode.ImageAfter -> {
-                ImageViewport(
-                    bytes = afterBytes,
-                    label = stringResource(Res.string.preview_after),
                     modifier = Modifier.fillMaxSize(),
                 )
             }

@@ -45,7 +45,6 @@ class WorkerHelper(
         const val WIFI = "wifi"
         const val CHARGING = "charging"
         const val BATTERYNOTLOW = "batteryNotLow"
-        const val IDLE = "idle"
         const val DELAY = "delay"
         const val BACKGROUND_SYNC = "backgroundSync"
     }

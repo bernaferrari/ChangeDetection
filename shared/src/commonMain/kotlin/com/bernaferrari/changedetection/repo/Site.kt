@@ -64,7 +64,7 @@ data class Site(
         0
     }
 
-    fun textRegion() = if (captureMode == CaptureMode.TEXT) {
+    fun textRegion() = if (captureMode.isText) {
         com.bernaferrari.changedetection.detection.TextRegion(textIncludeSelector, textExcludeSelector)
     } else {
         com.bernaferrari.changedetection.detection.TextRegion()

@@ -9,7 +9,7 @@ import com.bernaferrari.changedetection.error.SnapshotStorageError
 class AndroidFileStorage(
     private val context: Context,
     private val availableBytes: () -> Long = { context.filesDir.usableSpace },
-) : FileStorage {
+) : com.bernaferrari.changedetection.backup.BackupSnapshotStorage {
     override fun orphanCandidates(olderThan: Long): List<String> = context.filesDir.listFiles().orEmpty()
         .filter { it.isFile && it.lastModified() < olderThan && it.name.matches(Regex("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}(\\.partial)?")) }
         .map { it.name }
@@ -18,20 +18,31 @@ class AndroidFileStorage(
         fileName: String,
         bytes: ByteArray,
     ) {
-        val destination = context.getFileStreamPath(fileName)
-        val temporary = context.getFileStreamPath("$fileName.partial")
-        if (availableBytes() < bytes.size.toLong() + MIN_FREE_BYTES) {
-            throw SnapshotStorageError(lowSpace = true)
-        }
         try {
-            FileOutputStream(temporary).use { stream ->
-                stream.write(bytes)
-                stream.fd.sync()
+            writeSnapshot(fileName, bytes.size) { output ->
+                output.write(bytes)
+                true
             }
-            // Same-directory POSIX rename publishes all bytes together and throws on failure.
-            Os.rename(temporary.absolutePath, destination.absolutePath)
+        } catch (error: SnapshotStorageError) {
+            throw error
         } catch (error: Exception) {
             throw SnapshotStorageError(lowSpace = availableBytes() < MIN_FREE_BYTES, cause = error)
+        }
+    }
+
+    override fun openSnapshot(fileName: String): java.io.FileInputStream = context.openFileInput(fileName)
+
+    override fun writeSnapshot(fileName: String, size: Int, write: (java.io.OutputStream) -> Boolean): Boolean {
+        val destination = context.getFileStreamPath(fileName)
+        val temporary = context.getFileStreamPath("$fileName.partial")
+        if (availableBytes() < size.toLong() + MIN_FREE_BYTES) throw SnapshotStorageError(lowSpace = true)
+        try {
+            FileOutputStream(temporary).use { stream ->
+                if (!write(stream)) return false
+                stream.fd.sync()
+            }
+            Os.rename(temporary.absolutePath, destination.absolutePath)
+            return true
         } finally {
             temporary.delete()
         }

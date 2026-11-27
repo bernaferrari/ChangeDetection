@@ -99,6 +99,8 @@ class DiagnosticUiTest {
         compose.onAllNodesWithText("Diagnostics report").assertCountEquals(1)
         compose.waitUntil(5_000) { compose.onAllNodesWithTag("share-diagnostics").fetchSemanticsNodes().any { !it.config.contains(androidx.compose.ui.semantics.SemanticsProperties.Disabled) } }
         compose.onNodeWithTag("share-diagnostics").assertIsEnabled()
+        compose.onNodeWithTag("diagnostic-report-content").performScrollToNode(hasText("The page returned HTTP 503. Capture did not start."))
+        compose.onNodeWithText("The page returned HTTP 503. Capture did not start.").assertIsDisplayed()
         compose.onNodeWithTag("diagnostic-report-content").performScrollToNode(hasText("HTTP_STATUS", substring = true))
         compose.onNodeWithText("HTTP_STATUS", substring = true).assertIsDisplayed()
         assertFalse(runBlocking { store.report(watch).json }.contains("SECRET"))

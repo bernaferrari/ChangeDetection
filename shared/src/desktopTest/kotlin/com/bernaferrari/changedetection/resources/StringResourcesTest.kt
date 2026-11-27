@@ -1,6 +1,7 @@
 package com.bernaferrari.changedetection.resources
 
 import java.io.File
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -22,11 +23,23 @@ class StringResourcesTest {
     }
 
     @Test fun everyLanguageHasEveryCurrentString() {
-        // Older files predate full translation; the current string file must be complete in every language.
-        val current = name.findAll(root.resolve("values/strings_v7.xml").readText()).map { it.groupValues[2] }.toSet()
-        listOf("values-es", "values-it", "values-pt").forEach { folder ->
-            val missing = current - names(folder).toSet()
+        val current = names("values").toSet()
+        val locales = root.listFiles { f -> f.isDirectory && f.name.startsWith("values-") }.orEmpty()
+        assertTrue("Expected eleven translated locales", locales.size == 11)
+        for (folder in locales) {
+            val missing = current - names(folder.name).toSet()
             assertTrue("$folder is missing: $missing", missing.isEmpty())
+        }
+    }
+
+    @Test fun theWidgetAndAppUseTheSameQuickMonitorName() {
+        val nativeRoot = File("src/androidMain/res")
+        for (folder in root.listFiles { f -> f.isDirectory && f.name.startsWith("values") }.orEmpty()) {
+            // Android resource qualifiers retain the older code for Indonesian.
+            val nativeFolder = if (folder.name == "values-id") "values-in" else folder.name
+            val app = checkNotNull(Regex("""<string name="turbo_mode">([^<]+)</string>""").find(folder.resolve("strings.xml").readText()))
+            val widget = checkNotNull(Regex("""<string name="quick_monitor_title">([^<]+)</string>""").find(nativeRoot.resolve("$nativeFolder/strings.xml").readText()))
+            assertEquals(folder.name, app.groupValues[1], widget.groupValues[1])
         }
     }
 }

@@ -146,19 +146,20 @@ class AndroidScreenshotSyncerTest {
     }
 
     @Test
-    fun `browser creation failure does not prevent later pages or allocate for paused pages`() = runTest(dispatcher) {
+    fun `WebView startup failure is saved and does not prevent later pages`() = runTest(dispatcher) {
+        val startupFailure = RuntimeException("Could not acquire the WebView data directory lock")
         val healthy = FakeBrowser { ScreenshotCaptureOutcome.Success("image/png", PNG_BYTES) }
         var created = 0
         val engine = successfulEngine()
         val syncer = AndroidScreenshotSyncer(engine, dataStore(), SyncProgressTracker()) {
-            if (created++ == 0) throw IllegalStateException("Browser unavailable")
+            if (created++ == 0) throw startupFailure
             healthy
         }
         val results = syncer.syncSites(listOf(site("paused").copy(isSyncEnabled = false), site("broken"), site("healthy")))
         assertEquals(2, created)
         assertTrue(results.first() is SyncResult.Skipped)
         assertTrue(healthy.closed)
-        verify(engine).processFetchResult(argThat { id == "broken" }, argThat { this is SyncEngine.FetchResult.Error }, any())
+        verify(engine).processFetchResult(argThat { id == "broken" }, argThat { this is SyncEngine.FetchResult.Error && throwable === startupFailure }, any())
         verify(engine).processFetchResult(argThat { id == "healthy" }, argThat { this is SyncEngine.FetchResult.Success }, any())
     }
 

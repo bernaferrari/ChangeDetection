@@ -10,11 +10,14 @@ enum class CaptureMode {
     DEFAULT,
     HTML,
     SCREENSHOT,
+    DIRECT_TEXT,
     ;
+
+    internal val isText: Boolean get() = this == TEXT || this == DIRECT_TEXT
 
     fun resolve(defaultMethod: ComparisonMethod): ComparisonMethod = when (this) {
         DEFAULT -> defaultMethod
-        HTML, TEXT, SOURCE -> ComparisonMethod.HTML
+        HTML, TEXT, DIRECT_TEXT, SOURCE -> ComparisonMethod.HTML
         SCREENSHOT -> ComparisonMethod.SCREENSHOT
     }
 }

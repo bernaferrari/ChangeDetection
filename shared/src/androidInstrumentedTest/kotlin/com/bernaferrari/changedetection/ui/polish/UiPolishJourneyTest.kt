@@ -188,7 +188,7 @@ class UiPolishJourneyTest {
                 }
             }
             compose.runOnUiThread {
-                main = MainViewModel(snaps, sites, monitoring, preferences, errors, scope, SyncProgressTracker(), engine)
+                main = MainViewModel(snaps, sites, monitoring, preferences, errors, scope, SyncProgressTracker())
                 logs = LogsViewModel(db.siteDao(), db.snapsDao(), snaps, files, cleanup)
                 created = true
                 startKoin {
@@ -202,7 +202,6 @@ class UiPolishJourneyTest {
                                 ComparisonViewModel(
                                     sites,
                                     snaps,
-                                    monitoring,
                                     object : ShareManager {
                                         override fun shareText(text: String, title: String) = Unit
                                         override fun shareFile(fileName: String, text: String, title: String) = Unit

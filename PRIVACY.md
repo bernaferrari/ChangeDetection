@@ -1,6 +1,6 @@
 # Privacy Policy for Change Detection
 
-## Last Updated: November 9, 2026
+## Last Updated: November 25, 2026
 
 Thank you for choosing to use Change Detection. We take your privacy seriously. This privacy policy clarifies our data
 handling practices, emphasizing our commitment to not collect, store, or share your personal data.
@@ -13,7 +13,8 @@ locally on your device.
 Network Requests
 The app connects directly to the web addresses you choose to monitor. Those websites and their infrastructure may
 receive standard request information such as your IP address, user agent, and request time, according to their own
-privacy policies. Change Detection does not send those requests through a Change Detection server.
+privacy policies. Change Detection does not send those requests through a Change Detection server. You can watch a local or self-hosted
+address. Restoring a backup can add watches for those addresses as well.
 
 How the App Functions
 Change Detection functions without the need for a server. All processing tasks are done locally on your device, ensuring
@@ -38,8 +39,9 @@ excluded from Android cloud backup and from device-to-device transfer. They stay
 Backup Files You Create
 In Settings you can save a backup file and restore it later. The file is created only when you ask, and it is saved only
 where you choose. "Pages and settings" holds the addresses you watch, their options and notes, and the app's settings.
-"Everything" also holds the saved versions of those pages. Neither file holds cookies or sign-ins. The file is not
-encrypted: anyone who has it can read it, so keep it somewhere you trust. Change Detection never uploads it anywhere.
+"Everything" also holds saved HTML and screenshots, which may include private content from signed-in pages. Both
+files are unencrypted and exclude browser cookies and session data. Anyone who can access a backup can read its
+contents. Change Detection never uploads backup files.
 
 Changes to This Privacy Policy
 We may update our Privacy Policy from time to time. We advise you to review this page periodically for any changes. We

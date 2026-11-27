@@ -12,14 +12,14 @@ class FailureRecoveryTest {
 
     @Test fun aPictureThatCannotBeTakenCanStillBeRead() {
         for (failure in pictureProblems) {
-            for (mode in CaptureMode.entries) assertEquals("$failure in $mode", mode != CaptureMode.TEXT, textMayWork(mode, failure, repeated = false))
+            for (mode in CaptureMode.entries) assertEquals("$failure in $mode", !mode.isText, textMayWork(mode, failure, repeated = false))
         }
     }
 
     @Test fun oneTimeoutIsTheNetworkAndOnlyARepeatIsTheRoute() {
         for (mode in CaptureMode.entries) {
             assertFalse(mode.name, textMayWork(mode, CheckFailure.TIMEOUT, repeated = false))
-            assertEquals(mode.name, mode != CaptureMode.TEXT, textMayWork(mode, CheckFailure.TIMEOUT, repeated = true))
+            assertEquals(mode.name, !mode.isText, textMayWork(mode, CheckFailure.TIMEOUT, repeated = true))
         }
     }
 
@@ -31,6 +31,7 @@ class FailureRecoveryTest {
             assertFalse(failure.name, textMayWork(CaptureMode.SCREENSHOT, failure, repeated = true))
             assertFalse(failure.name, textMayWork(CaptureMode.DEFAULT, failure, repeated = true))
             assertFalse(failure.name, textMayWork(CaptureMode.TEXT, failure, repeated = true))
+            assertFalse(failure.name, textMayWork(CaptureMode.DIRECT_TEXT, failure, repeated = true))
         }
     }
 

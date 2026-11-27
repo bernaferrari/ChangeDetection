@@ -2,6 +2,8 @@ package com.bernaferrari.changedetection.background
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.sync.CheckRunner
 import com.bernaferrari.changedetection.sync.SyncEngine
@@ -16,7 +18,7 @@ class DesktopMonitoringManager(
     applicationScope: CoroutineScope,
 ) : MonitoringManager {
     private val scope = CoroutineScope(applicationScope.coroutineContext + Dispatchers.Main.immediate)
-    private val session = TurboSession(scope, CheckRunner { engine.syncSite(it) })
+    private val session = TurboSession(scope, CheckRunner { engine.trySyncSite(it) })
     override val quickMonitorState = session.state
     init {
         scope.launch {
@@ -33,13 +35,13 @@ class DesktopMonitoringManager(
         scope.launch {
             jobs.update { it.filterNot { job -> site.id in job.tags } + SyncJobInfo(SyncState.RUNNING, setOf(site.id)) }
             val outcome = try {
-                engine.syncSite(site.id)
+                engine.trySyncSite(site.id)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
                 null
             }
-            jobs.update { it.filterNot { job -> site.id in job.tags } + SyncJobInfo(if (outcome is SyncResult.Success) SyncState.SUCCEEDED else SyncState.FAILED, setOf(site.id)) }
+            jobs.update { it.filterNot { job -> site.id in job.tags } + SyncJobInfo(if (outcome is SyncResult.Success || outcome is SyncResult.Skipped) SyncState.SUCCEEDED else SyncState.FAILED, setOf(site.id)) }
         }
     }
     override fun startQuickMonitor(siteIds: List<String>, intervalSeconds: Int, durationMinutes: Int) = session.start(siteIds.toSet(), intervalSeconds, durationMinutes)
@@ -64,7 +66,13 @@ class DesktopMonitoringManager(
                 delay(next.intervalMinutes * 60_000)
                 jobs.update { it.filterNot(SyncJobInfo::isPeriodic) + SyncJobInfo(SyncState.RUNNING, emptySet(), isPeriodic = true) }
                 try {
-                    engine.syncAllSites()
+                    withTimeoutOrNull(4 * 60_000L) {
+                        engine.syncPeriodicSites(preferences.data.first()[BATCH_CURSOR]) { cursor ->
+                            preferences.edit { values ->
+                                if (cursor == null) values.remove(BATCH_CURSOR) else values[BATCH_CURSOR] = cursor
+                            }
+                        }
+                    }
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (_: Exception) { }
@@ -81,14 +89,6 @@ class DesktopMonitoringManager(
     }
 }
 
-actual fun createBackgroundScheduler(): BackgroundScheduler = object : BackgroundScheduler {
-    // Shared production UI uses MonitoringManager. This legacy adapter is not an OS scheduler.
-    override fun schedulePeriodicSync(intervalMinutes: Long, constraints: SyncConstraints) = Unit
-    override fun cancelPeriodicSync() = Unit
-    override fun requestImmediateSync(siteId: String) = Unit
-    override fun startQuickMonitor(siteIds: List<String>, intervalSeconds: Int) = Unit
-    override fun stopQuickMonitor() = Unit
-    override fun isPeriodicSyncScheduled() = false
-}
+private val BATCH_CURSOR = stringPreferencesKey("desktop_monitoring_batch_cursor")
 
 private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("DesktopMonitoringManager")

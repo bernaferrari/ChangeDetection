@@ -39,7 +39,7 @@ For a ticket release, a restock or a deadline, **Turbo** checks the pages you pi
 
 Watched pages, settings and history stay on your device. There is no account, no hosted service and no analytics. Websites still see the requests your device makes to check them. [Privacy policy](PRIVACY.md).
 
-Pages that need a sign-in work while their session lasts. A check that lands on a sign-in form stops and keeps your history.
+Pages that need a sign-in work while their session lasts. A check that lands on a sign-in form stops and keeps your history. On Android, both the in-app browser and scheduled checks block third-party cookies. A sign-in that depends on cookies from another site may require a direct sign-in on the watched site, if it offers one.
 
 On Android and iOS, page screenshots are captured with [KMPwright](https://github.com/bernaferrari/kmpwright).
 

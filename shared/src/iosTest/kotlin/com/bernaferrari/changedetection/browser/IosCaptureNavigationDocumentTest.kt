@@ -158,6 +158,29 @@ class IosCaptureNavigationDocumentTest {
         }
     }
 
+    @Test fun screenshotBelowTheFoldRestoresScrollForTheLayoutCheck() = runWebKitTest {
+        withCaptureWindow {
+            val server = CaptureServer()
+            val web = browser()
+            try {
+                platform.UIKit.UIApplication.sharedApplication.keyWindow?.rootViewController?.view?.addSubview(web)
+                server.reply.value = Reply(body = "<meta name='viewport' content='width=device-width,initial-scale=1'><body style='margin:0'><div style='height:1600px'></div><div style='width:120px;height:180px;background:green'></div><div style='height:900px'></div></body>")
+                IosPageCapture.loadPage(web, "http://127.0.0.1:${server.port}/page")
+                // WebKit resets the view's scroll asynchronously after its navigation callback.
+                delay(100)
+                evaluate(web, "window.scrollTo({left:0,top:100,behavior:'instant'});0")
+                delay(32)
+                assertEquals(100.0, evaluate(web, "window.scrollY").toDouble(), absoluteTolerance = 1.0, message = "Fixture must scroll before capture")
+                val bytes = captureIosDocumentScreenshot(web, IosPageCapture.Clip(0.0, 1600.0, 120.0, 1780.0), 390.0, 1.0, 6_000.0)
+                assertTrue(bytes.size > 100)
+                assertEquals(100.0, evaluate(web, "window.scrollY").toDouble(), absoluteTolerance = 1.0)
+            } finally {
+                web.removeFromSuperview()
+                server.close()
+            }
+        }
+    }
+
     @Test fun fullPageScreenshotIgnoresFailedOrLazyImagesBelowItsCaptureBudget() = runWebKitTest {
         withCaptureWindow {
             val server = CaptureServer()

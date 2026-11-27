@@ -12,6 +12,7 @@ class CaptureModeTest {
         ComparisonMethod.entries.forEach { default ->
             assertEquals(ComparisonMethod.HTML, CaptureMode.HTML.resolve(default))
             assertEquals(ComparisonMethod.HTML, CaptureMode.TEXT.resolve(default))
+            assertEquals(ComparisonMethod.HTML, CaptureMode.DIRECT_TEXT.resolve(default))
             assertEquals(ComparisonMethod.HTML, CaptureMode.SOURCE.resolve(default))
             assertEquals(ComparisonMethod.SCREENSHOT, CaptureMode.SCREENSHOT.resolve(default))
         }

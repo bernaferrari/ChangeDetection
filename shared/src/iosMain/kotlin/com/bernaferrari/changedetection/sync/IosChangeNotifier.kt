@@ -45,10 +45,13 @@ class IosChangeNotifier : ChangeNotifier {
 }
 
 /** Asks once; iOS remembers the answer and only shows the system prompt the first time. */
-fun requestIosNotificationPermission() {
+fun requestIosNotificationPermission(onGranted: () -> Unit = {}) {
     UNUserNotificationCenter.currentNotificationCenter().requestAuthorizationWithOptions(
         UNAuthorizationOptionAlert or UNAuthorizationOptionSound or UNAuthorizationOptionBadge,
-    ) { _, error -> if (error != null) appLog.w("Notification permission failed: ${error.localizedDescription}") }
+    ) { granted, error ->
+        if (error != null) appLog.w("Notification permission failed: ${error.localizedDescription}")
+        if (granted) platform.darwin.dispatch_async(platform.darwin.dispatch_get_main_queue()) { onGranted() }
+    }
 }
 
 /** Bridges notification taps (handled in Swift) into the Compose navigation. */

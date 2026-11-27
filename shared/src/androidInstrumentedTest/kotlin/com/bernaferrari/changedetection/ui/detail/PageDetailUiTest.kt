@@ -105,7 +105,7 @@ class PageDetailUiTest {
     @Test fun deletedPageDoesNotOfferStaleControls() {
         show(null)
         compose.onNodeWithText("This page is no longer in your watchlist.").assertIsDisplayed()
-        compose.onNodeWithText("Turbo").assertDoesNotExist()
+        compose.onNodeWithText("Quick Monitor").assertDoesNotExist()
         compose.onNodeWithText("Compare").assertDoesNotExist()
     }
 }

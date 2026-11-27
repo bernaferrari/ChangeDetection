@@ -37,7 +37,7 @@ actual class PlatformDiModule {
 
     @Single
     fun dataStore(): DataStore<Preferences> = PreferenceDataStoreFactory.createWithPath(
-        corruptionHandler = null,
+        corruptionHandler = androidx.datastore.core.handlers.ReplaceFileCorruptionHandler { androidx.datastore.preferences.core.emptyPreferences() },
         migrations = emptyList(),
         produceFile = {
             val documentDirectory =
@@ -62,10 +62,9 @@ actual class PlatformDiModule {
 
     @Single
     fun monitoringManager(
-        syncEngine: SyncEngine,
         dataStore: DataStore<Preferences>,
         runner: com.bernaferrari.changedetection.sync.IosCheckRunner,
-    ): MonitoringManager = IosMonitoringManager(syncEngine, dataStore, runner)
+    ): MonitoringManager = IosMonitoringManager(dataStore, runner)
 
     @Single
     fun shareManager(): ShareManager = IosShareManager()

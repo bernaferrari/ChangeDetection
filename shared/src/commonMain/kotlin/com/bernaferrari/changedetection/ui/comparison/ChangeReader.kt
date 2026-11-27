@@ -45,8 +45,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.toMutableStateList
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -245,13 +244,13 @@ internal suspend fun prepareReaderContent(oldContent: String, newContent: String
 
 private sealed interface ReaderItem {
     val key: String
-    data class Change(val block: ReaderBlock.Change, val expanded: Boolean) : ReaderItem {
+    data class Change(val block: ReaderBlock.Change) : ReaderItem {
         override val key = "c${block.number}"
     }
     data class ChangedLine(val change: Int, val lineIndex: Int, val text: String, val kind: EditSegment.Kind) : ReaderItem {
         override val key = "c$change-$kind-$lineIndex"
     }
-    data class Fold(val block: ReaderBlock.Unchanged, val open: Boolean) : ReaderItem {
+    data class Fold(val block: ReaderBlock.Unchanged) : ReaderItem {
         override val key = "u${block.id}"
     }
     data class ContextLine(val blockId: Int, val lineIndex: Int, val text: String) : ReaderItem {
@@ -259,28 +258,26 @@ private sealed interface ReaderItem {
     }
 }
 
-/** Expanded context is still virtualized; a long page never becomes one enormous lazy item. */
-private fun readerItems(blocks: List<ReaderBlock>, expanded: List<Int>, expandedChanges: List<Int>): List<ReaderItem> = buildList {
-    blocks.forEach { block ->
-        when (block) {
-            is ReaderBlock.Change -> {
-                val open = block.number in expandedChanges
-                add(ReaderItem.Change(block, open))
-                if (open) {
-                    block.before.forEachIndexed { index, line -> if (line.isNotBlank()) add(ReaderItem.ChangedLine(block.number, index, line, EditSegment.Kind.Removed)) }
-                    block.after.forEachIndexed { index, line -> if (line.isNotBlank()) add(ReaderItem.ChangedLine(block.number, index, line, EditSegment.Kind.Added)) }
-                }
-            }
+private data class ReaderSection(val heading: ReaderItem?, val lines: List<ReaderItem>) {
+    fun isOpen(expanded: Map<String, Boolean>) = heading == null || expanded[heading.key] == true
+}
 
-            is ReaderBlock.Unchanged -> {
-                val open = block.id in expanded || block.lines.size <= SHORT_RUN
-                if (block.lines.size > SHORT_RUN) add(ReaderItem.Fold(block, open))
-                if (open) {
-                    block.lines.forEachIndexed { index, line ->
-                        if (line.isNotBlank()) add(ReaderItem.ContextLine(block.id, index, line))
-                    }
-                }
+/** Opening one section changes its lazy list interval without rebuilding its neighbors' rows. */
+private fun readerSections(blocks: List<ReaderBlock>): List<ReaderSection> = blocks.map { block ->
+    when (block) {
+        is ReaderBlock.Change -> {
+            val lines = buildList {
+                block.before.forEachIndexed { index, line -> if (line.isNotBlank()) add(ReaderItem.ChangedLine(block.number, index, line, EditSegment.Kind.Removed)) }
+                block.after.forEachIndexed { index, line -> if (line.isNotBlank()) add(ReaderItem.ChangedLine(block.number, index, line, EditSegment.Kind.Added)) }
             }
+            ReaderSection(ReaderItem.Change(block), lines)
+        }
+
+        is ReaderBlock.Unchanged -> {
+            val lines = block.lines.mapIndexedNotNull { index, line ->
+                line.takeIf(String::isNotBlank)?.let { ReaderItem.ContextLine(block.id, index, it) }
+            }
+            ReaderSection(ReaderItem.Fold(block).takeIf { block.lines.size > SHORT_RUN }, lines)
         }
     }
 }
@@ -317,10 +314,20 @@ internal fun ChangeReader(
         DigestView(digest, onShowFull = { showFull = true }, modifier = modifier)
         return
     }
-    val expanded: SnapshotStateList<Int> = remember(loaded) { emptyList<Int>().toMutableStateList() }
-    val expandedChanges = remember(loaded) { emptyList<Int>().toMutableStateList() }
-    val items = remember(loaded, expanded.toList(), expandedChanges.toList()) { readerItems(loaded.blocks, expanded, expandedChanges) }
-    val indices = remember(items) { items.indices.filter { items[it] is ReaderItem.Change } }
+    val sections = remember(loaded) { readerSections(loaded.blocks) }
+    val expanded = remember(loaded) { mutableStateMapOf<String, Boolean>() }
+    val indices = remember(sections, expanded) {
+        derivedStateOf {
+            buildList {
+                var position = 0
+                for (section in sections) {
+                    if (section.heading is ReaderItem.Change) add(position)
+                    if (section.heading != null) position++
+                    if (section.isOpen(expanded)) position += section.lines.size
+                }
+            }
+        }
+    }.value
     SideEffect { state.changeIndices = indices }
     Box(modifier, contentAlignment = Alignment.TopCenter) {
         LazyColumn(
@@ -328,22 +335,34 @@ internal fun ChangeReader(
             modifier = Modifier.widthIn(max = 720.dp).fillMaxSize().testTag("comparison-lines"),
             contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 24.dp),
         ) {
-            items(items, key = { it.key }, contentType = { it::class }) { item ->
-                when (item) {
-                    is ReaderItem.Change -> ChangeBlock(item.block, loaded.changes, item.expanded, { if (item.block.number in expandedChanges) expandedChanges.remove(item.block.number) else expandedChanges.add(item.block.number) }, Modifier.padding(vertical = 4.dp))
-
-                    is ReaderItem.ChangedLine -> ChangedLine(item)
-
-                    is ReaderItem.Fold -> UnchangedFold(item.block, item.open) {
-                        if (item.block.id in expanded) expanded.remove(item.block.id) else expanded.add(item.block.id)
+            for (section in sections) {
+                val heading = section.heading
+                val open = section.isOpen(expanded)
+                if (heading != null) {
+                    item(key = heading.key, contentType = heading::class) {
+                        val toggle = { expanded[heading.key] = !open }
+                        when (heading) {
+                            is ReaderItem.Change -> ChangeBlock(heading.block, loaded.changes, open, toggle, Modifier.padding(vertical = 4.dp))
+                            is ReaderItem.Fold -> UnchangedFold(heading.block, open, toggle)
+                            else -> Unit
+                        }
                     }
+                }
+                if (open) {
+                    items(section.lines, key = { it.key }, contentType = { it::class }) { line ->
+                        when (line) {
+                            is ReaderItem.ChangedLine -> ChangedLine(line)
 
-                    is ReaderItem.ContextLine -> Text(
-                        item.text,
-                        Modifier.fillMaxWidth().padding(horizontal = 30.dp, vertical = 2.dp),
-                        style = Reading.small,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                            is ReaderItem.ContextLine -> Text(
+                                line.text,
+                                Modifier.fillMaxWidth().padding(horizontal = 30.dp, vertical = 2.dp),
+                                style = Reading.small,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+
+                            else -> Unit
+                        }
+                    }
                 }
             }
         }

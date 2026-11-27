@@ -39,8 +39,12 @@ class ChangeAlertOutbox(
 
     /** Fixed-size work and failure rotation keep a broken notifier from starving other pages. */
     suspend fun drain(onlySiteId: String? = null) {
-        // A startup retry must never make a check wait behind unrelated delivery failures.
-        if (!delivery.tryLock()) return
+        // Background sweeps can skip a turn. A newly committed alert needs a turn of its own.
+        if (onlySiteId == null) {
+            if (!delivery.tryLock()) return
+        } else {
+            delivery.lock()
+        }
         try {
             kotlinx.coroutines.withTimeoutOrNull(20_000) {
                 for (alert in pending.firstBatch(50, onlySiteId)) {

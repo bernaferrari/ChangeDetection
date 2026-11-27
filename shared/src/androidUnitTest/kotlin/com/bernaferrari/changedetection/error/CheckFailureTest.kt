@@ -1,5 +1,8 @@
 package com.bernaferrari.changedetection.error
 
+import com.bernaferrari.changedetection.browser.CaptureIssue
+import com.bernaferrari.changedetection.browser.CaptureNotReadyException
+import com.bernaferrari.changedetection.browser.isScreenshotLayoutChange
 import com.bernaferrari.changedetection.shared.generated.resources.*
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -61,6 +64,13 @@ class CheckFailureTest {
         assertEquals(CheckFailure.UNKNOWN, CheckFailure.fromCode(null))
         assertEquals(CheckFailure.UNKNOWN, CheckFailure.fromCode("FUTURE_REASON"))
         assertEquals(CheckFailure.UNKNOWN, classify(IllegalStateException("unrecognized problem")))
+    }
+
+    @Test fun screenshotLayoutDriftMapsToUnsettledPage() {
+        val drift = IllegalStateException("The page changed size while taking its screenshot: expected 400x800, captured 400x804")
+        val mapped = if (drift.isScreenshotLayoutChange()) CaptureNotReadyException(CaptureIssue.LAYOUT_CHANGED) else drift
+        assertEquals(CheckFailure.PAGE_UNSETTLED, classify(mapped))
+        assertEquals(false, IllegalStateException("unrecognized problem").isScreenshotLayoutChange())
     }
 
     private class SQLiteFullException(message: String) : RuntimeException(message)

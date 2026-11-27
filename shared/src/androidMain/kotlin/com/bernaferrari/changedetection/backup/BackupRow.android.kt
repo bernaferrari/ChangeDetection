@@ -153,6 +153,12 @@ private fun BackupDialog(files: BackupFiles, onClose: () -> Unit) {
                                     BackupCount(stringResource(Res.string.backup_pages_added), restored.summary.pagesAdded)
                                     BackupCount(stringResource(Res.string.backup_already_here), restored.summary.pagesAlreadyHere)
                                     BackupCount(stringResource(Res.string.detail_versions), restored.summary.versionsAdded)
+                                    if (restored.summary.pagesRejected > 0) {
+                                        BackupCount(stringResource(Res.string.backup_skipped_pages), restored.summary.pagesRejected)
+                                    }
+                                    if (restored.summary.duplicateVersions > 0) {
+                                        BackupCount(stringResource(Res.string.backup_duplicate_versions), restored.summary.duplicateVersions)
+                                    }
                                 }
                             }
                         }

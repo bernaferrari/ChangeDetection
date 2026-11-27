@@ -21,14 +21,16 @@ import org.junit.Test
 class BackupServiceTest {
     /** A backup held in memory, so the engine is tested without zip files. */
     private class MemoryArchive(val entries: MutableList<Pair<String, ByteArray>> = mutableListOf()) : BackupSink {
-        override fun write(name: String, bytes: ByteArray) {
-            entries += name to bytes
+        override fun writeEntry(name: String, write: (java.io.OutputStream) -> Unit) {
+            val output = java.io.ByteArrayOutputStream()
+            write(output)
+            entries += name to output.toByteArray()
         }
 
         fun source() = object : BackupSource {
             private var index = -1
             override fun nextName(): String? = entries.getOrNull(++index)?.first
-            override fun readCurrent(maxBytes: Int): ByteArray? = entries[index].second.takeIf { it.size <= maxBytes }
+            override fun currentStream() = entries[index].second.inputStream()
         }
 
         fun manifest(): BackupManifest = backupJson.decodeFromString(entries.first().second.decodeToString())
@@ -41,14 +43,24 @@ class BackupServiceTest {
         private val client = HttpClient()
         val engine = SyncEngine(client, db, db.siteDao(), db.snapsDao(), files, ErrorHandler())
         var settings = mapOf("sync_interval" to "120", "theme_mode" to "DARK")
+        var failSettingsWrite = false
+        var snapshotOpens = 0
         val service = BackupService(
             db,
             db.siteDao(),
             db.snapsDao(),
-            files,
+            object : BackupSnapshotStorage by files {
+                override fun openSnapshot(fileName: String): java.io.FileInputStream {
+                    snapshotOpens++
+                    return files.openSnapshot(fileName)
+                }
+            },
             SnapshotFileCleanup(db.pendingFileDeletionDao(), db.snapsDao(), files),
             readSettings = { settings },
-            writeSettings = { settings = it },
+            writeSettings = {
+                check(!failSettingsWrite) { "Settings could not be written" }
+                settings = it
+            },
             now = { 1_794_268_800_000 },
         )
 
@@ -57,6 +69,12 @@ class BackupServiceTest {
             db.siteDao().insertSite(site)
             versions.forEach { text -> assertTrue(engine.processFetchResult(requireNotNull(db.siteDao().getSiteById(id)), SyncEngine.FetchResult.Success("text/plain", text.encodeToByteArray())) is com.bernaferrari.changedetection.sync.SyncResult.Success) }
             return requireNotNull(db.siteDao().getSiteById(id))
+        }
+
+        suspend fun pagesBackup(): ByteArray {
+            val output = java.io.ByteArrayOutputStream()
+            service.exportPages(output, "3.2")
+            return output.toByteArray()
         }
 
         suspend fun versions(id: String): List<Snap> = db.snapsDao().getAllSnapsForSiteId(id)
@@ -72,7 +90,7 @@ class BackupServiceTest {
         Device("a").use { phone ->
             phone.watch("one", "https://example.test/one", "First", "Second")
 
-            val manifest: BackupManifest = backupJson.decodeFromString(phone.service.exportPages("3.2").decodeToString())
+            val manifest: BackupManifest = backupJson.decodeFromString(phone.pagesBackup().decodeToString())
 
             assertEquals(BACKUP_FORMAT, manifest.format)
             assertEquals(1, manifest.version)
@@ -99,6 +117,18 @@ class BackupServiceTest {
                 val entry = archive.entries.single { it.first == SNAPSHOT_PREFIX + snap.snapId }
                 assertArrayEquals(phone.files.readBytes(snap.snapId), entry.second)
             }
+        }
+    }
+
+    @Test fun fullBackupUsesOneFileHandlePerVersion() = runBlocking {
+        Device("stable-backup").use { phone ->
+            phone.watch("one", "https://example.test/one", "Original")
+            val snap = phone.versions("one").single()
+            val original = phone.files.readBytes(snap.snapId)
+            val archive = MemoryArchive()
+            assertEquals(1, phone.service.exportEverything(archive, "3.2").versions)
+            assertEquals(1, phone.snapshotOpens)
+            assertArrayEquals(original, archive.entries.last().second)
         }
     }
 
@@ -163,7 +193,7 @@ class BackupServiceTest {
                 // A page that was failing when it was exported must not arrive marked as failing.
                 old.db.siteDao().insertSite(requireNotNull(old.db.siteDao().getSiteById("one")).copy(isSuccessful = false, lastFailureCode = "SERVER", failureCount = 4, failingSince = 1L, failureAlerted = true))
 
-                val summary = new.service.import(ManifestOnlySource(old.service.exportPages("3.2")), restoreSettings = false)
+                val summary = new.service.import(ManifestOnlySource(old.pagesBackup()), restoreSettings = false)
 
                 assertEquals(1, summary.pagesAdded)
                 assertEquals(0, summary.versionsAdded)
@@ -230,7 +260,7 @@ class BackupServiceTest {
         Device("old").use { old ->
             Device("new").use { new ->
                 new.settings = mapOf("theme_mode" to "LIGHT")
-                val file = old.service.exportPages("3.2")
+                val file = old.pagesBackup()
 
                 assertFalse(new.service.import(ManifestOnlySource(file), restoreSettings = false).settingsRestored)
                 assertEquals(mapOf("theme_mode" to "LIGHT"), new.settings)
@@ -238,6 +268,42 @@ class BackupServiceTest {
                 assertTrue(new.service.import(ManifestOnlySource(file), restoreSettings = true).settingsRestored)
                 assertEquals(old.settings, new.settings)
             }
+        }
+    }
+
+    @Test fun aFailedSettingsWriteRollsBackTheRestoredPagesAndFiles() = runBlocking {
+        Device("old").use { old ->
+            Device("new").use { new ->
+                val site = old.watch("page", "https://example.test/page", "Version")
+                val snap = old.versions(site.id).single()
+                val archive = MemoryArchive().also { old.service.exportEverything(it, "3.3") }
+                new.failSettingsWrite = true
+
+                assertTrue(runCatching { new.service.import(archive.source(), restoreSettings = true) }.isFailure)
+                assertTrue(new.db.siteDao().getSitesList().isEmpty())
+                assertFalse(new.files.fileExists(snap.snapId))
+            }
+        }
+    }
+
+    @Test fun zipMetadataDoesNotPreventRestoringPagesAndDuplicateIdsAreReported() = runBlocking {
+        Device("new").use { new ->
+            val page = page("a", "https://example.test/a")
+            val id = "11111111-2222-3333-4444-555555555555"
+            val snap = Snap(id, page.id, 1L, "text/plain", "UTF-8", 1)
+            val archive = file(
+                BackupManifest(sites = listOf(page, page), snaps = listOf(snap, snap)),
+                "__MACOSX/" to byteArrayOf(),
+                "__MACOSX/._manifest.json" to byteArrayOf(0),
+                SNAPSHOT_PREFIX + id to byteArrayOf(42),
+            )
+
+            assertEquals(1, new.service.preview(archive.source()).versionsToAdd)
+            val summary = new.service.import(archive.source(), restoreSettings = false)
+            assertEquals(1, summary.pagesAdded)
+            assertEquals(1, summary.pagesRejected)
+            assertEquals(1, summary.versionsAdded)
+            assertEquals(1, summary.duplicateVersions)
         }
     }
 

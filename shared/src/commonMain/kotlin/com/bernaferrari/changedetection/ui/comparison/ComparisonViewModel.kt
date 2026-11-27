@@ -11,7 +11,6 @@ import com.bernaferrari.changedetection.util.readableSnapshotText
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bernaferrari.changedetection.background.MonitoringManager
 import com.bernaferrari.changedetection.error.ErrorContext
 import com.bernaferrari.changedetection.error.ErrorHandler
 import com.bernaferrari.changedetection.repo.Site
@@ -22,6 +21,8 @@ import com.bernaferrari.changedetection.platform.ShareManager
 import com.bernaferrari.changedetection.util.ApplicationScope
 import com.bernaferrari.changedetection.util.UnifiedDiffUtils
 import com.bernaferrari.changedetection.util.decodeByteArray
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.Job
@@ -38,6 +39,10 @@ import org.koin.core.annotation.KoinViewModel
 
 enum class ComparisonLoadFailure { Page, Content }
 
+/** An encoded screenshot is owned by the comparison and is read-only once published. */
+@androidx.compose.runtime.Immutable
+class ComparisonImage internal constructor(internal val bytes: ByteArray)
+
 data class ComparisonUiState(
     val isLoading: Boolean = true,
     val site: Site? = null,
@@ -45,12 +50,12 @@ data class ComparisonUiState(
     val selectedPairIndex: Int? = null,
     val snapContent1: String? = null,
     val snapContent2: String? = null,
-    val snapBytes1: ByteArray? = null,
-    val snapBytes2: ByteArray? = null,
+    val snapImage1: ComparisonImage? = null,
+    val snapImage2: ComparisonImage? = null,
     /** A saved baseline has no earlier version, but remains readable from history. */
     val singleSnap: Snap? = null,
     val singleSnapContent: String? = null,
-    val singleSnapBytes: ByteArray? = null,
+    val singleSnapImage: ComparisonImage? = null,
     val imageDiff: SnapshotImageDiff? = null,
     val isLoadingDiff: Boolean = false,
     /** True when the selected pair spans a capture-method change (text snapshot vs screenshot). */
@@ -65,7 +70,7 @@ data class ComparisonUiState(
         get() = !isLoading && (!isLoadingDiff || showsScreenshotsWhileComparing) && error == null && imageDiff?.error == null &&
             !requestedSnapshotUnavailable && snaps.size > 1 && selectedPairIndex == 0
     private val showsScreenshotsWhileComparing: Boolean
-        get() = snapBytes1 != null && snapBytes2 != null && snaps.getOrNull(selectedPairIndex ?: -1)?.isImageSnapshot() == true &&
+        get() = snapImage1 != null && snapImage2 != null && snaps.getOrNull(selectedPairIndex ?: -1)?.isImageSnapshot() == true &&
             snaps.getOrNull((selectedPairIndex ?: -2) + 1)?.isImageSnapshot() == true
     val canMarkRead: Boolean
         get() = showsLatestComparison && site?.isRead == false && !isUpdatingReadState
@@ -75,7 +80,6 @@ data class ComparisonUiState(
 class ComparisonViewModel(
     private val sitesRepository: SitesRepository,
     private val snapsRepository: SnapsRepository,
-    private val monitoringManager: MonitoringManager,
     private val shareManager: ShareManager,
     private val errorHandler: ErrorHandler,
     private val applicationScope: ApplicationScope,
@@ -88,8 +92,8 @@ class ComparisonViewModel(
     private var snapshotObservationJob: Job? = null
 
     /** One-shot messages for the snackbar host (e.g. prune success). */
-    private val _actionMessages = Channel<String>(Channel.BUFFERED)
-    val actionMessages: Flow<String> = _actionMessages.receiveAsFlow()
+    private val _actionMessages = Channel<ComparisonActionMessage>(Channel.BUFFERED)
+    val actionMessages: Flow<ComparisonActionMessage> = _actionMessages.receiveAsFlow()
 
     /** What changed, written for a person: the page, when, and the edits as "old → new". */
     fun shareDiff(
@@ -104,7 +108,8 @@ class ComparisonViewModel(
             val text = withContext(Dispatchers.Default) {
                 val oldLines = readableSnapshotText(content1, readableText && snap1.isHtmlSnapshot()).lines().map { it.trim() }.filter { it.isNotEmpty() }
                 val newLines = readableSnapshotText(content2, readableText && snap2.isHtmlSnapshot()).lines().map { it.trim() }.filter { it.isNotEmpty() }
-                val deltas = com.bernaferrari.difflib.DiffUtils.diff(oldLines, newLines).deltas
+                val context = currentCoroutineContext()
+                val deltas = com.bernaferrari.difflib.DiffUtils.diff(oldLines, newLines) { context.ensureActive() }.deltas
                 buildString {
                     appendLine(getString(Res.string.share_page_changed, site.title ?: site.url))
                     deltas.take(MAX_SHARED_EDITS).forEach { delta ->
@@ -148,7 +153,7 @@ class ComparisonViewModel(
         } catch (cancelled: kotlinx.coroutines.CancellationException) {
             throw cancelled
         } catch (_: Exception) {
-            _actionMessages.send(getString(Res.string.share_failed))
+            _actionMessages.send(ComparisonActionMessage.ShareFailed)
         }
     }
 
@@ -234,6 +239,10 @@ class ComparisonViewModel(
                         isLoading = false,
                         error = ComparisonLoadFailure.Page,
                     )
+            } finally {
+                if (generation == loadGeneration) {
+                    _uiState.update { if (it.isLoading) it.copy(isLoading = false) else it }
+                }
             }
         }
     }
@@ -307,7 +316,7 @@ class ComparisonViewModel(
         val snap1 = snaps[pairIndex]
         val snap2 = snaps[pairIndex + 1]
 
-        _uiState.update { it.copy(selectedPairIndex = pairIndex, singleSnap = null, singleSnapContent = null, singleSnapBytes = null, error = null, requestedSnapshotUnavailable = false, newVersionAvailable = if (pairIndex == 0) false else it.newVersionAvailable) }
+        _uiState.update { it.copy(selectedPairIndex = pairIndex, singleSnap = null, singleSnapContent = null, singleSnapImage = null, error = null, requestedSnapshotUnavailable = false, newVersionAvailable = if (pairIndex == 0) false else it.newVersionAvailable) }
         loadSnapContents(pairIndex, snap1, snap2)
     }
 
@@ -348,8 +357,8 @@ class ComparisonViewModel(
                     error = null,
                     snapContent1 = null,
                     snapContent2 = null,
-                    snapBytes1 = null,
-                    snapBytes2 = null,
+                    snapImage1 = null,
+                    snapImage2 = null,
                     imageDiff = null,
                     mixedTypePair = snap1.isTextSnapshot() != snap2.isTextSnapshot(),
                 )
@@ -365,11 +374,13 @@ class ComparisonViewModel(
 
                 // Publish the requested pair before its CPU-heavy visual comparison. Generation
                 // checks still prevent a cancelled/older read from replacing a newer selection.
+                val firstImage = firstBytes.takeIf { snap1.isImageSnapshot() }?.let(::ComparisonImage)
+                val secondImage = secondBytes.takeIf { snap2.isImageSnapshot() }?.let(::ComparisonImage)
                 _uiState.update { current ->
                     if (generation != contentGeneration || current.selectedPairIndex != pairIndex) {
                         current
                     } else {
-                        current.copy(snapBytes1 = firstBytes, snapBytes2 = secondBytes)
+                        current.copy(snapImage1 = firstImage, snapImage2 = secondImage)
                     }
                 }
                 val (content1, content2, imageDiff) =
@@ -407,8 +418,6 @@ class ComparisonViewModel(
                     current.copy(
                         snapContent1 = content1,
                         snapContent2 = content2,
-                        snapBytes1 = firstBytes,
-                        snapBytes2 = secondBytes,
                         imageDiff = imageDiff,
                         isLoadingDiff = false,
                     )
@@ -423,6 +432,10 @@ class ComparisonViewModel(
                         isLoadingDiff = false,
                         error = ComparisonLoadFailure.Content,
                     )
+                }
+            } finally {
+                if (generation == contentGeneration) {
+                    _uiState.update { if (it.isLoadingDiff) it.copy(isLoadingDiff = false) else it }
                 }
             }
         }
@@ -440,13 +453,13 @@ class ComparisonViewModel(
                     selectedPairIndex = null,
                     snapContent1 = null,
                     snapContent2 = null,
-                    snapBytes1 = null,
-                    snapBytes2 = null,
+                    snapImage1 = null,
+                    snapImage2 = null,
                     imageDiff = null,
                     requestedSnapshotUnavailable = false,
                     newVersionAvailable = if (it.snaps.firstOrNull()?.snapId == snap.snapId) false else it.newVersionAvailable,
                     singleSnapContent = null,
-                    singleSnapBytes = null,
+                    singleSnapImage = null,
                 )
             }
 
@@ -468,7 +481,7 @@ class ComparisonViewModel(
                     if (generation != contentGeneration || it.singleSnap?.snapId != snap.snapId) return@update it
                     it.copy(
                         singleSnapContent = content,
-                        singleSnapBytes = bytes.takeIf { snap.isImageSnapshot() },
+                        singleSnapImage = bytes.takeIf { snap.isImageSnapshot() }?.let(::ComparisonImage),
                         isLoadingDiff = false,
                     )
                 }
@@ -482,6 +495,10 @@ class ComparisonViewModel(
                         isLoadingDiff = false,
                         error = ComparisonLoadFailure.Content,
                     )
+                }
+            } finally {
+                if (generation == contentGeneration) {
+                    _uiState.update { if (it.isLoadingDiff) it.copy(isLoadingDiff = false) else it }
                 }
             }
         }
@@ -500,14 +517,14 @@ class ComparisonViewModel(
                 }
                 snap
             } else {
-                _actionMessages.send("read_changed")
+                _actionMessages.send(ComparisonActionMessage.ReadChanged)
                 null
             }
         } catch (cancelled: kotlinx.coroutines.CancellationException) {
             throw cancelled
         } catch (error: Exception) {
             appLog.w("Could not acknowledge saved comparison", error)
-            _actionMessages.send("read_failed")
+            _actionMessages.send(ComparisonActionMessage.ReadFailed)
             null
         } finally {
             _uiState.update { it.copy(isUpdatingReadState = false) }
@@ -530,14 +547,7 @@ class ComparisonViewModel(
             throw cancelled
         } catch (error: Exception) {
             appLog.w("Could not undo acknowledgement", error)
-            _actionMessages.send("read_failed")
-        }
-    }
-
-    fun reloadSite() {
-        val site = _uiState.value.site ?: return
-        viewModelScope.launch {
-            monitoringManager.reloadSite(site)
+            _actionMessages.send(ComparisonActionMessage.ReadFailed)
         }
     }
 
@@ -551,11 +561,12 @@ class ComparisonViewModel(
         // Application-scoped: deletion survives navigating back (which cancels
         // viewModelScope). Rows go atomically via FK cascade; files swept after.
         applicationScope.scope.launch {
-            runCatching {
+            try {
                 snapsRepository.deleteSiteWithSnaps(site.id)
-            }.onSuccess {
                 _deleteResult.value = true
-            }.onFailure { e ->
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (e: Exception) {
                 appLog.e("Failed to delete site ${site.id}", e)
                 errorHandler.handleError(e, ErrorContext.DELETE_SITE, userAction = "delete site")
                 _deleteResult.value = false
@@ -572,16 +583,18 @@ class ComparisonViewModel(
                 // Reload the selected capture by identity: pruning changes list indices and
                 // may remove the older half of the comparison currently on screen.
                 if (_uiState.value.site?.id == site.id) loadSiteAndSnaps(site.id, selectedSnapId)
-                _actionMessages.trySend("pruned")
+                _actionMessages.trySend(ComparisonActionMessage.Pruned)
             } catch (cancelled: kotlinx.coroutines.CancellationException) {
                 throw cancelled
             } catch (e: Exception) {
                 appLog.e("Failed to prune site ${site.id}", e)
                 errorHandler.handleError(e, ErrorContext.DATABASE_OPERATION, userAction = "prune snapshots")
-                _actionMessages.trySend("prune_failed")
+                _actionMessages.trySend(ComparisonActionMessage.PruneFailed)
             }
         }
     }
 }
+
+enum class ComparisonActionMessage { ReadChanged, ReadFailed, Pruned, PruneFailed, ShareFailed }
 
 private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("ComparisonViewModel")

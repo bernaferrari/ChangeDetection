@@ -51,9 +51,12 @@ internal actual suspend fun captureLoadedPageScreenshot(state: WebViewState, reg
         // Match scheduled checks' viewport so the first comparison does not detect a layout change.
         view.measure(View.MeasureSpec.makeMeasureSpec(WatchCaptureViewport.WIDTH, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(WatchCaptureViewport.HEIGHT, View.MeasureSpec.EXACTLY))
         view.layout(0, 0, WatchCaptureViewport.WIDTH, WatchCaptureViewport.HEIGHT)
-        val shot = AndroidPageCapture(view).captureLoaded(maxHeight = 10_000, hide = region.exclude, only = region.include, preservePage = true)
+        val capture = AndroidPageCapture(view)
+        val shot = capture.captureLoaded(maxHeight = 10_000, hide = region.exclude, only = region.include, preservePage = true)
         validate()
-        SyncEngine.FetchResult.Success(shot.contentType, shot.bytes, capturedWithBrowser = true, validateCapture = validate)
+        val validatePixels = capture.captureValidator()
+        validatePixels()
+        SyncEngine.FetchResult.Success(shot.contentType, shot.bytes, capturedWithBrowser = true, validateCapture = validatePixels)
     } finally {
         view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
         view.layout(left, top, left + width, top + height)
@@ -66,6 +69,9 @@ internal actual fun createWatchWebView(param: com.multiplatform.webview.web.WebV
     init {
         layout(0, 0, WatchCaptureViewport.WIDTH, WatchCaptureViewport.HEIGHT)
         settings.loadWithOverviewMode = true
+        settings.allowFileAccess = false
+        settings.allowContentAccess = false
+        android.webkit.CookieManager.getInstance().setAcceptThirdPartyCookies(this, false)
     }
     override fun loadUrl(url: String) {
         com.bernaferrari.changedetection.browser.WebViewCaptureHealth.of(this).begin(url)
@@ -82,9 +88,11 @@ internal actual fun createWatchWebView(param: com.multiplatform.webview.web.WebV
 }
 
 internal actual suspend fun loadedPageCaptureValidator(state: WebViewState, textOnly: Boolean): suspend () -> Unit = withContext(Dispatchers.Main.immediate) {
-    AndroidPageCapture(state.nativeWebView).validateCurrentResources(textOnly)
+    if (textOnly) AndroidPageCapture(state.nativeWebView).validateCurrentTextResources()
     val health = com.bernaferrari.changedetection.browser.WebViewCaptureHealth.of(state.nativeWebView)
     val epoch = health.epoch()
-    val validate: suspend () -> Unit = { health.validate(epoch, textOnly = textOnly) }
+    val validate: suspend () -> Unit = {
+        if (textOnly) health.validate(epoch, textOnly = true) else health.validateDocument(epoch)
+    }
     validate
 }

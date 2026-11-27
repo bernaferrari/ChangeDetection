@@ -13,7 +13,7 @@ const faqs = [
   { q: "Do I need an account?", a: "No. Install the app and watch a page. There is no sign-up, and nothing to log in to." },
   { q: "Where are my pages and screenshots stored?", a: "On your phone. Pages are opened and compared on your device; nothing is uploaded to our servers, because there are none." },
   { q: "Does it work with pages that need a login?", a: "Yes. Pages open in a built-in browser, so you can sign in once. Later checks reuse that session from your phone." },
-  { q: "How often are pages checked?", a: "On a schedule you choose, in the background. On iPhone, the system decides exactly when background checks run. Turbo checks the pages you pick every 5 to 60 seconds for up to three hours." },
+  { q: "How often are pages checked?", a: "On Android, scheduled checks run in the background. Quick Monitor checks selected pages every 5 to 60 seconds for up to three hours." },
   { q: "Screenshots or text: which should I use?", a: "Screenshots compare how the page looks and catch images, layout and anything drawn by JavaScript. Text compares the words and is lighter on battery, great for prices, dates and lists. You can switch any time." },
   { q: "Won't a long news page always look \"changed\"?", a: "Content that only moved, like stories pushed down by a new banner, is recognised as moved, not changed. You can also mark noisy parts, like carousels or ad slots, to be ignored." },
   { q: "Is it open source?", a: "Yes. The app is open source under the Apache 2.0 license; the code is on GitHub." },
@@ -33,7 +33,7 @@ export default function Home() {
           "@context": "https://schema.org",
           "@type": "MobileApplication",
           name: site.name,
-          operatingSystem: "Android, iOS",
+          operatingSystem: "Android",
           applicationCategory: "UtilitiesApplication",
           description: site.description,
           url: site.url,
@@ -55,7 +55,7 @@ export default function Home() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 pt-14 pb-20 md:pt-20 lg:grid-cols-[1.05fr_1fr]">
           <div className="space-y-7">
             <p className="inline-flex items-center gap-2 rounded-full border bg-background/70 px-3 py-1 text-xs font-medium text-muted-foreground">
-              <span className="size-1.5 rounded-full bg-primary" /> Website change alerts for Android and iPhone
+              <span className="size-1.5 rounded-full bg-primary" /> Website change alerts for Android
             </p>
             <h1 className="font-heading text-5xl leading-[1.02] font-bold tracking-tight text-balance sm:text-6xl">
               Stop refreshing. <span className="text-primary">We&apos;ll tell you what changed.</span>
@@ -133,7 +133,7 @@ export default function Home() {
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           <MiniFeature icon={Layers} title="Pick parts, uBlock-style" body="Tap any part of the page and widen the selection with a slider. Watch only it, or ignore it." />
           <MiniFeature icon={Lock} title="Works behind logins" body="Sign in once in the built-in browser; checks reuse the session from your device." />
-          <MiniFeature icon={Timer} title="Turbo: every 30 seconds" body="For drops and results day. A countdown shows when the next check runs." />
+          <MiniFeature icon={Timer} title="Quick Monitor checks every 30 seconds" body="For drops and results day. A countdown shows when the next check runs." />
           <MiniFeature icon={Fingerprint} title="Private by design" body="No account, no tracking. Pages and screenshots never leave your phone." />
         </div>
       </section>

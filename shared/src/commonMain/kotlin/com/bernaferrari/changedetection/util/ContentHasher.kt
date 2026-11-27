@@ -7,7 +7,7 @@ object ContentHasher {
 
     /** Versioned policy hashes make a rule change a baseline, never a false content alert. */
     fun detectionHash(content: ByteArray, contentType: String, mode: CaptureMode): String = when (mode) {
-        CaptureMode.TEXT -> "text-v1:" + hashContent(
+        CaptureMode.TEXT, CaptureMode.DIRECT_TEXT -> (if (mode == CaptureMode.DIRECT_TEXT) "text-http-v1:" else "text-v1:") + hashContent(
             readableSnapshotText(content.decodeToString(), contentType.contains("html", true)).encodeToByteArray(),
         )
 
@@ -17,8 +17,9 @@ object ContentHasher {
     }
 
     fun detectionPolicy(hash: String): String = when {
-        hash.startsWith("image-v2:") || hash.startsWith("image-v3:") || hash.startsWith("screenshot-v1:") || hash.startsWith("text-region-v1:") || hash.startsWith("text-region-v2:") -> hash.substringBeforeLast(':')
+        hash.startsWith("image-v2:") || hash.startsWith("image-v3:") || hash.startsWith("screenshot-v1:") || hash.startsWith("text-region-v1:") || hash.startsWith("text-region-v2:") || hash.startsWith("text-http-region-v1:") -> hash.substringBeforeLast(':')
         hash.startsWith("text-v1:") -> "text-v1"
+        hash.startsWith("text-http-v1:") -> "text-http-v1"
         hash.startsWith("source-v1:") -> "source-v1"
         else -> "legacy"
     }

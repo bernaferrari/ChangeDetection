@@ -154,6 +154,32 @@ class ChangeAlertOutboxTest {
         assertEquals(2, queue.rows.size)
     }
 
+    @Test fun aNewSiteTriggerDrainsAfterAnInProgressStartupBatch() = runTest {
+        val queue = Queue()
+        val sites = mock<SitesDao>()
+        val snaps = mock<SnapsDao>()
+        var latest = snap
+        whenever(sites.getSiteById(site.id)).thenReturn(site)
+        whenever(snaps.getLastSnapForSiteId(site.id)).thenAnswer { latest }
+        val prepared = kotlinx.coroutines.CompletableDeferred<Unit>()
+        val posted = mutableListOf<String>()
+        val outbox = ChangeAlertOutbox(queue, sites, snaps, preparingNotifier(prepared, posted))
+        outbox.enqueue(site, snap)
+        val startup = async { outbox.drain() }
+        testScheduler.runCurrent()
+
+        latest = snap.copy(snapId = "latest", timestamp = 3)
+        outbox.enqueue(site, latest)
+        val triggered = async { outbox.drain(site.id) }
+        testScheduler.runCurrent()
+        prepared.complete(Unit)
+        startup.await()
+        triggered.await()
+
+        assertEquals(listOf(latest.snapId), posted)
+        assertTrue(queue.rows.isEmpty())
+    }
+
     @Test fun newerVersionCommittedDuringPreparationCannotPublishTheOlderAlert() = runTest {
         val queue = Queue()
         val sites = mock<SitesDao>()

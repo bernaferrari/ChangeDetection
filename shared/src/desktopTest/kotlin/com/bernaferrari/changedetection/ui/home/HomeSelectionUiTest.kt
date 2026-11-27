@@ -50,7 +50,7 @@ class HomeSelectionUiTest {
                         notificationsAvailable = true,
                         onClose = { closed = true },
                         onCheck = { error("Empty selection must not check pages") },
-                        onTurbo = { error("Empty selection must not start Turbo") },
+                        onTurbo = { error("Empty selection must not start Quick Monitor") },
                         onDelete = { error("Empty selection must not delete pages") },
                         onSetPaused = { error("Empty selection must not pause pages") },
                         onSetNotify = { error("Empty selection must not change notifications") },
@@ -60,7 +60,7 @@ class HomeSelectionUiTest {
             }
         }
         compose.onNodeWithContentDescription("0 pages selected").assertIsDisplayed()
-        listOf("Check now", "Turbo", "Delete").forEach { label ->
+        listOf("Check now", "Quick Monitor", "Delete").forEach { label ->
             compose.onNodeWithContentDescription(label).assertIsNotEnabled()
         }
         compose.onNodeWithContentDescription("Clear selection").performClick()

@@ -51,6 +51,20 @@ class TimeoutAfterSavedResultTest {
         }
     }
 
+    @Test fun latestQueriesChooseOneSnapshotWhenTimestampsTie() = runBlocking {
+        Fixture().use { fixture ->
+            fixture.db.siteDao().insertSite(fixture.site)
+            val dao = fixture.db.snapsDao()
+            val earlierId = com.bernaferrari.changedetection.repo.Snap("a", fixture.site.id, 42L, "text/plain", "UTF-8", 1)
+            val laterId = earlierId.copy(snapId = "z")
+            dao.insertSnap(laterId)
+            dao.insertSnap(earlierId)
+
+            assertEquals(listOf(laterId.snapId), dao.getAllMostRecentSnaps().map { it.snapId })
+            assertEquals(listOf(laterId.snapId), dao.getLatestSnapsFromSitesWithChangesList().map { it.snapId })
+        }
+    }
+
     private class Fixture : AutoCloseable {
         private val directory = Files.createTempDirectory("timeout-after-saved-result").toFile()
         val db = getRoomDatabase(Room.databaseBuilder<ChangeDatabase>(name = directory.resolve("test.db").path), BundledSQLiteDriver())

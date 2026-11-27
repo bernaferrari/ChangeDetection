@@ -68,17 +68,14 @@ Each of these was reproduced on an untouched copy of the commit.
 | --- | --- | --- |
 | `./gradlew :shared:spotlessCheck` | About 35 files are not formatted, and one lint error at `MonitoringBatch.kt:37` that the formatter cannot fix by itself | Plan 000 |
 | `./gradlew :shared:desktopTest` | One test, `DesignReviewTest.largeTextTour`: at large text the Settings list has not yet built the row the test looks for | Plan 000 |
-| `./gradlew :shared:compileKotlinIosSimulatorArm64` | Five "unresolved reference" errors in `IosPageCapture.kt` | Nothing. See the first open question |
-| `./gradlew :webDemo:wasmJsBrowserDistribution` | Compiles, then stops at `kotlinWasmStoreYarnLock`: "Lock file was changed" | Nothing. See the second open question |
+| `./gradlew :shared:compileKotlinIosSimulatorArm64` | Five unresolved references to the screenshot library in `IosPageCapture.kt` | Direct WebKit snapshots on iOS |
+| `./gradlew :webDemo:wasmJsBrowserDistribution` | The generated Yarn lockfile omitted the SQLite worker and the patched WebSocket dependency | A Wasm-specific worker dependency and restored WebSocket resolution |
 
 Plan 000 was tried on a copy first: with its changes, `./gradlew :shared:spotlessCheck :shared:testAndroidHostTest :shared:desktopTest` passes.
 
 ## Open questions for the maintainer
 
-1. **iOS does not compile.** `io.github.bernaferrari:kmpwright-core:0.0.2` ships an iOS library built with Kotlin 2.5.0-Beta1 and the project uses Kotlin 2.4.21, so the compiler cannot read it. Either publish the library built with the project's Kotlin, or move the project to that Kotlin. Until then no plan can prove its iOS code compiles; each plan says what to run instead.
-2. **The web demo cannot be packaged.** The committed `kotlin-js-store/wasm/yarn.lock` has entries for `@sqlite.org/sqlite-wasm` and the local `sqlite-wasm-worker` that the build no longer generates. Regenerating the lock (`kotlinWasmUpgradeYarnLock`) drops them, and the build then fails later, in `wasmJsBrowserProductionWebpack`. Not diagnosed further. If the published demo is built another way, say so in the contributor guide that Plan 014 adds.
-3. **The Chinese, Hindi and Bengali fonts are subsets.** A translated string that needs a character outside the subset fails `LocalizationTest`. The Chinese drafts in Plans 007 and 016 were reworded to fit, which is why Plan 016's Chinese title says "Save and restore" and not "Backup". Extending the fonts (`third_party/notosanssc-subsets.md`) would allow the natural wording.
-4. **Third-party cookies.** `AndroidScreenshotSyncer.kt:142` turns third-party cookies **on** for background captures, while the interactive in-app browser leaves them at the platform default (off). Either is defensible (some embedded sign-in flows need them), but the two should probably agree, and the choice should be deliberate. Plan 007 mentions this; no plan changes it.
+The Chinese, Hindi and Bengali fonts are subsets. `LocalizationTest` checks each translation against its bundled font. See [the font subset guide](../third_party/notosanssc-subsets.md) for changes to the Chinese font.
 
 ## Looked at and deliberately not planned
 
@@ -116,7 +113,7 @@ Plan 000 was tried on a copy first: with its changes, `./gradlew :shared:spotles
 Be aware of these when reading the plans:
 
 - **No plan's code was compiled, except Plan 000's**, which was applied to a copy and passed. Every plan has a red-then-green test sequence so that mistakes surface early, and STOP conditions for when they do.
-- **The failure-experience change was not run on a device, and its iOS part was not compiled** (iOS does not compile at all). Details in `failure-experience-changes.md`.
+- `failure-experience-changes.md` records the verification performed when the original failure-experience change landed.
 - Plans 001 to 017 were written before the failure-experience change and Plan 000. Their line numbers were corrected where the change was known to matter (001, 005, 015), and every plan carries a note on what moved; the rest were not re-checked line by line.
 - Plan 003: whether the SVG/MathML/CDATA style payloads actually reach the viewer was not demonstrated; the plan's tests characterise it and the executor must report what they show.
 - Plan 004: on-device behaviour of device-to-device transfer was reasoned from the platform documentation, not observed.

@@ -20,7 +20,7 @@
     <string name="more_options">خيارات إضافية</string>
     <string name="loading">جارٍ التحميل…</string>
     <string name="saving">جارٍ الحفظ…</string>
-    <string name="turbo_mode">Turbo</string>
+    <string name="turbo_mode">المراقبة السريعة</string>
     <string name="how_it_works">كيف يعمل التطبيق</string>
     <string name="select_site_canvas_label">مكتب التغيير</string>
     <string name="select_site_canvas_title">كل تحديث في مكان هادئ.</string>
@@ -37,13 +37,13 @@
         <item quantity="other">الصفحات المحددة (%1$d)</item>
     </plurals>
     <string name="nav_home">الرئيسية</string>
-    <string name="nav_turbo">Turbo</string>
+    <string name="nav_turbo">المراقبة السريعة</string>
     <string name="nav_settings">الإعدادات</string>
     <string name="home_action_check_now">افحص الآن</string>
     <string name="home_section_attention">يتطلّب الانتباه</string>
     <string name="home_search_clear">امسح البحث</string>
     <string name="home_search_close">أغلق البحث</string>
-    <string name="turbo_ended">انتهى Turbo</string>
+    <string name="turbo_ended">انتهى المراقبة السريعة</string>
     <string name="settings_title">الإعدادات</string>
     <string name="settings_theme_label">المظهر</string>
     <string name="settings_palette_label">اللون</string>
@@ -159,9 +159,9 @@
     <string name="how_it_works_step_monitor_title">اقرأ كم مرة تحقق</string>
     <string name="how_it_works_step_monitor_description">استخدم فحوصات خلفية صديقة للبطارية للتتبع اليومي.</string>
     <string name="how_it_works_step_monitor_highlight">يمكنك التحكم في الفجوة والشبكة أو متطلبات الطاقة.</string>
-    <string name="how_it_works_step_focus_title">استخدام Turbo عندما يتعلق الأمر بتوقيت</string>
+    <string name="how_it_works_step_focus_title">استخدام المراقبة السريعة عندما يتعلق الأمر بتوقيت</string>
     <string name="how_it_works_step_focus_description">تحقق من الصفحات المختارة كل %1$d إلى %2$d ثانية لمدة تصل إلى 3 ساعات.</string>
-    <string name="how_it_works_step_focus_highlight">Turbo يتوقف عند انتهاء موعده.يمكنك إيقافه في أي وقت مبكر.</string>
+    <string name="how_it_works_step_focus_highlight">المراقبة السريعة يتوقف عند انتهاء موعده.يمكنك إيقافه في أي وقت مبكر.</string>
     <string name="how_it_works_step_alerts_title">انظروا بالضبط ما تغير</string>
     <string name="how_it_works_step_alerts_description">افتح صفحة لمقارنة الإصدارات المحفوظة مثل النص أو الصفحات التي تم تسليمها أو صور الشاشة.</string>
     <string name="how_it_works_step_alerts_highlight">نسخك المحفوظة وتغيير تاريخ البقاء على جهازك.</string>
@@ -237,7 +237,7 @@
     <string name="snapshot_deleted">حُذفت النسخة</string>
     <string name="comparison_check_now_hint">تم فحص هذه الصفحة مرة واحدة حتى الآن - فحص مرة أخرى لمعرفة ما تغير.</string>
     <string name="schedule_save_failed">لا يمكن تطبيق الجدول الزمني، يرجى المحاولة مرة أخرى.</string>
-    <string name="turbo_stop_session">التوقف Turbo</string>
+    <string name="turbo_stop_session">التوقف المراقبة السريعة</string>
     <string name="storage_history_title">التاريخ المحفوظ</string>
     <string name="storage_history_usage">%1$s ميغابايت من الإصدارات المحفوظة</string>
     <string name="storage_history_policy">يتم إزالة الإصدارات القديمة لأكثر من 250 ميغابايت، يتم الحفاظ على أحدث إصدارين من كل صفحة دائما، حتى لو كانت تتجاوز هذا الميزانية.</string>
@@ -349,7 +349,7 @@
     <string name="settings_load_failed">تعذّر تحميل الإعدادات. حاول مجددًا.</string>
     <string name="settings_write_failed">لا أستطيع أن أحفظ خيارك، حاول مرة أخرى.</string>
     <string name="storage_history_load_failed">تعذّر تحميل معلومات استخدام مساحة التخزين.</string>
-    <string name="turbo_unavailable_title">Turbo غير متوفر في هذا البداية</string>
+    <string name="turbo_unavailable_title">المراقبة السريعة غير متوفر في هذا البداية</string>
     <string name="turbo_unavailable_description">استخدم تطبيق Android أو iOS أو سطح المكتب لبدء جلسة مراقبة.</string>
     <string name="image_diff_sampled_pixels_different">%1$s بكسل عينة تختلف.إحصاءات تستخدم عرض مسبق من الحجم المنخفض.</string>
     <string name="check_failure_capture_unavailable">فحص الشاشة غير متوفر</string>
@@ -442,9 +442,9 @@
     <string name="home_select_pages">اختيار الصفحات</string>
     <string name="detail_status_failed">فشل التحقق الأخير %1$s</string>
     <string name="detail_calendar_summary">%1$s عبر %2$s خلال الأيام الثلاثين الماضية</string>
-    <string name="turbo_sheet_no_pages">لا توجد صفحات نشطة بعد.إعادة تدوير صفحة قبل بدء Turbo.</string>
+    <string name="turbo_sheet_no_pages">لا توجد صفحات نشطة بعد.إعادة تدوير صفحة قبل بدء المراقبة السريعة.</string>
     <string name="turbo_sheet_paused_note">الصفحات المتقطعة غير مدرجة.</string>
-    <string name="turbo_live_note_while_open">Turbo يستمر في التحقق طالما أن التطبيق مفتوح.يمكنك ترك هذا الشاشة والعودة لرؤية أي تغييرات.</string>
+    <string name="turbo_live_note_while_open">المراقبة السريعة يستمر في التحقق طالما أن التطبيق مفتوح.يمكنك ترك هذا الشاشة والعودة لرؤية أي تغييرات.</string>
     <string name="image_diff_highlight_unavailable_body">لا يمكن إعداد الضوء العالي.حاول مرة أخرى أو استخدم قبل وبعد لفحص صور الشاشة التي تم حفظها.</string>
     <string name="image_diff_dimensions_supporting">مقارنة الصور أدناه؛ حجمها المختلف يمنع مقارنة مباشرة بكسل.</string>
     <string name="turbo_card_cadence">كل %1$s · %2$s</string>
@@ -544,12 +544,12 @@
     <string name="turbo_sheet_for">توقف بعد</string>
     <string name="turbo_sheet_pick">احصل على صفحة واحدة على الأقل</string>
     <plurals name="turbo_sheet_start">
-        <item quantity="zero">تشغيل Turbo للصفحات المحددة (%1$d)</item>
-        <item quantity="one">تشغيل Turbo للصفحات المحددة (%1$d)</item>
-        <item quantity="two">تشغيل Turbo للصفحات المحددة (%1$d)</item>
-        <item quantity="few">تشغيل Turbo للصفحات المحددة (%1$d)</item>
-        <item quantity="many">تشغيل Turbo للصفحات المحددة (%1$d)</item>
-        <item quantity="other">تشغيل Turbo للصفحات المحددة (%1$d)</item>
+        <item quantity="zero">تشغيل المراقبة السريعة للصفحات المحددة (%1$d)</item>
+        <item quantity="one">تشغيل المراقبة السريعة للصفحات المحددة (%1$d)</item>
+        <item quantity="two">تشغيل المراقبة السريعة للصفحات المحددة (%1$d)</item>
+        <item quantity="few">تشغيل المراقبة السريعة للصفحات المحددة (%1$d)</item>
+        <item quantity="many">تشغيل المراقبة السريعة للصفحات المحددة (%1$d)</item>
+        <item quantity="other">تشغيل المراقبة السريعة للصفحات المحددة (%1$d)</item>
     </plurals>
     <string name="turbo_sheet_caption">تنتهي في %1$s · تستخدم المزيد من البطارية أثناء التشغيل</string>
     <string name="turbo_run_again">الركض مرة أخرى</string>
@@ -565,19 +565,19 @@
     <string name="turbo_ends_at">النهاية %1$s</string>
     <string name="turbo_changed">تغيرت</string>
     <string name="turbo_checking">التحقق</string>
-    <string name="turbo_ended_planned">Turbo انتهى كما هو مخطط</string>
-    <string name="turbo_ended_stopped">Turbo توقفت عنك</string>
-    <string name="turbo_ended_interrupted">Turbo تم إلغاء</string>
-    <string name="turbo_ended_failed">Turbo لا يمكن أن تبدأ</string>
+    <string name="turbo_ended_planned">المراقبة السريعة انتهى كما هو مخطط</string>
+    <string name="turbo_ended_stopped">المراقبة السريعة توقفت عنك</string>
+    <string name="turbo_ended_interrupted">المراقبة السريعة تم إلغاء</string>
+    <string name="turbo_ended_failed">المراقبة السريعة لا يمكن أن تبدأ</string>
     <string name="turbo_row_quiet">لا تغيير · تم التحقق منه منذ %1$d ثانية</string>
     <string name="nav_activity">النشاط</string>
     <plurals name="turbo_card_title_n">
-        <item quantity="zero">Turbo · الصفحات (%1$d)</item>
-        <item quantity="one">Turbo · الصفحات (%1$d)</item>
-        <item quantity="two">Turbo · الصفحات (%1$d)</item>
-        <item quantity="few">Turbo · الصفحات (%1$d)</item>
-        <item quantity="many">Turbo · الصفحات (%1$d)</item>
-        <item quantity="other">Turbo · الصفحات (%1$d)</item>
+        <item quantity="zero">المراقبة السريعة · الصفحات (%1$d)</item>
+        <item quantity="one">المراقبة السريعة · الصفحات (%1$d)</item>
+        <item quantity="two">المراقبة السريعة · الصفحات (%1$d)</item>
+        <item quantity="few">المراقبة السريعة · الصفحات (%1$d)</item>
+        <item quantity="many">المراقبة السريعة · الصفحات (%1$d)</item>
+        <item quantity="other">المراقبة السريعة · الصفحات (%1$d)</item>
     </plurals>
     <string name="turbo_found_none">لا يوجد تغييرات</string>
     <plurals name="turbo_summary_checks">
@@ -588,7 +588,7 @@
         <item quantity="many">عمليات الفحص (%1$d)</item>
         <item quantity="other">عمليات الفحص (%1$d)</item>
     </plurals>
-    <string name="turbo_live_note">Turbo لا يزال يعمل إذا تركت هذا الشاشة.سوف تحصل على إشعار في اللحظة التي تغير فيها الصفحة.</string>
+    <string name="turbo_live_note">المراقبة السريعة لا يزال يعمل إذا تركت هذا الشاشة.سوف تحصل على إشعار في اللحظة التي تغير فيها الصفحة.</string>
     <string-array name="weekday_names">
         <item>الاثنين</item>
         <item>الثلاثاء</item>
@@ -628,7 +628,7 @@
         <item quantity="many">ستُحذف النسخ المحفوظة من هذا الجهاز (%1$d).</item>
         <item quantity="other">ستُحذف النسخ المحفوظة من هذا الجهاز (%1$d).</item>
     </plurals>
-    <string name="detail_turbo_on">Turbo في</string>
+    <string name="detail_turbo_on">المراقبة السريعة في</string>
     <string name="detail_status_paused">استراحة · التاريخ محفوظ</string>
     <string name="detail_status_checked">مشاهدة %1$s · %2$s</string>
     <string name="detail_status_checked_manual">تم فحص %1$s · يتم إغلاق التحقق التلقائي</string>
@@ -717,7 +717,7 @@
     <string name="checks_title">التحقق التلقائي</string>
     <string name="checks_every">كل واحد</string>
     <string name="checks_custom">مخصص …</string>
-    <string name="checks_own_schedule_note">ينطبق هذا الجدول على جميع الصفحات النشطة. جلسات Turbo تعمل بشكل مستقل ولا تغيّره.</string>
+    <string name="checks_own_schedule_note">ينطبق هذا الجدول على جميع الصفحات النشطة. جلسات المراقبة السريعة تعمل بشكل مستقل ولا تغيّره.</string>
     <string name="checks_only_when">فقط عندما</string>
     <string name="checks_wifi">على الواي فاي</string>
     <string name="checks_wifi_body">حفظ البيانات المتنقلة</string>
@@ -743,7 +743,7 @@
     <string name="editor_edit_title">عدّل الصفحة</string>
     <string name="editor_start">ابدأ بمشاهدة</string>
     <string name="editor_paste_title">ما الصفحة التي تريد مراقبتها؟</string>
-    <string name="editor_paste_body">أدخل عنوانًا أو ألصق رابطًا. ستُفتح الصفحة في متصفح لتتمكّن من تسجيل الدخول والعثور على الصفحة المطلوبة واختيار الأجزاء التي تريد مراقبتها.</string>
+    <string name="editor_paste_body">أدخل عنوانًا أو ألصق رابطًا لمعاينة ما ستراقبه.</string>
     <string name="editor_compare">مقارنة</string>
     <string name="editor_preview">ماذا سنقارن</string>
     <string name="editor_little_text_title">هذه الصفحة لا تحتوي على أي نص</string>
@@ -873,7 +873,7 @@
         <item quantity="other">أُزيل (%1$d)</item>
     </plurals>
     <string name="detail_sign_in">تسجيل في</string>
-    <string name="browser_session_note">تستخدم النصوص والصور الشاشة ملف تعريف المتصفح في التطبيق.تؤثر تسجيل الدخول أو تغيير الحسابات على الموقع على الساعات لهذا الموقع.يمكن أن تنتهي الجلسات.لا تستخدم فحوصات الرمز ملفات تعريف المتصفح.</string>
+    <string name="browser_session_note">تستخدم عمليات التحقق في المتصفح جلسات تسجيل الدخول المحفوظة على هذا الجهاز. قد يؤثر تسجيل الدخول أو تبديل الحساب في عمليات مراقبة الموقع الأخرى. قد تنتهي صلاحية الجلسات.</string>
     <string name="turbo_next_check">التالي التحقق في %1$d ثانية</string>
     <string name="picker_selected_image">صورة واحدة</string>
     <string name="picker_selected_frame">إطار مدمج (في كثير من الأحيان إعلان)</string>
@@ -941,7 +941,7 @@
     <string name="backup_restore">الاستعادة من ملف</string>
     <string name="backup_restore_body">يضيف الصفحات غير الموجودة هنا. لا يتغير أي شيء على هذا الجهاز.</string>
     <string name="backup_restore_settings">استعادة إعدادات التطبيق أيضًا</string>
-    <string name="backup_privacy_note">الملف غير مشفّر ويحتوي على الصفحات التي تتابعها. لا تُضمَّن بيانات تسجيل الدخول أبدًا.</string>
+    <string name="backup_privacy_note">الملف غير مشفر. قد تحتوي النسخة الكاملة على محتوى HTML ولقطات شاشة خاصة من صفحات سجلت الدخول إليها. لا يتم حفظ ملفات تعريف الارتباط.</string>
     <string name="backup_working">جارٍ التنفيذ…</string>
     <string name="backup_saved">تم حفظ النسخة الاحتياطية. الصفحات: %1$d · النسخ: %2$d</string>
     <string name="backup_restored">الصفحات المضافة: %1$d · الموجودة مسبقًا: %2$d · النسخ: %3$d</string>
@@ -957,4 +957,15 @@
     <string name="backup_pages_added">الصفحات المضافة</string>
     <string name="backup_already_here">موجودة بالفعل</string>
     <string name="backup_restore_complete">اكتملت الاستعادة</string>
+    <string name="home_unread_changes">تغييرات غير مقروءة</string>
+    <string name="settings_android_tools">تتوفر النسخ الاحتياطية وعمليات تسجيل الدخول المحفوظة وتقارير التشخيص على Android.</string>
+    <string name="turbo_sheet_body_while_open">تحقق من الصفحات المحددة كل بضع ثوان أثناء فتح التطبيق.</string>
+    <string name="feedback_email_subject">ملاحظات حول Change Detection</string>
+    <string name="backup_skipped_pages">صفحات تم تخطيها</string>
+    <string name="backup_duplicate_versions">نسخ مكررة تم تخطيها</string>
+    <string name="android_browser_start_failed">تعذّر تشغيل المتصفح. إذا استمرت المشكلة، فأعد تشغيل التطبيق.</string>
+    <string name="editor_direct_text_body">راقب الأسعار والتواريخ والنصوص الأخرى. تعرض المعاينة ما يمكننا التحقق منه مباشرةً.</string>
+    <string name="editor_direct_browser_hint">هل هناك نص مفقود أو تحتاج إلى تسجيل الدخول؟</string>
+    <string name="editor_use_direct_preview">استخدام المعاينة المباشرة</string>
+    <string name="editor_direct_empty">لا يوجد نص مقروء في المعاينة المباشرة.</string>
 </resources>

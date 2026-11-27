@@ -188,6 +188,14 @@ fun SettingsScreen(
                         SiteSessionsRow()
                         com.bernaferrari.changedetection.backup.BackupRow()
                     }
+                    if (!monitoringCapabilities.androidTools) {
+                        Text(
+                            stringResource(Res.string.settings_android_tools),
+                            Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
                 item(key = "help") {
                     GroupLabel(stringResource(Res.string.settings_help_section))

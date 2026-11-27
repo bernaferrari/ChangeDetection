@@ -1,18 +1,71 @@
 package com.bernaferrari.changedetection.browser
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.view.doOnDetach
+import com.bernaferrari.changedetection.localization.stringResource
+import com.bernaferrari.changedetection.logging.AppLog
+import com.bernaferrari.changedetection.shared.generated.resources.Res
+import com.bernaferrari.changedetection.shared.generated.resources.android_browser_start_failed
 import com.bernaferrari.changedetection.shared.generated.resources.browser_load_error_body
 import com.bernaferrari.changedetection.shared.generated.resources.local_browser_error_title
 import com.bernaferrari.changedetection.shared.generated.resources.retry
-import androidx.compose.ui.Modifier
-import androidx.core.view.doOnDetach
+import com.bernaferrari.changedetection.ui.components.SharedEmptyState
+import kotlinx.coroutines.CancellationException
 
 @Composable
-internal actual fun BrowserRuntimeHost(modifier: Modifier, content: @Composable () -> Unit) = content()
+internal actual fun BrowserRuntimeHost(modifier: Modifier, content: @Composable () -> Unit) {
+    val context = LocalContext.current
+    AndroidBrowserRuntimeHost(modifier, start = { AndroidWebViewStartup.ensureStarted(context) }, content = content)
+}
+
+private enum class StartupState { Starting, Ready, Failed }
+
+private val browserLog = AppLog.tagged("BrowserRuntimeHost")
+
+@Composable
+internal fun AndroidBrowserRuntimeHost(modifier: Modifier, start: () -> Unit, content: @Composable () -> Unit) {
+    var attempt by remember { mutableIntStateOf(0) }
+    var state by remember { mutableStateOf(StartupState.Starting) }
+    LaunchedEffect(attempt) {
+        state = try {
+            start()
+            StartupState.Ready
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: RuntimeException) {
+            browserLog.w("Android WebView could not start", error)
+            StartupState.Failed
+        }
+    }
+    when (state) {
+        StartupState.Starting -> Box(modifier)
+
+        StartupState.Ready -> content()
+
+        StartupState.Failed -> SharedEmptyState(
+            icon = Icons.Rounded.Refresh,
+            title = stringResource(Res.string.local_browser_error_title),
+            description = stringResource(Res.string.android_browser_start_failed),
+            modifier = modifier,
+            primaryActionLabel = stringResource(Res.string.retry),
+            onPrimaryAction = {
+                state = StartupState.Starting
+                attempt++
+            },
+        )
+    }
+}
 
 @Composable
 internal actual fun PlatformBrowserView(state: com.multiplatform.webview.web.WebViewState, modifier: Modifier, onNavigationRequest: ((String) -> Boolean)?, highlightUpdate: com.bernaferrari.changedetection.detection.RegionHighlightUpdate?) {
@@ -21,12 +74,12 @@ internal actual fun PlatformBrowserView(state: com.multiplatform.webview.web.Web
     var generation by androidx.compose.runtime.remember { androidx.compose.runtime.mutableIntStateOf(0) }
     if (state.errorsForCurrentRequest.any { it.code == BROWSER_RENDERER_GONE }) {
         // The renderer process died. Its view must leave the hierarchy; Retry builds a new one, which reloads the content.
-        com.bernaferrari.changedetection.ui.components.SharedEmptyState(
+        SharedEmptyState(
             icon = Icons.Rounded.Refresh,
-            title = com.bernaferrari.changedetection.localization.stringResource(com.bernaferrari.changedetection.shared.generated.resources.Res.string.local_browser_error_title),
-            description = com.bernaferrari.changedetection.localization.stringResource(com.bernaferrari.changedetection.shared.generated.resources.Res.string.browser_load_error_body),
+            title = stringResource(Res.string.local_browser_error_title),
+            description = stringResource(Res.string.browser_load_error_body),
             modifier = modifier,
-            primaryActionLabel = com.bernaferrari.changedetection.localization.stringResource(com.bernaferrari.changedetection.shared.generated.resources.Res.string.retry),
+            primaryActionLabel = stringResource(Res.string.retry),
             onPrimaryAction = {
                 state.errorsForCurrentRequest.removeAll { it.code == BROWSER_RENDERER_GONE }
                 generation++

@@ -9,15 +9,14 @@
     <string name="change_notification_channel_name">Cambios detectados</string>
     <string name="change_notification_channel_description">Avisos cuando cambia una página vigilada</string>
     <string name="quick_monitor_banner_live_badge">EN DIRECTO</string>
-    <string name="quick_monitor_title">Turbo</string>
-    <string name="quick_monitor_channel_description">Muestra la sesión Turbo activa.</string>
-    <string name="quick_monitor_notification_title">⚡ Turbo activo</string>
+    <string name="quick_monitor_title">Monitorización rápida</string>
+    <string name="quick_monitor_channel_description">Muestra la sesión Monitorización rápida activa.</string>
+    <string name="quick_monitor_notification_title">⚡ Monitorización rápida activa</string>
     <plurals name="quick_monitor_notification_subtitle">
         <item quantity="one">Comprobando %1$d página cada %2$d segundos</item>
         <item quantity="other">Comprobando %1$d páginas cada %2$d segundos</item>
     </plurals>
     <string name="action_stop_monitoring">Detener seguimiento</string>
-    <string name="empty_add_site_hint">Añade una página para iniciar Turbo</string>
     <string name="start">Iniciar</string>
     <string name="change_notification_named">%1$s cambió</string>
     <string name="change_notification_generic">Toca para ver qué cambió.</string>
@@ -28,4 +27,8 @@
     <string name="failure_notification_needs_you">Necesita tu atención. Toca para ver qué hacer.</string>
     <string name="failure_notification_keeps_failing">Las comprobaciones siguen fallando. Toca para ver por qué.</string>
     <string name="failure_notification_generic">Una página no se está comprobando.</string>
+
+    <string name="quick_monitor_widget_inactive">La monitorización rápida está desactivada</string>
+    <string name="diagnostics_public_example">Si la página es pública, puedes añadir su enlace al mensaje de soporte después de abrir el menú para compartir. No incluyas enlaces privados ni con datos personales.</string>
+    <string name="diagnostics_email_subject">Diagnóstico de Change Detection</string>
 </resources>

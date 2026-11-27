@@ -87,7 +87,7 @@ class TurboSheetUiTest {
         }
         compose.waitForIdle()
         assertFalse("A short pull should settle back without dismissing", dismissed)
-        compose.onNodeWithText("Start Turbo on 1 page").assertIsDisplayed()
+        compose.onNodeWithText("Start Quick Monitor on 1 page").assertIsDisplayed()
         compose.onNodeWithTag("turbo-sheet-handle", useUnmergedTree = true).performTouchInput {
             swipe(center, center.copy(y = center.y + 500f), durationMillis = 500)
         }
@@ -106,7 +106,7 @@ class TurboSheetUiTest {
         compose.onNodeWithText("Studio Display").performClick()
         compose.onNodeWithText("15 s").performClick()
         compose.onNodeWithText("1 hour").performScrollTo().performClick()
-        compose.onNodeWithText("Start Turbo on 2 pages").performClick()
+        compose.onNodeWithText("Start Quick Monitor on 2 pages").performClick()
         compose.runOnIdle { assertEquals(Triple(setOf("p0", "p1"), 15, 60), started) }
     }
 
@@ -161,9 +161,9 @@ class TurboSheetUiTest {
                 }
             }
         }
-        compose.onNodeWithText("Start Turbo on 1 page").assertIsDisplayed()
+        compose.onNodeWithText("Start Quick Monitor on 1 page").assertIsDisplayed()
         compose.onNodeWithText("3 hours").performScrollTo().assertIsDisplayed()
-        compose.onNodeWithText("Start Turbo on 1 page").assertIsDisplayed().performClick()
+        compose.onNodeWithText("Start Quick Monitor on 1 page").assertIsDisplayed().performClick()
         compose.runOnIdle { assertEquals(true, started) }
     }
 
@@ -184,9 +184,9 @@ class TurboSheetUiTest {
                 TurboSetupSheet(source, preselected = setOf("p0"), state = TurboState(), onDismiss = {}) { _, _, _ -> error("must not start") }
             }
         }
-        compose.onNodeWithText("Start Turbo on 1 page").assertIsEnabled()
+        compose.onNodeWithText("Start Quick Monitor on 1 page").assertIsEnabled()
         compose.runOnIdle { source = source.map { it.copy(site = it.site.copy(isSyncEnabled = false)) } }
-        compose.onNodeWithText("No active pages yet. Resume a page before starting Turbo.").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("No active pages yet. Resume a page before starting Quick Monitor.").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Pick at least one page").assertIsNotEnabled()
     }
 

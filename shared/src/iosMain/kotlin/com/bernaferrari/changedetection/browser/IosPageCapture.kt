@@ -2,9 +2,6 @@
 
 package com.bernaferrari.changedetection.browser
 
-import com.bernaferrari.kmpwright.core.Rectangle
-import com.bernaferrari.kmpwright.core.captureWebViewDocument
-
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -21,8 +18,6 @@ import platform.Foundation.NSURL
 import platform.Foundation.NSURLRequest
 import platform.Foundation.NSHTTPURLResponse
 import platform.Foundation.NSURLRequestReloadIgnoringLocalCacheData
-import platform.UIKit.UIApplication
-import platform.UIKit.UIWindow
 import platform.WebKit.WKNavigation
 import platform.WebKit.WKNavigationResponse
 import platform.WebKit.WKNavigationResponsePolicy
@@ -64,9 +59,6 @@ object IosPageCapture {
                 val configuration = WKWebViewConfiguration().apply { websiteDataStore = WKWebsiteDataStore.defaultDataStore() }
                 val web = WKWebView(frame = CGRectMake(0.0, 0.0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT), configuration = configuration)
                 web.userInteractionEnabled = false
-                // DOM capture works without a scene/window (background refresh and test hosts).
-                // Only pixel capture needs a host; never enumerate UIKit windows for Text.
-                if (!text) hostWindow()?.insertSubview(web, atIndex = 0)
                 try {
                     val navigation = awaitLoad(web, keepAlive = true) { web.loadRequest(captureRequest(NSURL.URLWithString(url) ?: error("Invalid page address"))) }
                     try {
@@ -156,18 +148,8 @@ object IosPageCapture {
             clean(PageCleanup.HIDE_BOTTOM_FLOATING)
             ensureVisualSelectionVisible(web, only)
             val clip = if (only.isNotBlank()) elementRect(web, only) ?: throw com.bernaferrari.changedetection.detection.TextRegionException(com.bernaferrari.changedetection.detection.TextRegionFailure.REGION_MISSING) else null
-            val region = clip?.let { Rectangle(it.left, it.top, it.right - it.left, it.bottom - it.top) }
             val before = evaluate(web, resources) as? String
-            val shot = captureWebViewDocument(
-                web,
-                clip = region,
-                pixelsPerCssPixel = 2 * pointsPerCssPixel,
-                maxPixels = 9_360_000,
-                maxHeight = 12_000,
-                truncateFullPage = true,
-                viewportWidthOnly = true,
-
-            ).bytes
+            val shot = captureIosDocumentScreenshot(web, clip, cssViewportWidth, pointsPerCssPixel, maxPageCssHeight)
             val after = evaluate(web, resources) as? String
             if (before != after) throw CaptureNotReadyException(CaptureIssue.LAYOUT_CHANGED)
             return CapturedPage(shot, title, icon)
@@ -185,7 +167,7 @@ object IosPageCapture {
 
     private suspend fun pageHeight(web: WKWebView): Double = (evaluate(web, "Math.max(document.body.scrollHeight, document.documentElement.scrollHeight)") as? NSNumber)?.doubleValue ?: VIEWPORT_HEIGHT
 
-    private data class Clip(val left: Double, val top: Double, val right: Double, val bottom: Double)
+    internal data class Clip(val left: Double, val top: Double, val right: Double, val bottom: Double)
 
     private suspend fun readTitle(web: WKWebView) = (evaluate(web, PageCleanup.TITLE) as? String)?.takeIf { it.isNotBlank() }
     private suspend fun readIcon(web: WKWebView) = (evaluate(web, PageCleanup.ICON) as? String)?.takeIf { it.startsWith("https://") || it.startsWith("http://") }
@@ -249,26 +231,6 @@ object IosPageCapture {
     }
 
     private fun jsString(value: String) = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ") + "\""
-
-    /**
-     * UIKit's SDK annotates windows/connectedScenes as nonnull, but an early/background
-     * app host can return nil. KVC exposes the object result as Any? before collection
-     * bridging, so no Kotlin collection method ever receives a native nil receiver.
-     */
-    private fun hostWindow(): UIWindow? {
-        val application = UIApplication.sharedApplication
-        val keyWindow = application.keyWindow
-        val scenes = (application.valueForKey("connectedScenes") as? Set<*>).orEmpty()
-        val sceneWindows = scenes.mapNotNull { it as? platform.UIKit.UIWindowScene }
-            .filter { it.activationState == platform.UIKit.UISceneActivationStateForegroundActive || it.activationState == platform.UIKit.UISceneActivationStateForegroundInactive }
-            .flatMap { windowsFromNullableObject(it.valueForKey("windows")) }
-        return sceneWindows.firstOrNull { it == keyWindow }
-            ?: sceneWindows.firstOrNull { !it.hidden && it.alpha > 0.0 }
-            ?: keyWindow
-            ?: windowsFromNullableObject(application.valueForKey("windows")).firstOrNull { !it.hidden && it.alpha > 0.0 }
-    }
-
-    private fun windowsFromNullableObject(value: Any?): List<UIWindow> = (value as? List<*>)?.mapNotNull { it as? UIWindow }.orEmpty()
 
     internal suspend fun loadPage(web: WKWebView, url: String) {
         val target = NSURL.URLWithString(url) ?: error("Invalid page address")

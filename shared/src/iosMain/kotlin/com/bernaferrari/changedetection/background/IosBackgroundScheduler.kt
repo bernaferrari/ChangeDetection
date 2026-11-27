@@ -16,26 +16,19 @@ import platform.Foundation.dateByAddingTimeInterval
  * 2. Add task identifiers to Info.plist under BGTaskSchedulerPermittedIdentifiers
  * 3. Call registerBackgroundTasks() in AppDelegate.applicationDidFinishLaunching
  */
-class IosBackgroundScheduler : BackgroundScheduler {
+internal class IosBackgroundScheduler {
     companion object {
         const val PERIODIC_SYNC_TASK_ID = "com.bernaferrari.changedetection.periodicSync"
-        const val QUICK_MONITOR_TASK_ID = "com.bernaferrari.changedetection.quickMonitor"
 
         // Minimum interval iOS allows is 15 minutes (in practice, much longer)
         const val MIN_INTERVAL_SECONDS = 15.0 * 60.0
     }
 
     private var periodicIntervalMinutes: Long = 30
-    private var periodicConstraints: SyncConstraints = SyncConstraints()
-    private var periodicScheduled = false
 
     @OptIn(ExperimentalForeignApi::class)
-    override fun schedulePeriodicSync(
-        intervalMinutes: Long,
-        constraints: SyncConstraints,
-    ) {
+    fun schedulePeriodicSync(intervalMinutes: Long) {
         this.periodicIntervalMinutes = intervalMinutes
-        this.periodicConstraints = constraints
 
         // Create a background app refresh task request
         val request = BGAppRefreshTaskRequest(identifier = PERIODIC_SYNC_TASK_ID)
@@ -48,63 +41,14 @@ class IosBackgroundScheduler : BackgroundScheduler {
         // Submit the request
         try {
             submitBackgroundRequest(request)
-            periodicScheduled = true
         } catch (e: Exception) {
-            periodicScheduled = false
             appLog.e("Failed to schedule periodic sync: ${e.message}", e, tag = "BackgroundScheduler")
         }
     }
 
-    override fun cancelPeriodicSync() {
+    fun cancelPeriodicSync() {
         appLog.i("Canceling iOS periodic sync", tag = "BackgroundScheduler")
         BGTaskScheduler.sharedScheduler.cancelTaskRequestWithIdentifier(PERIODIC_SYNC_TASK_ID)
-        periodicScheduled = false
-    }
-
-    override fun requestImmediateSync(siteId: String) {
-        // On iOS, we can't really do "immediate" background work
-        // The app needs to be in foreground
-        appLog.d("iOS: Immediate sync requested for $siteId - handle in foreground", tag = "BackgroundScheduler")
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
-    override fun startQuickMonitor(
-        siteIds: List<String>,
-        intervalSeconds: Int,
-    ) {
-        // iOS doesn't support rapid polling in background
-        appLog.i("Scheduling iOS quick monitor task", tag = "BackgroundScheduler")
-
-        val request = BGAppRefreshTaskRequest(identifier = QUICK_MONITOR_TASK_ID)
-        request.earliestBeginDate = NSDate().dateByAddingTimeInterval(MIN_INTERVAL_SECONDS)
-
-        try {
-            submitBackgroundRequest(request)
-        } catch (e: Exception) {
-            appLog.e("Failed to schedule quick monitor: ${e.message}", e, tag = "BackgroundScheduler")
-        }
-    }
-
-    override fun stopQuickMonitor() {
-        BGTaskScheduler.sharedScheduler.cancelTaskRequestWithIdentifier(QUICK_MONITOR_TASK_ID)
-    }
-
-    override fun isPeriodicSyncScheduled(): Boolean = periodicScheduled
-
-    /**
-     * Must be called from AppDelegate to register background task handlers.
-     *
-     * Usage in Swift:
-     * ```swift
-     * func application(_ application: UIApplication,
-     *                  didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-     *     IosBackgroundScheduler.Companion.shared.registerBackgroundTasks()
-     *     return true
-     * }
-     * ```
-     */
-    fun registerBackgroundTasks(onSync: () -> Unit) {
-        registerBackgroundWork(work = { onSync() })
     }
 
     /** Swift entry point: background refresh runs every active page through the shared sync engine. */
@@ -121,28 +65,25 @@ class IosBackgroundScheduler : BackgroundScheduler {
      */
     fun registerBackgroundWork(
         work: suspend () -> Unit,
-        reschedule: suspend () -> Unit = { schedulePeriodicSync(periodicIntervalMinutes, periodicConstraints) },
+        reschedule: suspend () -> Unit = { schedulePeriodicSync(periodicIntervalMinutes) },
     ) {
         appLog.i("Registering iOS background task handlers", tag = "BackgroundScheduler")
-        listOf(PERIODIC_SYNC_TASK_ID, QUICK_MONITOR_TASK_ID).forEach { identifier ->
-            BGTaskScheduler.sharedScheduler.registerForTaskWithIdentifier(identifier = identifier, usingQueue = null) { task ->
-                if (task == null) return@registerForTaskWithIdentifier
-                if (identifier == PERIODIC_SYNC_TASK_ID) periodicScheduled = false
-                val job = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default).launch {
-                    try {
-                        if (identifier == PERIODIC_SYNC_TASK_ID) reschedule()
-                        work()
-                        task.setTaskCompletedWithSuccess(true)
-                    } catch (cancelled: kotlinx.coroutines.CancellationException) {
-                        task.setTaskCompletedWithSuccess(false)
-                        throw cancelled
-                    } catch (error: Exception) {
-                        appLog.w("iOS background checks failed", error)
-                        task.setTaskCompletedWithSuccess(false)
-                    }
+        BGTaskScheduler.sharedScheduler.registerForTaskWithIdentifier(identifier = PERIODIC_SYNC_TASK_ID, usingQueue = null) { task ->
+            if (task == null) return@registerForTaskWithIdentifier
+            val job = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default).launch {
+                try {
+                    reschedule()
+                    work()
+                    task.setTaskCompletedWithSuccess(true)
+                } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                    task.setTaskCompletedWithSuccess(false)
+                    throw cancelled
+                } catch (error: Exception) {
+                    appLog.w("iOS background checks failed", error)
+                    task.setTaskCompletedWithSuccess(false)
                 }
-                task.expirationHandler = { job.cancel() }
             }
+            task.expirationHandler = { job.cancel() }
         }
     }
 }
@@ -161,11 +102,8 @@ internal fun submitBackgroundRequest(
     }
 }
 
-// Provide the factory function for iOS
-private val sharedScheduler = IosBackgroundScheduler()
+internal val iosBackgroundScheduler = IosBackgroundScheduler()
 
-fun registerIosBackgroundTasks() = sharedScheduler.registerDefaultBackgroundWork()
-
-actual fun createBackgroundScheduler(): BackgroundScheduler = sharedScheduler
+fun registerIosBackgroundTasks() = iosBackgroundScheduler.registerDefaultBackgroundWork()
 
 private val appLog = com.bernaferrari.changedetection.logging.AppLog.tagged("IosBackgroundScheduler")

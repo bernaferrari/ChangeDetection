@@ -20,7 +20,7 @@
     <string name="more_options">更多选项</string>
     <string name="loading">正在加载…</string>
     <string name="saving">正在保存…</string>
-    <string name="turbo_mode">Turbo</string>
+    <string name="turbo_mode">快速监控</string>
     <string name="how_it_works">使用说明</string>
     <string name="select_site_canvas_label">你的变化工作台</string>
     <string name="select_site_canvas_title">所有更新，一处从容查看。</string>
@@ -32,13 +32,13 @@
         <item quantity="other">已选择 %1$d 个页面</item>
     </plurals>
     <string name="nav_home">首页</string>
-    <string name="nav_turbo">Turbo</string>
+    <string name="nav_turbo">快速监控</string>
     <string name="nav_settings">设置</string>
     <string name="home_action_check_now">立即检查</string>
     <string name="home_section_attention">需要处理</string>
     <string name="home_search_clear">清除搜索</string>
     <string name="home_search_close">关闭搜索</string>
-    <string name="turbo_ended">Turbo 已结束</string>
+    <string name="turbo_ended">快速监控 已结束</string>
     <string name="settings_title">设置</string>
     <string name="settings_theme_label">主题</string>
     <string name="settings_palette_label">颜色</string>
@@ -139,9 +139,9 @@
     <string name="how_it_works_step_monitor_title">选择检查频率</string>
     <string name="how_it_works_step_monitor_description">日常监测可使用省电的后台检查。</string>
     <string name="how_it_works_step_monitor_highlight">检查间隔、网络及电量条件由你决定。</string>
-    <string name="how_it_works_step_focus_title">需要密切关注时使用 Turbo</string>
+    <string name="how_it_works_step_focus_title">需要密切关注时使用 快速监控</string>
     <string name="how_it_works_step_focus_description">以 %1$d 至 %2$d 秒的间隔检查选定页面，最长运行 3 小时。</string>
-    <string name="how_it_works_step_focus_highlight">计时结束后 Turbo 会自动停止，你也可以随时提前停止。</string>
+    <string name="how_it_works_step_focus_highlight">计时结束后 快速监控 会自动停止，你也可以随时提前停止。</string>
     <string name="how_it_works_step_alerts_title">准确查看变化</string>
     <string name="how_it_works_step_alerts_description">打开页面，以文本、渲染页面或截图形式比较已保存的版本。</string>
     <string name="how_it_works_step_alerts_highlight">已保存的版本和变化历史均保留在你的设备上。</string>
@@ -212,7 +212,7 @@
     <string name="snapshot_deleted">已删除版本</string>
     <string name="comparison_check_now_hint">此页面目前只检查过一次，再次检查才能看到变化。</string>
     <string name="schedule_save_failed">无法应用计划，请重试。</string>
-    <string name="turbo_stop_session">停止 Turbo</string>
+    <string name="turbo_stop_session">停止 快速监控</string>
     <string name="storage_history_title">已保存的历史</string>
     <string name="storage_history_usage">已保存版本占用 %1$s MB</string>
     <string name="storage_history_policy">每页最多保留 100 个版本。超过 250 MB 后会删除较旧的版本。每页最新的两个版本始终保留，即使超出此限制。</string>
@@ -319,7 +319,7 @@
     <string name="settings_load_failed">无法加载设置，请重试。</string>
     <string name="settings_write_failed">无法保存你的选择，请重试。</string>
     <string name="storage_history_load_failed">无法加载存储用量。</string>
-    <string name="turbo_unavailable_title">此预览不支持 Turbo</string>
+    <string name="turbo_unavailable_title">此预览不支持 快速监控</string>
     <string name="turbo_unavailable_description">请使用 Android、iOS 或桌面应用启动监测会话。</string>
     <string name="image_diff_sampled_pixels_different">%1$s 个采样像素不同。统计数据使用缩小的预览图。</string>
     <string name="check_failure_capture_unavailable">截图检查不可用</string>
@@ -344,9 +344,9 @@
     <string name="home_select_pages">选择页面</string>
     <string name="detail_status_failed">上次检查失败于 %1$s</string>
     <string name="detail_calendar_summary">最近 30 天内，%2$s出现%1$s</string>
-    <string name="turbo_sheet_no_pages">暂无启用的页面。启动 Turbo 前请先恢复一个页面的监测。</string>
+    <string name="turbo_sheet_no_pages">暂无启用的页面。启动 快速监控 前请先恢复一个页面的监测。</string>
     <string name="turbo_sheet_paused_note">不包含已暂停的页面。</string>
-    <string name="turbo_live_note_while_open">应用打开期间 Turbo 会持续检查。你可以离开此界面，之后再回来查看变化。</string>
+    <string name="turbo_live_note_while_open">应用打开期间 快速监控 会持续检查。你可以离开此界面，之后再回来查看变化。</string>
     <string name="image_diff_highlight_unavailable_body">无法生成高亮。请重试，或使用“之前”和“之后”查看已保存的截图。</string>
     <string name="image_diff_dimensions_supporting">请比较下方截图。由于尺寸不同，无法直接逐像素比较。</string>
     <string name="turbo_card_cadence">每 %1$s · %2$s</string>
@@ -416,7 +416,7 @@
     <string name="turbo_sheet_for">运行时长</string>
     <string name="turbo_sheet_pick">请至少选择一个页面</string>
     <plurals name="turbo_sheet_start">
-        <item quantity="other">在 %1$d 个页面上启动 Turbo</item>
+        <item quantity="other">在 %1$d 个页面上启动 快速监控</item>
     </plurals>
     <string name="turbo_sheet_caption">%1$s 结束 · 运行时耗电更多</string>
     <string name="turbo_run_again">再次运行</string>
@@ -427,20 +427,20 @@
     <string name="turbo_ends_at">%1$s 结束</string>
     <string name="turbo_changed">有变化</string>
     <string name="turbo_checking">正在检查</string>
-    <string name="turbo_ended_planned">Turbo 已按计划结束</string>
-    <string name="turbo_ended_stopped">你已停止 Turbo</string>
-    <string name="turbo_ended_interrupted">Turbo 已中断</string>
-    <string name="turbo_ended_failed">无法启动 Turbo</string>
+    <string name="turbo_ended_planned">快速监控 已按计划结束</string>
+    <string name="turbo_ended_stopped">你已停止 快速监控</string>
+    <string name="turbo_ended_interrupted">快速监控 已中断</string>
+    <string name="turbo_ended_failed">无法启动 快速监控</string>
     <string name="turbo_row_quiet">无变化 · %1$d 秒前检查</string>
     <string name="nav_activity">动态</string>
     <plurals name="turbo_card_title_n">
-        <item quantity="other">Turbo · %1$d 个页面</item>
+        <item quantity="other">快速监控 · %1$d 个页面</item>
     </plurals>
     <string name="turbo_found_none">未发现变化</string>
     <plurals name="turbo_summary_checks">
         <item quantity="other">检查了 %1$d 次</item>
     </plurals>
-    <string name="turbo_live_note">离开此界面后 Turbo 仍会继续运行。页面发生变化时，你会立即收到通知。</string>
+    <string name="turbo_live_note">离开此界面后 快速监控 仍会继续运行。页面发生变化时，你会立即收到通知。</string>
     <string-array name="weekday_names">
         <item>星期一</item>
         <item>星期二</item>
@@ -475,7 +475,7 @@
     <plurals name="detail_delete_body">
         <item quantity="other">此设备上保存的全部 %1$d 个版本将被删除。</item>
     </plurals>
-    <string name="detail_turbo_on">Turbo 已开启</string>
+    <string name="detail_turbo_on">快速监控 已开启</string>
     <string name="detail_status_paused">已暂停 · 保留历史</string>
     <string name="detail_status_checked">%1$s检查过 · %2$s</string>
     <string name="detail_status_checked_manual">%1$s检查过 · 自动检查已关闭</string>
@@ -549,13 +549,13 @@
     <string name="checks_title">自动检查</string>
     <string name="checks_every">每隔</string>
     <string name="checks_custom">自定义…</string>
-    <string name="checks_own_schedule_note">此计划适用于所有启用的页面。Turbo 会话独立运行，不会更改此计划。</string>
+    <string name="checks_own_schedule_note">此计划适用于所有启用的页面。快速监控 会话独立运行，不会更改此计划。</string>
     <string name="checks_only_when">仅在以下条件下</string>
     <string name="checks_wifi">连接 Wi-Fi</string>
     <string name="checks_wifi_body">节省移动数据</string>
     <string name="checks_charging">正在充电</string>
     <string name="checks_battery">电量不低</string>
-    <string name="checks_android_note">Android 会为省电决定具体检查时间，因此可能稍有延迟。需要及时检查的页面可使用 Turbo。</string>
+    <string name="checks_android_note">Android 会为省电决定具体检查时间，因此可能稍有延迟。需要及时检查的页面可使用 快速监控。</string>
     <string name="checks_weekly">每周</string>
     <string name="checks_daily">每天</string>
     <string name="checks_hours_short">%1$d 小时</string>
@@ -575,7 +575,7 @@
     <string name="editor_edit_title">编辑页面</string>
     <string name="editor_start">开始关注</string>
     <string name="editor_paste_title">想关注什么？</string>
-    <string name="editor_paste_body">输入地址或粘贴链接。页面会在浏览器中打开，你可以登录、找到目标页面并选择重要的部分。</string>
+    <string name="editor_paste_body">输入地址或粘贴链接，预览要监测的内容。</string>
     <string name="editor_compare">比较</string>
     <string name="editor_preview">比较的内容</string>
     <string name="editor_little_text_title">此页面几乎没有文本</string>
@@ -665,7 +665,7 @@
         <item quantity="other">%1$d 个删除</item>
     </plurals>
     <string name="detail_sign_in">登录</string>
-    <string name="browser_session_note">文本和截图使用相同的应用内浏览器登录信息。登录或切换网站账户会更改该网站的监测内容。会话可能过期。代码检查不使用浏览器的登录 Cookie。</string>
+    <string name="browser_session_note">浏览器检查共用此设备保存的登录信息。登录或切换账户会更改该网站的其他监测内容。会话可能过期。</string>
     <string name="turbo_next_check">%1$d 秒后再次检查</string>
     <string name="picker_selected_image">图片</string>
     <string name="picker_selected_frame">嵌入式框架（通常是广告）</string>
@@ -781,7 +781,7 @@
     <string name="backup_restore">从文件恢复</string>
     <string name="backup_restore_body">添加此设备上还没有的页面，不会更改已有内容。</string>
     <string name="backup_restore_settings">同时恢复应用设置</string>
-    <string name="backup_privacy_note">文件未加密，其中包含你关注的页面。登录信息绝不会包含在内。</string>
+    <string name="backup_privacy_note">文件没有加密。保存全部内容时，文件会包含登录后看到的 HTML 和截图，其中可能有私密信息。浏览器 Cookie 不会保存。</string>
     <string name="backup_working">正在处理…</string>
     <string name="backup_saved">文件已保存。页面：%1$d · 版本：%2$d</string>
     <string name="backup_restored">已添加页面：%1$d · 已存在：%2$d · 版本：%3$d</string>
@@ -797,4 +797,18 @@
     <string name="backup_pages_added">已添加页面</string>
     <string name="backup_already_here">已有页面</string>
     <string name="backup_restore_complete">恢复完成</string>
+    <string name="home_unread_changes">未读变化</string>
+    <string name="settings_android_tools">在 Android 上可以保存数据、管理登录状态和查看问题详情。</string>
+    <string name="turbo_sheet_body_while_open">应用打开时，每隔几秒检查一次所选页面。</string>
+    <string name="feedback_email_subject">Change Detection 反馈</string>
+    <string name="backup_skipped_pages">未加入的页面</string>
+    <string name="backup_duplicate_versions">未加入的重复版本</string>
+
+    <string name="notification_images_title">在变更通知中显示图片</string>
+    <string name="notification_images_body">显示已保存的网页内容，其中可能包含隐私信息。锁屏可见性由 Android 控制。</string>
+    <string name="android_browser_start_failed">浏览器无法启动。请重试，或重启应用。</string>
+    <string name="editor_direct_text_body">监测价格、日期和其他文字。预览会显示可直接检查的内容。</string>
+    <string name="editor_direct_browser_hint">看不到文字或需要登录？</string>
+    <string name="editor_use_direct_preview">使用直接预览</string>
+    <string name="editor_direct_empty">直接预览中没有可读文字。</string>
 </resources>

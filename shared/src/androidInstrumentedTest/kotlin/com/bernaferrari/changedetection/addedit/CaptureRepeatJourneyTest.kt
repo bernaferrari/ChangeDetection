@@ -39,6 +39,8 @@ class CaptureRepeatJourneyTest {
 
     @Test fun sourceRepeatsChangesAndReturns() = matrix(CaptureMode.SOURCE, false)
 
+    @Test fun directTextPreviewAndChecksUseTheSameHttpCapture() = matrix(CaptureMode.DIRECT_TEXT, true)
+
     private fun matrix(mode: CaptureMode, selected: Boolean) = untrustedTlsPage().use { tls ->
         val healthy = "<html><head><meta name='viewport' content='width=device-width,initial-scale=1'></head><body><div id='watched' style='width:280px;height:240px;background:red'>Original stable inventory</div></body></html>"
         TestPageServer(200, healthy).use { server ->
@@ -69,13 +71,24 @@ class CaptureRepeatJourneyTest {
                     override suspend fun updateData(transform: suspend (Preferences) -> Preferences) = transform(prefs)
                 }
                 val repository = SitesRepository(SitesLocalDataSource(AppExecutors(), db.siteDao(), SnapshotFileCleanup(db.pendingFileDeletionDao(), db.snapsDao(), files)))
-                val runner = AndroidCheckRunner(repository, engine, AndroidScreenshotSyncer(engine, store, SyncProgressTracker(), browserFactory = AndroidScreenshotBrowserFactory(context)), store)
+                val browserFactory = if (mode == CaptureMode.DIRECT_TEXT) {
+                    ScreenshotBrowserFactory {
+                        error("Direct text must not create a browser")
+                    }
+                } else {
+                    AndroidScreenshotBrowserFactory(context)
+                }
+                val runner = AndroidCheckRunner(repository, engine, AndroidScreenshotSyncer(engine, store, SyncProgressTracker(), browserFactory = browserFactory), store)
                 val previewer = AndroidCapturePreviewer(context, engine, store)
                 try {
                     db.siteDao().insertSite(site)
                     val region = TextRegion(site.textIncludeSelector)
                     val preview = previewer.capture(server.url, mode, region)
                     assertTrue(previewer.keepAsFirstVersion(site, preview))
+                    if (mode == CaptureMode.DIRECT_TEXT) {
+                        assertFalse(requireNotNull(preview.firstVersion).capturedWithBrowser)
+                        assertTrue((preview as CapturePreview.Html).text.contains("Original stable inventory"))
+                    }
                     val changed = healthy.replace("Original stable inventory", "Genuine new inventory").replace("background:red", "background:blue")
                     suspend fun checkSame(expectedAlerts: Int, expectedVersions: Int) {
                         val same = runner.check(site.id)

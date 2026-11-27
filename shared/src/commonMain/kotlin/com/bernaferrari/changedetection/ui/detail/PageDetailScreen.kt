@@ -101,7 +101,6 @@ import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.changedetection.repo.Snap
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import com.bernaferrari.changedetection.shared.generated.resources.*
-import com.bernaferrari.changedetection.ui.components.ErrorBanner
 import com.bernaferrari.changedetection.ui.components.checkFailureTitle
 import com.bernaferrari.changedetection.ui.components.monitoringCadenceLabel
 import com.bernaferrari.changedetection.ui.kit.Callout
@@ -150,14 +149,13 @@ internal fun PageDetailScreen(
     onSchedule: () -> Unit,
     onOpenUrl: (String) -> Unit,
     onHistory: (String) -> Unit,
-    onEnableNotifications: () -> Unit = {},
+    onEnableNotifications: (onGranted: () -> Unit) -> Unit = { it() },
     repository: SnapsRepository = koinInject(),
     previewer: CapturePreviewer = koinInject(),
 ) {
     val rows by viewModel.sitesFlow.collectAsStateWithLifecycle()
     val schedule by viewModel.monitoringSchedule.collectAsStateWithLifecycle()
     val turbo by viewModel.quickMonitorState.collectAsStateWithLifecycle()
-    val error by viewModel.currentError.collectAsStateWithLifecycle()
     val versions by remember(siteId) { repository.getSnaps(siteId) }.collectAsStateWithLifecycle(null)
     val item = rows?.firstOrNull { it.site.id == siteId }
     var confirmDelete by remember(siteId) { mutableStateOf(false) }
@@ -178,8 +176,10 @@ internal fun PageDetailScreen(
         onMarkRead = { item?.let(viewModel::markRead) },
         onSetPaused = { paused -> item?.site?.let { viewModel.setMonitoringEnabled(it.id, !paused) } },
         onSetNotify = { on ->
-            if (on) onEnableNotifications()
-            item?.site?.let { viewModel.setNotificationsEnabled(it.id, on) }
+            item?.site?.id?.let { id ->
+                val apply = { viewModel.setNotificationsEnabled(id, on) }
+                if (on) onEnableNotifications(apply) else apply()
+            }
         },
         onDelete = { confirmDelete = true },
         // Where Text is fetched the same way as everything else, it is not another route and would only repeat the failure.
@@ -193,7 +193,6 @@ internal fun PageDetailScreen(
         },
         onIconShapeChange = { shape -> item?.site?.let { viewModel.updateIconShape(it.id, shape) } },
         onIconColorChange = { colors -> item?.site?.let { viewModel.updateIconColor(it.id, colors) } },
-        errorContent = { error?.let { ErrorBanner(error = it, onDismiss = viewModel::dismissError, onRetry = viewModel::retryLastAction) } },
     )
     if (confirmDelete && item != null) {
         AlertDialog(

@@ -77,7 +77,10 @@ class LiveBrowserWatchJourneyTest {
                         null,
                         repository,
                         object : CapturePreviewer {
-                            override suspend fun capture(url: String, mode: CaptureMode): CapturePreview = error("The loaded browser document must be reused")
+                            override suspend fun capture(url: String, mode: CaptureMode): CapturePreview = when (mode) {
+                                CaptureMode.DIRECT_TEXT -> CapturePreview.Html("Product details before JavaScript", 33)
+                                else -> error("The loaded browser document must be reused")
+                            }
                             override suspend fun keepAsFirstVersion(site: Site, preview: CapturePreview): Boolean {
                                 keptPreview.set(preview)
                                 return true
@@ -95,6 +98,13 @@ class LiveBrowserWatchJourneyTest {
                 }
                 compose.onNodeWithText("Page address").performTextReplacement(draftUrl)
                 compose.onNodeWithText("Open page").performClick()
+                if (method == ComparisonMethod.HTML) {
+                    compose.onNodeWithText("Product details before JavaScript").assertExists()
+                    compose.runOnIdle { assertNull(findWeb(compose.activity.window.decorView)) }
+                    val openBrowser = hasText("Open in browser") and hasClickAction()
+                    compose.onNode(openBrowser).performScrollTo().performClick()
+                    assertEquals(CaptureMode.DIRECT_TEXT, model.uiState.value.captureMode)
+                }
                 val ready = AtomicBoolean(false)
                 val web = AtomicReference<WebView>()
                 compose.waitUntil(30_000) {
@@ -182,7 +192,9 @@ class LiveBrowserWatchJourneyTest {
                 compose.waitUntil(5_000) { restored.get() }
                 compose.onNode(hasText("Start watching") and hasClickAction()).performClick()
                 compose.waitUntil(5_000) { saved.isCompleted }
-                assertEquals(expected, runBlocking { db.siteDao().getSiteById(saved.await())?.url })
+                val savedSite = runBlocking { db.siteDao().getSiteById(saved.await()) }
+                assertEquals(expected, savedSite?.url)
+                assertEquals(if (method == ComparisonMethod.HTML) CaptureMode.TEXT else CaptureMode.SCREENSHOT, savedSite?.captureMode)
                 assertSame("The exact reviewed payload must become the baseline", reviewed, keptPreview.get())
             }
         } finally {

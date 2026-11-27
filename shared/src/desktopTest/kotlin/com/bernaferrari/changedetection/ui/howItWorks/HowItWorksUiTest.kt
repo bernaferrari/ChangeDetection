@@ -34,8 +34,8 @@ class HowItWorksUiTest {
         compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Checks run only while the app is open."))
         compose.onNodeWithText("Checks run only while the app is open.").assertIsDisplayed()
         compose.onNodeWithText("Use battery-friendly background checks for everyday tracking.").assertDoesNotExist()
-        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Turbo stops when its timer ends. You can stop it sooner at any time."))
-        compose.onNodeWithText("Turbo stops when its timer ends. You can stop it sooner at any time.").assertIsDisplayed()
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Quick Monitor stops when its timer ends. You can stop it sooner at any time."))
+        compose.onNodeWithText("Quick Monitor stops when its timer ends. You can stop it sooner at any time.").assertIsDisplayed()
         compose.onNodeWithContentDescription("Navigate back").performClick()
         compose.runOnIdle { assertEquals(1, back) }
     }
@@ -50,8 +50,8 @@ class HowItWorksUiTest {
         }
         compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Automatic checks are unavailable in this preview."))
         compose.onNodeWithText("Automatic checks are unavailable in this preview.").assertIsDisplayed()
-        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Turbo is unavailable in this preview"))
-        compose.onNodeWithText("Turbo is unavailable in this preview").assertIsDisplayed()
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Quick Monitor is unavailable in this preview"))
+        compose.onNodeWithText("Quick Monitor is unavailable in this preview").assertIsDisplayed()
         compose.onNodeWithText("Select specific pages and check them every 15 seconds to 2 minutes for up to 3 hours.").assertDoesNotExist()
     }
 }

@@ -10,7 +10,7 @@ import com.bernaferrari.changedetection.repo.source.SnapsRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.*
-import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.kotlin.*
 
@@ -31,13 +31,13 @@ class ShareFailureFeedbackTest {
             override fun shareText(text: String, title: String): Unit = throw ShareUnavailableException()
             override fun shareFile(fileName: String, text: String, title: String): Unit = throw ShareUnavailableException()
         }
-        val model = ComparisonViewModel(sites, snaps, mock(), share, mock(), mock())
+        val model = ComparisonViewModel(sites, snaps, share, mock(), mock())
         try {
             model.loadSiteAndSnaps(site.id)
             model.uiState.first { it.singleSnapContent != null }
             val message = async(start = CoroutineStart.UNDISPATCHED) { model.actionMessages.first() }
             model.shareDiff(snap, snap, "before", "after")
-            assertTrue(message.await().isNotBlank())
+            assertEquals(ComparisonActionMessage.ShareFailed, message.await())
         } finally {
             model.viewModelScope.coroutineContext.job.cancelAndJoin()
             Dispatchers.resetMain()

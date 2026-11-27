@@ -1,7 +1,6 @@
 package com.bernaferrari.changedetection.background
 
 import com.bernaferrari.changedetection.repo.Site
-import com.bernaferrari.changedetection.sync.SyncEngine
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -29,13 +28,12 @@ import androidx.datastore.preferences.core.edit
  * - SyncEngine for actual network operations
  */
 class IosMonitoringManager(
-    private val syncEngine: SyncEngine,
     private val dataStore: DataStore<Preferences>,
     private val runner: com.bernaferrari.changedetection.sync.IosCheckRunner,
 ) : MonitoringManager {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private val backgroundScheduler = createBackgroundScheduler()
+    private val backgroundScheduler = iosBackgroundScheduler
 
     private val turboSession = TurboSession(scope, runner)
     override val quickMonitorState = turboSession.state
@@ -73,16 +71,12 @@ class IosMonitoringManager(
 
     override fun stopQuickMonitor() {
         turboSession.stop()
-        backgroundScheduler.stopQuickMonitor()
     }
 
     override suspend fun updateSchedule() {
         val schedule = MonitoringSchedule.from(dataStore.data.first())
         if (schedule.enabled) {
-            backgroundScheduler.schedulePeriodicSync(
-                intervalMinutes = schedule.intervalMinutes,
-                constraints = SyncConstraints(),
-            )
+            backgroundScheduler.schedulePeriodicSync(schedule.intervalMinutes)
         } else {
             backgroundScheduler.cancelPeriodicSync()
         }

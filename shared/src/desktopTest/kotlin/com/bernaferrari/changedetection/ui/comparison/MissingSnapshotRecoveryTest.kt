@@ -28,7 +28,7 @@ class MissingSnapshotRecoveryTest {
         val sites = SitesRepository(SitesLocalDataSource(executors, db.siteDao(), com.bernaferrari.changedetection.storage.SnapshotFileCleanup(db.pendingFileDeletionDao(), db.snapsDao(), storage)))
         val snapshots = SnapsRepository(SnapsLocalDataSource(executors, db.snapsDao(), db.siteDao(), storage, com.bernaferrari.changedetection.storage.SnapshotFileCleanup(db.pendingFileDeletionDao(), db.snapsDao(), storage)))
         val application = ApplicationScope()
-        val model = ComparisonViewModel(sites, snapshots, mock(), mock(), ErrorHandler(), application)
+        val model = ComparisonViewModel(sites, snapshots, mock(), ErrorHandler(), application)
         try {
             db.siteDao().insertSite(Site("Schedule", "https://example.test", 2L, "", "page", 0 to 0).copy(isRead = false))
             db.snapsDao().insertSnap(Snap("older", "page", 1L, "text/plain", "UTF-8", 13))

@@ -1,19 +1,23 @@
 package com.bernaferrari.changedetection.navigation
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.MotionDurationScale
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import com.bernaferrari.changedetection.ui.navigation.BoundedNavigationSuiteScaffold
 import com.bernaferrari.changedetection.ui.theme.ChangeDetectionTheme
 import org.junit.Assert.*
 import org.junit.Rule
@@ -35,6 +39,25 @@ class NavigationMotionTest {
     @Test fun changedReadingDirectionUpdatesRememberedMotion() = verify(LayoutDirection.Rtl, changeDirection = true)
 
     @Test fun zeroMotionStillCompletesNavigation() = verify(LayoutDirection.Rtl, reducedMotion = true)
+
+    @OptIn(androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi::class)
+    @Test
+    fun anUnboundedNavigationProbeStillMeasuresScreenContent() {
+        compose.setContent {
+            Layout(content = {
+                BoundedNavigationSuiteScaffold(navigationSuiteItems = {}) {
+                    LazyColumn { item { Text("Screen content") } }
+                }
+            }) { measurables, constraints ->
+                val screen = measurables.single().measure(Constraints())
+                layout(screen.width.coerceIn(constraints.minWidth, constraints.maxWidth), screen.height.coerceIn(constraints.minHeight, constraints.maxHeight)) {
+                    screen.placeRelative(0, 0)
+                }
+            }
+        }
+
+        compose.onNodeWithText("Screen content").assertIsDisplayed()
+    }
 
     private fun verify(direction: LayoutDirection, changeDirection: Boolean = false, reducedMotion: Boolean = false) {
         durationScale = if (reducedMotion) 0f else 1f

@@ -8,6 +8,7 @@ internal data class MonitoringCapabilities(
     val turbo: Boolean = true,
     val notifications: Boolean = false,
     val osScheduled: Boolean = false,
+    val androidTools: Boolean = false,
     /** Text checks load the page in the app's browser, so they are a different route from a Source or Screenshot check. */
     val browserText: Boolean = false,
 )

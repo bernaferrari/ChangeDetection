@@ -5,8 +5,8 @@ options:
     iOS: "16.0"
 settings:
   base:
-    MARKETING_VERSION: "2.31"
-    CURRENT_PROJECT_VERSION: "34"
+    MARKETING_VERSION: "3.3"
+    CURRENT_PROJECT_VERSION: "48"
 targets:
   iosApp:
     type: application
@@ -30,7 +30,6 @@ targets:
         UIBackgroundModes: [fetch, processing]
         BGTaskSchedulerPermittedIdentifiers:
           - com.bernaferrari.changedetection.periodicSync
-          - com.bernaferrari.changedetection.quickMonitor
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft

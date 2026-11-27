@@ -9,14 +9,13 @@
     <string name="change_notification_channel_name">Perubahan terdeteksi</string>
     <string name="change_notification_channel_description">Notifikasi saat situs yang dipantau berubah</string>
     <string name="quick_monitor_banner_live_badge">AKTIF</string>
-    <string name="quick_monitor_title">Turbo</string>
+    <string name="quick_monitor_title">Pemantauan cepat</string>
     <string name="quick_monitor_channel_description">Menampilkan sesi pemantauan cepat yang sedang berlangsung.</string>
-    <string name="quick_monitor_notification_title">⚡ Turbo aktif</string>
+    <string name="quick_monitor_notification_title">⚡ Pemantauan cepat aktif</string>
     <plurals name="quick_monitor_notification_subtitle">
         <item quantity="other">Memeriksa %1$d halaman setiap %2$d detik</item>
     </plurals>
     <string name="action_stop_monitoring">Hentikan pemantauan</string>
-    <string name="empty_add_site_hint">Tambahkan halaman untuk memulai Turbo</string>
     <string name="start">Mulai</string>
     <string name="change_notification_named">%1$s berubah</string>
     <string name="change_notification_generic">Ketuk untuk melihat perubahannya.</string>
@@ -46,4 +45,8 @@
     <string name="failure_notification_needs_you">Perlu perhatian Anda. Ketuk untuk melihat apa yang harus dilakukan.</string>
     <string name="failure_notification_keeps_failing">Pemeriksaan terus gagal. Ketuk untuk melihat alasannya.</string>
     <string name="failure_notification_generic">Sebuah halaman tidak sedang diperiksa.</string>
+
+    <string name="quick_monitor_widget_inactive">Pemantauan cepat tidak aktif</string>
+    <string name="diagnostics_public_example">Jika halaman tersebut bersifat publik, Anda bisa menambahkan tautannya ke pesan dukungan setelah membuka menu bagikan. Jangan sertakan tautan privat atau tautan yang memuat informasi pribadi.</string>
+    <string name="diagnostics_email_subject">Diagnostik Change Detection</string>
 </resources>

@@ -5,13 +5,7 @@ import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.longPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
-import androidx.compose.ui.graphics.Color
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
@@ -23,7 +17,7 @@ import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.provideContent
-import androidx.glance.appwidget.state.updateAppWidgetState
+import com.bernaferrari.changedetection.background.TurboPreferences
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
@@ -36,21 +30,23 @@ import androidx.glance.text.FontStyle
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.changedetection.MainActivityProvider
+import com.bernaferrari.changedetection.WorkerHelper
 import com.bernaferrari.changedetection.library.R
 import kotlinx.coroutines.flow.first
-
-// Single 'settings' DataStore is declared only in PlatformDiModule.android.kt;
-// obtained here via Koin so the widget never registers a second file delegate.
-private fun Context.dataStore(): DataStore<Preferences> = org.koin.mp.KoinPlatformTools.defaultContext().get().get()
 
 class QuickMonitorWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val manager = org.koin.mp.KoinPlatformTools.defaultContext().get().get<com.bernaferrari.changedetection.WorkerHelper>()
-        val state = manager.quickMonitorState.value
+        val koin = org.koin.mp.KoinPlatformTools.defaultContext().get()
+        val manager = koin.get<WorkerHelper>()
+        val stored = TurboPreferences.read(koin.get<DataStore<Preferences>>().data.first())
+        val running = manager.quickMonitorState.value
+        // An interrupted session can still be on disk while the new process is clearing it.
+        val isLive = stored.isActive && running.isActive && running.startTime == stored.startTime &&
+            stored.deadlineTime > kotlin.time.Clock.System.now().toEpochMilliseconds()
+        val state = stored.copy(isActive = isLive)
         provideContent {
             GlanceTheme {
                 WidgetContent(context, state)
@@ -71,13 +67,13 @@ class QuickMonitorWidget : GlanceAppWidget() {
                 intervalSeconds,
             )
         } else {
-            context.getString(R.string.empty_add_site_hint)
+            context.getString(R.string.quick_monitor_widget_inactive)
         }
 
-        val backgroundColor = if (isActive) ColorProvider(Color(0xFFEEF0FF)) else GlanceTheme.colors.background
-        val headerTextColor = if (isActive) ColorProvider(Color(0xFF1D2147)) else GlanceTheme.colors.onBackground
-        val subtitleColor = if (isActive) ColorProvider(Color(0xFF444B8F)) else GlanceTheme.colors.onBackground
-        val accentColor = if (isActive) ColorProvider(Color(0xFF4C64FF)) else GlanceTheme.colors.primary
+        val colors = GlanceTheme.colors
+        val backgroundColor = if (isActive) colors.primaryContainer else colors.background
+        val headerTextColor = if (isActive) colors.onPrimaryContainer else colors.onBackground
+        val accentColor = if (isActive) colors.onPrimaryContainer else colors.primary
 
         Column(
             modifier = GlanceModifier
@@ -110,7 +106,7 @@ class QuickMonitorWidget : GlanceAppWidget() {
             Text(
                 text = subtitle,
                 style = TextStyle(
-                    color = subtitleColor,
+                    color = headerTextColor,
                     fontStyle = if (isActive) FontStyle.Normal else FontStyle.Italic,
                 ),
                 modifier = GlanceModifier.padding(top = 4.dp, bottom = 12.dp),
@@ -147,6 +143,5 @@ class WidgetStopAction : androidx.glance.appwidget.action.ActionCallback {
         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main.immediate) {
             org.koin.mp.KoinPlatformTools.defaultContext().get().get<com.bernaferrari.changedetection.WorkerHelper>().stopQuickMonitor()
         }
-        QuickMonitorWidget().update(context, glanceId)
     }
 }

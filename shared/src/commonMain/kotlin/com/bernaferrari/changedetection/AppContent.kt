@@ -2,6 +2,7 @@
 
 package com.bernaferrari.changedetection
 
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -57,6 +58,8 @@ import com.bernaferrari.changedetection.shared.generated.resources.select_site_c
 import com.bernaferrari.changedetection.shared.generated.resources.select_site_canvas_supporting
 import org.koin.compose.viewmodel.koinViewModel
 import com.bernaferrari.changedetection.localization.stringResource
+import com.bernaferrari.changedetection.shared.generated.resources.feedback_email_subject
+import com.bernaferrari.changedetection.ui.components.ErrorBanner
 
 /**
  * Platform-specific actions that the [ChangeDetectionApp] needs to perform.
@@ -66,7 +69,8 @@ data class PlatformActions(
     val openEmail: (email: String, subject: String) -> Unit = { _, _ -> },
     val startTurbo: ((siteIds: Set<String>, intervalSeconds: Int, durationMinutes: Int) -> Unit)? = null,
     val stopTurbo: (() -> Unit)? = null,
-    val requestNotifications: () -> Unit = {},
+    val requestNotificationsAutomatically: () -> Unit = {},
+    val requestNotificationsExplicitly: (onGranted: () -> Unit) -> Unit = { it() },
     val openNotificationSettings: (() -> Unit)? = null,
     val supportsNotificationImages: Boolean = false,
     val appVersion: String = "",
@@ -216,6 +220,7 @@ fun ChangeDetectionApp(
         }
     }
 
+    val feedbackSubject = stringResource(Res.string.feedback_email_subject)
     val navSites by mainViewModel.sitesFlow.collectAsStateWithLifecycle()
     val unreadCount = navSites.orEmpty().count { !it.site.isRead && it.snap != null && it.snapshotCount > 1 }
     if (native != null && startDestination == MainDestination) {
@@ -244,7 +249,7 @@ fun ChangeDetectionApp(
     com.bernaferrari.changedetection.util.BackHandler(
         enabled = native == null && backStack.size == 1 && (backStack.first() is LogsDestination || backStack.first() is SettingsDestination),
     ) { backStack[0] = MainDestination }
-    suite {
+    val navigation: @Composable () -> Unit = {
         NavDisplay(
             backStack = backStack,
             onBack = { backStack.pop() },
@@ -276,7 +281,7 @@ fun ChangeDetectionApp(
                         onSetUpTurbo = { ids -> turboSetup = ids },
                         onOpenTurbo = { backStack.add(TurboDestination) },
                         onHowItWorks = { backStack.add(HowItWorksDestination) },
-                        onEnableNotifications = platformActions.requestNotifications,
+                        onEnableNotifications = platformActions.requestNotificationsExplicitly,
                     )
                 }
 
@@ -308,7 +313,7 @@ fun ChangeDetectionApp(
                             onAboutClick = { backStack.add(AboutDestination) },
                             onHowItWorksClick = { backStack.add(HowItWorksDestination) },
                             onContactClick = {
-                                platformActions.openEmail("bernaferrari2@gmail.com", "Change Detection Feedback")
+                                platformActions.openEmail("bernaferrari2@gmail.com", feedbackSubject)
                             },
                             onNotificationSettings = platformActions.openNotificationSettings,
                             supportsNotificationImages = platformActions.supportsNotificationImages,
@@ -330,21 +335,10 @@ fun ChangeDetectionApp(
                             onTurbo = { turboSetup = setOf(key.siteId) },
                             onSchedule = { showSchedule = true },
                             onOpenUrl = platformActions.openUrl,
-                            onEnableNotifications = platformActions.requestNotifications,
+                            onEnableNotifications = platformActions.requestNotificationsExplicitly,
                         )
                     }
                     if (showSchedule) BackgroundSyncDialog(onDismiss = { showSchedule = false })
-                }
-
-                entry<PageTurboDestination>(metadata = forwardTransitionMetadata) { navKey ->
-                    TurboRoute(
-                        mainViewModel = mainViewModel,
-                        onBack = { close(navKey) },
-                        onStop = { platformActions.stopTurbo?.invoke() ?: mainViewModel.stopQuickMonitor() },
-                        onRunAgain = { ids -> turboSetup = ids },
-                        onOpenPage = { backStack.openPage(it) },
-                        onOpenChange = { id, snapId -> backStack.openComparison(id, snapId) },
-                    )
                 }
 
                 entry<AddEditDestination>(metadata = forwardTransitionMetadata) { key ->
@@ -352,7 +346,7 @@ fun ChangeDetectionApp(
                         selectedUrl = key.initialUrl,
                         onNavigateUp = { close(key) },
                         onSaveComplete = {
-                            platformActions.requestNotifications()
+                            platformActions.requestNotificationsAutomatically()
                             close(key)
                         },
                         onOpenSite = { siteId ->
@@ -362,7 +356,7 @@ fun ChangeDetectionApp(
                         onPageAdded = { siteId, name ->
                             close(key)
                             mainViewModel.announcePageAdded(siteId, name)
-                            platformActions.requestNotifications()
+                            platformActions.requestNotificationsAutomatically()
                         },
                     )
                 }
@@ -389,7 +383,7 @@ fun ChangeDetectionApp(
                             platformActions.openUrl(url)
                         },
                         onContactClick = {
-                            platformActions.openEmail("bernaferrari2@gmail.com", "Change Detection Feedback")
+                            platformActions.openEmail("bernaferrari2@gmail.com", feedbackSubject)
                         },
                         onLicenseUrlClick = { url ->
                             platformActions.openUrl(url)
@@ -423,11 +417,25 @@ fun ChangeDetectionApp(
                             onSiteEdit = { id -> backStack.add(EditSiteDestination(siteId = id)) },
                             onOpenPage = { id -> backStack.openPage(id) },
                             onSiteDelete = { close(key) },
+                            onOpenUrl = platformActions.openUrl,
+                            onReloadSite = mainViewModel::reloadSite,
                         )
                     }
                 }
             },
         )
+    }
+    suite {
+        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.fillMaxWidth().weight(1f)) { navigation() }
+            val error by mainViewModel.currentError.collectAsStateWithLifecycle()
+            ErrorBanner(
+                error = error,
+                onDismiss = mainViewModel::dismissError,
+                onRetry = mainViewModel::retryLastAction,
+                modifier = Modifier.widthIn(max = 720.dp).navigationBarsPadding(),
+            )
+        }
     }
 
     turboSetup?.let { preselected ->

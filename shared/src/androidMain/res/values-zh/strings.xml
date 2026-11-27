@@ -9,14 +9,13 @@
     <string name="change_notification_channel_name">检测到的变化</string>
     <string name="change_notification_channel_description">关注的网站发生变化时提醒</string>
     <string name="quick_monitor_banner_live_badge">实时</string>
-    <string name="quick_monitor_title">Turbo</string>
-    <string name="quick_monitor_channel_description">显示正在运行的 Turbo 会话。</string>
-    <string name="quick_monitor_notification_title">⚡ Turbo 已开启</string>
+    <string name="quick_monitor_title">快速监控</string>
+    <string name="quick_monitor_channel_description">显示正在运行的 快速监控 会话。</string>
+    <string name="quick_monitor_notification_title">⚡ 快速监控已开启</string>
     <plurals name="quick_monitor_notification_subtitle">
         <item quantity="other">每 %2$d 秒检查 %1$d 个页面</item>
     </plurals>
     <string name="action_stop_monitoring">停止监测</string>
-    <string name="empty_add_site_hint">添加页面以启动 Turbo</string>
     <string name="start">启动</string>
     <string name="change_notification_named">%1$s 有变化</string>
     <string name="change_notification_generic">点按查看变化。</string>
@@ -27,4 +26,8 @@
     <string name="failure_notification_needs_you">需要你处理。点按查看该怎么做。</string>
     <string name="failure_notification_keeps_failing">检查持续失败。点按查看原因。</string>
     <string name="failure_notification_generic">有页面未在检查。</string>
+
+    <string name="quick_monitor_widget_inactive">快速监控已关闭</string>
+    <string name="diagnostics_public_example">如果网页是公开的，你可以在打开分享菜单后，将链接添加到发给支持团队的消息中。请勿添加私密链接或包含个人信息的链接。</string>
+    <string name="diagnostics_email_subject">Change Detection 诊断报告</string>
 </resources>

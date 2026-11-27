@@ -14,7 +14,8 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class AndroidPageCaptureTest {
     @Test fun partialFinalTileIncludesFooterAfterTextAndMargins() = runBlocking {
-        TestPageServer(200, """<meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0;background:white;color:#182226;font-family:sans-serif"><h1>Camera restock</h1><p>12 cameras available today</p><div style="height:1800px;background:#eef3f8">Delivery details</div><h2 style="margin:0;height:100px;background:#ff0000">End of captured page</h2></body>""").use { server ->
+        // Keep the marker below the viewport but inside the seven-megapixel budget, even on mdpi.
+        TestPageServer(200, """<meta name="viewport" content="width=device-width,initial-scale=3"><body style="margin:0;background:white;color:#182226;font-family:sans-serif"><h1>Camera restock</h1><p>12 cameras available today</p><div style="height:1800px;background:#eef3f8">Delivery details</div><h2 style="margin:0;height:100px;background:#ff0000">End of captured page</h2></body>""").use { server ->
             val result = capture(server.url)
             val bitmap = BitmapFactory.decodeByteArray(result.bytes, 0, result.bytes.size)
             try {
@@ -46,7 +47,8 @@ class AndroidPageCaptureTest {
     }
 
     @Test fun fullPageCaptureIncludesOffscreenContentAndStaysWithinPixelBudget() = runBlocking {
-        TestPageServer(200, """<meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0;background:white"><div style="height:4000px">TOP OF PAGE</div><div style="height:300px;background:#ff0000">BOTTOM OF PAGE</div></body>""").use { server ->
+        // Keep the marker below the viewport but inside the seven-megapixel budget, even on mdpi.
+        TestPageServer(200, """<meta name="viewport" content="width=device-width,initial-scale=3"><body style="margin:0;background:white"><div style="height:4000px">TOP OF PAGE</div><div style="height:300px;background:#ff0000">BOTTOM OF PAGE</div></body>""").use { server ->
             val screenshot = capture(server.url)
             assertTrue(screenshot.height > 1920)
             assertTrue(screenshot.width.toLong() * screenshot.height <= 7_000_000)
@@ -79,6 +81,22 @@ class AndroidPageCaptureTest {
             } finally {
                 bitmap.recycle()
             }
+        }
+    }
+
+    @Test fun capturesTextAfterThePageLoadHandler() = runBlocking {
+        val html = """<body onload="document.body.innerText='Ready'">Loading<img src="/slow-image"></body>"""
+        TestPageServer(200, html, resourceDelayMs = 700).use { server ->
+            val result = withContext(Dispatchers.Main) {
+                val browser = android.webkit.WebView(ApplicationProvider.getApplicationContext<Context>())
+                try {
+                    browser.settings.javaScriptEnabled = true
+                    AndroidPageCapture(browser).captureText(server.url, settleDelayMs = 0)
+                } finally {
+                    browser.destroy()
+                }
+            }
+            assertTrue(result.bytes.decodeToString().contains(">Ready<"))
         }
     }
 
@@ -189,6 +207,47 @@ class AndroidPageCaptureTest {
         TestPageServer(200, """<meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0"><div id="target" style="height:9000px">Too large</div></body>""").use { server ->
             val error = runCatching { capture(server.url, "#target") }.exceptionOrNull()
             assertTrue("Expected a budget rejection, got $error", error?.message.orEmpty().contains("too large"))
+        }
+    }
+
+    @Test fun failedBackgroundBelowScreenshotDoesNotBlockItsCapture() = runBlocking {
+        TestPageServer(404, "Resource missing").use { broken ->
+            TestPageServer(
+                200,
+                """<meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0"><h1>Watched content</h1><div style="height:6000px"></div><div style="width:48px;height:48px;background-image:url('${broken.url}')"></div></body>""",
+            ).use { page ->
+                val screenshot = capture(page.url)
+                assertTrue(screenshot.bytes.isNotEmpty())
+                assertTrue(screenshot.height <= 10_000)
+            }
+        }
+    }
+
+    @Test fun failedBackgroundInsideScreenshotStillBlocksItsCapture() = runBlocking {
+        TestPageServer(404, "Resource missing").use { broken ->
+            TestPageServer(
+                200,
+                """<meta name="viewport" content="width=device-width,initial-scale=1"><body><h1>Watched content</h1><div style="width:48px;height:48px;background-image:url('${broken.url}')"></div></body>""",
+            ).use { page ->
+                val error = runCatching { capture(page.url) }.exceptionOrNull()
+                assertTrue("Expected a failed captured dependency, got $error", error is CaptureNotReadyException)
+                assertEquals(CaptureIssue.RESOURCE_FAILED, (error as CaptureNotReadyException).issue)
+                assertTrue(error.resources.any { it.kind == CaptureResourceKind.IMAGE && it.httpStatus == 404 })
+            }
+        }
+    }
+
+    @Test fun failedImagesOutsideSelectedWidthOrUnderAnInvisibleAncestorDoNotBlockCapture() = runBlocking {
+        TestPageServer(404, "Resource missing").use { broken ->
+            TestPageServer(
+                200,
+                """<meta name="viewport" content="width=device-width,initial-scale=1"><body style="margin:0"><div id="target" style="position:relative;width:120px;height:120px;background:white">Watched content<img src="${broken.url}?outside" style="position:absolute;top:10px;left:140px;width:30px;height:30px"><div style="opacity:0"><img src="${broken.url}?hidden" width="30" height="30"></div></div></body>""",
+            ).use { page ->
+                val screenshot = capture(page.url, "#target")
+                assertEquals(240, screenshot.width)
+                assertEquals(240, screenshot.height)
+                assertTrue(screenshot.bytes.isNotEmpty())
+            }
         }
     }
 

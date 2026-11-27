@@ -2,7 +2,6 @@ package com.bernaferrari.changedetection.backup
 
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
-import java.io.ByteArrayOutputStream
 import java.io.Closeable
 import java.io.InputStream
 import java.io.OutputStream
@@ -20,9 +19,9 @@ internal class ZipBackupSink(output: OutputStream) :
     Closeable {
     private val zip = ZipOutputStream(BufferedOutputStream(output)).apply { setLevel(Deflater.BEST_SPEED) }
 
-    override fun write(name: String, bytes: ByteArray) {
+    override fun writeEntry(name: String, write: (OutputStream) -> Unit) {
         zip.putNextEntry(ZipEntry(name))
-        zip.write(bytes)
+        write(zip)
         zip.closeEntry()
     }
 
@@ -37,16 +36,7 @@ internal class ZipBackupSource(input: InputStream) :
 
     override fun nextName(): String? = zip.nextEntry?.name
 
-    override fun readCurrent(maxBytes: Int): ByteArray? {
-        val output = ByteArrayOutputStream(minOf(maxBytes, 64 * 1024))
-        val buffer = ByteArray(16 * 1024)
-        while (true) {
-            val count = zip.read(buffer)
-            if (count < 0) return output.toByteArray()
-            if (output.size() + count > maxBytes) return null
-            output.write(buffer, 0, count)
-        }
-    }
+    override fun currentStream(): InputStream = zip
 
     override fun close() = zip.close()
 }
@@ -59,12 +49,5 @@ internal fun openBackup(input: InputStream): BackupSource {
     val second = buffered.read()
     buffered.reset()
     if (first >= 0 && second >= 0 && looksLikeZip(byteArrayOf(first.toByte(), second.toByte()))) return ZipBackupSource(buffered)
-    val bytes = ByteArrayOutputStream()
-    val chunk = ByteArray(16 * 1024)
-    while (bytes.size() <= MAX_MANIFEST_BYTES) {
-        val count = buffered.read(chunk, 0, minOf(chunk.size, MAX_MANIFEST_BYTES + 1 - bytes.size()))
-        if (count < 0) break
-        bytes.write(chunk, 0, count)
-    }
-    return ManifestOnlySource(bytes.toByteArray())
+    return ManifestOnlySource(buffered)
 }

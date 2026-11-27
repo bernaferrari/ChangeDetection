@@ -9,9 +9,9 @@
     <string name="change_notification_channel_name">Обнаруженные изменения</string>
     <string name="change_notification_channel_description">Уведомления об изменениях на отслеживаемых сайтах</string>
     <string name="quick_monitor_banner_live_badge">АКТИВНО</string>
-    <string name="quick_monitor_title">Turbo</string>
+    <string name="quick_monitor_title">Быстрая проверка</string>
     <string name="quick_monitor_channel_description">Показывает активный сеанс частых проверок.</string>
-    <string name="quick_monitor_notification_title">⚡ Turbo включён</string>
+    <string name="quick_monitor_notification_title">⚡ Быстрая проверка включена</string>
     <plurals name="quick_monitor_notification_subtitle">
         <item quantity="one">Проверка %1$d страницы с интервалом %2$d с</item>
         <item quantity="few">Проверка %1$d страниц с интервалом %2$d с</item>
@@ -19,7 +19,6 @@
         <item quantity="other">Проверка %1$d страниц с интервалом %2$d с</item>
     </plurals>
     <string name="action_stop_monitoring">Остановить мониторинг</string>
-    <string name="empty_add_site_hint">Добавьте страницу, чтобы запустить Turbo</string>
     <string name="start">Запустить</string>
     <string name="change_notification_named">Изменения на странице «%1$s»</string>
     <string name="change_notification_generic">Нажмите, чтобы посмотреть изменения.</string>
@@ -49,4 +48,8 @@
     <string name="failure_notification_needs_you">Требуется ваше внимание. Нажмите, чтобы узнать, что делать.</string>
     <string name="failure_notification_keeps_failing">Проверки продолжают завершаться ошибкой. Нажмите, чтобы узнать причину.</string>
     <string name="failure_notification_generic">Одна из страниц не проверяется.</string>
+
+    <string name="quick_monitor_widget_inactive">Быстрая проверка выключена</string>
+    <string name="diagnostics_public_example">Если страница общедоступна, после открытия меню «Поделиться» можно добавить ссылку в сообщение службе поддержки. Не добавляйте закрытые ссылки или ссылки с личными данными.</string>
+    <string name="diagnostics_email_subject">Диагностика Change Detection</string>
 </resources>

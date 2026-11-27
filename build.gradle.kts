@@ -39,3 +39,8 @@ subprojects {
         }
     }
 }
+
+plugins.withType<org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnPlugin> {
+    // Kotlin's Node tooling requests ws 8.20.1; keep the patched resolution in the lockfile.
+    the<org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnRootExtension>().resolution("ws", libs.versions.ws.get())
+}

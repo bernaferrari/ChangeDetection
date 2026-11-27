@@ -29,8 +29,12 @@ internal class PageCaptureHealth {
     private val refusedResources = mutableListOf<DiagnosticTlsContext>()
     private var blocked = 0
     private val resourceErrors = LinkedHashMap<String, CaptureResourceFailure>()
-    private val watchedDependencies = LinkedHashMap<String, CaptureResourceKind>()
-    private var dependencyOverflow = false
+    internal class DependencyScope {
+        val urls = LinkedHashMap<String, CaptureResourceKind>()
+        var overflow = false
+    }
+
+    private var watchedDependencies = DependencyScope()
     private var resourceErrorOverflow = false
 
     // Fragments select content within a resource; browsers omit them from HTTP requests.
@@ -51,15 +55,15 @@ internal class PageCaptureHealth {
         }
     }
 
-    @Synchronized fun dependencies(urls: Map<String, CaptureResourceKind>) {
-        // Retain this document's dependency union so another preview cannot revoke an older preview's checks.
+    @Synchronized fun dependencies(urls: Map<String, CaptureResourceKind>, scope: DependencyScope? = null) {
+        val target = scope ?: watchedDependencies
         for ((url, kind) in urls) {
             val key = resourceKey(url)
-            if (key in watchedDependencies) continue
-            if (key.length <= 4096 && watchedDependencies.size < 512) {
-                watchedDependencies[key] = kind
+            if (key in target.urls) continue
+            if (key.length <= 4096 && target.urls.size < 512) {
+                target.urls[key] = kind
             } else {
-                dependencyOverflow = true
+                target.overflow = true
             }
         }
     }
@@ -78,8 +82,7 @@ internal class PageCaptureHealth {
         refusedResources.clear()
         blocked = 0
         resourceErrors.clear()
-        watchedDependencies.clear()
-        dependencyOverflow = false
+        watchedDependencies = DependencyScope()
         resourceErrorOverflow = false
     }
 
@@ -176,19 +179,31 @@ internal class PageCaptureHealth {
 
     @Synchronized fun valid(epoch: Long) = epoch == generation && !hasBlockingFailure()
 
+    /** Guard the loaded document before its screenshot dependencies are known. */
+    suspend fun validateDocument(epoch: Long = epoch()) = validate(epoch, documentOnly = true)
+
     /** Called again after asynchronous capture and immediately before baseline promotion. */
-    suspend fun validate(epoch: Long = epoch(), extent: CaptureExtent? = null, textOnly: Boolean = false) {
+    suspend fun validate(
+        epoch: Long = epoch(),
+        extent: CaptureExtent? = null,
+        textOnly: Boolean = false,
+        scope: DependencyScope? = null,
+        documentOnly: Boolean = false,
+    ) {
         // Snapshot atomically: do not attribute a newer document's TLS/resource errors to an older capture.
         val state = synchronized(this) {
             when {
                 epoch != generation -> Validation(CaptureIssue.DOCUMENT_CHANGED, document = DiagnosticDocumentContext(started != null, committed != null, finished, mainPending))
 
+                documentOnly -> if (hasBlockingFailure()) Validation(tls = observations()) else Validation()
+
                 else -> {
+                    val dependencies = scope ?: watchedDependencies
                     val failed = resourceErrors.asSequence().mapNotNull { (url, failure) ->
-                        watchedDependencies[url]?.let { failure.copy(kind = it) }
+                        dependencies.urls[url]?.let { failure.copy(kind = it) }
                     }.filterNot { textOnly && it.canCaptureText }.distinct().take(4).toList()
                     when {
-                        failed.isNotEmpty() || resourceErrorOverflow || (dependencyOverflow && resourceErrors.isNotEmpty()) ->
+                        failed.isNotEmpty() || resourceErrorOverflow || (dependencies.overflow && resourceErrors.isNotEmpty()) ->
                             Validation(CaptureIssue.RESOURCE_FAILED, resources = failed)
 
                         hasBlockingFailure() -> Validation(tls = observations())

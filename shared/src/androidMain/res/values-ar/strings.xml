@@ -9,9 +9,9 @@
     <string name="change_notification_channel_name">التغييرات المكتشفة</string>
     <string name="change_notification_channel_description">تنبيهات عند تغيّر موقع تراقبه</string>
     <string name="quick_monitor_banner_live_badge">مباشر</string>
-    <string name="quick_monitor_title">Turbo</string>
+    <string name="quick_monitor_title">المراقبة السريعة</string>
     <string name="quick_monitor_channel_description">يعرض جلسة المراقبة السريعة الجارية.</string>
-    <string name="quick_monitor_notification_title">⚡ Turbo قيد التشغيل</string>
+    <string name="quick_monitor_notification_title">⚡ المراقبة السريعة قيد التشغيل</string>
     <plurals name="quick_monitor_notification_subtitle">
         <item quantity="zero">الصفحات قيد الفحص (%1$d) · الفاصل بالثواني (%2$d)</item>
         <item quantity="one">الصفحات قيد الفحص (%1$d) · الفاصل بالثواني (%2$d)</item>
@@ -21,7 +21,6 @@
         <item quantity="other">الصفحات قيد الفحص (%1$d) · الفاصل بالثواني (%2$d)</item>
     </plurals>
     <string name="action_stop_monitoring">أوقف المراقبة</string>
-    <string name="empty_add_site_hint">أضف صفحة لتشغيل Turbo</string>
     <string name="start">ابدأ</string>
     <string name="change_notification_named">تغيّرت صفحة %1$s</string>
     <string name="change_notification_generic">انقر لمعرفة ما تغيّر.</string>
@@ -51,4 +50,8 @@
     <string name="failure_notification_needs_you">تحتاج إلى انتباهك. انقر لمعرفة ما يجب فعله.</string>
     <string name="failure_notification_keeps_failing">الفحوصات تفشل باستمرار. انقر لمعرفة السبب.</string>
     <string name="failure_notification_generic">هناك صفحة لا يتم فحصها.</string>
+
+    <string name="quick_monitor_widget_inactive">المراقبة السريعة متوقفة</string>
+    <string name="diagnostics_public_example">إذا كانت الصفحة عامة، يمكنك إضافة رابطها إلى رسالة الدعم بعد فتح قائمة المشاركة. لا تضف روابط خاصة أو روابط تحتوي على معلومات شخصية.</string>
+    <string name="diagnostics_email_subject">تشخيص Change Detection</string>
 </resources>

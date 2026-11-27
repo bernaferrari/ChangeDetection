@@ -158,6 +158,8 @@ fun ComparisonScreen(
     onSiteEdit: (String) -> Unit,
     onOpenPage: (String) -> Unit,
     onSiteDelete: () -> Unit,
+    onOpenUrl: (String) -> Unit,
+    onReloadSite: (com.bernaferrari.changedetection.repo.Site) -> Unit,
     viewModel: ComparisonViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -166,10 +168,10 @@ fun ComparisonScreen(
     var showVersions by rememberSaveable { mutableStateOf(showHistoryInitially) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
 
     LaunchedEffect(siteId, initialSnapId) { viewModel.openComparison(siteId, initialSnapId) }
     val deleteFailedMessage = stringResource(Res.string.delete_site_failed)
+    val shareFailedMessage = stringResource(Res.string.share_failed)
     val prunedMessage = stringResource(Res.string.pruned_snapshots)
     val pruneFailedMessage = stringResource(Res.string.prune_failed)
     val readFailedMessage = stringResource(Res.string.comparison_read_failed)
@@ -180,15 +182,17 @@ fun ComparisonScreen(
     LaunchedEffect(viewModel) {
         viewModel.actionMessages.collect { message ->
             when (message) {
-                "read_failed" -> snackbarHostState.showSnackbar(readFailedMessage)
+                ComparisonActionMessage.ReadFailed -> snackbarHostState.showSnackbar(readFailedMessage)
 
-                "read_changed" -> if (snackbarHostState.showSnackbar(readChangedMessage, latestLabel, withDismissAction = true, duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed) {
+                ComparisonActionMessage.ReadChanged -> if (snackbarHostState.showSnackbar(readChangedMessage, latestLabel, withDismissAction = true, duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed) {
                     viewModel.loadSiteAndSnaps(siteId)
                 }
 
-                "pruned" -> snackbarHostState.showSnackbar(prunedMessage, duration = SnackbarDuration.Short)
+                ComparisonActionMessage.Pruned -> snackbarHostState.showSnackbar(prunedMessage, duration = SnackbarDuration.Short)
 
-                "prune_failed" -> snackbarHostState.showSnackbar(pruneFailedMessage, duration = SnackbarDuration.Short)
+                ComparisonActionMessage.ShareFailed -> snackbarHostState.showSnackbar(shareFailedMessage)
+
+                ComparisonActionMessage.PruneFailed -> snackbarHostState.showSnackbar(pruneFailedMessage, duration = SnackbarDuration.Short)
             }
         }
     }
@@ -242,8 +246,8 @@ fun ComparisonScreen(
                 },
                 menu = listOf(
                     com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.comparison_page_details), Icons.Outlined.Info, "info.circle", enabled = uiState.site != null) { onOpenPage(siteId) },
-                    com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.home_check_now), Icons.Outlined.Refresh, "arrow.clockwise", enabled = uiState.site != null) { viewModel.reloadSite() },
-                    com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.open_in_browser), Icons.AutoMirrored.Outlined.OpenInNew, "safari") { uiState.site?.url?.let { runCatching { uriHandler.openUri(it) } } },
+                    com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.home_check_now), Icons.Outlined.Refresh, "arrow.clockwise", enabled = uiState.site != null) { uiState.site?.let(onReloadSite) },
+                    com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.open_in_browser), Icons.AutoMirrored.Outlined.OpenInNew, "safari") { uiState.site?.url?.let(onOpenUrl) },
                     com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.edit), Icons.Outlined.Edit, "pencil") { onSiteEdit(siteId) },
                     com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.prune_history), Icons.Outlined.CleaningServices, "scissors") { showPruneDialog = true },
                     com.bernaferrari.changedetection.ui.navigation.BarAction(stringResource(Res.string.detail_delete), Icons.Outlined.DeleteOutline, "trash", destructive = true) { showDeleteDialog = true },
@@ -301,11 +305,11 @@ fun ComparisonScreen(
                     SingleSnapshotState(
                         snap = snap,
                         content = uiState.singleSnapContent,
-                        bytes = uiState.singleSnapBytes,
+                        bytes = uiState.singleSnapImage?.bytes,
                         isLoadingContent = uiState.isLoadingDiff,
                         hasError = uiState.error != null,
                         onRetry = viewModel::retryComparison,
-                        onCheckNow = { viewModel.reloadSite() },
+                        onCheckNow = { uiState.site?.let(onReloadSite) },
                         asPage = singleMode == ComparisonMode.Html,
                         modifier = Modifier.fillMaxWidth().weight(1f),
                     )
@@ -329,13 +333,13 @@ fun ComparisonScreen(
                     Box(Modifier.widthIn(max = 720.dp).fillMaxWidth().weight(1f).align(Alignment.CenterHorizontally).testTag("comparison-reader"), contentAlignment = Alignment.TopCenter) {
                         val content1 = uiState.snapContent1
                         val content2 = uiState.snapContent2
-                        val screenshotsReady = uiState.snapBytes1 != null && uiState.snapBytes2 != null
+                        val screenshotsReady = uiState.snapImage1 != null && uiState.snapImage2 != null
                         when {
                             // One view from the first frame: the changes found for the card that was tapped, or the
                             // slider while they are found, then the full comparison in the same place.
                             isImagePair && (!uiState.isLoadingDiff || screenshotsReady) -> ImageComparisonContent(
-                                uiState.snapBytes2,
-                                uiState.snapBytes1,
+                                uiState.snapImage2?.bytes,
+                                uiState.snapImage1?.bytes,
                                 shownImageDiff,
                                 mode,
                                 Modifier.fillMaxSize(),
@@ -449,8 +453,6 @@ private fun modeLabel(mode: ComparisonMode): String = stringResource(
         ComparisonMode.Source -> Res.string.reader_mode_source
         ComparisonMode.ImageSwipe -> Res.string.reader_mode_slider
         ComparisonMode.ImageDiff -> Res.string.reader_mode_page
-        ComparisonMode.ImageBefore -> Res.string.preview_before
-        ComparisonMode.ImageAfter -> Res.string.preview_after
         ComparisonMode.SavedText -> Res.string.mode_text
     },
 )
@@ -583,8 +585,6 @@ private fun modeIcon(mode: ComparisonMode): androidx.compose.ui.graphics.vector.
     ComparisonMode.Html, ComparisonMode.ImageDiff -> Icons.AutoMirrored.Rounded.Article
     ComparisonMode.Source -> Icons.Rounded.Code
     ComparisonMode.ImageSwipe -> ModeIcons.Slider
-    ComparisonMode.ImageBefore -> Icons.Rounded.History
-    ComparisonMode.ImageAfter -> Icons.Rounded.Update
     ComparisonMode.SavedText -> Icons.AutoMirrored.Rounded.Notes
 }
 

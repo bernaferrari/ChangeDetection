@@ -46,7 +46,15 @@ internal suspend fun captureLivePagePreview(
             val live = decodeLivePage(navigator.readScript("window.location.href")) ?: return@withTimeout null
             if (live.url != url) return@withTimeout null
             validate()
-            previewFromCapture(result.copy(validateCapture = validate), url, mode, region)
+            previewFromCapture(
+                result.copy(validateCapture = {
+                    validate()
+                    result.validateCapture()
+                }),
+                url,
+                mode,
+                region,
+            )
         } finally {
             navigator.evaluateJavaScript("window.__cdPick&&window.__cdPick.mark(${PageCleanup.js(region.include)},${PageCleanup.js(region.exclude)});0")
         }

@@ -113,11 +113,14 @@ internal fun WatchBrowser(
     watchLabel: String,
     captureMode: com.bernaferrari.changedetection.repo.CaptureMode = com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT,
 ) {
-    val state = rememberWebViewState(startUrl).apply {
-        webSettings.androidWebSettings.domStorageEnabled = true
-        webSettings.androidWebSettings.useWideViewPort = true
-        // Match fresh browser captures; transparent page CSS uses the normal white browser canvas.
-        webSettings.backgroundColor = androidx.compose.ui.graphics.Color.White
+    val state = rememberWebViewState(startUrl)
+    remember(state) {
+        state.apply {
+            webSettings.androidWebSettings.domStorageEnabled = true
+            webSettings.androidWebSettings.useWideViewPort = true
+            // Match fresh browser captures; transparent page CSS uses the normal white browser canvas.
+            webSettings.backgroundColor = androidx.compose.ui.graphics.Color.White
+        }
     }
     var browserGeneration by remember { mutableIntStateOf(0) }
     val rendererGone = state.errorsForCurrentRequest.any { it.code == com.bernaferrari.changedetection.browser.BROWSER_RENDERER_GONE }

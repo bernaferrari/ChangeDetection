@@ -4,16 +4,50 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import com.bernaferrari.changedetection.browser.AndroidBrowserRuntimeHost
+import com.bernaferrari.changedetection.browser.PlatformBrowserView
 import com.bernaferrari.changedetection.browser.TestPageServer
 import com.bernaferrari.changedetection.ui.theme.ChangeDetectionTheme
+import com.multiplatform.webview.web.rememberWebViewState
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 class BrowserLoadFailureTest {
     @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
+
+    @Test fun webViewStartupFailureOffersRetryBeforeMountingThePage() {
+        val attempts = AtomicInteger()
+        TestPageServer(200, "<title>Recovered</title><p>Page content</p>").use { server ->
+            compose.setContent {
+                ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
+                    AndroidBrowserRuntimeHost(
+                        modifier = Modifier.fillMaxSize(),
+                        start = {
+                            if (attempts.incrementAndGet() == 1) throw RuntimeException("Could not acquire the WebView data directory lock")
+                        },
+                    ) {
+                        PlatformBrowserView(rememberWebViewState(server.url), Modifier.fillMaxSize())
+                    }
+                }
+            }
+            compose.onNodeWithText("Retry").assertIsDisplayed()
+            compose.runOnIdle { assertNull(findWebView(compose.activity.window.decorView)) }
+            assertEquals(1, attempts.get())
+
+            compose.onNodeWithText("Retry").performClick()
+            waitForPage("Recovered")
+            compose.onNodeWithText("Retry").assertDoesNotExist()
+            assertEquals(2, attempts.get())
+        }
+    }
 
     @Test fun firstVisitToAMissingPageDoesNotClaimASavedVersionWasLost() {
         TestPageServer(404, "<title>Not found</title><p>This page does not exist</p>").use { server ->

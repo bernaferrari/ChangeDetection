@@ -44,11 +44,10 @@ data class SettingsUiState(
     val requireWifi: Boolean = false,
     val requireCharging: Boolean = false,
     val requireBatteryNotLow: Boolean = false,
-    val requireDeviceIdle: Boolean = false,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val appPalette: AppPalette = AppPalette.defaultFor(supportsDynamicColors()),
     val colorStyle: com.bernaferrari.changedetection.model.ColorStyle = com.bernaferrari.changedetection.model.ColorStyle.EXPRESSIVE,
-    val comparisonMethod: ComparisonMethod = ComparisonMethod.SCREENSHOT,
+    val comparisonMethod: ComparisonMethod = ComparisonMethod.HTML,
     val browserDelayMs: Long = 5000,
     val notificationImages: Boolean = false,
 )
@@ -66,7 +65,6 @@ class SettingsViewModel(
         val REQUIRE_WIFI_KEY = MonitoringSchedule.UNMETERED
         val REQUIRE_CHARGING_KEY = MonitoringSchedule.CHARGING
         val REQUIRE_BATTERY_NOT_LOW_KEY = MonitoringSchedule.BATTERY_NOT_LOW
-        val REQUIRE_DEVICE_IDLE_KEY = booleanPreferencesKey("require_device_idle")
         val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
         val APP_PALETTE_KEY = stringPreferencesKey("app_palette")
         val COLOR_STYLE_KEY = com.bernaferrari.changedetection.ui.theme.ThemeViewModel.COLOR_STYLE_KEY
@@ -134,7 +132,6 @@ class SettingsViewModel(
                     requireWifi = preferences[REQUIRE_WIFI_KEY] ?: false,
                     requireCharging = preferences[REQUIRE_CHARGING_KEY] ?: false,
                     requireBatteryNotLow = preferences[REQUIRE_BATTERY_NOT_LOW_KEY] ?: false,
-                    requireDeviceIdle = preferences[REQUIRE_DEVICE_IDLE_KEY] ?: false,
                     themeMode = preferences[THEME_MODE_KEY]
                         ?.let(ThemeMode::fromStoredName)
                         ?: ThemeMode.SYSTEM,
@@ -142,8 +139,8 @@ class SettingsViewModel(
                     colorStyle = com.bernaferrari.changedetection.model.ColorStyle.fromStoredName(preferences[COLOR_STYLE_KEY]),
                     comparisonMethod =
                     runCatching {
-                        ComparisonMethod.valueOf(preferences[COMPARISON_METHOD_KEY] ?: ComparisonMethod.SCREENSHOT.name)
-                    }.getOrElse { ComparisonMethod.SCREENSHOT },
+                        ComparisonMethod.valueOf(preferences[COMPARISON_METHOD_KEY] ?: ComparisonMethod.HTML.name)
+                    }.getOrElse { ComparisonMethod.HTML },
                     browserDelayMs = preferences[BROWSER_DELAY_KEY] ?: 5000,
                     notificationImages = preferences[com.bernaferrari.changedetection.sync.NotificationPreferences.IMAGE_PREVIEWS] ?: false,
                 )

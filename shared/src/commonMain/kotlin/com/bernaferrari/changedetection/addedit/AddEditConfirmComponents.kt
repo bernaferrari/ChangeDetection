@@ -135,8 +135,11 @@ fun AddEditConfirmScreen(
     // These steps belong to the in-memory draft; never restore them without that draft.
     var browsing by remember { mutableStateOf(false) }
     var reviewing by remember { mutableStateOf(false) }
+    var returnToDirectReview by remember { mutableStateOf(false) }
+    var directBrowserRegion by remember { mutableStateOf(textRegion) }
     val validUrl = url.normalizeUrl() != null
-    val textMode = captureMode == CaptureMode.TEXT
+    val textMode = captureMode.isText
+    val directText = captureMode == CaptureMode.DIRECT_TEXT
     val visualMode = captureMode == CaptureMode.SCREENSHOT || captureMode == CaptureMode.DEFAULT
     // Typed selectors refresh the preview once typing pauses; choices refresh it right away.
     var typedRegion by remember { mutableStateOf(false) }
@@ -149,7 +152,7 @@ fun AddEditConfirmScreen(
 
     LaunchedEffect(url) {
         if (!isEditing && url.isBlank()) {
-            copiedLink = clipboard.readText()?.trim()?.takeIf { it.length < 2_000 && ' ' !in it && (it.startsWith("http://") || it.startsWith("https://") || it.contains('.')) }
+            copiedLink = clipboard.readText()?.trim()?.takeIf { it.length < 2_000 && ' ' !in it && (it.startsWith("http://") || it.startsWith("https://") || it.contains('.')) && it.normalizeUrl() != null }
         }
     }
     LaunchedEffect(Unit) { if (!isEditing && url.isBlank()) urlFocus.requestFocus() }
@@ -160,11 +163,39 @@ fun AddEditConfirmScreen(
 
     fun changeMode(mode: CaptureMode) {
         if (isSaving || mode == captureMode) return
+        if (mode == CaptureMode.DIRECT_TEXT) browsing = false
         onCaptureModeChange(mode)
         if (validUrl && (reviewing || isEditing)) onPreview()
     }
 
     val browserAvailable = LocalBrowserAvailable.current
+    val renderedTextAvailable = browserAvailable && com.bernaferrari.changedetection.repo.supportsRenderedTextMonitoring
+    val directPreviewHasText = ((preview as? CapturePreviewState.Ready)?.content as? CapturePreview.Html)?.text?.isNotBlank() == true
+    val needsBrowser = directText && !directPreviewHasText && (preview is CapturePreviewState.Failed || preview is CapturePreviewState.Ready)
+    val openDirectInBrowser: (() -> Unit)? = if (directText && renderedTextAvailable && validUrl) {
+        {
+            onClosePreview()
+            directBrowserRegion = textRegion
+            returnToDirectReview = reviewing
+            reviewing = false
+            browsing = true
+        }
+    } else {
+        null
+    }
+    val useDirectPreview: (() -> Unit)? = if (captureMode == CaptureMode.TEXT && renderedTextAvailable) {
+        { changeMode(CaptureMode.DIRECT_TEXT) }
+    } else {
+        null
+    }
+    fun openPage() {
+        if (directText || !browserAvailable) {
+            reviewing = true
+            onPreview()
+        } else {
+            browsing = true
+        }
+    }
     val nativeChrome = com.bernaferrari.changedetection.ui.navigation.usesNativeNavigation()
     val ignoredParts = remember(textRegion.exclude) { textRegion.exclude.split(", ").map { it.trim() }.filter { it.isNotEmpty() } }
     // Reviewing is a step of its own that slides over the browser (a sheet inside the iOS sheet fought its
@@ -196,9 +227,8 @@ fun AddEditConfirmScreen(
                 Surface(color = MaterialTheme.colorScheme.surface) {
                     Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp), contentAlignment = Alignment.Center) {
                         Button(
-                            onClick = onSave,
-                            // Never blocked on the snapshot: a ready one becomes the first version, otherwise the first check takes it.
-                            enabled = !isSaving,
+                            onClick = if (needsBrowser && openDirectInBrowser != null) openDirectInBrowser else onSave,
+                            enabled = !isSaving && (isEditing || !directText || directPreviewHasText || (needsBrowser && openDirectInBrowser != null)),
                             shapes = ButtonDefaults.shapes(),
                             modifier = Modifier.widthIn(max = 600.dp).fillMaxWidth().heightIn(min = 56.dp),
                         ) {
@@ -207,7 +237,16 @@ fun AddEditConfirmScreen(
                                 Spacer(Modifier.size(8.dp))
                                 Text(stringResource(Res.string.saving), style = MaterialTheme.typography.titleMedium)
                             } else {
-                                Text(stringResource(if (isEditing) Res.string.save else Res.string.editor_start), style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    stringResource(
+                                        when {
+                                            needsBrowser && openDirectInBrowser != null -> Res.string.open_in_browser
+                                            isEditing -> Res.string.save
+                                            else -> Res.string.editor_start
+                                        },
+                                    ),
+                                    style = MaterialTheme.typography.titleMedium,
+                                )
                             }
                         }
                     }
@@ -221,7 +260,7 @@ fun AddEditConfirmScreen(
                 ) {
                     PagePreviewCard(
                         url = url, title = title, iconUrl = iconUrl, iconShape = iconShape, onIconShapeChange = onIconShapeChange, iconColors = iconColors, onIconColorChange = onIconColorChange, onTitleChange = onTitleChange, preview = preview, enabled = !isSaving,
-                        onPickRegion = if (browserAvailable) {
+                        onPickRegion = if (browserAvailable && !directText) {
                             (
                                 {
                                     onClosePreview()
@@ -236,9 +275,22 @@ fun AddEditConfirmScreen(
                             onClosePreview()
                             reviewing = false
                             browsing = false
-                        }, onSelectRegion = null, textRegion = textRegion, screenshot = visualMode,
+                        },
+                        onSelectRegion = if (directText && !isSaving) {
+                            { selected ->
+                                onTextRegionChange(selected)
+                                onPreview()
+                            }
+                        } else {
+                            null
+                        },
+                        textRegion = textRegion,
+                        screenshot = visualMode,
+                        directText = directText,
+                        browserAction = openDirectInBrowser?.takeIf { directPreviewHasText },
+                        directAction = useDirectPreview,
                     )
-                    if (browserAvailable) {
+                    if (browserAvailable && !directText) {
                         PartsSummary(textRegion.include, ignoredParts.size, onEdit = {
                             onClosePreview()
                             reviewing = false
@@ -266,7 +318,7 @@ fun AddEditConfirmScreen(
                                     typedRegion = true
                                     onTextRegionChange(it)
                                 }, isSaving,
-                                onPick = if (browserAvailable) {
+                                onPick = if (browserAvailable && !directText) {
                                     (
                                         {
                                             onClosePreview()
@@ -290,7 +342,7 @@ fun AddEditConfirmScreen(
                     saveError?.localizedMessage()?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
                     FootNote(Icons.Outlined.Schedule, stringResource(Res.string.monitor_editor_cadence_hint))
                     // Explained where it matters: right before watching a page you may have signed in to.
-                    if (captureMode == CaptureMode.TEXT && !com.bernaferrari.changedetection.repo.supportsRenderedTextMonitoring) {
+                    if (textMode && !renderedTextAvailable) {
                         FootNote(Icons.Outlined.Info, stringResource(Res.string.text_http_capability_note))
                     } else if (browserAvailable && (visualMode || captureMode == CaptureMode.TEXT)) {
                         FootNote(Icons.Outlined.Lock, stringResource(Res.string.browser_session_note))
@@ -311,15 +363,25 @@ fun AddEditConfirmScreen(
     if (showUrlChangeDialog) AddressChangeDialog(onCancel, onKeepHistory, onStartFresh)
 
     if (browsing && validUrl) {
+        val browserRegion = if (directText) directBrowserRegion else textRegion
+        val browserIgnored = if (directText) browserRegion.exclude.split(", ").map { it.trim() }.filter { it.isNotEmpty() } else ignoredParts
         Box(Modifier.fillMaxSize()) {
             WatchBrowser(
                 startUrl = remember { url.normalizeUrl() ?: url },
-                only = textRegion.include,
-                ignored = ignoredParts,
-                captureMode = captureMode,
-                onPicksChange = { only, ignored -> onTextRegionChange(com.bernaferrari.changedetection.detection.TextRegion(only, ignored.joinToString(", "))) },
-                onPageChange = { page -> if (!isEditing && page.trimEnd('/') != (url.normalizeUrl() ?: url).trimEnd('/')) onUrlChange(page) },
+                only = browserRegion.include,
+                ignored = browserIgnored,
+                captureMode = if (directText) CaptureMode.TEXT else captureMode,
+                onPicksChange = { only, ignored ->
+                    val selection = com.bernaferrari.changedetection.detection.TextRegion(only, ignored.joinToString(", "))
+                    if (directText) directBrowserRegion = selection else onTextRegionChange(selection)
+                },
+                onPageChange = { page -> if (!directText && !isEditing && page.trimEnd('/') != (url.normalizeUrl() ?: url).trimEnd('/')) onUrlChange(page) },
                 onWatch = { page ->
+                    if (directText) {
+                        onCaptureModeChange(CaptureMode.TEXT)
+                        onTextRegionChange(directBrowserRegion)
+                    }
+                    returnToDirectReview = false
                     onUrlChange(page.url)
                     onLivePage(page.title, page.icon)
                     reviewing = true
@@ -328,7 +390,9 @@ fun AddEditConfirmScreen(
                 onClose = {
                     onClosePreview()
                     browsing = false
-                    reviewing = false
+                    reviewing = returnToDirectReview
+                    if (returnToDirectReview) onPreview()
+                    returnToDirectReview = false
                 },
                 watchLabel = stringResource(if (isEditing) Res.string.done else Res.string.watch_this_page),
             )
@@ -371,13 +435,7 @@ fun AddEditConfirmScreen(
                                 keyboard?.hide()
                                 when {
                                     isEditing -> onSave()
-
-                                    browserAvailable -> browsing = true
-
-                                    else -> {
-                                        reviewing = true
-                                        onPreview()
-                                    }
+                                    else -> openPage()
                                 }
                             },
                             enabled = !isSaving && validUrl && (!isEditing || preview !is CapturePreviewState.Loading),
@@ -429,13 +487,7 @@ fun AddEditConfirmScreen(
                             if (validUrl) {
                                 when {
                                     isEditing -> onPreview()
-
-                                    browserAvailable -> browsing = true
-
-                                    else -> {
-                                        reviewing = true
-                                        onPreview()
-                                    }
+                                    else -> openPage()
                                 }
                             }
                         },
@@ -447,7 +499,7 @@ fun AddEditConfirmScreen(
                                 onClick = {
                                     onUrlChange(link)
                                     keyboard?.hide()
-                                    browsing = true
+                                    openPage()
                                 },
                                 icon = { Icon(Icons.Default.ContentPaste, null, Modifier.size(18.dp)) },
                                 label = { Text(stringResource(Res.string.paste) + " · " + link.removePrefix("https://").removePrefix("http://").removePrefix("www."), maxLines = 1, overflow = TextOverflow.Ellipsis) },
@@ -472,7 +524,7 @@ fun AddEditConfirmScreen(
                                 onTitleChange = onTitleChange,
                                 preview = preview,
                                 enabled = !isSaving,
-                                onPickRegion = if (browserAvailable) ({ browsing = true }) else null,
+                                onPickRegion = if (browserAvailable && !directText) ({ browsing = true }) else null,
                                 onRetry = onPreview,
                                 onEditAddress = { urlFocus.requestFocus() },
                                 onSelectRegion = if (textMode && !isSaving) {
@@ -485,9 +537,12 @@ fun AddEditConfirmScreen(
                                 },
                                 textRegion = textRegion,
                                 screenshot = visualMode,
+                                directText = directText,
+                                browserAction = openDirectInBrowser?.takeIf { preview is CapturePreviewState.Ready || preview is CapturePreviewState.Failed },
+                                directAction = useDirectPreview,
                             )
                             val ready = (preview as? CapturePreviewState.Ready)?.content as? CapturePreview.Html
-                            if (textMode && ready != null && ready.text.split(Regex("\\s+")).count { it.isNotBlank() } < 25 && supportsVisualMonitoring) {
+                            if (!directText && textMode && ready != null && ready.text.split(Regex("\\s+")).count { it.isNotBlank() } < 25 && supportsVisualMonitoring) {
                                 com.bernaferrari.changedetection.ui.kit.Callout(
                                     title = stringResource(Res.string.editor_little_text_title),
                                     body = stringResource(Res.string.editor_little_text_body),
@@ -498,7 +553,7 @@ fun AddEditConfirmScreen(
                                     actions = { Button(enabled = !isSaving, onClick = { changeMode(CaptureMode.SCREENSHOT) }) { Text(stringResource(Res.string.editor_use_screenshot)) } },
                                 )
                             }
-                            if (browserAvailable) PartsSummary(textRegion.include, ignoredParts.size, onEdit = { browsing = true })
+                            if (browserAvailable && !directText) PartsSummary(textRegion.include, ignoredParts.size, onEdit = { browsing = true })
                             OptionsCard(
                                 captureMode = captureMode,
                                 onMode = ::changeMode,
@@ -527,11 +582,11 @@ fun AddEditConfirmScreen(
                                             onTextRegionChange(it)
                                         },
                                         isSaving = isSaving,
-                                        onPick = if (browserAvailable) ({ browsing = true }) else null,
+                                        onPick = if (browserAvailable && !directText) ({ browsing = true }) else null,
                                     )
                                 },
                             )
-                            if (legacyThreshold > 0 && !(visualMode && visualChangeThresholdBps > 0) && captureMode != CaptureMode.TEXT && captureMode != CaptureMode.SOURCE) {
+                            if (legacyThreshold > 0 && !(visualMode && visualChangeThresholdBps > 0) && !textMode && captureMode != CaptureMode.SOURCE) {
                                 LegacyThresholdNotice(legacyThreshold, !isSaving, onRemoveLegacyThreshold)
                             }
                             Text(
@@ -660,6 +715,9 @@ private fun PagePreviewCard(
     textRegion: com.bernaferrari.changedetection.detection.TextRegion,
     /** Screenshots preview at a fixed height; loading reserves it so the sheet does not jump when it arrives. */
     screenshot: Boolean = false,
+    directText: Boolean = false,
+    browserAction: (() -> Unit)? = null,
+    directAction: (() -> Unit)? = null,
 ) {
     val host = remember(url) { url.removePrefix("https://").removePrefix("http://").removePrefix("www.").substringBefore('/') }
     var choosingShape by remember { mutableStateOf(false) }
@@ -791,7 +849,7 @@ private fun PagePreviewCard(
                                         Text(pluralStringResource(Res.plurals.editor_words, words, words), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                     Text(
-                                        content.text.ifBlank { stringResource(Res.string.capture_preview_empty) }.let { if (expanded) it.take(6_000) else it.take(1_200) },
+                                        content.text.ifBlank { stringResource(if (directText) Res.string.editor_direct_empty else Res.string.capture_preview_empty) }.let { if (expanded) it.take(6_000) else it.take(1_200) },
                                         modifier = Modifier.fillMaxWidth().animateContentSize(),
                                         maxLines = if (expanded) Int.MAX_VALUE else 8,
                                         overflow = TextOverflow.Ellipsis,
@@ -810,6 +868,15 @@ private fun PagePreviewCard(
 
                             is CapturePreview.Image -> CapturePreviewPanel(state, enabled, onRetry, {}, bare = true)
                         }
+                    }
+                    if (browserAction != null) {
+                        Column {
+                            Text(stringResource(Res.string.editor_direct_browser_hint), style = MaterialTheme.typography.bodyMedium)
+                            TextButton(onClick = browserAction, enabled = enabled) { Text(stringResource(Res.string.open_in_browser)) }
+                        }
+                    }
+                    if (directAction != null) {
+                        TextButton(onClick = directAction, enabled = enabled) { Text(stringResource(Res.string.editor_use_direct_preview)) }
                     }
                 }
             }
@@ -849,7 +916,10 @@ private fun OptionsCard(
                 Icon(Icons.Rounded.ExpandMore, null, Modifier.graphicsLayer { rotationZ = rotation }, tint = MaterialTheme.colorScheme.outline)
             }
             if (expanded) {
-                Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) { advanced() }
+                Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    CodeCompareChoices(captureMode, onMode, enabled)
+                    advanced()
+                }
             }
         }
     }

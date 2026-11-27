@@ -20,7 +20,7 @@
     <string name="more_options">अन्य विकल्प</string>
     <string name="loading">लोड हो रहा है…</string>
     <string name="saving">सहेजा जा रहा है…</string>
-    <string name="turbo_mode">टर्बो</string>
+    <string name="turbo_mode">तेज़ निगरानी</string>
     <string name="how_it_works">यह कैसे काम करता है</string>
     <string name="select_site_canvas_label">आपके बदलावों की जगह</string>
     <string name="select_site_canvas_title">हर अपडेट, एक शांत जगह पर।</string>
@@ -33,13 +33,13 @@
         <item quantity="other">%1$d पेज चुने गए</item>
     </plurals>
     <string name="nav_home">होम</string>
-    <string name="nav_turbo">टर्बो</string>
+    <string name="nav_turbo">तेज़ निगरानी</string>
     <string name="nav_settings">सेटिंग</string>
     <string name="home_action_check_now">अभी जाँचें</string>
     <string name="home_section_attention">ध्यान देना ज़रूरी है</string>
     <string name="home_search_clear">खोज साफ़ करें</string>
     <string name="home_search_close">खोज बंद करें</string>
-    <string name="turbo_ended">टर्बो बंद हो गया</string>
+    <string name="turbo_ended">तेज़ निगरानी बंद हो गया</string>
     <string name="settings_title">सेटिंग</string>
     <string name="settings_theme_label">थीम</string>
     <string name="settings_palette_label">रंग</string>
@@ -143,9 +143,9 @@
     <string name="how_it_works_step_monitor_title">जाँच का अंतराल चुनें</string>
     <string name="how_it_works_step_monitor_description">रोज़ की निगरानी के लिए बैटरी बचाने वाली बैकग्राउंड जाँचें इस्तेमाल करें।</string>
     <string name="how_it_works_step_monitor_highlight">अंतराल, नेटवर्क और चार्जिंग की शर्तें आप तय करते हैं।</string>
-    <string name="how_it_works_step_focus_title">समय ज़रूरी हो तो टर्बो इस्तेमाल करें</string>
+    <string name="how_it_works_step_focus_title">समय ज़रूरी हो तो तेज़ निगरानी इस्तेमाल करें</string>
     <string name="how_it_works_step_focus_description">चुने हुए पेजों को %1$d से %2$d सेकंड के अंतराल पर, अधिकतम ३ घंटे तक जाँचें।</string>
-    <string name="how_it_works_step_focus_highlight">समय पूरा होते ही टर्बो रुक जाता है। आप इसे कभी भी पहले रोक सकते हैं।</string>
+    <string name="how_it_works_step_focus_highlight">समय पूरा होते ही तेज़ निगरानी रुक जाता है। आप इसे कभी भी पहले रोक सकते हैं।</string>
     <string name="how_it_works_step_alerts_title">देखें कि ठीक क्या बदला</string>
     <string name="how_it_works_step_alerts_description">पेज खोलकर सहेजे गए संस्करणों की टेक्स्ट, पेज के दृश्य या स्क्रीनशॉट के रूप में तुलना करें।</string>
     <string name="how_it_works_step_alerts_highlight">सहेजे गए संस्करण और बदलावों का इतिहास आपके डिवाइस पर ही रहते हैं।</string>
@@ -217,7 +217,7 @@
     <string name="snapshot_deleted">संस्करण मिटाया गया</string>
     <string name="comparison_check_now_hint">यह पेज अभी तक एक बार जाँचा गया है — बदलाव देखने के लिए फिर जाँचें।</string>
     <string name="schedule_save_failed">शेड्यूल लागू नहीं हो पाया। फिर कोशिश करें।</string>
-    <string name="turbo_stop_session">टर्बो रोकें</string>
+    <string name="turbo_stop_session">तेज़ निगरानी रोकें</string>
     <string name="storage_history_title">सहेजा गया इतिहास</string>
     <string name="storage_history_usage">%1$s MB सहेजे गए संस्करण</string>
     <string name="storage_history_policy">हर पेज के अधिकतम 100 संस्करण रखे जाते हैं। 250 MB से ज़्यादा होने पर पुराने संस्करण हटते हैं। हर पेज के सबसे नए दो संस्करण हमेशा रहते हैं, भले ही वे इस सीमा से बड़े हों।</string>
@@ -325,7 +325,7 @@
     <string name="settings_load_failed">सेटिंग लोड नहीं हो पाईं। फिर कोशिश करें।</string>
     <string name="settings_write_failed">आपका चयन सहेजा नहीं जा सका। फिर कोशिश करें।</string>
     <string name="storage_history_load_failed">स्टोरेज इस्तेमाल लोड नहीं हो पाया।</string>
-    <string name="turbo_unavailable_title">इस प्रीव्यू में टर्बो उपलब्ध नहीं</string>
+    <string name="turbo_unavailable_title">इस प्रीव्यू में तेज़ निगरानी उपलब्ध नहीं</string>
     <string name="turbo_unavailable_description">निगरानी सत्र शुरू करने के लिए Android, iOS या डेस्कटॉप ऐप इस्तेमाल करें।</string>
     <string name="image_diff_sampled_pixels_different">%1$s नमूना पिक्सेल अलग हैं। आँकड़े छोटे आकार के प्रीव्यू पर आधारित हैं।</string>
     <string name="check_failure_capture_unavailable">स्क्रीनशॉट जाँचें उपलब्ध नहीं</string>
@@ -351,9 +351,9 @@
     <string name="home_select_pages">पेज चुनें</string>
     <string name="detail_status_failed">आखिरी जाँच विफल हुई %1$s</string>
     <string name="detail_calendar_summary">पिछले ३० दिनों में %2$s पर %1$s</string>
-    <string name="turbo_sheet_no_pages">अभी कोई सक्रिय पेज नहीं। टर्बो शुरू करने से पहले पेज की निगरानी फिर शुरू करें।</string>
+    <string name="turbo_sheet_no_pages">अभी कोई सक्रिय पेज नहीं। तेज़ निगरानी शुरू करने से पहले पेज की निगरानी फिर शुरू करें।</string>
     <string name="turbo_sheet_paused_note">रुके हुए पेज शामिल नहीं हैं।</string>
-    <string name="turbo_live_note_while_open">ऐप खुला रहने तक टर्बो जाँचता रहेगा। आप यह स्क्रीन छोड़कर बाद में बदलाव देखने लौट सकते हैं।</string>
+    <string name="turbo_live_note_while_open">ऐप खुला रहने तक तेज़ निगरानी जाँचता रहेगा। आप यह स्क्रीन छोड़कर बाद में बदलाव देखने लौट सकते हैं।</string>
     <string name="image_diff_highlight_unavailable_body">हाइलाइट तैयार नहीं हुआ। फिर कोशिश करें या पहले और बाद के सहेजे गए स्क्रीनशॉट देखें।</string>
     <string name="image_diff_dimensions_supporting">नीचे के कैप्चर की तुलना करें; अलग आकारों के कारण सीधी पिक्सेल तुलना नहीं हो सकती।</string>
     <string name="turbo_card_cadence">हर %1$s · %2$s</string>
@@ -429,8 +429,8 @@
     <string name="turbo_sheet_for">बंद होने का समय</string>
     <string name="turbo_sheet_pick">कम से कम एक पेज चुनें</string>
     <plurals name="turbo_sheet_start">
-        <item quantity="one">%1$d पेज पर टर्बो शुरू करें</item>
-        <item quantity="other">%1$d पेजों पर टर्बो शुरू करें</item>
+        <item quantity="one">%1$d पेज पर तेज़ निगरानी शुरू करें</item>
+        <item quantity="other">%1$d पेजों पर तेज़ निगरानी शुरू करें</item>
     </plurals>
     <string name="turbo_sheet_caption">%1$s पर बंद होगा · चलते समय ज़्यादा बैटरी इस्तेमाल होगी</string>
     <string name="turbo_run_again">फिर चलाएँ</string>
@@ -442,22 +442,22 @@
     <string name="turbo_ends_at">%1$s पर बंद होगा</string>
     <string name="turbo_changed">बदला गया</string>
     <string name="turbo_checking">जाँच हो रही है</string>
-    <string name="turbo_ended_planned">टर्बो तय समय पर बंद हुआ</string>
-    <string name="turbo_ended_stopped">आपने टर्बो रोक दिया</string>
-    <string name="turbo_ended_interrupted">टर्बो बीच में रुक गया</string>
-    <string name="turbo_ended_failed">टर्बो शुरू नहीं हो पाया</string>
+    <string name="turbo_ended_planned">तेज़ निगरानी तय समय पर बंद हुआ</string>
+    <string name="turbo_ended_stopped">आपने तेज़ निगरानी रोक दिया</string>
+    <string name="turbo_ended_interrupted">तेज़ निगरानी बीच में रुक गया</string>
+    <string name="turbo_ended_failed">तेज़ निगरानी शुरू नहीं हो पाया</string>
     <string name="turbo_row_quiet">कोई बदलाव नहीं · %1$d सेकंड पहले जाँचा</string>
     <string name="nav_activity">गतिविधि</string>
     <plurals name="turbo_card_title_n">
-        <item quantity="one">टर्बो · %1$d पेज</item>
-        <item quantity="other">टर्बो · %1$d पेज</item>
+        <item quantity="one">तेज़ निगरानी · %1$d पेज</item>
+        <item quantity="other">तेज़ निगरानी · %1$d पेज</item>
     </plurals>
     <string name="turbo_found_none">कोई बदलाव नहीं मिला</string>
     <plurals name="turbo_summary_checks">
         <item quantity="one">%1$d जाँच</item>
         <item quantity="other">%1$d जाँचें</item>
     </plurals>
-    <string name="turbo_live_note">यह स्क्रीन छोड़ने पर भी टर्बो चलता रहेगा। पेज बदलते ही आपको सूचना मिलेगी।</string>
+    <string name="turbo_live_note">यह स्क्रीन छोड़ने पर भी तेज़ निगरानी चलता रहेगा। पेज बदलते ही आपको सूचना मिलेगी।</string>
     <string-array name="weekday_names">
         <item>सोमवार</item>
         <item>मंगलवार</item>
@@ -493,7 +493,7 @@
         <item quantity="one">इसका %1$d सहेजा गया संस्करण इस डिवाइस से हट जाएगा।</item>
         <item quantity="other">इसके सभी %1$d सहेजे गए संस्करण इस डिवाइस से हट जाएँगे।</item>
     </plurals>
-    <string name="detail_turbo_on">टर्बो चालू है</string>
+    <string name="detail_turbo_on">तेज़ निगरानी चालू है</string>
     <string name="detail_status_paused">रुका हुआ · इतिहास रहेगा</string>
     <string name="detail_status_checked">%1$s जाँच की गई · %2$s</string>
     <string name="detail_status_checked_manual">%1$s जाँच की गई · अपने आप जाँचना बंद है</string>
@@ -570,13 +570,13 @@
     <string name="checks_title">अपने आप जाँचें</string>
     <string name="checks_every">हर</string>
     <string name="checks_custom">कस्टम…</string>
-    <string name="checks_own_schedule_note">यह शेड्यूल सभी सक्रिय पेजों पर लागू होता है। टर्बो सत्र अलग चलते हैं और इसे नहीं बदलते।</string>
+    <string name="checks_own_schedule_note">यह शेड्यूल सभी सक्रिय पेजों पर लागू होता है। तेज़ निगरानी सत्र अलग चलते हैं और इसे नहीं बदलते।</string>
     <string name="checks_only_when">केवल जब</string>
     <string name="checks_wifi">वाई-फ़ाई पर</string>
     <string name="checks_wifi_body">मोबाइल डेटा बचाता है</string>
     <string name="checks_charging">चार्ज होते समय</string>
     <string name="checks_battery">बैटरी कम न हो</string>
-    <string name="checks_android_note">बैटरी बचाने के लिए Android सही समय तय करता है, इसलिए जाँचें थोड़ी देर से हो सकती हैं। समय-संवेदनशील पेजों के लिए टर्बो इस्तेमाल करें।</string>
+    <string name="checks_android_note">बैटरी बचाने के लिए Android सही समय तय करता है, इसलिए जाँचें थोड़ी देर से हो सकती हैं। समय-संवेदनशील पेजों के लिए तेज़ निगरानी इस्तेमाल करें।</string>
     <string name="checks_weekly">हर हफ़्ते</string>
     <string name="checks_daily">हर दिन</string>
     <string name="checks_hours_short">%1$d घंटे</string>
@@ -596,7 +596,7 @@
     <string name="editor_edit_title">पेज बदलें</string>
     <string name="editor_start">निगरानी शुरू करें</string>
     <string name="editor_paste_title">किस पर नज़र रखें?</string>
-    <string name="editor_paste_body">पता लिखें या लिंक पेस्ट करें। पेज ब्राउज़र में खुलेगा, जहाँ आप लॉग इन कर सकते हैं, सही पेज ढूँढ सकते हैं और ज़रूरी हिस्से चुन सकते हैं।</string>
+    <string name="editor_paste_body">आप क्या देखेंगे, यह जानने के लिए पता लिखें या लिंक पेस्ट करें।</string>
     <string name="editor_compare">तुलना</string>
     <string name="editor_preview">हम क्या तुलना करेंगे</string>
     <string name="editor_little_text_title">इस पेज पर बहुत कम टेक्स्ट है</string>
@@ -693,7 +693,7 @@
         <item quantity="other">%1$d हटे</item>
     </plurals>
     <string name="detail_sign_in">लॉग इन करें</string>
-    <string name="browser_session_note">टेक्स्ट और स्क्रीनशॉट ऐप के ब्राउज़र प्रोफ़ाइल का उपयोग करते हैं। किसी साइट में साइन इन करने या खाता बदलने से उस साइट की निगरानी प्रभावित होती है। सत्र समाप्त हो सकते हैं। कोड जाँच ब्राउज़र की साइन-इन कुकी का उपयोग नहीं करती।</string>
+    <string name="browser_session_note">ब्राउज़र की जाँचें इस डिवाइस पर सहेजे गए साइन इन का इस्तेमाल करती हैं। साइन इन करने या खाता बदलने से इस साइट की दूसरी निगरानी पर असर पड़ सकता है। सत्र की अवधि खत्म हो सकती है।</string>
     <string name="turbo_next_check">अगली जाँच %1$d सेकंड में</string>
     <string name="picker_selected_image">एक तस्वीर</string>
     <string name="picker_selected_frame">एम्बेडेड फ़्रेम (अक्सर विज्ञापन)</string>
@@ -811,7 +811,7 @@
     <string name="backup_restore">फ़ाइल से वापस लाएँ</string>
     <string name="backup_restore_body">वे पेज जोड़ता है जो यहाँ अभी नहीं हैं। इस डिवाइस पर कुछ भी नहीं बदलता।</string>
     <string name="backup_restore_settings">ऐप की सेटिंग भी वापस लाएँ</string>
-    <string name="backup_privacy_note">फ़ाइल एन्क्रिप्ट नहीं है और इसमें वे पेज हैं जिन पर आप नज़र रखते हैं। साइन-इन कभी शामिल नहीं होते।</string>
+    <string name="backup_privacy_note">फ़ाइल एन्क्रिप्ट नहीं है। पूरे बैकअप में साइन इन किए गए पेजों के निजी HTML और स्क्रीनशॉट हो सकते हैं। ब्राउज़र की कुकी शामिल नहीं हैं।</string>
     <string name="backup_working">काम जारी है…</string>
     <string name="backup_saved">बैकअप सेव हो गया। पेज: %1$d · वर्शन: %2$d</string>
     <string name="backup_restored">जोड़े गए पेज: %1$d · पहले से मौजूद: %2$d · वर्शन: %3$d</string>
@@ -827,4 +827,18 @@
     <string name="backup_pages_added">जोड़े गए पेज</string>
     <string name="backup_already_here">पहले से मौजूद</string>
     <string name="backup_restore_complete">रीस्टोर पूरा हुआ</string>
+    <string name="home_unread_changes">बदलाव जो पढ़े नहीं गए</string>
+    <string name="settings_android_tools">बैकअप, सेव किए गए साइन-इन और जाँच रिपोर्ट Android पर उपलब्ध हैं।</string>
+    <string name="turbo_sheet_body_while_open">ऐप खुला रहने तक चुने गए पेजों को हर कुछ सेकंड में जाँचें।</string>
+    <string name="feedback_email_subject">Change Detection पर सुझाव</string>
+    <string name="backup_skipped_pages">छोड़े गए पेज</string>
+    <string name="backup_duplicate_versions">छोड़े गए एक जैसे वर्शन</string>
+
+    <string name="notification_images_title">बदलाव की सूचनाओं में चित्र</string>
+    <string name="notification_images_body">सेव किए गए पेज का निजी हो सकने वाला कंटेंट दिखाता है। लॉक स्क्रीन पर दृश्यता Android नियंत्रित करता है।</string>
+    <string name="android_browser_start_failed">ब्राउज़र शुरू नहीं हुआ। फिर से कोशिश करने पर भी समस्या रहे, तो ऐप दोबारा शुरू करें।</string>
+    <string name="editor_direct_text_body">कीमतों, तारीखों और अन्य टेक्स्ट पर नज़र रखें। प्रीव्यू में वह टेक्स्ट दिखता है जिसे सीधे जाँचा जा सकता है।</string>
+    <string name="editor_direct_browser_hint">टेक्स्ट नहीं दिख रहा या साइन इन करना है?</string>
+    <string name="editor_use_direct_preview">सीधा प्रीव्यू इस्तेमाल करें</string>
+    <string name="editor_direct_empty">सीधे प्रीव्यू में पढ़ने लायक टेक्स्ट नहीं है।</string>
 </resources>

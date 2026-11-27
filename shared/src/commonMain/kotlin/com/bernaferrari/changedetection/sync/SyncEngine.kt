@@ -2,6 +2,7 @@ package com.bernaferrari.changedetection.sync
 
 import com.bernaferrari.changedetection.diagnostics.*
 import com.bernaferrari.changedetection.error.*
+import com.bernaferrari.changedetection.repo.CaptureMode
 import com.bernaferrari.changedetection.repo.capturePolicy
 import com.bernaferrari.changedetection.repo.Site
 import com.bernaferrari.changedetection.repo.Snap
@@ -76,20 +77,29 @@ open class SyncEngine(
 ) {
     private val pageLocks = PageCheckLocks()
 
-    /**
-     * Finds the best icon for pages that have none yet (added before icons were captured, or screenshot pages
-     * not checked since). One light request per page, straight to the page's own site.
-     */
-    suspend fun resolveMissingIcons() {
-        sitesDao.getSitesList().filter { it.iconUrl.isBlank() }.forEach { site ->
-            val result = fetchFromServer(site) as? FetchResult.Success ?: return@forEach
-            if (!result.contentType.contains("html", true)) return@forEach
-            saveIconFromHtml(site, result.data)
-        }
-    }
+    internal suspend fun isChecking(siteId: String): Boolean = pageLocks.isLocked(siteId)
 
     private suspend fun <T> withSiteLock(siteId: String, block: suspend () -> T): T = pageLocks.withLock(siteId) {
         progressTracker.track(siteId, block)
+    }
+
+    /** Holds one lock across capture and persistence, including platform browser checks. */
+    internal suspend fun checkPage(siteId: String, check: suspend LockedPageCheck.() -> SyncResult): SyncResult = pageLocks.tryWithLock(siteId, onBusy = { SyncResult.Skipped(siteId, "Already checking") }) {
+        progressTracker.track(siteId) { LockedPageCheck(siteId).check() }
+    }
+
+    internal inner class LockedPageCheck(private val siteId: String) {
+        suspend fun syncSource(): SyncResult = syncSiteInternal(siteId)
+
+        suspend fun save(site: Site, result: FetchResult): SyncResult {
+            require(site.id == siteId)
+            return processFetchResultUnlocked(site, result, site.threshold)
+        }
+
+        suspend fun timeout(site: Site, error: Throwable): SyncResult {
+            require(site.id == siteId)
+            return recordTimeoutUnlocked(site, error)
+        }
     }
 
     /**
@@ -186,14 +196,16 @@ open class SyncEngine(
      * @param site the page exactly as it was read when the timed-out check began.
      */
     suspend fun recordTimeout(site: Site, timeout: Throwable): SyncResult = withSiteLock(site.id) {
-        withContext(Dispatchers.Default) {
-            val current = sitesDao.getSiteById(site.id)
-                ?: return@withContext SyncResult.Skipped(site.id, "Page deleted during check")
-            if (current.timestamp != site.timestamp) {
-                return@withContext SyncResult.Skipped(site.id, "A newer result was recorded before the timeout")
-            }
-            processFetchResultUnlocked(site, FetchResult.Error("Page check timed out", timeout), site.threshold)
+        recordTimeoutUnlocked(site, timeout)
+    }
+
+    private suspend fun recordTimeoutUnlocked(site: Site, timeout: Throwable): SyncResult {
+        val current = sitesDao.getSiteById(site.id)
+            ?: return SyncResult.Skipped(site.id, "Page deleted during check")
+        if (current.timestamp != site.timestamp) {
+            return SyncResult.Skipped(site.id, "A newer result was recorded before the timeout")
         }
+        return processFetchResultUnlocked(site, FetchResult.Error("Page check timed out", timeout), site.threshold)
     }
 
     /** Reuses an editor preview only while history is empty; a newer check always wins. */
@@ -232,8 +244,10 @@ open class SyncEngine(
                     processErrorResult(currentSite, FetchResult.Error("Captured content exceeds the supported size", SyncError(SyncError.Reason.CONTENT_TOO_LARGE)))
                 } else if (result.data.isEmpty()) {
                     processErrorResult(currentSite, FetchResult.Error("The page returned no content"))
-                } else if (site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT && result.contentType.startsWith("image/", true)) {
+                } else if (site.captureMode.isText && result.contentType.startsWith("image/", true)) {
                     processErrorResult(currentSite, FetchResult.Error("This address returns an image. Choose screenshots or source monitoring."))
+                } else if (site.captureMode == CaptureMode.DIRECT_TEXT && !result.contentType.isTextContentType()) {
+                    processErrorResult(currentSite, FetchResult.Error("This address did not return text"))
                 } else {
                     try {
                         result.validateCapture()
@@ -279,8 +293,12 @@ open class SyncEngine(
             if (snap.payloadHash.isEmpty() && digest.matches(Regex("[0-9a-fA-F]{64}"))) {
                 when {
                     snap.contentHash.startsWith("image-v2:") || snap.contentHash.startsWith("image-v3:") || snap.contentHash.startsWith("screenshot-v1:") || snap.contentHash.startsWith("source-v1:") -> ContentHasher.hashContent(bytes)
-                    snap.contentHash.startsWith("text-v1:") || snap.contentHash.startsWith("text-region-v2:") -> ContentHasher.detectionHash(bytes, snap.contentType, com.bernaferrari.changedetection.repo.CaptureMode.TEXT).substringAfterLast(':')
+
+                    snap.contentHash.startsWith("text-v1:") || snap.contentHash.startsWith("text-region-v2:") ||
+                        snap.contentHash.startsWith("text-http-v1:") || snap.contentHash.startsWith("text-http-region-v1:") -> ContentHasher.detectionHash(bytes, snap.contentType, CaptureMode.TEXT).substringAfterLast(':')
+
                     ':' !in snap.contentHash -> if (snap.contentType.contains("html", true)) ContentHasher.hashHtmlContent(bytes) else ContentHasher.hashContent(bytes)
+
                     else -> null // Unknown old policy has no trustworthy original byte checksum.
                 }
             } else {
@@ -352,8 +370,8 @@ open class SyncEngine(
             saveIconFromHtml(site, incoming.data)
         }
         val prepared = try {
-            if (site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT) {
-                diagnosticStage(DiagnosticStage.PREPARE_CONTENT) { com.bernaferrari.changedetection.detection.prepareTextCapture(incoming.data, incoming.contentType, site.textRegion()) }
+            if (site.captureMode.isText) {
+                diagnosticStage(DiagnosticStage.PREPARE_CONTENT) { com.bernaferrari.changedetection.detection.prepareTextCapture(incoming.data, incoming.contentType, site.textRegion(), site.captureMode) }
             } else {
                 null
             }
@@ -385,7 +403,7 @@ open class SyncEngine(
             }
         }
         if (!hasContentChanged && lastSnap != null) baselineContent()
-        val explicitRule = site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT || site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.SOURCE
+        val explicitRule = site.captureMode.isText || site.captureMode == CaptureMode.SOURCE
         val visualThreshold = site.visualFilterBasisPoints().takeIf { result.contentType.startsWith("image/", true) } ?: 0
         val meetsThreshold = diagnosticStage(DiagnosticStage.COMPARE) {
             if (visualThreshold > 0 && !isFirstSnap && hasContentChanged) {
@@ -632,31 +650,7 @@ open class SyncEngine(
         }
     }
 
-    /**
-     * Sync all enabled sites.
-     *
-     * @return Pair of (successCount, results list)
-     */
-    suspend fun syncAllSites(): Pair<Int, List<SyncResult>> = withContext(Dispatchers.Default) {
-        val sites = sitesDao.getSitesList()
-        val results = mutableListOf<SyncResult>()
-        var successCount = 0
-
-        appLog.i("Starting sync for ${sites.size} sites")
-
-        for (site in sites) {
-            if (site.isSyncEnabled) {
-                val result = syncSite(site.id)
-                results.add(result)
-                if (result is SyncResult.Success) {
-                    successCount++
-                }
-            }
-        }
-
-        appLog.i("Sync complete: $successCount/${sites.size} succeeded")
-        successCount to results
-    }
+    internal suspend fun syncPeriodicSites(cursor: String?, saveCursor: suspend (String?) -> Unit): Int = checkResumableBatch(sitesDao.getSitesList(), cursor, saveCursor, check = ::trySyncSite)
 
     /**
      * Fetch content from a website URL using Ktor.
@@ -744,7 +738,7 @@ open class SyncEngine(
      * chunked responses without a Content-Length header cannot balloon memory.
      */
     private suspend fun readCappedBody(channel: ByteReadChannel): ByteArray {
-        val source = channel.readRemaining(MAX_CONTENT_SIZE + 1)
+        val source = channel.readRemaining(MAX_CONTENT_SIZE.toLong() + 1)
         val bytes = source.readByteArray()
         if (bytes.size > MAX_CONTENT_SIZE) {
             throw SyncError(
@@ -768,7 +762,7 @@ open class SyncEngine(
         const val USER_AGENT = "Mozilla/5.0 (compatible; ChangeDetection/2.0)"
         const val REQUEST_TIMEOUT_MS = 30_000L
         const val CONNECT_TIMEOUT_MS = 15_000L
-        const val MAX_CONTENT_SIZE = 10L * 1024 * 1024 // 10MB limit
+        const val MAX_CONTENT_SIZE = com.bernaferrari.changedetection.util.MAX_SNAPSHOT_BYTES
     }
 }
 

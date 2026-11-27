@@ -46,28 +46,41 @@ internal fun desktopDataDirectory(): File = File(
 internal class DesktopFileStorage(
     private val directory: File = File(desktopDataDirectory(), "snapshots").also { it.mkdirs() },
     private val availableBytes: () -> Long = { directory.usableSpace },
-) : FileStorage {
+) : com.bernaferrari.changedetection.backup.BackupSnapshotStorage {
     private fun file(name: String): File {
         require(name.isNotBlank() && name == File(name).name && name != "." && name != "..")
         return File(directory, name)
     }
     override fun writeBytes(fileName: String, bytes: ByteArray) {
+        try {
+            writeSnapshot(fileName, bytes.size) { stream ->
+                stream.write(bytes)
+                true
+            }
+        } catch (error: com.bernaferrari.changedetection.error.SnapshotStorageError) {
+            throw error
+        } catch (error: Exception) {
+            throw com.bernaferrari.changedetection.error.SnapshotStorageError(lowSpace = availableBytes() < MIN_FREE_BYTES, cause = error)
+        }
+    }
+
+    override fun openSnapshot(fileName: String): java.io.FileInputStream = file(fileName).inputStream()
+
+    override fun writeSnapshot(fileName: String, size: Int, write: (java.io.OutputStream) -> Boolean): Boolean {
         val target = file(fileName)
-        if (availableBytes() < bytes.size.toLong() + MIN_FREE_BYTES) {
+        if (availableBytes() < size.toLong() + MIN_FREE_BYTES) {
             throw com.bernaferrari.changedetection.error.SnapshotStorageError(lowSpace = true)
         }
-        var temporary: File? = null
+        val temporary = File.createTempFile("capture-", ".tmp", directory)
         try {
-            temporary = File.createTempFile("capture-", ".tmp", directory)
             temporary.outputStream().use { stream ->
-                stream.write(bytes)
+                if (!write(stream)) return false
                 stream.fd.sync()
             }
             java.nio.file.Files.move(temporary.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE)
-        } catch (error: Exception) {
-            throw com.bernaferrari.changedetection.error.SnapshotStorageError(lowSpace = availableBytes() < MIN_FREE_BYTES, cause = error)
+            return true
         } finally {
-            temporary?.delete()
+            temporary.delete()
         }
     }
     private companion object {

@@ -11,18 +11,18 @@ class AndroidLocalizationTest {
     @Test fun localizedNotificationsAndWidgetsResolveForEverySupportedLanguage() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val titles = mapOf(
-            "en" to "⚡ Turbo active",
-            "es" to "⚡ Turbo activo",
-            "it" to "⚡ Turbo attivo",
-            "pt" to "⚡ Turbo ativo",
-            "de" to "⚡ Turbo aktiv",
-            "hi" to "⚡ टर्बो चालू",
-            "bn" to "⚡ টার্বো চালু",
-            "zh-Hans" to "⚡ Turbo 已开启",
-            "fr" to "⚡ Turbo actif",
-            "id" to "⚡ Turbo aktif",
-            "ar" to "⚡ Turbo قيد التشغيل",
-            "ru" to "⚡ Turbo включён",
+            "en" to "⚡ Quick Monitor active",
+            "es" to "⚡ Monitorización rápida activa",
+            "it" to "⚡ Monitoraggio rapido attivo",
+            "pt" to "⚡ Monitoramento rápido ativo",
+            "de" to "⚡ Schnellüberwachung aktiv",
+            "hi" to "⚡ तेज़ निगरानी चालू",
+            "bn" to "⚡ দ্রুত নজরদারি চালু",
+            "zh-Hans" to "⚡ 快速监控已开启",
+            "fr" to "⚡ Surveillance rapide active",
+            "id" to "⚡ Pemantauan cepat aktif",
+            "ar" to "⚡ المراقبة السريعة قيد التشغيل",
+            "ru" to "⚡ Быстрая проверка включена",
         )
         for ((language, title) in titles) {
             val configuration = Configuration(context.resources.configuration).apply { setLocale(Locale.forLanguageTag(language)) }

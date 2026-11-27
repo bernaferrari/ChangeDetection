@@ -20,25 +20,24 @@ class IosCheckRunner(
     private val engine: SyncEngine,
     private val preferences: DataStore<Preferences>,
 ) : CheckRunner {
-    private val locks = PageCheckLocks()
     private val batchLock = Mutex()
-    override suspend fun check(siteId: String): SyncResult = locks.withLock(siteId) {
-        val site = sites.getSiteById(siteId) ?: return@withLock SyncResult.Skipped(siteId, "Page deleted")
-        if (!site.isSyncEnabled) return@withLock SyncResult.Skipped(siteId, "Page paused")
+    override suspend fun check(siteId: String): SyncResult = engine.checkPage(siteId) {
+        val site = sites.getSiteById(siteId) ?: return@checkPage SyncResult.Skipped(siteId, "Page deleted")
+        if (!site.isSyncEnabled) return@checkPage SyncResult.Skipped(siteId, "Page paused")
         val settings = preferences.data.first()
         val defaultMethod = ComparisonMethod.entries.firstOrNull { it.name == settings[SettingsViewModel.COMPARISON_METHOD_KEY] } ?: ComparisonMethod.SCREENSHOT
-        if (site.captureMode != com.bernaferrari.changedetection.repo.CaptureMode.TEXT && site.captureMode.resolve(defaultMethod) == ComparisonMethod.HTML) return@withLock engine.syncSite(siteId)
+        if (site.captureMode != com.bernaferrari.changedetection.repo.CaptureMode.TEXT && site.captureMode.resolve(defaultMethod) == ComparisonMethod.HTML) return@checkPage syncSource()
         try {
             val page = IosPageCapture.capturePage(site.url, settings[SettingsViewModel.BROWSER_DELAY_KEY] ?: DEFAULT_SETTLE_MS, hide = site.textExcludeSelector, only = site.textIncludeSelector, text = site.captureMode == com.bernaferrari.changedetection.repo.CaptureMode.TEXT)
             page.icon?.let { sites.updateIcon(site.id, it) }
-            engine.processFetchResult(site, SyncEngine.FetchResult.Success(page.contentType, page.bytes, capturedWithBrowser = true, validateCapture = page.validateCapture), site.threshold)
-        } catch (timeout: kotlinx.coroutines.TimeoutCancellationException) {
+            save(site, SyncEngine.FetchResult.Success(page.contentType, page.bytes, capturedWithBrowser = true, validateCapture = page.validateCapture))
+        } catch (error: kotlinx.coroutines.TimeoutCancellationException) {
             kotlinx.coroutines.currentCoroutineContext().ensureActive()
-            engine.processFetchResult(site, SyncEngine.FetchResult.Error("Page capture timed out", timeout), site.threshold)
+            timeout(site, error)
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Exception) {
-            engine.processFetchResult(site, SyncEngine.FetchResult.Error(error.message ?: "Could not capture the page", error), site.threshold)
+            save(site, SyncEngine.FetchResult.Error(error.message ?: "Could not capture the page", error))
         }
     }
 

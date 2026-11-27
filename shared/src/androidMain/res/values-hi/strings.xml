@@ -9,15 +9,14 @@
     <string name="change_notification_channel_name">पहचाने गए बदलाव</string>
     <string name="change_notification_channel_description">निगरानी वाली वेबसाइट बदलने पर सूचनाएँ</string>
     <string name="quick_monitor_banner_live_badge">लाइव</string>
-    <string name="quick_monitor_title">टर्बो</string>
-    <string name="quick_monitor_channel_description">सक्रिय टर्बो सत्र दिखाता है।</string>
-    <string name="quick_monitor_notification_title">⚡ टर्बो चालू</string>
+    <string name="quick_monitor_title">तेज़ निगरानी</string>
+    <string name="quick_monitor_channel_description">सक्रिय तेज़ निगरानी सत्र दिखाता है।</string>
+    <string name="quick_monitor_notification_title">⚡ तेज़ निगरानी चालू</string>
     <plurals name="quick_monitor_notification_subtitle">
         <item quantity="one">हर %2$d सेकंड में %1$d पेज जाँचा जा रहा है</item>
         <item quantity="other">हर %2$d सेकंड में %1$d पेज जाँचे जा रहे हैं</item>
     </plurals>
     <string name="action_stop_monitoring">निगरानी रोकें</string>
-    <string name="empty_add_site_hint">टर्बो शुरू करने के लिए पेज जोड़ें</string>
     <string name="start">शुरू करें</string>
     <string name="change_notification_named">%1$s बदला</string>
     <string name="change_notification_generic">बदलाव देखने के लिए टैप करें।</string>
@@ -28,4 +27,8 @@
     <string name="failure_notification_needs_you">इस पर आपका ध्यान चाहिए। क्या करना है देखने के लिए टैप करें।</string>
     <string name="failure_notification_keeps_failing">जाँचें लगातार असफल हो रही हैं। कारण देखने के लिए टैप करें।</string>
     <string name="failure_notification_generic">एक पेज की जाँच नहीं हो रही है।</string>
+
+    <string name="quick_monitor_widget_inactive">तेज़ निगरानी बंद है</string>
+    <string name="diagnostics_public_example">अगर पेज सार्वजनिक है, तो शेयर मेन्यू खोलने के बाद उसका लिंक सहायता संदेश में जोड़ सकते हैं। निजी लिंक या निजी जानकारी वाले लिंक न जोड़ें।</string>
+    <string name="diagnostics_email_subject">Change Detection की जाँच रिपोर्ट</string>
 </resources>

@@ -156,16 +156,26 @@ class ImageComparisonUiTest {
         compose.onNodeWithText("Compare the captures below;", substring = true).assertIsDisplayed()
     }
 
-    @Test fun beforeViewRetainsAvailableImageWhenAfterIsMissing() {
-        show(ComparisonMode.ImageBefore, after = null)
-        compose.waitUntil(5_000) { compose.onAllNodesWithContentDescription("Before").fetchSemanticsNodes().isNotEmpty() }
-        compose.onNodeWithContentDescription("Before").assertIsDisplayed()
-    }
-
-    @Test fun afterViewRetainsAvailableImageWhenBeforeIsMissing() {
-        show(ComparisonMode.ImageAfter, before = null)
-        compose.waitUntil(5_000) { compose.onAllNodesWithContentDescription("After").fetchSemanticsNodes().isNotEmpty() }
-        compose.onNodeWithContentDescription("After").assertIsDisplayed()
+    @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+    @Test
+    fun aSavedScreenshotIsReadableWithoutAnotherVersion() {
+        val snap = com.bernaferrari.changedetection.repo.Snap("version", "site", 1, "image/png", "", png.size)
+        compose.setContent {
+            ChangeDetectionTheme(darkTheme = false, dynamicColor = false) {
+                SingleSnapshotState(
+                    snap = snap,
+                    content = null,
+                    bytes = png,
+                    isLoadingContent = false,
+                    hasError = false,
+                    onRetry = {},
+                    onCheckNow = {},
+                    modifier = Modifier.size(280.dp, 200.dp),
+                )
+            }
+        }
+        compose.waitUntil(5_000) { compose.onAllNodesWithTag("screenshot-scroll").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithTag("screenshot-scroll").assertIsDisplayed()
     }
 
     @Test fun rtlKeepsLabelsAndDividerAlignedWithPhysicalImages() {

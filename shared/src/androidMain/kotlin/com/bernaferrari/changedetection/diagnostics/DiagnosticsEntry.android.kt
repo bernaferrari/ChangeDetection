@@ -122,6 +122,7 @@ internal fun DiagnosticsDialog(
                 }
                 item { Text(context.getString(R.string.diagnostics_explanation), style = MaterialTheme.typography.bodyMedium) }
                 item { Text(context.getString(if (siteId == null) R.string.diagnostics_scope else R.string.diagnostics_page_scope), style = MaterialTheme.typography.bodySmall) }
+                if (siteId != null) item { Text(context.getString(R.string.diagnostics_public_example), style = MaterialTheme.typography.bodySmall) }
                 when {
                     failed -> item {
                         Text(context.getString(R.string.diagnostics_unavailable))
@@ -174,7 +175,7 @@ internal fun diagnosticShareIntent(context: Context, file: File): Intent {
         putExtra(Intent.EXTRA_STREAM, uri)
         // Addressed to the developer, so "Send report" works in one tap from any mail app.
         putExtra(Intent.EXTRA_EMAIL, arrayOf("bernaferrari2@gmail.com"))
-        putExtra(Intent.EXTRA_SUBJECT, "Change Detection diagnostics")
+        putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.diagnostics_email_subject))
         clipData = ClipData.newRawUri("diagnostics.json", uri)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }

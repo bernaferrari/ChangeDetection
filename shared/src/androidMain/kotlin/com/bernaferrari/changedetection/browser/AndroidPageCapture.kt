@@ -25,11 +25,14 @@ import kotlin.math.roundToInt
 /** The app needs a cancellable page capture, not a second browser automation runtime. */
 internal class AndroidPageCapture(private val view: WebView) {
     private val health = WebViewCaptureHealth.of(view)
+    private var pixelValidation: Pair<Long, PageCaptureHealth.DependencyScope>? = null
+
     fun captureValidator(): suspend () -> Unit {
-        val epoch = health.epoch()
-        val extent = captureExtent
         val textOnly = contentStage == DiagnosticStage.EXTRACT_TEXT
-        return { health.validate(epoch, extent, textOnly) }
+        val pixel = if (textOnly) null else pixelValidation
+        val epoch = pixel?.first ?: health.epoch()
+        val extent = captureExtent
+        return { health.validate(epoch, extent, textOnly, scope = pixel?.second) }
     }
     private var rendererFailure: IOException? = null
     private var navigationFailure: Exception? = null
@@ -92,7 +95,9 @@ internal class AndroidPageCapture(private val view: WebView) {
         contentStage = DiagnosticStage.CAPTURE_PIXELS
         captureExtent = CaptureExtent.Empty
         val epoch = health.epoch()
-        health.validate(epoch, captureExtent)
+        val scope = PageCaptureHealth.DependencyScope()
+        pixelValidation = epoch to scope
+        health.validateDocument(epoch)
         suspend fun clean(script: String) {
             evaluate(if (preservePage) PageCleanup.reversible(script) else script)
         }
@@ -118,34 +123,26 @@ internal class AndroidPageCapture(private val view: WebView) {
                     if (hide.isNotBlank()) add(PageCleanup.hide(hide))
                 }.joinToString(";") + ";return 0;})()",
             )
-            // Use the same limits as the tiler. Loading content below its final row cannot
-            // improve the capture, and may keep an otherwise ready page waiting indefinitely.
-            suspend fun captureRange(): Pair<Double, Double> {
-                @Suppress("DEPRECATION")
-                val cssWidth = view.width / view.scale.toDouble()
-                val captureHeight = minOf(maxHeight.toLong(), MAX_PIXELS / (cssWidth * PIXEL_SCALE).roundToInt().coerceAtLeast(1)) / PIXEL_SCALE
-                val rect = if (only.isNotBlank()) readClip(only) else null
-                return if (rect == null) 0.0 to captureHeight else rect[1] to rect[3]
-            }
+            suspend fun captureRange() = pixelResourceBounds(maxHeight, if (only.isNotBlank()) readClip(only).toRectangle() else null)
             var range = captureRange()
-            evaluate("window.scrollTo({left:0,top:${range.first},behavior:'instant'});0")
+            evaluate("window.scrollTo({left:0,top:${range.y},behavior:'instant'});0")
             for (step in 0 until 12) {
                 currentCoroutineContext().ensureActive()
                 val bounds = evaluate("[window.scrollY,window.innerHeight,Math.max(document.body.scrollHeight,document.documentElement.scrollHeight)].join(',')")
                     .trim('"').split(',').mapNotNull { it.toDoubleOrNull() }
                 range = captureRange()
-                if (bounds.size != 3 || bounds[1] <= 0 || bounds[0] + bounds[1] >= minOf(bounds[2], range.second) - 1) break
+                if (bounds.size != 3 || bounds[1] <= 0 || bounds[0] + bounds[1] >= minOf(bounds[2], range.y + range.height) - 1) break
                 evaluate("window.scrollTo({left:0,top:${bounds[0] + bounds[1]},behavior:'instant'});0")
                 awaitPaint()
             }
             evaluate("window.scrollTo({left:0,top:0,behavior:'instant'});0")
             if (only.isNotBlank()) evaluate("(function(){var e=document.querySelector(${PageCleanup.js(only)});if(e)e.scrollIntoView();return 0;})()")
             val captureBounds = captureRange()
-            awaitResources(captureBounds.first, captureBounds.second, only, epoch)
+            awaitResources(captureBounds, only, epoch, scope)
             // A late font or responsive style can alter the initial overview scale.
             normalizeCaptureZoom()
             val settledBounds = captureRange()
-            if (settledBounds != captureBounds) awaitResources(settledBounds.first, settledBounds.second, only, epoch)
+            if (settledBounds != captureBounds) awaitResources(settledBounds, only, epoch, scope)
             awaitNetworkQuiet()
             evaluate("window.scrollTo({left:0,top:0,behavior:'instant'});0")
             clean(PageCleanup.MASK_RELATIVE_TIMES)
@@ -154,32 +151,32 @@ internal class AndroidPageCapture(private val view: WebView) {
             awaitFrame()
             navigationFailure?.let { throw it }
             rendererFailure?.let { throw it }
-            val clip = if (only.isNotBlank()) {
-                readClip(only)
-            } else {
-                null
-            }
-            if (clip == null) {
+            val region = if (only.isNotBlank()) readClip(only).toRectangle() else null
+            if (region == null) {
                 @Suppress("DEPRECATION")
                 val pageHeight = view.contentHeight.toDouble() * view.scale
                 require(pageHeight <= 100_000) { "This page is too tall for a screenshot. Use page text monitoring." }
             }
-            registerResourceDependencies(only)
-            health.validate(epoch, captureExtent)
+            val dependencyBounds = pixelResourceBounds(maxHeight, region)
+            registerResourceDependencies(only, dependencyBounds, scope)
+            health.validate(epoch, captureExtent, scope = scope)
             val before = captureContext(only)
             diagnosticCapture(before)
-            val region = clip?.let { Rectangle(it[0], it[1], it[2] - it[0], it[3] - it[1]) }
-            val shot = captureWebViewDocument(
-                view,
-                clip = region,
-                pixelsPerCssPixel = PIXEL_SCALE,
-                maxPixels = MAX_PIXELS,
-                maxHeight = maxHeight,
-                truncateFullPage = true,
-                viewportWidthOnly = true,
-
-                afterFirstTile = { clean(PageCleanup.HIDE_PINNED) },
-            )
+            val shot = try {
+                captureWebViewDocument(
+                    view,
+                    clip = region,
+                    pixelsPerCssPixel = PIXEL_SCALE,
+                    maxPixels = MAX_PIXELS,
+                    maxHeight = maxHeight,
+                    truncateFullPage = true,
+                    viewportWidthOnly = true,
+                    afterFirstTile = { clean(PageCleanup.HIDE_PINNED) },
+                )
+            } catch (error: IllegalStateException) {
+                if (error.isScreenshotLayoutChange()) notReady(CaptureIssue.LAYOUT_CHANGED)
+                throw error
+            }
             captureExtent = CaptureExtent(shot.width, shot.height)
             val after = captureContext(only)
             diagnosticCapture(after)
@@ -191,8 +188,8 @@ internal class AndroidPageCapture(private val view: WebView) {
             ) {
                 notReady(CaptureIssue.LAYOUT_CHANGED)
             }
-            registerResourceDependencies(only)
-            health.validate(epoch, captureExtent)
+            registerResourceDependencies(only, dependencyBounds, scope)
+            health.validate(epoch, captureExtent, scope = scope)
             WebViewScreenshot("image/png", shot.bytes, shot.width, shot.height, title, icon)
         } finally {
             if (preservePage) {
@@ -296,46 +293,122 @@ internal class AndroidPageCapture(private val view: WebView) {
     }
 
     /** URLs stay bounded and in memory; exported diagnostics contain only fixed capture failure reasons. */
-    internal suspend fun validateCurrentResources(textOnly: Boolean) = withContext(Dispatchers.Main.immediate) {
+    internal suspend fun validateCurrentTextResources() = withContext(Dispatchers.Main.immediate) {
         registerResourceDependencies("")
-        health.validate(textOnly = textOnly)
+        health.validate(textOnly = true)
     }
 
-    private suspend fun registerResourceDependencies(selector: String) {
-        val raw = evaluate("""(function(){var u=new Map();function add(v,k){if(v&&/^https?:/i.test(v)&&!u.has(v))u.set(v,k)}document.querySelectorAll('link[rel~=stylesheet][href]').forEach(function(e){add(e.href,'STYLESHEET')});var roots=${if (selector.isBlank()) "[document.body]" else "Array.from(document.querySelectorAll(${PageCleanup.js(selector)}))"};roots.forEach(function(root){if(!root)return;var all=[root].concat(Array.from(root.querySelectorAll('*'))).slice(0,5000);all.forEach(function(e){var r=e.getBoundingClientRect(),s=getComputedStyle(e);if(r.width<2||r.height<2||s.visibility==='hidden'||s.display==='none'||parseFloat(s.opacity)===0)return;if(e.tagName==='IMG')add(e.currentSrc||e.src,'IMAGE');if(e.tagName==='IFRAME')add(e.src,'FRAME');var re=/url\((?:"([^"]*)"|'([^']*)'|([^)]*))\)/g,m;while((m=re.exec(s.backgroundImage)))add(m[1]||m[2]||m[3],'IMAGE');});});var result={};Array.from(u).slice(0,513).forEach(function(entry){result[entry[0]]=entry[1]});return JSON.stringify(result)})()""")
+    private fun List<Double>.toRectangle() = Rectangle(this[0], this[1], this[2] - this[0], this[3] - this[1])
+
+    // Match captureWebViewDocument: complete selected clip, or viewport-width full page limited by its pixel budget.
+    private fun pixelResourceBounds(maxHeight: Int, region: Rectangle?): Rectangle {
+        if (region != null) return region
+        @Suppress("DEPRECATION")
+        val nativePerCss = view.scale.toDouble().takeIf { it.isFinite() && it > 0 } ?: 1.0
+        val cssWidth = view.width / nativePerCss
+        val pixelWidth = (cssWidth * PIXEL_SCALE).roundToInt().coerceAtLeast(1)
+        val cssHeight = minOf(maxHeight.toLong(), MAX_PIXELS / pixelWidth) / PIXEL_SCALE
+        return Rectangle(0.0, 0.0, cssWidth, cssHeight)
+    }
+
+    private fun pixelResourceVisibility(bounds: Rectangle) = """
+        function isInCapturedPixels(e,r){
+            if(r.right+scrollX<=${bounds.x}||r.left+scrollX>=${bounds.x + bounds.width}||
+                r.bottom+scrollY<=${bounds.y}||r.top+scrollY>=${bounds.y + bounds.height})return false;
+            for(var a=e;a;a=a.parentElement)if(parseFloat(getComputedStyle(a).opacity)===0)return false;
+            return true;
+        }
+    """.trimIndent()
+
+    private suspend fun registerResourceDependencies(selector: String, bounds: Rectangle? = null, scope: PageCaptureHealth.DependencyScope? = null) {
+        val raw = evaluate(
+            """(function(){
+            ${bounds?.let(::pixelResourceVisibility).orEmpty()}
+            var urls=new Map();
+            function add(url,kind){if(url&&/^https?:/i.test(url)&&!urls.has(url))urls.set(url,kind);}
+            document.querySelectorAll('link[rel~=stylesheet][href]').forEach(function(e){add(e.href,'STYLESHEET');});
+            var roots=${if (selector.isBlank()) "[document.body]" else "Array.from(document.querySelectorAll(${PageCleanup.js(selector)}))"};
+            roots.forEach(function(root){
+                if(!root)return;
+                var elements=[root].concat(Array.from(root.querySelectorAll('*'))).slice(0,5000);
+                elements.forEach(function(e){
+                    var r=e.getBoundingClientRect(),s=getComputedStyle(e);
+                    if(r.width<2||r.height<2||s.visibility==='hidden'||s.display==='none'||parseFloat(s.opacity)===0${if (bounds == null) "" else "||!isInCapturedPixels(e,r)"})return;
+                    if(e.tagName==='IMG')add(e.currentSrc||e.src,'IMAGE');
+                    if(e.tagName==='IFRAME')add(e.src,'FRAME');
+                    var re=/url\((?:"([^"]*)"|'([^']*)'|([^)]*))\)/g,m;
+                    while((m=re.exec(s.backgroundImage)))add(m[1]||m[2]||m[3],'IMAGE');
+                });
+            });
+            var result={};
+            Array.from(urls).slice(0,513).forEach(function(entry){result[entry[0]]=entry[1];});
+            return JSON.stringify(result);
+            })()""",
+        )
         val values = kotlinx.serialization.json.Json.decodeFromString<Map<String, CaptureResourceKind>>(kotlinx.serialization.json.Json.decodeFromString<String>(raw))
-        health.dependencies(values)
+        health.dependencies(values, scope)
     }
 
-    private fun resourceScript(top: Double, bottom: Double, selector: String) = """(function(){
+    private fun resourceScript(bounds: Rectangle, selector: String) = """(function(){
         var p=0, fontChecks=[], root=${if (selector.isBlank()) "document.body" else "document.querySelector(${PageCleanup.js(selector)})"};
-        if(!root)return '0,0,0,0';
-        function visible(e){var r=e.getBoundingClientRect(),s=getComputedStyle(e);if(r.width<2||r.height<2||r.bottom+scrollY<=$top||r.top+scrollY>=$bottom||s.visibility==='hidden'||s.display==='none')return false;for(var a=e;a;a=a.parentElement)if(parseFloat(getComputedStyle(a).opacity)===0)return false;return true;}
+        if(!root)return '0,0,0,0,0,0';
+        ${pixelResourceVisibility(bounds)}
+        function visible(e){var r=e.getBoundingClientRect(),s=getComputedStyle(e);return r.width>=2&&r.height>=2&&s.visibility!=='hidden'&&s.display!=='none'&&isInCapturedPixels(e,r);}
         var images=Array.from(root.querySelectorAll('img'));if(root.tagName==='IMG')images.push(root);
         images.forEach(function(i){if(visible(i)&&(!i.complete||i.naturalWidth===0))p++});
+        // Some CSS, such as all-small-caps, cannot serialize as the font shorthand.
+        // Retain face selection in that case so an unused weight cannot block the screenshot.
+        var stretchKeywords={'50%':'ultra-condensed','62.5%':'extra-condensed','75%':'condensed','87.5%':'semi-condensed','100%':'normal','112.5%':'semi-expanded','125%':'expanded','150%':'extra-expanded','200%':'ultra-expanded'};
+        function rebuildFontQuery(style){
+            var stretch=style.fontStretch||'normal';
+            if(stretch.endsWith('%'))stretch=stretchKeywords[stretch]||'normal';
+            return [style.fontStyle,style.fontWeight,stretch,style.fontSize,style.fontFamily].join(' ');
+        }
         var walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),n,count=0;
-        while((n=walker.nextNode())&&count++<5000){var e=n.parentElement;if(!n.nodeValue.trim()||!e||!visible(e))continue;var style=getComputedStyle(e);fontChecks.push([style.font||(style.fontSize+' '+style.fontFamily),n.nodeValue.slice(0,128)])}
-        var fonts=0,badFont=false;if(document.fonts)fontChecks.forEach(function(q){try{if(!document.fonts.check(q[0],q[1])){fonts++;if(document.fonts.status!=='loading')badFont=true}}catch(e){badFont=true}});
-        return [p,badFont?-1:fonts,document.documentElement.clientWidth,Math.min(Math.max(document.documentElement.scrollHeight,document.body.scrollHeight),$bottom)].join(',')
+        while((n=walker.nextNode())&&count++<5000){
+            var e=n.parentElement;if(!n.nodeValue.trim()||!e||!visible(e))continue;
+            var style=getComputedStyle(e),font=style.font;
+            fontChecks.push([font||rebuildFontQuery(style),n.nodeValue.slice(0,128),font?0:1]);
+        }
+        var fonts=0,failure=0,rebuilt=0;
+        if(document.fonts)fontChecks.some(function(q){
+            try{
+                if(document.fonts.check(q[0],q[1]))return false;
+                if(document.fonts.status==='loading'){fonts++;return false;}
+                failure=1;
+            }catch(e){failure=e&&e.name==='SyntaxError'?2:3;}
+            rebuilt=q[2];
+            return true;
+        });
+        return [p,fonts,document.documentElement.clientWidth,Math.min(Math.max(document.documentElement.scrollHeight,document.body.scrollHeight),${bounds.y + bounds.height}),failure,rebuilt].join(',')
     })()"""
 
-    private suspend fun awaitResources(top: Double, bottom: Double, selector: String, epoch: Long) {
+    private suspend fun awaitResources(bounds: Rectangle, selector: String, epoch: Long, scope: PageCaptureHealth.DependencyScope) {
         val started = android.os.SystemClock.elapsedRealtime()
         var quiet = 0
         var previous = ""
         while (true) {
             checkNavigation()
-            val state = evaluate(resourceScript(top, bottom, selector)).trim('"').split(',').mapNotNull(String::toDoubleOrNull)
-            if (state.size != 4) notReady(CaptureIssue.VIEWPORT_NOT_READY)
-            if (state[1] < 0) notReady(CaptureIssue.RESOURCE_FAILED, listOf(CaptureResourceFailure(CaptureResourceKind.FONT)))
-            val signature = state.drop(2).joinToString(",") + if (selector.isBlank()) "" else readClip(selector).joinToString(",")
+            val state = evaluate(resourceScript(bounds, selector)).trim('"').split(',').mapNotNull(String::toDoubleOrNull)
+            if (state.size != 6) notReady(CaptureIssue.VIEWPORT_NOT_READY)
+            val fontFailure = when (state[4]) {
+                1.0 -> FontProbeFailureReason.MATCH_NOT_READY
+                2.0 -> FontProbeFailureReason.INVALID_QUERY
+                3.0 -> FontProbeFailureReason.CHECK_ERROR
+                else -> null
+            }
+            if (fontFailure != null) {
+                val resource = CaptureResourceFailure(CaptureResourceKind.FONT, fontProbe = FontProbeFailure(fontFailure, rebuiltShorthand = state[5] == 1.0))
+                notReady(CaptureIssue.RESOURCE_FAILED, listOf(resource))
+            }
+            val signature = state.subList(2, 4).joinToString(",") + if (selector.isBlank()) "" else readClip(selector).joinToString(",")
             quiet = if (state[0] == 0.0 && state[1] == 0.0 && signature == previous) quiet + 1 else 0
             previous = signature
             if (quiet >= 2) return
             if (android.os.SystemClock.elapsedRealtime() - started >= READY_TIMEOUT_MS) {
                 diagnosticCapture(captureContext(selector).copy(pendingImages = state[0].toInt(), fontsLoading = state[1] > 0).bounded())
-                registerResourceDependencies(selector)
-                health.validate(epoch, captureExtent)
+                registerResourceDependencies(selector, bounds, scope)
+                health.validate(epoch, captureExtent, scope = scope)
                 notReady(
                     if (state[1] > 0) {
                         CaptureIssue.FONTS_LOADING
@@ -459,11 +532,10 @@ internal class AndroidPageCapture(private val view: WebView) {
                 health.committed(url)
             }
             override fun onPageFinished(webView: WebView, finishedUrl: String) {
+                if (finishedUrl == "about:blank" || finishedUrl != webView.url) return
                 health.finished()
-                if (finishedUrl != "about:blank") {
-                    trace?.callback(DiagnosticStage.DOM_READY, DiagnosticMetric.DOM_READY, 1)
-                    loaded.complete(Unit)
-                }
+                trace?.callback(DiagnosticStage.DOM_READY, DiagnosticMetric.DOM_READY, 1)
+                loaded.complete(Unit)
             }
 
             override fun onReceivedError(webView: WebView, request: WebResourceRequest, error: WebResourceError) {
@@ -503,11 +575,20 @@ internal class AndroidPageCapture(private val view: WebView) {
             // A check must fetch today's page even when Chromium considers its cached response fresh.
             view.settings.cacheMode = WebSettings.LOAD_NO_CACHE
             view.loadUrl(url)
-            // Slow images and analytics can hold onPageFinished forever after the document is usable.
-            // The capture's settle delay and awaitSettled still give styles and lazy images time to arrive.
+            // Allow the main navigation to finish while keeping usable pages with a stalled
+            // secondary resource capturable. A redirect starts a fresh grace period.
+            var readySince: kotlin.time.TimeMark? = null
+            var observedEpoch = health.epoch()
             while (!loaded.isCompleted) {
                 val ready = evaluate("location.href !== 'about:blank' && document.body !== null && document.readyState !== 'loading'")
-                if (ready == "true") loaded.complete(Unit) else delay(100)
+                val epoch = health.epoch()
+                if (observedEpoch != epoch || ready != "true") readySince = null
+                observedEpoch = epoch
+                if (ready == "true") {
+                    val mark = readySince ?: kotlin.time.TimeSource.Monotonic.markNow().also { readySince = it }
+                    if (mark.elapsedNow().inWholeMilliseconds >= 1_500) loaded.complete(Unit)
+                }
+                if (!loaded.isCompleted) delay(100)
             }
             loaded.await()
             recordDocumentStatus()

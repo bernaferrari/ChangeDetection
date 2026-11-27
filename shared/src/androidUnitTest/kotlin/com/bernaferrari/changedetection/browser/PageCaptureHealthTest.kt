@@ -30,6 +30,31 @@ class PageCaptureHealthTest {
         assertTrue(runCatching { health.validate(old) }.exceptionOrNull() is CaptureNotReadyException)
     }
 
+    @Test fun screenshotScopesKeepTheirOwnDependenciesWithoutInheritingOtherPreviews() = runTest {
+        val health = PageCaptureHealth()
+        val page = "https://page.invalid"
+        val firstImage = "$page/first.png"
+        val secondImage = "$page/second.png"
+        health.begin(page)
+        val epoch = health.epoch()
+        val first = PageCaptureHealth.DependencyScope()
+        val second = PageCaptureHealth.DependencyScope()
+        health.dependencies(mapOf(firstImage to CaptureResourceKind.IMAGE))
+        health.dependencies(mapOf(firstImage to CaptureResourceKind.IMAGE), first)
+        health.dependencies(mapOf(secondImage to CaptureResourceKind.IMAGE), second)
+        health.resourceError(firstImage, httpStatus = 404)
+
+        health.validateDocument(epoch)
+        health.validate(epoch, scope = second)
+        val failure = runCatching { health.validate(epoch, scope = first) }.exceptionOrNull()
+        assertEquals(CaptureIssue.RESOURCE_FAILED, (failure as CaptureNotReadyException).issue)
+        assertEquals(404, failure.resources.single().httpStatus)
+
+        health.begin(page)
+        val navigation = runCatching { health.validate(epoch, scope = second) }.exceptionOrNull()
+        assertEquals(CaptureIssue.DOCUMENT_CHANGED, (navigation as CaptureNotReadyException).issue)
+    }
+
     @Test fun subresourceAndRedirectClassificationsUseRequestEvidenceNotUrlEquality() = runTest {
         val h = PageCaptureHealth()
         val page = "https://private.invalid/path?token=SECRET"

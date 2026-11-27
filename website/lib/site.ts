@@ -35,6 +35,6 @@ export const screens = {
   page: { src: "/screens/compare-page.png", alt: "Full page screenshot with the changed price highlighted in yellow", ...phone },
   text: { src: "/screens/compare-text.png", alt: "Text comparison showing an application deadline moved from 31 October to 14 November", ...phone },
   versions: { src: "/screens/versions.png", alt: "List of saved versions grouped by day, each with a thumbnail of what changed", ...phone },
-  turbo: { src: "/screens/turbo.png", alt: "Turbo mode checking pages every 30 seconds with a countdown to the next check", ...phone },
+  turbo: { src: "/screens/turbo.png", alt: "Quick Monitor checking pages every 30 seconds with a countdown to the next check", ...phone },
   detail: { src: "/screens/detail.png", alt: "Page detail with the latest change, a 30 day calendar and saved versions", ...phone },
 } satisfies Record<string, Screen>

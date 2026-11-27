@@ -1,0 +1,4008 @@
+{
+  "ok": true,
+  "cards": [
+    {
+      "locale": "en-US",
+      "kind": "phone",
+      "index": 0,
+      "feature": "home",
+      "file": "en-US/phone/v2-01-home.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 236740,
+      "notes": [
+        "copy shrunk to 96%"
+      ],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/01-home.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 344
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "phone",
+      "index": 1,
+      "feature": "page",
+      "file": "en-US/phone/v2-02-page.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 191565,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/02c-compare-page.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "phone",
+      "index": 2,
+      "feature": "alert",
+      "file": "en-US/phone/v2-03-alert.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 192177,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/00-alert.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "phone",
+      "index": 3,
+      "feature": "restock",
+      "file": "en-US/phone/v2-04-restock.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 208322,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/02b-compare-restock.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "phone",
+      "index": 4,
+      "feature": "text",
+      "file": "en-US/phone/v2-05-text.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 235744,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/03-compare-text.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "phone",
+      "index": 5,
+      "feature": "turbo",
+      "file": "en-US/phone/v2-06-turbo.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 224273,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/05-turbo.png",
+            "left": 84,
+            "top": -600,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 1413,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "phone",
+      "index": 6,
+      "feature": "versions",
+      "file": "en-US/phone/v2-07-versions.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 192838,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/04-versions.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "tablet7",
+      "index": 0,
+      "feature": "home",
+      "file": "en-US/tablet7/v2-01-home.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 246707,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/01-home.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "tablet7",
+      "index": 1,
+      "feature": "restock",
+      "file": "en-US/tablet7/v2-02-restock.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 194839,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/02b-compare-restock.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "tablet7",
+      "index": 2,
+      "feature": "text",
+      "file": "en-US/tablet7/v2-03-text.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 202802,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/03-compare-text.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "tablet7",
+      "index": 3,
+      "feature": "turbo",
+      "file": "en-US/tablet7/v2-04-turbo.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 227686,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/05-turbo.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "tablet10",
+      "index": 0,
+      "feature": "home",
+      "file": "en-US/tablet10/v2-01-home.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 211131,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/02-compare-image.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "tablet10",
+      "index": 1,
+      "feature": "restock",
+      "file": "en-US/tablet10/v2-02-restock.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 209198,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/02b-compare-restock.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "tablet10",
+      "index": 2,
+      "feature": "text",
+      "file": "en-US/tablet10/v2-03-text.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 203918,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/03-compare-text.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "tablet10",
+      "index": 3,
+      "feature": "turbo",
+      "file": "en-US/tablet10/v2-04-turbo.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 205378,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/05-turbo.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "readme",
+      "index": 0,
+      "feature": "readme-identity",
+      "file": "en-US/readme/banner.jpg",
+      "width": 2400,
+      "height": 1260,
+      "bytes": 294986,
+      "notes": [],
+      "layout": {
+        "width": 2400,
+        "height": 1260,
+        "devices": [
+          {
+            "raw": "phone/light/03-compare-text.png",
+            "role": "left",
+            "left": 270,
+            "top": 430,
+            "width": 540,
+            "height": 1144
+          },
+          {
+            "raw": "phone/light/01-home.png",
+            "role": "middle",
+            "left": 930,
+            "top": 360,
+            "width": 540,
+            "height": 1144
+          },
+          {
+            "raw": "phone/light/02d-compare-slider.png",
+            "role": "right",
+            "left": 1590,
+            "top": 430,
+            "width": 540,
+            "height": 1144
+          }
+        ],
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "readme",
+      "index": 1,
+      "feature": "readme-hero",
+      "file": "en-US/readme/what-changed.jpg",
+      "width": 2400,
+      "height": 1260,
+      "bytes": 271773,
+      "notes": [
+        "copy shrunk to 98%"
+      ],
+      "layout": {
+        "width": 2400,
+        "height": 1260,
+        "devices": [
+          {
+            "raw": "phone/light/02c-compare-page.png",
+            "role": "back",
+            "left": 1060,
+            "top": 110,
+            "width": 540,
+            "height": 1144
+          },
+          {
+            "raw": "phone/light/03-compare-text.png",
+            "role": "front",
+            "left": 1690,
+            "top": 300,
+            "width": 540,
+            "height": 1144
+          }
+        ],
+        "header": {
+          "left": 140,
+          "top": 0,
+          "width": 760,
+          "height": 1260
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "readme",
+      "index": 2,
+      "feature": "readme-tools",
+      "file": "en-US/readme/tools.jpg",
+      "width": 2400,
+      "height": 1260,
+      "bytes": 335282,
+      "notes": [],
+      "layout": {
+        "width": 2400,
+        "height": 1260,
+        "devices": [
+          {
+            "raw": "phone/light/00-alert.png",
+            "role": "one",
+            "left": 150,
+            "top": 420,
+            "width": 600,
+            "height": 1272
+          },
+          {
+            "raw": "phone/light/05-turbo.png",
+            "role": "two",
+            "left": 900,
+            "top": 420,
+            "width": 600,
+            "height": 1272
+          },
+          {
+            "raw": "phone/light/04-versions.png",
+            "role": "three",
+            "left": 1650,
+            "top": 420,
+            "width": 600,
+            "height": 1272
+          }
+        ],
+        "header": {
+          "left": 0,
+          "top": 118,
+          "width": 2400,
+          "height": 114
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "en-US",
+      "kind": "readme",
+      "index": 3,
+      "feature": "readme-big-screen",
+      "file": "en-US/readme/big-screen.jpg",
+      "width": 2400,
+      "height": 1260,
+      "bytes": 288232,
+      "notes": [
+        "copy shrunk to 94%"
+      ],
+      "layout": {
+        "width": 2400,
+        "height": 1260,
+        "devices": [
+          {
+            "raw": "tablet10/light/02-compare-image.png",
+            "role": "slate",
+            "left": 930,
+            "top": 120,
+            "width": 1430,
+            "height": 906
+          },
+          {
+            "raw": "phone/dark/03-compare-text.png",
+            "role": "front",
+            "left": 620,
+            "top": 440,
+            "width": 390,
+            "height": 826
+          }
+        ],
+        "header": {
+          "left": 110,
+          "top": 0,
+          "width": 500,
+          "height": 1260
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "de-DE",
+      "kind": "phone",
+      "index": 0,
+      "feature": "home",
+      "file": "de-DE/phone/v2-01-home.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 250581,
+      "notes": [
+        "copy shrunk to 90%"
+      ],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/01-home.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 324
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "de-DE",
+      "kind": "phone",
+      "index": 1,
+      "feature": "page",
+      "file": "de-DE/phone/v2-02-page.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 207392,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/02c-compare-page.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "de-DE",
+      "kind": "phone",
+      "index": 2,
+      "feature": "alert",
+      "file": "de-DE/phone/v2-03-alert.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 199778,
+      "notes": [
+        "copy shrunk to 90%"
+      ],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/00-alert.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 324
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "de-DE",
+      "kind": "phone",
+      "index": 3,
+      "feature": "restock",
+      "file": "de-DE/phone/v2-04-restock.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 217910,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/02b-compare-restock.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "de-DE",
+      "kind": "phone",
+      "index": 4,
+      "feature": "text",
+      "file": "de-DE/phone/v2-05-text.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 235431,
+      "notes": [
+        "copy shrunk to 98%"
+      ],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/03-compare-text.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 351
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "de-DE",
+      "kind": "phone",
+      "index": 5,
+      "feature": "turbo",
+      "file": "de-DE/phone/v2-06-turbo.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 231511,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/05-turbo.png",
+            "left": 84,
+            "top": -600,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 1413,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "de-DE",
+      "kind": "phone",
+      "index": 6,
+      "feature": "versions",
+      "file": "de-DE/phone/v2-07-versions.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 208547,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/04-versions.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "de-DE",
+      "kind": "tablet7",
+      "index": 0,
+      "feature": "home",
+      "file": "de-DE/tablet7/v2-01-home.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 264986,
+      "notes": [
+        "copy shrunk to 98%"
+      ],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/01-home.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 359
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "de-DE",
+      "kind": "tablet7",
+      "index": 1,
+      "feature": "restock",
+      "file": "de-DE/tablet7/v2-02-restock.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 202990,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/02b-compare-restock.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "de-DE",
+      "kind": "tablet7",
+      "index": 2,
+      "feature": "text",
+      "file": "de-DE/tablet7/v2-03-text.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 203425,
+      "notes": [
+        "copy shrunk to 98%"
+      ],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/03-compare-text.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 359
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "de-DE",
+      "kind": "tablet7",
+      "index": 3,
+      "feature": "turbo",
+      "file": "de-DE/tablet7/v2-04-turbo.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 233353,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/05-turbo.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "de-DE",
+      "kind": "tablet10",
+      "index": 0,
+      "feature": "home",
+      "file": "de-DE/tablet10/v2-01-home.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 226608,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/02-compare-image.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "de-DE",
+      "kind": "tablet10",
+      "index": 1,
+      "feature": "restock",
+      "file": "de-DE/tablet10/v2-02-restock.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 219286,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/02b-compare-restock.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "de-DE",
+      "kind": "tablet10",
+      "index": 2,
+      "feature": "text",
+      "file": "de-DE/tablet10/v2-03-text.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 207039,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/03-compare-text.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "de-DE",
+      "kind": "tablet10",
+      "index": 3,
+      "feature": "turbo",
+      "file": "de-DE/tablet10/v2-04-turbo.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 208909,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/05-turbo.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "es-ES",
+      "kind": "phone",
+      "index": 0,
+      "feature": "home",
+      "file": "es-ES/phone/v2-01-home.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 241014,
+      "notes": [
+        "copy shrunk to 92%"
+      ],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/01-home.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 331
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "es-ES",
+      "kind": "phone",
+      "index": 1,
+      "feature": "page",
+      "file": "es-ES/phone/v2-02-page.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 194586,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/02c-compare-page.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "es-ES",
+      "kind": "phone",
+      "index": 2,
+      "feature": "alert",
+      "file": "es-ES/phone/v2-03-alert.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 183183,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/00-alert.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "es-ES",
+      "kind": "phone",
+      "index": 3,
+      "feature": "restock",
+      "file": "es-ES/phone/v2-04-restock.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 218140,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/02b-compare-restock.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "es-ES",
+      "kind": "phone",
+      "index": 4,
+      "feature": "text",
+      "file": "es-ES/phone/v2-05-text.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 222806,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/03-compare-text.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "es-ES",
+      "kind": "phone",
+      "index": 5,
+      "feature": "turbo",
+      "file": "es-ES/phone/v2-06-turbo.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 245622,
+      "notes": [
+        "copy shrunk to 96%"
+      ],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/05-turbo.png",
+            "left": 84,
+            "top": -600,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 1426,
+          "width": 912,
+          "height": 344
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "es-ES",
+      "kind": "phone",
+      "index": 6,
+      "feature": "versions",
+      "file": "es-ES/phone/v2-07-versions.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 205275,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/04-versions.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "es-ES",
+      "kind": "tablet7",
+      "index": 0,
+      "feature": "home",
+      "file": "es-ES/tablet7/v2-01-home.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 257330,
+      "notes": [
+        "copy shrunk to 98%"
+      ],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/01-home.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 359
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "es-ES",
+      "kind": "tablet7",
+      "index": 1,
+      "feature": "restock",
+      "file": "es-ES/tablet7/v2-02-restock.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 203174,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/02b-compare-restock.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "es-ES",
+      "kind": "tablet7",
+      "index": 2,
+      "feature": "text",
+      "file": "es-ES/tablet7/v2-03-text.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 190770,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/03-compare-text.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "es-ES",
+      "kind": "tablet7",
+      "index": 3,
+      "feature": "turbo",
+      "file": "es-ES/tablet7/v2-04-turbo.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 253012,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/05-turbo.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "es-ES",
+      "kind": "tablet10",
+      "index": 0,
+      "feature": "home",
+      "file": "es-ES/tablet10/v2-01-home.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 219738,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/02-compare-image.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "es-ES",
+      "kind": "tablet10",
+      "index": 1,
+      "feature": "restock",
+      "file": "es-ES/tablet10/v2-02-restock.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 217726,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/02b-compare-restock.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "es-ES",
+      "kind": "tablet10",
+      "index": 2,
+      "feature": "text",
+      "file": "es-ES/tablet10/v2-03-text.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 197055,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/03-compare-text.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "es-ES",
+      "kind": "tablet10",
+      "index": 3,
+      "feature": "turbo",
+      "file": "es-ES/tablet10/v2-04-turbo.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 220272,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/05-turbo.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "it-IT",
+      "kind": "phone",
+      "index": 0,
+      "feature": "home",
+      "file": "it-IT/phone/v2-01-home.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 241335,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/01-home.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "it-IT",
+      "kind": "phone",
+      "index": 1,
+      "feature": "page",
+      "file": "it-IT/phone/v2-02-page.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 200961,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/02c-compare-page.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "it-IT",
+      "kind": "phone",
+      "index": 2,
+      "feature": "alert",
+      "file": "it-IT/phone/v2-03-alert.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 183707,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/00-alert.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "it-IT",
+      "kind": "phone",
+      "index": 3,
+      "feature": "restock",
+      "file": "it-IT/phone/v2-04-restock.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 212223,
+      "notes": [
+        "copy shrunk to 88%"
+      ],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/02b-compare-restock.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 317
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "it-IT",
+      "kind": "phone",
+      "index": 4,
+      "feature": "text",
+      "file": "it-IT/phone/v2-05-text.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 233445,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/03-compare-text.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "it-IT",
+      "kind": "phone",
+      "index": 5,
+      "feature": "turbo",
+      "file": "it-IT/phone/v2-06-turbo.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 229158,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/05-turbo.png",
+            "left": 84,
+            "top": -600,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 1413,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "it-IT",
+      "kind": "phone",
+      "index": 6,
+      "feature": "versions",
+      "file": "it-IT/phone/v2-07-versions.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 211687,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/04-versions.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "it-IT",
+      "kind": "tablet7",
+      "index": 0,
+      "feature": "home",
+      "file": "it-IT/tablet7/v2-01-home.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 249736,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/01-home.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "it-IT",
+      "kind": "tablet7",
+      "index": 1,
+      "feature": "restock",
+      "file": "it-IT/tablet7/v2-02-restock.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 200291,
+      "notes": [
+        "copy shrunk to 94%"
+      ],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/02b-compare-restock.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 346
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "it-IT",
+      "kind": "tablet7",
+      "index": 2,
+      "feature": "text",
+      "file": "it-IT/tablet7/v2-03-text.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 202896,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/03-compare-text.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "it-IT",
+      "kind": "tablet7",
+      "index": 3,
+      "feature": "turbo",
+      "file": "it-IT/tablet7/v2-04-turbo.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 231155,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/05-turbo.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "it-IT",
+      "kind": "tablet10",
+      "index": 0,
+      "feature": "home",
+      "file": "it-IT/tablet10/v2-01-home.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 214821,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/02-compare-image.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "it-IT",
+      "kind": "tablet10",
+      "index": 1,
+      "feature": "restock",
+      "file": "it-IT/tablet10/v2-02-restock.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 218264,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/02b-compare-restock.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "it-IT",
+      "kind": "tablet10",
+      "index": 2,
+      "feature": "text",
+      "file": "it-IT/tablet10/v2-03-text.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 204982,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/03-compare-text.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "it-IT",
+      "kind": "tablet10",
+      "index": 3,
+      "feature": "turbo",
+      "file": "it-IT/tablet10/v2-04-turbo.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 207705,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/05-turbo.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "pt-BR",
+      "kind": "phone",
+      "index": 0,
+      "feature": "home",
+      "file": "pt-BR/phone/v2-01-home.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 237164,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/01-home.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "pt-BR",
+      "kind": "phone",
+      "index": 1,
+      "feature": "page",
+      "file": "pt-BR/phone/v2-02-page.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 186469,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/02c-compare-page.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "pt-BR",
+      "kind": "phone",
+      "index": 2,
+      "feature": "alert",
+      "file": "pt-BR/phone/v2-03-alert.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 176421,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/00-alert.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "pt-BR",
+      "kind": "phone",
+      "index": 3,
+      "feature": "restock",
+      "file": "pt-BR/phone/v2-04-restock.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 204883,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/02b-compare-restock.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "pt-BR",
+      "kind": "phone",
+      "index": 4,
+      "feature": "text",
+      "file": "pt-BR/phone/v2-05-text.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 241168,
+      "notes": [
+        "copy shrunk to 96%"
+      ],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/03-compare-text.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 344
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "pt-BR",
+      "kind": "phone",
+      "index": 5,
+      "feature": "turbo",
+      "file": "pt-BR/phone/v2-06-turbo.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 242743,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/05-turbo.png",
+            "left": 84,
+            "top": -600,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 1413,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "pt-BR",
+      "kind": "phone",
+      "index": 6,
+      "feature": "versions",
+      "file": "pt-BR/phone/v2-07-versions.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 206669,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/04-versions.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "pt-BR",
+      "kind": "tablet7",
+      "index": 0,
+      "feature": "home",
+      "file": "pt-BR/tablet7/v2-01-home.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 243152,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/01-home.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "pt-BR",
+      "kind": "tablet7",
+      "index": 1,
+      "feature": "restock",
+      "file": "pt-BR/tablet7/v2-02-restock.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 190376,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/02b-compare-restock.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "pt-BR",
+      "kind": "tablet7",
+      "index": 2,
+      "feature": "text",
+      "file": "pt-BR/tablet7/v2-03-text.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 208096,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/03-compare-text.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "pt-BR",
+      "kind": "tablet7",
+      "index": 3,
+      "feature": "turbo",
+      "file": "pt-BR/tablet7/v2-04-turbo.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 248695,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/05-turbo.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "pt-BR",
+      "kind": "tablet10",
+      "index": 0,
+      "feature": "home",
+      "file": "pt-BR/tablet10/v2-01-home.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 211434,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/02-compare-image.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "pt-BR",
+      "kind": "tablet10",
+      "index": 1,
+      "feature": "restock",
+      "file": "pt-BR/tablet10/v2-02-restock.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 210102,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/02b-compare-restock.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "pt-BR",
+      "kind": "tablet10",
+      "index": 2,
+      "feature": "text",
+      "file": "pt-BR/tablet10/v2-03-text.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 209352,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/03-compare-text.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "pt-BR",
+      "kind": "tablet10",
+      "index": 3,
+      "feature": "turbo",
+      "file": "pt-BR/tablet10/v2-04-turbo.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 216782,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/05-turbo.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "hi-IN",
+      "kind": "phone",
+      "index": 0,
+      "feature": "home",
+      "file": "hi-IN/phone/v2-01-home.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 221264,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/01-home.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "hi-IN",
+      "kind": "phone",
+      "index": 1,
+      "feature": "page",
+      "file": "hi-IN/phone/v2-02-page.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 175930,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/02c-compare-page.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "hi-IN",
+      "kind": "phone",
+      "index": 2,
+      "feature": "alert",
+      "file": "hi-IN/phone/v2-03-alert.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 166227,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/00-alert.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "hi-IN",
+      "kind": "phone",
+      "index": 3,
+      "feature": "restock",
+      "file": "hi-IN/phone/v2-04-restock.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 208146,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/02b-compare-restock.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "hi-IN",
+      "kind": "phone",
+      "index": 4,
+      "feature": "text",
+      "file": "hi-IN/phone/v2-05-text.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 215642,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/03-compare-text.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "hi-IN",
+      "kind": "phone",
+      "index": 5,
+      "feature": "turbo",
+      "file": "hi-IN/phone/v2-06-turbo.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 215258,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/05-turbo.png",
+            "left": 84,
+            "top": -600,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 1413,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "hi-IN",
+      "kind": "phone",
+      "index": 6,
+      "feature": "versions",
+      "file": "hi-IN/phone/v2-07-versions.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 194273,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/04-versions.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "hi-IN",
+      "kind": "tablet7",
+      "index": 0,
+      "feature": "home",
+      "file": "hi-IN/tablet7/v2-01-home.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 232599,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/01-home.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "hi-IN",
+      "kind": "tablet7",
+      "index": 1,
+      "feature": "restock",
+      "file": "hi-IN/tablet7/v2-02-restock.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 193680,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/02b-compare-restock.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "hi-IN",
+      "kind": "tablet7",
+      "index": 2,
+      "feature": "text",
+      "file": "hi-IN/tablet7/v2-03-text.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 180883,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/03-compare-text.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "hi-IN",
+      "kind": "tablet7",
+      "index": 3,
+      "feature": "turbo",
+      "file": "hi-IN/tablet7/v2-04-turbo.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 219806,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/05-turbo.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "hi-IN",
+      "kind": "tablet10",
+      "index": 0,
+      "feature": "home",
+      "file": "hi-IN/tablet10/v2-01-home.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 202174,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/02-compare-image.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "hi-IN",
+      "kind": "tablet10",
+      "index": 1,
+      "feature": "restock",
+      "file": "hi-IN/tablet10/v2-02-restock.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 205131,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/02b-compare-restock.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "hi-IN",
+      "kind": "tablet10",
+      "index": 2,
+      "feature": "text",
+      "file": "hi-IN/tablet10/v2-03-text.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 190153,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/03-compare-text.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "hi-IN",
+      "kind": "tablet10",
+      "index": 3,
+      "feature": "turbo",
+      "file": "hi-IN/tablet10/v2-04-turbo.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 197661,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/05-turbo.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "bn-BD",
+      "kind": "phone",
+      "index": 0,
+      "feature": "home",
+      "file": "bn-BD/phone/v2-01-home.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 236007,
+      "notes": [
+        "copy shrunk to 92%"
+      ],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/01-home.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 331
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "bn-BD",
+      "kind": "phone",
+      "index": 1,
+      "feature": "page",
+      "file": "bn-BD/phone/v2-02-page.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 182656,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/02c-compare-page.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "bn-BD",
+      "kind": "phone",
+      "index": 2,
+      "feature": "alert",
+      "file": "bn-BD/phone/v2-03-alert.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 175968,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/00-alert.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "bn-BD",
+      "kind": "phone",
+      "index": 3,
+      "feature": "restock",
+      "file": "bn-BD/phone/v2-04-restock.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 206137,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/02b-compare-restock.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "bn-BD",
+      "kind": "phone",
+      "index": 4,
+      "feature": "text",
+      "file": "bn-BD/phone/v2-05-text.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 224133,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/03-compare-text.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "bn-BD",
+      "kind": "phone",
+      "index": 5,
+      "feature": "turbo",
+      "file": "bn-BD/phone/v2-06-turbo.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 231312,
+      "notes": [
+        "copy shrunk to 98%"
+      ],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/05-turbo.png",
+            "left": 84,
+            "top": -600,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 1419,
+          "width": 912,
+          "height": 351
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "bn-BD",
+      "kind": "phone",
+      "index": 6,
+      "feature": "versions",
+      "file": "bn-BD/phone/v2-07-versions.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 210723,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/04-versions.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "bn-BD",
+      "kind": "tablet7",
+      "index": 0,
+      "feature": "home",
+      "file": "bn-BD/tablet7/v2-01-home.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 248812,
+      "notes": [
+        "copy shrunk to 98%"
+      ],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/01-home.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 359
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "bn-BD",
+      "kind": "tablet7",
+      "index": 1,
+      "feature": "restock",
+      "file": "bn-BD/tablet7/v2-02-restock.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 191280,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/02b-compare-restock.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "bn-BD",
+      "kind": "tablet7",
+      "index": 2,
+      "feature": "text",
+      "file": "bn-BD/tablet7/v2-03-text.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 186930,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/03-compare-text.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "bn-BD",
+      "kind": "tablet7",
+      "index": 3,
+      "feature": "turbo",
+      "file": "bn-BD/tablet7/v2-04-turbo.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 235636,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/05-turbo.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "bn-BD",
+      "kind": "tablet10",
+      "index": 0,
+      "feature": "home",
+      "file": "bn-BD/tablet10/v2-01-home.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 218450,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/02-compare-image.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "bn-BD",
+      "kind": "tablet10",
+      "index": 1,
+      "feature": "restock",
+      "file": "bn-BD/tablet10/v2-02-restock.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 212213,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/02b-compare-restock.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "bn-BD",
+      "kind": "tablet10",
+      "index": 2,
+      "feature": "text",
+      "file": "bn-BD/tablet10/v2-03-text.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 196859,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/03-compare-text.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "bn-BD",
+      "kind": "tablet10",
+      "index": 3,
+      "feature": "turbo",
+      "file": "bn-BD/tablet10/v2-04-turbo.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 211795,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/05-turbo.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "zh-CN",
+      "kind": "phone",
+      "index": 0,
+      "feature": "home",
+      "file": "zh-CN/phone/v2-01-home.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 227887,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/01-home.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "zh-CN",
+      "kind": "phone",
+      "index": 1,
+      "feature": "page",
+      "file": "zh-CN/phone/v2-02-page.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 186051,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/02c-compare-page.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "zh-CN",
+      "kind": "phone",
+      "index": 2,
+      "feature": "alert",
+      "file": "zh-CN/phone/v2-03-alert.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 173293,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/00-alert.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "zh-CN",
+      "kind": "phone",
+      "index": 3,
+      "feature": "restock",
+      "file": "zh-CN/phone/v2-04-restock.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 197885,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/02b-compare-restock.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "zh-CN",
+      "kind": "phone",
+      "index": 4,
+      "feature": "text",
+      "file": "zh-CN/phone/v2-05-text.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 220676,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/03-compare-text.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "zh-CN",
+      "kind": "phone",
+      "index": 5,
+      "feature": "turbo",
+      "file": "zh-CN/phone/v2-06-turbo.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 214629,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/05-turbo.png",
+            "left": 84,
+            "top": -600,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 1413,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "zh-CN",
+      "kind": "phone",
+      "index": 6,
+      "feature": "versions",
+      "file": "zh-CN/phone/v2-07-versions.jpg",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 191029,
+      "notes": [],
+      "layout": {
+        "width": 1080,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "phone/light/04-versions.png",
+            "left": 84,
+            "top": 540,
+            "width": 912,
+            "height": 1934
+          }
+        ],
+        "header": {
+          "left": 84,
+          "top": 150,
+          "width": 912,
+          "height": 357
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "zh-CN",
+      "kind": "tablet7",
+      "index": 0,
+      "feature": "home",
+      "file": "zh-CN/tablet7/v2-01-home.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 233503,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/01-home.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "zh-CN",
+      "kind": "tablet7",
+      "index": 1,
+      "feature": "restock",
+      "file": "zh-CN/tablet7/v2-02-restock.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 183662,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/02b-compare-restock.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "zh-CN",
+      "kind": "tablet7",
+      "index": 2,
+      "feature": "text",
+      "file": "zh-CN/tablet7/v2-03-text.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 191574,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/03-compare-text.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "zh-CN",
+      "kind": "tablet7",
+      "index": 3,
+      "feature": "turbo",
+      "file": "zh-CN/tablet7/v2-04-turbo.jpg",
+      "width": 1200,
+      "height": 1920,
+      "bytes": 215854,
+      "notes": [],
+      "layout": {
+        "width": 1200,
+        "height": 1920,
+        "devices": [
+          {
+            "raw": "tablet7/light/05-turbo.png",
+            "left": 150,
+            "top": 580,
+            "width": 900,
+            "height": 1418
+          }
+        ],
+        "header": {
+          "left": 96,
+          "top": 150,
+          "width": 1008,
+          "height": 366
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "zh-CN",
+      "kind": "tablet10",
+      "index": 0,
+      "feature": "home",
+      "file": "zh-CN/tablet10/v2-01-home.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 199927,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/02-compare-image.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "zh-CN",
+      "kind": "tablet10",
+      "index": 1,
+      "feature": "restock",
+      "file": "zh-CN/tablet10/v2-02-restock.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 200448,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/02b-compare-restock.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "zh-CN",
+      "kind": "tablet10",
+      "index": 2,
+      "feature": "text",
+      "file": "zh-CN/tablet10/v2-03-text.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 192010,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/03-compare-text.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    },
+    {
+      "locale": "zh-CN",
+      "kind": "tablet10",
+      "index": 3,
+      "feature": "turbo",
+      "file": "zh-CN/tablet10/v2-04-turbo.jpg",
+      "width": 1920,
+      "height": 1200,
+      "bytes": 198382,
+      "notes": [],
+      "layout": {
+        "width": 1920,
+        "height": 1200,
+        "devices": [
+          {
+            "raw": "tablet10/light/05-turbo.png",
+            "left": 240,
+            "top": 380,
+            "width": 1440,
+            "height": 912
+          }
+        ],
+        "header": {
+          "left": 120,
+          "top": 70,
+          "width": 1680,
+          "height": 263
+        },
+        "callouts": []
+      }
+    }
+  ],
+  "warnings": [],
+  "locales": [
+    {
+      "locale": "en-US",
+      "cards": 19,
+      "untranslated": 0,
+      "borrowedCaptures": 0,
+      "movedCallouts": 0,
+      "fixedCallouts": 0,
+      "shrunk": 3
+    },
+    {
+      "locale": "de-DE",
+      "cards": 15,
+      "untranslated": 0,
+      "borrowedCaptures": 0,
+      "movedCallouts": 0,
+      "fixedCallouts": 0,
+      "shrunk": 5
+    },
+    {
+      "locale": "es-ES",
+      "cards": 15,
+      "untranslated": 0,
+      "borrowedCaptures": 0,
+      "movedCallouts": 0,
+      "fixedCallouts": 0,
+      "shrunk": 3
+    },
+    {
+      "locale": "it-IT",
+      "cards": 15,
+      "untranslated": 0,
+      "borrowedCaptures": 0,
+      "movedCallouts": 0,
+      "fixedCallouts": 0,
+      "shrunk": 2
+    },
+    {
+      "locale": "pt-BR",
+      "cards": 15,
+      "untranslated": 0,
+      "borrowedCaptures": 0,
+      "movedCallouts": 0,
+      "fixedCallouts": 0,
+      "shrunk": 1
+    },
+    {
+      "locale": "hi-IN",
+      "cards": 15,
+      "untranslated": 0,
+      "borrowedCaptures": 0,
+      "movedCallouts": 0,
+      "fixedCallouts": 0,
+      "shrunk": 0
+    },
+    {
+      "locale": "bn-BD",
+      "cards": 15,
+      "untranslated": 0,
+      "borrowedCaptures": 0,
+      "movedCallouts": 0,
+      "fixedCallouts": 0,
+      "shrunk": 3
+    },
+    {
+      "locale": "zh-CN",
+      "cards": 15,
+      "untranslated": 0,
+      "borrowedCaptures": 0,
+      "movedCallouts": 0,
+      "fixedCallouts": 0,
+      "shrunk": 0
+    }
+  ],
+  "finishedAt": "2026-11-27T07:47:21.709Z",
+  "options": {
+    "strict": false
+  }
+}

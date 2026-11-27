@@ -159,7 +159,7 @@ class SyncEngineTest {
         val producer = backgroundScope.launch(Dispatchers.Default) {
             val chunk = ByteArray(8192) { 65 }
             try {
-                repeat(1500) { channel.writeFully(chunk) }
+                repeat(SyncEngine.MAX_CONTENT_SIZE / chunk.size + 1) { channel.writeFully(chunk) }
                 // The server never sends EOF. A buffering GET would wait here rather than enforce the cap.
                 awaitCancellation()
             } catch (_: ClosedByteChannelException) {
@@ -586,6 +586,23 @@ class SyncEngineTest {
         val result = syncEngine.processFetchResult(site, SyncEngine.FetchResult.Success("text/html", "<p>Current price</p>".toByteArray()))
         assertTrue(result is SyncResult.Success && !result.hadChanges && result.snapId != null)
         verify(mockSnapsDao).insertSnap(argThat { contentHash.startsWith("text-v1:") })
+        verifyNoInteractions(mockChangeNotifier)
+        verify(mockFileStorage, never()).deleteFile(any())
+    }
+
+    @Test
+    fun `switching rendered text to direct text establishes a silent baseline`() = runTest {
+        val site = createTestSite().copy(captureMode = com.bernaferrari.changedetection.repo.CaptureMode.DIRECT_TEXT)
+        val prior = "<p>Old browser text</p>".encodeToByteArray()
+        val priorHash = ContentHasher.detectionHash(prior, "text/html", com.bernaferrari.changedetection.repo.CaptureMode.TEXT)
+        whenever(mockSitesDao.getSiteById(site.id)).thenReturn(site)
+        whenever(mockSnapsDao.getLastSnapForSiteId(site.id)).thenReturn(createTestSnap(site.id).copy(contentType = "text/html", contentHash = priorHash))
+        syncEngine = makeSyncEngine()
+
+        val result = syncEngine.processFetchResult(site, SyncEngine.FetchResult.Success("text/html", "<p>Direct text</p>".encodeToByteArray()))
+
+        assertTrue(result is SyncResult.Success && !result.hadChanges && result.snapId != null)
+        verify(mockSnapsDao).insertSnap(argThat { contentHash.startsWith("text-http-v1:") })
         verifyNoInteractions(mockChangeNotifier)
         verify(mockFileStorage, never()).deleteFile(any())
     }

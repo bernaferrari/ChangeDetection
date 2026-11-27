@@ -17,7 +17,7 @@ class App :
             Configuration
                 .Builder()
                 .setWorkerFactory(KoinWorkerFactory())
-                .setMinimumLoggingLevel(android.util.Log.DEBUG)
+                .setMinimumLoggingLevel(if (BuildConfig.DEBUG) android.util.Log.DEBUG else android.util.Log.ERROR)
                 .build()
 
     override fun onCreate() {
@@ -29,7 +29,7 @@ class App :
         MainActivityProvider.register(MainActivity::class.java)
 
         initKoin {
-            androidLogger()
+            if (BuildConfig.DEBUG) androidLogger()
             androidContext(this@App)
             workManagerFactory()
         }

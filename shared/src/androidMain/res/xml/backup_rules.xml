@@ -2,6 +2,8 @@
   Legacy (API < 31) backup rules. Local monitoring history and browser sign-ins stay on-device.
 -->
 <full-backup-content>
-    <exclude domain="database" path="changes.db" />
+    <exclude domain="database" />
+    <exclude domain="file" />
+    <exclude domain="sharedpref" />
     <exclude domain="root" path="app_webview" />
 </full-backup-content>

@@ -75,7 +75,7 @@
         <item quantity="other">%1$d saíram</item>
     </plurals>
     <string name="detail_sign_in">Entrar</string>
-    <string name="browser_session_note">Texto e Captura de tela usam o perfil do navegador do app. Entrar ou trocar de conta em um site afeta as páginas monitoradas desse site. As sessões podem expirar. Código não usa cookies de login do navegador.</string>
+    <string name="browser_session_note">As verificações no navegador compartilham as sessões salvas neste dispositivo. Entrar ou trocar de conta pode afetar outros monitores do mesmo site. As sessões podem expirar.</string>
     <string name="turbo_next_check">Próxima verificação em %1$d s</string>
     <string name="picker_selected_image">Uma imagem</string>
     <string name="picker_selected_frame">Um quadro incorporado (geralmente um anúncio)</string>
@@ -123,7 +123,7 @@
     <string name="backup_restore">Restaurar de um arquivo</string>
     <string name="backup_restore_body">Adiciona as páginas que ainda não estão aqui. Nada neste aparelho é alterado.</string>
     <string name="backup_restore_settings">Restaurar também os ajustes do app</string>
-    <string name="backup_privacy_note">O arquivo não é criptografado e lista as páginas que você acompanha. Logins nunca são incluídos.</string>
+    <string name="backup_privacy_note">O arquivo não é criptografado. Um backup completo pode conter HTML e capturas privadas de páginas em que você entrou. Cookies do navegador ficam de fora.</string>
     <string name="backup_working">Trabalhando…</string>
     <string name="backup_saved">Backup salvo. Páginas: %1$d · Versões: %2$d</string>
     <string name="backup_restored">Páginas adicionadas: %1$d · Já existiam: %2$d · Versões: %3$d</string>
@@ -139,4 +139,15 @@
     <string name="backup_pages_added">Páginas adicionadas</string>
     <string name="backup_already_here">Já estavam aqui</string>
     <string name="backup_restore_complete">Restauração concluída</string>
+    <string name="home_unread_changes">Alterações não lidas</string>
+    <string name="settings_android_tools">Backups, sessões salvas e relatórios de diagnóstico estão disponíveis no Android.</string>
+    <string name="turbo_sheet_body_while_open">Verifique as páginas selecionadas a cada poucos segundos enquanto o app estiver aberto.</string>
+    <string name="feedback_email_subject">Comentários sobre o Change Detection</string>
+    <string name="backup_skipped_pages">Páginas ignoradas</string>
+    <string name="backup_duplicate_versions">Versões duplicadas ignoradas</string>
+    <string name="android_browser_start_failed">Não foi possível iniciar o navegador. Se o problema persistir, reinicie o app.</string>
+    <string name="editor_direct_text_body">Monitore preços, datas e outros textos. A prévia mostra o que podemos verificar diretamente.</string>
+    <string name="editor_direct_browser_hint">Falta texto ou você precisa entrar na sua conta?</string>
+    <string name="editor_use_direct_preview">Usar prévia direta</string>
+    <string name="editor_direct_empty">A prévia direta não tem texto legível.</string>
 </resources>

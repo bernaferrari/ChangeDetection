@@ -61,13 +61,17 @@ cd ChangeDetection
 
 [CI](../.github/workflows/ci.yml) runs all of these on every push and pull request, including the device tests on an API 36 emulator. Desktop test reports and renders land in `build/desktop-review/`.
 
+To preview the production web demo, serve `webDemo/build/dist/wasmJs/productionExecutable/` over HTTP with
+`Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp`. The SQLite worker
+needs the same cross-origin isolation that the webpack development server provides.
+
 The README screenshots come from the real shared UI on the desktop test host. Regenerate them with `./gradlew :shared:desktopTest --tests '*DesignReviewTest.readmeTour'`, then follow [screenshots/README.md](screenshots/README.md).
 
 ## Store screenshots and icon
 
 Screenshot Studio comes from the `screenshot-studio` package (`npx screenshot-studio …`, run in the repository); `store-listing/` keeps only this app's words, look and captures.
 
-- Captures come from the instrumented `StoreCaptureTest` (`./gradlew :shared:assembleAndroidDeviceTest`). It seeds fictional sample sites only and turns the emulator's network off. Runs use the Blue palette: light for every language, plus dark phone and light tablets for English. `store-listing/capture.tour.mjs` is the scene tour.
+- Captures come from the instrumented `StoreCaptureTest` (`./gradlew :shared:assembleAndroidDeviceTest`). It seeds fictional sample sites only and turns the emulator's network off. Runs use the Blue palette: light for every language, plus dark phone and light tablets for English. `store-listing/capture.tour.ts` is the scene tour.
 - Build, install, capture and export every language and size:
 
   ```bash

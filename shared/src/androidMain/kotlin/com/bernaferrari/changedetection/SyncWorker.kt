@@ -16,10 +16,6 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.bernaferrari.changedetection.background.*
 import com.bernaferrari.changedetection.sync.SyncEngine
-import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.bernaferrari.changedetection.repo.ComparisonMethod
@@ -135,7 +131,7 @@ class SyncWorker(
         } catch (e: Exception) {
             appLog.e("Sync work failed", e)
             com.bernaferrari.changedetection.diagnostics.DiagnosticLog.appEvent(com.bernaferrari.changedetection.diagnostics.AppEventKind.BACKGROUND_FAILURE, e, stage = com.bernaferrari.changedetection.diagnostics.AppEventStage.WORKER_CHECK)
-            Result.retry()
+            retryWithinLimit()
         }
     }
 
@@ -164,35 +160,33 @@ class SyncWorker(
                 }
             }
         }, elapsedMillis = android.os.SystemClock::elapsedRealtime) { site, index, total ->
-            boundedCheck(site, showProgress, index, total)
+            val current = sitesRepository.getSiteById(site.id)
+            if (current == null || !current.isSyncEnabled || current.timestamp != site.timestamp) {
+                SyncResult.Skipped(site.id, "Page was removed, paused, or checked since the batch started")
+            } else {
+                boundedCheck(current, showProgress, index, total)
+            }
         }
-        return if (retry) Result.retry() else Result.success()
+        return if (retry) retryWithinLimit() else Result.success()
     }
 
-    /** Includes time queued behind manual/Turbo checks, not only time inside a browser. */
     private suspend fun boundedCheck(site: com.bernaferrari.changedetection.repo.Site, foreground: Boolean, completed: Int, total: Int): SyncResult {
-        // The batch list can be minutes old. A timeout is only real if the status has not moved since this attempt began.
-        val startedFrom = sitesRepository.getSiteById(site.id) ?: return SyncResult.Skipped(site.id, "Page deleted")
-        return try {
-            withTimeout(90_000) {
-                checkAfterForeground(prepare = {
-                    if (foreground) setForeground(createForegroundInfo(pageName = site.title?.takeIf { it.isNotBlank() } ?: site.url, completed = completed, total = total))
-                }, check = { checkRunner.check(site.id) }, denied = { error ->
-                    com.bernaferrari.changedetection.diagnostics.DiagnosticLog.appEvent(com.bernaferrari.changedetection.diagnostics.AppEventKind.BACKGROUND_FAILURE, error, stage = com.bernaferrari.changedetection.diagnostics.AppEventStage.WORKER_FOREGROUND)
-                    syncEngine.processFetchResult(site, SyncEngine.FetchResult.Error("Background check could not start", error), site.threshold)
-                })
-            }
-        } catch (timeout: TimeoutCancellationException) {
-            currentCoroutineContext().ensureActive()
-            syncEngine.recordTimeout(startedFrom, timeout)
-        }
+        if (syncEngine.isChecking(site.id)) return SyncResult.Skipped(site.id, "Already checking")
+        return checkAfterForeground(prepare = {
+            if (foreground) setForeground(createForegroundInfo(pageName = site.title?.takeIf { it.isNotBlank() } ?: site.url, completed = completed, total = total))
+        }, check = { checkRunner.check(site.id) }, denied = { error ->
+            com.bernaferrari.changedetection.diagnostics.DiagnosticLog.appEvent(com.bernaferrari.changedetection.diagnostics.AppEventKind.BACKGROUND_FAILURE, error, stage = com.bernaferrari.changedetection.diagnostics.AppEventStage.WORKER_FOREGROUND)
+            syncEngine.checkPage(site.id) { save(site, SyncEngine.FetchResult.Error("Background check could not start", error)) }
+        })
     }
 
     private fun SyncResult.toWorkResult(): Result = when (this) {
-        is SyncResult.Success -> Result.success()
-        is SyncResult.Skipped -> Result.success()
-        is SyncResult.Failed -> if (error.isRetryable) Result.retry() else Result.failure()
+        is SyncResult.Success, is SyncResult.Skipped -> Result.success()
+        is SyncResult.Failed -> if (error.isRetryable) retryWithinLimit() else Result.failure()
     }
+
+    private fun retryWithinLimit(): Result = if (runAttemptCount < 3) Result.retry() else Result.failure()
+
     private suspend fun getComparisonMethod(): ComparisonMethod {
         val preferences = dataStore.data.first()
         val stored = preferences[SettingsViewModel.COMPARISON_METHOD_KEY]

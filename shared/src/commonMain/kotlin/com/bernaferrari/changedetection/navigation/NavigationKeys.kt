@@ -31,9 +31,6 @@ data object SettingsDestination : NavKey
 data class PageDetailDestination(val siteId: String) : NavKey
 
 @Serializable
-data class PageTurboDestination(val siteId: String) : NavKey
-
-@Serializable
 data class AddEditDestination(val initialUrl: String? = null) : NavKey
 
 @Serializable
@@ -66,7 +63,6 @@ val appNavSavedStateConfiguration =
                 polymorphic(NavKey::class) {
                     subclass(MainDestination::class, MainDestination.serializer())
                     subclass(PageDetailDestination::class, PageDetailDestination.serializer())
-                    subclass(PageTurboDestination::class, PageTurboDestination.serializer())
                     subclass(TurboDestination::class, TurboDestination.serializer())
                     subclass(LogsDestination::class, LogsDestination.serializer())
                     subclass(SettingsDestination::class, SettingsDestination.serializer())

@@ -41,7 +41,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlin.uuid.ExperimentalUuidApi
 import org.koin.core.annotation.KoinViewModel
@@ -62,7 +62,6 @@ class MainViewModel(
     private val errorHandler: ErrorHandler,
     private val applicationScope: ApplicationScope,
     syncProgressTracker: SyncProgressTracker,
-    private val syncEngine: com.bernaferrari.changedetection.sync.SyncEngine,
 ) : ViewModel() {
 
     val syncStatusFlow = monitoringManager.getSyncStatusFlow()
@@ -110,10 +109,12 @@ class MainViewModel(
 
     fun pruneSite(siteId: String) {
         viewModelScope.launch {
-            runCatching {
+            try {
                 mSnapsRepository.pruneSnaps(siteId)
                 _uiMessage.trySend(UiMessage.SnapshotsPruned)
-            }.onFailure { error ->
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
                 showError(
                     error = error,
                     context = ErrorContext.GENERAL,
@@ -126,9 +127,11 @@ class MainViewModel(
 
     fun saveSite(site: Site) {
         viewModelScope.launch {
-            runCatching {
+            try {
                 mSitesRepository.saveSite(site)
-            }.onFailure { error ->
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
                 showError(
                     error = error,
                     context = ErrorContext.ADD_SITE,
@@ -141,7 +144,11 @@ class MainViewModel(
 
     fun updateIconShape(siteId: String, shape: PageIconShape) {
         viewModelScope.launch {
-            runCatching { mSitesRepository.updateIconShape(siteId, shape) }.onFailure { error ->
+            try {
+                mSitesRepository.updateIconShape(siteId, shape)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
                 showError(error, ErrorContext.EDIT_SITE, siteId, retryAction = { updateIconShape(siteId, shape) })
             }
         }
@@ -149,7 +156,11 @@ class MainViewModel(
 
     fun updateIconColor(siteId: String, colors: com.bernaferrari.changedetection.repo.ColorGroup) {
         viewModelScope.launch {
-            runCatching { mSitesRepository.updateIconColor(siteId, colors) }.onFailure { error ->
+            try {
+                mSitesRepository.updateIconColor(siteId, colors)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
                 showError(error, ErrorContext.EDIT_SITE, siteId, retryAction = { updateIconColor(siteId, colors) })
             }
         }
@@ -157,10 +168,12 @@ class MainViewModel(
 
     fun setMonitoringEnabled(siteId: String, enabled: Boolean) {
         viewModelScope.launch {
-            runCatching {
+            try {
                 mSitesRepository.setMonitoringEnabled(siteId, enabled)
                 if (!enabled) removeSiteFromQuickMonitor(siteId)
-            }.onFailure { error ->
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
                 showError(error, ErrorContext.EDIT_SITE, siteId, retryAction = { setMonitoringEnabled(siteId, enabled) })
             }
         }
@@ -168,7 +181,11 @@ class MainViewModel(
 
     fun setNotificationsEnabled(siteId: String, enabled: Boolean) {
         viewModelScope.launch {
-            runCatching { mSitesRepository.setNotificationsEnabled(siteId, enabled) }.onFailure { error ->
+            try {
+                mSitesRepository.setNotificationsEnabled(siteId, enabled)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
                 showError(error, ErrorContext.EDIT_SITE, siteId, retryAction = { setNotificationsEnabled(siteId, enabled) })
             }
         }
@@ -225,10 +242,14 @@ class MainViewModel(
 
     fun resumeScheduledChecks() {
         applicationScope.scope.launch {
-            runCatching {
+            try {
                 dataStore.edit { it[com.bernaferrari.changedetection.background.MonitoringSchedule.ENABLED] = true }
                 monitoringManager.updateSchedule()
-            }.onFailure { showError(it, ErrorContext.GENERAL) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                showError(error, ErrorContext.GENERAL)
+            }
         }
     }
 
@@ -236,7 +257,6 @@ class MainViewModel(
 
     // Initialize monitoring
     init {
-        applicationScope.scope.launch { runCatching { syncEngine.resolveMissingIcons() } }
         // Monitor work info changes to update loading states
         viewModelScope.launch {
             syncStatusFlow.collect { syncList ->
@@ -252,8 +272,13 @@ class MainViewModel(
         }
 
         viewModelScope.launch {
-            runCatching { monitoringManager.updateSchedule() }
-                .onFailure { showError(it, ErrorContext.GENERAL) }
+            try {
+                monitoringManager.updateSchedule()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                showError(error, ErrorContext.GENERAL)
+            }
         }
     }
 
@@ -274,7 +299,7 @@ class MainViewModel(
     /** A quiet trial of the other route for a failing page; any problem simply means "no". */
     internal suspend fun textWorks(site: Site, previewer: CapturePreviewer): Boolean = try {
         textLoads(site, previewer)
-    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+    } catch (cancelled: CancellationException) {
         throw cancelled
     } catch (_: Exception) {
         false
@@ -291,15 +316,14 @@ class MainViewModel(
 
     fun refreshAllSites() {
         viewModelScope.launch {
-            val sites = runCatching { mSitesRepository.getSites() }
-                .onFailure { error ->
-                    showError(
-                        error = error,
-                        context = ErrorContext.GENERAL,
-                        retryAction = ::refreshAllSites,
-                    )
-                }.getOrNull()
-                ?: return@launch
+            val sites = try {
+                mSitesRepository.getSites()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                showError(error, ErrorContext.GENERAL, retryAction = ::refreshAllSites)
+                return@launch
+            }
             if (sites.isEmpty()) return@launch
 
             sites.forEach { site ->
@@ -323,6 +347,9 @@ class MainViewModel(
 
             // Monitor work completion without blocking caller
             monitorSiteWorkCompletionAsync(site.id)
+        } catch (cancelled: CancellationException) {
+            _optimisticLoadingSites.update { it - site.id }
+            throw cancelled
         } catch (e: Exception) {
             _optimisticLoadingSites.update { it - site.id }
             showError(
@@ -345,6 +372,8 @@ class MainViewModel(
             // Hand off tap feedback to actual execution tracking as soon as Android
             // acknowledges the request. ENQUEUED retries are not active checks.
             com.bernaferrari.changedetection.background.awaitSiteRequest(syncStatusFlow, siteId)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             appLog.e("Failed to monitor work for site $siteId: ${e.message}")
         } finally {
@@ -376,8 +405,13 @@ class MainViewModel(
     fun markRead(row: SiteAndLastSnap) {
         val snapId = row.snap?.snapId ?: return
         viewModelScope.launch {
-            runCatching { mSitesRepository.markSiteRead(row.site.id, snapId) }
-                .onFailure { showError(it, ErrorContext.EDIT_SITE, row.site.id) }
+            try {
+                mSitesRepository.markSiteRead(row.site.id, snapId)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                showError(error, ErrorContext.EDIT_SITE, row.site.id)
+            }
         }
     }
 

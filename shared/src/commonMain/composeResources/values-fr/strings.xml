@@ -20,7 +20,7 @@
     <string name="more_options">Plus d’options</string>
     <string name="loading">Chargement…</string>
     <string name="saving">Enregistrement…</string>
-    <string name="turbo_mode">Turbo</string>
+    <string name="turbo_mode">Surveillance rapide</string>
     <string name="how_it_works">Comment ça marche</string>
     <string name="select_site_canvas_label">Votre bureau de changement</string>
     <string name="select_site_canvas_title">Chaque mise à jour, dans un endroit calme.</string>
@@ -34,13 +34,13 @@
         <item quantity="other">%1$d pages sélectionnées</item>
     </plurals>
     <string name="nav_home">Accueil</string>
-    <string name="nav_turbo">Turbo</string>
+    <string name="nav_turbo">Surveillance rapide</string>
     <string name="nav_settings">Paramètres</string>
     <string name="home_action_check_now">Vérifier maintenant</string>
     <string name="home_section_attention">À vérifier</string>
     <string name="home_search_clear">Effacer la recherche</string>
     <string name="home_search_close">Fermer la recherche</string>
-    <string name="turbo_ended">Turbo terminé</string>
+    <string name="turbo_ended">Surveillance rapide terminé</string>
     <string name="settings_title">Paramètres</string>
     <string name="settings_theme_label">Thème</string>
     <string name="settings_palette_label">Couleur</string>
@@ -147,9 +147,9 @@
     <string name="how_it_works_step_monitor_title">Choisissez à quelle fréquence vous devez vérifier</string>
     <string name="how_it_works_step_monitor_description">Utilisez des contrôles d’arrière-plan adaptées à la batterie pour le suivi quotidien.</string>
     <string name="how_it_works_step_monitor_highlight">Vous contrôlez l’intervalle et les exigences de réseau ou de puissance.</string>
-    <string name="how_it_works_step_focus_title">Utiliser Turbo lors de la timing questions</string>
+    <string name="how_it_works_step_focus_title">Utiliser Surveillance rapide lors de la timing questions</string>
     <string name="how_it_works_step_focus_description">Vérifiez les pages sélectionnées toutes les %1$d à %2$d secondes pendant jusqu’à 3 heures.</string>
-    <string name="how_it_works_step_focus_highlight">Turbo s’arrête quand son timer s’arrête. vous pouvez l’arrêter plus tôt à tout moment.</string>
+    <string name="how_it_works_step_focus_highlight">Surveillance rapide s’arrête quand son timer s’arrête. vous pouvez l’arrêter plus tôt à tout moment.</string>
     <string name="how_it_works_step_alerts_title">Découvrez exactement ce qui a changé</string>
     <string name="how_it_works_step_alerts_description">Ouvrez une page pour comparer les versions sauvegardées telles que le texte, les pages rendues ou les images d’écran.</string>
     <string name="how_it_works_step_alerts_highlight">Vos versions sauvegardées et changement d’historique restent sur votre appareil.</string>
@@ -222,7 +222,7 @@
     <string name="snapshot_deleted">Version supprimée</string>
     <string name="comparison_check_now_hint">Cette page a été vérifiée une fois jusqu’à présent - vérifiez à nouveau pour voir ce qui a changé.</string>
     <string name="schedule_save_failed">Vous ne pouvez pas appliquer le calendrier. veuillez essayer à nouveau.</string>
-    <string name="turbo_stop_session">Résultats Turbo</string>
+    <string name="turbo_stop_session">Arrêter la surveillance rapide</string>
     <string name="storage_history_title">Histoire sauvée</string>
     <string name="storage_history_usage">%1$s MB de versions sauvées</string>
     <string name="storage_history_policy">Les versions plus anciennes sont supprimées au-dessus de 250 MB. Les deux dernières versions de chaque page sont toujours conservées, même si elles dépassent ce budget.</string>
@@ -331,7 +331,7 @@
     <string name="settings_load_failed">Impossible de charger les paramètres. Réessayez.</string>
     <string name="settings_write_failed">Vous ne pouvez pas sauver votre choix, essayez de nouveau.</string>
     <string name="storage_history_load_failed">Impossible de calculer l’espace utilisé.</string>
-    <string name="turbo_unavailable_title">Turbo n’est pas disponible dans cette prévision</string>
+    <string name="turbo_unavailable_title">Surveillance rapide n’est pas disponible dans cette prévision</string>
     <string name="turbo_unavailable_description">Utilisez l’application Android, iOS ou desktop pour démarrer une session de suivi.</string>
     <string name="image_diff_sampled_pixels_different">%1$s pixels échantillonnés diffèrent. les statistiques utilisent une prévision de taille réduite.</string>
     <string name="check_failure_capture_unavailable">Vérification d’écran inaccessible</string>
@@ -409,9 +409,9 @@
     <string name="home_select_pages">Choisir des pages</string>
     <string name="detail_status_failed">La dernière vérification a échoué %1$s</string>
     <string name="detail_calendar_summary">%1$s sur %2$s au cours des 30 derniers jours</string>
-    <string name="turbo_sheet_no_pages">Pas encore de pages actives.Récupérer une page avant de commencer Turbo.</string>
+    <string name="turbo_sheet_no_pages">Pas encore de pages actives.Récupérer une page avant de commencer Surveillance rapide.</string>
     <string name="turbo_sheet_paused_note">Les pages interrompues ne sont pas inclus.</string>
-    <string name="turbo_live_note_while_open">Turbo continue de vérifier pendant que l’application est ouverte. Vous pouvez quitter cet écran et revenir pour voir tout changement.</string>
+    <string name="turbo_live_note_while_open">Surveillance rapide continue de vérifier pendant que l’application est ouverte. Vous pouvez quitter cet écran et revenir pour voir tout changement.</string>
     <string name="image_diff_highlight_unavailable_body">Essayez à nouveau ou utilisez avant et après pour vérifier les captures d’écran sauvegardées.</string>
     <string name="image_diff_dimensions_supporting">Comparez les captures ci-dessous; leurs différentes tailles empêchent une comparaison directe des pixels.</string>
     <string name="turbo_card_cadence">Chaque %1$s · %2$s</string>
@@ -493,9 +493,9 @@
     <string name="turbo_sheet_for">Arrêtez après</string>
     <string name="turbo_sheet_pick">Choisir au moins une page</string>
     <plurals name="turbo_sheet_start">
-        <item quantity="one">Activer Turbo pour %1$d page</item>
-        <item quantity="many">Activer Turbo pour %1$d pages</item>
-        <item quantity="other">Activer Turbo pour %1$d pages</item>
+        <item quantity="one">Activer la surveillance rapide pour %1$d page</item>
+        <item quantity="many">Activer la surveillance rapide pour %1$d pages</item>
+        <item quantity="other">Activer la surveillance rapide pour %1$d pages</item>
     </plurals>
     <string name="turbo_sheet_caption">Fin à %1$s · Utilisez plus de batterie pendant le fonctionnement</string>
     <string name="turbo_run_again">Courir à nouveau</string>
@@ -508,16 +508,16 @@
     <string name="turbo_ends_at">Résultats %1$s</string>
     <string name="turbo_changed">Modifié</string>
     <string name="turbo_checking">Vérification</string>
-    <string name="turbo_ended_planned">Turbo finit comme prévu</string>
-    <string name="turbo_ended_stopped">Turbo arrêté par vous</string>
-    <string name="turbo_ended_interrupted">Turbo a été interrompu</string>
-    <string name="turbo_ended_failed">Turbo ne pouvait pas commencer</string>
+    <string name="turbo_ended_planned">Surveillance rapide finit comme prévu</string>
+    <string name="turbo_ended_stopped">Surveillance rapide arrêté par vous</string>
+    <string name="turbo_ended_interrupted">Surveillance rapide a été interrompu</string>
+    <string name="turbo_ended_failed">Surveillance rapide ne pouvait pas commencer</string>
     <string name="turbo_row_quiet">Aucun changement · vérifié il y a %1$d s</string>
     <string name="nav_activity">Activité</string>
     <plurals name="turbo_card_title_n">
-        <item quantity="one">Turbo · %1$d page</item>
-        <item quantity="many">Turbo · %1$d pages</item>
-        <item quantity="other">Turbo · %1$d pages</item>
+        <item quantity="one">Surveillance rapide · %1$d page</item>
+        <item quantity="many">Surveillance rapide · %1$d pages</item>
+        <item quantity="other">Surveillance rapide · %1$d pages</item>
     </plurals>
     <string name="turbo_found_none">Aucun changement trouvé</string>
     <plurals name="turbo_summary_checks">
@@ -525,7 +525,7 @@
         <item quantity="many">%1$d vérifications</item>
         <item quantity="other">%1$d vérifications</item>
     </plurals>
-    <string name="turbo_live_note">Turbo continue à fonctionner si vous quittez cet écran. Vous recevrez une notification au moment où une page change.</string>
+    <string name="turbo_live_note">Surveillance rapide continue à fonctionner si vous quittez cet écran. Vous recevrez une notification au moment où une page change.</string>
     <string-array name="weekday_names">
         <item>lundi</item>
         <item>mardi</item>
@@ -562,7 +562,7 @@
         <item quantity="many">Les %1$d versions enregistrées seront supprimées de cet appareil.</item>
         <item quantity="other">Les %1$d versions enregistrées seront supprimées de cet appareil.</item>
     </plurals>
-    <string name="detail_turbo_on">Turbo est en</string>
+    <string name="detail_turbo_on">La surveillance rapide est active</string>
     <string name="detail_status_paused">L’histoire est conservée</string>
     <string name="detail_status_checked">Vue %1$s · %2$s</string>
     <string name="detail_status_checked_manual">Vérifié %1$s · les vérifications automatiques sont hors</string>
@@ -642,13 +642,13 @@
     <string name="checks_title">Vérification automatique</string>
     <string name="checks_every">Chaque</string>
     <string name="checks_custom">Cadeau…</string>
-    <string name="checks_own_schedule_note">Ce calendrier s’applique à toutes les pages actives. Les sessions Turbo fonctionnent séparément et ne le modifient pas.</string>
+    <string name="checks_own_schedule_note">Ce calendrier s’applique à toutes les pages actives. Les sessions Surveillance rapide fonctionnent séparément et ne le modifient pas.</string>
     <string name="checks_only_when">Seulement quand</string>
     <string name="checks_wifi">Sur Wi-Fi</string>
     <string name="checks_wifi_body">Économisez les données mobiles</string>
     <string name="checks_charging">Chargement</string>
     <string name="checks_battery">La batterie n’est pas basse</string>
-    <string name="checks_android_note">Android réalise le moment exact pour économiser la batterie, de sorte que les vérifications peuvent fonctionner un peu tard. Pour les pages critiques du temps, utilisez Turbo.</string>
+    <string name="checks_android_note">Android réalise le moment exact pour économiser la batterie, de sorte que les vérifications peuvent fonctionner un peu tard. Pour les pages critiques du temps, utilisez Surveillance rapide.</string>
     <string name="checks_weekly">Hebdomadaire</string>
     <string name="checks_daily">Tous les jours</string>
     <string name="checks_hours_short">%1$d h</string>
@@ -668,7 +668,7 @@
     <string name="editor_edit_title">Modifier la page</string>
     <string name="editor_start">Commencer à regarder</string>
     <string name="editor_paste_title">Quelle page surveiller ?</string>
-    <string name="editor_paste_body">Saisissez une adresse ou collez un lien. La page s’ouvre dans un navigateur pour vous permettre de vous connecter, de trouver la bonne page et de choisir les parties à surveiller.</string>
+    <string name="editor_paste_body">Saisissez une adresse ou collez un lien pour voir ce que vous allez surveiller.</string>
     <string name="editor_compare">Comparaison</string>
     <string name="editor_preview">Ce que nous comparons</string>
     <string name="editor_little_text_title">Cette page n’a guère de texte</string>
@@ -777,7 +777,7 @@
         <item quantity="other">%1$d suppressions</item>
     </plurals>
     <string name="detail_sign_in">Signature dans</string>
-    <string name="browser_session_note">Text et Screenshot utilisent le profil de navigateur in-app. Enregistrer ou changer des comptes sur un site affecte les horaires pour ce site. Les sessions peuvent expirer.</string>
+    <string name="browser_session_note">Les vérifications dans le navigateur partagent les sessions enregistrées sur cet appareil. Une connexion ou un changement de compte peut affecter les autres surveillances de ce site. Les sessions peuvent expirer.</string>
     <string name="turbo_next_check">Précédent Article suivant %1$d s</string>
     <string name="picker_selected_image">Une image</string>
     <string name="picker_selected_frame">Un cadre intégré (souvent une annonce)</string>
@@ -845,7 +845,7 @@
     <string name="backup_restore">Restaurer depuis un fichier</string>
     <string name="backup_restore_body">Ajoute les pages qui ne sont pas encore ici. Rien n’est modifié sur cet appareil.</string>
     <string name="backup_restore_settings">Restaurer aussi les réglages de l’app</string>
-    <string name="backup_privacy_note">Le fichier n’est pas chiffré et contient les pages que vous suivez. Les connexions ne sont jamais incluses.</string>
+    <string name="backup_privacy_note">Le fichier n’est pas chiffré. Une sauvegarde complète peut contenir du HTML privé et des captures de pages où vous êtes connecté. Les cookies du navigateur sont exclus.</string>
     <string name="backup_working">En cours…</string>
     <string name="backup_saved">Sauvegarde enregistrée. Pages : %1$d · Versions : %2$d</string>
     <string name="backup_restored">Pages ajoutées : %1$d · Déjà présentes : %2$d · Versions : %3$d</string>
@@ -861,4 +861,15 @@
     <string name="backup_pages_added">Pages ajoutées</string>
     <string name="backup_already_here">Déjà présentes</string>
     <string name="backup_restore_complete">Restauration terminée</string>
+    <string name="home_unread_changes">Changements non lus</string>
+    <string name="settings_android_tools">Les sauvegardes, les sessions enregistrées et les rapports de diagnostic sont disponibles sur Android.</string>
+    <string name="turbo_sheet_body_while_open">Vérifie les pages sélectionnées toutes les quelques secondes pendant que l’application est ouverte.</string>
+    <string name="feedback_email_subject">Avis sur Change Detection</string>
+    <string name="backup_skipped_pages">Pages ignorées</string>
+    <string name="backup_duplicate_versions">Versions en double ignorées</string>
+    <string name="android_browser_start_failed">Impossible de démarrer le navigateur. Si le problème persiste, redémarrez l’application.</string>
+    <string name="editor_direct_text_body">Surveillez les prix, les dates et d’autres textes. L’aperçu montre ce que nous pouvons vérifier directement.</string>
+    <string name="editor_direct_browser_hint">Il manque du texte ou vous devez vous connecter ?</string>
+    <string name="editor_use_direct_preview">Utiliser l’aperçu direct</string>
+    <string name="editor_direct_empty">L’aperçu direct ne contient aucun texte lisible.</string>
 </resources>

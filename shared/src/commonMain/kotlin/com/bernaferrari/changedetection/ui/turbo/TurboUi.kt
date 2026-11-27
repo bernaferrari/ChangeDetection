@@ -188,7 +188,7 @@ private fun NextCheck(state: TurboState, checking: Boolean) {
     val frame by produceState(getCurrentTimeMillis(), anchor) {
         while (true) {
             value = getCurrentTimeMillis()
-            delay(50)
+            delay(1_000)
         }
     }
     val elapsed = (frame - anchor).coerceAtLeast(0)
@@ -290,7 +290,7 @@ fun TurboSetupSheet(
                     BoltBadge(64.dp)
                     Text(stringResource(Res.string.turbo_mode), Modifier.padding(top = 12.dp), style = MaterialTheme.typography.headlineMedium)
                     Text(
-                        stringResource(Res.string.turbo_sheet_body),
+                        stringResource(if (monitoringCapabilities.androidTools) Res.string.turbo_sheet_body else Res.string.turbo_sheet_body_while_open),
                         Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

@@ -59,8 +59,7 @@ data class AddEditUiState(
     val visualChangeThresholdBps: Int = 0,
     val textRegion: com.bernaferrari.changedetection.detection.TextRegion = com.bernaferrari.changedetection.detection.TextRegion(),
     val regionError: Boolean = false,
-    // Screenshots are how most pages are watched; text is the light alternative.
-    val captureMode: com.bernaferrari.changedetection.repo.CaptureMode = if (com.bernaferrari.changedetection.repo.supportsVisualMonitoring) com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT else com.bernaferrari.changedetection.repo.CaptureMode.TEXT,
+    val captureMode: CaptureMode = CaptureMode.DIRECT_TEXT,
     val url: String = "",
     val title: String = "",
     /** The page's icon, from the preview capture or the saved page. */
@@ -225,7 +224,7 @@ class AddEditViewModel(
             } else {
                 try {
                     val stored = preferences.data.first()[SettingsViewModel.COMPARISON_METHOD_KEY]
-                    val mode = if (stored == ComparisonMethod.HTML.name || !com.bernaferrari.changedetection.repo.supportsVisualMonitoring) CaptureMode.TEXT else CaptureMode.SCREENSHOT
+                    val mode = if (stored == ComparisonMethod.SCREENSHOT.name && com.bernaferrari.changedetection.repo.supportsVisualMonitoring) CaptureMode.SCREENSHOT else CaptureMode.DIRECT_TEXT
                     _uiState.update { if (captureModeEditedByUser) it else it.copy(captureMode = mode) }
                 } catch (cancelled: CancellationException) {
                     throw cancelled
@@ -277,6 +276,8 @@ class AddEditViewModel(
                     saveError = AddEditError.LoadFailed,
                 )
             }
+        } finally {
+            _uiState.update { if (it.isLoading) it.copy(isLoading = false) else it }
         }
     }
 
@@ -441,7 +442,7 @@ class AddEditViewModel(
                 val duplicate = sitesRepository.findDuplicate(normalizedUrl, state.captureMode)
                 if (duplicate != null && duplicate.id != siteId) {
                     _uiState.update {
-                        it.copy(isSaving = false, duplicateSiteId = duplicate.id)
+                        it.copy(duplicateSiteId = duplicate.id)
                     }
                     return@launch
                 }
@@ -466,7 +467,7 @@ class AddEditViewModel(
                         iconUrl = state.iconUrl.ifBlank { existingSite.iconUrl },
                         iconShape = state.iconShape,
                         colors = state.selectedColors,
-                        threshold = if ((state.visualChangeThresholdBps > 0 && state.captureMode in setOf(com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT, com.bernaferrari.changedetection.repo.CaptureMode.DEFAULT)) || state.captureMode in setOf(com.bernaferrari.changedetection.repo.CaptureMode.TEXT, com.bernaferrari.changedetection.repo.CaptureMode.SOURCE)) 0 else state.legacyThreshold,
+                        threshold = if ((state.visualChangeThresholdBps > 0 && state.captureMode in setOf(CaptureMode.SCREENSHOT, CaptureMode.DEFAULT)) || state.captureMode.isText || state.captureMode == CaptureMode.SOURCE) 0 else state.legacyThreshold,
                         timestamp = if (startFresh) 0L else existingSite.timestamp,
                     ) ?: Site(
                         id = Uuid.random().toString(),
@@ -500,7 +501,6 @@ class AddEditViewModel(
                 // away and load the page again. Configuration remains available until saving.
                 pendingLivePreview?.join()
                 if ((_uiState.value.preview as? CapturePreviewState.Failed)?.reason == PreviewFailure.MULTIPLE_REGIONS) {
-                    _uiState.update { it.copy(isSaving = false) }
                     return@launch
                 }
                 monitoringManager.updateSchedule()
@@ -513,21 +513,31 @@ class AddEditViewModel(
                 // The page was just captured for the preview; keep that as its first version instead of loading
                 // it again. Leaving this screen must not abandon the commit halfway.
                 val kept = firstVersion != null && kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
-                    runCatching { previewer.keepAsFirstVersion(baseSite, firstVersion) }
-                        .onFailure { appLog.w("Could not keep the preview as the first version", it) }
-                        .getOrDefault(false)
+                    try {
+                        previewer.keepAsFirstVersion(baseSite, firstVersion)
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (error: Exception) {
+                        appLog.w("Could not keep the preview as the first version", error)
+                        false
+                    }
                 }
                 // Saving succeeded even if the best-effort initial check cannot be scheduled.
                 if (!kept) {
-                    runCatching { monitoringManager.reloadSite(baseSite) }
-                        .onFailure { appLog.w("Monitor saved, but its initial check could not be scheduled", it) }
+                    try {
+                        monitoringManager.reloadSite(baseSite)
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (error: Exception) {
+                        appLog.w("Monitor saved, but its initial check could not be scheduled", error)
+                    }
                 }
                 if (siteId == null) {
                     _events.trySend(AddEditEvent.MonitorAdded)
                 }
 
                 _uiState.update { current ->
-                    current.copy(isSaving = false, saveComplete = true, savedSite = baseSite)
+                    current.copy(saveComplete = true, savedSite = baseSite)
                 }
             } catch (error: CancellationException) {
                 throw error
@@ -535,10 +545,11 @@ class AddEditViewModel(
                 appLog.e("Failed to save monitor", error)
                 _uiState.update {
                     it.copy(
-                        isSaving = false,
                         saveError = if (error is com.bernaferrari.changedetection.repo.source.SiteNotFoundException) AddEditError.SiteNotFound else AddEditError.SaveFailed,
                     )
                 }
+            } finally {
+                _uiState.update { if (it.isSaving) it.copy(isSaving = false) else it }
             }
         }
     }

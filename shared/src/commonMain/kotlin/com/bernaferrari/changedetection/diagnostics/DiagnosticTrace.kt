@@ -2,6 +2,7 @@ package com.bernaferrari.changedetection.diagnostics
 
 import com.bernaferrari.changedetection.browser.CaptureNotReadyException
 import com.bernaferrari.changedetection.browser.CaptureResourceFailure
+import com.bernaferrari.changedetection.browser.CaptureResourceKind
 import com.bernaferrari.changedetection.browser.CaptureExtent
 import com.bernaferrari.changedetection.error.CheckFailure
 import com.bernaferrari.changedetection.repo.CaptureMode
@@ -19,7 +20,7 @@ import kotlin.time.TimeSource
 
 @Serializable enum class DiagnosticOutcome { SUCCESS, FAILURE, CANCELLED, SKIPPED, INCOMPLETE }
 
-@Serializable enum class DiagnosticException { HTTP, DATABASE, REGION, TIMEOUT, CANCELLED, STORAGE, IO, TLS, INVALID_CONTENT, JSON, SQLITE, OTHER, DOCUMENT_CHANGED }
+@Serializable enum class DiagnosticException { HTTP, DATABASE, REGION, TIMEOUT, CANCELLED, STORAGE, IO, TLS, INVALID_CONTENT, JSON, SQLITE, OTHER, DOCUMENT_CHANGED, FONT }
 
 @Serializable enum class DiagnosticMetric { HTTP_STATUS, WEBVIEW_ERROR, TLS_ERROR, RENDERER_CRASH, ATTACHED, DOM_READY, CALLBACK_NULL, BYTES_BUCKET, BASELINE_PRESENT, CAPTURE_CONTEXT, CAPTURE_ISSUE, REGION_RESULT, DOCUMENT_CHANGED }
 
@@ -235,8 +236,11 @@ internal class DiagnosticSpan : AbstractCoroutineContextElement(Key) {
 
 internal fun exceptionKind(error: Throwable): DiagnosticException = when {
     error is com.bernaferrari.changedetection.browser.CaptureNotReadyException -> when (error.issue) {
-        com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED -> DiagnosticException.HTTP
+        com.bernaferrari.changedetection.browser.CaptureIssue.RESOURCE_FAILED ->
+            if (error.resources.isNotEmpty() && error.resources.all { it.kind == CaptureResourceKind.FONT && it.httpStatus == null && !it.certificateRejected }) DiagnosticException.FONT else DiagnosticException.HTTP
+
         com.bernaferrari.changedetection.browser.CaptureIssue.DOCUMENT_CHANGED -> DiagnosticException.DOCUMENT_CHANGED
+
         else -> DiagnosticException.TIMEOUT
     }
 

@@ -122,7 +122,6 @@ import com.bernaferrari.changedetection.preview.ChangePreview
 import com.bernaferrari.changedetection.repo.CaptureMode
 import com.bernaferrari.changedetection.repo.SiteAndLastSnap
 import com.bernaferrari.changedetection.shared.generated.resources.*
-import com.bernaferrari.changedetection.ui.components.ErrorBanner
 import com.bernaferrari.changedetection.ui.components.checkFailureTitle
 import com.bernaferrari.changedetection.ui.kit.Callout
 import com.bernaferrari.changedetection.ui.kit.ChangePreviewBlock
@@ -158,7 +157,7 @@ fun HomeScreen(
     onSetUpTurbo: (siteIds: Set<String>) -> Unit,
     onOpenTurbo: () -> Unit,
     onHowItWorks: () -> Unit,
-    onEnableNotifications: () -> Unit,
+    onEnableNotifications: (onGranted: () -> Unit) -> Unit,
     modifier: Modifier = Modifier,
     selectedSiteId: String? = null,
     listState: androidx.compose.foundation.lazy.LazyListState = rememberLazyListState(),
@@ -170,7 +169,6 @@ fun HomeScreen(
     val schedule by viewModel.monitoringSchedule.collectAsStateWithLifecycle()
     val turbo by viewModel.quickMonitorState.collectAsStateWithLifecycle()
     val loading by viewModel.loadingSites.collectAsStateWithLifecycle()
-    val error by viewModel.currentError.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -276,9 +274,10 @@ fun HomeScreen(
                             selection = selection.clear()
                         },
                         onSetNotify = { on ->
-                            if (on) onEnableNotifications()
-                            all.orEmpty().filter { it.site.id in selection.ids }.forEach { viewModel.setNotificationsEnabled(it.site.id, on) }
+                            val ids = selection.ids
                             selection = selection.clear()
+                            val apply = { ids.forEach { viewModel.setNotificationsEnabled(it, on) } }
+                            if (on) onEnableNotifications(apply) else apply()
                         },
                         onEdit = {
                             val id = selection.ids.singleOrNull() ?: return@SelectionBar
@@ -324,12 +323,7 @@ fun HomeScreen(
                 )
             }
         },
-        snackbarHost = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                ErrorBanner(error = error, onDismiss = viewModel::dismissError, onRetry = viewModel::retryLastAction)
-                SnackbarHost(snackbar)
-            }
-        },
+        snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         when {
             all == null -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { com.bernaferrari.changedetection.ui.components.DelayedLoadingIndicator() }
@@ -365,6 +359,15 @@ fun HomeScreen(
                                 icon = Icons.Outlined.ScheduleSend,
                                 modifier = Modifier.animateItem().padding(bottom = 8.dp),
                                 actions = { FilledTonalButton(onClick = viewModel::resumeScheduledChecks) { Text(stringResource(Res.string.home_schedule_turn_on)) } },
+                            )
+                        }
+                    }
+                    if (unread.isNotEmpty()) {
+                        item(key = "unread-header") {
+                            SectionHeader(
+                                title = stringResource(Res.string.home_unread_changes),
+                                count = unread.size,
+                                modifier = Modifier.animateItem(),
                             )
                         }
                     }

@@ -15,7 +15,7 @@ import com.bernaferrari.changedetection.repo.ComparisonMethod
  * state and must never travel between devices; an imported file can only set these names, with checked values.
  */
 internal object BackupSettings {
-    private val booleans = listOf("background_sync", "require_wifi", "require_charging", "require_battery_not_low", "require_device_idle", "notification_image_previews")
+    private val booleans = listOf("background_sync", "require_wifi", "require_charging", "require_battery_not_low", "notification_image_previews")
 
     /** Name to the range an imported value must fall in. */
     private val longs = mapOf("sync_interval" to 15L..10_080L, "browser_delay_ms" to 0L..60_000L)

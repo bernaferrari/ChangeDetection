@@ -36,7 +36,7 @@ class ComparisonSharingTest {
             output.tryEmit(it.getArgument(0))
             null
         }.whenever(share).shareText(any(), any())
-        val model = ComparisonViewModel(sites, snaps, mock(), share, mock(), mock())
+        val model = ComparisonViewModel(sites, snaps, share, mock(), mock())
         try {
             model.loadSiteAndSnaps(site.id)
             model.uiState.first { it.singleSnapContent != null }

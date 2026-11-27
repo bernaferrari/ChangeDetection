@@ -57,12 +57,3 @@ Write the failing test first when fixing a bug. Do not edit an existing test to 
 - Commit subjects are plain sentences that describe the result for the user, for example
   "Settings opens without a Loading flash". No `feat:` or `fix:` prefixes.
 - Keep changes small and focused. Do not reformat or rename code you are not changing.
-
-## Checks that fail today
-
-`tools/verify.sh full` stops at these. They fail without any change of yours; do not try to fix them as part of other work.
-
-- `./gradlew :shared:compileKotlinIosSimulatorArm64`: five errors in `IosPageCapture.kt` (a library built with a newer Kotlin). Your change is fine if there are no other errors.
-- `./gradlew :webDemo:wasmJsBrowserDistribution`: stops at `kotlinWasmStoreYarnLock`. Run `./gradlew :webDemo:compileKotlinWasmJs` instead. Do not run `kotlinWasmUpgradeYarnLock`.
-
-Remove this section when they pass.

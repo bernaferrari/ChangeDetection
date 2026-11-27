@@ -5,10 +5,10 @@
 // `npx screenshot-studio recapture` runs this for every language and device size, and exports.
 // Alone: npx screenshot-studio tour [--profile phone] [--locale de-DE].
 // Options (studio.json "capture" runs): theme ("light" or "dark", default both), palette (BLUE…), style (VIBRANT…).
+import type {Tour} from 'screenshot-studio';
 import fs from 'node:fs';
 import path from 'node:path';
 
-/** @type {import('screenshot-studio').Tour} */
 export default {
   app: 'com.bernaferrari.changedetection.library.test',
   install: '../shared/build/outputs/apk/androidTest/shared-androidTest.apk',
@@ -18,7 +18,7 @@ export default {
     for (const theme of ['light', 'dark']) {
       if (d.options.theme && d.options.theme !== theme) continue;
       await d.night(theme === 'dark');
-      const extra = (key, value) => value ? ['-e', key, String(value)] : [];
+      const extra = (key: string, value: unknown) => value ? ['-e', key, String(value)] : [];
       const result = d.shell('am', 'instrument', '-w', '-e', 'class', 'com.bernaferrari.changedetection.store.StoreCaptureTest',
         '-e', 'store_locale', d.locale, '-e', 'store_profile', d.profile, '-e', 'store_theme', theme,
         ...extra('store_palette', d.options.palette), ...extra('store_style', d.options.style),
@@ -39,4 +39,4 @@ export default {
       console.log(d.profile, theme, images.join(' '));
     }
   },
-};
+} satisfies Tour;

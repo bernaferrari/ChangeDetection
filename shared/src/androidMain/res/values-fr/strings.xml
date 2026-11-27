@@ -9,16 +9,15 @@
     <string name="change_notification_channel_name">Changements détectés</string>
     <string name="change_notification_channel_description">Alertes lorsqu’un site surveillé change</string>
     <string name="quick_monitor_banner_live_badge">EN COURS</string>
-    <string name="quick_monitor_title">Turbo</string>
+    <string name="quick_monitor_title">Surveillance rapide</string>
     <string name="quick_monitor_channel_description">Indique qu’une session de surveillance rapide est en cours.</string>
-    <string name="quick_monitor_notification_title">⚡ Turbo actif</string>
+    <string name="quick_monitor_notification_title">⚡ Surveillance rapide active</string>
     <plurals name="quick_monitor_notification_subtitle">
         <item quantity="one">Vérification de %1$d page toutes les %2$d secondes</item>
         <item quantity="many">Vérification de %1$d pages toutes les %2$d secondes</item>
         <item quantity="other">Vérification de %1$d pages toutes les %2$d secondes</item>
     </plurals>
     <string name="action_stop_monitoring">Arrêter la surveillance</string>
-    <string name="empty_add_site_hint">Ajoutez une page pour lancer Turbo</string>
     <string name="start">Démarrer</string>
     <string name="change_notification_named">%1$s a changé</string>
     <string name="change_notification_generic">Appuyez pour voir ce qui a changé.</string>
@@ -48,4 +47,8 @@
     <string name="failure_notification_needs_you">Elle a besoin de votre attention. Appuyez pour voir quoi faire.</string>
     <string name="failure_notification_keeps_failing">Les vérifications échouent toujours. Appuyez pour voir pourquoi.</string>
     <string name="failure_notification_generic">Une page n’est plus vérifiée.</string>
+
+    <string name="quick_monitor_widget_inactive">La surveillance rapide est désactivée</string>
+    <string name="diagnostics_public_example">Si la page est publique, vous pouvez ajouter son lien au message destiné au support après avoir ouvert le menu de partage. N’ajoutez aucun lien privé ni aucun lien contenant des données personnelles.</string>
+    <string name="diagnostics_email_subject">Diagnostic Change Detection</string>
 </resources>

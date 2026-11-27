@@ -2,6 +2,8 @@ package com.bernaferrari.changedetection.diagnostics
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.bernaferrari.changedetection.browser.*
+import com.bernaferrari.changedetection.error.NetworkError
 import com.bernaferrari.changedetection.repo.CaptureMode
 import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
@@ -9,6 +11,9 @@ import kotlinx.serialization.json.*
 import org.junit.Assert.*
 import org.junit.Test
 import java.io.File
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 class DiagnosticStoreTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
@@ -52,6 +57,58 @@ class DiagnosticStoreTest {
             assertTrue(report, report.contains("failure-prioritized sample, not an overall failure rate"))
             assertTrue(report, report.contains("NO_MATCH"))
             assertFalse(report, report.contains("recent attempts failed"))
+        }
+    }
+
+    @Test fun previewAndSharedFileDistinguishFontProbeFromNavigationFailure() = runBlocking {
+        fixture { store, _, advance ->
+            advance(System.currentTimeMillis())
+            val prior = DiagnosticLog.sink
+            DiagnosticLog.sink = store
+            try {
+                val privateValue = "https://example.invalid/private?secret=SECRET"
+                try {
+                    recordDiagnostic(CaptureMode.SCREENSHOT, false, false, DiagnosticTrigger.CHECK, "font-$privateValue") {
+                        diagnosticMetric(DiagnosticStage.NAVIGATE, DiagnosticMetric.HTTP_STATUS, 200)
+                        diagnosticStage(DiagnosticStage.CAPTURE_PIXELS) {
+                            val probe = FontProbeFailure(FontProbeFailureReason.INVALID_QUERY, rebuiltShorthand = true)
+                            throw CaptureNotReadyException(CaptureIssue.RESOURCE_FAILED, listOf(CaptureResourceFailure(CaptureResourceKind.FONT, fontProbe = probe)))
+                        }
+                    }
+                } catch (_: CaptureNotReadyException) { }
+                try {
+                    recordDiagnostic(CaptureMode.SCREENSHOT, false, false, DiagnosticTrigger.CHECK, "http-$privateValue") {
+                        diagnosticStage(DiagnosticStage.NAVIGATE) {
+                            diagnosticMetric(DiagnosticStage.NAVIGATE, DiagnosticMetric.HTTP_STATUS, 503)
+                            throw NetworkError(503, privateValue)
+                        }
+                    }
+                } catch (_: NetworkError) { }
+
+                val font = store.report("font-$privateValue")
+                val nav = store.report("http-$privateValue")
+                val fontExplanation = "Page loaded (HTTP 200). Screenshot blocked. The browser rejected the app's font query."
+                val navExplanation = "The page returned HTTP 503. Capture did not start."
+                assertEquals(fontExplanation, font.failureExplanation)
+                assertEquals(navExplanation, nav.failureExplanation)
+                val shared = listOf(font, nav).map { store.prepareShare(it) }
+                try {
+                    val fontJson = shared[0].readText()
+                    val navJson = shared[1].readText()
+                    assertTrue(fontJson.contains(fontExplanation))
+                    assertTrue(fontJson.contains("INVALID_QUERY"))
+                    assertTrue(fontJson.contains("rebuiltShorthand"))
+                    assertFalse(fontJson.contains("HTTP 503"))
+                    assertTrue(navJson.contains(navExplanation))
+                    assertFalse(navJson.contains("INVALID_QUERY"))
+                    assertFalse(fontJson.contains("SECRET"))
+                    assertFalse(navJson.contains("SECRET"))
+                } finally {
+                    shared.forEach { it.delete() }
+                }
+            } finally {
+                DiagnosticLog.sink = prior
+            }
         }
     }
 
@@ -256,6 +313,39 @@ class DiagnosticStoreTest {
             } finally {
                 reopened.close()
             }
+        }
+    }
+
+    @Test fun aSlowCheckpointWriteDoesNotCancelAnOpenedReport() = runBlocking {
+        val dir = File(context.cacheDir, "diagnostic-slow-${java.util.UUID.randomUUID()}")
+        val writeStarted = CountDownLatch(1)
+        val finishWrite = CountDownLatch(1)
+        val first = AtomicBoolean(true)
+        val now = 1_790_000_000_000L
+        val store = AndroidDiagnosticStore(context, dir, { now }, {
+            if (first.getAndSet(false)) {
+                writeStarted.countDown()
+                check(finishWrite.await(10, TimeUnit.SECONDS))
+            }
+            runtime()
+        })
+        try {
+            store.append(DiagnosticAttempt(startedAt = now, mode = CaptureMode.TEXT, selected = false, excluded = false, trigger = DiagnosticTrigger.CHECK, outcome = DiagnosticOutcome.SUCCESS, events = emptyList()))
+            withContext(Dispatchers.IO) { assertTrue(writeStarted.await(5, TimeUnit.SECONDS)) }
+            val opened = async {
+                try {
+                    Result.success(store.report())
+                } catch (timeout: TimeoutCancellationException) {
+                    Result.failure(timeout)
+                }
+            }
+            delay(2_700)
+            finishWrite.countDown()
+            assertEquals(1, opened.await().getOrThrow().attemptCount)
+        } finally {
+            finishWrite.countDown()
+            store.close()
+            dir.deleteRecursively()
         }
     }
 

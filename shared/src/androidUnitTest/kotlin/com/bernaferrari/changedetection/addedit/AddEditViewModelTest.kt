@@ -1,6 +1,7 @@
 package com.bernaferrari.changedetection.addedit
 
 import com.bernaferrari.changedetection.repo.PageIconShape
+import com.bernaferrari.changedetection.repo.CaptureMode
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -13,6 +14,7 @@ import com.bernaferrari.changedetection.repo.source.SitesRepository
 import com.bernaferrari.changedetection.repo.ContentTypeInfo
 import com.bernaferrari.changedetection.repo.source.SnapsDataSource
 import com.bernaferrari.changedetection.repo.source.SnapsRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -34,6 +36,31 @@ import org.junit.runner.Description
 class AddEditViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
+
+    @Test fun cancellingTheSiteLoadClearsTheBusyState() = runTest {
+        val source = FakeSitesDataSource().apply { cancelNextRead = true }
+        val editor = createViewModel(siteId = "page", dataSource = source)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        assertFalse(editor.uiState.value.isLoading)
+        assertEquals(null, editor.uiState.value.saveError)
+    }
+
+    @Test fun aCancelledSaveCanBeRetried() = runTest {
+        val source = FakeSitesDataSource().apply { savedSite = existingSite("page", "https://example.com") }
+        val editor = createViewModel(siteId = "page", dataSource = source)
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        source.cancelNextRead = true
+        editor.setTitle("Updated title")
+        editor.saveSite()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+
+        assertFalse(editor.uiState.value.isSaving)
+        assertEquals(null, editor.uiState.value.saveError)
+        editor.saveSite()
+        mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
+        assertEquals("Updated title", source.savedSite?.title)
+    }
 
     @Test fun missingPreviewRegionHasSpecificRecoveryReason() = runTest {
         val source = FakeSitesDataSource()
@@ -181,15 +208,14 @@ class AddEditViewModelTest {
     }
 
     @Test
-    fun `new monitor defaults to screenshots where supported and stores that rule`() = runTest {
+    fun `new monitor defaults to direct text and stores that rule`() = runTest {
         val source = FakeSitesDataSource()
         val editor = createViewModel(dataSource = source)
-        val expected = if (com.bernaferrari.changedetection.repo.supportsVisualMonitoring) com.bernaferrari.changedetection.repo.CaptureMode.SCREENSHOT else com.bernaferrari.changedetection.repo.CaptureMode.TEXT
-        assertEquals(expected, editor.uiState.value.captureMode)
+        assertEquals(CaptureMode.DIRECT_TEXT, editor.uiState.value.captureMode)
         editor.setUrl("example.com")
         editor.saveSite()
         mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
-        assertEquals(expected, source.savedSite?.captureMode)
+        assertEquals(CaptureMode.DIRECT_TEXT, source.savedSite?.captureMode)
         assertEquals(0, source.savedSite?.threshold)
     }
 
@@ -396,11 +422,11 @@ class AddEditViewModelTest {
         }
         val editor = createViewModel(dataSource = source, preferences = store)
         mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
-        assertEquals(com.bernaferrari.changedetection.repo.CaptureMode.TEXT, editor.uiState.value.captureMode)
+        assertEquals(CaptureMode.DIRECT_TEXT, editor.uiState.value.captureMode)
         editor.setUrl("localhost")
         editor.saveSite()
         mainDispatcherRule.dispatcher.scheduler.advanceUntilIdle()
-        assertEquals(com.bernaferrari.changedetection.repo.CaptureMode.TEXT, source.savedSite?.captureMode)
+        assertEquals(CaptureMode.DIRECT_TEXT, source.savedSite?.captureMode)
         editor.setCaptureMode(com.bernaferrari.changedetection.repo.CaptureMode.SOURCE)
         assertEquals(com.bernaferrari.changedetection.repo.CaptureMode.SOURCE, editor.uiState.value.captureMode)
     }
@@ -697,7 +723,15 @@ class AddEditViewModelTest {
 
         override fun getDataWithChanges(): Flow<List<Site>> = flowOf(listOfNotNull(savedSite))
 
-        override suspend fun getSiteById(siteId: String): Site? = savedSite?.takeIf { it.id == siteId }
+        var cancelNextRead = false
+
+        override suspend fun getSiteById(siteId: String): Site? {
+            if (cancelNextRead) {
+                cancelNextRead = false
+                throw CancellationException("Site read cancelled")
+            }
+            return savedSite?.takeIf { it.id == siteId }
+        }
 
         override suspend fun getSiteByUrl(siteUrl: String): Site? = savedSite?.takeIf { it.url == siteUrl }
 

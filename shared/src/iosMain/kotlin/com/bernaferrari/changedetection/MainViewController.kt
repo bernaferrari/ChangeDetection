@@ -80,7 +80,8 @@ fun MainViewController(): UIViewController {
     val platformActions = PlatformActions(
         openUrl = ::openUrl,
         openEmail = ::openEmail,
-        requestNotifications = ::requestIosNotificationPermission,
+        requestNotificationsAutomatically = { requestIosNotificationPermission() },
+        requestNotificationsExplicitly = ::requestIosNotificationPermission,
         openNotificationSettings = {
             NSURL.URLWithString(UIApplicationOpenSettingsURLString)?.let { UIApplication.sharedApplication.openURL(it, emptyMap<Any?, Any>(), null) }
         },

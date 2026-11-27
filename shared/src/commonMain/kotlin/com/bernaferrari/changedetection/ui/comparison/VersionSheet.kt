@@ -266,7 +266,13 @@ private fun ChangeThumb(snap: Snap, hasPrevious: Boolean, preview: ChangePreview
 @Composable
 private fun SnapCrop(snapId: String, top: Float, bottom: Float, modifier: Modifier = Modifier, thumbAspect: Float = 64f / 48f) {
     val crop by produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, snapId, top, bottom) {
-        val bytes = runCatching { optional<SnapsRepository>()?.getSnapContent(snapId) }.getOrNull() ?: return@produceState
+        val bytes = try {
+            optional<SnapsRepository>()?.getSnapContent(snapId)
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            null
+        } ?: return@produceState
         val pageAspect = imageAspect(bytes)
         // Height of a full-width window with the thumbnail's proportions, as a share of the page.
         val window = if (pageAspect > 0f) (pageAspect / thumbAspect).coerceAtMost(1f) else (bottom - top)

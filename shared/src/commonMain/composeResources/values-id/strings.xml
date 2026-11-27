@@ -20,7 +20,7 @@
     <string name="more_options">Opsi lainnya</string>
     <string name="loading">Memuat…</string>
     <string name="saving">Menyimpan…</string>
-    <string name="turbo_mode">Turbo</string>
+    <string name="turbo_mode">Pemantauan cepat</string>
     <string name="how_it_works">Cara kerja</string>
     <string name="select_site_canvas_label">Perubahan desk Anda</string>
     <string name="select_site_canvas_title">Setiap update, di tempat yang tenang.</string>
@@ -32,13 +32,13 @@
         <item quantity="other">%1$d halaman dipilih</item>
     </plurals>
     <string name="nav_home">Beranda</string>
-    <string name="nav_turbo">Turbo</string>
+    <string name="nav_turbo">Pemantauan cepat</string>
     <string name="nav_settings">Setelan</string>
     <string name="home_action_check_now">Periksa sekarang</string>
     <string name="home_section_attention">Perlu perhatian</string>
     <string name="home_search_clear">Hapus pencarian</string>
     <string name="home_search_close">Tutup pencarian</string>
-    <string name="turbo_ended">Turbo selesai</string>
+    <string name="turbo_ended">Pemantauan cepat selesai</string>
     <string name="settings_title">Setelan</string>
     <string name="settings_theme_label">Tema</string>
     <string name="settings_palette_label">Warna</string>
@@ -139,9 +139,9 @@
     <string name="how_it_works_step_monitor_title">Pilih seberapa sering Anda harus memeriksa</string>
     <string name="how_it_works_step_monitor_description">Gunakan verifikasi latar belakang yang ramah baterai untuk pengesanan sehari-hari.</string>
     <string name="how_it_works_step_monitor_highlight">Anda mengontrol interval dan kebutuhan jaringan atau daya.</string>
-    <string name="how_it_works_step_focus_title">Menggunakan Turbo ketika masalah waktu</string>
+    <string name="how_it_works_step_focus_title">Gunakan pemantauan cepat saat waktu penting</string>
     <string name="how_it_works_step_focus_description">Periksa halaman yang dipilih setiap %1$d hingga %2$d detik selama hingga 3 jam.</string>
-    <string name="how_it_works_step_focus_highlight">Turbo menghentikan saat timernya berakhir. Anda dapat menghentikannya lebih awal pada bila-bila masa.</string>
+    <string name="how_it_works_step_focus_highlight">Pemantauan cepat menghentikan saat timernya berakhir. Anda dapat menghentikannya lebih awal pada bila-bila masa.</string>
     <string name="how_it_works_step_alerts_title">Pertimbangkan apa yang telah berubah</string>
     <string name="how_it_works_step_alerts_description">Buka halaman untuk membandingkan versi yang disimpan seperti teks, halaman render, atau screenshots.</string>
     <string name="how_it_works_step_alerts_highlight">Versi yang disimpan dan perubahan sejarah tetap di perangkat Anda.</string>
@@ -212,7 +212,7 @@
     <string name="snapshot_deleted">Versi dihapus</string>
     <string name="comparison_check_now_hint">Halaman ini telah diperiksa sekali sampai sekarang — periksa lagi untuk melihat apa yang berubah.</string>
     <string name="schedule_save_failed">Anda tidak bisa menggunakan jadwal. silakan coba lagi.</string>
-    <string name="turbo_stop_session">Berhenti Turbo</string>
+    <string name="turbo_stop_session">Hentikan pemantauan cepat</string>
     <string name="storage_history_title">Sejarah yang diselamatkan</string>
     <string name="storage_history_usage">%1$s MB dari versi yang disimpan</string>
     <string name="storage_history_policy">Versi yang lebih tua dihapus lebih dari 250 MB. dua versi terbaru dari setiap halaman selalu disimpan, bahkan jika mereka melebihi anggaran ini.</string>
@@ -319,7 +319,7 @@
     <string name="settings_load_failed">Setelan tidak dapat dimuat. Coba lagi.</string>
     <string name="settings_write_failed">Anda tidak bisa menyelamatkan pilihan Anda. coba lagi.</string>
     <string name="storage_history_load_failed">Penggunaan penyimpanan tidak dapat dimuat.</string>
-    <string name="turbo_unavailable_title">Turbo tidak tersedia dalam preview ini</string>
+    <string name="turbo_unavailable_title">Pemantauan cepat tidak tersedia dalam preview ini</string>
     <string name="turbo_unavailable_description">Gunakan aplikasi Android, iOS atau desktop untuk memulai sesi pemantauan.</string>
     <string name="image_diff_sampled_pixels_different">%1$s pixel sampel berbeda. statistik menggunakan preview ukuran yang dikurangi.</string>
     <string name="check_failure_capture_unavailable">Screenshot check tidak tersedia</string>
@@ -387,9 +387,9 @@
     <string name="home_select_pages">Pilih halaman</string>
     <string name="detail_status_failed">Pemeriksaan terakhir gagal %1$s</string>
     <string name="detail_calendar_summary">%1$s di atas %2$s dalam 30 hari terakhir</string>
-    <string name="turbo_sheet_no_pages">Tidak ada halaman aktif lagi. mengembalikan halaman sebelum memulai Turbo.</string>
+    <string name="turbo_sheet_no_pages">Tidak ada halaman aktif lagi. mengembalikan halaman sebelum memulai Pemantauan cepat.</string>
     <string name="turbo_sheet_paused_note">Halaman yang dihentikan tidak dimasukkan.</string>
-    <string name="turbo_live_note_while_open">Turbo terus memeriksa saat aplikasi terbuka. Anda dapat meninggalkan layar ini dan kembali untuk melihat perubahan.</string>
+    <string name="turbo_live_note_while_open">Pemantauan cepat terus memeriksa saat aplikasi terbuka. Anda dapat meninggalkan layar ini dan kembali untuk melihat perubahan.</string>
     <string name="image_diff_highlight_unavailable_body">Coba lagi atau gunakan Sebelum dan Setelah untuk memeriksa screenshots yang disimpan.</string>
     <string name="image_diff_dimensions_supporting">Bandingkan catatan di bawah; ukuran yang berbeda mencegah perbandingan piksel langsung.</string>
     <string name="turbo_card_cadence">Setiap %1$s · %2$s</string>
@@ -459,7 +459,7 @@
     <string name="turbo_sheet_for">Berhenti setelah</string>
     <string name="turbo_sheet_pick">Pilih setidaknya satu halaman</string>
     <plurals name="turbo_sheet_start">
-        <item quantity="other">Mulai Turbo untuk %1$d halaman</item>
+        <item quantity="other">Mulai Pemantauan cepat untuk %1$d halaman</item>
     </plurals>
     <string name="turbo_sheet_caption">Berakhir pada %1$s · Menggunakan lebih banyak baterai saat berjalan</string>
     <string name="turbo_run_again">Berlari lagi</string>
@@ -470,20 +470,20 @@
     <string name="turbo_ends_at">Berakhir %1$s</string>
     <string name="turbo_changed">Berubah</string>
     <string name="turbo_checking">Periksa</string>
-    <string name="turbo_ended_planned">Turbo berakhir seperti yang direncanakan</string>
-    <string name="turbo_ended_stopped">Turbo dihentikan oleh Anda</string>
-    <string name="turbo_ended_interrupted">Turbo ditangguhkan.</string>
-    <string name="turbo_ended_failed">Turbo tidak bisa dimulai</string>
+    <string name="turbo_ended_planned">Pemantauan cepat berakhir seperti yang direncanakan</string>
+    <string name="turbo_ended_stopped">Pemantauan cepat dihentikan oleh Anda</string>
+    <string name="turbo_ended_interrupted">Pemantauan cepat ditangguhkan.</string>
+    <string name="turbo_ended_failed">Pemantauan cepat tidak bisa dimulai</string>
     <string name="turbo_row_quiet">Tidak ada perubahan · disemak %1$d s yang lalu</string>
     <string name="nav_activity">Aktivitas</string>
     <plurals name="turbo_card_title_n">
-        <item quantity="other">Turbo · %1$d halaman</item>
+        <item quantity="other">Pemantauan cepat · %1$d halaman</item>
     </plurals>
     <string name="turbo_found_none">Tidak ada perubahan yang ditemukan</string>
     <plurals name="turbo_summary_checks">
         <item quantity="other">%1$d pemeriksaan</item>
     </plurals>
-    <string name="turbo_live_note">Turbo terus berjalan jika Anda meninggalkan layar ini. Anda akan menerima pemberitahuan saat halaman berubah.</string>
+    <string name="turbo_live_note">Pemantauan cepat terus berjalan jika Anda meninggalkan layar ini. Anda akan menerima pemberitahuan saat halaman berubah.</string>
     <string-array name="weekday_names">
         <item>Senin</item>
         <item>Selasa</item>
@@ -518,7 +518,7 @@
     <plurals name="detail_delete_body">
         <item quantity="other">Semua %1$d versi yang tersimpan akan dihapus dari perangkat ini.</item>
     </plurals>
-    <string name="detail_turbo_on">Turbo adalah</string>
+    <string name="detail_turbo_on">Pemantauan cepat aktif</string>
     <string name="detail_status_paused">Berhenti · Sejarah disimpan</string>
     <string name="detail_status_checked">Diperiksa %1$s · %2$s</string>
     <string name="detail_status_checked_manual">Pemeriksaan %1$s · pemeriksaan otomatis dimatikan</string>
@@ -592,7 +592,7 @@
     <string name="checks_title">Pemeriksaan otomatis</string>
     <string name="checks_every">Setiap</string>
     <string name="checks_custom">Custom…</string>
-    <string name="checks_own_schedule_note">Jadwal ini berlaku untuk semua halaman aktif. Sesi Turbo berjalan terpisah dan tidak mengubahnya.</string>
+    <string name="checks_own_schedule_note">Jadwal ini berlaku untuk semua halaman aktif. Sesi Pemantauan cepat berjalan terpisah dan tidak mengubahnya.</string>
     <string name="checks_only_when">Hanya ketika</string>
     <string name="checks_wifi">Untuk Wi-Fi</string>
     <string name="checks_wifi_body">Menyimpan data mobile</string>
@@ -618,7 +618,7 @@
     <string name="editor_edit_title">Edit halaman</string>
     <string name="editor_start">Mulai menonton</string>
     <string name="editor_paste_title">Halaman mana yang ingin dipantau?</string>
-    <string name="editor_paste_body">Ketik alamat atau tempel tautan. Halaman akan terbuka di browser agar Anda bisa login, menemukan halaman yang tepat, dan memilih bagian yang ingin dipantau.</string>
+    <string name="editor_paste_body">Ketik alamat atau tempel tautan untuk melihat apa yang akan dipantau.</string>
     <string name="editor_compare">Perbandingan</string>
     <string name="editor_preview">Apa yang akan kita bandingkan</string>
     <string name="editor_little_text_title">Halaman ini hampir tidak memiliki teks</string>
@@ -713,7 +713,7 @@
         <item quantity="other">%1$d dihapus</item>
     </plurals>
     <string name="detail_sign_in">Menandatangani</string>
-    <string name="browser_session_note">Teks dan screenshot menggunakan profil browser dalam aplikasi. mendaftar atau menukar akun di situs mempengaruhi jam untuk situs tersebut. sesi mungkin tamat. kontrol kode tidak menggunakan cookie pendaftaran browser.</string>
+    <string name="browser_session_note">Pemeriksaan di browser memakai sesi masuk yang tersimpan di perangkat ini. Masuk atau berganti akun dapat memengaruhi pemantauan lain di situs yang sama. Sesi dapat kedaluwarsa.</string>
     <string name="turbo_next_check">Baca Juga : %1$d S</string>
     <string name="picker_selected_image">Sebuah Gambar</string>
     <string name="picker_selected_frame">Sebuah bingkai tertanam (seringkali iklan)</string>
@@ -781,7 +781,7 @@
     <string name="backup_restore">Pulihkan dari file</string>
     <string name="backup_restore_body">Menambahkan halaman yang belum ada di sini. Tidak ada yang diubah di perangkat ini.</string>
     <string name="backup_restore_settings">Pulihkan juga setelan aplikasi</string>
-    <string name="backup_privacy_note">File tidak dienkripsi dan memuat halaman yang Anda pantau. Data login tidak pernah disertakan.</string>
+    <string name="backup_privacy_note">File tidak dienkripsi. Cadangan lengkap dapat memuat HTML dan tangkapan layar pribadi dari halaman yang Anda masuki. Cookie browser tidak disertakan.</string>
     <string name="backup_working">Sedang memproses…</string>
     <string name="backup_saved">Cadangan disimpan. Halaman: %1$d · Versi: %2$d</string>
     <string name="backup_restored">Halaman ditambahkan: %1$d · Sudah ada: %2$d · Versi: %3$d</string>
@@ -797,4 +797,15 @@
     <string name="backup_pages_added">Halaman ditambahkan</string>
     <string name="backup_already_here">Sudah ada</string>
     <string name="backup_restore_complete">Pemulihan selesai</string>
+    <string name="home_unread_changes">Perubahan belum dibaca</string>
+    <string name="settings_android_tools">Cadangan, sesi masuk tersimpan, dan laporan diagnostik tersedia di Android.</string>
+    <string name="turbo_sheet_body_while_open">Periksa halaman pilihan setiap beberapa detik selama aplikasi terbuka.</string>
+    <string name="feedback_email_subject">Masukan untuk Change Detection</string>
+    <string name="backup_skipped_pages">Halaman dilewati</string>
+    <string name="backup_duplicate_versions">Versi duplikat dilewati</string>
+    <string name="android_browser_start_failed">Browser tidak dapat dimulai. Jika masih gagal, mulai ulang aplikasi.</string>
+    <string name="editor_direct_text_body">Pantau harga, tanggal, dan teks lain. Pratinjau menampilkan apa yang bisa diperiksa secara langsung.</string>
+    <string name="editor_direct_browser_hint">Ada teks yang hilang atau perlu masuk?</string>
+    <string name="editor_use_direct_preview">Gunakan pratinjau langsung</string>
+    <string name="editor_direct_empty">Tidak ada teks yang dapat dibaca di pratinjau langsung.</string>
 </resources>

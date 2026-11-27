@@ -23,7 +23,7 @@ internal fun SecureSnapshotWebView(
 ) {
     val document = remember(html) { secureSnapshotDocument(html) }
     val state = rememberWebViewStateWithHTMLData(data = document)
-    state.applySecureSnapshotSettings()
+    remember(state) { state.applySecureSnapshotSettings() }
 
     BrowserRuntimeHost(modifier) {
         PlatformBrowserView(state = state, modifier = modifier, onNavigationRequest = ::isInertSnapshotNavigation)
@@ -140,7 +140,7 @@ private fun snapshotDocument(body: String): String = """
     </html>
 """.trimIndent()
 
-private fun String.isSafeInlineImage(): Boolean = trim().lowercase().matches(INLINE_IMAGE_DATA)
+private fun String.isSafeInlineImage(): Boolean = length <= MAX_INLINE_IMAGE_CHARS && trim().matches(INLINE_IMAGE_DATA)
 
 private fun String.escapeForSnapshot(): String = replace("&", "&amp;")
     .replace("<", "&lt;")
@@ -150,6 +150,7 @@ private fun String.escapeForSnapshot(): String = replace("&", "&amp;")
 
 private const val MAX_SNAPSHOT_STYLE_CHARS = 256_000
 private const val MAX_SNAPSHOT_STYLES = 32
+private const val MAX_INLINE_IMAGE_CHARS = 1_048_576
 
 private const val UNSAFE_ELEMENTS =
     "script, style, iframe, frame, frameset, object, embed, link, base, meta, form, input, " +

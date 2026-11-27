@@ -2,6 +2,7 @@
 
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
+import org.jetbrains.compose.desktop.application.tasks.AbstractJvmToolOperationTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -158,6 +159,9 @@ kotlin {
             implementation(libs.okio)
         }
 
+        androidMain { kotlin.srcDir("src/jvmSharedMain/kotlin") }
+        getByName("desktopMain") { kotlin.srcDir("src/jvmSharedMain/kotlin") }
+
         getByName("androidHostTest") {
             kotlin.srcDir("src/androidUnitTest/kotlin")
             kotlin.srcDir("src/jvmSharedTest/kotlin")
@@ -199,16 +203,18 @@ val desktopJavaLauncher = javaToolchains.launcherFor {
     languageVersion.set(JavaLanguageVersion.of(25))
     vendor.set(JvmVendorSpec.JETBRAINS)
 }
+tasks.withType<AbstractJvmToolOperationTask>().configureEach {
+    javaHome.set(desktopJavaLauncher.map { it.metadata.installationPath.asFile.absolutePath })
+}
 val isMac = providers.systemProperty("os.name").get().contains("Mac", ignoreCase = true)
 
 compose.desktop {
     application {
         mainClass = "com.bernaferrari.changedetection.DesktopMainKt"
-        javaHome = desktopJavaLauncher.get().metadata.installationPath.asFile.absolutePath
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Rpm)
             packageName = "Change Detection"
-            packageVersion = "2.31.0"
+            packageVersion = providers.gradleProperty("appVersion").map { "$it.0" }.get()
             modules("java.sql", "java.net.http", "jdk.unsupported", "jdk.crypto.ec")
             macOS {
                 bundleID = "com.bernaferrari.changedetection.desktop"
@@ -272,7 +278,10 @@ val browserJvmArgs = listOf(
 } else {
     emptyList()
 }
-tasks.withType<JavaExec>().configureEach { jvmArgs(browserJvmArgs) }
+tasks.withType<JavaExec>().configureEach {
+    javaLauncher.set(desktopJavaLauncher)
+    jvmArgs(browserJvmArgs)
+}
 compose.desktop.application.jvmArgs += browserJvmArgs
 
 // Opt-in: exercises the real bundled native browser, not a mocked WebView or semantic tree.

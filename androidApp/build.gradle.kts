@@ -1,3 +1,4 @@
+import com.android.build.api.variant.BuildConfigField
 
 import com.github.triplet.gradle.androidpublisher.ReleaseStatus
 import java.util.Properties
@@ -56,13 +57,8 @@ android {
         applicationId = "com.bernaferrari.changedetection"
         minSdk = 26
         targetSdk = 37
-        versionCode = 48
-        versionName = "3.3"
-        val diagnosticRevision = providers.exec {
-            workingDir(rootProject.projectDir)
-            commandLine("git", "rev-parse", "--short=12", "HEAD")
-        }.standardOutput.asText.get().trim()
-        buildConfigField("String", "DIAGNOSTIC_REVISION", "\"$diagnosticRevision\"")
+        versionCode = providers.gradleProperty("appBuild").get().toInt()
+        versionName = providers.gradleProperty("appVersion").get()
     }
 
     signingConfigs {
@@ -134,4 +130,18 @@ dependencies {
 
     // Logging
     // Logging is configured through shared AppLog.
+}
+
+val diagnosticRevision = if (rootProject.file(".git").exists()) {
+    providers.exec {
+        workingDir(rootProject.projectDir)
+        commandLine("git", "rev-parse", "--short=12", "HEAD")
+        isIgnoreExitValue = true
+    }.standardOutput.asText.map { it.trim().takeIf { revision -> revision.matches(Regex("[0-9a-f]{12}")) } ?: "unknown" }
+} else {
+    providers.provider { "unknown" }
+}
+
+androidComponents.onVariants { variant ->
+    variant.buildConfigFields?.put("DIAGNOSTIC_REVISION", diagnosticRevision.map { BuildConfigField("String", "\"$it\"", null) })
 }

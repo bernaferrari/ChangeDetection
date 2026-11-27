@@ -48,6 +48,70 @@ class FailedUsedFontTest {
         }
     }
 
+    @Test fun aHealthyHeavyFaceWithNonShorthandCapsMustNotBeBlockedByUnusedNormalWeight() = runBlocking {
+        FontFixtureServer().use { server ->
+            server.customHtml = nonShorthandCapsPage(normal = "/missing.ttf", heavy = "/font.ttf")
+            val result = capture(server.url)
+            assertEquals("image/png", result.contentType)
+            assertTrue("The healthy watched weight must still yield a PNG", result.bytes.isNotEmpty())
+        }
+    }
+
+    @Test fun aFailedHeavyFaceWithNonShorthandCapsMustNotBeHiddenByHealthyNormalWeight() = runBlocking {
+        FontFixtureServer().use { server ->
+            server.customHtml = nonShorthandCapsPage(normal = "/font.ttf", heavy = "/missing.ttf")
+            val error = runCatching { capture(server.url) }.exceptionOrNull()
+            assertTrue("The failed watched weight must not yield a PNG: ${error?.javaClass?.simpleName}", error is CaptureNotReadyException)
+            assertEquals(CaptureIssue.RESOURCE_FAILED, (error as CaptureNotReadyException).issue)
+            assertEquals(
+                listOf(CaptureResourceFailure(CaptureResourceKind.FONT, fontProbe = FontProbeFailure(FontProbeFailureReason.MATCH_NOT_READY, rebuiltShorthand = true))),
+                error.resources,
+            )
+        }
+    }
+
+    @Test fun rebuiltFontQueryKeepsAStandardStretchInsteadOfTestingTheNormalFace() = runBlocking {
+        FontFixtureServer().use { server ->
+            server.customHtml = """
+                <meta name='viewport' content='width=device-width,initial-scale=1'>
+                <style>
+                  @font-face{font-family:CaptureFixture;font-stretch:100%;src:url('/missing.ttf')}
+                  @font-face{font-family:CaptureFixture;font-stretch:150%;src:url('/font.ttf')}
+                  #watched{width:160px;height:120px;font:20px CaptureFixture,monospace;font-stretch:150%;font-variant-caps:all-small-caps}
+                </style>
+                <div id='watched'>Stable selected inventory</div>
+                <script>document.fonts.load('20px CaptureFixture').catch(function(){});</script>
+            """.trimIndent()
+            val result = capture(server.url)
+            assertEquals("image/png", result.contentType)
+            assertTrue(result.bytes.isNotEmpty())
+        }
+    }
+
+    @Test fun aRejectedFontQueryHasItsOwnReasonAndDoesNotExposeTheMessage() = runBlocking {
+        FontFixtureServer().use { server ->
+            server.customHtml = """
+                <div id='watched' style='width:160px;height:120px;font:20px monospace'>Stable selected inventory</div>
+                <script>document.fonts.check=function(){throw new DOMException('private-value', 'SyntaxError');};</script>
+            """.trimIndent()
+            val error = runCatching { capture(server.url) }.exceptionOrNull()
+            assertTrue("Expected a capture readiness error", error is CaptureNotReadyException)
+            assertEquals(FontProbeFailure(FontProbeFailureReason.INVALID_QUERY, rebuiltShorthand = false), (error as CaptureNotReadyException).resources.single().fontProbe)
+            assertFalse(error.message.orEmpty().contains("private-value"))
+        }
+    }
+
+    private fun nonShorthandCapsPage(normal: String, heavy: String) = """
+        <meta name='viewport' content='width=device-width,initial-scale=1'>
+        <style>
+          @font-face{font-family:CaptureFixture;font-weight:400;src:url('$normal')}
+          @font-face{font-family:CaptureFixture;font-weight:900;src:url('$heavy')}
+          #watched{width:160px;height:120px;font:900 20px CaptureFixture,monospace;font-variant-caps:all-small-caps}
+        </style>
+        <div id='watched'>Stable selected inventory</div>
+        <script>document.fonts.load('400 20px CaptureFixture').catch(function(){});</script>
+    """.trimIndent()
+
     private suspend fun capture(url: String): ScreenshotCaptureOutcome.Success = withTimeout(30_000) {
         withContext(Dispatchers.Main.immediate) {
             val browser = AndroidScreenshotBrowserFactory(ApplicationProvider.getApplicationContext<Context>()).create()
