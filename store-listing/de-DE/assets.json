@@ -2,87 +2,112 @@
   "galleries": {
     "phone": [
       {
-        "file": "phone/v2-01-home.jpg",
+        "locale": "de-DE",
+        "kind": "phone",
+        "index": 0,
         "feature": "home",
-        "slide": 0,
+        "file": "phone/v2-01-home.jpg",
         "width": 1080,
         "height": 1920,
         "bytes": 250581,
-        "sources": [
-          "raw/phone/light/01-home.png"
-        ],
         "notes": [
           "copy shrunk to 90%"
+        ],
+        "slide": 0,
+        "sources": [
+          "raw/phone/light/01-home.png"
         ]
       },
       {
-        "file": "phone/v2-02-page.jpg",
+        "locale": "de-DE",
+        "kind": "phone",
+        "index": 1,
         "feature": "page",
-        "slide": 1,
+        "file": "phone/v2-02-page.jpg",
         "width": 1080,
         "height": 1920,
         "bytes": 207392,
+        "notes": [],
+        "slide": 1,
         "sources": [
           "raw/phone/light/02c-compare-page.png"
         ]
       },
       {
-        "file": "phone/v2-03-alert.jpg",
+        "locale": "de-DE",
+        "kind": "phone",
+        "index": 2,
         "feature": "alert",
-        "slide": 2,
+        "file": "phone/v2-03-alert.jpg",
         "width": 1080,
         "height": 1920,
         "bytes": 199778,
-        "sources": [
-          "raw/phone/light/00-alert.png"
-        ],
         "notes": [
           "copy shrunk to 90%"
+        ],
+        "slide": 2,
+        "sources": [
+          "raw/phone/light/00-alert.png"
         ]
       },
       {
-        "file": "phone/v2-04-restock.jpg",
+        "locale": "de-DE",
+        "kind": "phone",
+        "index": 3,
         "feature": "restock",
-        "slide": 3,
+        "file": "phone/v2-04-restock.jpg",
         "width": 1080,
         "height": 1920,
         "bytes": 217910,
+        "notes": [],
+        "slide": 3,
         "sources": [
           "raw/phone/light/02b-compare-restock.png"
         ]
       },
       {
-        "file": "phone/v2-05-text.jpg",
+        "locale": "de-DE",
+        "kind": "phone",
+        "index": 4,
         "feature": "text",
-        "slide": 4,
+        "file": "phone/v2-05-text.jpg",
         "width": 1080,
         "height": 1920,
         "bytes": 235431,
-        "sources": [
-          "raw/phone/light/03-compare-text.png"
-        ],
         "notes": [
           "copy shrunk to 98%"
+        ],
+        "slide": 4,
+        "sources": [
+          "raw/phone/light/03-compare-text.png"
         ]
       },
       {
-        "file": "phone/v2-06-turbo.jpg",
+        "locale": "de-DE",
+        "kind": "phone",
+        "index": 5,
         "feature": "turbo",
-        "slide": 5,
+        "file": "phone/v2-06-turbo.jpg",
         "width": 1080,
         "height": 1920,
         "bytes": 231511,
+        "notes": [],
+        "slide": 5,
         "sources": [
           "raw/phone/light/05-turbo.png"
         ]
       },
       {
-        "file": "phone/v2-07-versions.jpg",
+        "locale": "de-DE",
+        "kind": "phone",
+        "index": 6,
         "feature": "versions",
-        "slide": 6,
+        "file": "phone/v2-07-versions.jpg",
         "width": 1080,
         "height": 1920,
         "bytes": 208547,
+        "notes": [],
+        "slide": 6,
         "sources": [
           "raw/phone/light/04-versions.png"
         ]
@@ -90,51 +115,65 @@
     ],
     "tablet7": [
       {
-        "file": "tablet7/v2-01-home.jpg",
+        "locale": "de-DE",
+        "kind": "tablet7",
+        "index": 0,
         "feature": "home",
-        "slide": 0,
+        "file": "tablet7/v2-01-home.jpg",
         "width": 1200,
         "height": 1920,
         "bytes": 264986,
-        "sources": [
-          "raw/tablet7/light/01-home.png"
-        ],
         "notes": [
           "copy shrunk to 98%"
+        ],
+        "slide": 0,
+        "sources": [
+          "raw/tablet7/light/01-home.png"
         ]
       },
       {
-        "file": "tablet7/v2-02-restock.jpg",
+        "locale": "de-DE",
+        "kind": "tablet7",
+        "index": 1,
         "feature": "restock",
-        "slide": 1,
+        "file": "tablet7/v2-02-restock.jpg",
         "width": 1200,
         "height": 1920,
         "bytes": 202990,
+        "notes": [],
+        "slide": 1,
         "sources": [
           "raw/tablet7/light/02b-compare-restock.png"
         ]
       },
       {
-        "file": "tablet7/v2-03-text.jpg",
+        "locale": "de-DE",
+        "kind": "tablet7",
+        "index": 2,
         "feature": "text",
-        "slide": 2,
+        "file": "tablet7/v2-03-text.jpg",
         "width": 1200,
         "height": 1920,
         "bytes": 203425,
-        "sources": [
-          "raw/tablet7/light/03-compare-text.png"
-        ],
         "notes": [
           "copy shrunk to 98%"
+        ],
+        "slide": 2,
+        "sources": [
+          "raw/tablet7/light/03-compare-text.png"
         ]
       },
       {
-        "file": "tablet7/v2-04-turbo.jpg",
+        "locale": "de-DE",
+        "kind": "tablet7",
+        "index": 3,
         "feature": "turbo",
-        "slide": 3,
+        "file": "tablet7/v2-04-turbo.jpg",
         "width": 1200,
         "height": 1920,
         "bytes": 233353,
+        "notes": [],
+        "slide": 3,
         "sources": [
           "raw/tablet7/light/05-turbo.png"
         ]
@@ -142,45 +181,61 @@
     ],
     "tablet10": [
       {
-        "file": "tablet10/v2-01-home.jpg",
+        "locale": "de-DE",
+        "kind": "tablet10",
+        "index": 0,
         "feature": "home",
-        "slide": 0,
+        "file": "tablet10/v2-01-home.jpg",
         "width": 1920,
         "height": 1200,
         "bytes": 226608,
+        "notes": [],
+        "slide": 0,
         "sources": [
           "raw/tablet10/light/02-compare-image.png"
         ]
       },
       {
-        "file": "tablet10/v2-02-restock.jpg",
+        "locale": "de-DE",
+        "kind": "tablet10",
+        "index": 1,
         "feature": "restock",
-        "slide": 1,
+        "file": "tablet10/v2-02-restock.jpg",
         "width": 1920,
         "height": 1200,
         "bytes": 219286,
+        "notes": [],
+        "slide": 1,
         "sources": [
           "raw/tablet10/light/02b-compare-restock.png"
         ]
       },
       {
-        "file": "tablet10/v2-03-text.jpg",
+        "locale": "de-DE",
+        "kind": "tablet10",
+        "index": 2,
         "feature": "text",
-        "slide": 2,
+        "file": "tablet10/v2-03-text.jpg",
         "width": 1920,
         "height": 1200,
         "bytes": 207039,
+        "notes": [],
+        "slide": 2,
         "sources": [
           "raw/tablet10/light/03-compare-text.png"
         ]
       },
       {
-        "file": "tablet10/v2-04-turbo.jpg",
+        "locale": "de-DE",
+        "kind": "tablet10",
+        "index": 3,
         "feature": "turbo",
-        "slide": 3,
+        "file": "tablet10/v2-04-turbo.jpg",
         "width": 1920,
         "height": 1200,
         "bytes": 208909,
+        "notes": [],
+        "slide": 3,
         "sources": [
           "raw/tablet10/light/05-turbo.png"
         ]

@@ -239,7 +239,10 @@ private val htmlElementPattern = Regex("<[a-zA-Z][^>]*>")
 private fun String.hasHtmlMarkup(): Boolean = htmlElementPattern.containsMatchIn(this)
 
 @Composable
-internal fun LiveBrowserPage(url: String, modifier: Modifier) {
+internal expect fun LiveBrowserPage(url: String, modifier: Modifier)
+
+@Composable
+internal fun LegacyLiveBrowserPage(url: String, modifier: Modifier) {
     var attempt by androidx.compose.runtime.remember(url) { androidx.compose.runtime.mutableIntStateOf(0) }
     Box(modifier) {
         androidx.compose.runtime.key(url, attempt) {
@@ -248,16 +251,21 @@ internal fun LiveBrowserPage(url: String, modifier: Modifier) {
                 PlatformBrowserView(state = browser, modifier = Modifier.fillMaxSize())
             }
             if (browser.errorsForCurrentRequest.any { it.isFromMainFrame }) {
-                Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
-                    SharedEmptyState(
-                        icon = Icons.Default.ErrorOutline,
-                        title = stringResource(Res.string.local_browser_error_title),
-                        description = stringResource(Res.string.browser_load_error_body),
-                        primaryActionLabel = stringResource(Res.string.retry),
-                        onPrimaryAction = { attempt++ },
-                    )
-                }
+                LiveBrowserError(onRetry = { attempt++ })
             }
         }
+    }
+}
+
+@Composable
+internal fun LiveBrowserError(onRetry: () -> Unit) {
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
+        SharedEmptyState(
+            icon = Icons.Default.ErrorOutline,
+            title = stringResource(Res.string.local_browser_error_title),
+            description = stringResource(Res.string.browser_load_error_body),
+            primaryActionLabel = stringResource(Res.string.retry),
+            onPrimaryAction = onRetry,
+        )
     }
 }

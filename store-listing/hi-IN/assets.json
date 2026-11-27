@@ -2,78 +2,106 @@
   "galleries": {
     "phone": [
       {
-        "file": "phone/v2-01-home.jpg",
+        "locale": "hi-IN",
+        "kind": "phone",
+        "index": 0,
         "feature": "home",
-        "slide": 0,
+        "file": "phone/v2-01-home.jpg",
         "width": 1080,
         "height": 1920,
         "bytes": 221264,
+        "notes": [],
+        "slide": 0,
         "sources": [
           "raw/phone/light/01-home.png"
         ]
       },
       {
-        "file": "phone/v2-02-page.jpg",
+        "locale": "hi-IN",
+        "kind": "phone",
+        "index": 1,
         "feature": "page",
-        "slide": 1,
+        "file": "phone/v2-02-page.jpg",
         "width": 1080,
         "height": 1920,
         "bytes": 175930,
+        "notes": [],
+        "slide": 1,
         "sources": [
           "raw/phone/light/02c-compare-page.png"
         ]
       },
       {
-        "file": "phone/v2-03-alert.jpg",
+        "locale": "hi-IN",
+        "kind": "phone",
+        "index": 2,
         "feature": "alert",
-        "slide": 2,
+        "file": "phone/v2-03-alert.jpg",
         "width": 1080,
         "height": 1920,
         "bytes": 166227,
+        "notes": [],
+        "slide": 2,
         "sources": [
           "raw/phone/light/00-alert.png"
         ]
       },
       {
-        "file": "phone/v2-04-restock.jpg",
+        "locale": "hi-IN",
+        "kind": "phone",
+        "index": 3,
         "feature": "restock",
-        "slide": 3,
+        "file": "phone/v2-04-restock.jpg",
         "width": 1080,
         "height": 1920,
         "bytes": 208146,
+        "notes": [],
+        "slide": 3,
         "sources": [
           "raw/phone/light/02b-compare-restock.png"
         ]
       },
       {
-        "file": "phone/v2-05-text.jpg",
+        "locale": "hi-IN",
+        "kind": "phone",
+        "index": 4,
         "feature": "text",
-        "slide": 4,
+        "file": "phone/v2-05-text.jpg",
         "width": 1080,
         "height": 1920,
         "bytes": 215642,
+        "notes": [],
+        "slide": 4,
         "sources": [
           "raw/phone/light/03-compare-text.png"
         ]
       },
       {
-        "file": "phone/v2-06-turbo.jpg",
+        "locale": "hi-IN",
+        "kind": "phone",
+        "index": 5,
         "feature": "turbo",
-        "slide": 5,
+        "file": "phone/v2-06-turbo.jpg",
         "width": 1080,
         "height": 1920,
         "bytes": 215258,
+        "notes": [],
+        "slide": 5,
         "sources": [
           "raw/phone/light/05-turbo.png"
         ]
       },
       {
-        "file": "phone/v2-07-versions.jpg",
+        "locale": "hi-IN",
+        "kind": "phone",
+        "index": 6,
         "feature": "versions",
-        "slide": 6,
+        "file": "phone/v2-07-versions.jpg",
         "width": 1080,
         "height": 1920,
         "bytes": 194273,
+        "notes": [],
+        "slide": 6,
         "sources": [
           "raw/phone/light/04-versions.png"
         ]
@@ -81,45 +109,61 @@
     ],
     "tablet7": [
       {
-        "file": "tablet7/v2-01-home.jpg",
+        "locale": "hi-IN",
+        "kind": "tablet7",
+        "index": 0,
         "feature": "home",
-        "slide": 0,
+        "file": "tablet7/v2-01-home.jpg",
         "width": 1200,
         "height": 1920,
         "bytes": 232599,
+        "notes": [],
+        "slide": 0,
         "sources": [
           "raw/tablet7/light/01-home.png"
         ]
       },
       {
-        "file": "tablet7/v2-02-restock.jpg",
+        "locale": "hi-IN",
+        "kind": "tablet7",
+        "index": 1,
         "feature": "restock",
-        "slide": 1,
+        "file": "tablet7/v2-02-restock.jpg",
         "width": 1200,
         "height": 1920,
         "bytes": 193680,
+        "notes": [],
+        "slide": 1,
         "sources": [
           "raw/tablet7/light/02b-compare-restock.png"
         ]
       },
       {
-        "file": "tablet7/v2-03-text.jpg",
+        "locale": "hi-IN",
+        "kind": "tablet7",
+        "index": 2,
         "feature": "text",
-        "slide": 2,
+        "file": "tablet7/v2-03-text.jpg",
         "width": 1200,
         "height": 1920,
         "bytes": 180883,
+        "notes": [],
+        "slide": 2,
         "sources": [
           "raw/tablet7/light/03-compare-text.png"
         ]
       },
       {
-        "file": "tablet7/v2-04-turbo.jpg",
+        "locale": "hi-IN",
+        "kind": "tablet7",
+        "index": 3,
         "feature": "turbo",
-        "slide": 3,
+        "file": "tablet7/v2-04-turbo.jpg",
         "width": 1200,
         "height": 1920,
         "bytes": 219806,
+        "notes": [],
+        "slide": 3,
         "sources": [
           "raw/tablet7/light/05-turbo.png"
         ]
@@ -127,45 +171,61 @@
     ],
     "tablet10": [
       {
-        "file": "tablet10/v2-01-home.jpg",
+        "locale": "hi-IN",
+        "kind": "tablet10",
+        "index": 0,
         "feature": "home",
-        "slide": 0,
+        "file": "tablet10/v2-01-home.jpg",
         "width": 1920,
         "height": 1200,
         "bytes": 202174,
+        "notes": [],
+        "slide": 0,
         "sources": [
           "raw/tablet10/light/02-compare-image.png"
         ]
       },
       {
-        "file": "tablet10/v2-02-restock.jpg",
+        "locale": "hi-IN",
+        "kind": "tablet10",
+        "index": 1,
         "feature": "restock",
-        "slide": 1,
+        "file": "tablet10/v2-02-restock.jpg",
         "width": 1920,
         "height": 1200,
         "bytes": 205131,
+        "notes": [],
+        "slide": 1,
         "sources": [
           "raw/tablet10/light/02b-compare-restock.png"
         ]
       },
       {
-        "file": "tablet10/v2-03-text.jpg",
+        "locale": "hi-IN",
+        "kind": "tablet10",
+        "index": 2,
         "feature": "text",
-        "slide": 2,
+        "file": "tablet10/v2-03-text.jpg",
         "width": 1920,
         "height": 1200,
         "bytes": 190153,
+        "notes": [],
+        "slide": 2,
         "sources": [
           "raw/tablet10/light/03-compare-text.png"
         ]
       },
       {
-        "file": "tablet10/v2-04-turbo.jpg",
+        "locale": "hi-IN",
+        "kind": "tablet10",
+        "index": 3,
         "feature": "turbo",
-        "slide": 3,
+        "file": "tablet10/v2-04-turbo.jpg",
         "width": 1920,
         "height": 1200,
         "bytes": 197661,
+        "notes": [],
+        "slide": 3,
         "sources": [
           "raw/tablet10/light/05-turbo.png"
         ]

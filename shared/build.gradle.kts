@@ -110,6 +110,7 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(libs.kmpwright.core)
+            implementation(libs.kmpwright.compose)
             implementation(libs.koin.android)
             implementation(libs.koin.compose)
             implementation(libs.koin.workmanager)

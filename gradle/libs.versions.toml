@@ -29,6 +29,7 @@ materialKolor = "6.0.0"
 mockito = "5.24.0"
 mockito-kotlin = "6.4.0"
 kermit = "2.2.0"
+kmpwright = "0.0.3"
 nav3 = "1.2.0"
 nav3Lifecycle = "2.11.0"
 okio = "3.18.2"
@@ -44,7 +45,8 @@ version-catalog-update = "1.1.1"
 work = "2.12.0"
 
 [libraries]
-kmpwright-core = "io.github.bernaferrari:kmpwright-core:0.0.2"
+kmpwright-compose = { module = "io.github.bernaferrari:kmpwright-compose", version.ref = "kmpwright" }
+kmpwright-core = { module = "io.github.bernaferrari:kmpwright-core", version.ref = "kmpwright" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "ktx" }
