@@ -9,7 +9,7 @@
         "file": "phone/v2-01-home.jpg",
         "width": 1080,
         "height": 1920,
-        "bytes": 236740,
+        "bytes": 239155,
         "notes": [
           "copy shrunk to 96%"
         ],
@@ -26,7 +26,7 @@
         "file": "phone/v2-02-page.jpg",
         "width": 1080,
         "height": 1920,
-        "bytes": 191565,
+        "bytes": 193641,
         "notes": [],
         "slide": 1,
         "sources": [
@@ -41,7 +41,7 @@
         "file": "phone/v2-03-alert.jpg",
         "width": 1080,
         "height": 1920,
-        "bytes": 192177,
+        "bytes": 194327,
         "notes": [],
         "slide": 2,
         "sources": [
@@ -56,7 +56,7 @@
         "file": "phone/v2-04-restock.jpg",
         "width": 1080,
         "height": 1920,
-        "bytes": 208322,
+        "bytes": 210012,
         "notes": [],
         "slide": 3,
         "sources": [
@@ -71,7 +71,7 @@
         "file": "phone/v2-05-text.jpg",
         "width": 1080,
         "height": 1920,
-        "bytes": 235744,
+        "bytes": 237906,
         "notes": [],
         "slide": 4,
         "sources": [
@@ -86,7 +86,7 @@
         "file": "phone/v2-06-turbo.jpg",
         "width": 1080,
         "height": 1920,
-        "bytes": 224273,
+        "bytes": 225905,
         "notes": [],
         "slide": 5,
         "sources": [
@@ -101,7 +101,7 @@
         "file": "phone/v2-07-versions.jpg",
         "width": 1080,
         "height": 1920,
-        "bytes": 192838,
+        "bytes": 194383,
         "notes": [],
         "slide": 6,
         "sources": [
@@ -118,7 +118,7 @@
         "file": "tablet7/v2-01-home.jpg",
         "width": 1200,
         "height": 1920,
-        "bytes": 246707,
+        "bytes": 248656,
         "notes": [],
         "slide": 0,
         "sources": [
@@ -133,7 +133,7 @@
         "file": "tablet7/v2-02-restock.jpg",
         "width": 1200,
         "height": 1920,
-        "bytes": 194839,
+        "bytes": 196403,
         "notes": [],
         "slide": 1,
         "sources": [
@@ -148,7 +148,7 @@
         "file": "tablet7/v2-03-text.jpg",
         "width": 1200,
         "height": 1920,
-        "bytes": 202802,
+        "bytes": 205002,
         "notes": [],
         "slide": 2,
         "sources": [
@@ -163,7 +163,7 @@
         "file": "tablet7/v2-04-turbo.jpg",
         "width": 1200,
         "height": 1920,
-        "bytes": 227686,
+        "bytes": 229163,
         "notes": [],
         "slide": 3,
         "sources": [
@@ -180,7 +180,7 @@
         "file": "tablet10/v2-01-home.jpg",
         "width": 1920,
         "height": 1200,
-        "bytes": 211131,
+        "bytes": 212618,
         "notes": [],
         "slide": 0,
         "sources": [
@@ -195,7 +195,7 @@
         "file": "tablet10/v2-02-restock.jpg",
         "width": 1920,
         "height": 1200,
-        "bytes": 209198,
+        "bytes": 210502,
         "notes": [],
         "slide": 1,
         "sources": [
@@ -210,7 +210,7 @@
         "file": "tablet10/v2-03-text.jpg",
         "width": 1920,
         "height": 1200,
-        "bytes": 203918,
+        "bytes": 205744,
         "notes": [],
         "slide": 2,
         "sources": [
@@ -225,7 +225,7 @@
         "file": "tablet10/v2-04-turbo.jpg",
         "width": 1920,
         "height": 1200,
-        "bytes": 205378,
+        "bytes": 206770,
         "notes": [],
         "slide": 3,
         "sources": [
@@ -259,7 +259,7 @@
         "file": "readme/what-changed.jpg",
         "width": 2400,
         "height": 1260,
-        "bytes": 271773,
+        "bytes": 274683,
         "notes": [
           "copy shrunk to 98%"
         ],
@@ -294,7 +294,7 @@
         "file": "readme/big-screen.jpg",
         "width": 2400,
         "height": 1260,
-        "bytes": 288232,
+        "bytes": 290312,
         "notes": [
           "copy shrunk to 94%"
         ],

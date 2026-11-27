@@ -9,7 +9,7 @@
         "file": "phone/v2-01-home.jpg",
         "width": 1080,
         "height": 1920,
-        "bytes": 250581,
+        "bytes": 252159,
         "notes": [
           "copy shrunk to 90%"
         ],
@@ -26,7 +26,7 @@
         "file": "phone/v2-02-page.jpg",
         "width": 1080,
         "height": 1920,
-        "bytes": 207392,
+        "bytes": 209121,
         "notes": [],
         "slide": 1,
         "sources": [
@@ -41,7 +41,7 @@
         "file": "phone/v2-03-alert.jpg",
         "width": 1080,
         "height": 1920,
-        "bytes": 199778,
+        "bytes": 201429,
         "notes": [
           "copy shrunk to 90%"
         ],
@@ -58,8 +58,10 @@
         "file": "phone/v2-04-restock.jpg",
         "width": 1080,
         "height": 1920,
-        "bytes": 217910,
-        "notes": [],
+        "bytes": 221803,
+        "notes": [
+          "copy shrunk to 96%"
+        ],
         "slide": 3,
         "sources": [
           "raw/phone/light/02b-compare-restock.png"
@@ -73,9 +75,9 @@
         "file": "phone/v2-05-text.jpg",
         "width": 1080,
         "height": 1920,
-        "bytes": 235431,
+        "bytes": 239038,
         "notes": [
-          "copy shrunk to 98%"
+          "copy shrunk to 96%"
         ],
         "slide": 4,
         "sources": [
@@ -90,7 +92,7 @@
         "file": "phone/v2-06-turbo.jpg",
         "width": 1080,
         "height": 1920,
-        "bytes": 231511,
+        "bytes": 233326,
         "notes": [],
         "slide": 5,
         "sources": [
@@ -105,7 +107,7 @@
         "file": "phone/v2-07-versions.jpg",
         "width": 1080,
         "height": 1920,
-        "bytes": 208547,
+        "bytes": 210011,
         "notes": [],
         "slide": 6,
         "sources": [
@@ -122,7 +124,7 @@
         "file": "tablet7/v2-01-home.jpg",
         "width": 1200,
         "height": 1920,
-        "bytes": 264986,
+        "bytes": 267745,
         "notes": [
           "copy shrunk to 98%"
         ],
@@ -139,8 +141,10 @@
         "file": "tablet7/v2-02-restock.jpg",
         "width": 1200,
         "height": 1920,
-        "bytes": 202990,
-        "notes": [],
+        "bytes": 207490,
+        "notes": [
+          "copy shrunk to 98%"
+        ],
         "slide": 1,
         "sources": [
           "raw/tablet7/light/02b-compare-restock.png"
@@ -154,7 +158,7 @@
         "file": "tablet7/v2-03-text.jpg",
         "width": 1200,
         "height": 1920,
-        "bytes": 203425,
+        "bytes": 206180,
         "notes": [
           "copy shrunk to 98%"
         ],
@@ -171,7 +175,7 @@
         "file": "tablet7/v2-04-turbo.jpg",
         "width": 1200,
         "height": 1920,
-        "bytes": 233353,
+        "bytes": 235232,
         "notes": [],
         "slide": 3,
         "sources": [
@@ -188,7 +192,7 @@
         "file": "tablet10/v2-01-home.jpg",
         "width": 1920,
         "height": 1200,
-        "bytes": 226608,
+        "bytes": 228646,
         "notes": [],
         "slide": 0,
         "sources": [
@@ -203,7 +207,7 @@
         "file": "tablet10/v2-02-restock.jpg",
         "width": 1920,
         "height": 1200,
-        "bytes": 219286,
+        "bytes": 221485,
         "notes": [],
         "slide": 1,
         "sources": [
@@ -218,7 +222,7 @@
         "file": "tablet10/v2-03-text.jpg",
         "width": 1920,
         "height": 1200,
-        "bytes": 207039,
+        "bytes": 209391,
         "notes": [],
         "slide": 2,
         "sources": [
@@ -233,7 +237,7 @@
         "file": "tablet10/v2-04-turbo.jpg",
         "width": 1920,
         "height": 1200,
-        "bytes": 208909,
+        "bytes": 210689,
         "notes": [],
         "slide": 3,
         "sources": [
